@@ -1,0 +1,2253 @@
+# All Individual Effects
+
+Total unique effects: 2247
+
+## Effects List (Alphabetical)
+
+- 'Brain-zaps'
+- ‘White-out’ or cataleptic episodes at high doses
+- Abdominal pain
+- Abrupt cessation of visuals / thought loops
+- abrupt dysphoric crash
+- Abrupt return of consciousness
+- Absence of effects (acc. to some reports)
+- Absence of strong euphoria or cognitive impairment at normal doses
+- Accelerated & recursive thought patterns
+- after-glow calm
+- After-glow calmness
+- After-glow dysphoria or brain-fog
+- after-glow dysphoria or emptiness
+- after-glow empathy or mild dysphoria
+- After-glow euphoria
+- after-glow mood lift
+- After-glow mood lift
+- After-glow or residual stimulation
+- after-glow stimulation / insomnia
+- After-glow stimulation or dysphoria
+- After-glow/insomnia
+- after-image tracers
+- Afterglow
+- afterglow
+- Afterglow characterized by calm & introspection
+- afterglow clarity
+- Afterglow dysphoria or irritability
+- Afterglow fatigue
+- Afterglow fatigue or headache
+- Afterglow lethargy
+- Afterglow mood-lift
+- afterglow or depressive fatigue
+- Afterglow or residual stimulation
+- Agitation
+- alert focus
+- Alertness
+- alertness
+- Alertness & wakefulness
+- alertness and increased talkativeness
+- Altered body perception
+- Altered perception
+- Altered perception of time
+- Altered perception of time and space
+- Altered thinking
+- Altered thinking and perception
+- Altered thinking processes
+- Altered thought patterns
+- Altered thought patterns & insights
+- Altered time perception
+- Amnesia
+- Amnesia (at high doses)
+- Amnesia (at higher doses)
+- Amnesia (high doses)
+- Amnesia / memory fragmentation
+- amnesia at high doses
+- amnesia/blackouts
+- Analgesia
+- analgesia
+- Analgesia (especially inflammatory pain)
+- Analgesia (especially visceral/neuropathic)
+- Analgesia (pain relief)
+- Analgesia / numbness
+- analgesia / physical numbness
+- Analgesia & proprioceptive drift
+- analgesia and amnesia
+- Analgesia and body-numbness
+- analgesia and limb numbness
+- analgesia and motor incoordination
+- analgesia and numbness
+- Analgesia and physical numbness
+- analgesia with emotional detachment from pain
+- Analgesia without pronounced euphoria
+- analytic clarity followed by confusion
+- analytic, ‘clear-window’ head-space
+- Analytical detachment
+- Analytical mental clarity
+- Analytical thinking
+- Analytical thinking boost
+- Analytical, ‘dream-logic’ thinking
+- Analytical/abstract thought
+- Analytical/reflective thinking
+- anorexia
+- Anorexia
+- anorexia and dry mouth
+- anterograde amnesia
+- Anterograde amnesia
+- anterograde amnesia at higher doses
+- anterograde amnesia at overdose levels
+- Anti-inflammatory body relief
+- anti-inflammatory relief
+- Anti-inflammatory relief (subjective)
+- Anticholinergic effects (blurred vision, constipation)
+- Anticonvulsant effect
+- Anticonvulsant effects
+- Antiemetic/GI relief
+- antipruritic relief
+- Anxiety
+- anxiety
+- Anxiety (at high doses)
+- Anxiety (at higher doses)
+- Anxiety (dose-dependent)
+- Anxiety (especially at high doses)
+- Anxiety (especially during comedown)
+- Anxiety (in some users)
+- Anxiety (or anxiety reduction in some users)
+- Anxiety / jitteriness
+- Anxiety / jitteriness (dose-dependent)
+- Anxiety / jitteriness at high doses
+- Anxiety / panic
+- anxiety / paranoia
+- Anxiety / paranoia (dose‑dependent)
+- anxiety / paranoia on comedown
+- Anxiety and dysphoria
+- anxiety and paranoia
+- anxiety at high dose
+- Anxiety at high doses
+- anxiety at high doses
+- Anxiety at higher doses
+- anxiety at higher doses
+- Anxiety on comedown
+- Anxiety or agitation
+- Anxiety or agitation at high doses
+- Anxiety or agitation at higher doses
+- anxiety or agitation at higher doses
+- Anxiety or confusion (high/late redose)
+- Anxiety or confusion (higher doses)
+- Anxiety or confusion at high dose
+- Anxiety or confusion at high doses
+- Anxiety or confusion at very high doses
+- Anxiety or dysphoria
+- Anxiety or dysphoria (dose-dependent)
+- Anxiety or dysphoria at high dose
+- Anxiety or irritability at high dose/redose
+- anxiety or irritability on comedown
+- Anxiety or irritability on comedown
+- anxiety or jitteriness (dose-dependent)
+- Anxiety or jitteriness (dose-dependent)
+- Anxiety or jitteriness (higher doses)
+- Anxiety or jitteriness at high doses
+- anxiety or jitteriness at higher doses
+- Anxiety or jitteriness at higher doses
+- Anxiety or low mood during comedown
+- anxiety or OCD flare (high dose)
+- Anxiety or panic
+- Anxiety or panic (dose-dependent)
+- Anxiety or panic (sometimes lasting days)
+- Anxiety or panic at high doses or in overstimulating settings
+- Anxiety or panic at higher doses
+- Anxiety or panic in poorly prepared settings
+- Anxiety or panic on rapid onset
+- anxiety or paranoia
+- Anxiety or paranoia
+- Anxiety or paranoia (dose-dependent)
+- Anxiety or paranoia (high doses)
+- anxiety or paranoia (moderate–high doses)
+- Anxiety or paranoia at high dose
+- anxiety or paranoia at high doses
+- Anxiety or paranoia at high doses/poor set & setting
+- Anxiety or paranoia at higher doses
+- Anxiety or paranoia on the comedown
+- Anxiety or restlessness
+- Anxiety or restlessness (high doses)
+- Anxiety spike at onset if mis-dosed
+- Anxiety suppression
+- Anxiety, paranoia, or panic attacks
+- Anxiety/irritability
+- Anxiety/irritability (high doses)
+- anxiety/jitteriness at high doses
+- Anxiety/jitters
+- Anxiety/jitters at higher doses or during come-up
+- Anxiety/panic
+- anxiety/panic at high doses
+- Anxiety/panic at higher doses
+- Anxiogenesis at higher doses
+- anxiogenic at higher doses
+- Anxiolysis
+- anxiolysis
+- Anxiolysis (anxiety reduction)
+- Anxiolysis (anxiety relief)
+- Anxiolysis (low doses) → Anxiety/paranoia (high doses)
+- Anxiolysis (reduced anxiety)
+- Anxiolysis (reduction of anxiety)
+- Anxiolysis (some users)
+- Anxiolysis → severe anxiety/panic (high doses)
+- Anxiolysis followed by possible anxiety at higher doses
+- Anxiolysis followed by possible severe anxiety/panic
+- Anxiolysis or severe anxiety/panic (dose-dependent)
+- anxiolysis with apathy
+- anxiolysis without euphoria
+- anxiolytic tone for some; edginess for others
+- anxious comedown
+- anxious crash if sleep-deprived
+- aphrodisia at higher doses
+- Aphrodisiac effects
+- Appetite modulation (slight increase or normalization)
+- appetite stimulation
+- Appetite stimulation
+- Appetite stimulation (“munchies”)
+- Appetite suppression
+- appetite suppression
+- Appetite suppression (mild)
+- appetite suppression and dry mouth
+- Astral projection
+- Ataxia
+- ataxia
+- Ataxia (loss of coordination)
+- ataxia / motor incoordination
+- Ataxia / poor coordination
+- ataxia and nystagmus
+- ataxia and slurred speech
+- Ataxia and slurred speech
+- Ataxia at high doses
+- Ataxia, slurred speech
+- Ataxia/poor coordination
+- Ataxia/poor motor control
+- Audio enhancement
+- audio enhancement / synaesthesia
+- Auditory & visual hallucinations indistinguishable from reality
+- Auditory acuity
+- Auditory and visual distortions
+- Auditory clarity
+- Auditory distortion
+- Auditory distortions
+- Auditory distortions (pitch shifting, sound warping)
+- Auditory distortions / hallucinations
+- Auditory distortions and 'carrier wave'
+- Auditory enhancement
+- auditory enhancement (music sounds “crisp”)
+- Auditory enhancement / music euphoria
+- Auditory flanging/echo
+- Auditory flanging/echoes
+- auditory hallucinations
+- Auditory hallucinations
+- Auditory misperceptions after binges
+- Auditory pitch shifting / warbling
+- Auditory sharpening
+- Auditory sharpening and occasional synaesthesia
+- Auditory sharpening or music appreciation
+- Auditory softness/‘music appreciation’
+- Bitter-sweet citrus flavour
+- Blackouts
+- blood-pressure fluctuations
+- blunted affect
+- blunted appetite
+- blunted appetite and thirst
+- Blunted euphoria
+- Blurred vision
+- blurred vision
+- Blurred vision / mydriasis
+- Body and jaw tension
+- Body energy / stimulation
+- body euphoria and warmth
+- Body heaviness
+- Body heaviness / couch-lock
+- Body heaviness and motor incoordination
+- Body high
+- Body high / tingling
+- body lightness
+- Body lightness
+- Body lightness or heaviness
+- Body load
+- Body load (discomfort)
+- Body load (sometimes uncomfortable)
+- Body load (sometimes)
+- Body load (stomach tension, teeth clench)
+- Body load / chest pressure
+- Body load and somatic buzzing
+- Body load or discomfort
+- body load waves (occasionally cramps/tremor reported with 4-HO-MET analogues)
+- Body load: vasoconstriction, peripheral numbness/tingling
+- Body load/vasoconstriction (cold extremities, chest pressure)
+- Body load/vasoconstriction (cold extremities)
+- body numbness
+- Body relaxation
+- body temperature elevation
+- Body temperature fluctuations
+- Body tingles
+- Body tremors
+- Body warmth
+- body warmth / flushing
+- body warmth and tactile enhancement
+- Body warmth/flushing
+- Body warmth/tingling
+- Body-lightness
+- Body-lightness and analgesia
+- body-load vasoconstriction
+- boosted confidence and talkativeness
+- Bradycardia
+- bradycardia
+- Breast tenderness
+- Breathing/shifting of surfaces
+- Brief amnesia of peak
+- brief dopaminergic rush
+- Brief euphoria / mental clarity
+- bright colour enhancement
+- bright, cartoon-like visuals
+- bright, empathic mood lift
+- bright, jitter-free wakefulness
+- Bright, saturated colors
+- Brightened and saturated colours
+- Brightened colors
+- Brightened colours & tracers
+- Brilliant colour enhancement
+- Bruxism
+- bruxism
+- bruxism / jaw clenching
+- Bruxism / jaw tension
+- bruxism & jaw tension
+- Bruxism & jaw tension
+- Bruxism & muscle tension
+- Bruxism and muscle tension
+- Bruxism, jaw tension
+- Bruxism/jaw tension
+- bruxism/jaw tension
+- Bruxism/teeth grinding
+- Calm euphoria
+- calm stimulation
+- Calming effects
+- Calmness
+- Cardiac arrhythmias (high doses)
+- Cardiac effects (palpitations, arrhythmias)
+- Cardiovascular effects (e.g., increased heart rate, blood pressure)
+- cartoon-like visual character
+- caustic nasal burn
+- Chest tightness at high doses
+- clean but jittery stimulation
+- clean mental alertness
+- clean mental energy
+- clean mental stimulation
+- clean mental stimulation (hypothetical)
+- clean mental stimulation / alertness
+- clean mental stimulation and focus
+- clean peripheral stimulation (dry mouth, mydriasis)
+- clean physical stimulation
+- clean wakefulness
+- clean, euphoric stimulation
+- clean, functional stimulation
+- clear mental focus
+- clear mental stimulation
+- Clear mental stimulation
+- clear stimulant energy
+- clear-headed cognition (≤25 mg)
+- clear-headed focus
+- Clear-headed focus
+- clear-headed stimulation
+- clear-headed stimulation early, shifting to psychedelic introspection later
+- Clear-headedness (less sedating than other benzos)
+- Closed- & open-eye visuals (fractal, geometric patterns)
+- Closed- and open-eye fractal visuals
+- Closed- and open-eye geometric visuals
+- Closed-eye fractals
+- closed-eye geometric visuals
+- Closed-eye geometric visuals
+- closed-eye geometrical visuals at strong doses
+- Closed-eye geometry and fractals
+- Closed-eye geometry and patterning
+- closed-eye imagery
+- Closed-eye imagery
+- Closed-eye imagery at higher doses
+- Closed-eye patterns
+- Closed-eye visual patterns
+- closed-eye visuals
+- Closed-eye visuals
+- Closed-eye visuals & geometric patterns
+- Closed-eye visuals at high doses
+- closed-eye visuals at higher doses
+- Closed-eye visuals at higher doses
+- Closed-eye visuals or mild depersonalisation
+- Clumsiness in movement
+- cognitive ‘clarity’ at therapeutic range
+- Cognitive and memory impairment
+- Cognitive and motor impairment
+- Cognitive auras (‘mind-loops’)
+- cognitive clarity
+- Cognitive clarity
+- Cognitive detachment
+- Cognitive detachment (‘head-fog’)
+- Cognitive disconnection
+- Cognitive disconnection/"hole" states
+- Cognitive disinhibition
+- Cognitive disorganisation
+- Cognitive dissociation
+- Cognitive dulling
+- Cognitive dulling / slowed thought
+- Cognitive enhancement
+- Cognitive euphoria
+- Cognitive euphoria → mania at high dose
+- Cognitive fog
+- Cognitive fog at higher doses
+- Cognitive impairment
+- Cognitive introspection
+- Cognitive scatter / difficulty focusing at higher doses
+- Cognitive stimulation
+- Cognitive stimulation and racing thoughts
+- Cognitive suppression
+- Cognitive tunneling (‘laser focus’)
+- cognitive/physical euphoria of short duration
+- cold extremities
+- Cold extremities
+- Color & visual-acuity enhancement
+- Color and brightness enhancement
+- color and contrast enhancement
+- Color enhancement
+- color enhancement
+- Color enhancement & shifting
+- Color saturation & enhancement
+- Colorful visuals
+- Colour & pattern enhancement
+- Colour and brightness enhancement
+- Colour enhancement
+- colour enhancement
+- Colour enhancement & fractal patterning
+- Colour enhancement and shifting
+- comedown dysphoria
+- comedown dysphoria / lethargy
+- Comedown dysphoria/irritability
+- comedown fatigue & flat affect
+- Comfort
+- Comforting numbing sensation
+- complex closed-eye scenes
+- Compulsion to redose
+- Compulsive behaviors (rare)
+- Compulsive re-dosing
+- Compulsive redosing
+- compulsive redosing
+- Compulsive redosing (esp. intranasal/IV)
+- Compulsive redosing above 20 mg
+- compulsive redosing cravings
+- compulsive redosing drive
+- Compulsive redosing urge
+- Conceptual thinking
+- confidence and motivation boost
+- confident sociability
+- Confusion
+- Confusion (at high doses)
+- confusion / language suppression
+- Confusion / looping thoughts
+- Confusion and dissociation
+- Confusion at high doses
+- Confusion at higher doses
+- confusion or agitation during emergence
+- Confusion or anxiety at high doses
+- Confusion or derealization
+- Confusion or mania at high doses
+- Confusion or thought loops
+- Confusion/cognitive loops
+- Conjunctival redness
+- Constipation
+- constipation
+- constipation or episodic diarrhea
+- Contentment
+- Convulsions/seizures (overdose)
+- cooling menthol body sensations
+- Cough suppression
+- cough suppression
+- cough_suppression
+- Crash dysphoria
+- crash with fatigue and low mood
+- Crash with lethargy & low mood
+- Crash-fatigue after use
+- Crash-fatigue or low mood after offset
+- Crash: fatigue & low mood
+- Crash: fatigue, anhedonia, depressed mood, craving
+- crash: lethargy, anhedonia, irritability
+- Crash/low mood next day
+- Craving for redosing
+- Craving/compulsive redosing
+- Cravings
+- Creativity enhancement
+- crisp music appreciation
+- Decreased anxiety (during peak, from chloral)
+- Decreased appetite
+- Decreased inhibition
+- Decreased intracranial pressure
+- Decreased seizure frequency (clinical)
+- Delirium
+- Delusions
+- depersonalisation
+- Depersonalisation
+- Depersonalisation & derealisation
+- Depersonalization
+- Depression
+- Depressive ‘crash’ / fatigue
+- derealisation
+- Derealisation
+- derealisation / mild dissociation
+- Derealisation/‘clinical’ detachment
+- Derealization
+- Desire to re-dose
+- Detached, analytical cognition
+- detached, floating dissociation
+- detached, foggy cognition
+- Detachment from environment
+- Diaphoresis
+- Diarrhea
+- difficult sleep onset (‘wired & tired’)
+- Difficulty sleeping
+- difficulty sleeping and next-day lethargy at higher doses
+- Difficulty sleeping for several hours after use
+- Difficulty sleeping post-trip
+- Difficulty sleeping until 10–12 h after ingestion
+- Difficulty urinating
+- difficulty with motor coordination
+- Dilated pupils
+- dilated pupils
+- Dilated pupils (mydriasis) and blurred vision
+- dilated pupils for ≥24 h
+- Dilated pupils, nystagmus
+- Diminished inhibitions
+- Disinhibition
+- disinhibition
+- Disinhibition at higher doses
+- disinhibition with delusions of sobriety
+- Disorganized thinking
+- Disorientation
+- Dissociation
+- dissociation
+- Dissociation / out-of-body sensations
+- Dissociation & depersonalisation
+- dissociation and depersonalization
+- Dissociation at high doses
+- Dissociation with tactile warmth
+- dissociation/floaty body sensation
+- Dizziness
+- dizziness / ataxia at heavy doses
+- Dizziness / disequilibrium
+- dizziness at higher doses
+- dizziness/ataxia
+- dizziness/vertigo
+- double vision
+- Double vision / nystagmus
+- Double vision at moderate+ doses
+- Dream potentiation
+- Dream vividness / recall
+- Dream-like hypnagogia
+- dream-like imagery (pleasant or disturbing)
+- dream-like immersion
+- dream-like introspection
+- Dream-like mental state
+- dream-like mentation
+- Dream-like micro-blackouts
+- Dream-like narrative thinking
+- Dream-like state
+- Dream-like state or mild dissociation (high dose)
+- Dream-like states
+- Dream-like thought loops
+- dreamlike state
+- Dreamy or daydream-like mental state
+- Drowsiness
+- drowsiness
+- Drowsiness (higher doses)
+- dry joints / creaky ligaments
+- Dry mouth
+- dry mouth
+- Dry mouth / red eyes
+- Dry mouth and eyes
+- Dry mouth and ocular redness
+- dry mouth, bruxism
+- Dry mouth, red eyes
+- Dyspepsia
+- Dysphoria
+- dysphoria (at high doses or with chronic use)
+- Dysphoria at high dose
+- dysphoria or anxiety (dose-dependent)
+- Dysphoria/irritability on comedown
+- Ego dissolution
+- Ego dissolution at high dose
+- Ego dissolution at high doses
+- ego dissolution at high doses
+- ego fragmentation
+- Ego softening at moderate doses
+- elevated aggression/drive
+- Elevated blood pressure
+- Elevated heart rate
+- elevated heart rate
+- Elevated heart rate / blood pressure
+- Elevated heart rate & blood pressure
+- Elevated heart rate and blood pressure
+- elevated heart-rate
+- Elevated heart-rate
+- Elevated heart-rate & blood-pressure
+- elevated heart-rate & blood-pressure
+- elevated heart-rate and stimulation
+- elevated libido
+- Elevated mood
+- Elevated mood / mild euphoria
+- elevated mood and talkativeness
+- elevated motivation
+- Emergence delirium
+- Emotion suppression
+- Emotional amplification
+- Emotional amplification (lability, empathy)
+- emotional blunting
+- Emotional blunting
+- Emotional blunting / mood leveling
+- Emotional dampening
+- Emotional enhancement
+- Emotional lability
+- emotional openness
+- Emotional openness
+- emotional openness / introspection
+- emotional openness at light to common doses
+- Emotional release
+- Emotional shifts
+- Emotional warmth / mild empathogenesis
+- Emotional warmth/euphoria
+- empathetic openness
+- empathetic warmth
+- empathic euphoria
+- Empathic openness
+- empathic sociability
+- Empathic warmth
+- empathic warmth (at lower doses)
+- empathic warmth at higher doses
+- Empathic/entactogenic warmth (short-lived)
+- Empathogenic effects (mild, less than MDMA)
+- empathogenic warmth (first 2 h)
+- empathogenic/antidepressant feel
+- Empathy
+- empathy
+- Empathy (less pronounced than MDMA)
+- Empathy (mild)
+- Empathy (weak)
+- Empathy / emotional openness
+- Empathy / emotional warmth
+- Empathy / entactogenesis
+- Empathy / sociability
+- Empathy / sociability enhancement
+- Empathy & emotional insight
+- Empathy & emotional lability
+- Empathy & emotional openness
+- Empathy & sociability
+- Empathy & talkativeness
+- Empathy and prosocial feelings
+- empathy and sociability
+- Empathy and sociability
+- Empathy and tactile enhancement
+- Empathy enhancement
+- empathy enhancement
+- Empathy enhancement (mild)
+- empathy/warmth (weaker than MDMA)
+- energetic stimulation
+- Energy/body ‘buzz’
+- Enhanced appreciation of music
+- Enhanced color saturation
+- Enhanced color saturation / “HD vision”
+- Enhanced color saturation & brightness
+- Enhanced color saturation and patterning
+- enhanced color saturation and tracers
+- Enhanced colors
+- Enhanced colour saturation
+- enhanced colour saturation
+- enhanced concentration
+- Enhanced concentration/clarity
+- Enhanced creativity
+- Enhanced creativity and music appreciation
+- Enhanced dream recall
+- Enhanced dream vividness
+- Enhanced empathy
+- Enhanced empathy & sociability
+- Enhanced empathy and sociability
+- Enhanced focus
+- enhanced focus
+- Enhanced focus (some users)
+- enhanced focus & task salience
+- Enhanced focus and motivation
+- enhanced focus and productivity
+- enhanced focus and task motivation
+- enhanced focus and working memory
+- enhanced focus at low doses
+- enhanced focus with low–moderate doses
+- Enhanced focus/attention
+- Enhanced focus/task persistence
+- enhanced focus/working drive
+- Enhanced introspection
+- Enhanced learning
+- enhanced libido
+- Enhanced mental clarity/focus
+- Enhanced motivation
+- enhanced motivation/drive
+- Enhanced motivation/productivity
+- enhanced music and color appreciation
+- Enhanced music appreciation
+- enhanced music appreciation
+- enhanced music appreciation and tactile pleasure
+- enhanced opioid, cannabis or benzodiazepine sedation
+- enhanced physical energy
+- Enhanced sensory perception
+- Enhanced sociability
+- enhanced sociability
+- Enhanced sociability / talkativeness
+- Enhanced sociability & talkativeness
+- Enhanced sociability and music appreciation
+- Enhanced tactile & musical appreciation
+- enhanced tactile appreciation
+- Enhanced tactile appreciation
+- Enhanced tactile sensation
+- Enhanced tactile sensations
+- enhanced tactile/sensory perception
+- Enhanced talkativeness
+- enhanced task focus
+- Enhanced visual perception
+- Enhanced wakefulness
+- enhanced wakefulness
+- enhanced working memory
+- entactogenic warmth
+- Entactogenic warmth
+- entactogenic warmth and sociability
+- Entactogenic warmth/empathy
+- Euphoria
+- euphoria
+- Euphoria (at high doses)
+- Euphoria (at higher doses)
+- Euphoria (brief)
+- euphoria (dopaminergic)
+- euphoria (dose-dependent)
+- Euphoria (in some cases)
+- Euphoria (in some users)
+- Euphoria (inconsistent)
+- Euphoria (less pronounced than heroin)
+- Euphoria (less than MDMA)
+- Euphoria (mild-moderate)
+- Euphoria (mild–moderate)
+- Euphoria (mild, less than full agonists)
+- Euphoria (mild)
+- euphoria (mild)
+- Euphoria (moderate)
+- Euphoria (occasionally reported)
+- Euphoria (occasionally)
+- euphoria (often mild)
+- Euphoria (physical & mental)
+- Euphoria (rare, at high doses)
+- Euphoria (rare, high doses, especially with P-gp inhibitors)
+- Euphoria (rare, mostly at high doses)
+- Euphoria (rare)
+- Euphoria (serotonergic warmth)
+- Euphoria (short-lived)
+- Euphoria (theoretical, based on opioid class)
+- Euphoria (warm body high)
+- Euphoria (warm, MDMA-like)
+- euphoria / enthusiasm
+- Euphoria / mood lift
+- Euphoria & mood-lift
+- Euphoria and brightened mood at ≤600 µg
+- euphoria and empathy
+- euphoria and giggling
+- Euphoria and mood lift
+- euphoria and mood lift
+- Euphoria and mood-lift
+- Euphoria and spontaneous laughter
+- euphoria followed by emotional flattening
+- Euphoria or dysphoria
+- Euphoria or dysphoria (dose-dependent)
+- Euphoria or dysphoria depending on set/setting
+- Euphoria or dysphoria switching rapidly
+- Euphoria or manic stimulation
+- Euphoria or mood lift
+- Euphoric body high with tingling ("electric" sensation)
+- euphoric body rush
+- Euphoric stimulation
+- Explosive opioid rush
+- extreme appetite suppression
+- Extreme dry mouth and skin
+- Eye dryness
+- Facial/upper-body flushing
+- Facilitation of lucid dreaming
+- faint peripheral visual flicker at dusk (anecdotal)
+- Fatigue
+- fatigue ‘crash’ on comedown
+- Feelings of comfort and lucidity
+- Feelings of unity / interconnectedness
+- Feelings of unity or interconnectedness
+- Fine hand tremor
+- Fine tremor
+- flattened affect
+- floating dissociation
+- Floating/body-lightness
+- Floating/light-body sensation
+- floaty body-lightness
+- Floaty euphoria
+- flowing or glossy surface textures
+- Flowing tracers
+- Fluid retention
+- Flushing and hyperthermia
+- focus / task-salience enhancement
+- Focus enhancement
+- Focus intensification
+- focus/drive enhancement
+- Focused attention
+- Focused mental stimulation
+- focused motivation
+- Fractal and geometric patterning
+- Functional stimulation
+- Gastro-intestinal discomfort
+- gentle body energy / stimulation
+- gentle nodding
+- gentle serotonergic uplift ("fuzzy glow")
+- gentle stimulation
+- Geometric open- and closed-eye visuals
+- Geometric open-eye visuals
+- Geometric visual hallucinations
+- Geometric visual patterns (2-D and 3-D)
+- geometry and kaleidoscopic closed-eye imagery
+- GI discomfort and diarrhoea
+- GI peristalsis / urge to defecate
+- GI slowing/constipation
+- Giggling fits
+- Global amnesia
+- greater physical endurance & cold tolerance
+- Hallucinations
+- Hallucinations (at high doses or with chronic use)
+- Hallucinations (at high doses)
+- Hallucinations (at higher doses)
+- Hallucinations (high/overdose)
+- Hallucinations (less common than with PCP or ketamine)
+- Hallucinations (often indistinguishable from reality)
+- Hallucinations (rare, at high doses)
+- Hallucinations (rare)
+- Hallucinations (visual and auditory)
+- Hallucinations, paranoia
+- hand tremor
+- Hangover
+- hangover dysphoria
+- Hangover-like aftereffects
+- harsh chemical after-taste (insufflated)
+- harsh comedown
+- Head pressure
+- Head pressure / sinus congestion
+- Head pressure or sinus discomfort (insufflated)
+- Head/body rushes
+- Headache
+- headache
+- Headache (at high doses)
+- headache (occasional)
+- Headache / migraine-like pressure
+- headache during comedown
+- Headache during comedown
+- headache toward comedown (in some users)
+- Headache/pressure behind eyes
+- Headaches
+- Heart palpitations (adverse)
+- heart-burn / chest tightness
+- Heavy bodily warmth
+- heavy relaxation ('leaning')
+- Heavy sedation (‘cement suit’)
+- Heavy sedation / nodding
+- heavy sedation / sleep induction
+- heavy somnolence
+- Heightened empathy & sociability
+- Heightened empathy/sociability
+- High-pitched auditory tone
+- Histamine flush
+- histamine flush & pruritus
+- hot flashes or night sweats
+- Hyperactivity
+- hyperfocus / repetitive behaviour
+- Hypertension
+- Hypertension & tachycardia
+- Hyperthermia
+- hyperthermia
+- Hyperthermia / sweating
+- Hyperthermia and sweating
+- hyperthermia at high dose
+- Hypnosis (sleep induction)
+- Hypnotic (sleep-inducing) effects
+- Hypnotic effects
+- Hypnotic effects (sleep induction)
+- hypnotic sleep induction
+- hypnotic sleep promotion
+- Hypomanic stimulation
+- Impaired coordination
+- impaired coordination
+- Impaired coordination & slurred speech
+- impaired coordination & slurred speech
+- impaired coordination and balance
+- Impaired coordination at higher doses
+- Impaired memory formation
+- Impaired motor control
+- Impairment of short-term memory
+- Improved ability to achieve/maintain erection
+- Improved attention
+- Improved bone density
+- Improved concentration
+- Improved focus
+- Improved memory
+- Improved memory recall
+- Improved mood
+- Improved motor function (in Parkinson's)
+- improved physical endurance
+- Improved short-term memory & recall
+- Improved sleep quality
+- Improved social functioning
+- Improved verbal fluency
+- Improved vigilance
+- Inability to focus eyes or read
+- Increased alertness
+- increased alertness
+- Increased alertness (low dose)
+- increased appetite
+- Increased appetite
+- Increased appetite ('munchies')
+- Increased appreciation of music
+- Increased blood pressure
+- Increased brain activity
+- Increased confidence
+- Increased dream recall
+- Increased energy
+- increased energy
+- Increased energy (in some)
+- Increased energy / stimulation
+- Increased energy & talkativeness
+- Increased energy and motivation
+- Increased energy and talkativeness
+- Increased energy/alertness
+- Increased focus
+- increased focus
+- Increased focus and motivation
+- Increased focus/attention
+- Increased focus/productivity
+- Increased GABA activity
+- Increased heart rate
+- increased heart rate
+- Increased heart rate & blood pressure
+- increased heart rate & blood pressure
+- Increased heart-rate
+- Increased heart-rate & blood-pressure
+- Increased heart-rate & BP
+- Increased libido
+- increased libido
+- Increased mental clarity
+- Increased motivation
+- increased motivation
+- increased motivation / drive
+- Increased motivation / talkativeness
+- increased motivation & focus
+- Increased motivation & focus
+- increased motivation and talkativeness
+- increased motivation/drive
+- increased music appreciation
+- Increased penile firmness
+- increased perspiration
+- increased physical stamina
+- Increased risk-taking
+- increased saliva production
+- Increased sociability
+- increased sociability
+- Increased sociability / talkativeness
+- Increased sociability & talkativeness
+- Increased sociability and empathy
+- increased sociability and talkativeness
+- increased sociability at low doses
+- increased sociability/talkativeness
+- Increased sociability/talkativeness
+- increased sweating
+- increased tactile appreciation
+- Increased tactile sensation
+- Increased tactile sensitivity
+- Increased talkativeness
+- increased vascularity
+- Increased verbal fluency
+- Inner calm
+- Inner restlessness or anxiogenesis at ≥ 3 mg
+- Insightful thoughts
+- Insomnia
+- insomnia
+- Insomnia (at higher doses)
+- Insomnia (dose-dependent)
+- Insomnia (especially at higher doses or late dosing)
+- Insomnia (especially at higher doses or late in the day)
+- Insomnia (especially with late dosing)
+- Insomnia (high/late doses)
+- Insomnia (rare)
+- Insomnia / difficulty sleeping
+- Insomnia & prolonged after-stimulation
+- Insomnia after high doses
+- Insomnia after higher evening doses
+- Insomnia after peak
+- Insomnia after the main effects
+- Insomnia after the peak
+- insomnia and post-use fatigue
+- insomnia at high or late doses
+- Insomnia at higher doses
+- insomnia at higher doses
+- Insomnia during after-effects
+- Insomnia during comedown
+- insomnia during comedown
+- insomnia during the tail end
+- insomnia on late-day use
+- Insomnia or restless sleep
+- Insomnia or sleep disturbances
+- insomnia or vivid dreams
+- Insomnia post-experience
+- Insomnia/stimulation
+- Intense bodily warmth
+- intense body load / tingling
+- Intense closed- and open-eye geometry
+- Intense closed- and open-eye visual hallucinations
+- Intense closed- and open-eye visual patterning
+- intense colour enhancement and geometry
+- Intense emotional experiences
+- Intense emotional states
+- intense euphoria / 'rush'
+- intense euphoria / rush
+- Intense euphoria or dysphoria (dose-dependent)
+- intense euphoric rush (IV)
+- intense floating dissociation
+- intense geometric open-eye visuals
+- Intense kaleidoscopic open- & closed-eye visuals with ‘electric’ NBOMe texture
+- Intense mental effects
+- intense mental stimulation
+- intense mental/physical stimulation
+- Intense munchies or, conversely, appetite suppression
+- Intense open-eye and closed-eye geometric visuals
+- intense opioid euphoria (‘rush’)
+- intense opioid euphoria (‘warm blanket’)
+- intense sedation
+- Intense stimulation
+- Intense visual distortions
+- Intense visual geometry and color enhancement
+- intense visual geometry and colour shifting
+- Intense visual patterning & geometry
+- Intense, highly detailed closed- and open-eye visuals
+- Intense, rapid cannabis-like intoxication
+- intensely patterned closed- and open-eye visuals
+- Internal visualizations
+- Intricate geometric patterning (closed-eye & open-eye)
+- Introspection
+- introspection and emotional catharsis
+- Introspection and emotional processing
+- Introspection and recursive thought-loops
+- Irritability
+- Irritability (rare)
+- Irritability / aggression on comedown
+- irritability and dysphoria on comedown
+- Irritability on comedown
+- Itch and facial flushing
+- itch-free body high
+- Itch/pruritus
+- Itchiness
+- Itchiness & histamine release
+- Itchiness/skin picking
+- itching
+- Itching
+- itching (histamine release)
+- itching / histamine flush
+- itching / pruritus
+- Itching & flushing
+- itching and flushing
+- Itching and histamine flush
+- Itching/pruritus
+- itching/pruritus
+- itchy skin
+- Jaw clenching
+- jaw clenching
+- jaw clenching / bruxism
+- Jaw clenching / bruxism
+- Jaw clenching & bruxism
+- Jaw clenching & teeth grinding
+- jaw clenching and bruxism
+- Jaw clenching, muscle tension
+- jaw clenching, nystagmus
+- Jaw clenching/bruxism
+- Jaw tension
+- jaw tension
+- jaw tension / bruxism
+- Jaw tension / bruxism
+- Jaw tension & bruxism
+- jaw tension & bruxism
+- Jaw tension & muscle clenching
+- Jaw tension and bruxism
+- jaw tension, bruxism
+- jaw tension, fine tremor
+- jaw tension, hand tremor at higher doses
+- jaw tension, mild bruxism
+- jaw tension/teeth grinding
+- jaw tremor / mild muscle fasciculation
+- Jitteriness
+- late-phase ‘wired but tired’ anxiety (dose-dependent)
+- later drowsiness
+- Lethargy or 'stoned' feeling (in some cases)
+- Libido enhancement/erotic thoughts
+- Libido increase
+- libido swings (often initial spike then crash)
+- light anxiety on comedown
+- Light body load
+- light empathogenic warmth
+- Light euphoria
+- Light mental stimulation without jitter
+- light sedation or sleep facilitation
+- Light stimulation + restlessness
+- light stimulation or mental clarity
+- light tactile enhancement
+- lightheaded dissociation
+- Limited recreational value
+- Little to no euphoria
+- Little to no hypnotic effect
+- Little to no mood lift
+- long ‘afterglow' fatigue
+- Long, sometimes dysphoric comedown
+- Loss of consciousness
+- Loss of consciousness (at high doses)
+- Loss of coordination
+- Loss of motor control
+- Low body load
+- Low euphoria
+- Low mood, fatigue and anhedonia on comedown
+- low peripheral vasoconstriction compared with cocaine
+- Low urge to redose compared with other cathinones
+- lower-back and calf pumps
+- Lowered blood pressure
+- Lowered blood pressure/heart rate
+- Lowered inhibitions
+- lucid dissociation
+- Lucidity
+- Mania
+- Mania (at high doses)
+- Mania or pressured thought
+- manic euphoria / confidence
+- manic ideation
+- Manic or grandiose ideation
+- manic sociability
+- manic stimulation
+- Manic talkativeness at higher doses
+- marked anterograde amnesia
+- marked anxiolysis
+- Marked empathy / emotional openness
+- Marked euphoria
+- Marked physical and mental stimulation
+- marked respiratory depression
+- marked sedation
+- marked sexual stimulation & libido
+- marked vasoconstriction
+- Memory consolidation & recall facilitation
+- Memory disturbances
+- Memory enhancement
+- memory gaps/black-outs at high doses
+- Memory impairment
+- memory impairment
+- memory lapses
+- Memory suppression
+- memory suppression
+- Mental & physical stimulation
+- Mental and physical stimulation
+- mental calm / anxiolysis
+- Mental clarity
+- mental clarity
+- Mental clarity & thought acceleration
+- Mental fog
+- mental stimulation
+- Mental stimulation
+- mental stimulation / focus
+- Mental stimulation / focus
+- mental stimulation & focus
+- Mental stimulation and focus
+- Mental stimulation/alertness
+- Mental stimulation/focus
+- Metallic taste
+- Metallic/alkaloid taste on palate
+- microsia/macropsia visual distortions
+- Migraine-like headache
+- mild acne/oily skin
+- mild analgesia
+- Mild analgesia
+- mild anxiety or jitteriness at higher doses
+- Mild anxiolysis
+- mild anxiolysis
+- mild ataxia and slurred speech
+- mild blood-pressure elevation
+- mild body energy
+- mild body energy or tremor
+- Mild body euphoria/relaxation
+- Mild body load
+- mild body load
+- Mild body warmth
+- mild body-energy and vasoconstriction
+- Mild bronchodilation
+- Mild cardiovascular stimulation
+- Mild central stimulation
+- Mild central stimulation / wakefulness
+- Mild closed-eye fractals
+- Mild closed-eye imagery
+- Mild closed-eye patterns
+- Mild closed-eye visuals
+- Mild closed-eye visuals (high dose)
+- Mild closed-eye visuals / colour enhancement
+- mild closed-eye visuals at high doses
+- Mild closed-eye visuals at higher doses
+- Mild closed-eye visuals or colour enhancement
+- Mild cognitive dulling
+- Mild cognitive enhancement
+- Mild cognitive impairment
+- Mild comedown
+- Mild comedown fatigue & anhedonia
+- Mild crash or dysphoria on comedown
+- Mild crash or low mood next day
+- Mild digestive stimulation
+- mild disinhibition
+- Mild dissociation
+- mild dissociative-like detachment at high doses
+- Mild dizziness at higher doses
+- Mild dizziness/headache post-use
+- Mild dysphoria in some users
+- mild dysphoria on comedown
+- mild dysphoria or depression
+- Mild ego softening
+- Mild empathetic warmth
+- Mild empathic warmth (occasionally at 120 mg+)
+- Mild empathogenic effects
+- Mild empathogenic effects (occasionally)
+- mild empathogenic warmth
+- Mild empathogenic warmth (less pronounced than 2C-B)
+- Mild empathy
+- Mild empathy and warmth
+- Mild entactogenic body high
+- mild entactogenic warmth
+- Mild euphoria
+- mild euphoria
+- Mild euphoria (at higher doses)
+- Mild euphoria (clean, serotonin-sparse)
+- mild euphoria (inconsistent)
+- Mild euphoria (less pronounced than immediate-release stimulants)
+- Mild euphoria (less than methylphenidate)
+- Mild euphoria (occasionally reported)
+- mild euphoria (phentermine)
+- Mild euphoria (rare, at high doses or misuse)
+- Mild euphoria (rare, at high doses)
+- Mild euphoria (rare, high doses)
+- Mild euphoria (rare)
+- Mild euphoria (short-lived)
+- mild euphoria / mood lift
+- mild euphoria / motivation
+- mild euphoria / optimism
+- Mild euphoria and music enhancement
+- mild euphoria at higher doses
+- Mild euphoria at low dose
+- Mild euphoria at low doses
+- mild euphoria or ‘sunny’ mood
+- mild euphoria or calm
+- Mild euphoria or emotional blunting
+- mild euphoria or melancholic mood
+- Mild euphoria/antidepressant lift
+- mild fatigue or brain-fog at low estrogen
+- Mild gastrointestinal upset
+- Mild hallucinations
+- Mild hallucinations (at high doses)
+- Mild hallucinations (very high doses)
+- Mild headiness
+- Mild hypertension / palpitations
+- Mild hyperthermia, sweating
+- Mild hypotension/light-headedness (higher doses)
+- mild jaw tension & bruxism
+- mild jaw tension, bruxism
+- mild local anaesthesia (tongue, nasal)
+- Mild mental stimulation
+- mild mental stimulation
+- Mild mood elevation
+- mild mood elevation
+- Mild mood enhancement
+- Mild mood lift
+- Mild mood lift & anxiolysis
+- Mild mood-lift or empathy (in some users)
+- Mild muscle relaxation
+- Mild nasal congestion
+- Mild nausea
+- Mild nausea (sometimes)
+- Mild nausea or gastrointestinal discomfort
+- mild nausea/yawning on come-up
+- mild noradrenergic stimulation (alertness or jitter)
+- Mild open-eye visual distortions
+- Mild open-eye visual enhancement
+- Mild open-eye visuals (patterning, warping)
+- mild opioid warmth/euphoria
+- mild peripheral stimulation (warmth, HR ↑)
+- mild peripheral stimulation (warmth, pupil dilation)
+- Mild peripheral visuals (color saturation, trailing) at high doses
+- Mild physical relaxation
+- Mild physical stimulation
+- Mild physical stimulation/energy
+- Mild psychedelic effects
+- Mild psychedelic headspace
+- mild psychedelic visuals
+- Mild respiratory depression
+- Mild sedation
+- mild sedation
+- Mild sedation (rare, high doses)
+- mild sedation at >150 mg
+- Mild sedation on comedown
+- Mild sedation or fatigue
+- Mild sensory enhancement
+- Mild somatic sedation (inconsistent)
+- Mild somnolence at higher doses
+- Mild stimulation
+- Mild stimulation (high doses)
+- Mild stimulation → lethargy ‘crash’
+- Mild stimulation at low doses
+- mild stimulation progressing to dissociation
+- Mild synaesthesia (especially sound→colour)
+- mild tachycardia
+- Mild tactile enhancement
+- mild tactile numbness
+- Mild to moderate euphoria
+- mild to moderate euphoria
+- Mild to moderate stimulation
+- Mild to moderate visual patterning (closed-eye)
+- Mild vasoconstriction (cold extremities)
+- Mild visual brightening or tracer effects
+- mild visual brightness enhancement
+- Mild visual distortions
+- Mild visual distortions/hallucinations at high dose
+- Mild visual effects
+- Mild visual enhancement
+- mild visual enhancement
+- Mild visual enhancement (tracers, bright colours)
+- Mild visual flickering / nystagmus (high doses)
+- Mild visual patterning and color enhancement
+- Mild visual patterning, tracers, color saturation
+- Mild visual stimulation at higher doses
+- Mild visual warping
+- mild-moderate euphoria
+- mild-to-moderate euphoria
+- Mind-loops
+- Minimal body load
+- minimal cognitive impairment at therapeutic range
+- minimal comedown fatigue
+- minimal crash
+- minimal crash (at moderate doses)
+- minimal empathogenesis
+- minimal empathy or entactogenesis
+- Minimal euphoria
+- minimal euphoria
+- Minimal euphoria for many users
+- minimal head-pressure compared with LSD
+- minimal nausea relative to other 2C compounds
+- Minimal sedation
+- Minimal to no euphoria
+- Minimal visual alteration
+- Minimal visual distortion
+- Minimal visual distortions compared to other 2C compounds
+- Minimal visual effects
+- Minimal visual effects compared to DMT
+- minimal visuals
+- Minimal visuals at lower doses
+- Minimal visuals until higher doses
+- minor appetite suppression
+- Minor body load / vasoconstriction (cold extremities)
+- Minor muscular sedation
+- Minor visual acuity/colour enhancement at higher doses
+- Miosis
+- miosis
+- miosis (pinpoint pupils)
+- Miosis (pupil constriction)
+- miosis (pupil constriction)
+- Moderate body-load (jaw tension, cold extremities)
+- Moderate entactogenic warmth/empathy (weaker than MDMA)
+- moderate euphoria
+- moderate euphoria (less than α-PVP)
+- moderate euphoria (short-lived)
+- moderate euphoria / warm rush (first 1-3 h)
+- moderate euphoria or dysphoria (user-dependent)
+- moderate mood-lift and motivation
+- moderate psychomotor stimulation
+- Moderate sexual arousal
+- moderate stimulation
+- Moderate stimulation/fidgeting
+- Moderate stimulation/restlessness
+- Moderate–strong stimulation
+- moderate, ‘clinical’ dissociation
+- Moderately enhanced focus and task motivation
+- modest closed- and open-eye visual geometry (persian-carpet patterning)
+- Modest closed-eye visuals
+- Mood brightening
+- Mood changes
+- Mood elevation
+- mood elevation
+- Mood elevation (in depressed individuals)
+- Mood elevation (in depressed patients)
+- Mood elevation (in depression)
+- Mood elevation (mild euphoria)
+- Mood elevation or lability
+- Mood enhancement
+- Mood improvement
+- Mood improvement (in depressed individuals)
+- Mood lift
+- Mood lift & euphoria
+- Mood stabilization
+- Mood swings or dysphoria on comedown
+- mood uplift/positivity
+- mood volatility or irritability
+- Mood-lifting
+- Morphing of surfaces and faces
+- Most users report no noticeable psychoactive effect when vaping or ingesting purified CBL up to ~50 mg
+- motivating 'functional' stimulation at modest doses
+- Motivation
+- motivation / task focus
+- Motivation & task-orientation
+- motivation boost
+- Motivation enhancement
+- motivation/drive
+- Motor ataxia
+- Motor impairment
+- motor impairment
+- Motor incoordination
+- motor incoordination
+- mouth and tongue numbness
+- Muscle relaxation
+- muscle relaxation
+- Muscle relaxation (moderate)
+- Muscle rigidity or catatonia
+- Muscle tension
+- Muscle tension / jaw clench
+- muscle tension & jaw clench
+- Muscle tension & jaw clenching
+- Muscle tension & trembling
+- Muscle tension and jaw clenching
+- Muscle tension and jaw tightness
+- muscle tension at peak
+- Muscle tension or jaw clenching
+- Muscle tension/bruxism
+- Muscle twitches
+- Muscle twitching
+- muscle twitching
+- music and mood enhancement
+- music and tactile enhancement
+- Music appreciation
+- music appreciation
+- Music appreciation enhancement
+- Music enhancement
+- music enhancement
+- Muted colour enhancement
+- Mydriasis
+- mydriasis
+- Mydriasis (dilated pupils)
+- mydriasis (large pupils)
+- Mydriasis (pupil dilation)
+- mydriasis with shimmering halos
+- mydriasis, mild tremor or jaw tension
+- Myoclonic twitching
+- Mystical or numinous feelings
+- Mystical or spiritual experiences
+- Nasal burn (insufflated)
+- Nausea
+- nausea
+- Nausea (common)
+- Nausea (especially at high doses)
+- Nausea (especially at higher doses)
+- nausea (especially oral)
+- Nausea (higher doses)
+- Nausea (in high doses)
+- nausea (some users)
+- Nausea (sometimes)
+- Nausea / gastric discomfort
+- Nausea / projectile vomiting
+- Nausea / vertigo when standing
+- nausea / vomiting
+- Nausea / vomiting
+- Nausea / vomiting at high dose
+- Nausea & vomiting (dose-dependent)
+- Nausea and gastric discomfort
+- Nausea and GI discomfort
+- nausea at higher dose
+- nausea at higher doses
+- Nausea at higher doses
+- nausea or chemical taste
+- Nausea or dizziness at higher doses
+- Nausea or stomach cramps
+- Nausea or vomiting
+- nausea, itch, constipation
+- Nausea, possible vomiting at higher doses
+- Nausea/body-load (dose-dependent)
+- Nausea/vomiting
+- Nausea/vomiting (particularly on heavy inhalation)
+- nausea/vomiting at higher doses
+- Next-day fatigue or dysphoria
+- next-day grogginess
+- Next-day grogginess
+- Next-day grogginess (at high doses)
+- Next-day low mood / fatigue
+- No appreciable cognitive impairment at common doses
+- No discernible psychoactive effects in the vast majority of reports
+- No typical cannabis intoxication (no euphoria, impairment, or tachycardia)
+- nod-like sedation at higher doses
+- nodding
+- nodding / dream-like sedation
+- nodding at higher doses
+- Nodding sedation
+- None (not psychoactive)
+- numb extremities
+- Numbing of extremities
+- Numbness
+- Numbness of mouth/tongue (when consumed as beverage)
+- nystagmus
+- Nystagmus
+- Nystagmus & jaw clenching
+- nystagmus and discoordination
+- nystagmus and disequilibrium
+- nystagmus and double vision at higher doses
+- nystagmus and tremors
+- Nystagmus at high doses
+- nystagmus at higher doses
+- Nystagmus, ataxia
+- Nystagmus, diplopia
+- Nystagmus/double vision
+- occasional anxiety during prolonged come-up
+- Occasional anxiety or confusion
+- Occasional anxiety or panic
+- occasional insomnia or vivid dreams
+- Occasional ocular irritation
+- Occasional placebo-like expectations reported
+- Occasional reports of mild relaxation or anti-inflammatory relief
+- occasional spiritual ideation
+- Occasional transient anxiety during onset
+- Occasional vasoconstriction, jaw tension, nausea
+- Occasional visual tint or increased light sensitivity
+- Open and closed-eye visuals
+- Open- and closed-eye fractal geometry
+- Open- and closed-eye geometric visuals
+- Open-eye colour enhancement
+- Open-eye drifting and tracers
+- Open-eye geometric patterning
+- Open/closed-eye geometric visuals at higher doses
+- orb-like visual tracers
+- Orthostatic hypotension
+- Out-of-body experiences
+- out-of-body experiences / K-hole
+- Out-of-body sensations
+- out-of-body sensations
+- Over-caffeination
+- Pain relief
+- Palpitations
+- palpitations
+- Palpitations (rare)
+- palpitations, peripheral vasoconstriction
+- Paranoia
+- Paranoia (at high doses or with chronic use)
+- Paranoia (at high doses or with prolonged use)
+- Paranoia (at high doses or with repeated use)
+- paranoia (at high doses)
+- Paranoia (high dose)
+- paranoia at high doses
+- Paranoia at high doses
+- paranoia at higher doses
+- Paranoia or aggressive behaviour
+- Paranoia or panic at high doses
+- Paranoia/anxiety/panic (dose-dependent)
+- paresthesia / vasoconstriction
+- Pastel coloured geometry (open & closed-eye)
+- Pattern recognition
+- Pattern recognition / pareidolia
+- Pattern recognition enhancement
+- patterned visuals and geometry
+- Patterning
+- Perceived entity encounters
+- peripheral coldness
+- Peripheral stimulation
+- Peripheral vasoconstriction
+- peripheral vasoconstriction
+- peripheral vasoconstriction (cold extremities)
+- Peripheral vasoconstriction (cold extremities)
+- Peripheral vasoconstriction (cold fingers/toes)
+- Peripheral vasoconstriction (cold hands/feet)
+- Peripheral vasoconstriction / cold extremities
+- Peripheral vasoconstriction / flushing
+- Peripheral vasoconstriction/‘cold hands’
+- Perspective distortion
+- Perspiration
+- Philosophical insights
+- Philosophical thoughts
+- photophobia
+- Photophobia
+- Photophobia / skin tingling under sunlight
+- Physical & mental stimulation
+- physical & mental stimulation
+- Physical discomfort
+- physical energy
+- Physical euphoria (transient)
+- Physical heaviness or lethargy
+- Physical incapacitation
+- Physical lethargy or sedation
+- Physical relaxation
+- Physical sensations (tingling, vibrations)
+- Physical side effects (muscle soreness, flu-like symptoms)
+- Physical stimulation
+- physical warmth
+- piloerection / chills at higher doses
+- Pin-point pupils
+- pin-point pupils
+- Pinpoint pupils
+- pinpoint pupils
+- Pleasure enhancement
+- Polyuria & polydipsia
+- Positive mood push
+- possible acute psychosis at high doses
+- Possible anxiety
+- possible anxiety on the down-slope
+- Possible anxiety or insomnia
+- Possible body load or discomfort
+- Possible coldness in extremities
+- possible confusion or panic at high dose
+- Possible gastrointestinal discomfort (nausea, cramps)
+- Possible gastrointestinal upset (nausea, diarrhea)
+- Possible insomnia
+- possible insomnia
+- Possible insomnia at higher doses
+- Possible irritability or anxiety
+- Possible jaw tension
+- possible jaw tension / bruxism
+- Possible light-headedness at strong doses
+- Possible mild comedown dysphoria
+- Possible mild constipation
+- Possible mild gastrointestinal upset
+- Possible mild GI discomfort at high oral doses
+- Possible mild headache
+- Possible mood elevation
+- Possible neurotoxicity symptoms
+- Possible next-day lethargy or low mood
+- Possible orthostatic hypotension
+- Possible pain relief
+- Possible psychosis at high doses
+- Possible seizures (overdose)
+- Possible tonic-clonic seizures in dependent users
+- Possible transient paranoia or delusional thinking at very high doses
+- Possible urinary urgency (ACH antagonism)
+- possible visual jitter at high doses
+- Post-acute fatigue / low mood
+- Post-acute fatigue and low mood
+- Post-acute headache or fatigue
+- Post-peak sedation and lethargy
+- Post-use anhedonia & fatigue
+- post-use crash & lethargy
+- post-use fatigue
+- Post-use fatigue / anhedonia
+- Post-use fatigue & low mood
+- Post-use fatigue and low mood
+- post-use fatigue/low mood
+- Post-use fatigue/low mood
+- Post-use lethargy / low mood
+- Potent mental sedation
+- potent sedation
+- Potent withdrawal suppression
+- Potential anxiety or paranoia in overstimulating settings
+- Potential anxious or dysphoric episodes
+- Potential for amnesia
+- Potential for overdose
+- Potential for respiratory depression
+- Potential nausea on come-up
+- Potential seizures or hyperthermia at >1 mg
+- Potential serotonergic effects
+- Potential vomiting (esp. insufflated seeds)
+- Potentiation of other psychoactives
+- powerful analgesia
+- Powerful body high
+- powerful cravings
+- Powerful sedation
+- Powerful somatic pressure (chest, head)
+- powerful stimulation
+- Profound analgesia
+- profound analgesia
+- profound bradycardia at high doses
+- Profound confusion and disorientation
+- Profound delirium
+- profound dissociation
+- Profound dissociation
+- Profound dry mouth
+- Profound emotional/sexual introspection
+- Profound introspection
+- profound introspection
+- Profound personal or spiritual insight
+- Profound respiratory depression
+- Profound sedation (in animals)
+- Profound short-term memory suppression
+- Profuse sweating
+- Profuse sweating / chills
+- Profuse sweating and flushing
+- Prolonged after-effects
+- Prolonged wakefulness (≥ 24 h at high cumulative doses)
+- Pronounced anterograde amnesia
+- Pronounced sedation
+- Pronounced tactile and auditory synaesthesia
+- proprioceptive enhancement
+- Pruritus
+- pruritus
+- Psychedelic aura
+- Psychedelic effects (visual alterations, changes in thought)
+- psychomotor stimulation
+- Psychosis (at high doses or prolonged use)
+- Psychosis (at high doses)
+- Psychosis (rare)
+- pupil constriction
+- Pupil dilation
+- pupil dilation
+- Pupil dilation & photophobia
+- racing associative thought
+- Rapid ‘crash’ with dysphoria
+- Rapid cannabinoid intoxication
+- rapid euphoria
+- Rapid euphoria
+- Rapid fractal morphing
+- Rapid intoxication
+- Rapid intoxication (‘stoned’ body high)
+- Rapid intoxication and body load
+- rapid mental focus
+- Rapid rush/‘head-rush’
+- rapid strength increase
+- rapid thought and talkativeness
+- Rapid time dilation
+- Rapid tolerance
+- rapid tolerance
+- Rapid tolerance buildup
+- Rapid, intense 'rush'
+- Rapid, intense cannabis-like intoxication
+- Rapid, intense intoxication
+- Rare euphoria or dysphoria
+- rare neutral euphoria at sleep threshold
+- Rare prolonged erection (priapism)
+- rare sexual enhancement
+- Rare: headache, rash, liver enzyme elevation
+- Rarely, agitation or anxiety
+- Rarely, insomnia or agitation
+- Rash
+- rash or itching prodrome (medical emergency)
+- Reality-shifting experiences
+- Rebound anxiety/insomnia
+- Rebound fatigue/irritability
+- Rebound insomnia / anxiety
+- Rebound insomnia/anxiety on offset
+- Recursive thought loops
+- Red eyes
+- Reddened eyes
+- Redosing tendency
+- Reduced alertness
+- Reduced allergy symptoms (runny nose, sneezing, itching)
+- Reduced anxiety
+- Reduced anxiety (anxiolysis)
+- Reduced anxiety (in some users)
+- reduced anxiety and introspection relative to LSD
+- Reduced appetite
+- reduced appetite
+- Reduced appetite (less pronounced than other stimulants)
+- reduced cognitive load versus LSD/psilocin (variable)
+- Reduced cravings (for nicotine)
+- Reduced cravings (in opioid-dependent individuals)
+- reduced cravings for other opioids (anecdotal)
+- Reduced fatigue
+- reduced fatigue
+- Reduced fatigue and hunger (low dose)
+- Reduced gastrointestinal motility
+- Reduced heart rate
+- Reduced hyperactivity
+- Reduced inflammation/pain
+- Reduced inflammation/pain perception
+- Reduced inhibition
+- Reduced intra-ocular pressure
+- reduced motor coordination
+- Reduced muscle tension
+- reduced nausea
+- reduced opioid cravings
+- Reduced pain perception
+- Reduced perceived fatigue
+- reduced perceived fatigue
+- Reduced physical symptoms of anxiety (e.g., tremor, palpitations)
+- Reduced reaction time
+- reduced sedation versus bromazolam
+- Reduced seizure aura (user reports)
+- Reduced sleep latency
+- Reduced social anxiety
+- reduced stimulant tolerance
+- Reduced suicidality
+- reduced water retention
+- reduced withdrawal discomfort
+- Reduction of cannabis "munchies" when co-used with THC
+- Reduction of nausea
+- reduction of rapid-cycling or mixed episodes
+- Reduction of vomiting
+- Relaxation
+- relaxation
+- Relaxation (in low doses)
+- Relief of menopausal symptoms
+- Relief of Parkinsonian 'off' episodes
+- Residual ‘hang-over’ next day
+- residual cognitive dulling
+- Residual cognitive fog
+- Residual cognitive impairment
+- Residual fatigue ‘afterglow’
+- Residual grogginess
+- Residual insomnia
+- residual lethargy
+- Residual next-day sedation
+- residual stimulation with difficulty sleeping
+- Respiratory depression
+- respiratory depression
+- respiratory depression (‘heavy chest’)
+- Respiratory depression (at high doses or with other depressants)
+- Respiratory depression (at high doses)
+- Respiratory depression (high doses)
+- respiratory depression at high doses
+- Respiratory depression at high doses
+- respiratory depression at higher doses
+- respiratory_depression
+- restless legs / akathisia (paradoxical)
+- Restless legs at higher doses
+- Restlessness
+- Restlessness / agitation
+- Restlessness / anxiety at high doses
+- Restlessness / insomnia
+- Restlessness / tremor
+- Restlessness alternating with sedation
+- restlessness at high doses
+- Restlessness/insomnia
+- Restlessness/physical stimulation
+- Retrograde & anterograde amnesia
+- Retrograde amnesia
+- Retrograde and anterograde amnesia
+- Rich closed-eye imagery
+- Robust dissociation/depersonalisation
+- rush of euphoria
+- Rush of euphoria
+- sedating body-heaviness
+- Sedation
+- sedation
+- Sedation (‘nodding’)
+- Sedation (high dose)
+- Sedation (high doses)
+- Sedation / "nodding"
+- Sedation / nodding
+- sedation / nodding
+- Sedation / sleepiness
+- sedation → sleep at higher doses
+- Sedation and somnolence
+- Sedation at higher doses
+- Sedation at higher serum levels
+- Sedation at very high doses
+- Sedation or catalepsy
+- sedation or nodding
+- Sedation/drowsiness
+- Sedation/sleepiness
+- sedation/somnolence
+- Seizure activity in vulnerable users
+- Seizures (adverse)
+- Seizures at high/unknown doses
+- Sense of lightness
+- Sensory enhancement
+- Sensory enhancement (music appreciation, color vividness)
+- serene head-space
+- serene mood lift
+- Serotonergic side effects (headache, nausea, insomnia)
+- Serotonin syndrome (at high doses)
+- Severe agitation (at high doses)
+- Severe anterograde amnesia at ≥ 0.6 mg
+- Severe anxiety / panic
+- Severe apnoea/cyanosis at overdose
+- Severe confusion
+- Severe confusion/disorientation
+- severe dysphoria on withdrawal
+- Severe pruritus
+- Severe rebound pain/withdrawal
+- Severe rebound withdrawal
+- Severe respiratory depression
+- Severe toxicity (at high doses)
+- sexual arousal
+- Sexual arousal
+- Sexual arousal (some users)
+- Sexual arousal & increased libido
+- Sexual dysfunction
+- Sexual dysfunction (less common than with some SSRIs)
+- sexual side-effects (libido changes)
+- sharp dopaminergic ‘rush’ (vaped)
+- sharp focus and mental alertness
+- sharp mental stimulation
+- sharpened focus
+- Sharper visual contrast
+- short duration with desire to redose
+- Short-lived stimulation
+- Short-term memory impairment
+- Short-term memory lapses
+- Short-term memory suppression
+- Short‑term memory impairment
+- Sleep disturbance
+- Sleep disturbances
+- Sleep induction
+- Sleepiness
+- Sleepiness / sedation
+- Slight analgesia
+- slight appetite suppression
+- Slight auditory sharpening
+- Slight blood-pressure rise
+- Slight body load
+- Slight dissociation
+- slight euphoria
+- slight peripheral vasoconstriction
+- Slight physical wakefulness
+- Slight stimulation
+- Slight visual tracers at high doses
+- Slowed breathing
+- slowed breathing
+- Slowed heart rate
+- Slurred or nonsensical speech
+- Slurred speech
+- slurred speech
+- smooth bodily dissociation
+- smooth energy without jitters
+- Sociability
+- Sociability enhancement
+- Sociability enhancement (milder than MDMA)
+- Sociability enhancement (occasionally)
+- Sociability enhancement at moderate doses
+- social disinhibition
+- Soft closed-eye imagery
+- soft visual brightness, colours appear pastel
+- Spatial depth distortion
+- Spatiotemporal distortion
+- Spiritual experiences
+- Spiritual or introspective thinking
+- Spiritual or mystical experiences
+- Stimulant after-glow
+- Stimulant body-load (jaw tension, increased heart-rate)
+- stimulant energy
+- Stimulant euphoria & mood-lift
+- Stimulation
+- Stimulation (jaw tension, restless legs)
+- Stimulation (low dose)
+- Stimulation (low doses)
+- Stimulation (mental & physical)
+- Stimulation (mental and physical)
+- Stimulation (mild)
+- Stimulation (restlessness, bruxism, mydriasis)
+- Stimulation (restlessness)
+- Stimulation (tachycardia, restlessness)
+- Stimulation / increased energy
+- Stimulation / urge to dance
+- Stimulation & talkativeness at lower doses
+- Stimulation & wakefulness
+- Stimulation and increased energy
+- Stimulation and physical energy
+- stimulation with relatively clear headspace
+- Stimulation with restless legs
+- Stimulus control loss
+- Strong anxiolysis
+- strong appetite suppression
+- Strong body load
+- Strong body-load with tremor and cold sweats
+- strong craving suppression
+- Strong cravings to redose
+- Strong dry-mouth
+- Strong dysphoria on comedown
+- Strong physical sensations (tingling, pressure)
+- strong sedation/hypnosis
+- Strong stimulation
+- Strong urge to redose
+- strong urge to redose as rush fades
+- strong visual patterning and color enhancement
+- stuttering thought loops
+- subtle body relaxation
+- Subtle body warmth
+- subtle closed-eye visuals
+- subtle cognitive shift
+- Subtle empathic warmth
+- subtle empathogenic warmth
+- subtle empathogenic warmth (less pronounced than MDMA)
+- Subtle empathy and sociability
+- Subtle euphoria (rare)
+- Subtle euphoria at moderate doses
+- Subtle geometric visuals
+- subtle mental alertness
+- Subtle mood elevation
+- subtle mood elevation (≥150 mg)
+- Subtle mood lift
+- subtle mood lift
+- Subtle mood lift / calm clarity
+- subtle mood lifting
+- Subtle muscle relaxation
+- subtle opioid euphoria
+- Subtle relaxation
+- subtle sedation (fenfluramine)
+- subtle time-dilation
+- subtle visual enhancement at low doses; patterning at higher
+- subtle visual snow at higher doses
+- subtle warmth/euphoria
+- suppressed cough reflex
+- suppressed endogenous libido toward cycle end
+- Suppression of body aches
+- Sweating
+- sweating
+- Sweating / body-odor change
+- Sweating / chills
+- Sweating / hyperthermia
+- Sweating / temperature elevation
+- Sweating & chills
+- Sweating & hot flashes
+- Sweating & mild hyperthermia
+- Sweating & temperature dysregulation
+- Sweating & thermoregulation changes
+- Sweating and cold extremities
+- Sweating and hot flashes
+- sweating and hyperthermia
+- Sweating and increased body temperature
+- Sweating and peripheral vasoconstriction
+- sweating and vasoconstriction
+- Sweating and vasoconstriction
+- sweating, cold extremities
+- Sweating, dilated pupils
+- Sweating, hyperthermia
+- Sweating/chills
+- sweating/flushing
+- Synaesthesia (vision⇄sound cross-modality)
+- Synaesthesia at high doses
+- Synesthesia
+- Synesthesia (at high dose)
+- Synesthesia (at higher doses)
+- Synesthesia (high dose)
+- Synesthesia (music ↔ colour) at high doses
+- Synesthesia (sound→color) at higher doses
+- synesthesia at high dose
+- synesthesia at high doses
+- Synesthesia at higher doses
+- synesthesia at higher doses
+- synesthetic colour–sound blending
+- Tac tachycardia / palpitations
+- Tachycardia
+- tachycardia
+- tachycardia / palpitations
+- Tachycardia / palpitations
+- Tachycardia & elevated blood pressure
+- Tachycardia & hypertension
+- tachycardia & mild hypertension
+- Tachycardia & palpitations
+- tachycardia and blood-pressure elevation
+- tachycardia and mild hypertension
+- tachycardia and palpitations
+- Tachycardia and palpitations
+- Tachycardia awareness
+- Tachycardia then bradycardia
+- Tachycardia, palpitations
+- tachycardia, sweating, nystagmus
+- tachycardia, vasoconstriction
+- Tactile & musical enhancement
+- tactile amplification
+- Tactile amplification
+- tactile amplification / eroticity
+- Tactile amplification, buzzing ‘electric’ body energy
+- tactile anesthesia
+- Tactile energy / fidgeting
+- Tactile enhancement
+- tactile enhancement
+- Tactile enhancement (‘body buzz’ or ‘shivers’)
+- Tactile enhancement / erotogenic body high
+- Tactile enhancement then numbness
+- tactile euphoria
+- tactile numbness
+- tactile stimulation
+- tactile warmth / body-lightness
+- Talkativeness
+- talkativeness
+- talkativeness / sociability
+- Talkativeness / sociability
+- talkativeness and mild sociability
+- Teeth grinding/jaw tension
+- temperature sensitivity
+- Thought acceleration
+- Thought connectivity
+- Thought loops
+- thought loops / introspection
+- Thought loops & philosophical insight
+- time and body distortion
+- time compression
+- Time compression
+- time compression / loops
+- Time dilation
+- time dilation
+- time dilation >10×
+- time dilation and ‘blank mind’ amnesia
+- time dilation and brightened colors
+- time dilation and intensification
+- Time dilation and looping
+- Time dilation and looping of thoughts
+- time dilation and synaesthesia at strong doses
+- Time dilation at higher doses
+- Time dilation or contraction
+- Time distortion
+- time distortion
+- time-dilation
+- Time-looping or deja-vu
+- Tinnitus / auditory shifts
+- Tinnitus at high doses
+- Tinnitus or ear pressure
+- tinnitus-like head ringing
+- Tinnitus/head pressure after large binges
+- Tiredness after use
+- Tracers
+- Tracers and after-images
+- tracers and shifting geometry
+- Transient hypertension and tachycardia
+- Transient paranoid ideation
+- Tremor
+- tremor
+- Tremor & jaw clenching
+- True-to-life hallucinations
+- tunnel-vision visuals
+- Unknown; presumed to be psychedelic and possibly stimulating, but effects are not well documented
+- Unpleasant body load
+- urge to redose
+- Urge to redose
+- Urge to redose / compulsive use
+- urge to redose on comedown
+- Urinary retention
+- Urinary retention and constipation
+- vascularity and muscle hardness
+- Vasoconstriction
+- vasoconstriction
+- Vasoconstriction (cold extremities, numbness)
+- Vasoconstriction (cold extremities)
+- vasoconstriction (cold extremities)
+- vasoconstriction (cold fingers)
+- Vasoconstriction (cold fingers/feet)
+- Vasoconstriction (cold fingers/toes)
+- Vasoconstriction (cold hands/feet, tingling)
+- Vasoconstriction / cold extremities
+- vasoconstriction / cold limbs
+- vasoconstriction & cold extremities
+- Vasoconstriction & cold extremities
+- vasoconstriction, cold extremities
+- Vasoconstriction, cold extremities
+- Vasoconstriction, numb fingers/toes
+- vasoconstriction, pupil dilation, jaw tension
+- Vasoconstriction/cold extremities
+- vasoconstrictive 'cold extremities'
+- Vasoconstrictive body load (cold extremities)
+- Vertigo
+- Vertigo/dizziness
+- very low or absent intoxication
+- Very low or absent intoxication
+- Virtually no psychedelic or intoxicating effects
+- vision rippling/warping at higher doses
+- Visual ‘static’ and strobing patterns
+- Visual & auditory suppression
+- Visual acuity & depth sharpening
+- Visual acuity and colour enhancement
+- Visual acuity enhancement
+- Visual alterations
+- Visual and auditory distortions
+- Visual and auditory hallucinations
+- Visual and sensory enhancement
+- Visual blur
+- visual blurring
+- Visual blurring
+- Visual blurring / photophobia
+- visual brightness
+- Visual brightness & colour enhancement
+- visual crispness / brightening
+- visual dimming or tunnel vision
+- Visual distortion at high dose
+- Visual distortions
+- visual distortions at high or sleep-deprived states
+- Visual distortions/closed-eye imagery
+- Visual distortions/enhancements
+- Visual drift/morphing
+- visual drifting
+- Visual drifting / color shifts
+- Visual drifting / pseudo-hallucinations
+- Visual drifting patterns
+- Visual drifting, shimmering, mild OEVs
+- Visual drifting/breathing of surfaces
+- Visual drifting/warping
+- Visual enhancement
+- Visual enhancement (rare, at higher doses)
+- Visual enhancements
+- Visual flicker or mild hallucinations at high doses
+- Visual flickering or mild distortions at heavy doses
+- Visual frame-rate increase (“motion strobing”)
+- visual geometry
+- Visual hallucinations
+- Visual hallucinations (colorful, geometric patterns)
+- visual patterning
+- Visual patterning (CEV/OEV)
+- visual patterning / tracers
+- Visual patterning & geometry
+- Visual patterning or mild distortions at high doses (rare)
+- Visual scenery slicing & depth warping
+- Visual sharpening or mild pseudo-hallucinations
+- visual shimmer / mydriasis
+- Visual shimmering
+- Visual snow / peripheral distortions
+- Visual snow/blurred vision
+- Visual snow/static
+- Visual soft-focus / ‘MXE glaze’
+- Visual tracers
+- Visual tracers & halos
+- visual tracers at high dose
+- Visual/auditory hallucinations (very high doses)
+- Vivid closed and open eye visuals
+- vivid dreaming
+- Vivid dreaming (after effects)
+- Vivid dreams
+- vivid internal audial hallucinations
+- Vivid mental imagery
+- vivid open-eye and closed-eye visuals
+- Vivid open-eye hallucinations
+- Vivid open-eye visuals
+- Vivid or lucid dreams
+- Vomiting
+- Wakefulness
+- wakefulness
+- Wakefulness/insomnia
+- warm analgesic euphoria
+- warm bodily numbness
+- Warm body glow
+- Warm body high
+- Warm body sensations
+- Warm chest compression
+- warm empathic mood
+- Warm empathic mood
+- Warm empathy
+- Warm empathy / reduced social defensiveness
+- Warm euphoria
+- warm euphoria
+- warm euphoria / serenity
+- warm euphoria and laughter
+- warm facial flushing
+- warm flush
+- warm flushing
+- Warm head-pressure / ‘cotton wool’ sensation
+- Warm mood elevation
+- warm opioid euphoria
+- Warm opioid euphoria
+- Warm peripheral rush
+- warm peripheral vasodilation (‘pump’)
+- Warm physical euphoria
+- warm physical euphoria
+- Warm physical relaxation
+- warm sedation
+- warm tactile pleasure
+- Warm vibration
+- Warm, empathogenic dissociation
+- Warm/cold flashes
+- Warmth
+- warmth
+- Warmth & comfort
+- warmth and contentment
+- warmth and relaxation
+- Warmth in extremities
+- warmth/euphoria
+- Warmth/tingling
+- Weakness
+- Weight gain
+- Weight gain (with chronic use)
+- withdrawal dysphoria
+- word-finding difficulty
+- Yawning

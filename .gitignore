@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-inline/
+
+# Logs & env
+npm-debug.log*
+npm-dev.log
+npm-dev.err.log
+.DS_Store
+
+# Editor directories
+.idea/
+.vscode/
