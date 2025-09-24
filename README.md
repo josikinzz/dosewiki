@@ -1,4 +1,4 @@
-# dose.wiki UI
+# dosewiki
 
 Front-end for the dose.wiki harm-reduction knowledge base. The app is a data-driven React + Tailwind interface that renders substance profiles, dosage guidance, and effect libraries sourced exclusively from `src/data/articles.json`.
 
@@ -52,7 +52,5 @@ src/data/articles.json → contentBuilder.ts → library.ts/search.ts → compon
 4. Document manual QA steps in your PR along with before/after screenshots for significant UI changes.
 
 ## Additional Docs
-- `docs/AGENTS.md` – guidelines tailored for AI/code agents.
-- `docs/CLAUDE.md` – Claude Code-specific workflow notes.
-- `docs/CATEGORIES.md` – taxonomy reference for substance categorization.
-# dosewiki
+- `AGENTS.md` – guidelines tailored for AI/code agents.
+- `CLAUDE.md` – Claude Code-specific workflow notes.

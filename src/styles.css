@@ -1,0 +1,28 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    font-family: theme('fontFamily.sans');
+    background-color: #0f0a1f;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: rgba(217, 70, 239, 0.3);
+  }
+}
+
+@layer utilities {
+  .hyphenate {
+    hyphens: auto;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
