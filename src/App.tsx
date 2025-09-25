@@ -14,6 +14,7 @@ import { DosagesPage } from "./components/pages/DosagesPage";
 import { CategoryPage } from "./components/pages/CategoryPage";
 import { EffectsPage } from "./components/pages/EffectsPage";
 import { EffectDetailPage } from "./components/pages/EffectDetailPage";
+import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import {
   substanceBySlug,
@@ -24,6 +25,8 @@ import {
   effectSummaries,
   getEffectDetail,
   getEffectSummary,
+  getMechanismDetail,
+  getMechanismSummary,
 } from "./data/library";
 import { lsdMetadata } from "./data/lsd";
 import { querySearch } from "./data/search";
@@ -73,6 +76,13 @@ export default function App() {
     const summary = getEffectSummary(identifier);
     if (summary) {
       navigate({ type: "effect", effectSlug: summary.slug });
+    }
+  }, [navigate]);
+
+  const selectMechanism = useCallback((mechanismSlug: string) => {
+    const summary = getMechanismSummary(mechanismSlug);
+    if (summary) {
+      navigate({ type: "mechanism", mechanismSlug: summary.slug });
     }
   }, [navigate]);
 
@@ -203,6 +213,30 @@ export default function App() {
             </main>
           );
         })()
+      ) : view.type === "mechanism" ? (
+        (() => {
+          const detail = getMechanismDetail(view.mechanismSlug);
+          if (!detail) {
+            return (
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                  <p className="text-lg font-semibold text-white">Mechanism not found.</p>
+                  <p className="mt-2 text-sm text-white/70">Select a mechanism badge from a substance to explore related entries.</p>
+                </div>
+              </main>
+            );
+          }
+
+          return (
+            <main>
+              <MechanismDetailPage
+                detail={detail}
+                onSelectDrug={selectSubstance}
+                onSelectCategory={selectCategory}
+              />
+            </main>
+          );
+        })()
       ) : view.type === "interactions" || view.type === "about" ? (
         <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
           <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
@@ -235,7 +269,7 @@ export default function App() {
               )}
 
               {content.infoSections && content.infoSections.length > 0 && (
-                <InfoSections sections={content.infoSections} />
+                <InfoSections sections={content.infoSections} onMechanismSelect={selectMechanism} />
               )}
 
               <SubjectiveEffectsSection

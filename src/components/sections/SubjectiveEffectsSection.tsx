@@ -1,6 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { BADGE_BASE_CLASSES, BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
 
 interface SubjectiveEffectsSectionProps {
   effects: string[];
@@ -29,14 +30,14 @@ export function SubjectiveEffectsSection({ effects, onEffectSelect }: Subjective
               key={effect}
               type="button"
               onClick={() => handleSelect(effect)}
-              className="rounded-full bg-white/10 px-3.5 py-1.5 text-xs text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className={BADGE_INTERACTIVE_CLASSES}
             >
               {effect}
             </button>
           ) : (
             <span
               key={effect}
-              className="rounded-full bg-white/10 px-3.5 py-1.5 text-xs text-white/85 ring-1 ring-white/10"
+              className={BADGE_BASE_CLASSES}
             >
               {effect}
             </span>

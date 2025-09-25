@@ -37,6 +37,7 @@ import type {
   InfoSection,
   CitationEntry,
 } from "../types/content";
+import { slugify } from "../utils/slug";
 
 interface RawDoseRanges {
   [key: string]: string | null | undefined;
@@ -386,7 +387,20 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
 
   const mechanism = cleanString(info.mechanism_of_action);
   if (mechanism) {
-    items.push({ label: "Mechanism of Action", value: mechanism, icon: Brain });
+    const entries = mechanism
+      .split(";")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    const chips = entries
+      .map((entry) => ({ label: entry, slug: slugify(entry) }))
+      .filter((chip) => chip.slug.length > 0);
+
+    items.push({
+      label: "Mechanism of Action",
+      value: mechanism,
+      icon: Brain,
+      chips,
+    });
   }
 
   const psychoClass = cleanString(info.psychoactive_class);

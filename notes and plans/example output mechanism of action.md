@@ -296,3 +296,80 @@ Gamma-aminobutyric acid type B receptor agonist / Gamma-aminobutyric acid type A
 
 N-methyl-D-aspartate receptor agonist / Metabotropic glutamate receptor agonist / Prodrug to muscimol (gamma-aminobutyric acid type A receptor agonist)
 - Ibotenic acid
+
+
+#### **μ-Opioid receptor full agonist**
+
+Morphine; Oxycodone; Hydrocodone; Hydromorphone; Desomorphine; Fentanyl; Acrylfentanyl; Alfentanil; 4-Methoxybutyrfentanyl; 4Cl-iBF; Lofentanil; Remifentanil; Furanylfentanyl; Etonitazene; Isotonitazene; Isotonitazepyne; Metonitazene; N-Desethylprotonitazene; Pronitazene; Acetorphine; Beta-meprodine
+
+#### **μ-Opioid receptor full agonist / prodrug of R-4618**
+
+Bezitramide
+
+#### **Partial μ-opioid receptor agonist / κ-opioid receptor antagonist**
+
+Buprenorphine
+
+#### **κ-Opioid receptor agonist / μ-opioid receptor antagonist**
+
+Butorphanol
+
+#### **μ-Opioid receptor agonist with serotonin-norepinephrine reuptake inhibition / prodrug of O-desmethyltramadol**
+
+Tramadol
+
+#### **μ-Opioid receptor agonist with norepinephrine reuptake inhibition**
+
+Tapentadol
+
+#### **μ-Opioid receptor agonist / NMDA receptor antagonist / serotonin-norepinephrine transporter reuptake inhibition**
+
+Methadone
+
+#### **μ-Opioid receptor agonist / NMDA receptor antagonist / serotonin-norepinephrine transporter reuptake inhibition / prodrug of levorphanol**
+
+Levomethorphan
+
+#### **Peripherally-restricted μ-opioid receptor agonist**
+
+Loperamide
+
+#### **Partial μ-opioid receptor agonist with G-protein bias / κ-opioid receptor antagonist / δ-opioid receptor antagonist**
+
+Kratom; Mitragynine; 7-Hydroxymitragynine; Mitragynine pseudoindoxyl; MGM-15
+
+#### **μ-Opioid receptor agonist / prodrug of 6-monoacetylmorphine and morphine**
+
+Heroin
+
+#### **μ-Opioid receptor agonist / prodrug of morphine**
+
+6-Monoacetylmorphine
+
+#### **μ-Opioid receptor agonist / prodrug of dihydromorphine**
+
+Acetyldihydrocodeine
+
+#### **μ-Opioid receptor agonist / active metabolite of tramadol**
+
+O-Desmethyltramadol
+
+#### **μ-Opioid receptor agonist / prodrug of morphine via codiene / H1 histamine receptor antagonist via promethazine**
+
+Lean
+
+#### **G-protein-biased μ-opioid receptor agonists**
+
+SR-17018; SR-14968
+
+#### **μ-Opioid receptor agonists with limited data**
+
+Methiodone; DPP-26
+
+#### **Nociceptin receptor agonist with μ-opioid receptor affinity**
+
+Spirochlorphine
+
+#### **Opioid receptor agonist with limited data**
+
+Cychlorphine
