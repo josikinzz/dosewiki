@@ -36,12 +36,18 @@ export interface InfoSectionItem {
   value: string;
   href?: string;
   icon?: LucideIcon;
+  chips?: InfoSectionItemChip[];
 }
 
 export interface InfoSection {
   title: string;
   icon: LucideIcon;
   items: InfoSectionItem[];
+}
+
+export interface InfoSectionItemChip {
+  label: string;
+  slug: string;
 }
 
 export interface CitationEntry {

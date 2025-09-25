@@ -21,6 +21,7 @@ import type { LucideIcon } from "lucide-react";
 
 import articles from "./articles.json";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
+import { slugify } from "../utils/slug";
 
 export interface CategoryDefinition {
   key: string;
@@ -62,6 +63,17 @@ export interface EffectDetail {
   groups: DosageCategoryGroup[];
 }
 
+export interface MechanismSummary {
+  name: string;
+  slug: string;
+  total: number;
+}
+
+export interface MechanismDetail {
+  definition: MechanismSummary;
+  groups: DosageCategoryGroup[];
+}
+
 export const substanceRecords: SubstanceRecord[] = articles
   .map((article) => buildSubstanceRecord(article))
   .filter((record): record is SubstanceRecord => record !== null);
@@ -70,12 +82,7 @@ export const substanceBySlug = new Map<string, SubstanceRecord>(
   substanceRecords.map((record) => [record.slug, record]),
 );
 
-const normalizeKey = (value: string): string =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .trim();
+const normalizeKey = (value: string): string => slugify(value);
 
 const hasTag = (tags: Set<string>, ...candidates: string[]) =>
   candidates.some((candidate) => tags.has(normalizeKey(candidate)));
@@ -1765,6 +1772,37 @@ export function getCategoryDetail(categoryKey: string): CategoryDetail | null {
 
 const normalizeEffectSlug = (value: string): string => normalizeKey(value);
 
+const normalizeMechanismSlug = (value: string): string => normalizeKey(value);
+
+const mechanismMap = new Map<string, { name: string; records: SubstanceRecord[] }>();
+
+substanceRecords.forEach((record) => {
+  const mechanismValue = resolveMechanismOfAction(record);
+  if (!mechanismValue) {
+    return;
+  }
+
+  const entries = mechanismValue
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  const uniqueEntries = Array.from(new Set(entries));
+
+  uniqueEntries.forEach((entry) => {
+    const slug = normalizeMechanismSlug(entry);
+    if (!slug) {
+      return;
+    }
+
+    if (!mechanismMap.has(slug)) {
+      mechanismMap.set(slug, { name: entry, records: [] });
+    }
+
+    mechanismMap.get(slug)!.records.push(record);
+  });
+});
+
 const effectMap = new Map<string, { name: string; records: SubstanceRecord[] }>();
 
 substanceRecords.forEach((record) => {
@@ -1784,6 +1822,14 @@ substanceRecords.forEach((record) => {
 });
 
 export const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
+  .map(([slug, entry]) => ({
+    name: entry.name,
+    slug,
+    total: entry.records.length,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+export const mechanismSummaries: MechanismSummary[] = Array.from(mechanismMap.entries())
   .map(([slug, entry]) => ({
     name: entry.name,
     slug,
@@ -1816,6 +1862,39 @@ export function getEffectSummary(effectSlug: string): EffectSummary | undefined 
   if (!entry) {
     return undefined;
   }
+  return {
+    name: entry.name,
+    slug,
+    total: entry.records.length,
+  };
+}
+
+export function getMechanismDetail(mechanismSlug: string): MechanismDetail | null {
+  const slug = normalizeMechanismSlug(mechanismSlug);
+  const entry = mechanismMap.get(slug);
+  if (!entry) {
+    return null;
+  }
+
+  const groups = buildCategoryGroups(entry.records);
+
+  return {
+    definition: {
+      name: entry.name,
+      slug,
+      total: entry.records.length,
+    },
+    groups,
+  };
+}
+
+export function getMechanismSummary(mechanismSlug: string): MechanismSummary | undefined {
+  const slug = normalizeMechanismSlug(mechanismSlug);
+  const entry = mechanismMap.get(slug);
+  if (!entry) {
+    return undefined;
+  }
+
   return {
     name: entry.name,
     slug,

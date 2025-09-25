@@ -1,12 +1,14 @@
 ﻿import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { BADGE_BASE_CLASSES, BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
 import type { InfoSection } from "../../types/content";
 
 interface InfoSectionsProps {
   sections: InfoSection[];
+  onMechanismSelect?: (mechanismSlug: string) => void;
 }
 
-export function InfoSections({ sections }: InfoSectionsProps) {
+export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps) {
   if (!sections || sections.length === 0) {
     return null;
   }
@@ -46,10 +48,35 @@ export function InfoSections({ sections }: InfoSectionsProps) {
         </h2>
         <div className="columns-1 md:columns-3 md:[column-gap:1.25rem]">
           {orderedCards.map((item) => {
-            const { label, value, href, icon: ItemIcon } = item;
+            const { label, value, href, icon: ItemIcon, chips } = item;
+            const normalizedLabel = label.toLowerCase().trim();
+            const isMechanism = normalizedLabel === "mechanism of action";
+            const mechanismBadges = isMechanism ? chips ?? [] : [];
             const linkClasses = "text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline";
             const textClasses = "text-sm leading-snug text-white/85";
-            const valueNode = href ? (
+            const valueNode = mechanismBadges.length > 0 ? (
+              <div className="flex flex-wrap gap-2.5">
+                {mechanismBadges.map((badge) => {
+                  const isInteractive = Boolean(onMechanismSelect && badge.slug);
+                  const key = badge.slug || `${label}-${badge.label}`;
+
+                  return isInteractive ? (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => onMechanismSelect?.(badge.slug)}
+                      className={BADGE_INTERACTIVE_CLASSES}
+                    >
+                      {badge.label}
+                    </button>
+                  ) : (
+                    <span key={key} className={BADGE_BASE_CLASSES}>
+                      {badge.label}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : href ? (
               <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
                 {value}
               </a>

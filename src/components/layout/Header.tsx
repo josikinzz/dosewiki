@@ -29,7 +29,8 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
       return (
         currentView.type === "substances" ||
         currentView.type === "category" ||
-        currentView.type === "substance"
+        currentView.type === "substance" ||
+        currentView.type === "mechanism"
       );
     }
 

@@ -14,6 +14,8 @@ export function viewToHash(view: AppView): string {
       return `#/category/${view.categoryKey}`;
     case "effect":
       return `#/effect/${view.effectSlug}`;
+    case "mechanism":
+      return `#/mechanism/${view.mechanismSlug}`;
     case "search": {
       const query = view.query.trim();
       return query.length > 0 ? `#/search/${encodeURIComponent(query)}` : "#/search";
@@ -67,6 +69,11 @@ export function parseHash(
         return { type: "effect", effectSlug: slug };
       }
       return { type: "effects" };
+    case "mechanism":
+      if (slug) {
+        return { type: "mechanism", mechanismSlug: slug };
+      }
+      return { type: "substances" };
     case "search": {
       const querySegment = segments.slice(1).join("/");
       const query = querySegment ? decodeURIComponent(querySegment) : "";
