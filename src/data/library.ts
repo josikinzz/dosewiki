@@ -1,27 +1,10 @@
-import {
-  Sparkles,
-  Unlink,
-  Bug,
-  Zap,
-  Syringe,
-  Moon,
-  Leaf,
-  Heart,
-  Lightbulb,
-  Dumbbell,
-  SmilePlus,
-  Brain,
-  Beaker,
-  Sprout,
-  Eye,
-  Waves,
-  Shapes,
-} from "lucide-react";
+import { Cog, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import articles from "./articles.json";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../utils/slug";
+import { getCategoryIcon } from "./categoryIcons";
 
 export interface CategoryDefinition {
   key: string;
@@ -71,8 +54,19 @@ export interface MechanismSummary {
 
 export interface MechanismDetail {
   definition: MechanismSummary;
+  qualifiers: MechanismQualifierDetail[];
+  defaultQualifierKey: string;
+}
+
+export interface MechanismQualifierDetail {
+  key: string;
+  label: string;
+  qualifier?: string;
+  total: number;
   groups: DosageCategoryGroup[];
 }
+
+export const UNQUALIFIED_MECHANISM_QUALIFIER_KEY = "unqualified";
 
 export const substanceRecords: SubstanceRecord[] = articles
   .map((article) => buildSubstanceRecord(article))
@@ -91,28 +85,28 @@ const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
   {
     key: "psychedelic",
     name: "Psychedelic",
-    icon: Sparkles,
+    icon: getCategoryIcon("psychedelic"),
     aliases: ["psychedelics"],
     match: (tags) => hasTag(tags, "psychedelic"),
   },
   {
     key: "dissociative",
     name: "Dissociative",
-    icon: Unlink,
+    icon: getCategoryIcon("dissociative"),
     aliases: ["dissociatives"],
     match: (tags) => hasTag(tags, "dissociative"),
   },
   {
     key: "deliriant",
     name: "Deliriant",
-    icon: Bug,
+    icon: getCategoryIcon("deliriant"),
     aliases: ["deliriants"],
     match: (tags) => hasTag(tags, "deliriant"),
   },
   {
     key: "hallucinogen",
     name: "A-typical Hallucinogen",
-    icon: Eye,
+    icon: getCategoryIcon("hallucinogen"),
     aliases: [
       "hallucinogens",
       "a-typical hallucinogen",
@@ -125,63 +119,63 @@ const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
   {
     key: "stimulant",
     name: "Stimulant",
-    icon: Zap,
+    icon: getCategoryIcon("stimulant"),
     aliases: ["stimulants"],
     match: (tags) => hasTag(tags, "stimulant", "anorectic"),
   },
   {
     key: "entactogen",
     name: "Entactogen",
-    icon: Heart,
+    icon: getCategoryIcon("entactogen"),
     aliases: ["entactogens", "empathogen", "empathogens"],
     match: (tags) => hasTag(tags, "entactogen", "empathogen"),
   },
   {
     key: "opioid",
     name: "Opioid",
-    icon: Syringe,
+    icon: getCategoryIcon("opioid"),
     aliases: ["opioids"],
     match: (tags) => hasTag(tags, "opioid"),
   },
   {
     key: "gabaergic",
     name: "GABAergic",
-    icon: Waves,
+    icon: getCategoryIcon("gabaergic"),
     aliases: ["gabaergics"],
     match: (tags) => hasTag(tags, "gabaergic"),
   },
   {
     key: "cannabinoid",
     name: "Cannabinoid",
-    icon: Leaf,
+    icon: getCategoryIcon("cannabinoid"),
     aliases: ["cannabinoids"],
     match: (tags) => hasTag(tags, "cannabinoid"),
   },
   {
     key: "nootropic",
     name: "Nootropic",
-    icon: Lightbulb,
+    icon: getCategoryIcon("nootropic"),
     aliases: ["nootropics"],
     match: (tags) => hasTag(tags, "nootropic"),
   },
   {
     key: "antidepressant",
     name: "Antidepressant",
-    icon: SmilePlus,
+    icon: getCategoryIcon("antidepressant"),
     aliases: ["antidepressants"],
     match: (tags) => hasTag(tags, "antidepressant"),
   },
   {
     key: "antipsychotic",
     name: "Antipsychotic",
-    icon: Brain,
+    icon: getCategoryIcon("antipsychotic"),
     aliases: ["antipsychotics"],
     match: (tags) => hasTag(tags, "antipsychotic"),
   },
   {
     key: "miscellaneous",
     name: "Miscellaneous",
-    icon: Shapes,
+    icon: getCategoryIcon("miscellaneous"),
     aliases: ["misc"],
     match: () => false,
     fallback: true,
@@ -189,14 +183,14 @@ const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
   {
     key: "anabolic-steroid",
     name: "Anabolic Steroid",
-    icon: Dumbbell,
+    icon: getCategoryIcon("anabolic-steroid"),
     aliases: ["anabolic steroids"],
     match: (tags) => hasTag(tags, "anabolic steroid"),
   },
   {
     key: "supplement",
     name: "Supplement",
-    icon: Sprout,
+    icon: getCategoryIcon("supplement"),
     aliases: ["supplements"],
     match: (tags) => hasTag(tags, "supplement"),
   },
@@ -1720,7 +1714,64 @@ function buildStimulantDetailGroups(records: SubstanceRecord[]): CategoryDetailG
   return buildConfiguredDetailGroups(records, STIMULANT_GROUP_CONFIG);
 }
 
+const DEFAULT_CHEMICAL_CLASS_ICON: LucideIcon = Hexagon;
+const DEFAULT_MECHANISM_ICON: LucideIcon = Cog;
+
+function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCategoryGroup[] {
+  const bucketMap = new Map<
+    string,
+    {
+      name: string;
+      drugs: Map<string, { name: string; slug: string }>;
+    }
+  >();
+
+  records.forEach((record) => {
+    const classes = record.chemicalClasses?.length
+      ? record.chemicalClasses.map((entry) => entry.trim()).filter((entry) => entry.length > 0)
+      : ["Unspecified"];
+
+    classes.forEach((entry) => {
+      const name = entry.trim();
+      if (name.length === 0) {
+        return;
+      }
+
+      const key = slugify(name);
+      if (!bucketMap.has(key)) {
+        bucketMap.set(key, {
+          name,
+          drugs: new Map(),
+        });
+      }
+
+      const bucket = bucketMap.get(key)!;
+      if (!bucket.drugs.has(record.slug)) {
+        bucket.drugs.set(record.slug, { name: record.name, slug: record.slug });
+      }
+    });
+  });
+
+  return Array.from(bucketMap.entries())
+    .map(([key, bucket]) => {
+      const drugs = Array.from(bucket.drugs.values()).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+
+      return {
+        key,
+        name: bucket.name,
+        icon: DEFAULT_CHEMICAL_CLASS_ICON,
+        total: drugs.length,
+        drugs,
+      } satisfies DosageCategoryGroup;
+    })
+    .filter((group) => group.total > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export const dosageCategoryGroups = buildCategoryGroups(substanceRecords);
+export const chemicalClassIndexGroups = buildChemicalClassIndexGroups(substanceRecords);
 
 export function getCategoryDetail(categoryKey: string): CategoryDetail | null {
   const definition = findCategoryByKey(categoryKey);
@@ -1774,7 +1825,40 @@ const normalizeEffectSlug = (value: string): string => normalizeKey(value);
 
 const normalizeMechanismSlug = (value: string): string => normalizeKey(value);
 
-const mechanismMap = new Map<string, { name: string; records: SubstanceRecord[] }>();
+interface MechanismQualifierAccumulator {
+  label: string;
+  qualifier?: string;
+  records: Set<SubstanceRecord>;
+}
+
+interface MechanismAccumulator {
+  name: string;
+  records: Set<SubstanceRecord>;
+  qualifierMap: Map<string, MechanismQualifierAccumulator>;
+}
+
+const mechanismMap = new Map<string, MechanismAccumulator>();
+
+function parseMechanismEntryLabel(entry: string): { base: string; qualifier?: string } {
+  const trimmed = entry.trim();
+  if (trimmed.length === 0) {
+    return { base: trimmed };
+  }
+
+  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
+  if (match) {
+    const base = match[1]?.trim() ?? "";
+    const qualifier = match[2]?.trim();
+    if (base.length > 0) {
+      return {
+        base,
+        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
+      };
+    }
+  }
+
+  return { base: trimmed };
+}
 
 substanceRecords.forEach((record) => {
   const mechanismValue = resolveMechanismOfAction(record);
@@ -1790,16 +1874,40 @@ substanceRecords.forEach((record) => {
   const uniqueEntries = Array.from(new Set(entries));
 
   uniqueEntries.forEach((entry) => {
-    const slug = normalizeMechanismSlug(entry);
+    const { base, qualifier } = parseMechanismEntryLabel(entry);
+    const normalizedBase = base.trim();
+    if (!normalizedBase) {
+      return;
+    }
+
+    const slug = normalizeMechanismSlug(normalizedBase);
     if (!slug) {
       return;
     }
 
     if (!mechanismMap.has(slug)) {
-      mechanismMap.set(slug, { name: entry, records: [] });
+      mechanismMap.set(slug, {
+        name: normalizedBase,
+        records: new Set(),
+        qualifierMap: new Map(),
+      });
     }
 
-    mechanismMap.get(slug)!.records.push(record);
+    const accumulator = mechanismMap.get(slug)!;
+    accumulator.records.add(record);
+
+    const qualifierKey = qualifier
+      ? normalizeMechanismSlug(qualifier)
+      : UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
+    if (!accumulator.qualifierMap.has(qualifierKey)) {
+      accumulator.qualifierMap.set(qualifierKey, {
+        label: qualifier ?? "general",
+        qualifier: qualifier ?? undefined,
+        records: new Set(),
+      });
+    }
+
+    accumulator.qualifierMap.get(qualifierKey)!.records.add(record);
   });
 });
 
@@ -1829,13 +1937,34 @@ export const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+function buildMechanismIndexGroups(): DosageCategoryGroup[] {
+  return Array.from(mechanismMap.entries())
+    .map(([key, entry]) => {
+      const drugs = Array.from(entry.records)
+        .map((record) => ({ name: record.name, slug: record.slug }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      return {
+        key,
+        name: entry.name,
+        icon: DEFAULT_MECHANISM_ICON,
+        total: drugs.length,
+        drugs,
+      } satisfies DosageCategoryGroup;
+    })
+    .filter((group) => group.total > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export const mechanismSummaries: MechanismSummary[] = Array.from(mechanismMap.entries())
   .map(([slug, entry]) => ({
     name: entry.name,
     slug,
-    total: entry.records.length,
+    total: entry.records.size,
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
+
+export const mechanismIndexGroups = buildMechanismIndexGroups();
 
 export function getEffectDetail(effectSlug: string): EffectDetail | null {
   const slug = normalizeEffectSlug(effectSlug);
@@ -1876,15 +2005,50 @@ export function getMechanismDetail(mechanismSlug: string): MechanismDetail | nul
     return null;
   }
 
-  const groups = buildCategoryGroups(entry.records);
+  const qualifierDetails: MechanismQualifierDetail[] = Array.from(
+    entry.qualifierMap.entries(),
+  ).map(([key, qualifierEntry]) => {
+    const records = Array.from(qualifierEntry.records);
+    const groups = buildCategoryGroups(records);
+
+    const isDefault = key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
+    const label = qualifierEntry.qualifier
+      ? qualifierEntry.qualifier
+      : "General (no qualifier)";
+
+    return {
+      key,
+      label,
+      qualifier: qualifierEntry.qualifier,
+      total: records.length,
+      groups,
+    } satisfies MechanismQualifierDetail;
+  });
+
+  const sortedQualifiers = qualifierDetails.sort((a, b) => {
+    if (a.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY) {
+      return -1;
+    }
+    if (b.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY) {
+      return 1;
+    }
+    return a.label.localeCompare(b.label);
+  });
+
+  const defaultQualifierKey = sortedQualifiers.find(
+    (qualifier) => qualifier.key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY,
+  )
+    ? UNQUALIFIED_MECHANISM_QUALIFIER_KEY
+    : sortedQualifiers[0]?.key ?? UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
 
   return {
     definition: {
       name: entry.name,
       slug,
-      total: entry.records.length,
+      total: entry.records.size,
     },
-    groups,
+    qualifiers: sortedQualifiers,
+    defaultQualifierKey,
   };
 }
 
@@ -1898,7 +2062,7 @@ export function getMechanismSummary(mechanismSlug: string): MechanismSummary | u
   return {
     name: entry.name,
     slug,
-    total: entry.records.length,
+    total: entry.records.size,
   };
 }
 

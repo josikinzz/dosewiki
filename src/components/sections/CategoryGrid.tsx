@@ -8,6 +8,8 @@ interface CategoryGridProps {
   onSelectDrug: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
   defaultExpanded?: boolean;
+  hideEmptyGroups?: boolean;
+  limitColumns?: boolean;
 }
 
 export function CategoryGrid({
@@ -15,8 +17,26 @@ export function CategoryGrid({
   onSelectDrug,
   onSelectCategory,
   defaultExpanded = true,
+  hideEmptyGroups = false,
+  limitColumns = false,
 }: CategoryGridProps) {
-  const groupKeys = useMemo(() => groups.map((group) => group.key), [groups]);
+  const visibleGroups = useMemo(() => {
+    if (!hideEmptyGroups) {
+      return groups;
+    }
+    return groups.filter((group) => {
+      if (group.total > 0) {
+        return true;
+      }
+      const sections = group.sections ?? [];
+      return sections.some((section) => section.drugs.length > 0);
+    });
+  }, [groups, hideEmptyGroups]);
+
+  const groupKeys = useMemo(
+    () => visibleGroups.map((group) => group.key),
+    [visibleGroups],
+  );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -138,16 +158,31 @@ export function CategoryGrid({
     }
   };
 
+  const containerClassName = limitColumns
+    ? "columns-1 gap-6 space-y-6 sm:columns-2 lg:columns-3 [column-width:320px]"
+    : "gap-6 space-y-6 [column-width:320px]";
+
   return (
-    <div className="columns-1 gap-6 space-y-6 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 [column-width:280px]">
-      {groups.map((group) => {
+    <div className={containerClassName}>
+      {visibleGroups.map((group) => {
         const isExpanded = expanded[group.key] ?? defaultExpanded;
         const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
         const listId = `${group.key}-list`;
         const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
         const hasSections = visibleSections.length > 0;
         const listClass = isExpanded ? "mt-4 space-y-1 text-sm text-white/80" : "hidden";
-        const sectionsClass = isExpanded ? "mt-4 space-y-4 text-sm text-white/80" : "hidden";
+        const sectionsClass = isExpanded ? "mt-4 space-y-[30px] text-sm text-white/80" : "hidden";
+
+        const isCategorySelectable = Boolean(onSelectCategory);
+
+        const titleContent = (
+          <>
+            <h2 className="hyphenate break-words text-lg font-semibold text-fuchsia-300">{group.name}</h2>
+            <p className="hyphenate break-words text-xs uppercase tracking-wide text-white/50">
+              {group.total} substance{group.total === 1 ? "" : "s"}
+            </p>
+          </>
+        );
 
         return (
           <section
@@ -178,16 +213,19 @@ export function CategoryGrid({
                     </span>
                   ) : null}
                 </div>
-                <button
-                  type="button"
-                  className="flex flex-1 flex-col items-start text-left"
-                  onClick={() => handleSelectCategory(group.key)}
-                >
-                  <h2 className="hyphenate break-words text-lg font-semibold text-fuchsia-300">{group.name}</h2>
-                  <p className="hyphenate break-words text-xs uppercase tracking-wide text-white/50">
-                    {group.total} substance{group.total === 1 ? "" : "s"}
-                  </p>
-                </button>
+                {isCategorySelectable ? (
+                  <button
+                    type="button"
+                    className="flex flex-1 flex-col items-start text-left"
+                    onClick={() => handleSelectCategory(group.key)}
+                  >
+                    {titleContent}
+                  </button>
+                ) : (
+                  <div className="flex flex-1 flex-col items-start text-left">
+                    {titleContent}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
@@ -208,7 +246,11 @@ export function CategoryGrid({
                 {visibleSections.map((section, index) => (
                   <div
                     key={section.name ?? `section-${index}`}
-                    className={index > 0 ? "border-t border-white/10 pt-4" : ""}
+                    className={
+                      index > 0
+                        ? "relative pt-[30px] before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.1)_20%,rgba(255,255,255,0.1)_80%,rgba(255,255,255,0)_100%)] before:content-['']"
+                        : ""
+                    }
                   >
                     {section.name && (
                       <p className="hyphenate break-words text-sm font-semibold uppercase tracking-wide text-fuchsia-200">

@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Eye } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { BADGE_BASE_CLASSES, BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
@@ -18,7 +18,7 @@ export function SubjectiveEffectsSection({ effects, onEffectSelect }: Subjective
   return (
     <SectionCard delay={0.15}>
       <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-        <IconBadge icon={Sparkles} label="Subjective effects" />
+        <IconBadge icon={Eye} label="Subjective effects" />
         Subjective Effects
       </h2>
       <p className="mt-2 text-sm text-white/70">Effects vary widely by individual, dose, and context.</p>
