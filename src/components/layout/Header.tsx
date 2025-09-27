@@ -8,21 +8,24 @@ interface HeaderProps {
   currentView: AppView;
   defaultSlug: string;
   onNavigate: (view: AppView) => void;
+  onSearchSlotChange?: (element: HTMLDivElement | null) => void;
 }
 
-export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
+export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChange }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
   const articleView: AppView =
     currentView.type === "substance"
       ? currentView
       : { type: "substance", slug: defaultSlug };
 
+  const aboutView: AppView = { type: "about" };
   const navItems = [
     { label: "Substances", view: substancesView },
     { label: "Effects", view: { type: "effects" as const } },
     { label: "Interactions", view: { type: "interactions" as const } },
-    { label: "About", view: { type: "about" as const } },
   ];
+  const aboutHash = viewToHash(aboutView);
+  const isAboutActive = currentView.type === "about";
 
   const isActive = (itemView: AppView) => {
     if (itemView.type === "substances") {
@@ -106,7 +109,14 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
           </span>
         </button>
 
-        <div className="ml-auto hidden items-center gap-4 md:flex">
+        <div className="flex flex-1 min-w-0 items-center min-h-[44px]">
+          <div
+            ref={onSearchSlotChange}
+            className="w-full"
+          />
+        </div>
+
+        <div className="hidden flex-shrink-0 items-center gap-4 md:flex">
           <nav className="flex items-center gap-6 text-sm text-white/80">
             {navItems.map((item) => {
               const itemHash = viewToHash(item.view.type === "substance" ? articleView : item.view);
@@ -131,12 +141,21 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
               );
             })}
           </nav>
-          <button className="rounded-xl bg-white/10 px-3 py-1.5 text-white/90 ring-1 ring-white/15 transition hover:bg-white/15">
-            Donate
-          </button>
+          <a
+            href={aboutHash}
+            onClick={(event) => {
+              event.preventDefault();
+              handleNavigate(aboutView);
+            }}
+            className={`rounded-xl px-3 py-1.5 text-white/90 ring-1 ring-white/15 transition hover:bg-white/15 ${
+              isAboutActive ? "bg-white/20 text-white" : "bg-white/10"
+            }`}
+          >
+            About
+          </a>
         </div>
 
-        <div className="relative ml-auto md:hidden">
+        <div className="relative flex-shrink-0 md:hidden">
           <button
             ref={menuButtonRef}
             type="button"
@@ -178,9 +197,18 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
                   );
                 })}
               </nav>
-              <button className="mt-4 w-full rounded-xl bg-white/10 px-3 py-2 text-sm font-medium text-white/90 ring-1 ring-white/15 transition hover:bg-white/15">
-                Donate
-              </button>
+              <a
+                href={aboutHash}
+                onClick={(event) => {
+                  event.preventDefault();
+                  handleNavigate(aboutView);
+                }}
+                className={`mt-4 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-white/90 ring-1 ring-white/15 transition hover:bg-white/15 ${
+                  isAboutActive ? "bg-white/20 text-white" : "bg-white/10"
+                }`}
+              >
+                About
+              </a>
             </div>
           )}
         </div>

@@ -5,7 +5,7 @@ import type { InfoSection } from "../../types/content";
 
 interface InfoSectionsProps {
   sections: InfoSection[];
-  onMechanismSelect?: (mechanismSlug: string) => void;
+  onMechanismSelect?: (mechanismSlug: string, qualifierSlug?: string) => void;
 }
 
 export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps) {
@@ -58,21 +58,25 @@ export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps)
               <div className="flex flex-wrap gap-2.5">
                 {mechanismBadges.map((badge) => {
                   const isInteractive = Boolean(onMechanismSelect && badge.slug);
-                  const key = badge.slug || `${label}-${badge.label}`;
+                  const key = `${badge.slug}-${badge.qualifierSlug ?? ""}-${badge.label}`;
 
-                  return isInteractive ? (
+                  if (!isInteractive) {
+                    return (
+                      <span key={key} className={BADGE_BASE_CLASSES}>
+                        {badge.label}
+                      </span>
+                    );
+                  }
+
+                  return (
                     <button
                       key={key}
                       type="button"
-                      onClick={() => onMechanismSelect?.(badge.slug)}
+                      onClick={() => onMechanismSelect?.(badge.slug, badge.qualifierSlug)}
                       className={BADGE_INTERACTIVE_CLASSES}
                     >
                       {badge.label}
                     </button>
-                  ) : (
-                    <span key={key} className={BADGE_BASE_CLASSES}>
-                      {badge.label}
-                    </span>
                   );
                 })}
               </div>

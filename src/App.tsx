@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { Hero } from "./components/sections/Hero";
@@ -41,6 +42,17 @@ const DEFAULT_VIEW: AppView = { type: "substances" };
 
 export default function App() {
   const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
+  const [isSearchInHeader, setIsSearchInHeader] = useState(false);
+  const [topSearchContainer, setTopSearchContainer] = useState<HTMLDivElement | null>(null);
+  const [headerSearchContainer, setHeaderSearchContainer] = useState<HTMLDivElement | null>(null);
+  const [searchTarget, setSearchTarget] = useState<HTMLDivElement | null>(null);
+  const searchRootElementRef = useRef<HTMLDivElement | null>(null);
+  const [reservedTopSearchHeight, setReservedTopSearchHeight] = useState<number>(0);
+  const [isHeaderSearchVisible, setHeaderSearchVisible] = useState(false);
+  const [isBodySearchVisible, setBodySearchVisible] = useState(true);
+  const headerShowTimeoutRef = useRef<number | null>(null);
+  const bodyMoveTimeoutRef = useRef<number | null>(null);
+  const FADE_DURATION_MS = 200;
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -79,12 +91,22 @@ export default function App() {
     }
   }, [navigate]);
 
-  const selectMechanism = useCallback((mechanismSlug: string) => {
-    const summary = getMechanismSummary(mechanismSlug);
-    if (summary) {
+  const selectMechanism = useCallback(
+    (mechanismSlug: string, qualifierSlug?: string) => {
+      const summary = getMechanismSummary(mechanismSlug);
+      if (!summary) {
+        return;
+      }
+
+      if (qualifierSlug) {
+        navigate({ type: "mechanism", mechanismSlug: summary.slug, qualifierSlug });
+        return;
+      }
+
       navigate({ type: "mechanism", mechanismSlug: summary.slug });
-    }
-  }, [navigate]);
+    },
+    [navigate],
+  );
 
   const activeSlug = view.type === "substance" ? view.slug : DEFAULT_SLUG;
   const activeRecord = substanceBySlug.get(activeSlug) ?? DEFAULT_RECORD;
@@ -114,6 +136,146 @@ export default function App() {
     window.scrollTo({ top: 0, left: 0 });
   }, [view]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSearchInHeader(window.scrollY > 70);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setIsSearchInHeader(window.scrollY > 70);
+  }, [view]);
+
+  useEffect(() => {
+    if (!topSearchContainer && !headerSearchContainer) {
+      return;
+    }
+
+    if (headerShowTimeoutRef.current !== null) {
+      window.clearTimeout(headerShowTimeoutRef.current);
+      headerShowTimeoutRef.current = null;
+    }
+
+    if (bodyMoveTimeoutRef.current !== null) {
+      window.clearTimeout(bodyMoveTimeoutRef.current);
+      bodyMoveTimeoutRef.current = null;
+    }
+
+    const headerElement = headerSearchContainer;
+    const topElement = topSearchContainer;
+
+    if (isSearchInHeader) {
+      setBodySearchVisible(false);
+
+      if (headerElement && searchTarget !== headerElement) {
+        setSearchTarget(headerElement);
+      }
+
+      setHeaderSearchVisible(false);
+
+      if (headerElement) {
+        headerShowTimeoutRef.current = window.setTimeout(() => {
+          setHeaderSearchVisible(true);
+          headerShowTimeoutRef.current = null;
+        }, FADE_DURATION_MS);
+      }
+
+      return () => {
+        if (headerShowTimeoutRef.current !== null) {
+          window.clearTimeout(headerShowTimeoutRef.current);
+          headerShowTimeoutRef.current = null;
+        }
+      };
+    }
+
+    setHeaderSearchVisible(false);
+
+    if (!topElement) {
+      return undefined;
+    }
+
+    if (!searchTarget) {
+      setSearchTarget(topElement);
+      setBodySearchVisible(true);
+      return undefined;
+    }
+
+    if (searchTarget === topElement) {
+      setBodySearchVisible(true);
+      return undefined;
+    }
+
+    setBodySearchVisible(false);
+
+    bodyMoveTimeoutRef.current = window.setTimeout(() => {
+      setSearchTarget(topElement);
+      requestAnimationFrame(() => {
+        setBodySearchVisible(true);
+      });
+      bodyMoveTimeoutRef.current = null;
+    }, FADE_DURATION_MS);
+
+    return () => {
+      if (bodyMoveTimeoutRef.current !== null) {
+        window.clearTimeout(bodyMoveTimeoutRef.current);
+        bodyMoveTimeoutRef.current = null;
+      }
+    };
+  }, [isSearchInHeader, headerSearchContainer, topSearchContainer, searchTarget]);
+
+  useEffect(() => () => {
+    if (headerShowTimeoutRef.current !== null) {
+      window.clearTimeout(headerShowTimeoutRef.current);
+    }
+    if (bodyMoveTimeoutRef.current !== null) {
+      window.clearTimeout(bodyMoveTimeoutRef.current);
+    }
+  }, []);
+
+  const storeSearchRoot = useCallback((node: HTMLDivElement | null) => {
+    searchRootElementRef.current = node;
+  }, []);
+
+  useLayoutEffect(() => {
+    const element = searchRootElementRef.current;
+    if (!element) {
+      return;
+    }
+
+    if (searchTarget === topSearchContainer) {
+      const rect = element.getBoundingClientRect();
+      setReservedTopSearchHeight(rect.height);
+    }
+  }, [searchTarget, topSearchContainer]);
+
+  const handleTopSearchContainerRef = useCallback((node: HTMLDivElement | null) => {
+    setTopSearchContainer(node);
+  }, []);
+
+  const handleHeaderSearchSlotChange = useCallback((node: HTMLDivElement | null) => {
+    setHeaderSearchContainer(node);
+  }, []);
+
+  const isSearchTargetInHeader = searchTarget === headerSearchContainer;
+
+  const searchContainerClassName = isSearchTargetInHeader
+    ? `w-full px-2 sm:px-3 md:px-4 transition-opacity duration-200 ease-out ${
+        isHeaderSearchVisible ? "opacity-100" : "opacity-0"
+      }`
+    : `mx-auto w-full max-w-3xl px-4 sm:px-6 transition-opacity duration-200 ease-out ${
+        isBodySearchVisible ? "opacity-100" : "opacity-0"
+      }`;
+
+  const topSearchWrapperClassName = `transition-[max-height,padding,opacity] duration-200 ease-out ${
+    isSearchInHeader
+      ? "pointer-events-none max-h-32 px-4 pb-6 pt-4 opacity-0 md:pt-6"
+      : "max-h-32 px-4 pb-6 pt-4 opacity-100 md:pt-6"
+  }`;
+
   const activeRouteKey: RouteKey | undefined = useMemo(() => {
     if (!content || !defaultRoute) {
       return undefined;
@@ -137,11 +299,34 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={view} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
+      <Header
+        currentView={view}
+        defaultSlug={DEFAULT_SLUG}
+        onNavigate={navigate}
+        onSearchSlotChange={handleHeaderSearchSlotChange}
+      />
 
-      <div className="px-4 pb-6 pt-4 md:pt-6">
-        <GlobalSearch currentView={view} onNavigate={navigate} />
-      </div>
+      <div
+        ref={handleTopSearchContainerRef}
+        className={topSearchWrapperClassName}
+        style={reservedTopSearchHeight > 0 ? {
+          height: reservedTopSearchHeight,
+          minHeight: reservedTopSearchHeight,
+          maxHeight: reservedTopSearchHeight,
+        } : undefined}
+      />
+
+      {searchTarget &&
+        createPortal(
+          <GlobalSearch
+            currentView={view}
+            onNavigate={navigate}
+            containerClassName={searchContainerClassName}
+            compact={isSearchTargetInHeader}
+            onRootReady={storeSearchRoot}
+          />,
+          searchTarget,
+        )}
 
       {view.type === "substances" ? (
         <main>
@@ -233,6 +418,8 @@ export default function App() {
                 detail={detail}
                 onSelectDrug={selectSubstance}
                 onSelectCategory={selectCategory}
+                onSelectMechanism={selectMechanism}
+                activeQualifierSlug={view.qualifierSlug}
               />
             </main>
           );
@@ -269,7 +456,10 @@ export default function App() {
               )}
 
               {content.infoSections && content.infoSections.length > 0 && (
-                <InfoSections sections={content.infoSections} onMechanismSelect={selectMechanism} />
+                <InfoSections
+                  sections={content.infoSections}
+                  onMechanismSelect={selectMechanism}
+                />
               )}
 
               <SubjectiveEffectsSection

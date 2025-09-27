@@ -9,6 +9,11 @@ import {
 
 export type SearchEntryType = "substance" | "category" | "effect";
 
+export interface SearchEntryMeta {
+  label: string;
+  value: string;
+}
+
 export interface SearchEntry {
   id: string;
   type: SearchEntryType;
@@ -18,6 +23,7 @@ export interface SearchEntry {
   icon?: LucideIcon;
   count?: number;
   keywords: string[];
+  meta?: SearchEntryMeta[];
 }
 
 export interface SearchMatch extends SearchEntry {
@@ -56,28 +62,122 @@ const mergeKeywords = (...lists: Array<Array<string>>): string[] => {
   return Array.from(merged);
 };
 
+const joinWithSeparator = (values: string[]): string =>
+  values
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .join(" · ");
+
+type SubstanceRecordEntry = (typeof substanceRecords)[number];
+
+interface MechanismInfo {
+  labels: string[];
+  keywordSources: string[][];
+}
+
+const extractMechanismInfo = (record: SubstanceRecordEntry): MechanismInfo => {
+  const sections = record.content.infoSections ?? [];
+  for (const section of sections) {
+    for (const item of section.items) {
+      if (item.label.toLowerCase() !== "mechanism of action") {
+        continue;
+      }
+
+      const chips = item.chips ?? [];
+      const chipLabels = chips
+        .map((chip) => chip.label)
+        .filter((label): label is string => Boolean(label));
+
+      const valueLabels = item.value
+        ? item.value
+            .split(";")
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0)
+        : [];
+
+      const labels = chipLabels.length > 0 ? chipLabels : valueLabels;
+      const uniqueLabels = Array.from(new Set(labels));
+
+      const keywordSources: string[][] = [];
+      uniqueLabels.forEach((label) => {
+        keywordSources.push(keywordize(label));
+      });
+
+      chips.forEach((chip) => {
+        keywordSources.push(keywordize(chip.base));
+        if (chip.qualifier) {
+          keywordSources.push(keywordize(chip.qualifier));
+        }
+      });
+
+      return {
+        labels: uniqueLabels,
+        keywordSources,
+      };
+    }
+  }
+
+  return {
+    labels: [],
+    keywordSources: [],
+  };
+};
+
 const substanceEntries: SearchEntry[] = substanceRecords.map((record) => {
-  const subtitle = record.content.subtitle?.trim();
   const categories = record.content.categories ?? [];
   const heroBadges = record.content.heroBadges ?? [];
-  const heroLabels = heroBadges.map((badge) => badge.label).filter((label) => Boolean(label));
+  const heroLabels = heroBadges
+    .map((badge) => badge.label)
+    .filter((label): label is string => Boolean(label));
+
+  const chemicalClasses = record.chemicalClasses;
+  const psychoactiveClasses = record.psychoactiveClasses;
+  const mechanismInfo = extractMechanismInfo(record);
+
+  const meta: SearchEntryMeta[] = [];
+
+  const chemicalLabel = joinWithSeparator(chemicalClasses);
+  if (chemicalLabel) {
+    meta.push({
+      label: chemicalClasses.length === 1 ? "Chemical class" : "Chemical classes",
+      value: chemicalLabel,
+    });
+  }
+
+  const psychoactiveLabel = joinWithSeparator(psychoactiveClasses);
+  if (psychoactiveLabel) {
+    meta.push({
+      label: psychoactiveClasses.length === 1 ? "Psychoactive class" : "Psychoactive classes",
+      value: psychoactiveLabel,
+    });
+  }
+
+  const mechanismLabel = joinWithSeparator(mechanismInfo.labels);
+  if (mechanismLabel) {
+    meta.push({
+      label: mechanismInfo.labels.length === 1 ? "Mechanism" : "Mechanisms",
+      value: mechanismLabel,
+    });
+  }
 
   const keywordSources = [
     keywordize(record.name),
     keywordize(record.slug),
-    ...record.chemicalClasses.map((entry) => keywordize(entry)),
-    ...record.psychoactiveClasses.map((entry) => keywordize(entry)),
+    ...chemicalClasses.map((entry) => keywordize(entry)),
+    ...psychoactiveClasses.map((entry) => keywordize(entry)),
     ...categories.map((entry) => keywordize(entry)),
     ...heroLabels.map((entry) => keywordize(entry)),
+    ...mechanismInfo.keywordSources,
   ];
 
   return {
     id: `substance:${record.slug}`,
     type: "substance",
     label: record.name,
-    secondary: subtitle,
+    secondary: meta.length === 0 ? record.content.subtitle?.trim() : undefined,
     slug: record.slug,
     keywords: mergeKeywords(...keywordSources),
+    meta: meta.length > 0 ? meta : undefined,
   };
 });
 

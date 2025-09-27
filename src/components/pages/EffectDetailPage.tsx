@@ -18,7 +18,12 @@ export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: Eff
         description={`${detail.definition.total} substance${detail.definition.total === 1 ? "" : "s"} are associated with this effect.`}
       />
       {groups.length > 0 ? (
-        <CategoryGrid groups={groups} onSelectDrug={onSelectDrug} onSelectCategory={onSelectCategory} />
+        <CategoryGrid
+          groups={groups}
+          onSelectDrug={onSelectDrug}
+          onSelectCategory={onSelectCategory}
+          hideEmptyGroups
+        />
       ) : (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/70">
           No documented substances currently match this effect.

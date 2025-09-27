@@ -47,7 +47,10 @@ export interface InfoSection {
 
 export interface InfoSectionItemChip {
   label: string;
+  base: string;
   slug: string;
+  qualifier?: string;
+  qualifierSlug?: string;
 }
 
 export interface CitationEntry {

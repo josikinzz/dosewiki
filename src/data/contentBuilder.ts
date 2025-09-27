@@ -4,28 +4,7 @@
  * `dosages.routes_of_administration`, and `subjective_effects` that we
  * restructure into `SubstanceContent` for components.
  */
-import {
-  Layers,
-  Sparkles,
-  Waves,
-  AlertTriangle,
-  Flower,
-  Zap,
-  Syringe,
-  Dumbbell,
-  SmilePlus,
-  Brain,
-  Beaker,
-  BedDouble,
-  Moon,
-  Leaf,
-  BrainCircuit,
-  Pill,
-  Sprout,
-  Eye,
-  Timer,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { BrainCircuit, BrainCog, Cog, Hexagon, Timer } from "lucide-react";
 
 import type {
   SubstanceContent,
@@ -36,8 +15,10 @@ import type {
   ToleranceEntry,
   InfoSection,
   CitationEntry,
+  InfoSectionItemChip,
 } from "../types/content";
 import { slugify } from "../utils/slug";
+import { getCategoryIcon } from "./categoryIcons";
 
 interface RawDoseRanges {
   [key: string]: string | null | undefined;
@@ -121,50 +102,6 @@ type InteractionSeverity = InteractionGroup["severity"];
 
 type NonEmptyString = string & { __brand: "NonEmptyString" };
 
-const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
-  psychedelic: Sparkles,
-  psychedelics: Sparkles,
-  dissociative: Waves,
-  dissociatives: Waves,
-  deliriant: AlertTriangle,
-  deliriants: AlertTriangle,
-  entactogen: Flower,
-  entactogens: Flower,
-  empathogen: Flower,
-  empathogens: Flower,
-  stimulant: Zap,
-  stimulants: Zap,
-  opioid: Syringe,
-  opioids: Syringe,
-  "anabolic-steroid": Dumbbell,
-  "anabolic steroids": Dumbbell,
-  antidepressant: SmilePlus,
-  antidepressants: SmilePlus,
-  antipsychotic: Brain,
-  antipsychotics: Brain,
-  barbiturate: Beaker,
-  barbiturates: Beaker,
-  benzodiazepine: Pill,
-  benzodiazepines: Pill,
-  sedative: BedDouble,
-  sedatives: BedDouble,
-  depressant: Moon,
-  depressants: Moon,
-  cannabinoid: Leaf,
-  cannabinoids: Leaf,
-  nootropic: BrainCircuit,
-  nootropics: BrainCircuit,
-  supplement: Sprout,
-  supplements: Sprout,
-  hallucinogen: Eye,
-  hallucinogens: Eye,
-  "a-typical hallucinogen": Eye,
-  "a-typical hallucinogens": Eye,
-  "atypical hallucinogen": Eye,
-  "atypical hallucinogens": Eye,
-  other: Layers,
-};
-
 const INTERACTION_LABELS: Record<InteractionSeverity, string> = {
   danger: "Dangerous combinations",
   unsafe: "Unsafe combinations",
@@ -215,6 +152,32 @@ function cleanStringArray(values: unknown): string[] {
   return values
     .map((entry) => (isNonEmpty(entry) ? entry.trim() : undefined))
     .filter((entry): entry is string => Boolean(entry));
+}
+
+interface ParsedMechanismEntry {
+  base: string;
+  qualifier?: string;
+}
+
+function parseMechanismEntry(entry: string): ParsedMechanismEntry {
+  const trimmed = entry.trim();
+  if (trimmed.length === 0) {
+    return { base: trimmed };
+  }
+
+  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
+  if (match) {
+    const base = match[1]?.trim() ?? "";
+    const qualifier = match[2]?.trim();
+    if (base.length > 0) {
+      return {
+        base,
+        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
+      };
+    }
+  }
+
+  return { base: trimmed };
 }
 
 function splitToList(value: string | null | undefined): string[] {
@@ -382,7 +345,7 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
 
   const chemicalClass = cleanString(info.chemical_class);
   if (chemicalClass) {
-    items.push({ label: "Chemical class", value: chemicalClass, icon: Beaker });
+    items.push({ label: "Chemical class", value: chemicalClass, icon: Hexagon });
   }
 
   const mechanism = cleanString(info.mechanism_of_action);
@@ -391,14 +354,42 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
       .split(";")
       .map((entry) => entry.trim())
       .filter((entry) => entry.length > 0);
-    const chips = entries
-      .map((entry) => ({ label: entry, slug: slugify(entry) }))
-      .filter((chip) => chip.slug.length > 0);
+
+    const seen = new Set<string>();
+    const chips: InfoSectionItemChip[] = [];
+
+    entries.forEach((entry) => {
+      const { base, qualifier } = parseMechanismEntry(entry);
+      const normalizedBase = base.trim();
+      if (!normalizedBase) {
+        return;
+      }
+
+      const baseSlug = slugify(normalizedBase);
+      if (!baseSlug) {
+        return;
+      }
+
+      const qualifierSlug = qualifier ? slugify(qualifier) : undefined;
+      const dedupeKey = `${baseSlug}::${qualifierSlug ?? ""}`;
+      if (seen.has(dedupeKey)) {
+        return;
+      }
+      seen.add(dedupeKey);
+
+      chips.push({
+        label: entry,
+        base: normalizedBase,
+        slug: baseSlug,
+        qualifier,
+        qualifierSlug,
+      });
+    });
 
     items.push({
       label: "Mechanism of Action",
       value: mechanism,
-      icon: Brain,
+      icon: Cog,
       chips,
     });
   }
@@ -422,7 +413,7 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
   return [
     {
       title: "Chemistry & Pharmacology",
-      icon: Beaker,
+      icon: BrainCog,
       items,
     },
   ];
@@ -439,7 +430,7 @@ function buildHeroBadges(info: RawDrugInfo, categories: string[], normalizedKeys
     }
     seen.add(normalized);
 
-    const icon = CATEGORY_ICON_MAP[normalized] ?? Layers;
+    const icon = getCategoryIcon(normalized);
     badges.push({
       icon,
       label: titleize(category),
@@ -515,7 +506,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     name: baseName,
     subtitle: [cleanString(info.chemical_class), cleanString(info.psychoactive_class)]
       .filter((segment): segment is string => Boolean(segment))
-      .join(" Â· "),
+      .join(" · "),
     moleculePlaceholder: buildPlaceholder(baseName),
     heroBadges: buildHeroBadges(info, categories, normalizedCategories),
     categoryKeys: normalizedCategories,

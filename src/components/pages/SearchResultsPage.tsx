@@ -10,6 +10,25 @@ interface SearchResultsPageProps {
   onSelectEffect: (effectSlug: string) => void;
 }
 
+const META_TOKEN_SPLIT = /[·,/]/;
+
+const extractMetaTokens = (meta?: SearchMatch["meta"]): string[] => {
+  if (!meta) {
+    return [];
+  }
+
+  const tokens = new Set<string>();
+  meta.forEach((entry) => {
+    entry.value
+      .split(META_TOKEN_SPLIT)
+      .map((token) => token.trim())
+      .filter((token) => token.length > 0)
+      .forEach((token) => tokens.add(token));
+  });
+
+  return Array.from(tokens);
+};
+
 const typeLabel = (match: SearchMatch) => {
   switch (match.type) {
     case "substance":
@@ -84,14 +103,32 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                 onClick={() => handleSelect(match)}
                 className="flex w-full items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-left transition hover:border-fuchsia-400/40 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
               >
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold uppercase tracking-wide text-fuchsia-300/80">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] uppercase tracking-[0.34em] text-white/60">
                     {typeLabel(match)}
                   </span>
-                  <span className="text-lg font-medium text-white">{match.label}</span>
+                  <span className="text-xl font-semibold text-fuchsia-200">{match.label}</span>
                   {match.secondary && (
-                    <span className="mt-1 text-sm text-white/70">{match.secondary}</span>
+                    <span className="text-sm text-white/70">{match.secondary}</span>
                   )}
+                  {(() => {
+                    const tokens = extractMetaTokens(match.meta);
+                    if (tokens.length === 0) {
+                      return null;
+                    }
+                    return (
+                      <span className="mt-1.5 flex flex-wrap gap-1.5">
+                        {tokens.map((token) => (
+                          <span
+                            key={`${match.id}-badge-${token}`}
+                            className="inline-flex items-center rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-0.5 text-[10px] uppercase tracking-[0.24em] text-fuchsia-200/90"
+                          >
+                            {token}
+                          </span>
+                        ))}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <span className="mt-1 hidden shrink-0 text-xs font-semibold uppercase tracking-wide text-white/60 sm:inline-flex">
                   View

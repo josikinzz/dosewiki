@@ -4,7 +4,7 @@
   | { type: "category"; categoryKey: string }
   | { type: "effects" }
   | { type: "effect"; effectSlug: string }
-  | { type: "mechanism"; mechanismSlug: string }
+  | { type: "mechanism"; mechanismSlug: string; qualifierSlug?: string }
   | { type: "interactions" }
   | { type: "about" }
   | { type: "search"; query: string };

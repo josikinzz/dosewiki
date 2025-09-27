@@ -15,7 +15,9 @@ export function viewToHash(view: AppView): string {
     case "effect":
       return `#/effect/${view.effectSlug}`;
     case "mechanism":
-      return `#/mechanism/${view.mechanismSlug}`;
+      return view.qualifierSlug
+        ? `#/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
+        : `#/mechanism/${view.mechanismSlug}`;
     case "search": {
       const query = view.query.trim();
       return query.length > 0 ? `#/search/${encodeURIComponent(query)}` : "#/search";
@@ -71,6 +73,10 @@ export function parseHash(
       return { type: "effects" };
     case "mechanism":
       if (slug) {
+        const qualifierSlug = segments[2];
+        if (qualifierSlug) {
+          return { type: "mechanism", mechanismSlug: slug, qualifierSlug };
+        }
         return { type: "mechanism", mechanismSlug: slug };
       }
       return { type: "substances" };

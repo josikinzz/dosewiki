@@ -1,4 +1,4 @@
-import { Timer } from 'lucide-react';
+import { Scale } from 'lucide-react';
 import { SectionCard } from '../common/SectionCard';
 import { IconBadge } from '../common/IconBadge';
 import { RouteInfo, RouteKey } from '../../types/content';
@@ -53,7 +53,7 @@ export function DosageDurationCard({
     >
       <div className="flex flex-col gap-4">
         <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-          <IconBadge icon={Timer} label="Dosage and duration" />
+          <IconBadge icon={Scale} label="Dosage and duration" />
           Dosage & Duration
         </h2>
         <div className="flex flex-wrap gap-2">
