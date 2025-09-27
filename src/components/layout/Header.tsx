@@ -94,7 +94,7 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
         <button
           type="button"
           onClick={() => handleNavigate(substancesView)}
-          className="-ml-1 group/brand flex items-center gap-2 text-left sm:-ml-2"
+          className="group/brand flex items-center gap-2 text-left"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <img
