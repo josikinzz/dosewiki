@@ -18,6 +18,7 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 ## RULES
 - Always npm run build:inline after completing a task so that the user can manually review the change
 - Keep this Agent.md document up to do date, it shouldnt endlessly grow, but if something new seems worth adding to it, then add it or tweak this document. 
+- When asked to write a review, guide, report, or document that is for the user or for yourself instead of an actual change to the site, always output it into the notes and plans folder as a .md file.
 
 ## Documentation
 - `README.md` contains onboarding steps, build commands, and release checklist.

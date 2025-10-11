@@ -64,6 +64,8 @@ interface RawCitation {
 
 interface RawDrugInfo {
   drug_name?: string | null;
+  chemical_name?: string | null;
+  alternative_name?: string | null;
   search_url?: string | null;
   chemical_class?: string | null;
   psychoactive_class?: string | null;
@@ -91,6 +93,7 @@ export interface SubstanceRecord {
   id: number | null;
   name: string;
   slug: string;
+  aliases: string[];
   categories: string[];
   chemicalClasses: string[];
   psychoactiveClasses: string[];
@@ -473,6 +476,73 @@ function buildPlaceholder(name: string): string {
     .join(" ");
 }
 
+function splitAlternativeValues(value: string): string[] {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const primarySegments = trimmed
+    .split(";")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+
+  const expanded: string[] = [];
+
+  primarySegments.forEach((segment) => {
+    if (segment.includes(" / ")) {
+      segment
+        .split("/")
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0)
+        .forEach((entry) => expanded.push(entry));
+      return;
+    }
+
+    expanded.push(segment);
+  });
+
+  return expanded;
+}
+
+function extractAlternativeNames(info: RawDrugInfo, baseName: string): string[] {
+  const names: string[] = [];
+  const seen = new Set<string>();
+
+  const addName = (raw?: string | null) => {
+    const cleaned = cleanString(raw);
+    if (!cleaned) {
+      return;
+    }
+
+    if (cleaned.localeCompare(baseName, undefined, { sensitivity: "accent" }) === 0) {
+      return;
+    }
+
+    const key = cleaned.toLocaleLowerCase("en-US");
+    if (seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    names.push(cleaned);
+  };
+
+  const alternativeRaw = cleanString(info.alternative_name);
+  if (alternativeRaw) {
+    const parts = splitAlternativeValues(alternativeRaw);
+    if (parts.length > 0) {
+      parts.forEach((part) => addName(part));
+    } else {
+      addName(alternativeRaw);
+    }
+  }
+
+  addName(info.chemical_name);
+
+  return names;
+}
+
 export function slugifyDrugName(name: string, fallback: string): string {
   const normalized = normalizeKey(name);
   if (normalized) {
@@ -487,7 +557,16 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     return null;
   }
 
-  const baseName = cleanString(info.drug_name) ?? cleanString(article.title);
+  const chemicalName = cleanString(info.chemical_name);
+  const drugName = cleanString(info.drug_name);
+  const titleName = cleanString(article.title);
+
+  const candidateNames = [drugName, titleName, chemicalName].filter(
+    (value): value is string => Boolean(value),
+  );
+
+  const preferredName = candidateNames.find((value) => !value.includes("("));
+  const baseName = preferredName ?? candidateNames[0];
   if (!baseName) {
     return null;
   }
@@ -499,14 +578,14 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   const normalizedCategories = categories.map((category) => normalizeKey(category));
   const chemicalClasses = splitToList(info.chemical_class);
   const psychoactiveClasses = splitToList(info.psychoactive_class);
+  const aliases = extractAlternativeNames(info, baseName);
 
   const { routes, routeOrder, unitsNote } = buildRoutes(info.dosages, info.duration);
 
   const content: SubstanceContent = {
     name: baseName,
-    subtitle: [cleanString(info.chemical_class), cleanString(info.psychoactive_class)]
-      .filter((segment): segment is string => Boolean(segment))
-      .join(" · "),
+    subtitle: "",
+    aliases,
     moleculePlaceholder: buildPlaceholder(baseName),
     heroBadges: buildHeroBadges(info, categories, normalizedCategories),
     categoryKeys: normalizedCategories,
@@ -527,6 +606,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   return {
     id,
     name: baseName,
+    aliases,
     slug,
     categories,
     chemicalClasses,

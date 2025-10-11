@@ -437,7 +437,8 @@ export default function App() {
         <>
           <Hero
             title={content.name}
-            subtitle={content.subtitle}
+            subtitle={content.aliases.length > 0 ? undefined : content.subtitle}
+            aliases={content.aliases}
             placeholder={content.moleculePlaceholder}
             badges={content.heroBadges}
             onCategorySelect={selectCategory}

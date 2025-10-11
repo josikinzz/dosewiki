@@ -61,6 +61,7 @@ export interface CitationEntry {
 export interface SubstanceContent {
   name: string;
   subtitle: string;
+  aliases: string[];
   moleculePlaceholder: string;
   heroBadges: HeroBadge[];
   categoryKeys?: string[];

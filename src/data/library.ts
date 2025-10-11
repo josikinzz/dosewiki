@@ -6,6 +6,12 @@ import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../utils/slug";
 import { getCategoryIcon } from "./categoryIcons";
 
+export interface DrugListEntry {
+  name: string;
+  slug: string;
+  alias?: string;
+}
+
 export interface CategoryDefinition {
   key: string;
   name: string;
@@ -20,13 +26,13 @@ export interface DosageCategoryGroup {
   name: string;
   icon: LucideIcon;
   total: number;
-  drugs: Array<{ name: string; slug: string }>;
+  drugs: DrugListEntry[];
   sections?: CategoryDetailGroup[];
 }
 
 export interface CategoryDetailGroup {
   name: string;
-  drugs: Array<{ name: string; slug: string }>;
+  drugs: DrugListEntry[];
 }
 
 export interface CategoryDetail {
@@ -80,6 +86,21 @@ const normalizeKey = (value: string): string => slugify(value);
 
 const hasTag = (tags: Set<string>, ...candidates: string[]) =>
   candidates.some((candidate) => tags.has(normalizeKey(candidate)));
+
+const formatAlias = (record: SubstanceRecord): string | undefined => {
+  const aliases = record.aliases ?? [];
+  if (aliases.length === 0) {
+    return undefined;
+  }
+
+  return aliases.join(" · ");
+};
+
+const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
+  name: record.name,
+  slug: record.slug,
+  alias: formatAlias(record),
+});
 
 const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
   {
@@ -237,7 +258,7 @@ function resolveCategories(record: SubstanceRecord): CategoryDefinition[] {
 }
 
 function buildCategoryBuckets(records: SubstanceRecord[]) {
-  const buckets = new Map<string, { definition: CategoryDefinition; records: SubstanceRecord[]; drugs: Array<{ name: string; slug: string }> }>();
+  const buckets = new Map<string, { definition: CategoryDefinition; records: SubstanceRecord[]; drugs: DrugListEntry[] }>();
   CATEGORY_DEFINITIONS.forEach((definition) => {
     buckets.set(definition.key, { definition, records: [], drugs: [] });
   });
@@ -256,7 +277,7 @@ function buildCategoryBuckets(records: SubstanceRecord[]) {
         return;
       }
 
-      bucket.drugs.push({ name: record.name, slug: record.slug });
+      bucket.drugs.push(createDrugEntry(record));
       bucket.records.push(record);
       uniqueKeys.add(category.key);
     });
@@ -332,10 +353,7 @@ export function buildCategoryGroups(records: SubstanceRecord[]): DosageCategoryG
                         ? buildChemicalClassGroups(filteredRecords)
                         : undefined;
 
-    const baseDrugs = filteredRecords.map((record) => ({
-      name: record.name,
-      slug: record.slug,
-    }));
+    const baseDrugs = filteredRecords.map((record) => createDrugEntry(record));
 
     const sortedDrugs =
       sections && sections.length > 0
@@ -1485,7 +1503,7 @@ function buildCannabinoidDetailGroups(records: SubstanceRecord[]): CategoryDetai
 }
 
 function buildChemicalClassGroups(records: SubstanceRecord[]): CategoryDetailGroup[] {
-  const chemicalMap = new Map<string, Array<{ name: string; slug: string }>>();
+  const chemicalMap = new Map<string, DrugListEntry[]>();
   records.forEach((record) => {
     const classes = record.chemicalClasses && record.chemicalClasses.length > 0 ? record.chemicalClasses : ["Unspecified"];
     classes.forEach((chemicalClass) => {
@@ -1493,7 +1511,7 @@ function buildChemicalClassGroups(records: SubstanceRecord[]): CategoryDetailGro
       if (!chemicalMap.has(key)) {
         chemicalMap.set(key, []);
       }
-      chemicalMap.get(key)!.push({ name: record.name, slug: record.slug });
+      chemicalMap.get(key)!.push(createDrugEntry(record));
     });
   });
 
@@ -1579,7 +1597,7 @@ function buildConfiguredDetailGroups(
 
     const drugs = sorted.map(({ record }) => {
       included.add(record.slug);
-      return { name: record.name, slug: record.slug };
+      return createDrugEntry(record);
     });
 
     if (drugs.length > 0) {
@@ -1722,7 +1740,7 @@ function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCatego
     string,
     {
       name: string;
-      drugs: Map<string, { name: string; slug: string }>;
+      drugs: Map<string, DrugListEntry>;
     }
   >();
 
@@ -1747,7 +1765,7 @@ function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCatego
 
       const bucket = bucketMap.get(key)!;
       if (!bucket.drugs.has(record.slug)) {
-        bucket.drugs.set(record.slug, { name: record.name, slug: record.slug });
+        bucket.drugs.set(record.slug, createDrugEntry(record));
       }
     });
   });

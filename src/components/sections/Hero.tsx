@@ -4,12 +4,20 @@ import { HeroBadge } from "../../types/content";
 interface HeroProps {
   title: string;
   subtitle?: string;
+  aliases?: string[];
   placeholder: string;
   badges?: HeroBadge[];
   onCategorySelect?: (categoryKey: string) => void;
 }
 
-export function Hero({ title, placeholder, badges = [], onCategorySelect }: HeroProps) {
+export function Hero({
+  title,
+  subtitle,
+  aliases = [],
+  placeholder,
+  badges = [],
+  onCategorySelect,
+}: HeroProps) {
   const handleBadgeClick = (badge: HeroBadge) => {
     if (badge.categoryKey && onCategorySelect) {
       onCategorySelect(badge.categoryKey);
@@ -39,6 +47,11 @@ export function Hero({ title, placeholder, badges = [], onCategorySelect }: Hero
         <h1 className="text-4xl font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-6xl">
           {title}
         </h1>
+        {aliases.length > 0 && (
+          <p className="max-w-2xl text-center text-base text-white/80 md:text-lg">
+            {aliases.join(" · ")}
+          </p>
+        )}
         {badges.length > 0 && (
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             {badges.map((badge) => {
