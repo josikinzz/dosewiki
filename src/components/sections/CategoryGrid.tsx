@@ -20,6 +20,9 @@ export function CategoryGrid({
   hideEmptyGroups = false,
   limitColumns = false,
 }: CategoryGridProps) {
+  const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) =>
+    drug.alias ? `${drug.name} (${drug.alias})` : drug.name;
+
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {
       return groups;
@@ -77,13 +80,13 @@ export function CategoryGrid({
           lines.push(`#### ${section.name}`);
         }
         section.drugs.forEach((drug) => {
-          lines.push(`- ${drug.name}`);
+          lines.push(`- ${formatDrugLabel(drug)}`);
         });
       });
     } else if (group.drugs.length > 0) {
       lines.push("");
       group.drugs.forEach((drug) => {
-        lines.push(`- ${drug.name}`);
+        lines.push(`- ${formatDrugLabel(drug)}`);
       });
     } else {
       lines.push("", "- _No substances_");
@@ -265,7 +268,12 @@ export function CategoryGrid({
                             onClick={() => onSelectDrug(drug.slug)}
                             className="hyphenate w-full break-words rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                           >
-                            {drug.name}
+                            <span className="flex flex-wrap items-baseline gap-2">
+                              <span className="hyphenate">{drug.name}</span>
+                              {drug.alias && (
+                                <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
+                              )}
+                            </span>
                           </button>
                         </li>
                       ))}
@@ -282,7 +290,12 @@ export function CategoryGrid({
                       onClick={() => onSelectDrug(drug.slug)}
                       className="hyphenate w-full break-words rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                     >
-                      {drug.name}
+                      <span className="flex flex-wrap items-baseline gap-2">
+                        <span className="hyphenate">{drug.name}</span>
+                        {drug.alias && (
+                          <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
+                        )}
+                      </span>
                     </button>
                   </li>
                 ))}

@@ -160,9 +160,12 @@ const substanceEntries: SearchEntry[] = substanceRecords.map((record) => {
     });
   }
 
+  const aliasLabel = joinWithSeparator(record.aliases);
+
   const keywordSources = [
     keywordize(record.name),
     keywordize(record.slug),
+    ...record.aliases.map((entry) => keywordize(entry)),
     ...chemicalClasses.map((entry) => keywordize(entry)),
     ...psychoactiveClasses.map((entry) => keywordize(entry)),
     ...categories.map((entry) => keywordize(entry)),
@@ -170,11 +173,14 @@ const substanceEntries: SearchEntry[] = substanceRecords.map((record) => {
     ...mechanismInfo.keywordSources,
   ];
 
+  const fallbackSubtitle = record.content.subtitle?.trim();
+  const secondaryLabel = aliasLabel || (meta.length === 0 ? fallbackSubtitle : undefined);
+
   return {
     id: `substance:${record.slug}`,
     type: "substance",
     label: record.name,
-    secondary: meta.length === 0 ? record.content.subtitle?.trim() : undefined,
+    secondary: secondaryLabel,
     slug: record.slug,
     keywords: mergeKeywords(...keywordSources),
     meta: meta.length > 0 ? meta : undefined,

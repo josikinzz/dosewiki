@@ -74,6 +74,7 @@ export function GlobalSearch({
 
   const suggestions = useMemo(() => querySearch(query, MAX_SUGGESTIONS), [query]);
   const hasQuery = query.trim().length > 0;
+  const clearButtonVisible = hasQuery;
   const showSuggestions = isActiveSearch && hasQuery && suggestions.length > 0;
 
   useEffect(() => {
@@ -226,7 +227,9 @@ export function GlobalSearch({
           ref={inputRef}
           type="text"
           placeholder="Search..."
-          className={`w-full rounded-2xl bg-white/10 px-10 pr-14 text-sm text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 ${
+          className={`w-full rounded-2xl bg-white/10 pl-10 ${
+            clearButtonVisible ? "pr-14" : "pr-10"
+          } text-sm text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 ${
             compact ? "py-2" : "py-3"
           }`}
           value={query}
@@ -244,7 +247,7 @@ export function GlobalSearch({
           }
         />
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" aria-hidden="true" />
-        {query.length > 0 && (
+        {clearButtonVisible && (
           <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
             <button
               type="button"

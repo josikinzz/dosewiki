@@ -30,7 +30,12 @@ export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
                     onClick={() => onSelectDrug(drug.slug)}
                     className="w-full rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                   >
-                    {drug.name}
+                    <span className="flex flex-wrap items-baseline gap-2">
+                      <span className="hyphenate">{drug.name}</span>
+                      {drug.alias && (
+                        <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
+                      )}
+                    </span>
                   </button>
                 </li>
               ))}
