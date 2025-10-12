@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "id": "20251012-120542-f6e605f4",
+    "createdAt": "2025-10-12T12:05:42.088Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/12/2025, 6:05:40 AM"
+    },
+    "articles": [
+      {
+        "id": 389,
+        "title": "3-MeO-PCMo",
+        "slug": "3-meo-pcmo"
+      }
+    ],
+    "markdown": "### 3-MeO-PCMo · #389\n\n- `content`: `# 3-MeO-PCMo\n## Arylcyclohexylamine (morpholine subgroup) | Dissociative NMDA-receptor antagonist with mild monoaminergic activity\n      \nPotency is roughly 1/10 of 3-MeO-PCP but still active in double-digit milligram range; weigh on 0.001 g scale and perform 1-3 mg allergy test. Virtually no clinical history: all human data are anecdotal. Reports of confusion, mania and prolonged delirium at heavy doses. Limited reagent-test data; use full panel to rule out NBOMe / opioid adulterants. Crystal often hygroscopic – store in airtight, light-protected container with desiccant.` → ``"
+  }
+]
