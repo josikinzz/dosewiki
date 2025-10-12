@@ -86,7 +86,6 @@ interface RawDrugInfo {
 interface RawArticle {
   id?: number;
   title?: string | null;
-  content?: string | null;
   drug_info?: RawDrugInfo;
 }
 
