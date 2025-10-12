@@ -1093,7 +1093,6 @@ export function DevModePage() {
     articles,
     datasetChangelog.articles,
     datasetChangelog.markdown,
-    hasDatasetChanges,
     hasInvalidJsonDraft,
     pushChangeLogNotice,
     showPasswordNotice,
