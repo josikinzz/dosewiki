@@ -12,6 +12,7 @@ import type {
   RouteKey,
   HeroBadge,
   InteractionGroup,
+  InteractionTarget,
   ToleranceEntry,
   InfoSection,
   CitationEntry,
@@ -289,6 +290,67 @@ function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | un
   };
 }
 
+function extractInteractionDetails(value: string): { base: string; rationale?: string } {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return { base: "" };
+  }
+
+  const trailingRationale = trimmed.match(/^(.*?)(?:\s*\(([^()]*)\)\s*)$/);
+  if (!trailingRationale) {
+    return { base: trimmed };
+  }
+
+  const base = trailingRationale[1]?.trim() ?? "";
+  const rationale = trailingRationale[2]?.trim();
+  if (base.length === 0) {
+    return { base: trimmed };
+  }
+
+  return rationale && rationale.length > 0 ? { base, rationale } : { base };
+}
+
+function normalizeInteractionLabel(value: string): string {
+  return value
+    .replace(/[‒–—−]+/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([/,&])\s*/g, " $1 ")
+    .trim();
+}
+
+function hashInteractionLabel(value: string): string {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(index);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function buildInteractionItem(entry: string): InteractionTarget {
+  const raw = entry.trim();
+  const { base, rationale } = extractInteractionDetails(raw);
+  const normalizedBase = normalizeInteractionLabel(base);
+  const displayCandidate = normalizedBase.length > 0 ? normalizedBase : normalizeInteractionLabel(raw);
+  const fallbackDisplay = displayCandidate.length > 0 ? displayCandidate : raw;
+
+  let slug = slugify(displayCandidate);
+  if (!slug) {
+    slug = slugify(raw);
+  }
+  if (!slug) {
+    slug = `interaction-${hashInteractionLabel(raw)}`;
+  }
+
+  return {
+    raw,
+    display: fallbackDisplay,
+    slug,
+    rationale: rationale && rationale.length > 0 ? rationale : undefined,
+    matchType: "unknown",
+  } satisfies InteractionTarget;
+}
+
 function buildInteractionGroups(interactions?: RawInteractions): InteractionGroup[] {
   if (!interactions) {
     return [];
@@ -299,7 +361,10 @@ function buildInteractionGroups(interactions?: RawInteractions): InteractionGrou
   return severityOrder
     .map((severity) => {
       const listKey = severity === "danger" ? "dangerous" : severity;
-      const items = cleanStringArray((interactions as Record<string, unknown>)[listKey]);
+      const items = cleanStringArray((interactions as Record<string, unknown>)[listKey]).map((entry) =>
+        buildInteractionItem(entry),
+      );
+
       if (items.length === 0) {
         return null;
       }
@@ -307,7 +372,7 @@ function buildInteractionGroups(interactions?: RawInteractions): InteractionGrou
       return {
         label: INTERACTION_LABELS[severity],
         severity,
-        substances: items.map((entry) => titleize(entry)),
+        items,
       } satisfies InteractionGroup;
     })
     .filter((group): group is InteractionGroup => group !== null);

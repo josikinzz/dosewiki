@@ -17,7 +17,10 @@ import { EffectsPage } from "./components/pages/EffectsPage";
 import { EffectDetailPage } from "./components/pages/EffectDetailPage";
 import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
+import { DevModePage } from "./components/pages/DevModePage";
+import { AboutPage } from "./components/pages/AboutPage";
 import {
+  substanceRecords,
   substanceBySlug,
   dosageCategoryGroups,
   getCategoryDetail,
@@ -35,6 +38,7 @@ import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
 import { parseHash, viewToHash } from "./utils/routing";
 import { GlobalSearch } from "./components/common/GlobalSearch";
+import { InteractionsPage } from "./components/pages/InteractionsPage";
 
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
@@ -111,6 +115,13 @@ export default function App() {
   const activeSlug = view.type === "substance" ? view.slug : DEFAULT_SLUG;
   const activeRecord = substanceBySlug.get(activeSlug) ?? DEFAULT_RECORD;
   const content = activeRecord.content;
+
+  const handleInteractionSelectionChange = useCallback(
+    (primarySlug: string, secondarySlug: string) => {
+      navigate({ type: "interactions", primarySlug, secondarySlug });
+    },
+    [navigate],
+  );
 
   const defaultRoute = useMemo<RouteKey | undefined>(() => {
     if (!content) {
@@ -328,7 +339,9 @@ export default function App() {
           searchTarget,
         )}
 
-      {view.type === "substances" ? (
+      {view.type === "dev" ? (
+        <DevModePage />
+      ) : view.type === "substances" ? (
         <main>
           <DosagesPage
             groups={dosageCategoryGroups}
@@ -424,14 +437,19 @@ export default function App() {
             </main>
           );
         })()
-      ) : view.type === "interactions" || view.type === "about" ? (
-        <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
-          <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-            <p className="text-lg font-semibold text-white">This section is under construction.</p>
-            <p className="mt-2 text-sm text-white/70">
-              Check back soon for detailed {view.type === "interactions" ? "interaction" : "about"} content updates.
-            </p>
-          </div>
+      ) : view.type === "interactions" ? (
+        <main>
+          <InteractionsPage
+            substances={substanceRecords}
+            initialPrimarySlug={view.primarySlug}
+            initialSecondarySlug={view.secondarySlug}
+            onNavigateToSubstance={selectSubstance}
+            onSelectionChange={handleInteractionSelectionChange}
+          />
+        </main>
+      ) : view.type === "about" ? (
+        <main>
+          <AboutPage />
         </main>
       ) : (
         <>
@@ -481,5 +499,3 @@ export default function App() {
     </div>
   );
 }
-
-

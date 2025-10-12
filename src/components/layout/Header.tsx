@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { FlaskConical, Info, Menu, Sparkles, Wrench, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
 import { viewToHash } from "../../utils/routing";
@@ -18,11 +19,13 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
       ? currentView
       : { type: "substance", slug: defaultSlug };
 
+  const effectsView: AppView = { type: "effects" };
+  const devView: AppView = { type: "dev" };
   const aboutView: AppView = { type: "about" };
-  const navItems = [
-    { label: "Substances", view: substancesView },
-    { label: "Effects", view: { type: "effects" as const } },
-    { label: "Interactions", view: { type: "interactions" as const } },
+  const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
+    { label: "Substances", view: substancesView, icon: FlaskConical },
+    { label: "Effects", view: effectsView, icon: Sparkles },
+    { label: "Dev Tools", view: devView, icon: Wrench },
   ];
   const aboutHash = viewToHash(aboutView);
   const isAboutActive = currentView.type === "about";
@@ -118,25 +121,29 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
 
         <div className="hidden flex-shrink-0 items-center gap-4 md:flex">
           <nav className="flex items-center gap-6 text-sm text-white/80">
-            {navItems.map((item) => {
-              const itemHash = viewToHash(item.view.type === "substance" ? articleView : item.view);
+            {navItems.map(({ label, view, icon: Icon }) => {
+              const itemHash = viewToHash(view.type === "substance" ? articleView : view);
+              const active = isActive(view);
 
               return (
                 <a
-                  key={item.label}
+                  key={label}
                   href={itemHash}
                   onClick={(event) => {
                     event.preventDefault();
-                    handleNavigate(item.view);
+                    handleNavigate(view);
                   }}
-                  className={`relative font-medium transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    isActive(item.view) ? "text-white" : "text-white/70"
+                  className={`relative flex items-center gap-2 font-medium transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                    active ? "text-white" : "text-white/70"
                   }`}
                 >
-                  {item.label}
-                  {isActive(item.view) && (
-                    <span className="pointer-events-none absolute -bottom-1 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-fuchsia-400" />
-                  )}
+                  <Icon className="h-4 w-4" aria-hidden="true" focusable="false" />
+                  <span className="relative inline-flex">
+                    {label}
+                    {active && (
+                      <span className="pointer-events-none absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-fuchsia-400" />
+                    )}
+                  </span>
                 </a>
               );
             })}
@@ -147,11 +154,14 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
               event.preventDefault();
               handleNavigate(aboutView);
             }}
-            className={`rounded-xl px-3 py-1.5 text-white/90 ring-1 ring-white/15 transition hover:bg-white/15 ${
-              isAboutActive ? "bg-white/20 text-white" : "bg-white/10"
+            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-white/90 ring-1 transition ${
+              isAboutActive
+                ? "bg-fuchsia-500/25 text-white ring-fuchsia-400/60 shadow-[0_8px_24px_rgba(232,121,249,0.25)] hover:bg-fuchsia-500/30"
+                : "bg-white/10 ring-white/15 hover:bg-white/15"
             }`}
           >
-            About
+            <Info className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>About</span>
           </a>
         </div>
 
@@ -176,22 +186,25 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
               className="absolute right-0 top-[calc(100%+0.75rem)] w-56 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50"
             >
               <nav className="flex flex-col gap-2 text-sm">
-                {navItems.map((item) => {
-                  const itemHash = viewToHash(item.view.type === "substance" ? articleView : item.view);
-                  const active = isActive(item.view);
+                {navItems.map(({ label, view, icon: Icon }) => {
+                  const itemHash = viewToHash(view.type === "substance" ? articleView : view);
+                  const active = isActive(view);
                   return (
                     <a
-                      key={item.label}
+                      key={label}
                       href={itemHash}
                       onClick={(event) => {
                         event.preventDefault();
-                        handleNavigate(item.view);
+                        handleNavigate(view);
                       }}
                       className={`flex items-center justify-between rounded-xl px-3 py-2 transition ${
                         active ? "bg-white/15 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"
                       }`}
                     >
-                      <span>{item.label}</span>
+                      <span className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" aria-hidden="true" focusable="false" />
+                        <span>{label}</span>
+                      </span>
                       {active && <span className="h-2 w-2 rounded-full bg-fuchsia-400" />}
                     </a>
                   );
@@ -203,11 +216,14 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
                   event.preventDefault();
                   handleNavigate(aboutView);
                 }}
-                className={`mt-4 flex w-full items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-white/90 ring-1 ring-white/15 transition hover:bg-white/15 ${
-                  isAboutActive ? "bg-white/20 text-white" : "bg-white/10"
+                className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-white/90 ring-1 transition ${
+                  isAboutActive
+                    ? "bg-fuchsia-500/25 text-white ring-fuchsia-400/60 shadow-[0_8px_24px_rgba(232,121,249,0.25)] hover:bg-fuchsia-500/30"
+                    : "bg-white/10 ring-white/15 hover:bg-white/15"
                 }`}
               >
-                About
+                <Info className="h-4 w-4" aria-hidden="true" focusable="false" />
+                <span>About</span>
               </a>
             </div>
           )}

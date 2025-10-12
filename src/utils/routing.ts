@@ -6,8 +6,17 @@ export function viewToHash(view: AppView): string {
       return "#/substances";
     case "effects":
       return "#/effects";
-    case "interactions":
+    case "interactions": {
+      const primary = view.primarySlug?.trim();
+      const secondary = view.secondarySlug?.trim();
+      if (primary && secondary) {
+        return `#/interactions/${primary}/${secondary}`;
+      }
+      if (primary) {
+        return `#/interactions/${primary}`;
+      }
       return "#/interactions";
+    }
     case "about":
       return "#/about";
     case "category":
@@ -26,6 +35,8 @@ export function viewToHash(view: AppView): string {
       const slug = view.slug.trim();
       return slug.length > 0 ? `#/substance/${slug}` : "#/substance";
     }
+    case "dev":
+      return "#/dev";
     default:
       return "#/substances";
   }
@@ -57,8 +68,17 @@ export function parseHash(
       return { type: "substances" };
     case "effects":
       return { type: "effects" };
-    case "interactions":
+    case "interactions": {
+      const primarySlug = slug;
+      const secondarySlug = segments[2];
+      if (primarySlug && secondarySlug) {
+        return { type: "interactions", primarySlug, secondarySlug };
+      }
+      if (primarySlug) {
+        return { type: "interactions", primarySlug };
+      }
       return { type: "interactions" };
+    }
     case "about":
       return { type: "about" };
     case "category":
@@ -90,6 +110,8 @@ export function parseHash(
         return { type: "substance", slug };
       }
       return { type: "substance", slug: defaultSlug };
+    case "dev":
+      return { type: "dev" };
     default:
       return resolveDefault();
   }

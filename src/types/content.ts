@@ -20,10 +20,24 @@ export interface HeroBadge {
   categoryKey?: string;
 }
 
+export type InteractionMatchType = "substance" | "alias" | "class" | "unknown";
+
+export interface InteractionTarget {
+  raw: string;
+  display: string;
+  slug: string;
+  matchType: InteractionMatchType;
+  rationale?: string;
+  matchedSubstanceSlug?: string;
+  matchedSubstanceName?: string;
+  classKey?: string;
+  classLabel?: string;
+}
+
 export interface InteractionGroup {
   label: string;
   severity: "danger" | "unsafe" | "caution";
-  substances: string[];
+  items: InteractionTarget[];
 }
 
 export interface ToleranceEntry {

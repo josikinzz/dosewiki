@@ -38,6 +38,17 @@ src/data/articles.json → contentBuilder.ts → library.ts/search.ts → compon
 - Never hard-code dosage ranges, ROA tables, or descriptive copy in components.
 - When introducing new static datasets, place them in `src/data/` and document the JSON schema in a top-of-file comment.
 
+## Developer Draft Editor
+- Open the editor via the footer's wrench icon (navigates to `#/dev`); the workspace is intended for trusted contributors only.
+- The provider clones `src/data/articles.json` into memory on page load, so edits never touch the committed dataset or any other deployments.
+- `Save draft` updates the in-memory clone; closing the panel keeps those edits around, but a full page refresh resets everything back to the shipped JSON.
+- `Download dataset` exports the entire `articles.json` set (every substance) as a timestamped file you can share for manual re-upload.
+- `Download article` saves just the currently selected substance entry—useful for targeted edits or feedback loops.
+- `Copy JSON` places the full draft payload on your clipboard—handy for quick diffs or pasting into chat.
+- Psychoactive-class jump menus mirror the Substance Index categories so you can swap articles without scrolling the full list.
+- The changelog pane auto-diffs against the source article so you can copy or download Markdown-ready release notes.
+- Use the reset buttons to revert a single article or the full dataset without refreshing the page.
+
 ## Development Guidelines
 - Prefer Tailwind utility classes (ordered layout → color → effects) over bespoke CSS.
 - Use PascalCase component names, camelCase variables, and keep hooks at the top of components.

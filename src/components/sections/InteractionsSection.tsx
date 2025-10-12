@@ -53,8 +53,13 @@ export function InteractionsSection({ interactions }: InteractionsSectionProps) 
               </h3>
               <p className="mt-1 text-xs text-white/60">{label}</p>
               <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-white/85">
-                {group.substances.map((substance) => (
-                  <li key={substance}>{substance}</li>
+                {group.items.map((item) => (
+                  <li key={`${item.slug}-${item.raw}`} className="space-y-0.5">
+                    <span>{item.display}</span>
+                    {item.rationale && (
+                      <span className="block text-xs text-white/60">{item.rationale}</span>
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
