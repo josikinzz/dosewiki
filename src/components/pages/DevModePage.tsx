@@ -1,6 +1,16 @@
 import { ChevronDown, Copy, Download, RefreshCw, Save, ShieldCheck, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 
 import {
   appendChangeLogEntry,
@@ -529,7 +539,10 @@ export function DevModePage() {
     [],
   );
 
-  const handlePasswordSave = useCallback(() => {
+  const handlePasswordSave = useCallback((event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
+    if (event && "preventDefault" in event) {
+      event.preventDefault();
+    }
     const trimmed = passwordDraft.trim();
 
     if (trimmed.length === 0) {
@@ -1135,7 +1148,7 @@ export function DevModePage() {
 
       <div className="mt-10 flex justify-center">
         <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
+          <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handlePasswordSave}>
             <div className="flex-1">
               <label
                 className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
@@ -1155,14 +1168,13 @@ export function DevModePage() {
               />
             </div>
             <button
-              type="button"
+              type="submit"
               className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
-              onClick={handlePasswordSave}
             >
               <Save className="h-4 w-4" />
               Save
             </button>
-          </div>
+          </form>
           <div className="mt-2 min-h-[1.25rem] text-xs">
             {passwordNotice ? (
               <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
