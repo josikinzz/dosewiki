@@ -64,16 +64,5 @@ export const findPasswordKey = (password, entries = loadPasswordEntries()) => {
     }
   }
 
-  const env = getEnv();
-  for (const [envKey, envValue] of Object.entries(env)) {
-      if (typeof envValue !== "string") {
-        continue;
-      }
-
-      if (envValue.trim() === trimmed) {
-        return envKey;
-      }
-    }
-
   return null;
 };
