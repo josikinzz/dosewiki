@@ -19,6 +19,7 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 - Always npm run build:inline after completing a task so that the user can manually review the change
 - Keep this Agent.md document up to do date, it shouldnt endlessly grow, but if something new seems worth adding to it, then add it or tweak this document. 
 - When asked to write a review, guide, report, or document that is for the user or for yourself instead of an actual change to the site, always output it into the notes and plans folder as a .md file.
+- Before making visual changes or designing new UI elements, consult `notes and plans/dosewiki-visual-style-guide.md` for the canonical styling rules.
 
 ## Documentation
 - `README.md` contains onboarding steps, build commands, and release checklist.
@@ -26,7 +27,11 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 ## Agent Notes
 - Entry point lives in `src/main.tsx` and renders the hash-driven router in `src/App.tsx`; navigation state is stored in React hooks with helpers from `src/utils/routing.ts`.
 - Substance content is sourced exclusively from `src/data/articles.json`, normalized via `contentBuilder.ts`, and indexed by `library.ts`; search suggestions reuse the same records through `src/data/search.ts`.
-- UI structure is split into `components/common` (primitives like `SectionCard`, `IconBadge`, `GlobalSearch`), `components/sections` (dose card, info sections, interactions, etc.), and `components/pages` (route-level shells such as `DosagesPage`, `EffectsPage`, `MechanismDetailPage`).
+- UI structure is split into `components/common` (primitives like `SectionCard`, `IconBadge`, `GlobalSearch`, `JsonEditor`), `components/sections` (dose card, info sections, interactions, etc.), and `components/pages` (route-level shells such as `DosagesPage`, `EffectsPage`, `MechanismDetailPage`).
 - `components/sections/CategoryGrid.tsx` manages expandable category buckets, clipboard export, and delegates selections back to router callbacks.
 - The single-file export is handled by a custom Vite plugin in `vite.config.ts`; enabling `npm run build:inline` inlines CSS/JS into `dist-inline/index.html`.
-- Support scripts in `/scripts` manipulate `articles.json` (e.g., effect extraction, mechanism tagging) and log summaries into `notes and plans/` for research.
+- Support scripts in `/scripts` manipulate `articles.json` (e.g., effect extraction, mechanism tagging) and log summaries into `notes and plans/` for research; `scripts/updateIndexCategory.mjs` also normalizes `index-category` fields and reorders `drug_info` keys.
+- Hidden developer draft editor toggles from the footer wrench button; `DevModeProvider` (wrapped in `src/main.tsx`) keeps article edits in memory while `DevModePage` at `#/dev` sorts articles alphabetically, offers psychoactive-class jump menus, and exposes JSON/changelog clipboard + download actions.
+- Default landing content is sourced from `src/data/lsd.ts`, which locates the LSD record in `articles.json`; the app throws at build time if that record ever goes missing.
+- `src/components/common/JsonEditor.tsx` uses `react-simple-code-editor` with Prism highlighting, styled via the `.json-editor` rules in `src/styles.css`.
+- `src/data/interactionClasses.ts` defines reusable keyword groups for interaction class matching. The `InteractionsPage` surface (`src/components/pages/InteractionsPage.tsx`) consumes enriched interaction targets from `contentBuilder`, keeps selection state encoded in the hash (`#/interactions/<primary>/<secondary>`), and displays comparison buckets via helpers in `src/utils/interactions.ts`.

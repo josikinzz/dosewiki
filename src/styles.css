@@ -52,3 +52,40 @@
     word-break: break-word;
   }
 }
+
+@layer components {
+  .json-editor pre {
+    margin: 0;
+    background: transparent;
+  }
+
+  .json-editor textarea {
+    color: transparent;
+  }
+
+  .json-editor .token.property {
+    color: #7dd3fc;
+  }
+
+  .json-editor .token.string {
+    color: #f9a8d4;
+  }
+
+  .json-editor .token.number {
+    color: #86efac;
+  }
+
+  .json-editor .token.boolean {
+    color: #facc15;
+  }
+
+  .json-editor .token.null {
+    color: rgba(248, 250, 252, 0.6);
+    font-style: italic;
+  }
+
+  .json-editor .token.punctuation,
+  .json-editor .token.operator {
+    color: rgba(248, 250, 252, 0.75);
+  }
+}

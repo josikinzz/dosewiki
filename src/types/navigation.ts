@@ -5,6 +5,7 @@
   | { type: "effects" }
   | { type: "effect"; effectSlug: string }
   | { type: "mechanism"; mechanismSlug: string; qualifierSlug?: string }
-  | { type: "interactions" }
+  | { type: "interactions"; primarySlug?: string; secondarySlug?: string }
   | { type: "about" }
-  | { type: "search"; query: string };
+  | { type: "search"; query: string }
+  | { type: "dev" };
