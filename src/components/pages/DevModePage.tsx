@@ -1,6 +1,6 @@
-import { ChevronDown, Copy, Download, RefreshCw, Undo2, Wrench } from "lucide-react";
+import { ChevronDown, Copy, Download, RefreshCw, ShieldCheck, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { useDevMode } from "../dev/DevModeContext";
 import { JsonEditor } from "../common/JsonEditor";
@@ -396,6 +396,9 @@ export function DevModePage() {
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
   const [newArticleForm, setNewArticleForm] = useState<NewArticleForm>(() => createInitialNewArticleForm());
   const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
@@ -675,6 +678,70 @@ export function DevModePage() {
     setNotice({ type: "success", message: "Changelog markdown downloaded." });
   };
 
+  const handleSaveToGitHub = useCallback(async () => {
+    const trimmedPassword = adminPassword.trim();
+    if (!trimmedPassword) {
+      setGithubNotice({ type: "error", message: "Enter the admin password before committing." });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setGithubNotice({ type: "success", message: "Verifying password…" });
+
+      const authResponse = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: trimmedPassword }),
+      });
+
+      if (!authResponse.ok) {
+        const payload = await authResponse.json().catch(() => ({}));
+        throw new Error(payload.error || "Authentication failed.");
+      }
+
+      setGithubNotice({ type: "success", message: "Password verified. Saving to GitHub…" });
+
+      const saveResponse = await fetch("/api/save-articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: trimmedPassword,
+          articlesData: articles,
+          commitMessage: `Dev editor update - ${new Date().toLocaleString()}`,
+        }),
+      });
+
+      const result = await saveResponse.json().catch(() => ({}));
+
+      if (!saveResponse.ok) {
+        throw new Error(result.details || result.error || "Save failed.");
+      }
+
+      setGithubNotice({
+        type: "success",
+        message: result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.",
+      });
+      setAdminPassword("");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unexpected error.";
+      setGithubNotice({ type: "error", message: reason });
+    } finally {
+      setIsSaving(false);
+      window.setTimeout(() => setGithubNotice(null), 10000);
+    }
+  }, [adminPassword, articles]);
+
+  const handleAdminPasswordKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter" && !isSaving) {
+        event.preventDefault();
+        void handleSaveToGitHub();
+      }
+    },
+    [handleSaveToGitHub, isSaving],
+  );
+
   const handleTabChange = useCallback(
     (tab: "edit" | "create") => {
       setActiveTab(tab);
@@ -683,8 +750,9 @@ export function DevModePage() {
       } else {
         setNotice(null);
       }
+      setGithubNotice(null);
     },
-    [setCreatorNotice, setNotice],
+    [setCreatorNotice, setGithubNotice, setNotice],
   );
 
   const handleNewArticleFieldChange = useCallback(
@@ -1051,6 +1119,55 @@ export function DevModePage() {
                 <Download className="h-4 w-4" />
                 Download dataset
               </button>
+            </div>
+          </SectionCard>
+
+          <SectionCard className="space-y-4 bg-white/[0.04]">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
+                <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
+              </div>
+              <p className="text-sm text-white/65">Authenticate with the shared password to push the current dataset.</p>
+            </div>
+            <div className="space-y-2">
+              <label
+                className="text-xs font-medium uppercase tracking-wide text-white/50"
+                htmlFor="dev-mode-admin-password"
+              >
+                Admin password
+              </label>
+              <input
+                id="dev-mode-admin-password"
+                type="password"
+                className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white/85 placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+                value={adminPassword}
+                onChange={(event) => setAdminPassword(event.target.value)}
+                onKeyDown={handleAdminPasswordKeyDown}
+                disabled={isSaving}
+                placeholder="Enter shared admin password"
+              />
+            </div>
+            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+              <div className="min-h-[1.25rem]">
+                {githubNotice ? (
+                  <p className={githubNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>{githubNotice.message}</p>
+                ) : (
+                  <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleSaveToGitHub}
+                  disabled={isSaving || adminPassword.trim().length === 0}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  {isSaving ? "Saving…" : "Commit changes"}
+                </button>
+              </div>
             </div>
           </SectionCard>
         </div>

@@ -10,6 +10,8 @@ npm-debug.log*
 npm-dev.log
 npm-dev.err.log
 .DS_Store
+.env.local
+.env*.local
 
 # Editor directories
 .idea/
