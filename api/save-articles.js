@@ -275,15 +275,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "articlesData payload is required." });
   }
 
-  const changelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
-  if (!changelogMarkdown) {
-    return res.status(422).json({ error: "changelogMarkdown is required." });
-  }
+  const rawChangelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
+  const changelogMarkdown =
+    rawChangelogMarkdown.length > 0 ? rawChangelogMarkdown : "No changelog details were provided for this commit.";
 
   const changedArticles = normalizeChangedArticles(body.changedArticles);
-  if (changedArticles.length === 0) {
-    return res.status(422).json({ error: "changedArticles payload must include at least one entry." });
-  }
+  const hasChangedArticles = changedArticles.length > 0;
 
   const commitMessage =
     typeof body.commitMessage === "string" && body.commitMessage.trim().length > 0
@@ -304,7 +301,7 @@ export default async function handler(req, res) {
         url: "",
         message: commitMessage,
       },
-      articles: changedArticles,
+      articles: hasChangedArticles ? changedArticles : [],
       markdown: changelogMarkdown,
       submittedBy: passwordKey,
     };
