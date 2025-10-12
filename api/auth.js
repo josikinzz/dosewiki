@@ -26,14 +26,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const passwordEntries = loadPasswordEntries();
-  if (passwordEntries.length === 0) {
-    return res.status(500).json({ error: "No passwords are configured." });
-  }
-
   const body = parseBody(req.body);
   const providedPassword = typeof body.password === "string" ? body.password : "";
 
+  const passwordEntries = loadPasswordEntries();
   const matchedKey = findPasswordKey(providedPassword, passwordEntries);
   if (!matchedKey) {
     return res.status(401).json({ error: "Invalid password." });
