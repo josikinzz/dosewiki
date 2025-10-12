@@ -202,6 +202,8 @@ export function DevModePage() {
     onMutate: handleCreatorMutate,
   });
   const { form: newArticleForm, resetForm: resetNewArticleFormState } = newArticleController;
+  const [username, setUsername] = useState("");
+  const [usernameDraft, setUsernameDraft] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordNotice, setPasswordNotice] = useState<ChangeNotice | null>(null);
@@ -297,8 +299,10 @@ export function DevModePage() {
     [articles, getOriginalArticle],
   );
   const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
+  const trimmedUsername = username.trim();
   const trimmedAdminPassword = adminPassword.trim();
-  const isCommitDisabled = isSaving || trimmedAdminPassword.length === 0 || hasInvalidJsonDraft;
+  const isCommitDisabled =
+    isSaving || trimmedUsername.length === 0 || trimmedAdminPassword.length === 0 || hasInvalidJsonDraft;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
@@ -368,13 +372,30 @@ export function DevModePage() {
     try {
       const storedValue = window.localStorage.getItem(PASSWORD_STORAGE_KEY);
       if (typeof storedValue === "string") {
-        const trimmed = storedValue.trim();
-        if (trimmed.length > 0) {
-          setAdminPassword(trimmed);
-          setPasswordDraft(trimmed);
-        } else {
-          setPasswordDraft("");
+        let parsedUsername = "";
+        let parsedPassword = "";
+
+        try {
+          const parsed = JSON.parse(storedValue);
+          if (parsed && typeof parsed === "object") {
+            const candidateUsername = typeof parsed.username === "string" ? parsed.username.trim() : "";
+            const candidatePassword = typeof parsed.password === "string" ? parsed.password.trim() : "";
+            parsedUsername = candidateUsername;
+            parsedPassword = candidatePassword;
+          }
+        } catch {
+          // Legacy password-only value; handle below.
         }
+
+        if (!parsedPassword) {
+          const legacyPassword = storedValue.trim();
+          parsedPassword = legacyPassword;
+        }
+
+        setUsername(parsedUsername);
+        setUsernameDraft(parsedUsername);
+        setAdminPassword(parsedPassword);
+        setPasswordDraft(parsedPassword);
         setPasswordKey(null);
       }
     } catch {
@@ -539,60 +560,76 @@ export function DevModePage() {
     [],
   );
 
-  const handlePasswordSave = useCallback((event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
-    if (event && "preventDefault" in event) {
-      event.preventDefault();
-    }
-    const trimmed = passwordDraft.trim();
-
-    if (trimmed.length === 0) {
-      setAdminPassword("");
-      setPasswordDraft("");
-      setPasswordKey(null);
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
-          showPasswordNotice({ type: "success", message: "Saved password cleared." });
-        } catch {
-          showPasswordNotice({
-            type: "error",
-            message: "Password cleared for this session. Clear local storage manually to remove saved data.",
-          });
-        }
-      } else {
-        showPasswordNotice({ type: "success", message: "Saved password cleared." });
+  const handleCredentialsSave = useCallback(
+    (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
+      if (event && "preventDefault" in event) {
+        event.preventDefault();
       }
-      return;
-    }
 
-    setAdminPassword(trimmed);
-    setPasswordDraft(trimmed);
-    setPasswordKey(null);
+      const trimmedUsernameDraft = usernameDraft.trim();
+      const trimmedPasswordDraft = passwordDraft.trim();
 
-    if (typeof window === "undefined") {
-      showPasswordNotice({ type: "success", message: "Password ready for this session." });
-      return;
-    }
+      if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
+        setUsername("");
+        setUsernameDraft("");
+        setAdminPassword("");
+        setPasswordDraft("");
+        setPasswordKey(null);
 
-    try {
-      window.localStorage.setItem(PASSWORD_STORAGE_KEY, trimmed);
-      showPasswordNotice({ type: "success", message: "Password saved locally." });
-    } catch {
-      showPasswordNotice({
-        type: "error",
-        message: "Unable to access local storage; password kept for this session.",
-      });
-    }
-  }, [passwordDraft, showPasswordNotice]);
+        if (typeof window !== "undefined") {
+          try {
+            window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+            showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
+          } catch {
+            showPasswordNotice({
+              type: "error",
+              message: "Credentials cleared for this session. Clear local storage manually to remove saved data.",
+            });
+          }
+        } else {
+          showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
+        }
+        return;
+      }
 
-  const handlePasswordInputKeyDown = useCallback(
+      if (trimmedUsernameDraft.length === 0 || trimmedPasswordDraft.length === 0) {
+        showPasswordNotice({ type: "error", message: "Enter both username and password before saving." });
+        return;
+      }
+
+      setUsername(trimmedUsernameDraft);
+      setUsernameDraft(trimmedUsernameDraft);
+      setAdminPassword(trimmedPasswordDraft);
+      setPasswordDraft(trimmedPasswordDraft);
+      setPasswordKey(null);
+
+      if (typeof window === "undefined") {
+        showPasswordNotice({ type: "success", message: "Credentials ready for this session." });
+        return;
+      }
+
+      try {
+        const payload = JSON.stringify({ username: trimmedUsernameDraft, password: trimmedPasswordDraft });
+        window.localStorage.setItem(PASSWORD_STORAGE_KEY, payload);
+        showPasswordNotice({ type: "success", message: "Credentials saved locally." });
+      } catch {
+        showPasswordNotice({
+          type: "error",
+          message: "Unable to access local storage; credentials kept for this session.",
+        });
+      }
+    },
+    [passwordDraft, showPasswordNotice, usernameDraft],
+  );
+
+  const handleCredentialInputKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        handlePasswordSave();
+        handleCredentialsSave();
       }
     },
-    [handlePasswordSave],
+    [handleCredentialsSave],
   );
 
   const pushChangeLogNotice = useCallback(
@@ -957,9 +994,10 @@ export function DevModePage() {
   };
 
   const handleSaveToGitHub = useCallback(async () => {
+    const trimmedUsernameValue = username.trim();
     const trimmedPassword = adminPassword.trim();
-    if (!trimmedPassword) {
-      setGithubNotice({ type: "error", message: "Save the user password above before committing." });
+    if (!trimmedUsernameValue || !trimmedPassword) {
+      setGithubNotice({ type: "error", message: "Save your username and password above before committing." });
       return;
     }
 
@@ -977,12 +1015,12 @@ export function DevModePage() {
 
     try {
       setIsSaving(true);
-      setGithubNotice({ type: "success", message: "Verifying password…" });
+      setGithubNotice({ type: "success", message: "Verifying credentials…" });
 
       const authResponse = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: trimmedPassword }),
+        body: JSON.stringify({ username: trimmedUsernameValue, password: trimmedPassword }),
       });
 
       const authPayload = await authResponse.json().catch(() => ({}));
@@ -993,19 +1031,19 @@ export function DevModePage() {
       const matchedKey =
         typeof authPayload.key === "string" && authPayload.key.trim().length > 0 ? authPayload.key.trim() : null;
       if (!matchedKey) {
-        throw new Error("Authentication succeeded, but no user key is associated with this password.");
+        throw new Error("Authentication succeeded, but no username was returned.");
       }
 
       setPasswordKey(matchedKey);
       showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
-      setGithubNotice({ type: "success", message: `Password verified for ${matchedKey}. Saving to GitHub…` });
+      setGithubNotice({ type: "success", message: `Credentials verified for ${matchedKey}. Saving to GitHub…` });
 
       const saveResponse = await fetch("/api/save-articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          username: trimmedUsernameValue,
           password: trimmedPassword,
-          passwordKey: matchedKey,
           articlesData: articles,
           commitMessage,
           changelogMarkdown: datasetChangelog.markdown,
@@ -1060,6 +1098,7 @@ export function DevModePage() {
     hasInvalidJsonDraft,
     pushChangeLogNotice,
     showPasswordNotice,
+    username,
   ]);
 
   const handleTabChange = useCallback(
@@ -1148,24 +1187,44 @@ export function DevModePage() {
 
       <div className="mt-10 flex justify-center">
         <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
-          <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handlePasswordSave}>
-            <div className="flex-1">
-              <label
-                className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
-                htmlFor="dev-mode-saved-password"
-              >
-                User password
-              </label>
-              <input
-                id="dev-mode-saved-password"
-                type="password"
-                className={baseInputClass}
-                placeholder="Paste your user password"
-                autoComplete="current-password"
-                value={passwordDraft}
-                onChange={(event) => setPasswordDraft(event.target.value)}
-                onKeyDown={handlePasswordInputKeyDown}
-              />
+          <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handleCredentialsSave}>
+            <div className="flex-1 space-y-3">
+              <div>
+                <label
+                  className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
+                  htmlFor="dev-mode-saved-username"
+                >
+                  Username (ENV key)
+                </label>
+                <input
+                  id="dev-mode-saved-username"
+                  type="text"
+                  className={baseInputClass}
+                  placeholder="Enter your username"
+                  autoComplete="username"
+                  value={usernameDraft}
+                  onChange={(event) => setUsernameDraft(event.target.value)}
+                  onKeyDown={handleCredentialInputKeyDown}
+                />
+              </div>
+              <div>
+                <label
+                  className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
+                  htmlFor="dev-mode-saved-password"
+                >
+                  User password
+                </label>
+                <input
+                  id="dev-mode-saved-password"
+                  type="password"
+                  className={baseInputClass}
+                  placeholder="Paste your user password"
+                  autoComplete="current-password"
+                  value={passwordDraft}
+                  onChange={(event) => setPasswordDraft(event.target.value)}
+                  onKeyDown={handleCredentialInputKeyDown}
+                />
+              </div>
             </div>
             <button
               type="submit"
@@ -1181,10 +1240,10 @@ export function DevModePage() {
                 {passwordNotice.message}
               </p>
             ) : passwordKey ? (
-              <p className="text-white/55">Password saved locally. Last verified as {passwordKey}.</p>
+              <p className="text-white/55">Credentials saved locally. Last verified as {passwordKey}.</p>
             ) : (
               <p className="text-white/45">
-                Save once to reuse your password after refresh. Leave blank and save to clear it.
+                Save once to reuse your username and password after refresh. Leave both blank and save to clear them.
               </p>
             )}
           </div>
@@ -1304,7 +1363,7 @@ export function DevModePage() {
             <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
               <li>Default to UI view for structured editing; flip to JSON when you need raw control.</li>
               <li>Draft updates stay local until you push via the GitHub panel or download a backup copy.</li>
-              <li>Save your user password above, then use the GitHub card to commit edits directly to the repository.</li>
+              <li>Save your username and password above, then use the GitHub card to commit edits directly to the repository.</li>
               <li>Review the Current draft diff card before committing; reset controls restore the source data instantly.</li>
             </ul>
           </SectionCard>
@@ -1425,7 +1484,7 @@ export function DevModePage() {
                 <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
                 <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
               </div>
-              <p className="text-sm text-white/65">Use your saved user password to push the current dataset live.</p>
+              <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
             </div>
             <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
               <div className="min-h-[1.25rem]">
@@ -1436,7 +1495,7 @@ export function DevModePage() {
                 ) : hasInvalidJsonDraft ? (
                   <p className="text-xs text-amber-300">Fix JSON syntax before committing.</p>
                 ) : trimmedAdminPassword.length === 0 ? (
-                  <p className="text-xs text-amber-300">Save your user password above before committing.</p>
+                  <p className="text-xs text-amber-300">Save your username and password above before committing.</p>
                 ) : passwordKey ? (
                   <p className="text-xs text-white/55">Ready to commit as {passwordKey}.</p>
                 ) : (

@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 
-import { findPasswordKey, loadPasswordEntries } from "./_utils/passwords";
+import { verifyCredentials } from "./_utils/passwords";
 
 const REPO_OWNER = "josikinzz";
 const REPO_NAME = "dosewiki";
@@ -254,19 +254,22 @@ export default async function handler(req, res) {
   }
 
   const body = parseBody(req.body);
-  const providedPassword = typeof body.password === "string" ? body.password : "";
-  const passwordEntries = loadPasswordEntries();
-  const matchedKey = findPasswordKey(providedPassword, passwordEntries);
-  if (!matchedKey) {
-    return res.status(401).json({ error: "Invalid password." });
+  const username = typeof body.username === "string" ? body.username : "";
+  const password = typeof body.password === "string" ? body.password : "";
+
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
+
+  if (trimmedUsername.length === 0 || trimmedPassword.length === 0) {
+    return res.status(401).json({ error: "Invalid credentials." });
   }
 
-  const providedKey = typeof body.passwordKey === "string" ? body.passwordKey.trim() : "";
-  if (providedKey && providedKey !== matchedKey) {
-    return res.status(401).json({ error: "Password does not match the provided key." });
+  const isValid = verifyCredentials(trimmedUsername, trimmedPassword);
+  if (!isValid) {
+    return res.status(401).json({ error: "Invalid credentials." });
   }
 
-  const passwordKey = providedKey || matchedKey;
+  const passwordKey = trimmedUsername;
 
   if (body.articlesData === undefined) {
     return res.status(400).json({ error: "articlesData payload is required." });
