@@ -14,12 +14,16 @@ Attempts to commit edits from the Developer Draft Editor fail during the `/api/a
 3. Surfaced the resolved key in the GitHub card (“Ready to commit as …”) to show which user is authenticated.  
 4. Clarified that “Save draft” must be pressed before committing, since the dataset changelog only reflects saved drafts.  
 5. Added edge-runtime safeguards so `process.env` access works even when the object is proxied.  
-6. Wrapped `/api/auth` in a try/catch and added console logging for easier debugging on Vercel.
+6. Wrapped `/api/auth` in a try/catch, added detailed console logging (password length, loaded keys, direct env checks) for Vercel diagnostics.  
+7. Removed fallback iteration over `process.env` and now require explicit key declarations via `DEFAULT_PASSWORD_KEYS`/`DEV_PASSWORD_KEYS`.  
+8. Converted the password saver into a `<form>` to eliminate Chrome’s “password field not in a form” warning while keeping local persistence.  
+9. Added a temporary `/api/test-env` endpoint to confirm env variable availability (to be removed post-debug).
 
 **Remaining symptoms**
-- Production `/api/auth` calls still return 401/500 despite matching passwords in the Vercel environment.  
-- Browser console warnings about the password input not residing in a `<form>` continue (noise, but unrelated).  
-- No confirmation yet that the new server-side logging is visible in Vercel function logs.
+- Production `/api/auth` calls still return 401/500 even with matching passwords saved and redeploys triggered.  
+- Chrome continues to warn about missing username fields for the password form (accessibility notice); this does not block requests.  
+- Console also reports `Permissions-Policy` warnings and extension 404s—external to the app.  
+- Awaiting confirmation from Vercel function logs that the debug output is visible and that `DEV_PASSWORD_KEYS` is respected.
 
 **Next steps**
 1. Define `DEV_PASSWORD_KEYS` in Vercel with the comma-separated list of active password env variables, confirm each individual password variable is present, and redeploy.  
