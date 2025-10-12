@@ -20,10 +20,41 @@ const parseAdditionalKeys = () => {
     .filter((value) => value.length > 0);
 };
 
+export const getValidUsernames = () => {
+  return [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys()];
+};
+
+export const verifyCredentials = (username, password) => {
+  if (typeof username !== "string" || typeof password !== "string") {
+    return false;
+  }
+
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
+
+  if (trimmedUsername.length === 0 || trimmedPassword.length === 0) {
+    return false;
+  }
+
+  const validUsernames = getValidUsernames();
+  if (!validUsernames.includes(trimmedUsername)) {
+    return false;
+  }
+
+  const env = getEnv();
+  const expectedPassword = env[trimmedUsername];
+
+  if (typeof expectedPassword !== "string") {
+    return false;
+  }
+
+  return expectedPassword.trim() === trimmedPassword;
+};
+
 export const loadPasswordEntries = () => {
   const seen = new Set();
   const entries = [];
-  const keys = [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys()];
+  const keys = getValidUsernames();
   const env = getEnv();
 
   for (const key of keys) {

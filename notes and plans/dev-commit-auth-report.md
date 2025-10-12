@@ -4,9 +4,9 @@
 Attempts to commit edits from the Developer Draft Editor fail during the `/api/auth` verification step in production. The UI shows dataset diffs, but the GitHub panel reports `Invalid password` or surfaces a 500. Local development succeeds with the same credentials.
 
 **Context**  
-- Dev Tools stores the password entered in the “User password” input in `localStorage` and state; the saver does not submit the credential.  
-- The GitHub card reads that saved password, posts it to `/api/auth`, then forwards both password and resolved key to `/api/save-articles` after successful verification.  
-- Password matching on the server uses `findPasswordKey`, which checks curated keys and then scans `process.env` for any matching values.
+- The Dev Tools credential card now captures a username (environment variable key) plus password, saves both to `localStorage`, and keeps trimmed copies in state.  
+- The GitHub commit card reads the saved credentials, posts `{ username, password }` to `/api/auth`, and forwards the same pair to `/api/save-articles` after verification.  
+- Server-side auth no longer scans all of `process.env`; it validates by looking up the provided username directly and comparing the stored password.
 
 **Actions taken**
 1. Added the password saver UI so editors can persist their credential locally.  
@@ -17,19 +17,21 @@ Attempts to commit edits from the Developer Draft Editor fail during the `/api/a
 6. Wrapped `/api/auth` in a try/catch, added detailed console logging (password length, loaded keys, direct env checks) for Vercel diagnostics.  
 7. Removed fallback iteration over `process.env` and now require explicit key declarations via `DEFAULT_PASSWORD_KEYS`/`DEV_PASSWORD_KEYS`.  
 8. Converted the password saver into a `<form>` to eliminate Chrome’s “password field not in a form” warning while keeping local persistence.  
-9. Added a temporary `/api/test-env` endpoint to confirm env variable availability (to be removed post-debug).
+9. Added a temporary `/api/test-env` endpoint to confirm env variable availability (to be removed post-debug).  
+10. Switched the credential saver to collect a username + password pair, persist both locally, and block commits until both fields are saved.  
+11. Replaced `findPasswordKey` usage with a new `verifyCredentials` helper that performs direct env lookups by username.  
+12. Updated `/api/auth` and `/api/save-articles` to require usernames, return the matching key on success, and use it for change log attribution.
 
 **Remaining symptoms**
-- Production `/api/auth` calls still return 401/500 even with matching passwords saved and redeploys triggered.  
-- Chrome continues to warn about missing username fields for the password form (accessibility notice); this does not block requests.  
-- Console also reports `Permissions-Policy` warnings and extension 404s—external to the app.  
-- Awaiting confirmation from Vercel function logs that the debug output is visible and that `DEV_PASSWORD_KEYS` is respected.
+- Pending redeploy: need to confirm the username+password workflow resolves the 401/500 responses in production.  
+- Browser console still shows `Permissions-Policy` and extension 404 warnings that are unrelated to auth; leave as-is.  
+- Awaiting fresh Vercel function logs after redeploy to verify `verifyCredentials` is reading the configured environment variables.
 
 **Next steps**
-1. Define `DEV_PASSWORD_KEYS` in Vercel with the comma-separated list of active password env variables, confirm each individual password variable is present, and redeploy.  
-2. Inspect Vercel function logs immediately after a failed commit attempt; debug logging from `/api/auth` now surfaces loaded keys and direct env access checks.  
-3. Wrap the password field in a `<form>` to eliminate DOM warnings (optional).  
-4. Contact Vercel support if env lookup still fails after confirming configuration.
+1. Redeploy the site with the username+password changes, then test commits in production using one of the configured usernames (ZENBY, KOSM, COE, JOSIE, WITCHY, ARCTIC, ADMIN_PASSWORD).  
+2. Review the corresponding Vercel function logs for `/api/auth` to ensure `verifyCredentials` reports the username as valid and that the environment variable is accessible.  
+3. Remove the temporary `/api/test-env` endpoint once verification succeeds to avoid exposing environment metadata.  
+4. Update team documentation with the list of accepted usernames so editors know which identifier pairs with their password.
 
 ## Relevant Code
 
@@ -57,10 +59,41 @@ const parseAdditionalKeys = () => {
     .filter((value) => value.length > 0);
 };
 
+export const getValidUsernames = () => {
+  return [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys()];
+};
+
+export const verifyCredentials = (username, password) => {
+  if (typeof username !== "string" || typeof password !== "string") {
+    return false;
+  }
+
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
+
+  if (trimmedUsername.length === 0 || trimmedPassword.length === 0) {
+    return false;
+  }
+
+  const validUsernames = getValidUsernames();
+  if (!validUsernames.includes(trimmedUsername)) {
+    return false;
+  }
+
+  const env = getEnv();
+  const expectedPassword = env[trimmedUsername];
+
+  if (typeof expectedPassword !== "string") {
+    return false;
+  }
+
+  return expectedPassword.trim() === trimmedPassword;
+};
+
 export const loadPasswordEntries = () => {
   const seen = new Set();
   const entries = [];
-  const keys = [...DEFAULT_PASSWORD_KEYS, ...parseAdditionalKeys()];
+  const keys = getValidUsernames();
   const env = getEnv();
 
   for (const key of keys) {
@@ -101,24 +134,13 @@ export const findPasswordKey = (password, entries = loadPasswordEntries()) => {
     }
   }
 
-  const env = getEnv();
-  for (const [envKey, envValue] of Object.entries(env)) {
-    if (typeof envValue !== "string") {
-      continue;
-    }
-
-    if (envValue.trim() === trimmed) {
-      return envKey;
-    }
-  }
-
   return null;
 };
 ```
 
 ### Auth endpoint (`api/auth.js`)
 ```js
-import { findPasswordKey, loadPasswordEntries } from "./_utils/passwords";
+import { verifyCredentials, getValidUsernames } from "./_utils/passwords";
 
 const parseBody = (rawBody) => {
   if (rawBody == null) {
@@ -141,6 +163,9 @@ const parseBody = (rawBody) => {
 };
 
 export default async function handler(req, res) {
+  console.log("=== AUTH ENDPOINT CALLED ===");
+  console.log("Method:", req.method);
+
   try {
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
@@ -148,17 +173,49 @@ export default async function handler(req, res) {
     }
 
     const body = parseBody(req.body);
-    const providedPassword = typeof body.password === "string" ? body.password : "";
+    const username = typeof body.username === "string" ? body.username : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
-    const passwordEntries = loadPasswordEntries();
-    const matchedKey = findPasswordKey(providedPassword, passwordEntries);
-    if (!matchedKey) {
+    console.log("=== CREDENTIALS DEBUG ===");
+    console.log("Username received:", username ? "YES" : "NO");
+    console.log("Username value:", username);
+    console.log("Password received:", password ? "YES" : "NO");
+    console.log("Password length:", password.length);
+
+    console.log("=== ENVIRONMENT CHECK ===");
+    const validUsernames = getValidUsernames();
+    console.log("Valid usernames:", validUsernames.join(", "));
+    console.log("Username is valid:", validUsernames.includes(username.trim()));
+
+    const expectedPassword = process.env[username.trim()];
+    console.log(`process.env.${username.trim()}:`, expectedPassword ? `EXISTS (${expectedPassword.length} chars)` : "UNDEFINED");
+
+    console.log("=== VERIFYING CREDENTIALS ===");
+    const isValid = verifyCredentials(username, password);
+
+    if (!isValid) {
+      console.error("❌ AUTHENTICATION FAILED");
+      if (!validUsernames.includes(username.trim())) {
+        console.error("Reason: Invalid username");
+        return res.status(401).json({ error: "Invalid username." });
+      }
+
+      if (!expectedPassword) {
+        console.error("Reason: Username not configured in environment");
+        return res.status(500).json({ error: "Configuration error." });
+      }
+
+      console.error("Reason: Password mismatch");
       return res.status(401).json({ error: "Invalid password." });
     }
 
-    return res.status(200).json({ authorized: true, key: matchedKey });
+    console.log("✓ AUTHENTICATION SUCCESSFUL:", username.trim());
+    return res.status(200).json({ authorized: true, key: username.trim() });
   } catch (error) {
-    console.error("/api/auth error", error);
+    console.error("=== AUTH ERROR ===");
+    console.error("Error type:", error.constructor.name);
+    console.error("Error message:", error.message);
+    console.error("Stack trace:", error.stack);
     const message = error instanceof Error ? error.message : "Unexpected error.";
     return res.status(500).json({ error: message });
   }
@@ -167,7 +224,7 @@ export default async function handler(req, res) {
 
 ### Save endpoint (auth section) — `api/save-articles.js`
 ```js
-import { findPasswordKey, loadPasswordEntries } from "./_utils/passwords";
+import { verifyCredentials } from "./_utils/passwords";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -182,21 +239,134 @@ export default async function handler(req, res) {
   }
 
   const body = parseBody(req.body);
-  const providedPassword = typeof body.password === "string" ? body.password : "";
-  const passwordEntries = loadPasswordEntries();
-  const matchedKey = findPasswordKey(providedPassword, passwordEntries);
-  if (!matchedKey) {
-    return res.status(401).json({ error: "Invalid password." });
+  const username = typeof body.username === "string" ? body.username : "";
+  const password = typeof body.password === "string" ? body.password : "";
+
+  const trimmedUsername = username.trim();
+  const trimmedPassword = password.trim();
+
+  if (trimmedUsername.length === 0 || trimmedPassword.length === 0) {
+    return res.status(401).json({ error: "Invalid credentials." });
   }
 
-  const providedKey = typeof body.passwordKey === "string" ? body.passwordKey.trim() : "";
-  if (providedKey && providedKey !== matchedKey) {
-    return res.status(401).json({ error: "Password does not match the provided key." });
+  const isValid = verifyCredentials(trimmedUsername, trimmedPassword);
+  if (!isValid) {
+    return res.status(401).json({ error: "Invalid credentials." });
   }
 
-  const passwordKey = providedKey || matchedKey;
+  const passwordKey = trimmedUsername;
   // ... remainder commits to GitHub and returns entry with submittedBy
 }
+```
+
+### Dev Tools credential saver (`src/components/pages/DevModePage.tsx` excerpt)
+```tsx
+const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
+const [username, setUsername] = useState("");
+const [usernameDraft, setUsernameDraft] = useState("");
+const [adminPassword, setAdminPassword] = useState("");
+const [passwordDraft, setPasswordDraft] = useState("");
+
+const handleCredentialsSave = useCallback(
+  (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
+    if (event && "preventDefault" in event) {
+      event.preventDefault();
+    }
+
+    const trimmedUsernameDraft = usernameDraft.trim();
+    const trimmedPasswordDraft = passwordDraft.trim();
+
+    if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
+      setUsername("");
+      setUsernameDraft("");
+      setAdminPassword("");
+      setPasswordDraft("");
+      setPasswordKey(null);
+
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+          showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
+        } catch {
+          showPasswordNotice({
+            type: "error",
+            message: "Credentials cleared for this session. Clear local storage manually to remove saved data.",
+          });
+        }
+      } else {
+        showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
+      }
+      return;
+    }
+
+    if (trimmedUsernameDraft.length === 0 || trimmedPasswordDraft.length === 0) {
+      showPasswordNotice({ type: "error", message: "Enter both username and password before saving." });
+      return;
+    }
+
+    setUsername(trimmedUsernameDraft);
+    setUsernameDraft(trimmedUsernameDraft);
+    setAdminPassword(trimmedPasswordDraft);
+    setPasswordDraft(trimmedPasswordDraft);
+    setPasswordKey(null);
+
+    if (typeof window === "undefined") {
+      showPasswordNotice({ type: "success", message: "Credentials ready for this session." });
+      return;
+    }
+
+    try {
+      const payload = JSON.stringify({ username: trimmedUsernameDraft, password: trimmedPasswordDraft });
+      window.localStorage.setItem(PASSWORD_STORAGE_KEY, payload);
+      showPasswordNotice({ type: "success", message: "Credentials saved locally." });
+    } catch {
+      showPasswordNotice({
+        type: "error",
+        message: "Unable to access local storage; credentials kept for this session.",
+      });
+    }
+  },
+  [passwordDraft, showPasswordNotice, usernameDraft],
+);
+
+<form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handleCredentialsSave}>
+  <div className="flex-1 space-y-3">
+    <div>
+      <label htmlFor="dev-mode-saved-username" className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">
+        Username (ENV key)
+      </label>
+      <input
+        id="dev-mode-saved-username"
+        type="text"
+        className={baseInputClass}
+        placeholder="Enter your username"
+        autoComplete="username"
+        value={usernameDraft}
+        onChange={(event) => setUsernameDraft(event.target.value)}
+        onKeyDown={handleCredentialInputKeyDown}
+      />
+    </div>
+    <div>
+      <label htmlFor="dev-mode-saved-password" className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">
+        User password
+      </label>
+      <input
+        id="dev-mode-saved-password"
+        type="password"
+        className={baseInputClass}
+        placeholder="Paste your user password"
+        autoComplete="current-password"
+        value={passwordDraft}
+        onChange={(event) => setPasswordDraft(event.target.value)}
+        onKeyDown={handleCredentialInputKeyDown}
+      />
+    </div>
+  </div>
+  <button type="submit" className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white">
+    <Save className="h-4 w-4" />
+    Save
+  </button>
+</form>
 ```
 
 ### Dev Tools integration — `src/components/pages/DevModePage.tsx`

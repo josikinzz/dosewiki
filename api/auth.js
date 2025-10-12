@@ -1,4 +1,4 @@
-import { findPasswordKey, loadPasswordEntries } from "./_utils/passwords";
+import { verifyCredentials, getValidUsernames } from "./_utils/passwords";
 
 const parseBody = (rawBody) => {
   if (rawBody == null) {
@@ -31,60 +31,44 @@ export default async function handler(req, res) {
     }
 
     const body = parseBody(req.body);
-    const providedPassword = typeof body.password === "string" ? body.password : "";
+    const username = typeof body.username === "string" ? body.username : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
-    // Debug: Password info
-    console.log("=== PASSWORD DEBUG ===");
-    console.log("Password received:", providedPassword ? "YES" : "NO");
-    console.log("Password length:", providedPassword.length);
-    console.log("Password first 3 chars:", providedPassword.substring(0, 3));
-    console.log("Password last 3 chars:", providedPassword.substring(providedPassword.length - 3));
+    console.log("=== CREDENTIALS DEBUG ===");
+    console.log("Username received:", username ? "YES" : "NO");
+    console.log("Username value:", username);
+    console.log("Password received:", password ? "YES" : "NO");
+    console.log("Password length:", password.length);
 
-    // Debug: Environment check
     console.log("=== ENVIRONMENT CHECK ===");
-    console.log("process.env type:", typeof process.env);
-    console.log("process.env is null?:", process.env === null);
+    const validUsernames = getValidUsernames();
+    console.log("Valid usernames:", validUsernames.join(", "));
+    console.log("Username is valid:", validUsernames.includes(username.trim()));
 
-    // Debug: Direct checks for each password key
-    const keys = ["ADMIN_PASSWORD", "ZENBY", "KOSM", "COE", "JOSIE", "WITCHY", "ARCTIC"];
-    console.log("Direct environment variable checks:");
-    keys.forEach((key) => {
-      const val = process.env[key];
-      if (val) {
-        console.log(`  ${key}: EXISTS (length: ${val.length})`);
-      } else {
-        console.log(`  ${key}: UNDEFINED OR EMPTY`);
+    const expectedPassword = process.env[username.trim()];
+    console.log(`process.env.${username.trim()}:`, expectedPassword ? `EXISTS (${expectedPassword.length} chars)` : "UNDEFINED");
+
+    console.log("=== VERIFYING CREDENTIALS ===");
+    const isValid = verifyCredentials(username, password);
+
+    if (!isValid) {
+      console.error("❌ AUTHENTICATION FAILED");
+      if (!validUsernames.includes(username.trim())) {
+        console.error("Reason: Invalid username");
+        return res.status(401).json({ error: "Invalid username." });
       }
-    });
 
-    // Debug: Load password entries
-    console.log("=== LOADING PASSWORD ENTRIES ===");
-    const passwordEntries = loadPasswordEntries();
-    console.log("Total entries loaded:", passwordEntries.length);
-    console.log("Available keys:", passwordEntries.map((e) => e.key).join(", "));
+      if (!expectedPassword) {
+        console.error("Reason: Username not configured in environment");
+        return res.status(500).json({ error: "Configuration error." });
+      }
 
-    if (passwordEntries.length === 0) {
-      console.error("❌ NO PASSWORD ENTRIES LOADED - CHECK ENVIRONMENT VARIABLES");
-      return res.status(500).json({ error: "Server configuration error: No passwords configured." });
-    }
-
-    // Debug: Attempt password match
-    console.log("=== ATTEMPTING PASSWORD MATCH ===");
-    const matchedKey = findPasswordKey(providedPassword, passwordEntries);
-
-    if (!matchedKey) {
-      console.error("❌ PASSWORD MATCH FAILED");
-      console.log("Provided password trimmed:", providedPassword.trim());
-      console.log("Checking against entries:");
-      passwordEntries.forEach((entry, idx) => {
-        console.log(`  Entry ${idx}: ${entry.key} (length: ${entry.value.length})`);
-        console.log(`    Match: ${entry.value === providedPassword.trim() ? "YES ✓" : "NO ✗"}`);
-      });
+      console.error("Reason: Password mismatch");
       return res.status(401).json({ error: "Invalid password." });
     }
 
-    console.log("✓ PASSWORD MATCHED:", matchedKey);
-    return res.status(200).json({ authorized: true, key: matchedKey });
+    console.log("✓ AUTHENTICATION SUCCESSFUL:", username.trim());
+    return res.status(200).json({ authorized: true, key: username.trim() });
   } catch (error) {
     console.error("=== AUTH ERROR ===");
     console.error("Error type:", error.constructor.name);
