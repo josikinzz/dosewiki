@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, Download, RefreshCw, ShieldCheck, Undo2, Wrench } from "lucide-react";
+import { ChevronDown, Copy, Download, RefreshCw, Save, ShieldCheck, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
@@ -44,6 +44,7 @@ const baseSelectClass =
 const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
+const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
 const formatArticleLabel = (article: unknown, index: number) => {
   if (!article || typeof article !== "object") {
@@ -192,6 +193,9 @@ export function DevModePage() {
   });
   const { form: newArticleForm, resetForm: resetNewArticleFormState } = newArticleController;
   const [adminPassword, setAdminPassword] = useState("");
+  const [passwordDraft, setPasswordDraft] = useState("");
+  const [passwordNotice, setPasswordNotice] = useState<ChangeNotice | null>(null);
+  const [passwordKey, setPasswordKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
@@ -204,6 +208,7 @@ export function DevModePage() {
     endDate: null,
     searchQuery: "",
   });
+  const passwordNoticeTimeoutRef = useRef<number | null>(null);
   const changeLogNoticeTimeoutRef = useRef<number | null>(null);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
@@ -345,6 +350,28 @@ export function DevModePage() {
     return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
   }, [changeLogEntries]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const storedValue = window.localStorage.getItem(PASSWORD_STORAGE_KEY);
+      if (typeof storedValue === "string") {
+        const trimmed = storedValue.trim();
+        if (trimmed.length > 0) {
+          setAdminPassword(trimmed);
+          setPasswordDraft(trimmed);
+        } else {
+          setPasswordDraft("");
+        }
+        setPasswordKey(null);
+      }
+    } catch {
+      // Ignore storage errors; manual entry still works.
+    }
+  }, []);
+
   const normalizedRange = useMemo(() => {
     const start = changeLogFilters.startDate
       ? Date.parse(`${changeLogFilters.startDate}T00:00:00.000Z`)
@@ -474,6 +501,86 @@ export function DevModePage() {
       articleSlug: slug,
     }));
   }, []);
+
+  const showPasswordNotice = useCallback(
+    (next: ChangeNotice) => {
+      if (typeof window !== "undefined" && passwordNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(passwordNoticeTimeoutRef.current);
+        passwordNoticeTimeoutRef.current = null;
+      }
+      setPasswordNotice(next);
+      if (typeof window !== "undefined") {
+        passwordNoticeTimeoutRef.current = window.setTimeout(() => {
+          setPasswordNotice(null);
+          passwordNoticeTimeoutRef.current = null;
+        }, 4000);
+      }
+    },
+    [],
+  );
+
+  useEffect(
+    () => () => {
+      if (typeof window !== "undefined" && passwordNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(passwordNoticeTimeoutRef.current);
+        passwordNoticeTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const handlePasswordSave = useCallback(() => {
+    const trimmed = passwordDraft.trim();
+
+    if (trimmed.length === 0) {
+      setAdminPassword("");
+      setPasswordDraft("");
+      setPasswordKey(null);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+          showPasswordNotice({ type: "success", message: "Saved password cleared." });
+        } catch {
+          showPasswordNotice({
+            type: "error",
+            message: "Password cleared for this session. Clear local storage manually to remove saved data.",
+          });
+        }
+      } else {
+        showPasswordNotice({ type: "success", message: "Saved password cleared." });
+      }
+      return;
+    }
+
+    setAdminPassword(trimmed);
+    setPasswordDraft(trimmed);
+    setPasswordKey(null);
+
+    if (typeof window === "undefined") {
+      showPasswordNotice({ type: "success", message: "Password ready for this session." });
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(PASSWORD_STORAGE_KEY, trimmed);
+      showPasswordNotice({ type: "success", message: "Password saved locally." });
+    } catch {
+      showPasswordNotice({
+        type: "error",
+        message: "Unable to access local storage; password kept for this session.",
+      });
+    }
+  }, [passwordDraft, showPasswordNotice]);
+
+  const handlePasswordInputKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handlePasswordSave();
+      }
+    },
+    [handlePasswordSave],
+  );
 
   const pushChangeLogNotice = useCallback(
     (next: ChangeNotice) => {
@@ -839,7 +946,7 @@ export function DevModePage() {
   const handleSaveToGitHub = useCallback(async () => {
     const trimmedPassword = adminPassword.trim();
     if (!trimmedPassword) {
-      setGithubNotice({ type: "error", message: "Enter the admin password before committing." });
+      setGithubNotice({ type: "error", message: "Save the user password above before committing." });
       return;
     }
 
@@ -865,18 +972,27 @@ export function DevModePage() {
         body: JSON.stringify({ password: trimmedPassword }),
       });
 
-      if (!authResponse.ok) {
-        const payload = await authResponse.json().catch(() => ({}));
-        throw new Error(payload.error || "Authentication failed.");
+      const authPayload = await authResponse.json().catch(() => ({}));
+      if (!authResponse.ok || authPayload.authorized !== true) {
+        throw new Error(authPayload.error || "Authentication failed.");
       }
 
-      setGithubNotice({ type: "success", message: "Password verified. Saving to GitHub…" });
+      const matchedKey =
+        typeof authPayload.key === "string" && authPayload.key.trim().length > 0 ? authPayload.key.trim() : null;
+      if (!matchedKey) {
+        throw new Error("Authentication succeeded, but no user key is associated with this password.");
+      }
+
+      setPasswordKey(matchedKey);
+      showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
+      setGithubNotice({ type: "success", message: `Password verified for ${matchedKey}. Saving to GitHub…` });
 
       const saveResponse = await fetch("/api/save-articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           password: trimmedPassword,
+          passwordKey: matchedKey,
           articlesData: articles,
           commitMessage,
           changelogMarkdown: datasetChangelog.markdown,
@@ -890,9 +1006,14 @@ export function DevModePage() {
         throw new Error(result.details || result.error || "Save failed.");
       }
 
+      const resolvedKey =
+        typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
+          ? result.submittedBy.trim()
+          : matchedKey;
+      setPasswordKey(resolvedKey);
+
       const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
       setGithubNotice({ type: "success", message: commitNotice });
-      setAdminPassword("");
 
       if (result.entry && typeof result.entry === "object") {
         const entry = result.entry as ChangeLogEntry;
@@ -903,6 +1024,7 @@ export function DevModePage() {
             url: entry.commit?.url ?? "",
             message: entry.commit?.message ?? commitMessage,
           },
+          submittedBy: entry.submittedBy ?? resolvedKey,
         };
         setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
         setActiveTab("changelog");
@@ -915,19 +1037,17 @@ export function DevModePage() {
       setIsSaving(false);
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
-  }, [adminPassword, appendChangeLogEntry, articles, datasetChangelog.articles, datasetChangelog.markdown, hasDatasetChanges, hasInvalidJsonDraft, pushChangeLogNotice]);
-
-  const handleAdminPasswordKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (!isCommitDisabled) {
-          void handleSaveToGitHub();
-        }
-      }
-    },
-    [handleSaveToGitHub, isCommitDisabled],
-  );
+  }, [
+    adminPassword,
+    appendChangeLogEntry,
+    articles,
+    datasetChangelog.articles,
+    datasetChangelog.markdown,
+    hasDatasetChanges,
+    hasInvalidJsonDraft,
+    pushChangeLogNotice,
+    showPasswordNotice,
+  ]);
 
   const handleTabChange = useCallback(
     (tab: "edit" | "create" | "changelog") => {
@@ -1011,6 +1131,52 @@ export function DevModePage() {
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
           Developer Draft Editor
         </h1>
+      </div>
+
+      <div className="mt-10 flex justify-center">
+        <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
+            <div className="flex-1">
+              <label
+                className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
+                htmlFor="dev-mode-saved-password"
+              >
+                User password
+              </label>
+              <input
+                id="dev-mode-saved-password"
+                type="password"
+                className={baseInputClass}
+                placeholder="Paste your user password"
+                autoComplete="current-password"
+                value={passwordDraft}
+                onChange={(event) => setPasswordDraft(event.target.value)}
+                onKeyDown={handlePasswordInputKeyDown}
+              />
+            </div>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+              onClick={handlePasswordSave}
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </button>
+          </div>
+          <div className="mt-2 min-h-[1.25rem] text-xs">
+            {passwordNotice ? (
+              <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
+                {passwordNotice.message}
+              </p>
+            ) : passwordKey ? (
+              <p className="text-white/55">Password saved locally. Last verified as {passwordKey}.</p>
+            ) : (
+              <p className="text-white/45">
+                Save once to reuse your password after refresh. Leave blank and save to clear it.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 flex justify-center">
@@ -1126,7 +1292,7 @@ export function DevModePage() {
             <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
               <li>Default to UI view for structured editing; flip to JSON when you need raw control.</li>
               <li>Draft updates stay local until you push via the GitHub panel or download a backup copy.</li>
-              <li>Authenticate in the GitHub card to commit edits directly to the repository.</li>
+              <li>Save your user password above, then use the GitHub card to commit edits directly to the repository.</li>
               <li>Review the Current draft diff card before committing; reset controls restore the source data instantly.</li>
             </ul>
           </SectionCard>
@@ -1164,56 +1330,6 @@ export function DevModePage() {
             </div>
           </SectionCard>
 
-          <SectionCard className="space-y-4 bg-white/[0.04]">
-            <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
-                <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
-              </div>
-              <p className="text-sm text-white/65">Authenticate with the shared password to push the current dataset.</p>
-            </div>
-            <div className="space-y-2">
-              <label
-                className="text-xs font-medium uppercase tracking-wide text-white/50"
-                htmlFor="dev-mode-admin-password"
-              >
-                Admin password
-              </label>
-              <input
-                id="dev-mode-admin-password"
-                type="password"
-                className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white/85 placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-60"
-                value={adminPassword}
-                onChange={(event) => setAdminPassword(event.target.value)}
-                onKeyDown={handleAdminPasswordKeyDown}
-                disabled={isSaving}
-                placeholder="Enter shared admin password"
-              />
-            </div>
-            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-              <div className="min-h-[1.25rem]">
-                {githubNotice ? (
-                  <p className={githubNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>{githubNotice.message}</p>
-                ) : hasInvalidJsonDraft ? (
-                  <p className="text-xs text-amber-300">Fix JSON syntax before committing.</p>
-                ) : (
-                  <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={handleSaveToGitHub}
-                  disabled={isCommitDisabled}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  {isSaving ? "Saving…" : "Commit changes"}
-                </button>
-              </div>
-            </div>
-          </SectionCard>
           </div>
 
           <div className="space-y-6">
@@ -1285,6 +1401,45 @@ export function DevModePage() {
                   disabled={hasInvalidJsonDraft}
                 >
                   Save draft
+                </button>
+              </div>
+            </div>
+          </SectionCard>
+
+          <SectionCard className="space-y-4 bg-white/[0.04]">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
+                <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
+              </div>
+              <p className="text-sm text-white/65">Use your saved user password to push the current dataset live.</p>
+            </div>
+            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+              <div className="min-h-[1.25rem]">
+                {githubNotice ? (
+                  <p className={githubNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
+                    {githubNotice.message}
+                  </p>
+                ) : hasInvalidJsonDraft ? (
+                  <p className="text-xs text-amber-300">Fix JSON syntax before committing.</p>
+                ) : trimmedAdminPassword.length === 0 ? (
+                  <p className="text-xs text-amber-300">Save your user password above before committing.</p>
+                ) : passwordKey ? (
+                  <p className="text-xs text-white/55">Ready to commit as {passwordKey}.</p>
+                ) : (
+                  <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={handleSaveToGitHub}
+                  disabled={isCommitDisabled}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  {isSaving ? "Saving…" : "Commit changes"}
                 </button>
               </div>
             </div>
@@ -1380,6 +1535,9 @@ export function DevModePage() {
                             entry.commit.message
                           )}
                         </p>
+                        {entry.submittedBy && (
+                          <p className="text-xs text-white/45">Submitted by {entry.submittedBy}</p>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button
@@ -1630,31 +1788,34 @@ export function DevModePage() {
                       className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
                     >
                       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-white/90">
-                            {new Date(entry.createdAt).toLocaleString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="text-xs text-white/60">
-                            {entry.commit?.url ? (
-                              <a
-                                href={entry.commit.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-fuchsia-200 transition hover:text-fuchsia-100"
-                              >
-                                {entry.commit.message}
-                              </a>
-                            ) : (
-                              entry.commit.message
-                            )}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white/90">
+                          {new Date(entry.createdAt).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-xs text-white/60">
+                          {entry.commit?.url ? (
+                            <a
+                              href={entry.commit.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-fuchsia-200 transition hover:text-fuchsia-100"
+                            >
+                              {entry.commit.message}
+                            </a>
+                          ) : (
+                            entry.commit.message
+                          )}
+                        </p>
+                        {entry.submittedBy && (
+                          <p className="text-xs text-white/45">Submitted by {entry.submittedBy}</p>
+                        )}
+                      </div>
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"

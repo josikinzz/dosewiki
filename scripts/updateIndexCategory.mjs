@@ -10,7 +10,6 @@ const desiredInfoOrder = [
   "drug_name",
   "chemical_name",
   "alternative_name",
-  "search_url",
   "chemical_class",
   "mechanism_of_action",
   "psychoactive_class",
