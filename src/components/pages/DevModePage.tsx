@@ -2296,7 +2296,7 @@ export function DevModePage() {
                         ))}
                       </div>
 
-                      <pre className="max-h-56 overflow-auto rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs text-white/70">
+                      <pre className="max-h-56 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-3 font-mono text-xs text-white/70">
                         {entry.markdown}
                       </pre>
                     </div>
