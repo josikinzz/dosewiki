@@ -1,5 +1,22 @@
 [
   {
+    "id": "20251012-120815-ffa8a8d5",
+    "createdAt": "2025-10-12T12:08:15.759Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/12/2025, 6:08:14 AM"
+    },
+    "articles": [
+      {
+        "id": 510,
+        "title": "3-Cl-PCP",
+        "slug": "3-cl-pcp"
+      }
+    ],
+    "markdown": "### 3-Cl-PCP · #510\n\n- `drug_info.categories[2]`: removed (was `a-typical hallucinogen`)"
+  },
+  {
     "id": "20251012-120542-f6e605f4",
     "createdAt": "2025-10-12T12:05:42.088Z",
     "commit": {
