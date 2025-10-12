@@ -75,8 +75,97 @@ const formatValue = (value: unknown) => {
   return JSON.stringify(value);
 };
 
+const truncateText = (value: string, maxLength = 60) => {
+  const trimmed = value.trim();
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, Math.max(0, maxLength - 3))}...`;
+};
+
+type TextSummaryKind = "empty" | "single" | "long" | "multiline";
+
+type TextSummary = {
+  kind: TextSummaryKind;
+  details: string;
+};
+
+const summarizeText = (value: string): TextSummary => {
+  const normalized = value.replace(/\r\n/g, "\n");
+  const trimmed = normalized.trim();
+  if (trimmed.length === 0) {
+    return { kind: "empty", details: "empty text" };
+  }
+
+  const lines = normalized.split("\n");
+  const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
+  const lineCount = nonEmptyLines.length;
+
+  if (lineCount > 1) {
+    const previewSource = nonEmptyLines[0]?.trim() ?? trimmed;
+    const preview = truncateText(previewSource, 72);
+    return { kind: "multiline", details: `${lineCount} lines; starts "${preview}"` };
+  }
+
+  const length = trimmed.length;
+  if (length > 90) {
+    return { kind: "long", details: `${length} characters; starts "${truncateText(trimmed, 72)}"` };
+  }
+
+  return { kind: "single", details: `"${trimmed}"` };
+};
+
+const describeSummary = (summary: TextSummary) => {
+  switch (summary.kind) {
+    case "multiline":
+      return `multiline text (${summary.details})`;
+    case "long":
+      return `long text (${summary.details})`;
+    case "single":
+      return `text (${summary.details})`;
+    default:
+      return summary.details;
+  }
+};
+
+const formatStringDiff = (label: string, before: unknown, after: unknown) => {
+  const beforeText = typeof before === "string" ? before : "";
+  const afterText = typeof after === "string" ? after : "";
+  const beforeEmpty = beforeText.trim().length === 0;
+  const afterEmpty = afterText.trim().length === 0;
+
+  const beforeSummary = summarizeText(beforeText);
+  const afterSummary = summarizeText(afterText);
+
+  if (beforeEmpty && !afterEmpty) {
+    return `- \`${label}\`: added ${describeSummary(afterSummary)}`;
+  }
+
+  if (!beforeEmpty && afterEmpty) {
+    return `- \`${label}\`: removed ${describeSummary(beforeSummary)}`;
+  }
+
+  if (!beforeEmpty && !afterEmpty) {
+    const beforeIsShort = beforeText.trim().length <= 80 && !beforeText.includes("\n");
+    const afterIsShort = afterText.trim().length <= 80 && !afterText.includes("\n");
+    if (beforeIsShort && afterIsShort) {
+      const beforeTrimmed = beforeText.trim().replace(/`/g, "\`");
+      const afterTrimmed = afterText.trim().replace(/`/g, "\`");
+      return `- \`${label}\`: "${beforeTrimmed}" → "${afterTrimmed}"`;
+    }
+
+    return `- \`${label}\`: updated ${describeSummary(beforeSummary)} → ${describeSummary(afterSummary)}`;
+  }
+
+  return `- \`${label}\`: set to empty`;
+};
+
 const formatDiffEntry = ({ path, before, after }: DiffEntry) => {
   const label = path.length > 0 ? path : "record";
+  if (typeof before === "string" || typeof after === "string") {
+    return formatStringDiff(label, before, after);
+  }
+
   if (before === undefined && after !== undefined) {
     return `- \`${label}\`: added \`${formatValue(after)}\``;
   }

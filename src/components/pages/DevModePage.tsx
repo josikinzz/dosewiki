@@ -12,10 +12,18 @@ import {
   type ChangeLogArticleSummary,
 } from "../../data/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog } from "../../utils/changelog";
+import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
+import {
+  ArticleDraftPayload,
+  buildArticleFromDraft,
+  createEmptyArticleDraftForm,
+  hydrateArticleDraftForm,
+} from "../../utils/articleDraftForm";
 import { slugify } from "../../utils/slug";
 import { useDevMode } from "../dev/DevModeContext";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
+import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
 
 type ChangeNotice = {
   type: "success" | "error";
@@ -29,245 +37,13 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DoseRangeForm = {
-  threshold: string;
-  light: string;
-  common: string;
-  strong: string;
-  heavy: string;
-};
-
-type RouteEntryForm = {
-  route: string;
-  units: string;
-  doseRanges: DoseRangeForm;
-};
-
-type CitationEntryForm = {
-  name: string;
-  reference: string;
-};
-
-type DurationForm = {
-  totalDuration: string;
-  onset: string;
-  peak: string;
-  offset: string;
-  afterEffects: string;
-};
-
-type ToleranceForm = {
-  fullTolerance: string;
-  halfTolerance: string;
-  zeroTolerance: string;
-};
-
-type NewArticleForm = {
-  id: string;
-  title: string;
-  content: string;
-  indexCategory: string;
-  drugName: string;
-  chemicalName: string;
-  alternativeName: string;
-  searchUrl: string;
-  chemicalClass: string;
-  psychoactiveClass: string;
-  mechanismOfAction: string;
-  addictionPotential: string;
-  notes: string;
-  halfLife: string;
-  categoriesInput: string;
-  subjectiveEffectsInput: string;
-  crossTolerancesInput: string;
-  interactionsDangerousInput: string;
-  interactionsUnsafeInput: string;
-  interactionsCautionInput: string;
-  duration: DurationForm;
-  tolerance: ToleranceForm;
-  routes: RouteEntryForm[];
-  citations: CitationEntryForm[];
-};
-
-type NewArticleStringField =
-  | "id"
-  | "title"
-  | "content"
-  | "indexCategory"
-  | "drugName"
-  | "chemicalName"
-  | "alternativeName"
-  | "searchUrl"
-  | "chemicalClass"
-  | "psychoactiveClass"
-  | "mechanismOfAction"
-  | "addictionPotential"
-  | "notes"
-  | "halfLife"
-  | "categoriesInput"
-  | "subjectiveEffectsInput"
-  | "crossTolerancesInput"
-  | "interactionsDangerousInput"
-  | "interactionsUnsafeInput"
-  | "interactionsCautionInput";
-
-const createEmptyDoseRanges = (): DoseRangeForm => ({
-  threshold: "",
-  light: "",
-  common: "",
-  strong: "",
-  heavy: "",
-});
-
-const createEmptyRouteEntry = (): RouteEntryForm => ({
-  route: "",
-  units: "",
-  doseRanges: createEmptyDoseRanges(),
-});
-
-const createEmptyCitationEntry = (): CitationEntryForm => ({
-  name: "",
-  reference: "",
-});
-
-const createInitialNewArticleForm = (): NewArticleForm => ({
-  id: "",
-  title: "",
-  content: "",
-  indexCategory: "",
-  drugName: "",
-  chemicalName: "",
-  alternativeName: "",
-  searchUrl: "",
-  chemicalClass: "",
-  psychoactiveClass: "",
-  mechanismOfAction: "",
-  addictionPotential: "",
-  notes: "",
-  halfLife: "",
-  categoriesInput: "",
-  subjectiveEffectsInput: "",
-  crossTolerancesInput: "",
-  interactionsDangerousInput: "",
-  interactionsUnsafeInput: "",
-  interactionsCautionInput: "",
-  duration: {
-    totalDuration: "",
-    onset: "",
-    peak: "",
-    offset: "",
-    afterEffects: "",
-  },
-  tolerance: {
-    fullTolerance: "",
-    halfTolerance: "",
-    zeroTolerance: "",
-  },
-  routes: [createEmptyRouteEntry()],
-  citations: [createEmptyCitationEntry()],
-});
-
-const parseListInput = (value: string) =>
-  value
-    .split(/\r?\n|,/g)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-
-const buildNewArticlePayload = (form: NewArticleForm) => {
-  const idValue = Number.parseInt(form.id.trim(), 10);
-  const hasValidId = Number.isFinite(idValue);
-
-  const routes = form.routes
-    .map((route) => {
-      const trimmedDoseRanges = {
-        threshold: route.doseRanges.threshold.trim(),
-        light: route.doseRanges.light.trim(),
-        common: route.doseRanges.common.trim(),
-        strong: route.doseRanges.strong.trim(),
-        heavy: route.doseRanges.heavy.trim(),
-      };
-
-      const hasDoseContent = Object.values(trimmedDoseRanges).some((value) => value.length > 0);
-
-      return {
-        route: route.route.trim(),
-        units: route.units.trim(),
-        dose_ranges: trimmedDoseRanges,
-        hasDoseContent,
-      };
-    })
-    .filter((route) => route.route.length > 0 || route.units.length > 0 || route.hasDoseContent)
-    .map(({ hasDoseContent: _omit, ...rest }) => rest);
-
-  const citations = form.citations
-    .map((entry) => ({ name: entry.name.trim(), reference: entry.reference.trim() }))
-    .filter((entry) => entry.name.length > 0 || entry.reference.length > 0);
-
-  const interactions = {
-    dangerous: parseListInput(form.interactionsDangerousInput),
-    unsafe: parseListInput(form.interactionsUnsafeInput),
-    caution: parseListInput(form.interactionsCautionInput),
-  };
-
-  const duration = {
-    total_duration: form.duration.totalDuration.trim(),
-    onset: form.duration.onset.trim(),
-    peak: form.duration.peak.trim(),
-    offset: form.duration.offset.trim(),
-    after_effects: form.duration.afterEffects.trim(),
-  };
-
-  const tolerance = {
-    full_tolerance: form.tolerance.fullTolerance.trim(),
-    half_tolerance: form.tolerance.halfTolerance.trim(),
-    zero_tolerance: form.tolerance.zeroTolerance.trim(),
-    cross_tolerances: parseListInput(form.crossTolerancesInput),
-  };
-
-  const drugInfo = {
-    drug_name: form.drugName.trim(),
-    chemical_name: form.chemicalName.trim(),
-    alternative_name: form.alternativeName.trim(),
-    search_url: form.searchUrl.trim(),
-    chemical_class: form.chemicalClass.trim(),
-    psychoactive_class: form.psychoactiveClass.trim(),
-    mechanism_of_action: form.mechanismOfAction.trim(),
-    dosages: {
-      routes_of_administration: routes,
-    },
-    duration,
-    addiction_potential: form.addictionPotential.trim(),
-    interactions,
-    notes: form.notes.trim(),
-    subjective_effects: parseListInput(form.subjectiveEffectsInput),
-    tolerance,
-    half_life: form.halfLife.trim(),
-    citations,
-    categories: parseListInput(form.categoriesInput),
-  };
-
-  const payload: Record<string, unknown> = {
-    title: form.title.trim(),
-    content: form.content.trim(),
-    "index-category": form.indexCategory.trim(),
-    drug_info: drugInfo,
-  };
-
-  if (hasValidId) {
-    payload.id = idValue;
-  }
-
-  return payload;
-};
-
 const baseInputClass =
   "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
-const baseTextareaClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-3 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const baseSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-12 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
+const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 
 const formatArticleLabel = (article: unknown, index: number) => {
   if (!article || typeof article !== "object") {
@@ -293,6 +69,62 @@ const formatArticleLabel = (article: unknown, index: number) => {
 
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+const mergeArticleWithOriginal = (original: unknown, draft: ArticleDraftPayload) => {
+  if (!original || typeof original !== "object") {
+    return { ...draft };
+  }
+
+  const originalRecord = original as Record<string, unknown>;
+  const originalDrugInfo =
+    originalRecord.drug_info && typeof originalRecord.drug_info === "object"
+      ? (originalRecord.drug_info as Record<string, unknown>)
+      : {};
+
+  const mergedDrugInfo = {
+    ...originalDrugInfo,
+    ...draft.drug_info,
+    dosages: {
+      ...(typeof originalDrugInfo.dosages === "object" && originalDrugInfo.dosages !== null
+        ? (originalDrugInfo.dosages as Record<string, unknown>)
+        : {}),
+      routes_of_administration: draft.drug_info.dosages.routes_of_administration,
+    },
+    duration: {
+      ...(typeof originalDrugInfo.duration === "object" && originalDrugInfo.duration !== null
+        ? (originalDrugInfo.duration as Record<string, unknown>)
+        : {}),
+      ...draft.drug_info.duration,
+    },
+    tolerance: {
+      ...(typeof originalDrugInfo.tolerance === "object" && originalDrugInfo.tolerance !== null
+        ? (originalDrugInfo.tolerance as Record<string, unknown>)
+        : {}),
+      ...draft.drug_info.tolerance,
+    },
+    interactions: {
+      ...(typeof originalDrugInfo.interactions === "object" && originalDrugInfo.interactions !== null
+        ? (originalDrugInfo.interactions as Record<string, unknown>)
+        : {}),
+      ...draft.drug_info.interactions,
+    },
+    citations: draft.drug_info.citations,
+  };
+
+  const merged: Record<string, unknown> = {
+    ...originalRecord,
+    ...draft,
+    drug_info: mergedDrugInfo,
+  };
+
+  delete merged.content;
+
+  if (draft.id === undefined && originalRecord.id !== undefined) {
+    merged.id = originalRecord.id;
+  }
+
+  return merged;
+};
 
 const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArticleSummary | null => {
   if (!record || typeof record !== "object") {
@@ -349,8 +181,16 @@ export function DevModePage() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
-  const [newArticleForm, setNewArticleForm] = useState<NewArticleForm>(() => createInitialNewArticleForm());
+  const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
   const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
+  const handleCreatorMutate = useCallback(() => {
+    setCreatorNotice(null);
+  }, [setCreatorNotice]);
+  const newArticleController = useArticleDraftForm({
+    initialState: createEmptyArticleDraftForm(),
+    onMutate: handleCreatorMutate,
+  });
+  const { form: newArticleForm, resetForm: resetNewArticleFormState } = newArticleController;
   const [adminPassword, setAdminPassword] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
@@ -368,6 +208,25 @@ export function DevModePage() {
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
+  const selectedArticleSummary = useMemo(() => {
+    return (
+      extractChangeLogSummary(selectedArticle, selectedIndex) ??
+      extractChangeLogSummary(originalArticle, selectedIndex)
+    );
+  }, [originalArticle, selectedArticle, selectedIndex]);
+  const selectedArticleSlug = selectedArticleSummary?.slug ?? null;
+  const hydratedSelectedForm = useMemo(() => hydrateArticleDraftForm(selectedArticle), [selectedArticle]);
+  const handleEditArticleMutate = useCallback(() => {
+    setNotice(null);
+  }, [setNotice]);
+  const editArticleController = useArticleDraftForm({
+    initialState: hydratedSelectedForm,
+    onMutate: handleEditArticleMutate,
+  });
+  const {
+    form: editArticleForm,
+    replaceForm: replaceEditArticleForm,
+  } = editArticleController;
   const draftState = useMemo(() => {
     try {
       return { value: JSON.parse(editorValue) as unknown, isValid: true };
@@ -376,6 +235,7 @@ export function DevModePage() {
     }
   }, [editorValue]);
   const { value: draftValue, isValid: isDraftValid } = draftState;
+  const hasInvalidJsonDraft = draftMode === "json" && !isDraftValid;
   const comparisonTarget = isDraftValid ? draftValue : selectedArticle;
   const articleLabel = useMemo(() => {
     const labelSource = isDraftValid ? draftValue : selectedArticle;
@@ -422,8 +282,9 @@ export function DevModePage() {
     [articles, getOriginalArticle],
   );
   const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
-
-  const newArticlePayload = useMemo(() => buildNewArticlePayload(newArticleForm), [newArticleForm]);
+  const trimmedAdminPassword = adminPassword.trim();
+  const isCommitDisabled = isSaving || trimmedAdminPassword.length === 0 || hasInvalidJsonDraft;
+  const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
     const hasTitle = newArticleForm.title.trim().length > 0;
@@ -451,6 +312,25 @@ export function DevModePage() {
   );
 
   const articleFrequency = useMemo(() => buildArticleFrequencyIndex(changeLogEntries), [changeLogEntries]);
+
+  const selectedArticleHistoryTotal = useMemo(() => {
+    if (!selectedArticleSlug) {
+      return 0;
+    }
+
+    const frequency = articleFrequency.find((entry) => entry.slug === selectedArticleSlug);
+    return frequency?.count ?? 0;
+  }, [articleFrequency, selectedArticleSlug]);
+
+  const selectedArticleHistory = useMemo(() => {
+    if (!selectedArticleSlug) {
+      return [] as ChangeLogEntry[];
+    }
+
+    return changeLogEntries
+      .filter((entry) => entry.articles.some((article) => article.slug === selectedArticleSlug))
+      .slice(0, MAX_ARTICLE_HISTORY_ENTRIES);
+  }, [changeLogEntries, selectedArticleSlug]);
 
   const changeLogArticleOptions = useMemo(() => {
     const map = new Map<string, { slug: string; title: string }>();
@@ -744,14 +624,68 @@ export function DevModePage() {
   }, [articles.length]);
 
   useEffect(() => {
+    replaceEditArticleForm(hydratedSelectedForm, { emitMutate: false });
     if (!selectedArticle) {
       setEditorValue("{}");
+    } else {
+      setEditorValue(JSON.stringify(selectedArticle, null, 2));
+    }
+    setDraftMode("ui");
+    setNotice(null);
+  }, [hydratedSelectedForm, replaceEditArticleForm, selectedArticle]);
+
+  useEffect(() => {
+    if (draftMode !== "ui") {
       return;
     }
 
-    setEditorValue(JSON.stringify(selectedArticle, null, 2));
+    const draftPayload = buildArticleFromDraft(editArticleForm);
+    const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
+    setEditorValue(JSON.stringify(merged, null, 2));
+  }, [draftMode, editArticleForm, selectedArticle]);
+
+  const switchToJsonMode = useCallback(() => {
+    if (draftMode === "json") {
+      return;
+    }
+
+    const draftPayload = buildArticleFromDraft(editArticleForm);
+    const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
+    setEditorValue(JSON.stringify(merged, null, 2));
+    setDraftMode("json");
     setNotice(null);
-  }, [selectedArticle]);
+  }, [draftMode, editArticleForm, selectedArticle]);
+
+  const switchToUiMode = useCallback(() => {
+    if (draftMode === "ui") {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(editorValue);
+      if (!parsed || typeof parsed !== "object") {
+        throw new Error("Parsed data must be an object");
+      }
+
+      const hydrated = hydrateArticleDraftForm(parsed);
+      replaceEditArticleForm(hydrated, { emitMutate: false });
+      setDraftMode("ui");
+      setNotice(null);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+      setNotice({ type: "error", message: `Switch failed: ${reason}` });
+    }
+  }, [draftMode, editorValue, replaceEditArticleForm]);
+
+  const handleEditorChange = useCallback(
+    (value: string) => {
+      setEditorValue(value);
+      if (draftMode === "json") {
+        setNotice(null);
+      }
+    },
+    [draftMode],
+  );
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -767,6 +701,19 @@ export function DevModePage() {
   const applyEdits = () => {
     if (!selectedArticle) {
       setNotice({ type: "error", message: "Select an article before saving." });
+      return;
+    }
+
+    if (hasInvalidJsonDraft) {
+      setNotice({ type: "error", message: "Fix JSON syntax before saving." });
+      return;
+    }
+
+    if (draftMode === "ui") {
+      const draftPayload = buildArticleFromDraft(editArticleForm);
+      const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
+      updateArticleAt(selectedIndex, merged);
+      setNotice({ type: "success", message: "Article updated in draft dataset." });
       return;
     }
 
@@ -787,9 +734,14 @@ export function DevModePage() {
   const resetArticle = () => {
     resetArticleAt(selectedIndex);
     const original = getOriginalArticle(selectedIndex);
+    const hydrated = hydrateArticleDraftForm(original);
+    replaceEditArticleForm(hydrated, { emitMutate: false });
     if (original) {
       setEditorValue(JSON.stringify(original, null, 2));
+    } else {
+      setEditorValue("{}");
     }
+    setDraftMode("ui");
     setNotice({ type: "success", message: "Article reset to original content." });
   };
 
@@ -800,6 +752,8 @@ export function DevModePage() {
     if (first) {
       setEditorValue(JSON.stringify(first, null, 2));
     }
+    replaceEditArticleForm(hydrateArticleDraftForm(first), { emitMutate: false });
+    setDraftMode("ui");
     setNotice({ type: "success", message: "All articles restored." });
   };
 
@@ -820,7 +774,7 @@ export function DevModePage() {
   };
 
   const downloadArticle = () => {
-    if (!isDraftValid) {
+    if (hasInvalidJsonDraft) {
       setNotice({ type: "error", message: "Fix JSON syntax before downloading the article." });
       return;
     }
@@ -886,6 +840,11 @@ export function DevModePage() {
     const trimmedPassword = adminPassword.trim();
     if (!trimmedPassword) {
       setGithubNotice({ type: "error", message: "Enter the admin password before committing." });
+      return;
+    }
+
+    if (hasInvalidJsonDraft) {
+      setGithubNotice({ type: "error", message: "Fix JSON syntax before committing." });
       return;
     }
 
@@ -956,16 +915,18 @@ export function DevModePage() {
       setIsSaving(false);
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
-  }, [adminPassword, appendChangeLogEntry, articles, datasetChangelog.articles, datasetChangelog.markdown, hasDatasetChanges, pushChangeLogNotice]);
+  }, [adminPassword, appendChangeLogEntry, articles, datasetChangelog.articles, datasetChangelog.markdown, hasDatasetChanges, hasInvalidJsonDraft, pushChangeLogNotice]);
 
   const handleAdminPasswordKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter" && !isSaving) {
+      if (event.key === "Enter") {
         event.preventDefault();
-        void handleSaveToGitHub();
+        if (!isCommitDisabled) {
+          void handleSaveToGitHub();
+        }
       }
     },
-    [handleSaveToGitHub, isSaving],
+    [handleSaveToGitHub, isCommitDisabled],
   );
 
   const handleTabChange = useCallback(
@@ -984,163 +945,10 @@ export function DevModePage() {
     [setChangeLogNotice, setCreatorNotice, setGithubNotice, setNotice],
   );
 
-  const handleNewArticleFieldChange = useCallback(
-    (field: NewArticleStringField) =>
-      (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const value = event.target.value;
-        setCreatorNotice(null);
-        setNewArticleForm((previous) => ({
-          ...previous,
-          [field]: value,
-        }));
-      },
-    [],
-  );
-
-  const handleDurationFieldChange = useCallback(
-    (field: keyof DurationForm) => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setCreatorNotice(null);
-      setNewArticleForm((previous) => ({
-        ...previous,
-        duration: {
-          ...previous.duration,
-          [field]: value,
-        },
-      }));
-    },
-    [],
-  );
-
-  const handleToleranceFieldChange = useCallback(
-    (field: keyof ToleranceForm) => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setCreatorNotice(null);
-      setNewArticleForm((previous) => ({
-        ...previous,
-        tolerance: {
-          ...previous.tolerance,
-          [field]: value,
-        },
-      }));
-    },
-    [],
-  );
-
-  const handleRouteFieldChange = useCallback(
-    (index: number, field: "route" | "units") => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setCreatorNotice(null);
-      setNewArticleForm((previous) => ({
-        ...previous,
-        routes: previous.routes.map((route, routeIndex) =>
-          routeIndex === index
-            ? {
-                ...route,
-                [field]: value,
-              }
-            : route,
-        ),
-      }));
-    },
-    [],
-  );
-
-  const handleDoseRangeFieldChange = useCallback(
-    (index: number, field: keyof DoseRangeForm) => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setCreatorNotice(null);
-      setNewArticleForm((previous) => ({
-        ...previous,
-        routes: previous.routes.map((route, routeIndex) =>
-          routeIndex === index
-            ? {
-                ...route,
-                doseRanges: {
-                  ...route.doseRanges,
-                  [field]: value,
-                },
-              }
-            : route,
-        ),
-      }));
-    },
-    [],
-  );
-
-  const addRouteEntry = useCallback(() => {
-    setCreatorNotice(null);
-    setNewArticleForm((previous) => ({
-      ...previous,
-      routes: [...previous.routes, createEmptyRouteEntry()],
-    }));
-  }, []);
-
-  const removeRouteEntry = useCallback((index: number) => {
-    setCreatorNotice(null);
-    setNewArticleForm((previous) => {
-      if (previous.routes.length <= 1) {
-        return {
-          ...previous,
-          routes: [createEmptyRouteEntry()],
-        };
-      }
-
-      return {
-        ...previous,
-        routes: previous.routes.filter((_, routeIndex) => routeIndex !== index),
-      };
-    });
-  }, []);
-
-  const handleCitationFieldChange = useCallback(
-    (index: number, field: keyof CitationEntryForm) => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-      setCreatorNotice(null);
-      setNewArticleForm((previous) => ({
-        ...previous,
-        citations: previous.citations.map((citation, citationIndex) =>
-          citationIndex === index
-            ? {
-                ...citation,
-                [field]: value,
-              }
-            : citation,
-        ),
-      }));
-    },
-    [],
-  );
-
-  const addCitationEntry = useCallback(() => {
-    setCreatorNotice(null);
-    setNewArticleForm((previous) => ({
-      ...previous,
-      citations: [...previous.citations, createEmptyCitationEntry()],
-    }));
-  }, []);
-
-  const removeCitationEntry = useCallback((index: number) => {
-    setCreatorNotice(null);
-    setNewArticleForm((previous) => {
-      if (previous.citations.length <= 1) {
-        return {
-          ...previous,
-          citations: [createEmptyCitationEntry()],
-        };
-      }
-
-      return {
-        ...previous,
-        citations: previous.citations.filter((_, citationIndex) => citationIndex !== index),
-      };
-    });
-  }, []);
-
   const resetNewArticleForm = useCallback(() => {
-    setNewArticleForm(createInitialNewArticleForm());
+    resetNewArticleFormState();
     setCreatorNotice({ type: "success", message: "New article form reset." });
-  }, []);
+  }, [resetNewArticleFormState]);
 
   const copyNewArticleJson = useCallback(async () => {
     if (!isNewArticleValid) {
@@ -1200,16 +1008,9 @@ export function DevModePage() {
           <Wrench className="h-4 w-4 text-fuchsia-200" />
           Dev Tools
         </span>
-        <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-fuchsia-200 drop-shadow-[0_1px_0_rgba(255,255,255,0.12)] md:text-5xl">
+        <h1 className="mt-4 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
           Developer Draft Editor
         </h1>
-        <p className="mt-6 text-sm text-white/70 md:text-base">
-          Work with the same palette and rhythm as individual substance profiles while you review and adjust article
-          content. Draft edits live locally until you export them.
-        </p>
-        <p className="mt-4 text-xs text-white/50">
-          Press <span className="font-semibold text-white/80">Esc</span> anytime to return to the main app.
-        </p>
       </div>
 
       <div className="mt-8 flex justify-center">
@@ -1323,6 +1124,7 @@ export function DevModePage() {
               <h2 className="text-lg font-semibold text-fuchsia-200">Working tips</h2>
             </div>
             <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
+              <li>Default to UI view for structured editing; flip to JSON when you need raw control.</li>
               <li>Draft updates persist only for this session until you export them.</li>
               <li>Share exported JSON or Markdown alongside your change notes for review.</li>
               <li>Reset controls quickly restore the original dataset if you need a clean slate.</li>
@@ -1393,6 +1195,8 @@ export function DevModePage() {
               <div className="min-h-[1.25rem]">
                 {githubNotice ? (
                   <p className={githubNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>{githubNotice.message}</p>
+                ) : hasInvalidJsonDraft ? (
+                  <p className="text-xs text-amber-300">Fix JSON syntax before committing.</p>
                 ) : (
                   <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>
                 )}
@@ -1402,7 +1206,7 @@ export function DevModePage() {
                   type="button"
                   className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={handleSaveToGitHub}
-                  disabled={isSaving || adminPassword.trim().length === 0}
+                  disabled={isCommitDisabled}
                 >
                   <ShieldCheck className="h-4 w-4" />
                   {isSaving ? "Saving…" : "Commit changes"}
@@ -1416,10 +1220,40 @@ export function DevModePage() {
           <SectionCard className="space-y-5 bg-white/[0.04]">
             <div className="space-y-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Editing</p>
-              <h2 className="text-xl font-semibold text-fuchsia-200">JSON workspace</h2>
-              <p className="text-sm text-white/65">Modify the active article directly within the structured editor.</p>
+              <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
+              <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
             </div>
-            <JsonEditor id="dev-mode-editor" className="flex-1" minHeight={360} value={editorValue} onChange={setEditorValue} />
+            <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1 text-xs">
+              <button
+                type="button"
+                onClick={switchToUiMode}
+                aria-pressed={draftMode === "ui"}
+                className={`rounded-full px-3 py-1.5 font-semibold transition ${draftMode === "ui" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"}`}
+              >
+                UI view
+              </button>
+              <button
+                type="button"
+                onClick={switchToJsonMode}
+                aria-pressed={draftMode === "json"}
+                className={`rounded-full px-3 py-1.5 font-semibold transition ${draftMode === "json" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"}`}
+              >
+                JSON view
+              </button>
+            </div>
+            {draftMode === "ui" ? (
+              <div className="space-y-8">
+                <ArticleDraftFormFields idPrefix="edit-article" controller={editArticleController} />
+              </div>
+            ) : (
+              <JsonEditor
+                id="dev-mode-editor"
+                className="flex-1"
+                minHeight={360}
+                value={editorValue}
+                onChange={handleEditorChange}
+              />
+            )}
             <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
               <div className="min-h-[1.25rem]">
                 {notice && (
@@ -1429,8 +1263,9 @@ export function DevModePage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={downloadArticle}
+                  disabled={hasInvalidJsonDraft}
                 >
                   <Download className="h-3.5 w-3.5" />
                   Download article
@@ -1445,8 +1280,9 @@ export function DevModePage() {
                 </button>
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white"
+                  className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={applyEdits}
+                  disabled={hasInvalidJsonDraft}
                 >
                   Save draft
                 </button>
@@ -1454,19 +1290,17 @@ export function DevModePage() {
             </div>
           </SectionCard>
 
-          <SectionCard className="space-y-4 bg-white/[0.04]">
+          <SectionCard className="space-y-6 bg-white/[0.04]">
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Review</p>
-              <h2 className="text-xl font-semibold text-fuchsia-200">Changelog preview</h2>
-              <p className="text-sm text-white/65">Share a snapshot of your edits alongside the raw dataset.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">In progress</p>
+              <h2 className="text-xl font-semibold text-fuchsia-200">Current draft diff</h2>
+              <p className="text-sm text-white/65">
+                {selectedArticleSummary
+                  ? `Tracking unsaved edits for ${selectedArticleSummary.title}.`
+                  : "Preview differences against the source dataset."}
+              </p>
             </div>
-            <textarea
-              id="dev-mode-changelog"
-              className="min-h-[220px] w-full rounded-xl border border-white/10 bg-slate-950/45 p-4 font-mono text-xs text-white focus:border-fuchsia-400 focus:outline-none focus:ring-1 focus:ring-fuchsia-300"
-              value={changelogMarkdown}
-              readOnly
-              spellCheck={false}
-            />
+            <pre className="max-h-64 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-4 font-mono text-xs text-white/80">{changelogMarkdown}</pre>
             <div className="flex flex-wrap gap-2 text-xs">
               <button
                 type="button"
@@ -1485,541 +1319,99 @@ export function DevModePage() {
                 Download .md
               </button>
             </div>
-            </SectionCard>
+            {changeLogNotice && (
+              <div
+                className={`rounded-xl border px-3 py-2 text-xs ${
+                  changeLogNotice.type === "error"
+                    ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                    : "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                }`}
+              >
+                {changeLogNotice.message}
+              </div>
+            )}
+            <div className="h-px w-full bg-white/10" />
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">History</p>
+              <h2 className="text-lg font-semibold text-fuchsia-200">Previous commits</h2>
+              <p className="text-sm text-white/65">
+                {selectedArticleSummary
+                  ? selectedArticleHistoryTotal > 0
+                    ? `Showing the latest ${selectedArticleHistory.length} of ${selectedArticleHistoryTotal} logged updates for ${selectedArticleSummary.title}.`
+                    : `No commits have been logged for ${selectedArticleSummary.title} yet.`
+                  : "No article selected."}
+              </p>
+            </div>
+            {selectedArticleHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-12 text-center">
+                <Wrench className="mb-4 h-10 w-10 text-white/35" />
+                <p className="text-sm font-semibold text-white/80">No history captured yet</p>
+                <p className="mt-2 text-xs text-white/55">Commit changes to populate the timeline.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {selectedArticleHistory.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
+                  >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white/90">
+                          {new Date(entry.createdAt).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-xs text-white/60">
+                          {entry.commit?.url ? (
+                            <a
+                              href={entry.commit.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-fuchsia-200 transition hover:text-fuchsia-100"
+                            >
+                              {entry.commit.message}
+                            </a>
+                          ) : (
+                            entry.commit.message
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                          onClick={() => handleCopyChangeLogEntry(entry)}
+                        >
+                          <Copy className="h-4 w-4" />
+                          Copy markdown
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                          onClick={() => handleDownloadChangeLogEntry(entry)}
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </button>
+                      </div>
+                    </div>
+                    <pre className="max-h-56 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-3 font-mono text-xs text-white/70">{entry.markdown}</pre>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
           </div>
         </div>
       ) : activeTab === "create" ? (
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[2fr,1fr]">
           <SectionCard className="space-y-8 bg-white/[0.04]">
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Identity</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Core metadata</h2>
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-title"
-                >
-                  Title
-                </label>
-                <input
-                  id="new-article-title"
-                  className={baseInputClass}
-                  value={newArticleForm.title}
-                  onChange={handleNewArticleFieldChange("title")}
-                  placeholder="Primary article title"
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-id"
-                  >
-                    Article ID
-                  </label>
-                  <input
-                    id="new-article-id"
-                    className={baseInputClass}
-                    value={newArticleForm.id}
-                    onChange={handleNewArticleFieldChange("id")}
-                    placeholder="e.g., 101"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-index"
-                  >
-                    Index category
-                  </label>
-                  <input
-                    id="new-article-index"
-                    className={baseInputClass}
-                    value={newArticleForm.indexCategory}
-                    onChange={handleNewArticleFieldChange("indexCategory")}
-                    placeholder="Optional catalog tag"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-content"
-                >
-                  Overview (optional)
-                </label>
-                <textarea
-                  id="new-article-content"
-                  className={`${baseTextareaClass} min-h-[120px]`}
-                  value={newArticleForm.content}
-                  onChange={handleNewArticleFieldChange("content")}
-                  placeholder="Landing copy or summary"
-                />
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Naming</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Drug identity & lookup</h2>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-drug-name"
-                  >
-                    Display name
-                  </label>
-                  <input
-                    id="new-article-drug-name"
-                    className={baseInputClass}
-                    value={newArticleForm.drugName}
-                    onChange={handleNewArticleFieldChange("drugName")}
-                    placeholder="e.g., LSD"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-chemical-name"
-                  >
-                    Chemical name
-                  </label>
-                  <input
-                    id="new-article-chemical-name"
-                    className={baseInputClass}
-                    value={newArticleForm.chemicalName}
-                    onChange={handleNewArticleFieldChange("chemicalName")}
-                    placeholder="Systematic or ISO name"
-                  />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-alternative-name"
-                  >
-                    Alternative name
-                  </label>
-                  <input
-                    id="new-article-alternative-name"
-                    className={baseInputClass}
-                    value={newArticleForm.alternativeName}
-                    onChange={handleNewArticleFieldChange("alternativeName")}
-                    placeholder="Common alias (optional)"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-search-url"
-                  >
-                    Reference URL
-                  </label>
-                  <input
-                    id="new-article-search-url"
-                    className={baseInputClass}
-                    value={newArticleForm.searchUrl}
-                    onChange={handleNewArticleFieldChange("searchUrl")}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Classification</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Chemical profile</h2>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-chemical-class"
-                  >
-                    Chemical class
-                  </label>
-                  <input
-                    id="new-article-chemical-class"
-                    className={baseInputClass}
-                    value={newArticleForm.chemicalClass}
-                    onChange={handleNewArticleFieldChange("chemicalClass")}
-                    placeholder="e.g., Phenethylamines"
-                  />
-                </div>
-                <div>
-                  <label
-                    className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                    htmlFor="new-article-psychoactive-class"
-                  >
-                    Psychoactive class
-                  </label>
-                  <input
-                    id="new-article-psychoactive-class"
-                    className={baseInputClass}
-                    value={newArticleForm.psychoactiveClass}
-                    onChange={handleNewArticleFieldChange("psychoactiveClass")}
-                    placeholder="e.g., Psychedelic, Empathogen"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-mechanism"
-                >
-                  Mechanism of action
-                </label>
-                <input
-                  id="new-article-mechanism"
-                  className={baseInputClass}
-                  value={newArticleForm.mechanismOfAction}
-                  onChange={handleNewArticleFieldChange("mechanismOfAction")}
-                  placeholder="Receptor affinities, transporter activity"
-                />
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Dosage</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Routes of administration</h2>
-                <p className="text-xs text-white/50">
-                  Provide at least one route with units. Leave ranges blank if data is unavailable.
-                </p>
-              </div>
-              <div className="space-y-4">
-                {newArticleForm.routes.map((route, index) => (
-                  <div
-                    key={`new-route-${index}`}
-                    className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/45 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-white/75">Route {index + 1}</p>
-                      {newArticleForm.routes.length > 1 && (
-                        <button
-                          type="button"
-                          className="text-xs text-white/60 transition hover:text-white"
-                          onClick={() => removeRouteEntry(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label
-                          className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                          htmlFor={`new-route-name-${index}`}
-                        >
-                          Route
-                        </label>
-                        <input
-                          id={`new-route-name-${index}`}
-                          className={baseInputClass}
-                          value={route.route}
-                          onChange={handleRouteFieldChange(index, "route")}
-                          placeholder="e.g., oral"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                          htmlFor={`new-route-units-${index}`}
-                        >
-                          Units
-                        </label>
-                        <input
-                          id={`new-route-units-${index}`}
-                          className={baseInputClass}
-                          value={route.units}
-                          onChange={handleRouteFieldChange(index, "units")}
-                          placeholder="e.g., mg"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                      {([
-                        ["threshold", "Threshold"],
-                        ["light", "Light"],
-                        ["common", "Common"],
-                        ["strong", "Strong"],
-                        ["heavy", "Heavy"],
-                      ] as Array<[keyof DoseRangeForm, string]>).map(([key, label]) => (
-                        <div key={key}>
-                          <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                            {label}
-                          </label>
-                          <input
-                            className={baseInputClass}
-                            value={route.doseRanges[key]}
-                            onChange={handleDoseRangeFieldChange(index, key)}
-                            placeholder="e.g., 5-10 mg"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={addRouteEntry}
-                className="w-full rounded-xl border border-dashed border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
-              >
-                Add administration route
-              </button>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Duration</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Timeline & half-life</h2>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {([
-                  ["totalDuration", "Total duration"],
-                  ["onset", "Onset"],
-                  ["peak", "Peak"],
-                  ["offset", "Offset"],
-                  ["afterEffects", "After effects"],
-                ] as Array<[keyof DurationForm, string]>).map(([key, label]) => (
-                  <div key={key}>
-                    <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                      {label}
-                    </label>
-                    <input
-                      className={baseInputClass}
-                      value={newArticleForm.duration[key]}
-                      onChange={handleDurationFieldChange(key)}
-                      placeholder="e.g., 6-8 hours"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-half-life"
-                >
-                  Half-life
-                </label>
-                <input
-                  id="new-article-half-life"
-                  className={baseInputClass}
-                  value={newArticleForm.halfLife}
-                  onChange={handleNewArticleFieldChange("halfLife")}
-                  placeholder="e.g., 3-6 hours"
-                />
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Safety</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Risk notes & interactions</h2>
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-addiction"
-                >
-                  Addiction potential
-                </label>
-                <textarea
-                  id="new-article-addiction"
-                  className={`${baseTextareaClass} min-h-[100px]`}
-                  value={newArticleForm.addictionPotential}
-                  onChange={handleNewArticleFieldChange("addictionPotential")}
-                  placeholder="Summary of dependency risks"
-                />
-              </div>
-              <div>
-                <label
-                  className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50"
-                  htmlFor="new-article-notes"
-                >
-                  Notes
-                </label>
-                <textarea
-                  id="new-article-notes"
-                  className={`${baseTextareaClass} min-h-[120px]`}
-                  value={newArticleForm.notes}
-                  onChange={handleNewArticleFieldChange("notes")}
-                  placeholder="Contextual harm reduction advice"
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                    Dangerous combinations
-                  </label>
-                  <textarea
-                    className={`${baseTextareaClass} min-h-[80px] py-2`}
-                    value={newArticleForm.interactionsDangerousInput}
-                    onChange={handleNewArticleFieldChange("interactionsDangerousInput")}
-                    placeholder="Alcohol, MAOIs"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                    Unsafe combinations
-                  </label>
-                  <textarea
-                    className={`${baseTextareaClass} min-h-[80px] py-2`}
-                    value={newArticleForm.interactionsUnsafeInput}
-                    onChange={handleNewArticleFieldChange("interactionsUnsafeInput")}
-                    placeholder="Other stimulants"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                    Caution combinations
-                  </label>
-                  <textarea
-                    className={`${baseTextareaClass} min-h-[80px] py-2`}
-                    value={newArticleForm.interactionsCautionInput}
-                    onChange={handleNewArticleFieldChange("interactionsCautionInput")}
-                    placeholder="Benzodiazepines"
-                  />
-                </div>
-              </div>
-              <p className="text-[11px] text-white/45">Separate items with commas or new lines.</p>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Experience</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Effects & tagging</h2>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                    Subjective effects
-                  </label>
-                  <textarea
-                    className={`${baseTextareaClass} min-h-[100px] py-2`}
-                    value={newArticleForm.subjectiveEffectsInput}
-                    onChange={handleNewArticleFieldChange("subjectiveEffectsInput")}
-                    placeholder="Dissociation, Euphoria, ..."
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                    Categories
-                  </label>
-                  <textarea
-                    className={`${baseTextareaClass} min-h-[100px] py-2`}
-                    value={newArticleForm.categoriesInput}
-                    onChange={handleNewArticleFieldChange("categoriesInput")}
-                    placeholder="dissociative, research-chemical"
-                  />
-                </div>
-              </div>
-              <p className="text-[11px] text-white/45">Separate items with commas or new lines.</p>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Tolerance</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">Tolerance notes</h2>
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                {([
-                  ["fullTolerance", "Full tolerance"],
-                  ["halfTolerance", "Half tolerance"],
-                  ["zeroTolerance", "Baseline reset"],
-                ] as Array<[keyof ToleranceForm, string]>).map(([key, label]) => (
-                  <div key={key}>
-                    <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                      {label}
-                    </label>
-                    <input
-                      className={baseInputClass}
-                      value={newArticleForm.tolerance[key]}
-                      onChange={handleToleranceFieldChange(key)}
-                      placeholder="e.g., ~3 days"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div>
-                <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                  Cross tolerances
-                </label>
-                <textarea
-                  className={`${baseTextareaClass} min-h-[80px] py-2`}
-                  value={newArticleForm.crossTolerancesInput}
-                  onChange={handleNewArticleFieldChange("crossTolerancesInput")}
-                  placeholder="Other arylcyclohexylamines"
-                />
-              </div>
-              <p className="text-[11px] text-white/45">Separate items with commas or new lines.</p>
-            </section>
-
-            <section className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Citations</p>
-                <h2 className="text-lg font-semibold text-fuchsia-200">References</h2>
-              </div>
-              <div className="space-y-4">
-                {newArticleForm.citations.map((citation, index) => (
-                  <div
-                    key={`new-citation-${index}`}
-                    className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/45 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-white/75">Citation {index + 1}</p>
-                      {newArticleForm.citations.length > 1 && (
-                        <button
-                          type="button"
-                          className="text-xs text-white/60 transition hover:text-white"
-                          onClick={() => removeCitationEntry(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                          Source name
-                        </label>
-                        <input
-                          className={baseInputClass}
-                          value={citation.name}
-                          onChange={handleCitationFieldChange(index, "name")}
-                          placeholder="TripSit"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-white/50">
-                          Reference URL
-                        </label>
-                        <input
-                          className={baseInputClass}
-                          value={citation.reference}
-                          onChange={handleCitationFieldChange(index, "reference")}
-                          placeholder="https://..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={addCitationEntry}
-                className="w-full rounded-xl border border-dashed border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
-              >
-                Add citation
-              </button>
-            </section>
+            <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
           </SectionCard>
 
           <SectionCard className="flex flex-col space-y-4 bg-white/[0.04]">
