@@ -1125,9 +1125,9 @@ export function DevModePage() {
             </div>
             <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
               <li>Default to UI view for structured editing; flip to JSON when you need raw control.</li>
-              <li>Draft updates persist only for this session until you export them.</li>
-              <li>Share exported JSON or Markdown alongside your change notes for review.</li>
-              <li>Reset controls quickly restore the original dataset if you need a clean slate.</li>
+              <li>Draft updates stay local until you push via the GitHub panel or download a backup copy.</li>
+              <li>Authenticate in the GitHub card to commit edits directly to the repository.</li>
+              <li>Review the Current draft diff card before committing; reset controls restore the source data instantly.</li>
             </ul>
           </SectionCard>
 
