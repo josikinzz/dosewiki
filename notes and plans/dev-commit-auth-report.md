@@ -1,7 +1,7 @@
 ## Dev Commit Auth Troubleshooting
 
 **Current issue**  
-Attempts to commit edits from the Developer Draft Editor still fail during the `/api/auth` verification step in production. After submitting matching username/password pairs, the endpoint returns HTTP 500 and the UI surfaces `Authentication failed.` even though local development succeeds with the same credentials.
+Attempts to commit edits from the Developer Draft Editor still fail during the `/api/auth` verification step in production. Verified credentials (e.g., username `JOSIE`) trigger HTTP 500 responses and the UI shows `Authentication failed.` while the browser console logs the failing `POST https://www.dose.wiki/api/auth 500` alongside unrelated `Permissions-Policy` and Chrome extension 404 warnings. Local development continues to work with the same credentials.
 
 **Context**  
 - The Dev Tools credential card now captures a username (environment variable key) plus password, saves both to `localStorage`, and keeps trimmed copies in state.  
@@ -22,18 +22,20 @@ Attempts to commit edits from the Developer Draft Editor still fail during the `
 11. Replaced `findPasswordKey` usage with a new `verifyCredentials` helper that performs direct env lookups by username.  
 12. Updated `/api/auth` and `/api/save-articles` to require usernames, return the matching key on success, and use it for change log attribution.  
 13. Confirmed production requests now send `{ username, password }` but `/api/auth` responds with 500 despite the credential refactor.  
-14. Removed the front-end guard that required dataset changelog entries before committing and relaxed `/api/save-articles` to accept empty markdown/article lists so we can test auth independently of local draft state.
+14. Removed the front-end guard that required dataset changelog entries before committing and relaxed `/api/save-articles` to accept empty markdown/article lists so we can test auth independently of local draft state.  
+15. Added a password visibility toggle to reduce entry errors while validating credentials.  
+16. Audited Dev Tools documentation to ensure the in-report code sample matches the live username+password workflow (no lingering password-only snippets).
 
 **Remaining symptoms**
-- Post-redeploy `/api/auth` calls return 500 with the UI reporting `Authentication failed.` for valid credentials.  
-- Browser console still shows `Permissions-Policy` and extension 404 warnings that are unrelated to auth; leave as-is.  
-- No confirmation yet from Vercel function logs that `verifyCredentials` is seeing the configured environment variables or that `parseBody` receives the JSON payload.
+- Post-redeploy `/api/auth` calls return 500 with the UI reporting `Authentication failed.` even when using environment-backed credentials (example: username `JOSIE`).  
+- Browser console still shows `Permissions-Policy` warnings about `browsing-topics` and missing Chrome extension assets—noise unrelated to the auth failure.  
+- No confirmation yet from Vercel function logs that `verifyCredentials` sees the configured environment variables or that `parseBody` receives the JSON payload; 500 stack trace still pending review.
 
 **Next steps**
-1. Pull fresh Vercel function logs for `/api/auth` immediately after a failed attempt to capture the console output and stack trace (logging is already in place).  
-2. Confirm the request body reaching the function includes both `username` and `password`—if logs show empty strings, inspect Vercel Edge/body parsing settings.  
-3. Validate the relevant environment variables in the deployed project (including `ZENBY`, `KOSM`, `COE`, `JOSIE`, `WITCHY`, `ARCTIC`, `ADMIN_PASSWORD`, and optional `DEV_PASSWORD_KEYS`).  
-4. Keep `/api/test-env` available until the credentials succeed, then remove it and update team documentation with the final username list.
+1. Pull fresh Vercel function logs for `/api/auth` immediately after a failed attempt (with the console already logging method, username visibility, and env lookups) to capture the stack trace behind the 500.  
+2. Verify that the JSON body arrives intact by inspecting logged `Username received`/`Password received` values; if they are blank, investigate request parsing defaults in the deployed runtime.  
+3. Confirm the environment variables (`JOSIE`, `ZENBY`, `KOSM`, `COE`, `WITCHY`, `ARCTIC`, `ADMIN_PASSWORD`, `DEV_PASSWORD_KEYS`) are set on the active Vercel deployment and match the expected secrets.  
+4. Keep `/api/test-env` available to validate env exposure until the 500 is resolved, then remove it and update team documentation with the verified username list.
 
 ## Relevant Code
 
@@ -373,28 +375,76 @@ const handleCredentialsSave = useCallback(
 
 ### Dev Tools integration — `src/components/pages/DevModePage.tsx`
 ```tsx
+const [username, setUsername] = useState("");
+const [usernameDraft, setUsernameDraft] = useState("");
 const [adminPassword, setAdminPassword] = useState("");
+const [passwordDraft, setPasswordDraft] = useState("");
 const [passwordKey, setPasswordKey] = useState<string | null>(null);
+const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-const handlePasswordSave = useCallback(() => {
-  const trimmed = passwordDraft.trim();
-  setAdminPassword(trimmed);
-  setPasswordKey(null);
-  // persists trimmed password to localStorage for reuse
-}, [passwordDraft, showPasswordNotice]);
+const handleCredentialsSave = useCallback(
+  (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
+    if (event && "preventDefault" in event) {
+      event.preventDefault();
+    }
+
+    const trimmedUsernameDraft = usernameDraft.trim();
+    const trimmedPasswordDraft = passwordDraft.trim();
+
+    if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
+      setUsername("");
+      setUsernameDraft("");
+      setAdminPassword("");
+      setPasswordDraft("");
+      setPasswordKey(null);
+      setIsPasswordVisible(false);
+      window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+      showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
+      return;
+    }
+
+    if (trimmedUsernameDraft.length === 0 || trimmedPasswordDraft.length === 0) {
+      showPasswordNotice({ type: "error", message: "Enter both username and password before saving." });
+      return;
+    }
+
+    setUsername(trimmedUsernameDraft);
+    setUsernameDraft(trimmedUsernameDraft);
+    setAdminPassword(trimmedPasswordDraft);
+    setPasswordDraft(trimmedPasswordDraft);
+    setPasswordKey(null);
+    setIsPasswordVisible(false);
+
+    const payload = JSON.stringify({ username: trimmedUsernameDraft, password: trimmedPasswordDraft });
+    window.localStorage.setItem(PASSWORD_STORAGE_KEY, payload);
+    showPasswordNotice({ type: "success", message: "Credentials saved locally." });
+  },
+  [passwordDraft, showPasswordNotice, usernameDraft],
+);
 
 const handleSaveToGitHub = useCallback(async () => {
+  const trimmedUsernameValue = username.trim();
   const trimmedPassword = adminPassword.trim();
-  if (!trimmedPassword) {
-    setGithubNotice({ type: "error", message: "Save the user password above before committing." });
+  if (!trimmedUsernameValue || !trimmedPassword) {
+    setGithubNotice({ type: "error", message: "Save your username and password above before committing." });
     return;
   }
 
+  if (hasInvalidJsonDraft) {
+    setGithubNotice({ type: "error", message: "Fix JSON syntax before committing." });
+    return;
+  }
+
+  const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
+
   try {
+    setIsSaving(true);
+    setGithubNotice({ type: "success", message: "Verifying credentials…" });
+
     const authResponse = await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: trimmedPassword }),
+      body: JSON.stringify({ username: trimmedUsernameValue, password: trimmedPassword }),
     });
 
     const authPayload = await authResponse.json().catch(() => ({}));
@@ -402,22 +452,22 @@ const handleSaveToGitHub = useCallback(async () => {
       throw new Error(authPayload.error || "Authentication failed.");
     }
 
-    const matchedKey = typeof authPayload.key === "string" && authPayload.key.trim().length > 0
-      ? authPayload.key.trim()
-      : null;
-
-    if (matchedKey) {
-      setPasswordKey(matchedKey);
-      showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
-      setGithubNotice({ type: "success", message: `Password verified for ${matchedKey}. Saving to GitHub…` });
+    const matchedKey =
+      typeof authPayload.key === "string" && authPayload.key.trim().length > 0 ? authPayload.key.trim() : null;
+    if (!matchedKey) {
+      throw new Error("Authentication succeeded, but no username was returned.");
     }
+
+    setPasswordKey(matchedKey);
+    showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
+    setGithubNotice({ type: "success", message: `Credentials verified for ${matchedKey}. Saving to GitHub…` });
 
     const saveResponse = await fetch("/api/save-articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        username: trimmedUsernameValue,
         password: trimmedPassword,
-        passwordKey: matchedKey ?? undefined,
         articlesData: articles,
         commitMessage,
         changelogMarkdown: datasetChangelog.markdown,
@@ -425,14 +475,54 @@ const handleSaveToGitHub = useCallback(async () => {
       }),
     });
 
-    // ... handles result, updates change log, switches tabs
+    const result = await saveResponse.json().catch(() => ({}));
+
+    if (!saveResponse.ok) {
+      throw new Error(result.details || result.error || "Save failed.");
+    }
+
+    const resolvedKey =
+      typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
+        ? result.submittedBy.trim()
+        : matchedKey;
+    setPasswordKey(resolvedKey);
+
+    const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
+    setGithubNotice({ type: "success", message: commitNotice });
+
+    if (result.entry && typeof result.entry === "object") {
+      const entry = result.entry as ChangeLogEntry;
+      const sanitizedEntry: ChangeLogEntry = {
+        ...entry,
+        commit: {
+          sha: entry.commit?.sha ?? "",
+          url: entry.commit?.url ?? "",
+          message: entry.commit?.message ?? commitMessage,
+        },
+        submittedBy: entry.submittedBy ?? resolvedKey,
+      };
+      setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
+      setActiveTab("changelog");
+      pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
+    }
   } catch (error) {
     const reason = error instanceof Error ? error.message : "Unexpected error.";
     setGithubNotice({ type: "error", message: reason });
   } finally {
     setIsSaving(false);
+    window.setTimeout(() => setGithubNotice(null), 10000);
   }
-}, [adminPassword, articles, datasetChangelog, showPasswordNotice, /* ... */]);
+}, [
+  adminPassword,
+  appendChangeLogEntry,
+  articles,
+  datasetChangelog.articles,
+  datasetChangelog.markdown,
+  hasInvalidJsonDraft,
+  pushChangeLogNotice,
+  showPasswordNotice,
+  username,
+]);
 ```
 
-**Last updated:** 2024-12-04
+**Last updated:** 2024-12-05
