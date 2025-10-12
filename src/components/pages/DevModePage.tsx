@@ -1,7 +1,18 @@
 import { ChevronDown, Copy, Download, RefreshCw, ShieldCheck, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
+import {
+  appendChangeLogEntry,
+  buildArticleFrequencyIndex,
+  initialChangeLogEntries,
+  sortChangeLogEntries,
+  type ArticleFrequency,
+  type ChangeLogEntry,
+  type ChangeLogArticleSummary,
+} from "../../data/changeLog";
+import { buildArticleChangelog, buildDatasetChangelog } from "../../utils/changelog";
+import { slugify } from "../../utils/slug";
 import { useDevMode } from "../dev/DevModeContext";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
@@ -9,6 +20,13 @@ import { SectionCard } from "../common/SectionCard";
 type ChangeNotice = {
   type: "success" | "error";
   message: string;
+};
+
+type ChangeLogFilters = {
+  articleSlug: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  searchQuery: string;
 };
 
 type DoseRangeForm = {
@@ -276,121 +294,58 @@ const formatArticleLabel = (article: unknown, index: number) => {
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-type DiffEntry = {
-  path: string;
-  before: unknown;
-  after: unknown;
-};
+const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArticleSummary | null => {
+  if (!record || typeof record !== "object") {
+    return null;
+  }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+  const entry = record as {
+    id?: unknown;
+    title?: unknown;
+    drug_info?: {
+      drug_name?: unknown;
+    };
+  };
 
-const joinPath = (segments: string[]) =>
-  segments.reduce((acc, segment) => {
-    if (segment.startsWith("[")) {
-      return `${acc}${segment}`;
+  const rawId = entry.id;
+  let idValue: number | null = null;
+  if (typeof rawId === "number" && Number.isFinite(rawId)) {
+    idValue = rawId;
+  } else if (typeof rawId === "string" && rawId.trim().length > 0) {
+    const parsed = Number.parseInt(rawId.trim(), 10);
+    if (Number.isFinite(parsed)) {
+      idValue = parsed;
     }
-    return acc.length > 0 ? `${acc}.${segment}` : segment;
-  }, "");
-
-const valuesEqual = (a: unknown, b: unknown) => {
-  if (Object.is(a, b)) {
-    return true;
-  }
-  return false;
-};
-
-const collectDiff = (original: unknown, updated: unknown, segments: string[], acc: DiffEntry[]) => {
-  if (original === undefined && updated === undefined) {
-    return;
   }
 
-  if (Array.isArray(original) && Array.isArray(updated)) {
-    const maxLength = Math.max(original.length, updated.length);
-    for (let index = 0; index < maxLength; index += 1) {
-      collectDiff(
-        index < original.length ? original[index] : undefined,
-        index < updated.length ? updated[index] : undefined,
-        [...segments, `[${index}]`],
-        acc,
-      );
-    }
-    return;
+  if (idValue === null) {
+    return null;
   }
 
-  if (isRecord(original) && isRecord(updated)) {
-    const keys = new Set([...Object.keys(original), ...Object.keys(updated)]);
-    keys.forEach((key) => {
-      collectDiff(original[key], updated[key], [...segments, key], acc);
-    });
-    return;
-  }
+  const rawTitle = typeof entry.title === "string" ? entry.title.trim() : "";
+  const drugName = typeof entry.drug_info?.drug_name === "string" ? entry.drug_info.drug_name.trim() : "";
 
-  if (Array.isArray(original) || Array.isArray(updated) || isRecord(original) || isRecord(updated)) {
-    if (!valuesEqual(original, updated)) {
-      acc.push({ path: joinPath(segments), before: original, after: updated });
-    }
-    return;
-  }
+  const title = rawTitle || drugName || `Article ${index + 1}`;
+  const slugSource = drugName || title || `article-${idValue}`;
+  const slug = slugify(slugSource) || `article-${idValue}`;
 
-  if (valuesEqual(original, updated)) {
-    return;
-  }
-
-  acc.push({ path: joinPath(segments), before: original, after: updated });
-};
-
-const formatValue = (value: unknown) => {
-  if (value === undefined) {
-    return "∅";
-  }
-  if (typeof value === "string") {
-    return value.replace(/`/g, "\`");
-  }
-  if (value === null) {
-    return "null";
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return JSON.stringify(value);
-};
-
-const formatDiffEntry = ({ path, before, after }: DiffEntry) => {
-  const label = path.length > 0 ? path : "record";
-  if (before === undefined && after !== undefined) {
-    return `- \`${label}\`: added \`${formatValue(after)}\``;
-  }
-  if (before !== undefined && after === undefined) {
-    return `- \`${label}\`: removed (was \`${formatValue(before)}\`)`;
-  }
-  return `- \`${label}\`: \`${formatValue(before)}\` → \`${formatValue(after)}\``;
-};
-
-const generateChangelogMarkdown = (heading: string, original: unknown, updated: unknown) => {
-  if (!original && !updated) {
-    return `### ${heading}\n\n- No data available for comparison.\n`;
-  }
-
-  const entries: DiffEntry[] = [];
-  collectDiff(original, updated, [], entries);
-  if (entries.length === 0) {
-    return `### ${heading}\n\n- No saved differences versus source dataset.\n`;
-  }
-
-  return `### ${heading}\n\n${entries.map((entry) => formatDiffEntry(entry)).join("\n")}\n`;
+  return {
+    id: idValue,
+    title,
+    slug,
+  };
 };
 
 export function DevModePage() {
   const {
     articles,
-    close,
-    updateArticleAt,
-    resetArticleAt,
-    resetAll,
-    getOriginalArticle,
+  close,
+  updateArticleAt,
+  resetArticleAt,
+  resetAll,
+  getOriginalArticle,
   } = useDevMode();
-  const [activeTab, setActiveTab] = useState<"edit" | "create">("edit");
+  const [activeTab, setActiveTab] = useState<"edit" | "create" | "changelog">("edit");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
@@ -399,6 +354,17 @@ export function DevModePage() {
   const [adminPassword, setAdminPassword] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
+  const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
+  const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
+    sortChangeLogEntries(initialChangeLogEntries),
+  );
+  const [changeLogFilters, setChangeLogFilters] = useState<ChangeLogFilters>({
+    articleSlug: null,
+    startDate: null,
+    endDate: null,
+    searchQuery: "",
+  });
+  const changeLogNoticeTimeoutRef = useRef<number | null>(null);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
@@ -418,18 +384,44 @@ export function DevModePage() {
     }
     return formatArticleLabel(labelSource, selectedIndex);
   }, [draftValue, isDraftValid, selectedArticle, selectedIndex]);
-  const changelogMarkdown = useMemo(() => {
+  const changelogResult = useMemo(() => {
     if (!originalArticle) {
-      return `### ${articleLabel}\n\n- No source article available for comparison.\n`;
+      return {
+        markdown: `### ${articleLabel}\n\n- No source article available for comparison.\n`,
+        hasChanges: false,
+      };
     }
     if (!isDraftValid) {
-      return `### ${articleLabel}\n\n- Unable to generate changelog: current editor JSON is invalid.\n`;
+      return {
+        markdown: `### ${articleLabel}\n\n- Unable to generate changelog: current editor JSON is invalid.\n`,
+        hasChanges: false,
+      };
     }
     if (comparisonTarget === undefined) {
-      return `### ${articleLabel}\n\n- No comparison data available.\n`;
+      return {
+        markdown: `### ${articleLabel}\n\n- No comparison data available.\n`,
+        hasChanges: false,
+      };
     }
-    return generateChangelogMarkdown(articleLabel, originalArticle, comparisonTarget);
+
+    return buildArticleChangelog(articleLabel, originalArticle, comparisonTarget);
   }, [articleLabel, comparisonTarget, isDraftValid, originalArticle]);
+
+  const changelogMarkdown = changelogResult.markdown;
+  const datasetChangelog = useMemo(
+    () =>
+      buildDatasetChangelog({
+        articles,
+        getOriginalArticle,
+        formatHeading: (article, index) => formatArticleLabel(article ?? articles[index], index),
+        summarizeArticle: (article, index) =>
+          extractChangeLogSummary(article, index) ??
+          extractChangeLogSummary(articles[index], index) ??
+          extractChangeLogSummary(getOriginalArticle(index), index),
+      }),
+    [articles, getOriginalArticle],
+  );
+  const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
 
   const newArticlePayload = useMemo(() => buildNewArticlePayload(newArticleForm), [newArticleForm]);
   const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
@@ -456,6 +448,218 @@ export function DevModePage() {
         }))
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" })),
     [articles],
+  );
+
+  const articleFrequency = useMemo(() => buildArticleFrequencyIndex(changeLogEntries), [changeLogEntries]);
+
+  const changeLogArticleOptions = useMemo(() => {
+    const map = new Map<string, { slug: string; title: string }>();
+    changeLogEntries.forEach((entry) => {
+      entry.articles.forEach((article) => {
+        if (!map.has(article.slug)) {
+          map.set(article.slug, { slug: article.slug, title: article.title });
+        }
+      });
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+  }, [changeLogEntries]);
+
+  const normalizedRange = useMemo(() => {
+    const start = changeLogFilters.startDate
+      ? Date.parse(`${changeLogFilters.startDate}T00:00:00.000Z`)
+      : null;
+    const end = changeLogFilters.endDate ? Date.parse(`${changeLogFilters.endDate}T23:59:59.999Z`) : null;
+
+    return {
+      start: Number.isFinite(start) ? (start as number) : null,
+      end: Number.isFinite(end) ? (end as number) : null,
+    };
+  }, [changeLogFilters.endDate, changeLogFilters.startDate]);
+
+  const filteredChangeLogEntries = useMemo(() => {
+    const query = changeLogFilters.searchQuery.trim().toLowerCase();
+
+    return changeLogEntries.filter((entry) => {
+      const entryTimestamp = Date.parse(entry.createdAt);
+      if (normalizedRange.start !== null && entryTimestamp < normalizedRange.start) {
+        return false;
+      }
+      if (normalizedRange.end !== null && entryTimestamp > normalizedRange.end) {
+        return false;
+      }
+
+      if (changeLogFilters.articleSlug) {
+        const matchesArticle = entry.articles.some((article) => article.slug === changeLogFilters.articleSlug);
+        if (!matchesArticle) {
+          return false;
+        }
+      }
+
+      if (query.length > 0) {
+        const commitMessage = (entry.commit?.message ?? "").toLowerCase();
+        const markdown = entry.markdown.toLowerCase();
+        const articleMatch = entry.articles.some((article) =>
+          article.title.toLowerCase().includes(query) || article.slug.toLowerCase().includes(query),
+        );
+
+        if (!commitMessage.includes(query) && !markdown.includes(query) && !articleMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [changeLogEntries, changeLogFilters.articleSlug, changeLogFilters.searchQuery, normalizedRange]);
+
+  const activeChangeLogFilterCount = useMemo(() => {
+    let count = 0;
+    if (changeLogFilters.articleSlug) {
+      count += 1;
+    }
+    if (changeLogFilters.startDate) {
+      count += 1;
+    }
+    if (changeLogFilters.endDate) {
+      count += 1;
+    }
+    if (changeLogFilters.searchQuery.trim().length > 0) {
+      count += 1;
+    }
+    return count;
+  }, [changeLogFilters]);
+
+  const latestChangeLogEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
+
+  const handleChangeLogArticleSelect = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const value = event.target.value;
+      setChangeLogFilters((previous) => ({
+        ...previous,
+        articleSlug: value === "" ? null : value,
+      }));
+    },
+    [],
+  );
+
+  const handleChangeLogSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setChangeLogFilters((previous) => ({
+      ...previous,
+      searchQuery: value,
+    }));
+  }, []);
+
+  const handleChangeLogDateChange = useCallback(
+    (field: "startDate" | "endDate") => (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value.trim();
+      setChangeLogFilters((previous) => ({
+        ...previous,
+        [field]: value.length > 0 ? value : null,
+      }));
+    },
+    [],
+  );
+
+  const applyQuickDateRange = useCallback((days: number | null) => {
+    if (days === null) {
+      setChangeLogFilters((previous) => ({
+        ...previous,
+        startDate: null,
+        endDate: null,
+      }));
+      return;
+    }
+
+    const now = new Date();
+    const endValue = now.toISOString().slice(0, 10);
+    const start = new Date(now);
+    start.setUTCDate(start.getUTCDate() - (days - 1));
+    const startValue = start.toISOString().slice(0, 10);
+
+    setChangeLogFilters((previous) => ({
+      ...previous,
+      startDate: startValue,
+      endDate: endValue,
+    }));
+  }, []);
+
+  const clearChangeLogFilters = useCallback(() => {
+    setChangeLogFilters({ articleSlug: null, startDate: null, endDate: null, searchQuery: "" });
+  }, []);
+
+  const focusArticleFilter = useCallback((slug: string) => {
+    setChangeLogFilters((previous) => ({
+      ...previous,
+      articleSlug: slug,
+    }));
+  }, []);
+
+  const pushChangeLogNotice = useCallback(
+    (next: ChangeNotice) => {
+      if (typeof window !== "undefined" && changeLogNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(changeLogNoticeTimeoutRef.current);
+        changeLogNoticeTimeoutRef.current = null;
+      }
+      setChangeLogNotice(next);
+      if (typeof window !== "undefined") {
+        changeLogNoticeTimeoutRef.current = window.setTimeout(() => {
+          setChangeLogNotice(null);
+          changeLogNoticeTimeoutRef.current = null;
+        }, 6000);
+      }
+    },
+    [],
+  );
+
+  useEffect(
+    () => () => {
+      if (typeof window !== "undefined" && changeLogNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(changeLogNoticeTimeoutRef.current);
+        changeLogNoticeTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const handleCopyChangeLogEntry = useCallback(
+    async (entry: ChangeLogEntry) => {
+      try {
+        await navigator.clipboard.writeText(entry.markdown);
+        pushChangeLogNotice({ type: "success", message: "Entry markdown copied to clipboard." });
+      } catch {
+        pushChangeLogNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
+      }
+    },
+    [pushChangeLogNotice],
+  );
+
+  const handleDownloadChangeLogEntry = useCallback(
+    (entry: ChangeLogEntry) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      try {
+        const primarySlug = entry.articles[0]?.slug ?? entry.id;
+        const slug = toFileSlug(primarySlug || "entry");
+        const timestamp = entry.createdAt.replace(/[:.]/g, "-");
+        const fileName = `changelog-${slug}-${timestamp}.md`;
+        const blob = new Blob([entry.markdown], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+        pushChangeLogNotice({ type: "success", message: "Entry markdown downloaded." });
+      } catch {
+        pushChangeLogNotice({ type: "error", message: "Download failed. Try copying instead." });
+      }
+    },
+    [pushChangeLogNotice],
   );
 
   const articleIndexById = useMemo(() => {
@@ -685,6 +889,13 @@ export function DevModePage() {
       return;
     }
 
+    if (!hasDatasetChanges) {
+      setGithubNotice({ type: "error", message: "No unpublished changes detected in the dataset." });
+      return;
+    }
+
+    const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
+
     try {
       setIsSaving(true);
       setGithubNotice({ type: "success", message: "Verifying password…" });
@@ -708,7 +919,9 @@ export function DevModePage() {
         body: JSON.stringify({
           password: trimmedPassword,
           articlesData: articles,
-          commitMessage: `Dev editor update - ${new Date().toLocaleString()}`,
+          commitMessage,
+          changelogMarkdown: datasetChangelog.markdown,
+          changedArticles: datasetChangelog.articles,
         }),
       });
 
@@ -718,11 +931,24 @@ export function DevModePage() {
         throw new Error(result.details || result.error || "Save failed.");
       }
 
-      setGithubNotice({
-        type: "success",
-        message: result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.",
-      });
+      const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
+      setGithubNotice({ type: "success", message: commitNotice });
       setAdminPassword("");
+
+      if (result.entry && typeof result.entry === "object") {
+        const entry = result.entry as ChangeLogEntry;
+        const sanitizedEntry: ChangeLogEntry = {
+          ...entry,
+          commit: {
+            sha: entry.commit?.sha ?? "",
+            url: entry.commit?.url ?? "",
+            message: entry.commit?.message ?? commitMessage,
+          },
+        };
+        setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
+        setActiveTab("changelog");
+        pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
+      }
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unexpected error.";
       setGithubNotice({ type: "error", message: reason });
@@ -730,7 +956,7 @@ export function DevModePage() {
       setIsSaving(false);
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
-  }, [adminPassword, articles]);
+  }, [adminPassword, appendChangeLogEntry, articles, datasetChangelog.articles, datasetChangelog.markdown, hasDatasetChanges, pushChangeLogNotice]);
 
   const handleAdminPasswordKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -743,16 +969,19 @@ export function DevModePage() {
   );
 
   const handleTabChange = useCallback(
-    (tab: "edit" | "create") => {
+    (tab: "edit" | "create" | "changelog") => {
       setActiveTab(tab);
       if (tab === "edit") {
         setCreatorNotice(null);
-      } else {
+      } else if (tab === "create") {
         setNotice(null);
       }
       setGithubNotice(null);
+      if (tab !== "changelog") {
+        setChangeLogNotice(null);
+      }
     },
-    [setCreatorNotice, setGithubNotice, setNotice],
+    [setChangeLogNotice, setCreatorNotice, setGithubNotice, setNotice],
   );
 
   const handleNewArticleFieldChange = useCallback(
@@ -991,6 +1220,7 @@ export function DevModePage() {
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
               activeTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
             }`}
+            aria-pressed={activeTab === "edit"}
           >
             Draft editor
           </button>
@@ -1000,12 +1230,22 @@ export function DevModePage() {
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
               activeTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
             }`}
+            aria-pressed={activeTab === "create"}
           >
             New article
           </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("changelog")}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+              activeTab === "changelog" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            }`}
+            aria-pressed={activeTab === "changelog"}
+          >
+            Change log
+          </button>
         </div>
       </div>
-
       {activeTab === "edit" ? (
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6">
@@ -1170,9 +1410,9 @@ export function DevModePage() {
               </div>
             </div>
           </SectionCard>
-        </div>
+          </div>
 
-        <div className="space-y-6">
+          <div className="space-y-6">
           <SectionCard className="space-y-5 bg-white/[0.04]">
             <div className="space-y-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Editing</p>
@@ -1248,7 +1488,7 @@ export function DevModePage() {
             </SectionCard>
           </div>
         </div>
-      ) : (
+      ) : activeTab === "create" ? (
         <div className="mt-10 grid items-start gap-6 lg:grid-cols-[2fr,1fr]">
           <SectionCard className="space-y-8 bg-white/[0.04]">
             <section className="space-y-4">
@@ -1833,6 +2073,238 @@ export function DevModePage() {
               </button>
             </div>
           </SectionCard>
+        </div>
+      ) : (
+        <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
+          <div className="space-y-6">
+            <SectionCard className="space-y-5 bg-white/[0.04] md:sticky md:top-24">
+              <div className="space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Filters</p>
+                <h2 className="text-lg font-semibold text-fuchsia-200">Refine history</h2>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-article">
+                  Article
+                </label>
+                <div className="relative">
+                  <select
+                    id="change-log-article"
+                    className={baseSelectClass}
+                    value={changeLogFilters.articleSlug ?? ""}
+                    onChange={handleChangeLogArticleSelect}
+                  >
+                    <option value="">All articles</option>
+                    {changeLogArticleOptions.map((option) => (
+                      <option key={option.slug} value={option.slug}>
+                        {option.title}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-start">
+                    Start date
+                  </label>
+                  <input
+                    id="change-log-start"
+                    type="date"
+                    value={changeLogFilters.startDate ?? ""}
+                    onChange={handleChangeLogDateChange("startDate")}
+                    className={baseInputClass}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-end">
+                    End date
+                  </label>
+                  <input
+                    id="change-log-end"
+                    type="date"
+                    value={changeLogFilters.endDate ?? ""}
+                    onChange={handleChangeLogDateChange("endDate")}
+                    className={baseInputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-xs">
+                <button
+                  type="button"
+                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  onClick={() => applyQuickDateRange(7)}
+                >
+                  Past 7 days
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  onClick={() => applyQuickDateRange(30)}
+                >
+                  Past 30 days
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  onClick={() => applyQuickDateRange(null)}
+                >
+                  All time
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-search">
+                  Search
+                </label>
+                <input
+                  id="change-log-search"
+                  type="search"
+                  placeholder="Find commits by keyword or diff copy…"
+                  value={changeLogFilters.searchQuery}
+                  onChange={handleChangeLogSearchChange}
+                  className={baseInputClass}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
+                <span className="rounded-full bg-white/10 px-3 py-1">{`${changeLogEntries.length} entr${changeLogEntries.length === 1 ? "y" : "ies"}`}</span>
+                {latestChangeLogEntry && (
+                  <span className="rounded-full bg-white/10 px-3 py-1">
+                    Latest: {new Date(latestChangeLogEntry.createdAt).toLocaleString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
+                {articleFrequency[0] && (
+                  <span className="rounded-full bg-white/10 px-3 py-1">
+                    Most active: {articleFrequency[0].title}
+                  </span>
+                )}
+              </div>
+
+              {activeChangeLogFilterCount > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
+                  <span>{activeChangeLogFilterCount} filters active</span>
+                  <button
+                    type="button"
+                    className="text-white/80 transition hover:text-white"
+                    onClick={clearChangeLogFilters}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </SectionCard>
+          </div>
+
+          <div className="space-y-6">
+            {changeLogNotice && (
+              <div
+                className={`rounded-xl border px-4 py-3 text-sm ${
+                  changeLogNotice.type === "error"
+                    ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                    : "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                }`}
+              >
+                {changeLogNotice.message}
+              </div>
+            )}
+
+            <SectionCard className="space-y-4 bg-white/[0.04]">
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">History</p>
+                <h2 className="text-lg font-semibold text-fuchsia-200">GitHub commits</h2>
+              </div>
+
+              {filteredChangeLogEntries.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-16 text-center">
+                  <Wrench className="mb-4 h-10 w-10 text-white/40" />
+                  <p className="text-base font-semibold text-white/80">No commits logged yet</p>
+                  <p className="mt-2 text-sm text-white/60">Ship your first draft to populate the timeline.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredChangeLogEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
+                    >
+                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-white/90">
+                            {new Date(entry.createdAt).toLocaleString(undefined, {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "numeric",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          <p className="text-xs text-white/60">
+                            {entry.commit?.url ? (
+                              <a
+                                href={entry.commit.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-fuchsia-200 transition hover:text-fuchsia-100"
+                              >
+                                {entry.commit.message}
+                              </a>
+                            ) : (
+                              entry.commit.message
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            onClick={() => handleCopyChangeLogEntry(entry)}
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy markdown
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            onClick={() => handleDownloadChangeLogEntry(entry)}
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {entry.articles.map((article) => (
+                          <button
+                            key={`${entry.id}-${article.slug}`}
+                            type="button"
+                            className="rounded-full border border-white/12 px-3 py-1 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            onClick={() => focusArticleFilter(article.slug)}
+                          >
+                            {article.title}
+                          </button>
+                        ))}
+                      </div>
+
+                      <pre className="max-h-56 overflow-auto rounded-xl border border-white/10 bg-slate-950/60 p-3 text-xs text-white/70">
+                        {entry.markdown}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </div>
         </div>
       )}
     </main>
