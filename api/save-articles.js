@@ -247,15 +247,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const passwordEntries = loadPasswordEntries();
   const githubToken = process.env.GITHUB_TOKEN;
 
-  if (passwordEntries.length === 0 || !githubToken) {
+  if (!githubToken) {
     return res.status(500).json({ error: "Required environment variables are missing." });
   }
 
   const body = parseBody(req.body);
   const providedPassword = typeof body.password === "string" ? body.password : "";
+  const passwordEntries = loadPasswordEntries();
   const matchedKey = findPasswordKey(providedPassword, passwordEntries);
   if (!matchedKey) {
     return res.status(401).json({ error: "Invalid password." });
