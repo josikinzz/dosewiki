@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 
 import { verifyCredentials } from "./_utils/passwords";
+import { parseBody } from "./_utils/parseBody";
 
 const REPO_OWNER = "josikinzz";
 const REPO_NAME = "dosewiki";

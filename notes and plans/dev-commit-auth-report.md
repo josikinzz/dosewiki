@@ -24,7 +24,8 @@ Attempts to commit edits from the Developer Draft Editor still fail during the `
 13. Confirmed production requests now send `{ username, password }` but `/api/auth` responds with 500 despite the credential refactor.  
 14. Removed the front-end guard that required dataset changelog entries before committing and relaxed `/api/save-articles` to accept empty markdown/article lists so we can test auth independently of local draft state.  
 15. Added a password visibility toggle to reduce entry errors while validating credentials.  
-16. Audited Dev Tools documentation to ensure the in-report code sample matches the live username+password workflow (no lingering password-only snippets).
+16. Audited Dev Tools documentation to ensure the in-report code sample matches the live username+password workflow (no lingering password-only snippets).  
+17. Extracted a shared `parseBody` helper so both `/api/auth` and `/api/save-articles` parse request payloads consistently (fixes the production `parseBody is not defined` crash).
 
 **Remaining symptoms**
 - Post-redeploy `/api/auth` calls return 500 with the UI reporting `Authentication failed.` even when using environment-backed credentials (example: username `JOSIE`).  
@@ -38,6 +39,29 @@ Attempts to commit edits from the Developer Draft Editor still fail during the `
 4. Keep `/api/test-env` available to validate env exposure until the 500 is resolved, then remove it and update team documentation with the verified username list.
 
 ## Relevant Code
+
+### Body parser (`api/_utils/parseBody.js`)
+```js
+export const parseBody = (rawBody) => {
+  if (rawBody == null) {
+    return {};
+  }
+
+  if (typeof rawBody === "string" && rawBody.trim().length > 0) {
+    try {
+      return JSON.parse(rawBody);
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof rawBody === "object") {
+    return rawBody;
+  }
+
+  return {};
+};
+```
 
 ### Password helper (`api/_utils/passwords.js`)
 ```js
