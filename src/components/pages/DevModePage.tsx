@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, Download, RefreshCw, Save, ShieldCheck, Undo2, Wrench } from "lucide-react";
+import { ChevronDown, Copy, Download, Eye, EyeOff, RefreshCw, Save, ShieldCheck, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
 import {
   useCallback,
@@ -208,6 +208,7 @@ export function DevModePage() {
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordNotice, setPasswordNotice] = useState<ChangeNotice | null>(null);
   const [passwordKey, setPasswordKey] = useState<string | null>(null);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
@@ -397,6 +398,7 @@ export function DevModePage() {
         setAdminPassword(parsedPassword);
         setPasswordDraft(parsedPassword);
         setPasswordKey(null);
+        setIsPasswordVisible(false);
       }
     } catch {
       // Ignore storage errors; manual entry still works.
@@ -575,6 +577,7 @@ export function DevModePage() {
         setAdminPassword("");
         setPasswordDraft("");
         setPasswordKey(null);
+        setIsPasswordVisible(false);
 
         if (typeof window !== "undefined") {
           try {
@@ -602,6 +605,7 @@ export function DevModePage() {
       setAdminPassword(trimmedPasswordDraft);
       setPasswordDraft(trimmedPasswordDraft);
       setPasswordKey(null);
+      setIsPasswordVisible(false);
 
       if (typeof window === "undefined") {
         showPasswordNotice({ type: "success", message: "Credentials ready for this session." });
@@ -1209,16 +1213,26 @@ export function DevModePage() {
                 >
                   User password
                 </label>
-                <input
-                  id="dev-mode-saved-password"
-                  type="password"
-                  className={baseInputClass}
-                  placeholder="Paste your user password"
-                  autoComplete="current-password"
-                  value={passwordDraft}
-                  onChange={(event) => setPasswordDraft(event.target.value)}
-                  onKeyDown={handleCredentialInputKeyDown}
-                />
+                <div className="relative">
+                  <input
+                    id="dev-mode-saved-password"
+                    type={isPasswordVisible ? "text" : "password"}
+                    className={`${baseInputClass} pr-12`}
+                    placeholder="Paste your user password"
+                    autoComplete="current-password"
+                    value={passwordDraft}
+                    onChange={(event) => setPasswordDraft(event.target.value)}
+                    onKeyDown={handleCredentialInputKeyDown}
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-3 flex items-center text-white/55 transition hover:text-white"
+                    onClick={() => setIsPasswordVisible((prev) => !prev)}
+                    aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                  >
+                    {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
             <button
