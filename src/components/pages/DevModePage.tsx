@@ -1006,11 +1006,6 @@ export function DevModePage() {
       return;
     }
 
-    if (!hasDatasetChanges) {
-      setGithubNotice({ type: "error", message: "No unpublished changes detected in the dataset." });
-      return;
-    }
-
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
     try {

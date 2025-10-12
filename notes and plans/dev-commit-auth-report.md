@@ -1,7 +1,7 @@
 ## Dev Commit Auth Troubleshooting
 
 **Current issue**  
-Attempts to commit edits from the Developer Draft Editor fail during the `/api/auth` verification step in production. The UI shows dataset diffs, but the GitHub panel reports `Invalid password` or surfaces a 500. Local development succeeds with the same credentials.
+Attempts to commit edits from the Developer Draft Editor still fail during the `/api/auth` verification step in production. After submitting matching username/password pairs, the endpoint returns HTTP 500 and the UI surfaces `Authentication failed.` even though local development succeeds with the same credentials.
 
 **Context**  
 - The Dev Tools credential card now captures a username (environment variable key) plus password, saves both to `localStorage`, and keeps trimmed copies in state.  
@@ -20,18 +20,20 @@ Attempts to commit edits from the Developer Draft Editor fail during the `/api/a
 9. Added a temporary `/api/test-env` endpoint to confirm env variable availability (to be removed post-debug).  
 10. Switched the credential saver to collect a username + password pair, persist both locally, and block commits until both fields are saved.  
 11. Replaced `findPasswordKey` usage with a new `verifyCredentials` helper that performs direct env lookups by username.  
-12. Updated `/api/auth` and `/api/save-articles` to require usernames, return the matching key on success, and use it for change log attribution.
+12. Updated `/api/auth` and `/api/save-articles` to require usernames, return the matching key on success, and use it for change log attribution.  
+13. Confirmed production requests now send `{ username, password }` but `/api/auth` responds with 500 despite the credential refactor.  
+14. Removed the front-end guard that required dataset changelog entries before committing and relaxed `/api/save-articles` to accept empty markdown/article lists so we can test auth independently of local draft state.
 
 **Remaining symptoms**
-- Pending redeploy: need to confirm the username+password workflow resolves the 401/500 responses in production.  
+- Post-redeploy `/api/auth` calls return 500 with the UI reporting `Authentication failed.` for valid credentials.  
 - Browser console still shows `Permissions-Policy` and extension 404 warnings that are unrelated to auth; leave as-is.  
-- Awaiting fresh Vercel function logs after redeploy to verify `verifyCredentials` is reading the configured environment variables.
+- No confirmation yet from Vercel function logs that `verifyCredentials` is seeing the configured environment variables or that `parseBody` receives the JSON payload.
 
 **Next steps**
-1. Redeploy the site with the username+password changes, then test commits in production using one of the configured usernames (ZENBY, KOSM, COE, JOSIE, WITCHY, ARCTIC, ADMIN_PASSWORD).  
-2. Review the corresponding Vercel function logs for `/api/auth` to ensure `verifyCredentials` reports the username as valid and that the environment variable is accessible.  
-3. Remove the temporary `/api/test-env` endpoint once verification succeeds to avoid exposing environment metadata.  
-4. Update team documentation with the list of accepted usernames so editors know which identifier pairs with their password.
+1. Pull fresh Vercel function logs for `/api/auth` immediately after a failed attempt to capture the console output and stack trace (logging is already in place).  
+2. Confirm the request body reaching the function includes both `username` and `password`—if logs show empty strings, inspect Vercel Edge/body parsing settings.  
+3. Validate the relevant environment variables in the deployed project (including `ZENBY`, `KOSM`, `COE`, `JOSIE`, `WITCHY`, `ARCTIC`, `ADMIN_PASSWORD`, and optional `DEV_PASSWORD_KEYS`).  
+4. Keep `/api/test-env` available until the credentials succeed, then remove it and update team documentation with the final username list.
 
 ## Relevant Code
 
