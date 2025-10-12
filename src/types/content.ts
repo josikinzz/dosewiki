@@ -90,5 +90,4 @@ export interface SubstanceContent {
   citations: CitationEntry[];
   infoSections?: InfoSection[];
   categories?: string[];
-  searchUrl?: string;
 }

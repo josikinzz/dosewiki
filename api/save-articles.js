@@ -1,6 +1,8 @@
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 
+import { findPasswordKey, loadPasswordEntries } from "./_utils/passwords";
+
 const REPO_OWNER = "josikinzz";
 const REPO_NAME = "dosewiki";
 const TARGET_BRANCH = "main";
@@ -245,18 +247,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const passwordEntries = loadPasswordEntries();
   const githubToken = process.env.GITHUB_TOKEN;
 
-  if (!adminPassword || !githubToken) {
+  if (passwordEntries.length === 0 || !githubToken) {
     return res.status(500).json({ error: "Required environment variables are missing." });
   }
 
   const body = parseBody(req.body);
   const providedPassword = typeof body.password === "string" ? body.password : "";
-  if (providedPassword !== adminPassword) {
+  const matchedKey = findPasswordKey(providedPassword, passwordEntries);
+  if (!matchedKey) {
     return res.status(401).json({ error: "Invalid password." });
   }
+
+  const providedKey = typeof body.passwordKey === "string" ? body.passwordKey.trim() : "";
+  if (providedKey && providedKey !== matchedKey) {
+    return res.status(401).json({ error: "Password does not match the provided key." });
+  }
+
+  const passwordKey = providedKey || matchedKey;
 
   if (body.articlesData === undefined) {
     return res.status(400).json({ error: "articlesData payload is required." });
@@ -293,6 +303,7 @@ export default async function handler(req, res) {
       },
       articles: changedArticles,
       markdown: changelogMarkdown,
+      submittedBy: passwordKey,
     };
 
     const updatedEntries = appendChangeLogEntry(existingLogEntries, newEntry);
@@ -328,6 +339,7 @@ export default async function handler(req, res) {
       commitSha,
       commitUrl,
       createdAt: isoTimestamp,
+      submittedBy: passwordKey,
       entry: {
         ...newEntry,
         commit: {
@@ -335,6 +347,7 @@ export default async function handler(req, res) {
           url: commitUrl,
           message: commitMessage,
         },
+        submittedBy: passwordKey,
       },
     });
   } catch (error) {

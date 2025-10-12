@@ -43,7 +43,6 @@ export type ArticleDraftForm = {
   drugName: string;
   chemicalName: string;
   alternativeName: string;
-  searchUrl: string;
   chemicalClass: string;
   psychoactiveClass: string;
   mechanismOfAction: string;
@@ -69,7 +68,6 @@ export type ArticleDraftStringField =
   | "drugName"
   | "chemicalName"
   | "alternativeName"
-  | "searchUrl"
   | "chemicalClass"
   | "psychoactiveClass"
   | "mechanismOfAction"
@@ -91,7 +89,6 @@ export type ArticleDraftPayload = {
     drug_name: string;
     chemical_name: string;
     alternative_name: string;
-    search_url: string;
     chemical_class: string;
     psychoactive_class: string;
     mechanism_of_action: string;
@@ -164,7 +161,6 @@ export const createEmptyArticleDraftForm = (): ArticleDraftForm => ({
   drugName: "",
   chemicalName: "",
   alternativeName: "",
-  searchUrl: "",
   chemicalClass: "",
   psychoactiveClass: "",
   mechanismOfAction: "",
@@ -278,7 +274,6 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
       drug_name?: unknown;
       chemical_name?: unknown;
       alternative_name?: unknown;
-      search_url?: unknown;
       chemical_class?: unknown;
       psychoactive_class?: unknown;
       mechanism_of_action?: unknown;
@@ -335,7 +330,6 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     drugName: toTrimmedString(drugInfo.drug_name),
     chemicalName: toTrimmedString(drugInfo.chemical_name),
     alternativeName: toTrimmedString(drugInfo.alternative_name),
-    searchUrl: toTrimmedString(drugInfo.search_url),
     chemicalClass: toTrimmedString(drugInfo.chemical_class),
     psychoactiveClass: toTrimmedString(drugInfo.psychoactive_class),
     mechanismOfAction: toTrimmedString(drugInfo.mechanism_of_action),
@@ -420,7 +414,6 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     drug_name: form.drugName.trim(),
     chemical_name: form.chemicalName.trim(),
     alternative_name: form.alternativeName.trim(),
-    search_url: form.searchUrl.trim(),
     chemical_class: form.chemicalClass.trim(),
     psychoactive_class: form.psychoactiveClass.trim(),
     mechanism_of_action: form.mechanismOfAction.trim(),

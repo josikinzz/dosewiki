@@ -14,6 +14,7 @@ export type ChangeLogEntry = {
   };
   articles: ChangeLogArticleSummary[];
   markdown: string;
+  submittedBy: string | null;
 };
 
 export type ChangeLogArticleSummary = {
@@ -73,12 +74,19 @@ const normalizeEntries = (entries: unknown): ChangeLogEntry[] => {
         return null;
       }
 
+      const rawSubmittedBy = (entry as { submittedBy?: unknown }).submittedBy;
+      const submittedBy =
+        typeof rawSubmittedBy === "string" && rawSubmittedBy.trim().length > 0
+          ? rawSubmittedBy.trim()
+          : null;
+
       return {
         id,
         createdAt,
         markdown,
         commit: { sha, url, message },
         articles: normalizeArticles((entry as { articles?: unknown }).articles),
+        submittedBy,
       } satisfies ChangeLogEntry;
     })
     .filter((value): value is ChangeLogEntry => value !== null);

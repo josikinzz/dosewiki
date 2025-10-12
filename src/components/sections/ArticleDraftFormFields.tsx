@@ -229,38 +229,25 @@ const OverviewFields = ({ idPrefix, form, handleFieldChange, replaceForm }: Over
             placeholder="Systematic or ISO name"
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-alternative-name`}>
-            Alternative name
-          </label>
-          <input
-            id={`${idPrefix}-alternative-name`}
-            className={baseInputClass}
-            value={form.alternativeName}
-            onChange={handleFieldChange("alternativeName")}
-            placeholder="Common alias (optional)"
-          />
-          <p className={helperTextClass}>Use semicolons for multiple aliases to keep the hero rail tidy.</p>
-        </div>
-      </div>
       <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-search-url`}>
-          Reference URL
+        <label className={labelClass} htmlFor={`${idPrefix}-alternative-name`}>
+          Alternative name
         </label>
         <input
-          id={`${idPrefix}-search-url`}
+          id={`${idPrefix}-alternative-name`}
           className={baseInputClass}
-          value={form.searchUrl}
-          onChange={handleFieldChange("searchUrl")}
-          placeholder="https://..."
+          value={form.alternativeName}
+          onChange={handleFieldChange("alternativeName")}
+          placeholder="Common alias (optional)"
         />
-        <p className={helperTextClass}>Links the wrench preview button to an external resource.</p>
+        <p className={helperTextClass}>Use semicolons for multiple aliases to keep the hero rail tidy.</p>
       </div>
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-categories`}>
-          Categories
-        </label>
-        <textarea
+    </div>
+    <div>
+      <label className={labelClass} htmlFor={`${idPrefix}-categories`}>
+        Categories
+      </label>
+      <textarea
           id={`${idPrefix}-categories`}
           className={`${baseTextareaClass} min-h-[88px]`}
           value={form.categoriesInput}

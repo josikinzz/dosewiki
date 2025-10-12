@@ -67,7 +67,6 @@ interface RawDrugInfo {
   drug_name?: string | null;
   chemical_name?: string | null;
   alternative_name?: string | null;
-  search_url?: string | null;
   chemical_class?: string | null;
   psychoactive_class?: string | null;
   dosages?: RawDosages;
@@ -98,7 +97,6 @@ export interface SubstanceRecord {
   chemicalClasses: string[];
   psychoactiveClasses: string[];
   content: SubstanceContent;
-  searchUrl?: string;
 }
 
 type InteractionSeverity = InteractionGroup["severity"];
@@ -664,7 +662,6 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     citations: buildCitations(info.citations),
     infoSections: buildInfoSections(info),
     categories,
-    searchUrl: cleanString(info.search_url),
   };
 
   return {
@@ -676,7 +673,6 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     chemicalClasses,
     psychoactiveClasses,
     content,
-    searchUrl: content.searchUrl,
   };
 }
 
