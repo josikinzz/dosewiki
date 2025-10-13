@@ -1,4 +1,5 @@
 ﻿import { memo, useCallback } from "react";
+import { Search } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import type { SearchMatch } from "../../data/search";
 
@@ -74,6 +75,7 @@ export const SearchResultsPage = memo(function SearchResultsPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <PageHeader
         title="Search results"
+        icon={Search}
         description={
           trimmed
             ? `Showing matches for "${trimmed}".`

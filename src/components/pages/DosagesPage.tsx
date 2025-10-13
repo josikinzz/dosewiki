@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { BrainCircuit, Cog, Hexagon } from "lucide-react";
+import { BrainCircuit, Cog, FlaskConical, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
@@ -67,6 +67,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
     <div className="mx-auto w-full px-4 pb-20 pt-10 2xl:px-8">
       <PageHeader
         title="Substance Index"
+        icon={FlaskConical}
         description={
           <>
             Browse

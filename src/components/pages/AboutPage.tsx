@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { Info } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import {
@@ -21,6 +22,7 @@ export const AboutPage = memo(function AboutPage() {
     <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-10 md:max-w-4xl">
       <PageHeader
         title="About dose.wiki"
+        icon={Info}
         description="Structured psychoactive data for quick reference and research workflows."
       />
       <div className="space-y-6 md:space-y-8">

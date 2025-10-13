@@ -14,6 +14,7 @@ export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <PageHeader
         title="Subjective Effects"
+        icon={Sparkles}
         description="Browse the catalog of subjective effects reported across substances. Select an effect to explore compounds associated with it."
       />
       <SectionCard delay={0.05}>
