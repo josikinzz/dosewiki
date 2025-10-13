@@ -1,5 +1,17 @@
 [
   {
+    "id": "20251013-212356-370466a5",
+    "createdAt": "2025-10-13T21:23:56.596Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 13/10/2025, 23:23:53"
+    },
+    "articles": [],
+    "markdown": "No changelog details were provided for this commit.",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251013-210154-43d82145",
     "createdAt": "2025-10-13T21:01:54.147Z",
     "commit": {
