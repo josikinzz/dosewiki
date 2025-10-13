@@ -229,6 +229,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   });
   const passwordNoticeTimeoutRef = useRef<number | null>(null);
   const changeLogNoticeTimeoutRef = useRef<number | null>(null);
+  const previousArticleIndexRef = useRef<number | null>(null);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
@@ -798,8 +799,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       setEditorValue(JSON.stringify(selectedArticle, null, 2));
     }
     setDraftMode("ui");
-    setNotice(null);
-  }, [hydratedSelectedForm, replaceEditArticleForm, selectedArticle]);
+    if (previousArticleIndexRef.current !== selectedIndex) {
+      setNotice(null);
+    }
+    previousArticleIndexRef.current = selectedIndex;
+  }, [hydratedSelectedForm, replaceEditArticleForm, selectedArticle, selectedIndex]);
 
   useEffect(() => {
     if (draftMode !== "ui") {
@@ -1184,12 +1188,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70">
-          <Wrench className="h-4 w-4 text-fuchsia-200" />
-          Dev Tools
-        </span>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
-          Developer Draft Editor
+        <h1 className="mt-4 flex items-center justify-center gap-3 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
+          <Wrench className="h-8 w-8 text-current" aria-hidden="true" focusable="false" />
+          <span>Dev Tools</span>
         </h1>
       </div>
 

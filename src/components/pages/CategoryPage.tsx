@@ -13,6 +13,7 @@ export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <PageHeader
         title={detail.definition.name}
+        icon={detail.definition.icon}
         description={`${detail.total} substance${detail.total === 1 ? "" : "s"} tagged in this category.`}
       />
       <div className="space-y-6">

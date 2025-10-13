@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Cog } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
@@ -63,6 +64,7 @@ export function MechanismDetailPage({
     <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10">
       <PageHeader
         title={definition.name}
+        icon={Cog}
         description={`${definition.total} substance${definition.total === 1 ? "" : "s"} share this mechanism of action.`}
       />
 
