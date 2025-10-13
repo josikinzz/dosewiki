@@ -1,5 +1,35 @@
 [
   {
+    "id": "20251013-212828-39bd2cd6",
+    "createdAt": "2025-10-13T21:28:28.668Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 13/10/2025, 23:28:26"
+    },
+    "articles": [
+      {
+        "id": 595,
+        "title": "1cP-MiPLA",
+        "slug": "1cp-mipla"
+      }
+    ],
+    "markdown": "### 1cP-MiPLA · #595\n\n- `drug_info.dosages.routes_of_administration[0].dose_ranges.heavy`: \"300 µg +\" → \"300 µg +\"\n- `drug_info.dosages.routes_of_administration[1].dose_ranges.heavy`: \"250 µg +\" → \"250 µg +\"\n- `drug_info.categories[1]`: \"a-typical hallucinogen\" → \"research-chemical\"\n- `drug_info.categories[2]`: removed text (\"research-chemical\")",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251013-212356-370466a5",
+    "createdAt": "2025-10-13T21:23:56.596Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 13/10/2025, 23:23:53"
+    },
+    "articles": [],
+    "markdown": "No changelog details were provided for this commit.",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251013-210154-43d82145",
     "createdAt": "2025-10-13T21:01:54.147Z",
     "commit": {
