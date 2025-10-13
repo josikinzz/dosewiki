@@ -340,7 +340,7 @@ export default function App() {
         )}
 
       {view.type === "dev" ? (
-        <DevModePage />
+        <DevModePage activeTab={view.tab} onTabChange={(tab) => navigate({ type: "dev", tab })} />
       ) : view.type === "substances" ? (
         <main>
           <DosagesPage

@@ -23,27 +23,34 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(originalArticlesRef.current));
   const lastVisitedHashRef = useRef<string | null>(null);
 
+  const isDevHash = useCallback((value: string | null | undefined) => {
+    if (typeof value !== "string") {
+      return false;
+    }
+    return value.startsWith("#/dev");
+  }, []);
+
   const open = useCallback(() => {
     if (typeof window === "undefined") {
       return;
     }
 
     const currentHash = window.location.hash || "#/substances";
-    if (currentHash !== "#/dev") {
+    if (!isDevHash(currentHash)) {
       lastVisitedHashRef.current = currentHash;
     }
 
-    if (window.location.hash !== "#/dev") {
-      window.location.hash = "#/dev";
+    if (!isDevHash(window.location.hash)) {
+      window.location.hash = "#/dev/edit";
     }
-  }, []);
+  }, [isDevHash]);
 
   const close = useCallback(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const fallback = lastVisitedHashRef.current && lastVisitedHashRef.current !== "#/dev"
+    const fallback = lastVisitedHashRef.current && !isDevHash(lastVisitedHashRef.current)
       ? lastVisitedHashRef.current
       : "#/substances";
 
@@ -57,7 +64,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     } else {
       window.location.hash = "#/substances";
     }
-  }, []);
+  }, [isDevHash]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
     setArticles((previous) => {
