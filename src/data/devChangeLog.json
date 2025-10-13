@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251013-210154-43d82145",
+    "createdAt": "2025-10-13T21:01:54.147Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/13/2025, 3:01:52 PM"
+    },
+    "articles": [
+      {
+        "id": 33,
+        "title": "3-MeO-PCP",
+        "slug": "3-meo-pcp"
+      }
+    ],
+    "markdown": "### 3-MeO-PCP · #33\n\n- `drug_info.alternative_name`: added text (\"3-Methoxyphencyclidine\")",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251012-120815-ffa8a8d5",
     "createdAt": "2025-10-12T12:08:15.759Z",
     "commit": {
