@@ -1,15 +1,7 @@
 const DEFAULT_PASSWORD_KEYS = ["ADMIN_PASSWORD", "ZENBY", "KOSM", "COE", "JOSIE", "WITCHY", "ARCTIC"];
 
-const getEnv = () => {
-  if (typeof process === "undefined" || typeof process.env !== "object") {
-    return {};
-  }
-  return process.env;
-};
-
 const parseAdditionalKeys = () => {
-  const env = getEnv();
-  const raw = env.DEV_PASSWORD_KEYS;
+  const raw = process.env.DEV_PASSWORD_KEYS;
   if (typeof raw !== "string" || raw.trim().length === 0) {
     return [];
   }
@@ -41,8 +33,7 @@ export const verifyCredentials = (username, password) => {
     return false;
   }
 
-  const env = getEnv();
-  const expectedPassword = env[trimmedUsername];
+  const expectedPassword = process.env[trimmedUsername];
 
   if (typeof expectedPassword !== "string") {
     return false;
@@ -55,7 +46,6 @@ export const loadPasswordEntries = () => {
   const seen = new Set();
   const entries = [];
   const keys = getValidUsernames();
-  const env = getEnv();
 
   for (const key of keys) {
     if (seen.has(key)) {
@@ -63,7 +53,7 @@ export const loadPasswordEntries = () => {
     }
     seen.add(key);
 
-    const value = env[key];
+    const value = process.env[key];
     if (typeof value !== "string") {
       continue;
     }
