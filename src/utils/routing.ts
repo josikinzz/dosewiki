@@ -35,8 +35,10 @@ export function viewToHash(view: AppView): string {
       const slug = view.slug.trim();
       return slug.length > 0 ? `#/substance/${slug}` : "#/substance";
     }
-    case "dev":
-      return "#/dev";
+    case "dev": {
+      const tab = view.tab;
+      return `#/dev/${tab}`;
+    }
     default:
       return "#/substances";
   }
@@ -110,8 +112,18 @@ export function parseHash(
         return { type: "substance", slug };
       }
       return { type: "substance", slug: defaultSlug };
-    case "dev":
-      return { type: "dev" };
+    case "dev": {
+      const candidate = slug ?? "edit";
+      let tab: "edit" | "create" | "change-log" = "edit";
+      if (candidate === "create") {
+        tab = "create";
+      } else if (candidate === "change-log" || candidate === "changelog") {
+        tab = "change-log";
+      } else if (candidate === "edit") {
+        tab = "edit";
+      }
+      return { type: "dev", tab };
+    }
     default:
       return resolveDefault();
   }

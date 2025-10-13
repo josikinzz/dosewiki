@@ -64,7 +64,7 @@ export const AboutPage = memo(function AboutPage() {
             </li>
             <li>
               Audit edits or draft new entries in the {" "}
-              <a href="#/dev" className={linkClass}>
+              <a href="#/dev/edit" className={linkClass}>
                 Dev Tools
               </a>{" "}
               workspace, which mirrors the live JSON schema.

@@ -20,7 +20,7 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
       : { type: "substance", slug: defaultSlug };
 
   const effectsView: AppView = { type: "effects" };
-  const devView: AppView = { type: "dev" };
+  const devView: AppView = { type: "dev", tab: "edit" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
     { label: "Substances", view: substancesView, icon: FlaskConical },

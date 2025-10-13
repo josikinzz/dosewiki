@@ -8,4 +8,4 @@
   | { type: "interactions"; primarySlug?: string; secondarySlug?: string }
   | { type: "about" }
   | { type: "search"; query: string }
-  | { type: "dev" };
+  | { type: "dev"; tab: "edit" | "create" | "change-log" };

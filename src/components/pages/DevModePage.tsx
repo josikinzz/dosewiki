@@ -47,6 +47,13 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
+type DevModeTab = "edit" | "create" | "change-log";
+
+type DevModePageProps = {
+  activeTab: DevModeTab;
+  onTabChange: (tab: DevModeTab) => void;
+};
+
 const baseInputClass =
   "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const baseSelectClass =
@@ -179,7 +186,7 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
   };
 };
 
-export function DevModePage() {
+export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const {
     articles,
   close,
@@ -188,7 +195,6 @@ export function DevModePage() {
   resetAll,
   getOriginalArticle,
   } = useDevMode();
-  const [activeTab, setActiveTab] = useState<"edit" | "create" | "changelog">("edit");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
@@ -1077,7 +1083,7 @@ export function DevModePage() {
           submittedBy: entry.submittedBy ?? resolvedKey,
         };
         setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
-        setActiveTab("changelog");
+        onTabChange("change-log");
         pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
       }
     } catch (error) {
@@ -1099,21 +1105,35 @@ export function DevModePage() {
     username,
   ]);
 
-  const handleTabChange = useCallback(
-    (tab: "edit" | "create" | "changelog") => {
-      setActiveTab(tab);
+  const clearNoticesForTab = useCallback(
+    (tab: DevModeTab) => {
       if (tab === "edit") {
         setCreatorNotice(null);
       } else if (tab === "create") {
         setNotice(null);
       }
       setGithubNotice(null);
-      if (tab !== "changelog") {
+      if (tab !== "change-log") {
         setChangeLogNotice(null);
       }
     },
     [setChangeLogNotice, setCreatorNotice, setGithubNotice, setNotice],
   );
+
+  const handleTabChange = useCallback(
+    (tab: DevModeTab) => {
+      clearNoticesForTab(tab);
+      if (tab === activeTab) {
+        return;
+      }
+      onTabChange(tab);
+    },
+    [activeTab, clearNoticesForTab, onTabChange],
+  );
+
+  useEffect(() => {
+    clearNoticesForTab(activeTab);
+  }, [activeTab, clearNoticesForTab]);
 
   const resetNewArticleForm = useCallback(() => {
     resetNewArticleFormState();
@@ -1258,7 +1278,7 @@ export function DevModePage() {
             }`}
             aria-pressed={activeTab === "edit"}
           >
-            Draft editor
+            Edit
           </button>
           <button
             type="button"
@@ -1268,17 +1288,17 @@ export function DevModePage() {
             }`}
             aria-pressed={activeTab === "create"}
           >
-            New article
+            Create
           </button>
           <button
             type="button"
-            onClick={() => handleTabChange("changelog")}
+            onClick={() => handleTabChange("change-log")}
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              activeTab === "changelog" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              activeTab === "change-log" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
             }`}
-            aria-pressed={activeTab === "changelog"}
+            aria-pressed={activeTab === "change-log"}
           >
-            Change log
+            Changelog
           </button>
         </div>
       </div>
