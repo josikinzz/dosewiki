@@ -1,8 +1,8 @@
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 
-import { verifyCredentials } from "./_utils/passwords";
-import { parseBody } from "./_utils/parseBody";
+import { verifyCredentials } from "./_utils/passwords.js";
+import { parseBody } from "./_utils/parseBody.js";
 
 const REPO_OWNER = "josikinzz";
 const REPO_NAME = "dosewiki";
@@ -15,26 +15,6 @@ const API_BASE_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 const COMMIT_AUTHOR = {
   name: "dose.wiki Dev Editor",
   email: "dev-editor@dose.wiki",
-};
-
-const parseBody = (rawBody) => {
-  if (rawBody == null) {
-    return {};
-  }
-
-  if (typeof rawBody === "string" && rawBody.trim().length > 0) {
-    try {
-      return JSON.parse(rawBody);
-    } catch {
-      return {};
-    }
-  }
-
-  if (typeof rawBody === "object") {
-    return rawBody;
-  }
-
-  return {};
 };
 
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;

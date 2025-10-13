@@ -75,6 +75,7 @@ The Dev Tools “Save to GitHub” feature is split across a React front-end sur
 6. Introduced `api/test-env` to verify env propagation from Vercel.
 7. Despite these changes, production redeploys continue to show `process.env[username]` as `undefined` and return `500 Configuration error.`.
 8. Implemented a follow-up fix (2025-10-13) that removes the `getEnv()` proxy wrapper so every helper reads `process.env` directly; this is ready for deployment but still awaiting production validation.
+9. Investigated production error `ERR_MODULE_NOT_FOUND: Cannot find module '/var/task/api/_utils/passwords'` and updated server imports to reference `./_utils/passwords.js` (ESM requires explicit extensions) before redeploying.
 
 ## Open Questions & Risk Areas
 - Are the username env variables defined at the _project_ level but not the _production_ environment/branch? Need confirmation from Vercel dashboard and redeploy logs.
@@ -91,6 +92,7 @@ The Dev Tools “Save to GitHub” feature is split across a React front-end sur
 5. **Add temporary log for `DEV_PASSWORD_KEYS`** (optional): Extend `api/auth.js` to log the raw value during investigation, then remove once resolved.
 6. **Document verified resolution**: After fixing env propagation, remove `api/test-env.js`, trim noisy logging, and update this report with the confirmed remediation steps.
 7. **Deploy direct `process.env` access fix**: Redeploy with the updated `api/_utils/passwords.js`, test `/api/auth`, and record whether the change resolves the `process.env` visibility issue.
+8. **Validate module resolution**: After redeploying with the `.js` import updates, retry `/api/auth` and confirm the `ERR_MODULE_NOT_FOUND` error disappears; capture logs either way.
 
 ## Related Files
 - Front-end credential + commit UI: `src/components/pages/DevModePage.tsx`

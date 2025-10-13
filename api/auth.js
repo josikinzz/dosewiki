@@ -1,5 +1,5 @@
-import { verifyCredentials, getValidUsernames } from "./_utils/passwords";
-import { parseBody } from "./_utils/parseBody";
+import { verifyCredentials, getValidUsernames } from "./_utils/passwords.js";
+import { parseBody } from "./_utils/parseBody.js";
 
 export default async function handler(req, res) {
   console.log("=== AUTH ENDPOINT CALLED ===");
