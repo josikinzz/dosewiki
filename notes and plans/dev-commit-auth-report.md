@@ -3,9 +3,9 @@
 _Last updated: 2025-10-13_
 
 ## Executive Summary
-- Production commits from the Dev Tools editor still fail at `/api/auth` with HTTP 500, leaving the dataset locked despite working credentials; local development succeeds with the same secrets.
-- The failure path consistently shows that the supplied username is recognised but `process.env[<USERNAME>]` resolves to `undefined` in Vercel’s Node runtime, causing `verifyCredentials` to return `false` and the handler to surface "Configuration error.".
-- Front-end flows, credential persistence, and the GitHub commit pipeline remain intact—the blocker is the production function’s inability to see the configured environment variables for committer accounts.
+- Production authentication now succeeds end-to-end after redeploying with the direct `process.env` access patch and explicit `.js` imports for the shared utilities; Dev Tools commits are working in production again.
+- Root cause: Vercel’s Node runtime could not resolve `./_utils/passwords` without a `.js` extension, emitting `ERR_MODULE_NOT_FOUND` and short-circuiting the handler before env reads occurred; the earlier `getEnv()` proxy also masked the issue.
+- Debug logging and `api/test-env` remain in place for short-term monitoring; plan to remove them once the team is satisfied the regression is fully resolved.
 
 ## System Overview
 The Dev Tools “Save to GitHub” feature is split across a React front-end surface and two serverless API routes deployed on Vercel.
@@ -60,11 +60,11 @@ The Dev Tools “Save to GitHub” feature is split across a React front-end sur
 - **Testing aid**
   - `api/test-env.js` enumerates the default username keys, reporting length metadata to confirm exposure. It does _not_ inspect extra keys declared via `DEV_PASSWORD_KEYS`.
 
-## Current Production Behaviour (Unresolved)
-- `/api/auth` responds with `500` for valid credentials (e.g., `username: "JOSIE"`), and console logs show `process.env.JOSIE: UNDEFINED` even though the variable is configured in Vercel.
-- The UI shows `Authentication failed.` followed by the failure notice; `/api/save-articles` is never reached.
-- The same credential pair succeeds locally (Vite dev server proxying to local Vercel emulation or within unit tests), confirming the logic path works when env vars resolve.
-- Additional console noise (`Permissions-Policy` warnings, missing Chrome extension assets) is unrelated to the auth failure.
+## Current Production Behaviour
+- `/api/auth` now returns `200 { authorized: true, key: <username> }` for configured credentials; the subsequent `/api/save-articles` call completes and pushes commits to GitHub.
+- Front-end notices display "Verified as <KEY>" followed by the commit confirmation, matching the expected UX.
+- Server logs confirm the explicit `.js` imports resolved `ERR_MODULE_NOT_FOUND`; env lookups report `process.env.<KEY>: EXISTS` for the tested accounts.
+- Remaining console noise (`Permissions-Policy`, Chrome extension 404s) persists but is orthogonal to auth.
 
 ## Diagnostics to Date
 1. Reworked the UI to collect username + password, enforce trimmed inputs, and show the resolved key post-auth.
@@ -73,26 +73,20 @@ The Dev Tools “Save to GitHub” feature is split across a React front-end sur
 4. Extracted `parseBody` helper to ensure both `/api/auth` and `/api/save-articles` parse JSON payloads consistently (avoiding earlier `parseBody is not defined` crashes).
 5. Relaxed changelog requirements and error states so auth can be tested independently of article edits.
 6. Introduced `api/test-env` to verify env propagation from Vercel.
-7. Despite these changes, production redeploys continue to show `process.env[username]` as `undefined` and return `500 Configuration error.`.
-8. Implemented a follow-up fix (2025-10-13) that removes the `getEnv()` proxy wrapper so every helper reads `process.env` directly; this is ready for deployment but still awaiting production validation.
+7. Despite these changes, production redeploys continued to show `process.env[username]` as `undefined` and return `500 Configuration error.` before the final fix.
+8. Implemented a follow-up fix (2025-10-13) that removes the `getEnv()` proxy wrapper so every helper reads `process.env` directly; deployed alongside the import corrections.
 9. Investigated production error `ERR_MODULE_NOT_FOUND: Cannot find module '/var/task/api/_utils/passwords'` and updated server imports to reference `./_utils/passwords.js` (ESM requires explicit extensions) before redeploying.
+10. Post-deploy verification (2025-10-13): `/api/auth` + `/api/save-articles` succeed in production, `process.env` debug logs show populated credentials, and Dev Tools commits land on `main` as expected.
 
 ## Open Questions & Risk Areas
-- Are the username env variables defined at the _project_ level but not the _production_ environment/branch? Need confirmation from Vercel dashboard and redeploy logs.
-- Could secrets be scoped to edge functions or missing because the function runs on a build that predates the new vars? Verify last successful redeploy timestamp v. secret updates.
-- Does Vercel’s Node runtime require `VERCEL_ENV=production` or other settings for function-level secrets to load? No evidence yet, but worth cross-checking.
-- `api/test-env` currently checks only the default keys; if credentials rely on `DEV_PASSWORD_KEYS`, the endpoint may offer a false negative.
-- `save-articles` defines a local `parseBody` shadowing the shared helper, which is redundant but harmless; keep an eye on diverging behaviour if one implementation changes.
+- Debug logging in `api/auth.js` is still verbose; keep it temporarily for monitoring but plan to prune once confidence is high.
+- `api/test-env.js` remains deployed; leaving it too long could expose unnecessary surface area—schedule removal after a short soak period.
+- Only a subset of credentials has been re-tested; run through the full username roster (including any `DEV_PASSWORD_KEYS` entries) to ensure parity.
 
 ## Recommended Next Steps
-1. **Confirm secrets in production**: Inspect Vercel dashboard → Project → Settings → Environment Variables → Production. Ensure each username key (e.g., `JOSIE`) is defined and has the expected value.
-2. **Trigger redeploy after secret audit**: Use "Redeploy" on the latest production deployment once secrets are verified; note the timestamp to correlate with logs.
-3. **Pull function logs after a failed attempt**: Using `vercel logs dose.wiki/api/auth --since <timestamp>`, capture the full log block to confirm the debug statements still report missing env values.
-4. **Hit `/api/test-env` in production**: Validate that the expected keys show `EXISTS` with non-zero length. If they report `UNDEFINED`, re-save secrets or check for case mismatches.
-5. **Add temporary log for `DEV_PASSWORD_KEYS`** (optional): Extend `api/auth.js` to log the raw value during investigation, then remove once resolved.
-6. **Document verified resolution**: After fixing env propagation, remove `api/test-env.js`, trim noisy logging, and update this report with the confirmed remediation steps.
-7. **Deploy direct `process.env` access fix**: Redeploy with the updated `api/_utils/passwords.js`, test `/api/auth`, and record whether the change resolves the `process.env` visibility issue.
-8. **Validate module resolution**: After redeploying with the `.js` import updates, retry `/api/auth` and confirm the `ERR_MODULE_NOT_FOUND` error disappears; capture logs either way.
+1. **Audit remaining credentials**: Log in with each configured username (including any `DEV_PASSWORD_KEYS` additions) to confirm parity.
+2. **Retire debug aids**: When comfortable, remove the noisy console logging from `api/auth.js` and delete `api/test-env.js`, then redeploy.
+3. **Add regression guardrails**: Consider adding a lightweight integration test or deployment smoke check that hits `/api/auth` with a mock credential to catch module resolution regressions early.
 
 ## Related Files
 - Front-end credential + commit UI: `src/components/pages/DevModePage.tsx`
