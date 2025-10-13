@@ -1,4 +1,13 @@
-const DEFAULT_PASSWORD_KEYS = ["ADMIN_PASSWORD", "ZENBY", "KOSM", "COE", "JOSIE", "WITCHY", "ARCTIC"];
+const DEFAULT_PASSWORD_KEYS = [
+  "ADMIN_PASSWORD",
+  "ZENBY",
+  "KOSM",
+  "COE",
+  "JOSIE",
+  "WITCHY",
+  "ARCTIC",
+  "GABRIEL",
+];
 
 const parseAdditionalKeys = () => {
   const raw = process.env.DEV_PASSWORD_KEYS;
