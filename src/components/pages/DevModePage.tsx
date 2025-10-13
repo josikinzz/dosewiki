@@ -1121,25 +1121,15 @@ export function DevModePage() {
   }, [resetNewArticleFormState]);
 
   const copyNewArticleJson = useCallback(async () => {
-    if (!isNewArticleValid) {
-      setCreatorNotice({ type: "error", message: "Fill the required fields before exporting." });
-      return;
-    }
-
     try {
       await navigator.clipboard.writeText(newArticleJson);
       setCreatorNotice({ type: "success", message: "New article JSON copied to clipboard." });
     } catch {
       setCreatorNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
     }
-  }, [isNewArticleValid, newArticleJson]);
+  }, [newArticleJson]);
 
   const downloadNewArticleJson = useCallback(() => {
-    if (!isNewArticleValid) {
-      setCreatorNotice({ type: "error", message: "Fill the required fields before exporting." });
-      return;
-    }
-
     const baseLabel = newArticleForm.title.trim() || newArticleForm.drugName.trim() || "new-substance";
     const slug = toFileSlug(baseLabel || "new-substance");
     const fileName = `new-article-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
@@ -1153,7 +1143,7 @@ export function DevModePage() {
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
-  }, [isNewArticleValid, newArticleForm.drugName, newArticleForm.title, newArticleJson]);
+  }, [newArticleForm.drugName, newArticleForm.title, newArticleJson]);
 
   const handleCategoryJump = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -1667,18 +1657,12 @@ export function DevModePage() {
                 </p>
               )}
             </div>
-            <JsonEditor
-              value={newArticleJson}
-              minHeight={previewMinHeight}
-              readOnly
-              className="max-h-[520px] overflow-auto"
-            />
+            <JsonEditor value={newArticleJson} minHeight={previewMinHeight} readOnly />
             <div className="flex flex-wrap gap-2 text-xs">
               <button
                 type="button"
                 onClick={copyNewArticleJson}
-                disabled={!isNewArticleValid}
-                className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:border-white/5 disabled:text-white/35 disabled:hover:border-white/5 disabled:hover:text-white/35"
+                className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
               >
                 <Copy className="h-3.5 w-3.5" />
                 Copy JSON
@@ -1686,8 +1670,7 @@ export function DevModePage() {
               <button
                 type="button"
                 onClick={downloadNewArticleJson}
-                disabled={!isNewArticleValid}
-                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:border-fuchsia-500/15 disabled:bg-fuchsia-500/5 disabled:text-fuchsia-200/40 disabled:hover:border-fuchsia-500/15 disabled:hover:bg-fuchsia-500/5 disabled:hover:text-fuchsia-200/40"
+                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
               >
                 <Download className="h-3.5 w-3.5" />
                 Download JSON

@@ -28,7 +28,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
   );
 
   const combinedClassName = [
-    "json-editor relative w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950/60 text-white shadow-inner",
+    "json-editor relative w-full overflow-x-hidden rounded-xl border border-white/10 bg-slate-950/60 text-white shadow-inner",
     "focus-within:border-fuchsia-400 focus-within:ring-1 focus-within:ring-fuchsia-300",
     readOnly ? "focus-within:border-white/8 focus-within:ring-0" : "",
     className ?? "",
