@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, Download, Eye, EyeOff, RefreshCw, Save, ShieldCheck, Undo2, Wrench } from "lucide-react";
+import { ChevronDown, Copy, Download, Eye, EyeOff, RefreshCw, Save, Undo2, Wrench } from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
 import {
   useCallback,
@@ -31,6 +31,7 @@ import {
 } from "../../utils/articleDraftForm";
 import { slugify } from "../../utils/slug";
 import { useDevMode } from "../dev/DevModeContext";
+import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/TagEditorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
@@ -1187,6 +1188,36 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     event.target.value = "";
   };
 
+  const copyDatasetMarkdownForTagEditor = useCallback(async () => {
+    await navigator.clipboard.writeText(datasetChangelog.markdown);
+  }, [datasetChangelog.markdown]);
+
+  const downloadDatasetMarkdownForTagEditor = useCallback(() => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const fileName = `dataset-changelog-${timestamp}.md`;
+    const blob = new Blob([datasetChangelog.markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }, [datasetChangelog.markdown]);
+
+  const commitPanel = (
+    <DevCommitCard
+      notice={githubNotice}
+      trimmedAdminPassword={trimmedAdminPassword}
+      passwordKey={passwordKey}
+      hasInvalidJsonDraft={hasInvalidJsonDraft}
+      isSaving={isSaving}
+      isCommitDisabled={isCommitDisabled}
+      onCommit={handleSaveToGitHub}
+    />
+  );
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl text-center">
@@ -1508,44 +1539,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             </div>
           </SectionCard>
 
-          <SectionCard className="space-y-4 bg-white/[0.04]">
-            <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
-                <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
-              </div>
-              <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
-            </div>
-            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-              <div className="min-h-[1.25rem]">
-                {githubNotice ? (
-                  <p className={githubNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-                    {githubNotice.message}
-                  </p>
-                ) : hasInvalidJsonDraft ? (
-                  <p className="text-xs text-amber-300">Fix JSON syntax before committing.</p>
-                ) : trimmedAdminPassword.length === 0 ? (
-                  <p className="text-xs text-amber-300">Save your username and password above before committing.</p>
-                ) : passwordKey ? (
-                  <p className="text-xs text-white/55">Ready to commit as {passwordKey}.</p>
-                ) : (
-                  <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  onClick={handleSaveToGitHub}
-                  disabled={isCommitDisabled}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  {isSaving ? "Saving…" : "Commit changes"}
-                </button>
-              </div>
-            </div>
-          </SectionCard>
+          {commitPanel}
 
           <SectionCard className="space-y-6 bg-white/[0.04]">
             <div className="space-y-1">
@@ -1955,7 +1949,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           </div>
         </div>
       ) : activeTab === "tag-editor" ? (
-        <TagEditorTab />
+        <TagEditorTab
+          commitPanel={commitPanel}
+          datasetMarkdown={datasetChangelog.markdown}
+          hasDatasetChanges={hasDatasetChanges}
+          onCopyDatasetMarkdown={copyDatasetMarkdownForTagEditor}
+          onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
+        />
       ) : null}
     </main>
   );

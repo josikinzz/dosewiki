@@ -1,5 +1,5 @@
-import { AlertTriangle, ArrowLeftRight, Pencil, RefreshCw, Search, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { AlertTriangle, ArrowLeftRight, Copy, Download, Pencil, RefreshCw, Search, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { TagMutation, TAG_FIELD_LABELS, TAG_FIELDS, applyTagMutation, buildTagRegistry, getTagUsage, normalizeTagLabel, summarizeMutation, toTagKey, type TagField, type TagUsage } from "../../utils/tagRegistry";
 import { SectionCard } from "../common/SectionCard";
@@ -30,6 +30,14 @@ type SelectedTag = {
   key: string;
 };
 
+type TagEditorTabProps = {
+  commitPanel?: ReactNode;
+  datasetMarkdown: string;
+  hasDatasetChanges: boolean;
+  onCopyDatasetMarkdown: () => Promise<void>;
+  onDownloadDatasetMarkdown: () => void;
+};
+
 const getDefaultTargetField = (source: TagField): TagField => {
   for (const candidate of TAG_FIELDS) {
     if (candidate !== source) {
@@ -39,7 +47,13 @@ const getDefaultTargetField = (source: TagField): TagField => {
   return source;
 };
 
-export function TagEditorTab() {
+export function TagEditorTab({
+  commitPanel,
+  datasetMarkdown,
+  hasDatasetChanges,
+  onCopyDatasetMarkdown,
+  onDownloadDatasetMarkdown,
+}: TagEditorTabProps) {
   const { articles, replaceArticles } = useDevMode();
 
   const [registryVersion, setRegistryVersion] = useState(0);
@@ -260,6 +274,32 @@ export function TagEditorTab() {
   }, [deleteConfirmed, runMutation, selectedUsage]);
 
   const totalTags = useMemo(() => TAG_FIELDS.reduce((acc, field) => acc + registry.byField[field].length, 0), [registry]);
+
+  const handleCopyDatasetMarkdown = useCallback(async () => {
+    try {
+      if (!hasDatasetChanges) {
+        setNotice({ type: "error", message: "No dataset differences to copy yet." });
+        return;
+      }
+      await onCopyDatasetMarkdown();
+      setNotice({ type: "success", message: "Dataset changelog copied to clipboard." });
+    } catch {
+      setNotice({ type: "error", message: "Failed to copy changelog. Try again." });
+    }
+  }, [hasDatasetChanges, onCopyDatasetMarkdown]);
+
+  const handleDownloadDatasetMarkdown = useCallback(() => {
+    if (!hasDatasetChanges) {
+      setNotice({ type: "error", message: "No dataset differences to download yet." });
+      return;
+    }
+    try {
+      onDownloadDatasetMarkdown();
+      setNotice({ type: "success", message: "Dataset changelog downloaded." });
+    } catch {
+      setNotice({ type: "error", message: "Download failed. Try again." });
+    }
+  }, [hasDatasetChanges, onDownloadDatasetMarkdown]);
 
   return (
     <div className="mt-10 space-y-6">
@@ -525,6 +565,41 @@ export function TagEditorTab() {
           )}
         </div>
       </div>
+      <SectionCard className="space-y-4 bg-white/[0.03]">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Dataset Diff</p>
+          <h2 className="text-lg font-semibold text-fuchsia-200">Pending changelog</h2>
+          <p className="text-sm text-white/65">
+            Review the Markdown summary generated from all in-memory edits before committing your changes.
+          </p>
+        </div>
+        <pre className="max-h-72 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-4 font-mono text-xs text-white/80">
+          {hasDatasetChanges && datasetMarkdown.trim().length > 0
+            ? datasetMarkdown
+            : "### Dataset\n\n- No saved differences versus source dataset."}
+        </pre>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleCopyDatasetMarkdown}
+            disabled={!hasDatasetChanges || isApplying}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Copy Markdown
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleDownloadDatasetMarkdown}
+            disabled={!hasDatasetChanges || isApplying}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Download .md
+          </button>
+        </div>
+      </SectionCard>
+      {commitPanel ? <div>{commitPanel}</div> : null}
     </div>
   );
 }
