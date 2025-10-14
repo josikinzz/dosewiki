@@ -74,7 +74,7 @@ Use opacity-based whites (`white/xx`) to keep overlays harmonised with the dark 
 - **Textarea (`baseTextareaClass`)**: Adds `py-3` default, matches dark fill.
 - **Selects**: Use `appearance-none` with right padding for caret icons (custom chevron overlay). Colors mirror inputs.
 - **Form labels**: `text-xs font-medium uppercase tracking-wide text-white/50` with `mb-2` spacing.
-- **Validation messaging**: When present, adopt `text-xs text-white/55` for footnotes (e.g., “Separate items with commas…”).
+- **Validation messaging**: When present, adopt `text-xs text-white/55` for footnotes (e.g., “Separate items with semicolons…”).
 - **Layout**: Group fields with `grid gap-4 md:grid-cols-2` or `md:grid-cols-3` to mirror article metadata columns.
 
 ## 9. Data Displays

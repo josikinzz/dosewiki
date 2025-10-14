@@ -1,3 +1,12 @@
+import {
+  ensureNormalizedTagList,
+  joinNormalizedValues,
+  tokenizeTagField,
+  toTrimmedArray,
+} from "./tagDelimiters";
+
+export { ensureNormalizedTagList, joinNormalizedValues } from "./tagDelimiters";
+
 /**
  * Shared helpers for building and hydrating article draft form state across Dev Tools tabs.
  * The ArticleDraftForm mirrors the substance article schema sourced from `src/data/articles.json`.
@@ -203,109 +212,11 @@ export const parseListInput = (value: string): string[] =>
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
 
-const normalizeTagEntry = (value: string | null | undefined): { key: string; label: string } | null => {
-  if (!value) {
-    return null;
-  }
+const parseDelimitedField = (value: unknown): string[] =>
+  tokenizeTagField(value, { splitOnComma: true, splitOnSlash: true });
 
-  const label = value.replace(/\s+/g, " ").trim();
-  if (!label) {
-    return null;
-  }
-
-  return {
-    key: label.toLowerCase(),
-    label,
-  };
-};
-
-const normalizeTagList = (values: string[]): string[] => {
-  const seen = new Set<string>();
-  const normalized: string[] = [];
-
-  values.forEach((value) => {
-    const entry = normalizeTagEntry(value);
-    if (!entry) {
-      return;
-    }
-
-    if (seen.has(entry.key)) {
-      return;
-    }
-
-    seen.add(entry.key);
-    normalized.push(entry.label);
-  });
-
-  return normalized;
-};
-
-const toTrimmedArray = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => {
-        if (typeof item === "string") {
-          return item;
-        }
-        if (typeof item === "number" && Number.isFinite(item)) {
-          return item.toString();
-        }
-        return "";
-      })
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(/\r?\n+/g)
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-  }
-
-  return [];
-};
-
-const parseDelimitedField = (value: unknown, delimiter: RegExp): string[] => {
-  if (Array.isArray(value)) {
-    return normalizeTagList(toTrimmedArray(value));
-  }
-
-  if (typeof value !== "string") {
-    return [];
-  }
-
-  const normalizedSource = value.replace(/\r?\n+/g, ";");
-  const entries = normalizedSource
-    .split(delimiter)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-
-  return normalizeTagList(entries);
-};
-
-const parseMechanismField = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return normalizeTagList(toTrimmedArray(value));
-  }
-
-  if (typeof value !== "string") {
-    return [];
-  }
-
-  const entries = value
-    .split(";")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-
-  return normalizeTagList(entries);
-};
-
-export const joinNormalizedValues = (values: string[], delimiter: string): string =>
-  normalizeTagList(values).join(delimiter);
-
-export const ensureNormalizedTagList = (values: string[]): string[] =>
-  normalizeTagList(values);
+const parseMechanismField = (value: unknown): string[] =>
+  tokenizeTagField(value, { splitOnComma: false, splitOnSlash: true });
 
 const joinListValues = (value: unknown): string => {
   if (!Array.isArray(value)) {
@@ -429,18 +340,18 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
   const rawCitations = Array.isArray(drugInfo.citations) ? (drugInfo.citations as unknown[]) : [];
 
   const categories = ensureNormalizedTagList(toTrimmedArray(drugInfo.categories));
-  const chemicalClasses = parseDelimitedField(drugInfo.chemical_class, /[;,/]/);
-  const psychoactiveClasses = parseDelimitedField(drugInfo.psychoactive_class, /[;,/]/);
+  const chemicalClasses = parseDelimitedField(drugInfo.chemical_class);
+  const psychoactiveClasses = parseDelimitedField(drugInfo.psychoactive_class);
   const mechanismEntries = parseMechanismField(drugInfo.mechanism_of_action);
 
   const chemicalClassString =
     chemicalClasses.length > 0
-      ? joinNormalizedValues(chemicalClasses, ", ")
+      ? joinNormalizedValues(chemicalClasses, "; ")
       : toTrimmedString(drugInfo.chemical_class);
 
   const psychoactiveClassString =
     psychoactiveClasses.length > 0
-      ? joinNormalizedValues(psychoactiveClasses, ", ")
+      ? joinNormalizedValues(psychoactiveClasses, "; ")
       : toTrimmedString(drugInfo.psychoactive_class);
 
   const mechanismString =
@@ -557,12 +468,12 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
   const normalizedChemicalClasses =
     form.chemicalClasses.length > 0
       ? ensureNormalizedTagList(form.chemicalClasses)
-      : parseDelimitedField(form.chemicalClass, /[;,/]/);
+      : parseDelimitedField(form.chemicalClass);
 
   const normalizedPsychoactiveClasses =
     form.psychoactiveClasses.length > 0
       ? ensureNormalizedTagList(form.psychoactiveClasses)
-      : parseDelimitedField(form.psychoactiveClass, /[;,/]/);
+      : parseDelimitedField(form.psychoactiveClass);
 
   const normalizedMechanismEntries =
     form.mechanismEntries.length > 0
@@ -571,12 +482,12 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
 
   const chemicalClassValue =
     normalizedChemicalClasses.length > 0
-      ? joinNormalizedValues(normalizedChemicalClasses, ", ")
+      ? joinNormalizedValues(normalizedChemicalClasses, "; ")
       : form.chemicalClass.trim();
 
   const psychoactiveClassValue =
     normalizedPsychoactiveClasses.length > 0
-      ? joinNormalizedValues(normalizedPsychoactiveClasses, ", ")
+      ? joinNormalizedValues(normalizedPsychoactiveClasses, "; ")
       : form.psychoactiveClass.trim();
 
   const mechanismValue =

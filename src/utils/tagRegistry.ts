@@ -1,5 +1,10 @@
 import articlesSource from "../data/articles.json";
-import { ensureNormalizedTagList, joinNormalizedValues } from "./articleDraftForm";
+import {
+  ensureNormalizedTagList,
+  joinNormalizedValues,
+  tokenizeTagField,
+  toTrimmedArray,
+} from "./tagDelimiters";
 
 type ArticleRecord = (typeof articlesSource)[number];
 
@@ -118,67 +123,6 @@ const parseTitle = (value: unknown): string | undefined => {
   return undefined;
 };
 
-const toTrimmedArray = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => {
-        if (typeof entry === "string") {
-          return entry;
-        }
-        if (typeof entry === "number" && Number.isFinite(entry)) {
-          return entry.toString();
-        }
-        return "";
-      })
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(/\r?\n+/g)
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-  }
-
-  return [];
-};
-
-const parseDelimitedField = (value: unknown, delimiter: RegExp): string[] => {
-  if (Array.isArray(value)) {
-    return ensureNormalizedTagList(toTrimmedArray(value));
-  }
-
-  if (typeof value !== "string") {
-    return [];
-  }
-
-  const normalizedSource = value.replace(/\r?\n+/g, ";");
-  const entries = normalizedSource
-    .split(delimiter)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-
-  return ensureNormalizedTagList(entries);
-};
-
-const parseMechanismField = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return ensureNormalizedTagList(toTrimmedArray(value));
-  }
-
-  if (typeof value !== "string") {
-    return [];
-  }
-
-  const entries = value
-    .split(";")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-
-  return ensureNormalizedTagList(entries);
-};
-
 const cloneArticle = (article: ArticleRecord): ArticleRecord => {
   return {
     ...article,
@@ -209,7 +153,7 @@ const fieldConfigs: Record<TagField, FieldConfig> = {
       const next = cloneArticle(article);
       next.drug_info = {
         ...(next.drug_info ?? {}),
-        chemical_class: normalized.length > 0 ? joinNormalizedValues(normalized, ", ") : "",
+        chemical_class: normalized.length > 0 ? joinNormalizedValues(normalized, "; ") : "",
       };
       return next;
     },
@@ -222,7 +166,7 @@ const fieldConfigs: Record<TagField, FieldConfig> = {
       const next = cloneArticle(article);
       next.drug_info = {
         ...(next.drug_info ?? {}),
-        psychoactive_class: normalized.length > 0 ? joinNormalizedValues(normalized, ", ") : "",
+        psychoactive_class: normalized.length > 0 ? joinNormalizedValues(normalized, "; ") : "",
       };
       return next;
     },
@@ -250,10 +194,11 @@ const readFieldValues = (article: ArticleRecord, field: TagField): string[] => {
     case "categories":
       return ensureNormalizedTagList(toTrimmedArray(raw));
     case "chemical_class":
+      return tokenizeTagField(raw, { splitOnComma: true, splitOnSlash: true });
     case "psychoactive_class":
-      return parseDelimitedField(raw, /[;,/]/);
+      return tokenizeTagField(raw, { splitOnComma: true, splitOnSlash: true });
     case "mechanism_of_action":
-      return parseMechanismField(raw);
+      return tokenizeTagField(raw, { splitOnComma: false, splitOnSlash: true });
     default:
       return [];
   }

@@ -13,6 +13,7 @@ import {
   ensureNormalizedTagList,
   joinNormalizedValues,
 } from "../utils/articleDraftForm";
+import { tokenizeTagString } from "../utils/tagDelimiters";
 
 type MutationCallback = () => void;
 
@@ -56,8 +57,6 @@ type TagField = "categories" | "chemicalClasses" | "psychoactiveClasses" | "mech
 
 type TagFieldChangeHandler = (field: TagField) => (next: string[]) => void;
 
-const TAG_DELIMITER_REGEX = /[;,/]/;
-
 const splitLineTagInput = (value: string): string[] =>
   value
     .split(/\r?\n+/g)
@@ -65,17 +64,10 @@ const splitLineTagInput = (value: string): string[] =>
     .filter((entry) => entry.length > 0);
 
 const splitDelimitedTagInput = (value: string): string[] =>
-  value
-    .replace(/\r?\n+/g, ";")
-    .split(TAG_DELIMITER_REGEX)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+  tokenizeTagString(value, { splitOnComma: true, splitOnSlash: true });
 
 const splitMechanismTagInput = (value: string): string[] =>
-  value
-    .split(";")
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
+  tokenizeTagString(value, { splitOnComma: false, splitOnSlash: true });
 
 export type ArticleDraftFormController = {
   form: ArticleDraftForm;
@@ -184,7 +176,7 @@ export const useArticleDraftForm = ({
           return {
             ...previous,
             chemicalClasses: normalized,
-            chemicalClass: joinNormalizedValues(normalized, ", "),
+            chemicalClass: joinNormalizedValues(normalized, "; "),
           };
         }
 
@@ -192,7 +184,7 @@ export const useArticleDraftForm = ({
           return {
             ...previous,
             psychoactiveClasses: normalized,
-            psychoactiveClass: joinNormalizedValues(normalized, ", "),
+            psychoactiveClass: joinNormalizedValues(normalized, "; "),
           };
         }
 
