@@ -54514,7 +54514,7 @@
               "light": "75–125 µg",
               "common": "125–200 µg",
               "strong": "200–275 µg",
-              "heavy": "300 µg + "
+              "heavy": "300 µg +"
             }
           },
           {
@@ -54525,7 +54525,7 @@
               "light": "70–110 µg",
               "common": "110–175 µg",
               "strong": "175–250 µg",
-              "heavy": "250 µg + "
+              "heavy": "250 µg +"
             }
           }
         ]
@@ -54600,7 +54600,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
