@@ -7,6 +7,7 @@ interface HeroProps {
   aliases?: string[];
   placeholder: string;
   badges?: HeroBadge[];
+  badgeVariant?: "default" | "compact";
   onCategorySelect?: (categoryKey: string) => void;
 }
 
@@ -16,13 +17,32 @@ export function Hero({
   aliases = [],
   placeholder,
   badges = [],
+  badgeVariant = "default",
   onCategorySelect,
 }: HeroProps) {
+  const isCompactBadges = badgeVariant === "compact";
+
   const handleBadgeClick = (badge: HeroBadge) => {
     if (badge.categoryKey && onCategorySelect) {
       onCategorySelect(badge.categoryKey);
     }
   };
+
+  const badgeWrapperClasses = isCompactBadges
+    ? "mt-4 flex flex-wrap justify-center gap-3"
+    : "mt-6 flex flex-wrap justify-center gap-4";
+  const badgeIconClasses = isCompactBadges
+    ? "h-4 w-4 text-fuchsia-200"
+    : "h-5 w-5 text-fuchsia-200";
+  const badgeLabelClasses = isCompactBadges
+    ? "text-sm font-medium tracking-tight"
+    : "font-medium tracking-wide";
+  const baseBadgeClasses = isCompactBadges
+    ? "inline-flex items-center gap-1.5 rounded-full bg-gradient-to-tr from-white/12 to-white/6 px-3.5 py-1.5 text-sm text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20"
+    : "inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/10 to-white/5 px-5 py-2.5 text-base text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20";
+  const interactiveBadgeClasses = isCompactBadges
+    ? `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`
+    : `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`;
 
   return (
     <section className="mx-auto max-w-6xl px-4 pb-6 pt-14 text-center">
@@ -53,15 +73,15 @@ export function Hero({
           </p>
         )}
         {badges.length > 0 && (
-          <div className="mt-6 flex flex-wrap justify-center gap-4">
+          <div className={badgeWrapperClasses}>
             {badges.map((badge) => {
               const Icon = badge.icon;
               const isInteractive = Boolean(badge.categoryKey && onCategorySelect);
 
               const content = (
                 <>
-                  <Icon className="h-5 w-5 text-fuchsia-200" aria-hidden="true" focusable="false" />
-                  <span className="font-medium tracking-wide">{badge.label}</span>
+                  <Icon className={badgeIconClasses} aria-hidden="true" focusable="false" />
+                  <span className={badgeLabelClasses}>{badge.label}</span>
                 </>
               );
 
@@ -70,14 +90,14 @@ export function Hero({
                   key={`${badge.label}-${badge.categoryKey}`}
                   type="button"
                   onClick={() => handleBadgeClick(badge)}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/10 to-white/5 px-5 py-2.5 text-base text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  className={interactiveBadgeClasses}
                 >
                   {content}
                 </button>
               ) : (
                 <span
                   key={badge.label}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/10 to-white/5 px-5 py-2.5 text-base text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20"
+                  className={baseBadgeClasses}
                 >
                   {content}
                 </span>
