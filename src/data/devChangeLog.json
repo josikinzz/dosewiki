@@ -1,5 +1,33 @@
 [
   {
+    "id": "20251014-233158-373c6f71",
+    "createdAt": "2025-10-14T23:31:58.069Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/14/2025, 5:31:55 PM"
+    },
+    "articles": [
+      {
+        "id": 152,
+        "title": "Dimenhydrinate",
+        "slug": "dimenhydrinate"
+      },
+      {
+        "id": 396,
+        "title": "Propranolol",
+        "slug": "propranolol"
+      },
+      {
+        "id": 417,
+        "title": "Avizafone",
+        "slug": "avizafone"
+      }
+    ],
+    "markdown": "### Dimenhydrinate · #152\n\n- `drug_info.psychoactive_class`: \"Deliriant (anticholinergic); Antihistamine; Anti-emetic\" → \"Deliriant; Antihistamine; Anti-emetic\"\n\n### Propranolol · #396\n\n- `drug_info.psychoactive_class`: updated long text (98 characters; starts \"Not typically classified as psychoactive; Antihypertensive; antiarrhy...\") → text (\"Not typically classified as psychoactive; Antihypertensive; antiarrhythmic; anxiolytic\")\n\n### Avizafone · #417\n\n- `drug_info.psychoactive_class`: \"Sedative-hypnotic; anxiolytic (benzodiazepine)\" → \"Sedative-hypnotic; anxiolytic\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251013-212828-39bd2cd6",
     "createdAt": "2025-10-13T21:28:28.668Z",
     "commit": {

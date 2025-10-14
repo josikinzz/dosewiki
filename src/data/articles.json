@@ -10735,7 +10735,7 @@
       "alternative_name": "",
       "chemical_class": "Ethanolamine derivative (antihistamine)",
       "mechanism_of_action": "H1 histamine receptor antagonist",
-      "psychoactive_class": "Deliriant (anticholinergic); Antihistamine; Anti-emetic",
+      "psychoactive_class": "Deliriant; Antihistamine; Anti-emetic",
       "dosages": {
         "routes_of_administration": [
           {
@@ -35036,7 +35036,7 @@
       "alternative_name": "",
       "chemical_class": "Beta-adrenergic antagonist (non-selective); Naphthalene derivative",
       "mechanism_of_action": "Beta-adrenergic receptor antagonists",
-      "psychoactive_class": "Not typically classified as psychoactive; Antihypertensive; antiarrhythmic; anxiolytic (off-label)",
+      "psychoactive_class": "Not typically classified as psychoactive; Antihypertensive; antiarrhythmic; anxiolytic",
       "dosages": {
         "routes_of_administration": [
           {
@@ -37593,7 +37593,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (prodrug)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Sedative-hypnotic; anxiolytic (benzodiazepine)",
+      "psychoactive_class": "Sedative-hypnotic; anxiolytic",
       "dosages": {
         "routes_of_administration": [
           {
