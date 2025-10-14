@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251014-233456-d6536e79",
+    "createdAt": "2025-10-14T23:34:56.256Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/14/2025, 5:34:54 PM"
+    },
+    "articles": [
+      {
+        "id": 294,
+        "title": "Bromantane",
+        "slug": "bromantane"
+      }
+    ],
+    "markdown": "### Bromantane · #294\n\n- `drug_info.psychoactive_class`: \"Stimulant actoprotector; anxiolytic nootropic\" → \"Stimulant actoprotector; anxiolytic; nootropic\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251014-233158-373c6f71",
     "createdAt": "2025-10-14T23:31:58.069Z",
     "commit": {
