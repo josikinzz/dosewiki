@@ -19,6 +19,7 @@ import type {
   InfoSectionItemChip,
 } from "../types/content";
 import { slugify } from "../utils/slug";
+import { tokenizeTagString } from "../utils/tagDelimiters";
 import { getCategoryIcon } from "./categoryIcons";
 
 interface RawDoseRanges {
@@ -186,10 +187,7 @@ function splitToList(value: string | null | undefined): string[] {
   if (!cleaned) {
     return [];
   }
-  return cleaned
-    .split(/[;,/]/)
-    .map((segment) => segment.trim())
-    .filter(Boolean);
+  return tokenizeTagString(cleaned, { splitOnComma: true, splitOnSlash: true });
 }
 
 function buildDoseEntries(ranges?: RawDoseRanges): RouteInfo["dosage"] {

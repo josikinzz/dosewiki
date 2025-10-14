@@ -393,7 +393,7 @@ const ChemistryFields = ({
       <div className="grid gap-4 md:grid-cols-2">
         <TagMultiSelect
         label="Chemical class"
-        helperText="Search existing chemical classes or press Enter to add a new descriptor. Exports as a comma-separated list."
+        helperText="Search existing chemical classes or press Enter to add a new descriptor. Exports as a semicolon-separated list."
         placeholder="Search chemical classes"
         value={form.chemicalClasses}
         onChange={handleChemicalClassChange}
@@ -401,7 +401,7 @@ const ChemistryFields = ({
       />
       <TagMultiSelect
         label="Psychoactive class"
-        helperText="Select one or more psychoactive classes. Output joins with commas."
+        helperText="Select one or more psychoactive classes. Output joins with semicolons."
         placeholder="Search psychoactive classes"
         value={form.psychoactiveClasses}
         onChange={handlePsychoactiveClassChange}
