@@ -31,6 +31,7 @@ import {
 } from "../../utils/articleDraftForm";
 import { slugify } from "../../utils/slug";
 import { useDevMode } from "../dev/DevModeContext";
+import { TagEditorTab } from "../dev/TagEditorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
 import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
@@ -47,7 +48,7 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab = "edit" | "create" | "change-log";
+type DevModeTab = "edit" | "create" | "change-log" | "tag-editor";
 
 type DevModePageProps = {
   activeTab: DevModeTab;
@@ -1111,9 +1112,10 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
-      if (tab === "edit") {
+      if (tab === "edit" || tab === "tag-editor") {
         setCreatorNotice(null);
-      } else if (tab === "create") {
+      }
+      if (tab === "create" || tab === "tag-editor") {
         setNotice(null);
       }
       setGithubNotice(null);
@@ -1300,6 +1302,16 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             aria-pressed={activeTab === "change-log"}
           >
             Changelog
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("tag-editor")}
+            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+              activeTab === "tag-editor" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            }`}
+            aria-pressed={activeTab === "tag-editor"}
+          >
+            Tag Editor
           </button>
         </div>
       </div>
@@ -1707,7 +1719,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             </div>
           </SectionCard>
         </div>
-      ) : (
+      ) : activeTab === "change-log" ? (
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6">
             <SectionCard className="space-y-5 bg-white/[0.04] md:sticky md:top-24">
@@ -1942,7 +1954,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             </SectionCard>
           </div>
         </div>
-      )}
+      ) : activeTab === "tag-editor" ? (
+        <TagEditorTab />
+      ) : null}
     </main>
   );
 }

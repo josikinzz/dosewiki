@@ -10,6 +10,8 @@ import {
   createEmptyArticleDraftForm,
   createEmptyCitationEntry,
   createEmptyRouteEntry,
+  ensureNormalizedTagList,
+  joinNormalizedValues,
 } from "../utils/articleDraftForm";
 
 type MutationCallback = () => void;
@@ -50,9 +52,35 @@ type CitationChangeHandler = (
   field: keyof CitationEntryForm,
 ) => (event: ChangeEvent<HTMLInputElement>) => void;
 
+type TagField = "categories" | "chemicalClasses" | "psychoactiveClasses" | "mechanismEntries";
+
+type TagFieldChangeHandler = (field: TagField) => (next: string[]) => void;
+
+const TAG_DELIMITER_REGEX = /[;,/]/;
+
+const splitLineTagInput = (value: string): string[] =>
+  value
+    .split(/\r?\n+/g)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+const splitDelimitedTagInput = (value: string): string[] =>
+  value
+    .replace(/\r?\n+/g, ";")
+    .split(TAG_DELIMITER_REGEX)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+const splitMechanismTagInput = (value: string): string[] =>
+  value
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
 export type ArticleDraftFormController = {
   form: ArticleDraftForm;
   handleFieldChange: FieldChangeHandler;
+  handleTagFieldChange: TagFieldChangeHandler;
   handleDurationFieldChange: DurationChangeHandler;
   handleToleranceFieldChange: ToleranceChangeHandler;
   handleRouteFieldChange: RouteChangeHandler;
@@ -92,10 +120,88 @@ export const useArticleDraftForm = ({
     (field) => (event) => {
       const value = event.target.value;
       runMutation();
-      setForm((previous) => ({
-        ...previous,
-        [field]: value,
-      }));
+      setForm((previous) => {
+        if (field === "categoriesInput") {
+          const normalized = ensureNormalizedTagList(splitLineTagInput(value));
+          return {
+            ...previous,
+            categoriesInput: value,
+            categories: normalized,
+          };
+        }
+
+        if (field === "chemicalClass") {
+          const normalized = ensureNormalizedTagList(splitDelimitedTagInput(value));
+          return {
+            ...previous,
+            chemicalClass: value,
+            chemicalClasses: normalized,
+          };
+        }
+
+        if (field === "psychoactiveClass") {
+          const normalized = ensureNormalizedTagList(splitDelimitedTagInput(value));
+          return {
+            ...previous,
+            psychoactiveClass: value,
+            psychoactiveClasses: normalized,
+          };
+        }
+
+        if (field === "mechanismOfAction") {
+          const normalized = ensureNormalizedTagList(splitMechanismTagInput(value));
+          return {
+            ...previous,
+            mechanismOfAction: value,
+            mechanismEntries: normalized,
+          };
+        }
+
+        return {
+          ...previous,
+          [field]: value,
+        };
+      });
+    },
+    [runMutation],
+  );
+
+  const handleTagFieldChange: TagFieldChangeHandler = useCallback(
+    (field) => (nextValues) => {
+      runMutation();
+      setForm((previous) => {
+        const normalized = ensureNormalizedTagList(nextValues);
+
+        if (field === "categories") {
+          return {
+            ...previous,
+            categories: normalized,
+            categoriesInput: normalized.join("\n"),
+          };
+        }
+
+        if (field === "chemicalClasses") {
+          return {
+            ...previous,
+            chemicalClasses: normalized,
+            chemicalClass: joinNormalizedValues(normalized, ", "),
+          };
+        }
+
+        if (field === "psychoactiveClasses") {
+          return {
+            ...previous,
+            psychoactiveClasses: normalized,
+            psychoactiveClass: joinNormalizedValues(normalized, ", "),
+          };
+        }
+
+        return {
+          ...previous,
+          mechanismEntries: normalized,
+          mechanismOfAction: joinNormalizedValues(normalized, "; "),
+        };
+      });
     },
     [runMutation],
   );
@@ -253,6 +359,7 @@ export const useArticleDraftForm = ({
   return {
     form,
     handleFieldChange,
+    handleTagFieldChange,
     handleDurationFieldChange,
     handleToleranceFieldChange,
     handleRouteFieldChange,

@@ -44,12 +44,16 @@ export type ArticleDraftForm = {
   chemicalName: string;
   alternativeName: string;
   chemicalClass: string;
+  chemicalClasses: string[];
   psychoactiveClass: string;
+  psychoactiveClasses: string[];
   mechanismOfAction: string;
+  mechanismEntries: string[];
   addictionPotential: string;
   notes: string;
   halfLife: string;
   categoriesInput: string;
+  categories: string[];
   subjectiveEffectsInput: string;
   crossTolerancesInput: string;
   interactionsDangerousInput: string;
@@ -162,12 +166,16 @@ export const createEmptyArticleDraftForm = (): ArticleDraftForm => ({
   chemicalName: "",
   alternativeName: "",
   chemicalClass: "",
+  chemicalClasses: [],
   psychoactiveClass: "",
+  psychoactiveClasses: [],
   mechanismOfAction: "",
+  mechanismEntries: [],
   addictionPotential: "",
   notes: "",
   halfLife: "",
   categoriesInput: "",
+  categories: [],
   subjectiveEffectsInput: "",
   crossTolerancesInput: "",
   interactionsDangerousInput: "",
@@ -194,6 +202,110 @@ export const parseListInput = (value: string): string[] =>
     .split(/\r?\n+/g)
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
+
+const normalizeTagEntry = (value: string | null | undefined): { key: string; label: string } | null => {
+  if (!value) {
+    return null;
+  }
+
+  const label = value.replace(/\s+/g, " ").trim();
+  if (!label) {
+    return null;
+  }
+
+  return {
+    key: label.toLowerCase(),
+    label,
+  };
+};
+
+const normalizeTagList = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  values.forEach((value) => {
+    const entry = normalizeTagEntry(value);
+    if (!entry) {
+      return;
+    }
+
+    if (seen.has(entry.key)) {
+      return;
+    }
+
+    seen.add(entry.key);
+    normalized.push(entry.label);
+  });
+
+  return normalized;
+};
+
+const toTrimmedArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string") {
+          return item;
+        }
+        if (typeof item === "number" && Number.isFinite(item)) {
+          return item.toString();
+        }
+        return "";
+      })
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/\r?\n+/g)
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
+  return [];
+};
+
+const parseDelimitedField = (value: unknown, delimiter: RegExp): string[] => {
+  if (Array.isArray(value)) {
+    return normalizeTagList(toTrimmedArray(value));
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const normalizedSource = value.replace(/\r?\n+/g, ";");
+  const entries = normalizedSource
+    .split(delimiter)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return normalizeTagList(entries);
+};
+
+const parseMechanismField = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return normalizeTagList(toTrimmedArray(value));
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  const entries = value
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return normalizeTagList(entries);
+};
+
+export const joinNormalizedValues = (values: string[], delimiter: string): string =>
+  normalizeTagList(values).join(delimiter);
+
+export const ensureNormalizedTagList = (values: string[]): string[] =>
+  normalizeTagList(values);
 
 const joinListValues = (value: unknown): string => {
   if (!Array.isArray(value)) {
@@ -316,6 +428,29 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     : [];
   const rawCitations = Array.isArray(drugInfo.citations) ? (drugInfo.citations as unknown[]) : [];
 
+  const categories = ensureNormalizedTagList(toTrimmedArray(drugInfo.categories));
+  const chemicalClasses = parseDelimitedField(drugInfo.chemical_class, /[;,/]/);
+  const psychoactiveClasses = parseDelimitedField(drugInfo.psychoactive_class, /[;,/]/);
+  const mechanismEntries = parseMechanismField(drugInfo.mechanism_of_action);
+
+  const chemicalClassString =
+    chemicalClasses.length > 0
+      ? joinNormalizedValues(chemicalClasses, ", ")
+      : toTrimmedString(drugInfo.chemical_class);
+
+  const psychoactiveClassString =
+    psychoactiveClasses.length > 0
+      ? joinNormalizedValues(psychoactiveClasses, ", ")
+      : toTrimmedString(drugInfo.psychoactive_class);
+
+  const mechanismString =
+    mechanismEntries.length > 0
+      ? joinNormalizedValues(mechanismEntries, "; ")
+      : toTrimmedString(drugInfo.mechanism_of_action);
+
+  const categoriesInputValue =
+    categories.length > 0 ? categories.join("\n") : joinListValues(drugInfo.categories);
+
   const hydratedRoutes = rawRoutes.map(hydrateRouteEntry).filter((entry) => {
     return entry.route.length > 0 || entry.units.length > 0 || Object.values(entry.doseRanges).some((value) => value.length > 0);
   });
@@ -330,13 +465,17 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     drugName: toTrimmedString(drugInfo.drug_name),
     chemicalName: toTrimmedString(drugInfo.chemical_name),
     alternativeName: toTrimmedString(drugInfo.alternative_name),
-    chemicalClass: toTrimmedString(drugInfo.chemical_class),
-    psychoactiveClass: toTrimmedString(drugInfo.psychoactive_class),
-    mechanismOfAction: toTrimmedString(drugInfo.mechanism_of_action),
+    chemicalClass: chemicalClassString,
+    chemicalClasses,
+    psychoactiveClass: psychoactiveClassString,
+    psychoactiveClasses,
+    mechanismOfAction: mechanismString,
+    mechanismEntries,
     addictionPotential: toTrimmedString(drugInfo.addiction_potential),
     notes: toTrimmedString(drugInfo.notes),
     halfLife: toTrimmedString(drugInfo.half_life),
-    categoriesInput: joinListValues(drugInfo.categories),
+    categoriesInput: categoriesInputValue,
+    categories,
     subjectiveEffectsInput: joinListValues(drugInfo.subjective_effects),
     crossTolerancesInput: joinListValues(tolerance.cross_tolerances),
     interactionsDangerousInput: joinListValues(interactions.dangerous),
@@ -410,13 +549,48 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     cross_tolerances: parseListInput(form.crossTolerancesInput),
   };
 
+  const normalizedCategories =
+    form.categories.length > 0
+      ? ensureNormalizedTagList(form.categories)
+      : parseListInput(form.categoriesInput);
+
+  const normalizedChemicalClasses =
+    form.chemicalClasses.length > 0
+      ? ensureNormalizedTagList(form.chemicalClasses)
+      : parseDelimitedField(form.chemicalClass, /[;,/]/);
+
+  const normalizedPsychoactiveClasses =
+    form.psychoactiveClasses.length > 0
+      ? ensureNormalizedTagList(form.psychoactiveClasses)
+      : parseDelimitedField(form.psychoactiveClass, /[;,/]/);
+
+  const normalizedMechanismEntries =
+    form.mechanismEntries.length > 0
+      ? ensureNormalizedTagList(form.mechanismEntries)
+      : parseMechanismField(form.mechanismOfAction);
+
+  const chemicalClassValue =
+    normalizedChemicalClasses.length > 0
+      ? joinNormalizedValues(normalizedChemicalClasses, ", ")
+      : form.chemicalClass.trim();
+
+  const psychoactiveClassValue =
+    normalizedPsychoactiveClasses.length > 0
+      ? joinNormalizedValues(normalizedPsychoactiveClasses, ", ")
+      : form.psychoactiveClass.trim();
+
+  const mechanismValue =
+    normalizedMechanismEntries.length > 0
+      ? joinNormalizedValues(normalizedMechanismEntries, "; ")
+      : form.mechanismOfAction.trim();
+
   const drugInfo = {
     drug_name: form.drugName.trim(),
     chemical_name: form.chemicalName.trim(),
     alternative_name: form.alternativeName.trim(),
-    chemical_class: form.chemicalClass.trim(),
-    psychoactive_class: form.psychoactiveClass.trim(),
-    mechanism_of_action: form.mechanismOfAction.trim(),
+    chemical_class: chemicalClassValue,
+    psychoactive_class: psychoactiveClassValue,
+    mechanism_of_action: mechanismValue,
     dosages: {
       routes_of_administration: routes,
     },
@@ -428,7 +602,7 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     tolerance,
     half_life: form.halfLife.trim(),
     citations,
-    categories: parseListInput(form.categoriesInput),
+    categories: normalizedCategories,
   };
 
   const payload: ArticleDraftPayload = {

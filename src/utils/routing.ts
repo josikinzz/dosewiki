@@ -114,11 +114,13 @@ export function parseHash(
       return { type: "substance", slug: defaultSlug };
     case "dev": {
       const candidate = slug ?? "edit";
-      let tab: "edit" | "create" | "change-log" = "edit";
+      let tab: "edit" | "create" | "change-log" | "tag-editor" = "edit";
       if (candidate === "create") {
         tab = "create";
       } else if (candidate === "change-log" || candidate === "changelog") {
         tab = "change-log";
+      } else if (candidate === "tag-editor" || candidate === "tag") {
+        tab = "tag-editor";
       } else if (candidate === "edit") {
         tab = "edit";
       }
