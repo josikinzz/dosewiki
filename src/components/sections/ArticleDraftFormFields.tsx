@@ -1,5 +1,6 @@
 import type { ChangeEvent } from "react";
 
+import type { TagOption } from "../../data/tagOptions";
 import type { ArticleDraftFormController } from "../../hooks/useArticleDraftForm";
 import type {
   ArticleDraftForm,
@@ -8,6 +9,9 @@ import type {
   ToleranceForm,
 } from "../../utils/articleDraftForm";
 import { parseListInput } from "../../utils/articleDraftForm";
+
+import { useDevTagOptions } from "../../hooks/useDevTagOptions";
+import { TagMultiSelect } from "../common/TagMultiSelect";
 
 const baseInputClass =
   "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
@@ -62,7 +66,9 @@ type OverviewFieldsProps = {
   idPrefix: string;
   form: ArticleDraftForm;
   handleFieldChange: ArticleDraftFormController["handleFieldChange"];
+  handleTagFieldChange: ArticleDraftFormController["handleTagFieldChange"];
   replaceForm: ArticleDraftFormController["replaceForm"];
+  categoryOptions: TagOption[];
 };
 
 type DosageDurationFieldsProps = {
@@ -79,6 +85,10 @@ type ChemistryFieldsProps = {
   idPrefix: string;
   form: ArticleDraftForm;
   handleFieldChange: ArticleDraftFormController["handleFieldChange"];
+  handleTagFieldChange: ArticleDraftFormController["handleTagFieldChange"];
+  chemicalClassOptions: TagOption[];
+  psychoactiveClassOptions: TagOption[];
+  mechanismOptions: TagOption[];
 };
 
 type SubjectiveEffectsFieldsProps = {
@@ -150,9 +160,17 @@ const ListPreview = ({ items, emptyLabel }: ListPreviewProps) => {
   );
 };
 
-const OverviewFields = ({ idPrefix, form, handleFieldChange, replaceForm }: OverviewFieldsProps) => {
-  const categoryPreview = parseListInput(form.categoriesInput);
+const OverviewFields = ({
+  idPrefix,
+  form,
+  handleFieldChange,
+  handleTagFieldChange,
+  replaceForm,
+  categoryOptions,
+}: OverviewFieldsProps) => {
+  const categoryPreview = form.categories;
   const displayNameTitleValue = form.drugName ?? form.title ?? "";
+  const handleCategoriesChange = handleTagFieldChange("categories");
 
   const handleDisplayTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
@@ -244,19 +262,16 @@ const OverviewFields = ({ idPrefix, form, handleFieldChange, replaceForm }: Over
       </div>
     </div>
     <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-categories`}>
-        Categories
-      </label>
-      <textarea
-          id={`${idPrefix}-categories`}
-          className={`${baseTextareaClass} min-h-[88px]`}
-          value={form.categoriesInput}
-          onChange={handleFieldChange("categoriesInput")}
-          placeholder="Psychedelic\nTryptamine"
-        />
-        <p className={helperTextClass}>Each line becomes a hero badge and library filter tag.</p>
-        <ListPreview items={categoryPreview} emptyLabel="Badges preview appears once categories are added." />
-      </div>
+      <TagMultiSelect
+        label="Categories"
+        helperText="Order controls the hero badges. Start typing to search existing categories or press Enter to add a new one."
+        placeholder="Search categories"
+        value={form.categories}
+        onChange={handleCategoriesChange}
+        options={categoryOptions}
+      />
+      <ListPreview items={categoryPreview} emptyLabel="Badges preview appears once categories are added." />
+    </div>
     </section>
   );
 };
@@ -355,68 +370,71 @@ const DosageDurationFields = ({
   </section>
 );
 
-const ChemistryFields = ({ idPrefix, form, handleFieldChange }: ChemistryFieldsProps) => (
-  <section className="space-y-6">
-    <SectionHeader
-      label="Classification"
-      title="Chemistry & Pharmacology"
-      description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
-    />
-    <div className="grid gap-4 md:grid-cols-2">
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-chemical-class`}>
-          Chemical class
-        </label>
-        <input
-          id={`${idPrefix}-chemical-class`}
-          className={baseInputClass}
-          value={form.chemicalClass}
-          onChange={handleFieldChange("chemicalClass")}
-          placeholder="e.g., Lysergamide"
-        />
+const ChemistryFields = ({
+  idPrefix,
+  form,
+  handleFieldChange,
+  handleTagFieldChange,
+  chemicalClassOptions,
+  psychoactiveClassOptions,
+  mechanismOptions,
+}: ChemistryFieldsProps) => {
+  const handleChemicalClassChange = handleTagFieldChange("chemicalClasses");
+  const handlePsychoactiveClassChange = handleTagFieldChange("psychoactiveClasses");
+  const handleMechanismChange = handleTagFieldChange("mechanismEntries");
+
+  return (
+    <section className="space-y-6">
+      <SectionHeader
+        label="Classification"
+        title="Chemistry & Pharmacology"
+        description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
+      />
+      <div className="grid gap-4 md:grid-cols-2">
+        <TagMultiSelect
+        label="Chemical class"
+        helperText="Search existing chemical classes or press Enter to add a new descriptor. Exports as a comma-separated list."
+        placeholder="Search chemical classes"
+        value={form.chemicalClasses}
+        onChange={handleChemicalClassChange}
+        options={chemicalClassOptions}
+      />
+      <TagMultiSelect
+        label="Psychoactive class"
+        helperText="Select one or more psychoactive classes. Output joins with commas."
+        placeholder="Search psychoactive classes"
+        value={form.psychoactiveClasses}
+        onChange={handlePsychoactiveClassChange}
+        options={psychoactiveClassOptions}
+      />
+    </div>
+    <div className="space-y-2">
+      <TagMultiSelect
+        label="Mechanism of action"
+        helperText="Select receptor targets or add a new mechanism. Entries export as a semicolon-separated list."
+        placeholder="Search mechanisms"
+        value={form.mechanismEntries}
+        onChange={handleMechanismChange}
+        options={mechanismOptions}
+      />
+        <CharacterCount value={form.mechanismOfAction} />
       </div>
       <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-psychoactive-class`}>
-          Psychoactive class
+        <label className={labelClass} htmlFor={`${idPrefix}-half-life`}>
+          Half-life (optional)
         </label>
         <input
-          id={`${idPrefix}-psychoactive-class`}
+          id={`${idPrefix}-half-life`}
           className={baseInputClass}
-          value={form.psychoactiveClass}
-          onChange={handleFieldChange("psychoactiveClass")}
-          placeholder="e.g., Psychedelic"
+          value={form.halfLife}
+          onChange={handleFieldChange("halfLife")}
+          placeholder="e.g., ~3.6 hours"
         />
+        <p className={helperTextClass}>Shown in the Chemistry & Pharmacology card under kinetics.</p>
       </div>
-    </div>
-    <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-mechanism`}>
-        Mechanism of action
-      </label>
-      <textarea
-        id={`${idPrefix}-mechanism`}
-        className={`${baseTextareaClass} min-h-[120px]`}
-        value={form.mechanismOfAction}
-        onChange={handleFieldChange("mechanismOfAction")}
-        placeholder="Receptor profile and pharmacology"
-      />
-      <CharacterCount value={form.mechanismOfAction} />
-      <p className={helperTextClass}>Separate receptors with semicolons to render as individual chips.</p>
-    </div>
-    <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-half-life`}>
-        Half-life (optional)
-      </label>
-      <input
-        id={`${idPrefix}-half-life`}
-        className={baseInputClass}
-        value={form.halfLife}
-        onChange={handleFieldChange("halfLife")}
-        placeholder="e.g., ~3.6 hours"
-      />
-      <p className={helperTextClass}>Shown in the Chemistry & Pharmacology card under kinetics.</p>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 const SubjectiveEffectsFields = ({ idPrefix, form, handleFieldChange }: SubjectiveEffectsFieldsProps) => {
   const effectPreview = parseListInput(form.subjectiveEffectsInput);
@@ -643,6 +661,7 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
   const {
     form,
     handleFieldChange,
+    handleTagFieldChange,
     handleDurationFieldChange,
     handleToleranceFieldChange,
     handleRouteFieldChange,
@@ -655,13 +674,22 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
     replaceForm,
   } = controller;
 
+  const {
+    categories: categoryOptions,
+    chemicalClasses: chemicalClassOptions,
+    psychoactiveClasses: psychoactiveClassOptions,
+    mechanismEntries: mechanismOptions,
+  } = useDevTagOptions();
+
   return (
     <div className="space-y-12">
       <OverviewFields
         idPrefix={idPrefix}
         form={form}
         handleFieldChange={handleFieldChange}
+        handleTagFieldChange={handleTagFieldChange}
         replaceForm={replaceForm}
+        categoryOptions={categoryOptions}
       />
       <DosageDurationFields
         idPrefix={idPrefix}
@@ -672,7 +700,15 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
         addRouteEntry={addRouteEntry}
         removeRouteEntry={removeRouteEntry}
       />
-      <ChemistryFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
+      <ChemistryFields
+        idPrefix={idPrefix}
+        form={form}
+        handleFieldChange={handleFieldChange}
+        handleTagFieldChange={handleTagFieldChange}
+        chemicalClassOptions={chemicalClassOptions}
+        psychoactiveClassOptions={psychoactiveClassOptions}
+        mechanismOptions={mechanismOptions}
+      />
       <SubjectiveEffectsFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
       <AddictionFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
       <InteractionsFields form={form} handleFieldChange={handleFieldChange} />

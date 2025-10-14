@@ -12,6 +12,8 @@ type DevModeContextValue = {
   resetArticleAt: (index: number) => void;
   resetAll: () => void;
   getOriginalArticle: (index: number) => ArticleRecord | undefined;
+  replaceArticles: (nextArticles: ArticleRecord[]) => void;
+  applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -108,6 +110,17 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     return deepClone(original);
   }, []);
 
+  const replaceArticles = useCallback((nextArticles: ArticleRecord[]) => {
+    setArticles(deepClone(nextArticles));
+  }, []);
+
+  const applyArticlesTransform = useCallback((transform: (previous: ArticleRecord[]) => ArticleRecord[]) => {
+    setArticles((previous) => {
+      const next = transform(previous);
+      return deepClone(next);
+    });
+  }, []);
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
     open,
@@ -116,7 +129,19 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     resetArticleAt,
     resetAll,
     getOriginalArticle,
-  }), [articles, close, getOriginalArticle, open, resetAll, resetArticleAt, updateArticleAt]);
+    replaceArticles,
+    applyArticlesTransform,
+  }), [
+    applyArticlesTransform,
+    articles,
+    close,
+    getOriginalArticle,
+    open,
+    replaceArticles,
+    resetAll,
+    resetArticleAt,
+    updateArticleAt,
+  ]);
 
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;
 }
