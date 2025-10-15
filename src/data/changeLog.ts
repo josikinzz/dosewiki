@@ -13,7 +13,7 @@ export type ChangeLogEntry = {
     message: string;
   };
   articles: ChangeLogArticleSummary[];
-  markdown: string;
+  markdown: string; // unified diff text; name retained for backwards compatibility
   submittedBy: string | null;
 };
 

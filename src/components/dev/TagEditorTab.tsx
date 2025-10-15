@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowLeftRight, Copy, Download, Pencil, RefreshCw, Searc
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { TagMutation, TAG_FIELD_LABELS, TAG_FIELDS, applyTagMutation, buildTagRegistry, getTagUsage, normalizeTagLabel, summarizeMutation, toTagKey, type TagField, type TagUsage } from "../../utils/tagRegistry";
+import { DiffPreview } from "../common/DiffPreview";
 import { SectionCard } from "../common/SectionCard";
 import { useDevMode } from "./DevModeContext";
 
@@ -282,9 +283,9 @@ export function TagEditorTab({
         return;
       }
       await onCopyDatasetMarkdown();
-      setNotice({ type: "success", message: "Dataset changelog copied to clipboard." });
+      setNotice({ type: "success", message: "Dataset diff copied to clipboard." });
     } catch {
-      setNotice({ type: "error", message: "Failed to copy changelog. Try again." });
+      setNotice({ type: "error", message: "Failed to copy diff. Try again." });
     }
   }, [hasDatasetChanges, onCopyDatasetMarkdown]);
 
@@ -295,9 +296,9 @@ export function TagEditorTab({
     }
     try {
       onDownloadDatasetMarkdown();
-      setNotice({ type: "success", message: "Dataset changelog downloaded." });
+      setNotice({ type: "success", message: "Dataset diff downloaded." });
     } catch {
-      setNotice({ type: "error", message: "Download failed. Try again." });
+      setNotice({ type: "error", message: "Diff download failed. Try again." });
     }
   }, [hasDatasetChanges, onDownloadDatasetMarkdown]);
 
@@ -570,14 +571,17 @@ export function TagEditorTab({
           <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Dataset Diff</p>
           <h2 className="text-lg font-semibold text-fuchsia-200">Pending changelog</h2>
           <p className="text-sm text-white/65">
-            Review the Markdown summary generated from all in-memory edits before committing your changes.
+            Review the diff output generated from all in-memory edits before committing your changes.
           </p>
         </div>
-        <pre className="max-h-72 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-4 font-mono text-xs text-white/80">
-          {hasDatasetChanges && datasetMarkdown.trim().length > 0
-            ? datasetMarkdown
-            : "### Dataset\n\n- No saved differences versus source dataset."}
-        </pre>
+        <DiffPreview
+          diffText={
+            hasDatasetChanges && datasetMarkdown.trim().length > 0
+              ? datasetMarkdown
+              : "# Dataset\n\nNo differences detected."
+          }
+          className="max-h-72"
+        />
         <div className="flex flex-wrap gap-2 text-xs">
           <button
             type="button"
@@ -586,7 +590,7 @@ export function TagEditorTab({
             disabled={!hasDatasetChanges || isApplying}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy Markdown
+            Copy diff
           </button>
           <button
             type="button"
@@ -595,7 +599,7 @@ export function TagEditorTab({
             disabled={!hasDatasetChanges || isApplying}
           >
             <Download className="h-3.5 w-3.5" />
-            Download .md
+            Download .diff
           </button>
         </div>
       </SectionCard>

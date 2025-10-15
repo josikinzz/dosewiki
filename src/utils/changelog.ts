@@ -1,3 +1,4 @@
+import { createPatch } from "diff";
 import type { ChangeLogArticleSummary } from "../data/changeLog";
 
 export type DiffEntry = {
@@ -58,138 +59,81 @@ export const collectDiff = (original: unknown, updated: unknown, segments: strin
 
   acc.push({ path: joinPath(segments), before: original, after: updated });
 };
+const ensureTrailingNewline = (value: string) => (value.endsWith("\n") ? value : `${value}\n`);
 
-const formatValue = (value: unknown) => {
+const stringifyForDiff = (value: unknown) => {
   if (value === undefined) {
-    return "∅";
+    return "";
   }
+
   if (typeof value === "string") {
-    return value.replace(/`/g, "\`");
-  }
-  if (value === null) {
-    return "null";
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return JSON.stringify(value);
-};
-
-const truncateText = (value: string, maxLength = 60) => {
-  const trimmed = value.trim();
-  if (trimmed.length <= maxLength) {
-    return trimmed;
-  }
-  return `${trimmed.slice(0, Math.max(0, maxLength - 3))}...`;
-};
-
-type TextSummaryKind = "empty" | "single" | "long" | "multiline";
-
-type TextSummary = {
-  kind: TextSummaryKind;
-  details: string;
-};
-
-const summarizeText = (value: string): TextSummary => {
-  const normalized = value.replace(/\r\n/g, "\n");
-  const trimmed = normalized.trim();
-  if (trimmed.length === 0) {
-    return { kind: "empty", details: "empty text" };
+    return ensureTrailingNewline(value);
   }
 
-  const lines = normalized.split("\n");
-  const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
-  const lineCount = nonEmptyLines.length;
-
-  if (lineCount > 1) {
-    const previewSource = nonEmptyLines[0]?.trim() ?? trimmed;
-    const preview = truncateText(previewSource, 72);
-    return { kind: "multiline", details: `${lineCount} lines; starts "${preview}"` };
-  }
-
-  const length = trimmed.length;
-  if (length > 90) {
-    return { kind: "long", details: `${length} characters; starts "${truncateText(trimmed, 72)}"` };
-  }
-
-  return { kind: "single", details: `"${trimmed}"` };
-};
-
-const describeSummary = (summary: TextSummary) => {
-  switch (summary.kind) {
-    case "multiline":
-      return `multiline text (${summary.details})`;
-    case "long":
-      return `long text (${summary.details})`;
-    case "single":
-      return `text (${summary.details})`;
-    default:
-      return summary.details;
+  try {
+    return ensureTrailingNewline(JSON.stringify(value, null, 2));
+  } catch {
+    return ensureTrailingNewline(String(value));
   }
 };
 
-const formatStringDiff = (label: string, before: unknown, after: unknown) => {
-  const beforeText = typeof before === "string" ? before : "";
-  const afterText = typeof after === "string" ? after : "";
-  const beforeEmpty = beforeText.trim().length === 0;
-  const afterEmpty = afterText.trim().length === 0;
-
-  const beforeSummary = summarizeText(beforeText);
-  const afterSummary = summarizeText(afterText);
-
-  if (beforeEmpty && !afterEmpty) {
-    return `- \`${label}\`: added ${describeSummary(afterSummary)}`;
+const toDiffFileName = (heading: string) => {
+  const normalized = heading.trim().toLowerCase();
+  if (!normalized) {
+    return "article";
   }
 
-  if (!beforeEmpty && afterEmpty) {
-    return `- \`${label}\`: removed ${describeSummary(beforeSummary)}`;
-  }
+  const slug = normalized
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-  if (!beforeEmpty && !afterEmpty) {
-    const beforeIsShort = beforeText.trim().length <= 80 && !beforeText.includes("\n");
-    const afterIsShort = afterText.trim().length <= 80 && !afterText.includes("\n");
-    if (beforeIsShort && afterIsShort) {
-      const beforeTrimmed = beforeText.trim().replace(/`/g, "\`");
-      const afterTrimmed = afterText.trim().replace(/`/g, "\`");
-      return `- \`${label}\`: "${beforeTrimmed}" → "${afterTrimmed}"`;
-    }
-
-    return `- \`${label}\`: updated ${describeSummary(beforeSummary)} → ${describeSummary(afterSummary)}`;
-  }
-
-  return `- \`${label}\`: set to empty`;
-};
-
-const formatDiffEntry = ({ path, before, after }: DiffEntry) => {
-  const label = path.length > 0 ? path : "record";
-  if (typeof before === "string" || typeof after === "string") {
-    return formatStringDiff(label, before, after);
-  }
-
-  if (before === undefined && after !== undefined) {
-    return `- \`${label}\`: added \`${formatValue(after)}\``;
-  }
-  if (before !== undefined && after === undefined) {
-    return `- \`${label}\`: removed (was \`${formatValue(before)}\`)`;
-  }
-  return `- \`${label}\`: \`${formatValue(before)}\` → \`${formatValue(after)}\``;
+  return slug || "article";
 };
 
 export const buildArticleChangelog = (heading: string, original: unknown, updated: unknown) => {
   const entries: DiffEntry[] = [];
   collectDiff(original, updated, [], entries);
+  const hasChanges = entries.length > 0;
 
-  if (entries.length === 0) {
-    const body = !original && !updated ? "- No data available for comparison." : "- No saved differences versus source dataset.";
+  const header = `# ${heading}\n`;
+
+  if (!hasChanges) {
+    const noDiffMessage = !original && !updated ? "No data available for comparison." : "No differences detected.";
     return {
-      markdown: `### ${heading}\n\n${body}\n`,
+      markdown: `${header}\n${noDiffMessage}\n`,
       hasChanges: false,
     };
   }
 
-  const formatted = entries.map((entry) => formatDiffEntry(entry)).join("\n");
+  const beforeText = stringifyForDiff(original);
+  const afterText = stringifyForDiff(updated);
+  const patch = createPatch(`${toDiffFileName(heading)}.json`, beforeText, afterText, "", "", { context: 0 });
+  const trimmedPatch = patch.trimEnd();
+  const meaningfulLines = trimmedPatch
+    .split("\n")
+    .filter((line) => {
+      if (line.length === 0) {
+        return false;
+      }
+      if (line.startsWith("Index:")) {
+        return false;
+      }
+      if (line.startsWith("====")) {
+        return false;
+      }
+      if (line.startsWith("---") || line.startsWith("+++")) {
+        return false;
+      }
+      if (line.startsWith("@@")) {
+        return false;
+      }
+      return line.startsWith("+") || line.startsWith("-");
+    });
+  const body = meaningfulLines.join("\n");
+
   return {
-    markdown: `### ${heading}\n\n${formatted}\n`,
+    markdown: `${header}\n${body.length > 0 ? body : "No differences detected."}\n`,
     hasChanges: true,
   };
 };
