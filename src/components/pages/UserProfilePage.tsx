@@ -26,7 +26,7 @@ const renderAvatar = (profile: NormalizedUserProfile) => {
       <img
         src={profile.avatarUrl}
         alt={`${profile.displayName} avatar`}
-        className="h-24 w-24 rounded-3xl border border-white/20 object-cover shadow-[0_20px_60px_-30px_rgba(232,121,249,0.75)]"
+        className="h-32 w-32 rounded-3xl border border-white/20 object-cover shadow-[0_20px_60px_-30px_rgba(232,121,249,0.75)]"
         draggable={false}
       />
     );
@@ -40,7 +40,7 @@ const renderAvatar = (profile: NormalizedUserProfile) => {
     .join("") || profile.key.slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-br from-fuchsia-500/20 via-violet-500/20 to-sky-500/20 text-3xl font-semibold text-fuchsia-100 shadow-[0_20px_60px_-30px_rgba(232,121,249,0.75)]">
+    <div className="flex h-32 w-32 items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-br from-fuchsia-500/20 via-violet-500/20 to-sky-500/20 text-4xl font-semibold text-fuchsia-100 shadow-[0_20px_60px_-30px_rgba(232,121,249,0.75)]">
       {initials}
     </div>
   );
@@ -79,11 +79,30 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
     <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-16">
       <div className="flex flex-col items-center gap-6 text-center">
         {renderAvatar(profile)}
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-fuchsia-300 sm:text-4xl">
-            {profile.displayName}
-          </h1>
-          <p className="mt-2 text-sm uppercase tracking-[0.35em] text-white/45">{profile.key}</p>
+        <div className="flex flex-col items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-fuchsia-300 sm:text-4xl">
+              {profile.displayName}
+            </h1>
+            <p className="mt-2 text-sm uppercase tracking-[0.35em] text-white/45">{profile.key}</p>
+          </div>
+          {hasLinks ? (
+            <div className="flex flex-wrap justify-center gap-3">
+              {profile.links.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/12 to-white/6 px-4 py-1.5 text-sm text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  <Link2 className="h-4 w-4 text-fuchsia-200 transition group-hover:text-fuchsia-100" />
+                  <span className="font-medium tracking-tight">{link.label}</span>
+                  <ExternalLink className="h-4 w-4 text-white/55 transition group-hover:text-fuchsia-100" />
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
         {!hasBio && (
           <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/65">
@@ -99,7 +118,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
             <FileText className="h-5 w-5 text-fuchsia-300" />
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Bio</p>
-              <h2 className="text-lg font-semibold text-fuchsia-200">About {profile.displayName}</h2>
+              <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
             </div>
           </div>
 
@@ -113,38 +132,6 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
           ) : (
             <p className="text-sm text-white/70">
               Use the Dev Tools profile editor to add Markdown copy introducing yourself to the community.
-            </p>
-          )}
-        </SectionCard>
-
-        <SectionCard className="space-y-4 bg-white/[0.04]">
-          <div className="flex items-center gap-3">
-            <Link2 className="h-5 w-5 text-fuchsia-300" />
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Links</p>
-              <h2 className="text-lg font-semibold text-fuchsia-200">Connected spaces</h2>
-            </div>
-          </div>
-
-          {hasLinks ? (
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {profile.links.map((link) => (
-                <li key={link.url}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/85 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/10 hover:text-white"
-                  >
-                    <span>{link.label}</span>
-                    <ExternalLink className="h-4 w-4 text-white/60 transition group-hover:text-fuchsia-200" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-white/70">
-              Share up to three verified resources—personal site, social profiles, or research portfolios.
             </p>
           )}
         </SectionCard>
@@ -187,16 +174,33 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
                       {entry.articles.length} article{entry.articles.length === 1 ? "" : "s"}
                     </span>
                   </div>
-                  {entry.articles.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {entry.articles.map((article) => (
-                        <span
-                          key={`${entry.id}-${article.slug}`}
-                          className="inline-flex items-center rounded-full border border-white/12 px-3 py-1 text-xs text-white/80"
-                        >
-                          {article.title}
-                        </span>
-                      ))}
+                  {entry.markdown.trim().length > 0 && (
+                    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60">
+                      <pre className="max-h-96 overflow-x-auto overflow-y-auto text-xs leading-relaxed">
+                        <code>
+                          {entry.markdown.split("\n").map((line, index) => {
+                            const isAdded = line.startsWith("+");
+                            const isRemoved = line.startsWith("-");
+                            const isHunk = line.startsWith("@@");
+                            const lineClass = isHunk
+                              ? "text-amber-200"
+                              : isAdded
+                                ? "text-emerald-300"
+                                : isRemoved
+                                  ? "text-rose-300"
+                                  : "text-white/75";
+
+                            return (
+                              <span
+                                key={`${entry.id}-line-${index}`}
+                                className={`block whitespace-pre px-4 py-1 font-mono ${lineClass}`}
+                              >
+                                {line.trim().length > 0 ? line : "\u00A0"}
+                              </span>
+                            );
+                          })}
+                        </code>
+                      </pre>
                     </div>
                   )}
                 </div>
