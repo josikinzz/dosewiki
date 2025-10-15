@@ -412,8 +412,8 @@ export function ProfileEditorTab({
   };
 
   return (
-    <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-      <SectionCard className="space-y-6 bg-white/[0.04]">
+    <div className="mt-12 grid gap-8 xl:grid-cols-[minmax(0,2.15fr),minmax(0,1fr)]">
+      <SectionCard className="space-y-6 bg-white/[0.035]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Profile</p>
@@ -425,12 +425,12 @@ export function ProfileEditorTab({
           <div className="flex flex-col items-end gap-2 text-right">
             <a
               href={`#/contributors/${profile.key}`}
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/75 transition hover:border-fuchsia-400 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-white/15 via-white/10 to-white/5 text-xs font-medium text-white/75 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
             >
               <ExternalLink className="h-3.5 w-3.5" />
               View public profile
             </a>
-            <UserRound className="hidden h-10 w-10 text-fuchsia-300 sm:block" />
+            <UserRound className="hidden h-10 w-10 text-fuchsia-200/80 sm:block" />
           </div>
         </div>
 
@@ -446,9 +446,9 @@ export function ProfileEditorTab({
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),minmax(0,1fr)]">
-          <div className="space-y-5">
-            <div className="space-y-2">
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr),minmax(0,1fr)] lg:items-start">
+          <div className="space-y-6">
+            <div className="space-y-3">
               <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-display-name">
                 Display name
               </label>
@@ -462,7 +462,7 @@ export function ProfileEditorTab({
               />
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-avatar-url">
                   Avatar
@@ -473,18 +473,18 @@ export function ProfileEditorTab({
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-white/12 bg-white/5 text-xl font-semibold text-fuchsia-200 shadow-inner shadow-black/20">
+                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 text-3xl font-semibold text-white/85 shadow-[0_18px_45px_-20px_rgba(124,58,237,0.55)] ring-1 ring-white/20">
                   {avatarPreviewSource ? (
                     <img src={avatarPreviewSource} alt="Avatar preview" className="h-full w-full object-cover" />
                   ) : (
                     <span>{avatarInitials}</span>
                   )}
                 </div>
-                <div className="flex flex-col items-start gap-2 sm:flex-row">
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                   <button
                     type="button"
                     onClick={handleAvatarUploadClick}
-                    className="inline-flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-fuchsia-500/30 via-violet-500/25 to-sky-500/20 text-sm font-medium text-white/90 shadow-sm shadow-fuchsia-500/25 ring-1 ring-fuchsia-400/40 transition hover:shadow-fuchsia-500/35 hover:ring-fuchsia-200/55"
                   >
                     <ImageUp className="h-4 w-4" />
                     Upload image
@@ -493,7 +493,7 @@ export function ProfileEditorTab({
                     <button
                       type="button"
                       onClick={handleClearAvatarSelection}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/10 text-sm text-white/80 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
                     >
                       <ImageOff className="h-4 w-4" />
                       Clear selected image
@@ -502,9 +502,9 @@ export function ProfileEditorTab({
                     <button
                       type="button"
                       onClick={handleRemoveAvatar}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/10 text-sm text-rose-200/85 ring-1 ring-rose-300/30 transition hover:text-rose-100 hover:ring-rose-200/45"
                     >
-                      <ImageOff className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                       Remove avatar
                     </button>
                   ) : null}
@@ -593,7 +593,7 @@ export function ProfileEditorTab({
                     />
                     <button
                       type="button"
-                      className="inline-flex h-[42px] items-center justify-center rounded-xl border border-white/12 px-3 text-sm text-white/70 transition hover:border-white/25 hover:text-white"
+                      className="inline-flex h-[42px] items-center justify-center rounded-xl px-3 text-sm text-white/75 bg-white/10 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
                       onClick={() => handleRemoveLink(index)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -612,7 +612,7 @@ export function ProfileEditorTab({
               <button
                 type="button"
                 onClick={handleAddLink}
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-sm text-white/80 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:border-white/10 disabled:text-white/35"
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-gradient-to-r from-white/15 via-white/10 to-white/5 text-sm font-medium text-white/85 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-white/35 disabled:shadow-none disabled:ring-white/10"
                 disabled={form.links.length >= MAX_LINKS}
               >
                 <Plus className="h-4 w-4" />
@@ -621,8 +621,8 @@ export function ProfileEditorTab({
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/30">
+          <div className="space-y-5">
+            <div className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-5 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12">
               <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
                 <FileText className="h-4 w-4 text-fuchsia-300" />
                 Markdown preview
@@ -642,7 +642,7 @@ export function ProfileEditorTab({
               )}
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/30">
+            <div className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-5 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12">
               <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
                 <Link2 className="h-4 w-4 text-fuchsia-300" />
                 Link preview
@@ -654,10 +654,10 @@ export function ProfileEditorTab({
                   {previewLinks.map((link) => (
                     <li
                       key={link.url}
-                      className="flex items-center justify-between rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-sm text-white/80"
+                      className="flex items-center justify-between rounded-full px-4 py-2 bg-gradient-to-tr from-white/12 via-white/8 to-white/5 text-sm text-white/85 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/15"
                     >
                       <span>{link.label}</span>
-                      <ExternalLink className="h-4 w-4 text-white/55" />
+                      <ExternalLink className="h-4 w-4 text-fuchsia-200/80" />
                     </li>
                   ))}
                 </ul>
@@ -666,15 +666,15 @@ export function ProfileEditorTab({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-sm">
+        <div className="flex flex-wrap gap-4 text-sm">
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving || !isDirty || !hasStoredCredentials}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 transition ${
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 transition ${
               isSaving || !isDirty || !hasStoredCredentials
-                ? "cursor-not-allowed border-white/10 bg-white/10 text-white/40"
-                : "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200 hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                ? "cursor-not-allowed bg-white/8 text-white/35 ring-1 ring-white/15"
+                : "bg-gradient-to-r from-fuchsia-500/35 via-violet-500/25 to-sky-500/25 text-white/90 shadow-md shadow-fuchsia-500/20 ring-1 ring-fuchsia-300/40 hover:shadow-fuchsia-500/30 hover:ring-fuchsia-200/55"
             }`}
           >
             <Save className="h-4 w-4" />
@@ -684,10 +684,10 @@ export function ProfileEditorTab({
             type="button"
             onClick={handleReset}
             disabled={isSaving || !isDirty}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-white/80 transition ${
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-white/80 transition ${
               isSaving || !isDirty
-                ? "cursor-not-allowed border-white/10 bg-white/10 text-white/35"
-                : "border-white/12 hover:border-white/25 hover:text-white"
+                ? "cursor-not-allowed bg-white/8 text-white/35 ring-1 ring-white/15"
+                : "bg-white/10 ring-1 ring-white/20 hover:text-white hover:ring-white/35"
             }`}
           >
             <RefreshCw className="h-4 w-4" />
@@ -697,7 +697,7 @@ export function ProfileEditorTab({
       </SectionCard>
 
       <div className="space-y-6">
-        <SectionCard className="space-y-4 bg-white/[0.04]">
+        <SectionCard className="space-y-4 bg-white/[0.035]">
           <div className="space-y-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Activity</p>
             <h2 className="text-lg font-semibold text-fuchsia-200">Recent contributions</h2>
@@ -709,7 +709,10 @@ export function ProfileEditorTab({
           ) : (
             <ul className="space-y-4">
               {profileHistory.map((entry) => (
-                <li key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20">
+                <li
+                  key={entry.id}
+                  className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-4 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12"
+                >
                   <p className="text-sm font-semibold text-white/90">{formatDate(entry.createdAt)}</p>
                   <p className="mt-1 text-xs text-white/60">
                     {entry.commit?.url ? (
@@ -730,7 +733,7 @@ export function ProfileEditorTab({
                       {entry.articles.map((article) => (
                         <span
                           key={`${entry.id}-${article.slug}`}
-                          className="inline-flex items-center rounded-full border border-white/12 px-3 py-1 text-[0.75rem] text-white/75"
+                          className="inline-flex items-center rounded-full px-3 py-1 text-[0.75rem] text-white/85 bg-gradient-to-tr from-white/12 via-white/8 to-white/5 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/15"
                         >
                           {article.title}
                         </span>
