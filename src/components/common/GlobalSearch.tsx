@@ -42,6 +42,8 @@ export function GlobalSearch({
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [listboxPosition, setListboxPosition] = useState<{ top: number; left: number } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
@@ -87,6 +89,52 @@ export function GlobalSearch({
     setIsActiveSearch(false);
     setActiveIndex(-1);
   }, []);
+
+  useEffect(() => {
+    const updateViewportFlag = () => {
+      if (typeof window === "undefined") {
+        return;
+      }
+      setIsMobileViewport(window.matchMedia("(max-width: 639px)").matches);
+    };
+
+    updateViewportFlag();
+
+    window.addEventListener("resize", updateViewportFlag);
+    return () => {
+      window.removeEventListener("resize", updateViewportFlag);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileViewport || !showSuggestions) {
+      setListboxPosition(null);
+      return;
+    }
+
+    const GAP_PX = 8; // matches mt-2 spacing between input and results
+
+    const updatePosition = () => {
+      if (!containerRef.current || typeof window === "undefined") {
+        return;
+      }
+      const rect = containerRef.current.getBoundingClientRect();
+      setListboxPosition({
+        top: rect.bottom + GAP_PX,
+        left: window.innerWidth / 2,
+      });
+    };
+
+    updatePosition();
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [isMobileViewport, showSuggestions]);
 
   const handleSelectMatch = useCallback(
     (match: SearchMatch) => {
@@ -264,7 +312,16 @@ export function GlobalSearch({
           <ul
             id={listboxId}
             role="listbox"
-            className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-y-scroll rounded-2xl border border-white/10 bg-[#120d27] shadow-xl shadow-black/50 [scrollbar-gutter:stable]"
+            className={`z-50 max-h-72 overflow-y-scroll rounded-2xl border border-white/10 bg-[#120d27] shadow-xl shadow-black/50 [scrollbar-gutter:stable] ${
+              isMobileViewport
+                ? "fixed left-1/2 w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
+                : "absolute left-0 right-0 top-full mt-2"
+            }`}
+            style={
+              isMobileViewport && listboxPosition
+                ? { top: listboxPosition.top, left: listboxPosition.left }
+                : undefined
+            }
           >
             {suggestions.map((match, index) => {
               const optionId = `${listboxId}-option-${index}`;

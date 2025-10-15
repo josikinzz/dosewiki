@@ -279,14 +279,14 @@ export default function App() {
     ? `w-full px-2 sm:px-3 md:px-4 transition-opacity duration-200 ease-out ${
         isHeaderSearchVisible ? "opacity-100" : "opacity-0"
       }`
-    : `mx-auto w-full max-w-3xl px-4 sm:px-6 transition-opacity duration-200 ease-out ${
+    : `mx-auto w-full max-w-[98vw] px-2 sm:max-w-3xl sm:px-6 transition-opacity duration-200 ease-out ${
         isBodySearchVisible ? "opacity-100" : "opacity-0"
       }`;
 
   const topSearchWrapperClassName = `transition-[max-height,padding,opacity] duration-200 ease-out ${
     isSearchInHeader
       ? "pointer-events-none max-h-32 px-4 pb-6 pt-4 opacity-0 md:pt-6"
-      : "max-h-32 px-4 pb-6 pt-4 opacity-100 md:pt-6"
+      : "max-h-32 px-0 pb-6 pt-4 opacity-100 sm:px-4 md:pt-6"
   }`;
 
   const activeRouteKey: RouteKey | undefined = useMemo(() => {
