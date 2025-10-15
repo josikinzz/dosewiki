@@ -84,7 +84,6 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
             <h1 className="text-3xl font-semibold tracking-tight text-fuchsia-300 sm:text-4xl">
               {profile.displayName}
             </h1>
-            <p className="mt-2 text-sm uppercase tracking-[0.35em] text-white/45">{profile.key}</p>
           </div>
           {hasLinks ? (
             <div className="flex flex-wrap justify-center gap-3">
@@ -116,10 +115,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
         <SectionCard className="space-y-4 bg-white/[0.04]">
           <div className="flex items-center gap-3">
             <FileText className="h-5 w-5 text-fuchsia-300" />
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Bio</p>
-              <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
-            </div>
+            <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
           </div>
 
           {hasBio ? (
@@ -139,10 +135,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
         <SectionCard className="space-y-5 bg-white/[0.04]">
           <div className="flex items-center gap-3">
             <Sparkles className="h-5 w-5 text-fuchsia-300" />
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Recent Activity</p>
-              <h2 className="text-lg font-semibold text-fuchsia-200">Latest contributions</h2>
-            </div>
+            <h2 className="text-lg font-semibold text-fuchsia-200">Latest contributions</h2>
           </div>
 
           {hasHistory ? (
