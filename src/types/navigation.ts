@@ -1,4 +1,4 @@
-﻿export type AppView =
+export type AppView =
   | { type: "substances" }
   | { type: "substance"; slug: string }
   | { type: "category"; categoryKey: string }
@@ -8,4 +8,5 @@
   | { type: "interactions"; primarySlug?: string; secondarySlug?: string }
   | { type: "about" }
   | { type: "search"; query: string }
-  | { type: "dev"; tab: "edit" | "create" | "change-log" | "tag-editor" };
+  | { type: "dev"; tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" }
+  | { type: "contributor"; profileKey: string };

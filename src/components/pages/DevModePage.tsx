@@ -34,9 +34,12 @@ import { slugify } from "../../utils/slug";
 import { useDevMode } from "../dev/DevModeContext";
 import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/TagEditorTab";
+import { ProfileEditorTab } from "../dev/ProfileEditorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
 import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
+import { getProfileByKey, updateProfileCache } from "../../data/userProfiles";
+import type { NormalizedUserProfile } from "../../data/userProfiles";
 
 type ChangeNotice = {
   type: "success" | "error";
@@ -50,7 +53,7 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab = "edit" | "create" | "change-log" | "tag-editor";
+type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile";
 
 type DevModePageProps = {
   activeTab: DevModeTab;
@@ -233,6 +236,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const passwordNoticeTimeoutRef = useRef<number | null>(null);
   const changeLogNoticeTimeoutRef = useRef<number | null>(null);
   const previousArticleIndexRef = useRef<number | null>(null);
+  const profileVerifyAttemptRef = useRef(false);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
@@ -312,8 +316,31 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
   const trimmedUsername = username.trim();
   const trimmedAdminPassword = adminPassword.trim();
+  const canonicalProfileKey =
+    typeof passwordKey === "string" && passwordKey.trim().length > 0
+      ? passwordKey.trim().toUpperCase()
+      : trimmedUsername.length > 0
+        ? trimmedUsername.toUpperCase()
+        : "";
+  const [profileData, setProfileData] = useState(() => getProfileByKey(canonicalProfileKey));
+
+  useEffect(() => {
+    setProfileData(getProfileByKey(canonicalProfileKey));
+  }, [canonicalProfileKey]);
+
+  const profileHistory = useMemo(() => {
+    if (!canonicalProfileKey) {
+      return [] as ChangeLogEntry[];
+    }
+
+    return changeLogEntries
+      .filter((entry) => (entry.submittedBy ?? "").toUpperCase() === canonicalProfileKey)
+      .slice(0, 6);
+  }, [canonicalProfileKey, changeLogEntries]);
+
+  const hasStoredCredentials = trimmedUsername.length > 0 && trimmedAdminPassword.length > 0;
   const isCommitDisabled =
-    isSaving || trimmedUsername.length === 0 || trimmedAdminPassword.length === 0 || hasInvalidJsonDraft;
+    isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
@@ -561,6 +588,49 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     },
     [],
   );
+
+  const verifyDevCredentials = useCallback(async () => {
+    const currentUsername = username.trim();
+    const currentPassword = adminPassword.trim();
+
+    if (!currentUsername || !currentPassword) {
+      const message = "Save your username and password above before continuing.";
+      showPasswordNotice({ type: "error", message });
+      throw new Error(message);
+    }
+
+    try {
+      const authResponse = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUsername, password: currentPassword }),
+      });
+
+      const authPayload = await authResponse.json().catch(() => ({}));
+      if (!authResponse.ok || authPayload.authorized !== true) {
+        const reason = typeof authPayload.error === "string" ? authPayload.error : "Authentication failed.";
+        throw new Error(reason);
+      }
+
+      const matchedKey =
+        typeof authPayload.key === "string" && authPayload.key.trim().length > 0
+          ? authPayload.key.trim()
+          : currentUsername;
+
+      setPasswordKey(matchedKey);
+      showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
+
+      return {
+        username: currentUsername,
+        password: currentPassword,
+        key: matchedKey,
+      };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Authentication failed.";
+      showPasswordNotice({ type: "error", message: reason });
+      throw new Error(reason);
+    }
+  }, [adminPassword, showPasswordNotice, username]);
 
   useEffect(
     () => () => {
@@ -1011,13 +1081,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   };
 
   const handleSaveToGitHub = useCallback(async () => {
-    const trimmedUsernameValue = username.trim();
-    const trimmedPassword = adminPassword.trim();
-    if (!trimmedUsernameValue || !trimmedPassword) {
-      setGithubNotice({ type: "error", message: "Save your username and password above before committing." });
-      return;
-    }
-
     if (hasInvalidJsonDraft) {
       setGithubNotice({ type: "error", message: "Fix JSON syntax before committing." });
       return;
@@ -1029,33 +1092,19 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       setIsSaving(true);
       setGithubNotice({ type: "success", message: "Verifying credentials…" });
 
-      const authResponse = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmedUsernameValue, password: trimmedPassword }),
+      const credentials = await verifyDevCredentials();
+
+      setGithubNotice({
+        type: "success",
+        message: `Credentials verified for ${credentials.key}. Saving to GitHub…`,
       });
-
-      const authPayload = await authResponse.json().catch(() => ({}));
-      if (!authResponse.ok || authPayload.authorized !== true) {
-        throw new Error(authPayload.error || "Authentication failed.");
-      }
-
-      const matchedKey =
-        typeof authPayload.key === "string" && authPayload.key.trim().length > 0 ? authPayload.key.trim() : null;
-      if (!matchedKey) {
-        throw new Error("Authentication succeeded, but no username was returned.");
-      }
-
-      setPasswordKey(matchedKey);
-      showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
-      setGithubNotice({ type: "success", message: `Credentials verified for ${matchedKey}. Saving to GitHub…` });
 
       const saveResponse = await fetch("/api/save-articles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: trimmedUsernameValue,
-          password: trimmedPassword,
+          username: credentials.username,
+          password: credentials.password,
           articlesData: articles,
           commitMessage,
           changelogMarkdown: datasetChangelog.markdown,
@@ -1072,7 +1121,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       const resolvedKey =
         typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
           ? result.submittedBy.trim()
-          : matchedKey;
+          : credentials.key;
       setPasswordKey(resolvedKey);
 
       const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
@@ -1101,15 +1150,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
   }, [
-    adminPassword,
     appendChangeLogEntry,
     articles,
     datasetChangelog.articles,
     datasetChangelog.markdown,
     hasInvalidJsonDraft,
+    onTabChange,
     pushChangeLogNotice,
-    showPasswordNotice,
-    username,
+    setPasswordKey,
+    verifyDevCredentials,
   ]);
 
   const clearNoticesForTab = useCallback(
@@ -1138,6 +1187,27 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     },
     [activeTab, clearNoticesForTab, onTabChange],
   );
+
+  useEffect(() => {
+    if (activeTab === "profile" && !hasStoredCredentials) {
+      handleTabChange("edit");
+    }
+  }, [activeTab, handleTabChange, hasStoredCredentials]);
+
+  useEffect(() => {
+    if (activeTab === "profile") {
+      if (!profileVerifyAttemptRef.current) {
+        profileVerifyAttemptRef.current = true;
+        if (hasStoredCredentials && !passwordKey) {
+          verifyDevCredentials().catch(() => {
+            // handled through notice system
+          });
+        }
+      }
+    } else {
+      profileVerifyAttemptRef.current = false;
+    }
+  }, [activeTab, hasStoredCredentials, passwordKey, verifyDevCredentials]);
 
   useEffect(() => {
     clearNoticesForTab(activeTab);
@@ -1188,6 +1258,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setSelectedIndex(nextIndex);
     event.target.value = "";
   };
+
+  const handleProfileUpdated = useCallback(
+    (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
+      setProfileData(nextProfile);
+      updateProfileCache(nextProfile);
+      setPasswordKey(canonicalKey);
+    },
+    [setPasswordKey, updateProfileCache],
+  );
 
   const copyDatasetMarkdownForTagEditor = useCallback(async () => {
     await navigator.clipboard.writeText(datasetChangelog.markdown);
@@ -1335,6 +1414,18 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           >
             Changelog
           </button>
+          {hasStoredCredentials && (
+            <button
+              type="button"
+              onClick={() => handleTabChange("profile")}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                activeTab === "profile" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "profile"}
+            >
+              Profile
+            </button>
+          )}
           <button
             type="button"
             onClick={() => handleTabChange("tag-editor")}
@@ -1947,6 +2038,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             </SectionCard>
           </div>
         </div>
+      ) : activeTab === "profile" ? (
+        <ProfileEditorTab
+          baseInputClass={baseInputClass}
+          profile={profileData}
+          profileHistory={profileHistory}
+          verifyCredentials={verifyDevCredentials}
+          onProfileUpdated={handleProfileUpdated}
+          hasStoredCredentials={hasStoredCredentials}
+        />
       ) : activeTab === "tag-editor" ? (
         <TagEditorTab
           commitPanel={commitPanel}

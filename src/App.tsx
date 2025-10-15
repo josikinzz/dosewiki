@@ -39,6 +39,8 @@ import type { AppView } from "./types/navigation";
 import { parseHash, viewToHash } from "./utils/routing";
 import { GlobalSearch } from "./components/common/GlobalSearch";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
+import { UserProfilePage } from "./components/pages/UserProfilePage";
+import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
 
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
@@ -451,6 +453,34 @@ export default function App() {
         <main>
           <AboutPage />
         </main>
+      ) : view.type === "contributor" ? (
+        (() => {
+          const rawKey = view.profileKey.trim();
+          const canonicalKey = rawKey.toUpperCase();
+          const profile = getProfileByKey(canonicalKey);
+          const history = buildProfileHistory(canonicalKey, 5);
+          const isKnownProfile = profilesByKey.has(canonicalKey);
+
+          if (!isKnownProfile && history.length === 0) {
+            return (
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                  <p className="text-lg font-semibold text-white">Contributor not found.</p>
+                  <p className="mt-2 text-sm text-white/70">
+                    Check the profile key or request access via the Dev Tools workflow.
+                  </p>
+                </div>
+              </main>
+            );
+          }
+
+          return (
+            <UserProfilePage
+              profile={profile}
+              history={history}
+            />
+          );
+        })()
       ) : (
         <>
           <Hero

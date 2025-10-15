@@ -1,23 +1,21 @@
-import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 
 import { verifyCredentials } from "./_utils/passwords.js";
 import { parseBody } from "./_utils/parseBody.js";
+import {
+  TARGET_BRANCH,
+  buildCommitUrl,
+  createBlob,
+  createCommit,
+  createTree,
+  getRepositoryState,
+  loadFileFromRepo,
+  updateReference,
+} from "./_utils/github.js";
 
-const REPO_OWNER = "josikinzz";
-const REPO_NAME = "dosewiki";
-const TARGET_BRANCH = "main";
 const ARTICLES_PATH = "src/data/articles.json";
 const CHANGE_LOG_PATH = "src/data/devChangeLog.json";
-const USER_AGENT = "dose.wiki-dev-editor";
 const CHANGE_LOG_LIMIT = 250;
-const API_BASE_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
-const COMMIT_AUTHOR = {
-  name: "dose.wiki Dev Editor",
-  email: "dev-editor@dose.wiki",
-};
-
-const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
 
 const normalizeChangedArticles = (rawArticles) => {
   if (!Array.isArray(rawArticles)) {
@@ -66,159 +64,21 @@ const appendChangeLogEntry = (entries, entry) => {
   return merged;
 };
 
-const githubRequest = async (token, path, options = {}) => {
-  const headers = {
-    Accept: "application/vnd.github+json",
-    Authorization: `Bearer ${token}`,
-    "User-Agent": USER_AGENT,
-    ...(options.headers ?? {}),
-  };
-
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  const payload = await response.json().catch(() => ({}));
-
-  return { response, payload };
-};
-
 const loadChangeLogEntries = async (token) => {
-  const encodedPath = CHANGE_LOG_PATH.split("/").map((segment) => encodeURIComponent(segment)).join("/");
-  const { response, payload } = await githubRequest(token, `/contents/${encodedPath}?ref=${TARGET_BRANCH}`);
+  const { content, sha } = await loadFileFromRepo(token, CHANGE_LOG_PATH, TARGET_BRANCH);
 
-  if (response.status === 404) {
+  if (content === null) {
     return { entries: [], sha: null };
   }
 
-  if (!response.ok) {
-    throw new Error(payload?.message ?? "Failed to load change log file.");
-  }
-
   try {
-    const encoding = payload?.encoding === "base64" ? "base64" : "utf8";
-    const buffer = Buffer.from(payload?.content ?? "", encoding);
-    const text = buffer.toString("utf8");
-    const parsed = JSON.parse(text);
-
+    const parsed = JSON.parse(content);
     return {
       entries: Array.isArray(parsed) ? parsed : [],
-      sha: typeof payload?.sha === "string" ? payload.sha : null,
+      sha,
     };
   } catch (error) {
     throw new Error(`Unable to parse devChangeLog.json: ${error instanceof Error ? error.message : String(error)}`);
-  }
-};
-
-const getRepositoryState = async (token) => {
-  const { response: refResponse, payload: refPayload } = await githubRequest(
-    token,
-    `/git/ref/heads/${TARGET_BRANCH}`,
-  );
-
-  if (!refResponse.ok) {
-    throw new Error(refPayload?.message ?? "Unable to load repository reference.");
-  }
-
-  const parentSha = refPayload?.object?.sha;
-  if (!isNonEmptyString(parentSha)) {
-    throw new Error("Repository reference is missing a commit SHA.");
-  }
-
-  const { response: commitResponse, payload: commitPayload } = await githubRequest(
-    token,
-    `/git/commits/${parentSha}`,
-  );
-
-  if (!commitResponse.ok) {
-    throw new Error(commitPayload?.message ?? "Unable to load parent commit.");
-  }
-
-  const baseTreeSha = commitPayload?.tree?.sha;
-  if (!isNonEmptyString(baseTreeSha)) {
-    throw new Error("Parent commit is missing tree metadata.");
-  }
-
-  return {
-    parentSha,
-    baseTreeSha,
-  };
-};
-
-const createBlob = async (token, content) => {
-  const { response, payload } = await githubRequest(token, "/git/blobs", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, encoding: "utf-8" }),
-  });
-
-  if (!response.ok) {
-    throw new Error(payload?.message ?? "Failed to create blob.");
-  }
-
-  if (!isNonEmptyString(payload?.sha)) {
-    throw new Error("GitHub did not return a blob SHA.");
-  }
-
-  return payload.sha;
-};
-
-const createTree = async (token, baseTreeSha, entries) => {
-  const { response, payload } = await githubRequest(token, "/git/trees", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      base_tree: baseTreeSha,
-      tree: entries,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(payload?.message ?? "Failed to create git tree.");
-  }
-
-  if (!isNonEmptyString(payload?.sha)) {
-    throw new Error("GitHub did not return a tree SHA.");
-  }
-
-  return payload.sha;
-};
-
-const createCommit = async (token, message, treeSha, parentSha, isoTimestamp) => {
-  const author = {
-    ...COMMIT_AUTHOR,
-    date: isoTimestamp,
-  };
-
-  const { response, payload } = await githubRequest(token, "/git/commits", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message,
-      tree: treeSha,
-      parents: [parentSha],
-      author,
-      committer: author,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(payload?.message ?? "Failed to create commit.");
-  }
-
-  if (!isNonEmptyString(payload?.sha)) {
-    throw new Error("GitHub did not return a commit SHA.");
-  }
-
-  return payload.sha;
-};
-
-const updateReference = async (token, commitSha) => {
-  const { response, payload } = await githubRequest(token, `/git/refs/heads/${TARGET_BRANCH}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sha: commitSha, force: false }),
-  });
-
-  if (!response.ok) {
-    throw new Error(payload?.message ?? "Failed to update repository reference.");
   }
 };
 
@@ -313,7 +173,7 @@ export default async function handler(req, res) {
     const commitSha = await createCommit(githubToken, commitMessage, treeSha, parentSha, isoTimestamp);
     await updateReference(githubToken, commitSha);
 
-    const commitUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${commitSha}`;
+    const commitUrl = buildCommitUrl(commitSha);
 
     return res.status(200).json({
       success: true,
