@@ -6,14 +6,8 @@
     "links": []
   },
   {
-    "key": "ZENBY",
-    "displayName": "Zenby",
-    "bio": "",
-    "links": []
-  },
-  {
-    "key": "KOSM",
-    "displayName": "Kosm",
+    "key": "ARCTIC",
+    "displayName": "Arctic",
     "bio": "",
     "links": []
   },
@@ -24,8 +18,25 @@
     "links": []
   },
   {
+    "key": "GABRIEL",
+    "displayName": "Gabriel",
+    "bio": "",
+    "links": []
+  },
+  {
     "key": "JOSIE",
-    "displayName": "Josie",
+    "displayName": "Josie Kins",
+    "bio": "Hi, I'm josie. I like making websites.",
+    "links": [
+      {
+        "label": "personal website",
+        "url": "https://josiekins.xyz/"
+      }
+    ]
+  },
+  {
+    "key": "KOSM",
+    "displayName": "Kosm",
     "bio": "",
     "links": []
   },
@@ -36,14 +47,8 @@
     "links": []
   },
   {
-    "key": "ARCTIC",
-    "displayName": "Arctic",
-    "bio": "",
-    "links": []
-  },
-  {
-    "key": "GABRIEL",
-    "displayName": "Gabriel",
+    "key": "ZENBY",
+    "displayName": "Zenby",
     "bio": "",
     "links": []
   }
