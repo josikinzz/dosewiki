@@ -54,6 +54,10 @@
 }
 
 @layer components {
+
+  .ios-sticky-header {
+    position: -webkit-sticky;
+  }
   .json-editor pre {
     margin: 0;
     background: transparent;

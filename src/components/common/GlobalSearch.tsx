@@ -136,6 +136,42 @@ export function GlobalSearch({
     };
   }, [isMobileViewport, showSuggestions]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!/Android/i.test(navigator.userAgent)) {
+      return;
+    }
+
+    const handleResize = () => {
+      const activeElement = document.activeElement as HTMLElement | null;
+      if (!activeElement || activeElement.tagName !== 'INPUT') {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        const scrollIntoViewIfNeeded = (activeElement as any).scrollIntoViewIfNeeded;
+        if (typeof scrollIntoViewIfNeeded === 'function') {
+          scrollIntoViewIfNeeded.call(activeElement);
+          return;
+        }
+
+        activeElement.scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest',
+          behavior: 'auto',
+        });
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const handleSelectMatch = useCallback(
     (match: SearchMatch) => {
       setQuery("");
@@ -273,8 +309,10 @@ export function GlobalSearch({
         <input
           id="global-search"
           ref={inputRef}
-          type="text"
+          type="search"
           placeholder="Search..."
+          autoComplete="off"
+          style={{ fontSize: "max(16px, 1rem)" }}
           className={`w-full rounded-2xl bg-white/10 pl-10 ${
             clearButtonVisible ? "pr-14" : "pr-10"
           } text-base text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 ${

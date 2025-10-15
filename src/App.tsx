@@ -164,6 +164,82 @@ export default function App() {
   }, [view]);
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    const userAgent = navigator.userAgent;
+    const isIOS = /(iPod|iPhone|iPad)/.test(userAgent) && /AppleWebKit/.test(userAgent);
+    const isAndroid = /Android/i.test(userAgent);
+
+    let scrollTracker: HTMLDivElement | null = null;
+
+    const updateScroll = () => {
+      if (!scrollTracker) {
+        return;
+      }
+      scrollTracker.textContent = window.scrollY.toFixed(0);
+    };
+
+    if (isIOS) {
+      scrollTracker = document.createElement('div');
+      scrollTracker.style.height = '0px';
+      scrollTracker.style.overflow = 'hidden';
+      scrollTracker.style.position = 'absolute';
+      scrollTracker.style.top = '0';
+      scrollTracker.style.left = '0';
+      scrollTracker.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(scrollTracker);
+
+      window.addEventListener('scroll', updateScroll, { passive: true });
+      window.addEventListener('touchmove', updateScroll, { passive: true });
+    }
+
+    const handleResize = () => {
+      if (!isAndroid) {
+        return;
+      }
+
+      const activeElement = document.activeElement as HTMLElement | null;
+      if (!activeElement || activeElement.tagName !== 'INPUT') {
+        return;
+      }
+
+      window.setTimeout(() => {
+        const scrollIntoViewIfNeeded = (activeElement as any).scrollIntoViewIfNeeded;
+        if (typeof scrollIntoViewIfNeeded === 'function') {
+          scrollIntoViewIfNeeded.call(activeElement);
+          return;
+        }
+
+        activeElement.scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest',
+          behavior: 'auto',
+        });
+      }, 100);
+    };
+
+    if (isAndroid) {
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (isIOS) {
+        window.removeEventListener('scroll', updateScroll);
+        window.removeEventListener('touchmove', updateScroll);
+        if (scrollTracker && scrollTracker.parentNode) {
+          scrollTracker.parentNode.removeChild(scrollTracker);
+        }
+      }
+
+      if (isAndroid) {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!topSearchContainer && !headerSearchContainer) {
       return;
     }
