@@ -76,7 +76,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
   const hasHistory = history.length > 0;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-16">
+    <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12">
       <div className="flex flex-col items-center gap-6 text-center">
         {renderAvatar(profile)}
         <div className="flex flex-col items-center gap-4">

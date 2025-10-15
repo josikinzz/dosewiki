@@ -11,7 +11,7 @@ interface EffectsPageProps {
 
 export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }: EffectsPageProps) {
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
       <PageHeader
         title="Subjective Effects"
         icon={Sparkles}

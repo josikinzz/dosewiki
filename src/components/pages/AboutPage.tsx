@@ -2,6 +2,7 @@ import { memo } from "react";
 import { Info } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { SectionCard } from "../common/SectionCard";
+import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import {
   dosageCategoryGroups,
   effectSummaries,
@@ -19,7 +20,13 @@ export const AboutPage = memo(function AboutPage() {
   const effectCount = effectSummaries.length;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-10 md:max-w-4xl">
+    <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-12 md:max-w-4xl">
+      <img
+        src={logoDataUri}
+        alt="dose.wiki logo"
+        className="mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
+        draggable={false}
+      />
       <PageHeader
         title="About dose.wiki"
         icon={Info}
