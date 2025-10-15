@@ -1,4 +1,4 @@
-﻿import { AppView } from "../types/navigation";
+import { AppView } from "../types/navigation";
 
 export function viewToHash(view: AppView): string {
   switch (view.type) {
@@ -34,6 +34,10 @@ export function viewToHash(view: AppView): string {
     case "substance": {
       const slug = view.slug.trim();
       return slug.length > 0 ? `#/substance/${slug}` : "#/substance";
+    }
+    case "contributor": {
+      const key = view.profileKey.trim();
+      return key.length > 0 ? `#/contributors/${encodeURIComponent(key)}` : "#/contributors";
     }
     case "dev": {
       const tab = view.tab;
@@ -112,15 +116,23 @@ export function parseHash(
         return { type: "substance", slug };
       }
       return { type: "substance", slug: defaultSlug };
+    case "contributors": {
+      if (slug) {
+        return { type: "contributor", profileKey: decodeURIComponent(slug) };
+      }
+      return resolveDefault();
+    }
     case "dev": {
       const candidate = slug ?? "edit";
-      let tab: "edit" | "create" | "change-log" | "tag-editor" = "edit";
+      let tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" = "edit";
       if (candidate === "create") {
         tab = "create";
       } else if (candidate === "change-log" || candidate === "changelog") {
         tab = "change-log";
       } else if (candidate === "tag-editor" || candidate === "tag") {
         tab = "tag-editor";
+      } else if (candidate === "profile" || candidate === "profiles") {
+        tab = "profile";
       } else if (candidate === "edit") {
         tab = "edit";
       }
