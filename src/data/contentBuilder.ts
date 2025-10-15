@@ -21,6 +21,7 @@ import type {
 import { slugify } from "../utils/slug";
 import { tokenizeTagString } from "../utils/tagDelimiters";
 import { getCategoryIcon } from "./categoryIcons";
+import { canonicalizeRouteLabel } from "./routeSynonyms";
 
 interface RawDoseRanges {
   [key: string]: string | null | undefined;
@@ -36,7 +37,7 @@ interface RawDosages {
   routes_of_administration?: RawRouteDefinition[];
 }
 
-interface RawDuration {
+interface LegacyDurationStages {
   total_duration?: string | null;
   onset?: string | null;
   comeup?: string | null;
@@ -45,6 +46,19 @@ interface RawDuration {
   comedown?: string | null;
   after_effects?: string | null;
 }
+
+interface StructuredDurationRoute {
+  route?: string | null;
+  canonical_routes?: string[] | null;
+  stages?: LegacyDurationStages | null;
+}
+
+interface StructuredDuration {
+  general?: LegacyDurationStages | null;
+  routes_of_administration?: StructuredDurationRoute[] | null;
+}
+
+type RawDuration = LegacyDurationStages | StructuredDuration;
 
 interface RawInteractions {
   dangerous?: string[];
@@ -119,6 +133,9 @@ const DURATION_LABELS: Record<string, string> = {
   comedown: "Come-down",
   after_effects: "After effects",
 };
+
+type DurationStageKey = keyof typeof DURATION_LABELS;
+type StageValueMap = Partial<Record<DurationStageKey, string>>;
 
 function isNonEmpty(value: unknown): value is NonEmptyString {
   return typeof value === "string" && value.trim().length > 0;
@@ -210,14 +227,52 @@ function buildDoseEntries(ranges?: RawDoseRanges): RouteInfo["dosage"] {
     .filter((entry): entry is RouteInfo["dosage"][number] => entry !== null);
 }
 
-function buildDurationEntries(duration?: RawDuration): RouteInfo["duration"] {
-  if (!duration) {
-    return [];
+function isStructuredDurationValue(duration?: RawDuration): duration is StructuredDuration {
+  if (!duration || typeof duration !== "object") {
+    return false;
+  }
+  return (
+    Object.prototype.hasOwnProperty.call(duration, "general") ||
+    Object.prototype.hasOwnProperty.call(duration, "routes_of_administration")
+  );
+}
+
+function extractStageValues(source?: LegacyDurationStages | null): StageValueMap {
+  const values: StageValueMap = {};
+  if (!source || typeof source !== "object") {
+    return values;
   }
 
-  return Object.entries(DURATION_LABELS)
-    .map(([key, label]) => {
-      const value = cleanString(duration[key as keyof RawDuration]);
+  (Object.keys(DURATION_LABELS) as DurationStageKey[]).forEach((stageKey) => {
+    const raw = (source as Record<string, unknown>)[stageKey];
+    const value = cleanString(typeof raw === "string" ? raw : null);
+    if (value) {
+      values[stageKey] = value;
+    }
+  });
+
+  return values;
+}
+
+function hasStageValues(map: StageValueMap): boolean {
+  return Object.keys(map).some((stageKey) => Boolean(map[stageKey as DurationStageKey]));
+}
+
+function mergeStageMaps(primary: StageValueMap, fallback: StageValueMap): StageValueMap {
+  const merged: StageValueMap = {};
+  (Object.keys(DURATION_LABELS) as DurationStageKey[]).forEach((stageKey) => {
+    const value = primary[stageKey] ?? fallback[stageKey];
+    if (value) {
+      merged[stageKey] = value;
+    }
+  });
+  return merged;
+}
+
+function convertStageMapToEntries(stageMap: StageValueMap): RouteInfo["duration"] {
+  return (Object.entries(DURATION_LABELS) as Array<[DurationStageKey, string]>)
+    .map(([stageKey, label]) => {
+      const value = stageMap[stageKey];
       if (!value) {
         return null;
       }
@@ -227,6 +282,66 @@ function buildDurationEntries(duration?: RawDuration): RouteInfo["duration"] {
       };
     })
     .filter((entry): entry is RouteInfo["duration"][number] => entry !== null);
+}
+
+function getRouteStageMap(
+  duration: StructuredDuration | undefined,
+  routeLabel: string,
+  canonicalRoutes: string[],
+): StageValueMap {
+  if (!duration || !Array.isArray(duration.routes_of_administration)) {
+    return {};
+  }
+
+  const normalizedLabel = routeLabel.trim().toLowerCase();
+  const entries = duration.routes_of_administration.filter((entry): entry is StructuredDurationRoute => Boolean(entry));
+
+  const directMatch = entries.find((entry) => {
+    if (!entry || typeof entry.route !== "string") {
+      return false;
+    }
+    return entry.route.trim().toLowerCase() === normalizedLabel;
+  });
+
+  if (directMatch) {
+    return extractStageValues(directMatch.stages ?? null);
+  }
+
+  for (const canonical of canonicalRoutes) {
+    const match = entries.find((entry) =>
+      Array.isArray(entry.canonical_routes) &&
+      entry.canonical_routes.some((candidate) =>
+        typeof candidate === "string" && candidate.trim().toLowerCase() === canonical,
+      ),
+    );
+    if (match) {
+      return extractStageValues(match.stages ?? null);
+    }
+  }
+
+  return {};
+}
+
+function selectFallbackStageMap(
+  structuredDuration: StructuredDuration | undefined,
+  generalStages: StageValueMap,
+): StageValueMap {
+  if (hasStageValues(generalStages)) {
+    return generalStages;
+  }
+
+  if (!structuredDuration || !Array.isArray(structuredDuration.routes_of_administration)) {
+    return generalStages;
+  }
+
+  for (const entry of structuredDuration.routes_of_administration) {
+    const stageMap = extractStageValues(entry?.stages ?? null);
+    if (hasStageValues(stageMap)) {
+      return stageMap;
+    }
+  }
+
+  return generalStages;
 }
 
 function buildUnitsNote(units: Set<string>): string {
@@ -241,13 +356,25 @@ function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | un
   const routes: Record<RouteKey, RouteInfo> = {};
   const routeOrder: RouteKey[] = [];
   const units = new Set<string>();
-  const durationEntries = buildDurationEntries(duration);
+
+  const structuredDuration = isStructuredDurationValue(duration) ? duration : undefined;
+  const generalStageMap = structuredDuration
+    ? extractStageValues(structuredDuration.general ?? null)
+    : extractStageValues(duration as LegacyDurationStages | undefined);
 
   (dosages?.routes_of_administration ?? []).forEach((definition, index) => {
     const routeLabel = cleanString(definition.route);
     if (!routeLabel) {
       return;
     }
+
+    const canonical = canonicalizeRouteLabel(routeLabel);
+    const routeSpecificStageMap = structuredDuration
+      ? getRouteStageMap(structuredDuration, routeLabel, canonical.canonicalRoutes)
+      : {};
+
+    const mergedStageMap = mergeStageMaps(routeSpecificStageMap, generalStageMap);
+    const durationEntries = convertStageMapToEntries(mergedStageMap);
 
     const key = slugifyDrugName(routeLabel, `route-${index}`);
     const dosageEntries = buildDoseEntries(definition.dose_ranges);
@@ -268,14 +395,18 @@ function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | un
     }
   });
 
-  if (routeOrder.length === 0 && durationEntries.length > 0) {
-    const fallbackKey: RouteKey = "general";
-    routes[fallbackKey] = {
-      label: "General",
-      dosage: [],
-      duration: durationEntries,
-    };
-    routeOrder.push(fallbackKey);
+  if (routeOrder.length === 0) {
+    const fallbackMap = selectFallbackStageMap(structuredDuration, generalStageMap);
+    const fallbackEntries = convertStageMapToEntries(fallbackMap);
+    if (fallbackEntries.length > 0) {
+      const fallbackKey: RouteKey = "general";
+      routes[fallbackKey] = {
+        label: "General",
+        dosage: [],
+        duration: fallbackEntries,
+      };
+      routeOrder.push(fallbackKey);
+    }
   }
 
   return {

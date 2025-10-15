@@ -6,6 +6,7 @@ import type {
   ArticleDraftForm,
   DoseRangeForm,
   DurationForm,
+  DurationStagePayload,
   ToleranceForm,
 } from "../../utils/articleDraftForm";
 import { parseListInput } from "../../utils/articleDraftForm";
@@ -34,6 +35,14 @@ const durationLabels: Array<[keyof DurationForm, string, string]> = [
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
   ["afterEffects", "After effects", "e.g., Residual stimulation"],
+];
+
+const routeDurationLabels: Array<[keyof DurationStagePayload, string, string]> = [
+  ["total_duration", "Total duration", "e.g., 6-8 hours"],
+  ["onset", "Onset", "e.g., 15-30 minutes"],
+  ["peak", "Peak", "e.g., 2-3 hours"],
+  ["offset", "Offset", "e.g., ~2 hours"],
+  ["after_effects", "After effects", "e.g., Residual stimulation"],
 ];
 
 const toleranceLabels: Array<[keyof ToleranceForm, string]> = [
@@ -77,8 +86,10 @@ type DosageDurationFieldsProps = {
   handleRouteFieldChange: ArticleDraftFormController["handleRouteFieldChange"];
   handleDoseRangeFieldChange: ArticleDraftFormController["handleDoseRangeFieldChange"];
   handleDurationFieldChange: ArticleDraftFormController["handleDurationFieldChange"];
+  handleDurationRouteStageChange: ArticleDraftFormController["handleDurationRouteStageChange"];
   addRouteEntry: ArticleDraftFormController["addRouteEntry"];
   removeRouteEntry: ArticleDraftFormController["removeRouteEntry"];
+  applyDurationDefaultsToRoute: ArticleDraftFormController["applyDurationDefaultsToRoute"];
 };
 
 type ChemistryFieldsProps = {
@@ -282,8 +293,10 @@ const DosageDurationFields = ({
   handleRouteFieldChange,
   handleDoseRangeFieldChange,
   handleDurationFieldChange,
+  handleDurationRouteStageChange,
   addRouteEntry,
   removeRouteEntry,
+  applyDurationDefaultsToRoute,
 }: DosageDurationFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
@@ -294,6 +307,7 @@ const DosageDurationFields = ({
     <div className="space-y-4">
       {form.routes.map((route, index) => {
         const routeKey = `${idPrefix}-route-${index}`;
+        const durationRoute = form.durationRoutes[index];
         return (
           <div key={routeKey} className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -341,6 +355,28 @@ const DosageDurationFields = ({
                 </div>
               ))}
             </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {routeDurationLabels.map(([stageKey, label, placeholder]) => (
+                <div key={`${routeKey}-duration-${stageKey}`}>
+                  <label className={labelClass}>{label}</label>
+                  <input
+                    className={baseInputClass}
+                    value={durationRoute?.stages?.[stageKey] ?? ""}
+                    onChange={handleDurationRouteStageChange(index, stageKey)}
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-xs text-white/60 transition hover:text-white"
+                onClick={() => applyDurationDefaultsToRoute(index)}
+              >
+                Copy defaults
+              </button>
+            </div>
           </div>
         );
       })}
@@ -366,7 +402,7 @@ const DosageDurationFields = ({
         </div>
       ))}
     </div>
-    <p className={helperTextClass}>Displayed alongside dosage tables to communicate onset, peak, and offset expectations.</p>
+    <p className={helperTextClass}>Use these defaults to keep timing consistent—copy them into each route as needed with the per-route action above.</p>
   </section>
 );
 
@@ -663,11 +699,13 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
     handleFieldChange,
     handleTagFieldChange,
     handleDurationFieldChange,
+    handleDurationRouteStageChange,
     handleToleranceFieldChange,
     handleRouteFieldChange,
     handleDoseRangeFieldChange,
     addRouteEntry,
     removeRouteEntry,
+    applyDurationDefaultsToRoute,
     handleCitationFieldChange,
     addCitationEntry,
     removeCitationEntry,
@@ -697,8 +735,10 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
         handleRouteFieldChange={handleRouteFieldChange}
         handleDoseRangeFieldChange={handleDoseRangeFieldChange}
         handleDurationFieldChange={handleDurationFieldChange}
+        handleDurationRouteStageChange={handleDurationRouteStageChange}
         addRouteEntry={addRouteEntry}
         removeRouteEntry={removeRouteEntry}
+        applyDurationDefaultsToRoute={applyDurationDefaultsToRoute}
       />
       <ChemistryFields
         idPrefix={idPrefix}
