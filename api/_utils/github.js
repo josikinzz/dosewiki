@@ -89,11 +89,11 @@ export const getRepositoryState = async (token, branch = TARGET_BRANCH) => {
   };
 };
 
-export const createBlob = async (token, content) => {
+export const createBlob = async (token, content, encoding = "utf-8") => {
   const { response, payload } = await githubRequest(token, "/git/blobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content, encoding: "utf-8" }),
+    body: JSON.stringify({ content, encoding }),
   });
 
   if (!response.ok) {

@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 import { verifyCredentials } from "./_utils/passwords.js";
 import { parseBody } from "./_utils/parseBody.js";
 import {
@@ -17,6 +19,15 @@ const MAX_DISPLAY_NAME_LENGTH = 120;
 const MAX_LINKS = 3;
 const MAX_LINK_LABEL_LENGTH = 60;
 const HTTPS_PROTOCOL = "https:";
+const AVATAR_DIRECTORY = "public/profile-avatars";
+const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars";
+const AVATAR_CACHE_BUSTER_PATTERN = /[:.]/g;
+const MAX_AVATAR_SIZE_BYTES = 1024 * 1024 * 2; // 2 MiB
+const ALLOWED_AVATAR_MIME_TYPES = new Map([
+  ["image/png", "png"],
+  ["image/jpeg", "jpg"],
+  ["image/webp", "webp"],
+]);
 
 class ValidationError extends Error {}
 
@@ -92,6 +103,17 @@ const sanitizeAvatarUrl = (value, { strict } = { strict: false }) => {
   const trimmed = value.trim();
   if (!trimmed) {
     return null;
+  }
+
+  if (trimmed.startsWith(`${AVATAR_PUBLIC_BASE_PATH}/`)) {
+    const [pathPart] = trimmed.split("?");
+    if (!pathPart || pathPart.includes("..")) {
+      if (strict) {
+        throw new ValidationError("Avatar path is invalid.");
+      }
+      return null;
+    }
+    return trimmed;
   }
 
   try {
@@ -242,13 +264,16 @@ const parseProfiles = (content) => {
   return normalized;
 };
 
-const normalizeIncomingProfile = (profile, canonicalKey) => {
+const normalizeIncomingProfile = (profile, canonicalKey, overrideAvatarUrl) => {
   if (!profile || typeof profile !== "object") {
     throw new ValidationError("Profile payload is required.");
   }
 
   const displayName = sanitizeDisplayName(profile.displayName, { strict: true }) ?? toDisplayName(canonicalKey);
-  const avatarUrl = sanitizeAvatarUrl(profile.avatarUrl, { strict: true });
+  const candidateAvatarUrl =
+    typeof overrideAvatarUrl === "string" && overrideAvatarUrl.trim().length > 0
+      ? overrideAvatarUrl.trim()
+      : sanitizeAvatarUrl(profile.avatarUrl, { strict: true });
   const bio = sanitizeBio(profile.bio, { strict: true });
   const links = sanitizeLinks(profile.links, { strict: true });
 
@@ -259,8 +284,8 @@ const normalizeIncomingProfile = (profile, canonicalKey) => {
     links,
   };
 
-  if (avatarUrl) {
-    normalized.avatarUrl = avatarUrl;
+  if (candidateAvatarUrl) {
+    normalized.avatarUrl = candidateAvatarUrl;
   }
 
   return normalized;
@@ -276,6 +301,81 @@ const upsertProfile = (profiles, nextProfile) => {
   }
   next.sort((a, b) => a.key.localeCompare(b.key));
   return next;
+};
+
+const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
+const sanitizeAvatarUpload = (payload) => {
+  if (!isPlainObject(payload)) {
+    throw new ValidationError("Avatar upload payload is invalid.");
+  }
+
+  const rawMimeType = typeof payload.mimeType === "string" ? payload.mimeType.trim().toLowerCase() : "";
+  const rawFileName = typeof payload.fileName === "string" ? payload.fileName.trim() : "";
+  const rawBase64 = typeof payload.base64Data === "string" ? payload.base64Data.trim() : "";
+
+  if (!rawBase64) {
+    throw new ValidationError("Avatar upload is missing image data.");
+  }
+
+  let sanitizedBase64 = rawBase64;
+  const commaIndex = rawBase64.indexOf(",");
+  if (commaIndex !== -1) {
+    sanitizedBase64 = rawBase64.slice(commaIndex + 1).trim();
+  }
+
+  if (!sanitizedBase64) {
+    throw new ValidationError("Avatar upload is missing image data.");
+  }
+
+  const mimeExtension = ALLOWED_AVATAR_MIME_TYPES.get(rawMimeType);
+  if (!mimeExtension) {
+    throw new ValidationError("Avatar image must be a PNG, JPG, or WebP file.");
+  }
+
+  let extension = mimeExtension;
+  const fileMatch = rawFileName.toLowerCase().match(/\.([a-z0-9]+)$/);
+  if (fileMatch) {
+    const [, candidateExtension] = fileMatch;
+    if ([...ALLOWED_AVATAR_MIME_TYPES.values()].includes(candidateExtension)) {
+      extension = candidateExtension;
+    }
+  }
+
+  let sizeBytes = 0;
+  try {
+    sizeBytes = Buffer.from(sanitizedBase64, "base64").byteLength;
+  } catch {
+    throw new ValidationError("Avatar image data is not valid base64.");
+  }
+
+  if (sizeBytes === 0) {
+    throw new ValidationError("Avatar image data is empty.");
+  }
+
+  if (sizeBytes > MAX_AVATAR_SIZE_BYTES) {
+    const maxSizeMb = (MAX_AVATAR_SIZE_BYTES / (1024 * 1024)).toFixed(1);
+    throw new ValidationError(`Avatar image must be ${maxSizeMb} MB or smaller.`);
+  }
+
+  return {
+    base64: sanitizedBase64,
+    extension,
+    mimeType: rawMimeType,
+    sizeBytes,
+  };
+};
+
+const buildAvatarAsset = (canonicalKey, extension, cacheBuster) => {
+  const folder = canonicalKey.toLowerCase();
+  const normalizedCacheBuster = cacheBuster.replace(/[^a-z0-9\-]/gi, "-");
+  const fileName = `avatar.${extension}`;
+  const repoPath = `${AVATAR_DIRECTORY}/${folder}/${fileName}`;
+  const publicUrl = `${AVATAR_PUBLIC_BASE_PATH}/${folder}/${fileName}?v=${normalizedCacheBuster}`;
+  return {
+    repoPath,
+    publicUrl,
+  };
 };
 
 export default async function handler(req, res) {
@@ -308,7 +408,19 @@ export default async function handler(req, res) {
   const canonicalKey = trimmedUsername.toUpperCase();
 
   try {
-    const normalizedProfile = normalizeIncomingProfile(body.profile, canonicalKey);
+    const avatarUploadPayload = body.avatarUpload ? sanitizeAvatarUpload(body.avatarUpload) : null;
+    let avatarAsset = null;
+
+    if (avatarUploadPayload) {
+      const cacheBuster = new Date().toISOString().replace(AVATAR_CACHE_BUSTER_PATTERN, "-");
+      avatarAsset = buildAvatarAsset(canonicalKey, avatarUploadPayload.extension, cacheBuster);
+    }
+
+    const normalizedProfile = normalizeIncomingProfile(
+      body.profile,
+      canonicalKey,
+      avatarAsset?.publicUrl,
+    );
 
     const { content: existingContent } = await loadFileFromRepo(githubToken, USER_PROFILES_PATH, TARGET_BRANCH);
     const existingProfiles = parseProfiles(existingContent ?? "");
@@ -338,6 +450,16 @@ export default async function handler(req, res) {
         sha: profilesBlobSha,
       },
     ];
+
+    if (avatarUploadPayload && avatarAsset) {
+      const avatarBlobSha = await createBlob(githubToken, avatarUploadPayload.base64, "base64");
+      treeEntries.push({
+        path: avatarAsset.repoPath,
+        mode: "100644",
+        type: "blob",
+        sha: avatarBlobSha,
+      });
+    }
 
     const treeSha = await createTree(githubToken, baseTreeSha, treeEntries);
     const commitMessage = `Update profile for ${canonicalKey}`;
