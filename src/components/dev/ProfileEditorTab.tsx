@@ -412,7 +412,7 @@ export function ProfileEditorTab({
   };
 
   return (
-    <div className="mt-12 grid gap-8 xl:grid-cols-[minmax(0,2.15fr),minmax(0,1fr)]">
+    <div className="mt-12">
       <SectionCard className="space-y-6 bg-white/[0.035]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -446,9 +446,8 @@ export function ProfileEditorTab({
           </div>
         )}
 
-        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr),minmax(0,1fr)] lg:items-start">
-          <div className="space-y-6">
-            <div className="space-y-3">
+        <div className="space-y-6">
+          <div className="space-y-3">
               <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-display-name">
                 Display name
               </label>
@@ -621,51 +620,6 @@ export function ProfileEditorTab({
             </div>
           </div>
 
-          <div className="space-y-5">
-            <div className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-5 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12">
-              <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-                <FileText className="h-4 w-4 text-fuchsia-300" />
-                Markdown preview
-              </div>
-              {normalizedForm.bio.trim().length === 0 ? (
-                <p className="mt-3 text-sm text-white/55">
-                  The preview will update as you write. Use Markdown for headings, emphasis, and lists.
-                </p>
-              ) : (
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkBreaks]}
-                  components={bioMarkdownComponents}
-                  className="mt-3 space-y-3"
-                >
-                  {normalizedForm.bio}
-                </ReactMarkdown>
-              )}
-            </div>
-
-            <div className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-5 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12">
-              <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-                <Link2 className="h-4 w-4 text-fuchsia-300" />
-                Link preview
-              </div>
-              {previewLinks.length === 0 ? (
-                <p className="mt-3 text-sm text-white/55">No external links yet. Add up to three trusted resources.</p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {previewLinks.map((link) => (
-                    <li
-                      key={link.url}
-                      className="flex items-center justify-between rounded-full px-4 py-2 bg-gradient-to-tr from-white/12 via-white/8 to-white/5 text-sm text-white/85 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/15"
-                    >
-                      <span>{link.label}</span>
-                      <ExternalLink className="h-4 w-4 text-fuchsia-200/80" />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="flex flex-wrap gap-4 text-sm">
           <button
             type="button"
@@ -695,57 +649,6 @@ export function ProfileEditorTab({
           </button>
         </div>
       </SectionCard>
-
-      <div className="space-y-6">
-        <SectionCard className="space-y-4 bg-white/[0.035]">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Activity</p>
-            <h2 className="text-lg font-semibold text-fuchsia-200">Recent contributions</h2>
-          </div>
-          {profileHistory.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-5 text-sm text-white/60">
-              No commits recorded yet. Ship updates via the editor to populate this timeline.
-            </p>
-          ) : (
-            <ul className="space-y-4">
-              {profileHistory.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="rounded-2xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 p-4 shadow-[0_12px_36px_-24px_rgba(12,0,38,0.8)] ring-1 ring-white/12"
-                >
-                  <p className="text-sm font-semibold text-white/90">{formatDate(entry.createdAt)}</p>
-                  <p className="mt-1 text-xs text-white/60">
-                    {entry.commit?.url ? (
-                      <a
-                        href={entry.commit.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-fuchsia-200 transition hover:text-fuchsia-100"
-                      >
-                        {entry.commit.message}
-                      </a>
-                    ) : (
-                      entry.commit.message
-                    )}
-                  </p>
-                  {entry.articles.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {entry.articles.map((article) => (
-                        <span
-                          key={`${entry.id}-${article.slug}`}
-                          className="inline-flex items-center rounded-full px-3 py-1 text-[0.75rem] text-white/85 bg-gradient-to-tr from-white/12 via-white/8 to-white/5 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/15"
-                        >
-                          {article.title}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-      </div>
     </div>
   );
 }
