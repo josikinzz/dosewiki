@@ -32,7 +32,9 @@ type ProfileEditorTabProps = {
   baseInputClass: string;
   profile: NormalizedUserProfile;
   profileHistory: ChangeLogEntry[];
-  verifyCredentials: () => Promise<{ username: string; password: string; key: string }>;
+  verifyCredentials: (
+    options?: { username?: string; password?: string }
+  ) => Promise<{ username: string; password: string; key: string }>;
   onProfileUpdated: (profile: NormalizedUserProfile, canonicalKey: string) => void;
   hasStoredCredentials: boolean;
 };
