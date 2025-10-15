@@ -277,7 +277,7 @@ export function GlobalSearch({
           placeholder="Search..."
           className={`w-full rounded-2xl bg-white/10 pl-10 ${
             clearButtonVisible ? "pr-14" : "pr-10"
-          } text-sm text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 ${
+          } text-base text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 ${
             compact ? "py-2" : "py-3"
           }`}
           value={query}
