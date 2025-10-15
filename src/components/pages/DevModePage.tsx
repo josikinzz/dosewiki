@@ -22,6 +22,7 @@ import {
   type ChangeLogArticleSummary,
 } from "../../data/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog } from "../../utils/changelog";
+import { DiffPreview } from "../common/DiffPreview";
 import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
 import {
   ArticleDraftPayload,
@@ -274,19 +275,19 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const changelogResult = useMemo(() => {
     if (!originalArticle) {
       return {
-        markdown: `### ${articleLabel}\n\n- No source article available for comparison.\n`,
+        markdown: `# ${articleLabel}\n\nNo source article available for comparison.\n`,
         hasChanges: false,
       };
     }
     if (!isDraftValid) {
       return {
-        markdown: `### ${articleLabel}\n\n- Unable to generate changelog: current editor JSON is invalid.\n`,
+        markdown: `# ${articleLabel}\n\nUnable to generate diff: current editor JSON is invalid.\n`,
         hasChanges: false,
       };
     }
     if (comparisonTarget === undefined) {
       return {
-        markdown: `### ${articleLabel}\n\n- No comparison data available.\n`,
+        markdown: `# ${articleLabel}\n\nNo comparison data available.\n`,
         hasChanges: false,
       };
     }
@@ -676,7 +677,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     async (entry: ChangeLogEntry) => {
       try {
         await navigator.clipboard.writeText(entry.markdown);
-        pushChangeLogNotice({ type: "success", message: "Entry markdown copied to clipboard." });
+        pushChangeLogNotice({ type: "success", message: "Entry diff copied to clipboard." });
       } catch {
         pushChangeLogNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
       }
@@ -694,8 +695,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         const primarySlug = entry.articles[0]?.slug ?? entry.id;
         const slug = toFileSlug(primarySlug || "entry");
         const timestamp = entry.createdAt.replace(/[:.]/g, "-");
-        const fileName = `changelog-${slug}-${timestamp}.md`;
-        const blob = new Blob([entry.markdown], { type: "text/markdown" });
+        const fileName = `changelog-${slug}-${timestamp}.diff`;
+        const blob = new Blob([entry.markdown], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
@@ -704,7 +705,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         anchor.click();
         document.body.removeChild(anchor);
         URL.revokeObjectURL(url);
-        pushChangeLogNotice({ type: "success", message: "Entry markdown downloaded." });
+        pushChangeLogNotice({ type: "success", message: "Entry diff downloaded." });
       } catch {
         pushChangeLogNotice({ type: "error", message: "Download failed. Try copying instead." });
       }
@@ -987,7 +988,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const copyChangelog = async () => {
     try {
       await navigator.clipboard.writeText(changelogMarkdown);
-      setNotice({ type: "success", message: "Changelog copied to clipboard." });
+      setNotice({ type: "success", message: "Diff copied to clipboard." });
     } catch {
       setNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
     }
@@ -996,8 +997,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const downloadChangelog = () => {
     setNotice(null);
     const slug = toFileSlug(articleLabel || "article");
-    const fileName = `changelog-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.md`;
-    const blob = new Blob([changelogMarkdown], { type: "text/markdown" });
+    const fileName = `changelog-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.diff`;
+    const blob = new Blob([changelogMarkdown], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -1006,7 +1007,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
-    setNotice({ type: "success", message: "Changelog markdown downloaded." });
+    setNotice({ type: "success", message: "Diff file downloaded." });
   };
 
   const handleSaveToGitHub = useCallback(async () => {
@@ -1194,8 +1195,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
   const downloadDatasetMarkdownForTagEditor = useCallback(() => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `dataset-changelog-${timestamp}.md`;
-    const blob = new Blob([datasetChangelog.markdown], { type: "text/markdown" });
+    const fileName = `dataset-changelog-${timestamp}.diff`;
+    const blob = new Blob([datasetChangelog.markdown], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -1551,7 +1552,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                   : "Preview differences against the source dataset."}
               </p>
             </div>
-            <pre className="max-h-64 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-4 font-mono text-xs text-white/80">{changelogMarkdown}</pre>
+            <DiffPreview diffText={changelogMarkdown} className="max-h-64" />
             <div className="flex flex-wrap gap-2 text-xs">
               <button
                 type="button"
@@ -1559,7 +1560,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 onClick={copyChangelog}
               >
                 <Copy className="h-3.5 w-3.5" />
-                Copy changelog
+                Copy diff
               </button>
               <button
                 type="button"
@@ -1567,7 +1568,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 onClick={downloadChangelog}
               >
                 <Download className="h-3.5 w-3.5" />
-                Download .md
+                Download .diff
               </button>
             </div>
             {changeLogNotice && (
@@ -1642,7 +1643,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                           onClick={() => handleCopyChangeLogEntry(entry)}
                         >
                           <Copy className="h-4 w-4" />
-                          Copy markdown
+                          Copy diff
                         </button>
                         <button
                           type="button"
@@ -1650,11 +1651,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                           onClick={() => handleDownloadChangeLogEntry(entry)}
                         >
                           <Download className="h-4 w-4" />
-                          Download
+                          Download .diff
                         </button>
                       </div>
                     </div>
-                    <pre className="max-h-56 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-3 font-mono text-xs text-white/70">{entry.markdown}</pre>
+                    <DiffPreview diffText={entry.markdown} className="max-h-56" />
                   </div>
                 ))}
               </div>
@@ -1912,7 +1913,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
                             <Copy className="h-4 w-4" />
-                            Copy markdown
+                            Copy diff
                           </button>
                           <button
                             type="button"
@@ -1920,7 +1921,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
                             <Download className="h-4 w-4" />
-                            Download
+                            Download .diff
                           </button>
                         </div>
                       </div>
@@ -1938,9 +1939,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                         ))}
                       </div>
 
-                      <pre className="max-h-56 w-full overflow-auto whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-slate-950/60 p-3 font-mono text-xs text-white/70">
-                        {entry.markdown}
-                      </pre>
+                      <DiffPreview diffText={entry.markdown} className="max-h-56" />
                     </div>
                   ))}
                 </div>

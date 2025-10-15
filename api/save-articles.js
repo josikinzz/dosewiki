@@ -258,7 +258,7 @@ export default async function handler(req, res) {
 
   const rawChangelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
   const changelogMarkdown =
-    rawChangelogMarkdown.length > 0 ? rawChangelogMarkdown : "No changelog details were provided for this commit.";
+    rawChangelogMarkdown.length > 0 ? rawChangelogMarkdown : "No diff details were provided for this commit.";
 
   const changedArticles = normalizeChangedArticles(body.changedArticles);
   const hasChangedArticles = changedArticles.length > 0;
