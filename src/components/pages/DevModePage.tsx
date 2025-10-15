@@ -1539,7 +1539,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             }`}
             aria-pressed={activeTab === "edit"}
           >
-            Edit
+            Edit Substances
           </button>
           <button
             type="button"
@@ -1549,7 +1549,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             }`}
             aria-pressed={activeTab === "create"}
           >
-            Create
+            Create Substances
           </button>
           <button
             type="button"
@@ -1559,7 +1559,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             }`}
             aria-pressed={activeTab === "change-log"}
           >
-            Changelog
+            Change Log
           </button>
           {hasStoredCredentials && (
             <button

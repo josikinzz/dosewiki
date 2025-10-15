@@ -1,0 +1,577 @@
+{
+  "generated_at": "2025-10-15T04:14:41.658Z",
+  "ambiguous_segments": [
+    {
+      "id": 586,
+      "title": "Acrylfentanyl",
+      "slug": "acrylfentanyl",
+      "stage": "onset",
+      "segment": "intranasal 1 - 5 min",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 368,
+      "title": "3,4-MD-PCP",
+      "slug": "3-4-md-pcp",
+      "stage": "onset",
+      "segment": "5-15 min intranasal",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 306,
+      "title": "O-PCPr",
+      "slug": "o-pcpr",
+      "stage": "onset",
+      "segment": "5-15 min (intranasal)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 435,
+      "title": "Crack (Cocaine)",
+      "slug": "crack-cocaine",
+      "stage": "onset",
+      "segment": "5-10 s after inhalation",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "total_duration",
+      "segment": "1-1.5 h inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "onset",
+      "segment": "<30 sec inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "peak",
+      "segment": "2-10 min inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "offset",
+      "segment": "30-45 min inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 469,
+      "title": "Adderall XR",
+      "slug": "adderall-xr",
+      "stage": "onset",
+      "segment": "30-60 min oral",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 480,
+      "title": "Flumazenil",
+      "slug": "flumazenil",
+      "stage": "onset",
+      "segment": "1-2 min intravenous",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 494,
+      "title": "JWH-018",
+      "slug": "jwh-018",
+      "stage": "total_duration",
+      "segment": "1.5 - 3 h (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 523,
+      "title": "4-Fluorophenylpiperazine",
+      "slug": "4-fluorophenylpiperazine",
+      "stage": "onset",
+      "segment": "5-15 min (intranasal)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "total_duration",
+      "segment": "2 - 3 h (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "onset",
+      "segment": "1 - 5 min inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "peak",
+      "segment": "10 - 30 min inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "offset",
+      "segment": "1 - 2 h inhaled",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "total_duration",
+      "segment": "1-3 h (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "onset",
+      "segment": "30 s - 2 min (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "peak",
+      "segment": "5-25 min (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "total_duration",
+      "segment": "1 - 2 h (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "onset",
+      "segment": "30 s - 2 min (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "peak",
+      "segment": "5 - 25 min (inhaled)",
+      "reason": "no-route-assignment"
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "offset",
+      "segment": "45 - 90 min (inhaled)",
+      "reason": "no-route-assignment"
+    }
+  ],
+  "route_mismatches": [
+    {
+      "id": 97,
+      "title": "Fentanyl",
+      "slug": "fentanyl",
+      "stage": "total_duration",
+      "segment": "1-4 hours (intravenous / intramuscular)",
+      "routes": [
+        "intramuscular"
+      ]
+    },
+    {
+      "id": 97,
+      "title": "Fentanyl",
+      "slug": "fentanyl",
+      "stage": "onset",
+      "segment": "Seconds to minutes (intravenous / intramuscular)",
+      "routes": [
+        "intramuscular"
+      ]
+    },
+    {
+      "id": 97,
+      "title": "Fentanyl",
+      "slug": "fentanyl",
+      "stage": "peak",
+      "segment": "Minutes (intravenous / intramuscular)",
+      "routes": [
+        "intramuscular"
+      ]
+    },
+    {
+      "id": 97,
+      "title": "Fentanyl",
+      "slug": "fentanyl",
+      "stage": "offset",
+      "segment": "1-2 hours (intravenous / intramuscular)",
+      "routes": [
+        "intramuscular"
+      ]
+    },
+    {
+      "id": 586,
+      "title": "Acrylfentanyl",
+      "slug": "acrylfentanyl",
+      "stage": "onset",
+      "segment": "intranasal 1 - 5 min",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 368,
+      "title": "3,4-MD-PCP",
+      "slug": "3-4-md-pcp",
+      "stage": "onset",
+      "segment": "5-15 min intranasal",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 69,
+      "title": "4-MMC",
+      "slug": "4-mmc",
+      "stage": "total_duration",
+      "segment": "2-4 h oral / 1.5-3 h intranasal (active phase)",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 306,
+      "title": "O-PCPr",
+      "slug": "o-pcpr",
+      "stage": "onset",
+      "segment": "5-15 min (intranasal)",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 324,
+      "title": "Cychlorphine",
+      "slug": "cychlorphine",
+      "stage": "onset",
+      "segment": "1-5 min (intravenous) / 5-15 min (intranasal / oral)",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 418,
+      "title": "Isotonitazene",
+      "slug": "isotonitazene",
+      "stage": "onset",
+      "segment": "<30 s intravenous / 2-5 min insufflated / 15-30 min oral",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    {
+      "id": 422,
+      "title": "Arecoline",
+      "slug": "arecoline",
+      "stage": "onset",
+      "segment": "<30 s vaporized / 2-5 min buccal / 15-25 min oral",
+      "routes": [
+        "buccal"
+      ]
+    },
+    {
+      "id": 430,
+      "title": "Olanzapine",
+      "slug": "olanzapine",
+      "stage": "onset",
+      "segment": "15-45 min oral ODT",
+      "routes": [
+        "sublingual"
+      ]
+    },
+    {
+      "id": 435,
+      "title": "Crack (Cocaine)",
+      "slug": "crack-cocaine",
+      "stage": "onset",
+      "segment": "5-10 s after inhalation",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "total_duration",
+      "segment": "1-1.5 h inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "onset",
+      "segment": "<30 sec inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "peak",
+      "segment": "2-10 min inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 449,
+      "title": "3-Methyl-4-fluoro-α-pyrrolidinovalerophenone",
+      "slug": "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+      "stage": "offset",
+      "segment": "30-45 min inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 469,
+      "title": "Adderall XR",
+      "slug": "adderall-xr",
+      "stage": "onset",
+      "segment": "30-60 min oral",
+      "routes": [
+        "oral"
+      ]
+    },
+    {
+      "id": 480,
+      "title": "Flumazenil",
+      "slug": "flumazenil",
+      "stage": "onset",
+      "segment": "1-2 min intravenous",
+      "routes": [
+        "intravenous"
+      ]
+    },
+    {
+      "id": 494,
+      "title": "JWH-018",
+      "slug": "jwh-018",
+      "stage": "total_duration",
+      "segment": "1.5 - 3 h (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 519,
+      "title": "2C-T-7-NBOMe",
+      "slug": "2c-t-7-nbome",
+      "stage": "onset",
+      "segment": "15-45 min (buccal / sublingual)",
+      "routes": [
+        "buccal"
+      ]
+    },
+    {
+      "id": 523,
+      "title": "4-Fluorophenylpiperazine",
+      "slug": "4-fluorophenylpiperazine",
+      "stage": "onset",
+      "segment": "5-15 min (intranasal)",
+      "routes": [
+        "intranasal"
+      ]
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "total_duration",
+      "segment": "2 - 3 h (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "onset",
+      "segment": "1 - 5 min inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "peak",
+      "segment": "10 - 30 min inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 577,
+      "title": "CBDVA",
+      "slug": "cbdva",
+      "stage": "offset",
+      "segment": "1 - 2 h inhaled",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 589,
+      "title": "AMB-CHMICA",
+      "slug": "amb-chmica",
+      "stage": "total_duration",
+      "segment": "Smoked / vaporized: 1.5 - 3 h (oral: 4 - 6 h)",
+      "routes": [
+        "vaporized"
+      ]
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "total_duration",
+      "segment": "1-3 h (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "onset",
+      "segment": "30 s - 2 min (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 590,
+      "title": "AMB-FUBINACA",
+      "slug": "amb-fubinaca",
+      "stage": "peak",
+      "segment": "5-25 min (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 607,
+      "title": "ADB-PINACA",
+      "slug": "adb-pinaca",
+      "stage": "onset",
+      "segment": "Smoked / vaporized : 30-120 s",
+      "routes": [
+        "vaporized"
+      ]
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "total_duration",
+      "segment": "1 - 2 h (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "onset",
+      "segment": "30 s - 2 min (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "peak",
+      "segment": "5 - 25 min (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 608,
+      "title": "ADB-PINACA isomer 2",
+      "slug": "adb-pinaca-isomer-2",
+      "stage": "offset",
+      "segment": "45 - 90 min (inhaled)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 609,
+      "title": "AM-2201",
+      "slug": "am-2201",
+      "stage": "onset",
+      "segment": "1 - 3 min (inhaled) / 15 - 30 min (oral)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 609,
+      "title": "AM-2201",
+      "slug": "am-2201",
+      "stage": "peak",
+      "segment": "5 - 15 min (inhaled) / 45 - 90 min (oral)",
+      "routes": [
+        "inhaled"
+      ]
+    },
+    {
+      "id": 616,
+      "title": "AKB-57",
+      "slug": "akb-57",
+      "stage": "total_duration",
+      "segment": "Smoked / vaporized ≈ 1-2 h (acute)",
+      "routes": [
+        "vaporized"
+      ]
+    }
+  ],
+  "summary": {
+    "processed": 502,
+    "migrated": 479,
+    "skippedAmbiguous": 12,
+    "skippedMismatched": 23
+  }
+}

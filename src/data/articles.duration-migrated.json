@@ -24268,34 +24268,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "3-6 hours",
-              "onset": "15-45 minutes",
-              "peak": "1-2 hours",
-              "offset": "1-3 hours",
-              "after_effects": "2-8 hours residual fuzziness / fatigue"
-            }
-          },
-          {
-            "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
-            "stages": {
-              "total_duration": "3-6 hours",
-              "onset": "5-15 minutes",
-              "peak": "1-2 hours",
-              "offset": "1-3 hours",
-              "after_effects": "2-8 hours residual fuzziness / fatigue"
-            }
-          }
-        ]
+        "total_duration": "3-6 hours",
+        "onset": "15-45 min oral; 5-15 min intranasal",
+        "peak": "1-2 hours",
+        "offset": "1-3 hours",
+        "after_effects": "2-8 hours residual fuzziness / fatigue"
       },
       "addiction_potential": "Low-to-moderate psychological craving; rapid tolerance curbs daily use but compulsive redosing has been noted at euphoric doses.",
       "interactions": {
@@ -30586,34 +30563,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
-            "stages": {
-              "total_duration": "5-9 hours",
-              "onset": "5-15 minutes",
-              "peak": "1-3 hours",
-              "offset": "2-4 hours",
-              "after_effects": "1-4 hours"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "5-9 hours",
-              "onset": "30-60 minutes",
-              "peak": "1-3 hours",
-              "offset": "2-4 hours",
-              "after_effects": "1-4 hours"
-            }
-          }
-        ]
+        "total_duration": "5-9 hours",
+        "onset": "5-15 min (intranasal); 30-60 min (oral)",
+        "peak": "1-3 hours",
+        "offset": "2-4 hours",
+        "after_effects": "1-4 hours"
       },
       "addiction_potential": "Moderate-to-high: rapid psychological reinforcement and compulsive redosing reported, paralleling other arylcyclohexylamine dissociatives.",
       "interactions": {
@@ -33198,47 +33152,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "5-15 minutes",
-              "peak": "0.5-1.5 hours",
-              "offset": "3-6 hours",
-              "after_effects": "2-6 hours residual sedation"
-            }
-          },
-          {
-            "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "5-15 minutes",
-              "peak": "0.5-1.5 hours",
-              "offset": "3-6 hours",
-              "after_effects": "2-6 hours residual sedation"
-            }
-          },
-          {
-            "route": "intravenous",
-            "canonical_routes": [
-              "intravenous"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "1-5 minutes",
-              "peak": "0.5-1.5 hours",
-              "offset": "3-6 hours",
-              "after_effects": "2-6 hours residual sedation"
-            }
-          }
-        ]
+        "total_duration": "4-8 h",
+        "onset": "1-5 min (intravenous) / 5-15 min (intranasal / oral)",
+        "peak": "0.5-1.5 h",
+        "offset": "3-6 h",
+        "after_effects": "2-6 h residual sedation"
       },
       "addiction_potential": "Very high; ultra-potent MOR agonist with rapid tolerance and severe withdrawal comparable to other benzimidazolone opioids.",
       "interactions": {
@@ -44425,62 +44343,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "buccal (chewed betel quid)",
-            "canonical_routes": [
-              "buccal"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "2-5 minutes",
-              "peak": "0.2-0.7 hours",
-              "offset": "0.5-1.5 hours",
-              "after_effects": "1-3 hours mild fatigue and jaw tremor"
-            }
-          },
-          {
-            "route": "oral (swallowed arecoline HBr solution / capsule)",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "15-25 minutes",
-              "peak": "0.2-0.7 hours",
-              "offset": "0.5-1.5 hours",
-              "after_effects": "1-3 hours mild fatigue and jaw tremor"
-            }
-          },
-          {
-            "route": "sublingual / buccal (10 mg Huny Mint or lozenge)",
-            "canonical_routes": [
-              "sublingual",
-              "buccal"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "2-5 minutes",
-              "peak": "0.2-0.7 hours",
-              "offset": "0.5-1.5 hours",
-              "after_effects": "1-3 hours mild fatigue and jaw tremor"
-            }
-          },
-          {
-            "route": "vaporized / nebulized e-liquid",
-            "canonical_routes": [
-              "vaporized",
-              "inhaled"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "<30 seconds",
-              "peak": "0.2-0.7 hours",
-              "offset": "0.5-1.5 hours",
-              "after_effects": "1-3 hours mild fatigue and jaw tremor"
-            }
-          }
-        ]
+        "total_duration": "1-2 h (route-dependent)",
+        "onset": "<30 s vaporized / 2-5 min buccal / 15-25 min oral",
+        "peak": "0.2-0.7 h",
+        "offset": "0.5-1.5 h",
+        "after_effects": "1-3 h mild fatigue, jaw tremor"
       },
       "addiction_potential": "Moderate: habitual betel chewers develop tolerance, daily craving and cholinergic withdrawal (irritability, insomnia).",
       "interactions": {
@@ -44910,35 +44777,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral / orally disintegrating tablet",
-            "canonical_routes": [
-              "oral",
-              "sublingual"
-            ],
-            "stages": {
-              "total_duration": "6-12 hours",
-              "onset": "15-45 minutes",
-              "peak": "1-3 hours",
-              "offset": "4-8 hours",
-              "after_effects": "18-24 hours residual grogginess, appetite surge, anhedonia"
-            }
-          },
-          {
-            "route": "intramuscular (clinical setting)",
-            "canonical_routes": [
-              "intramuscular"
-            ],
-            "stages": {
-              "total_duration": "6-12 hours",
-              "onset": "≤15 minutes",
-              "peak": "1-3 hours",
-              "offset": "4-8 hours",
-              "after_effects": "18-24 hours residual grogginess, appetite surge, anhedonia"
-            }
-          }
-        ]
+        "total_duration": "6-12 h subjective sedation (psychedelic blockade may persist 18-24 h)",
+        "onset": "15-45 min oral ODT; ≤15 min intramuscular",
+        "peak": "1-3 h",
+        "offset": "4-8 h",
+        "after_effects": "Residual grogginess, appetite surge, anhedonia up to 24 h"
       },
       "addiction_potential": "Very low; no euphoric reinforcement, though repeated rescue use can foster psychological reliance on an 'off-switch'.",
       "interactions": {
@@ -45753,22 +45596,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "vaporized / smoked",
-            "canonical_routes": [
-              "vaporized",
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "5-20 minutes",
-              "onset": "5-10 seconds",
-              "peak": "0.5-2 minutes",
-              "offset": "5-15 minutes",
-              "after_effects": "15-60 minutes craving, agitation, dysphoria"
-            }
-          }
-        ]
+        "total_duration": "5-20 min intoxicating effects",
+        "onset": "5-10 s after inhalation",
+        "peak": "0.5-2 min",
+        "offset": "5-15 min",
+        "after_effects": "15-60 min craving, agitation, dysphoria"
       },
       "addiction_potential": "Extremely high: the short, intense rush and rapid dissipation create potent reinforcement; binges of multiple grams in a night are common.",
       "interactions": {
@@ -47960,49 +47792,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral / sublingual",
-            "canonical_routes": [
-              "oral",
-              "sublingual"
-            ],
-            "stages": {
-              "total_duration": "3-5 hours",
-              "onset": "15-30 minutes",
-              "peak": "30-90 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "2-6 hours residual stimulation, agitation, crash"
-            }
-          },
-          {
-            "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
-            "stages": {
-              "total_duration": "2-3 hours",
-              "onset": "5-10 minutes",
-              "peak": "30-90 minutes",
-              "offset": "~60 minutes",
-              "after_effects": "2-6 hours residual stimulation, agitation, crash"
-            }
-          },
-          {
-            "route": "vaporized / smoked (freebase foil or mesh)",
-            "canonical_routes": [
-              "vaporized",
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1-1.5 hours",
-              "onset": "<30 seconds",
-              "peak": "2-10 minutes",
-              "offset": "30-45 minutes",
-              "after_effects": "2-6 hours residual stimulation, agitation, crash"
-            }
-          }
-        ]
+        "total_duration": "3-5 h oral, 2-3 h insufflated, 1-1.5 h inhaled",
+        "onset": "<30 sec inhaled, 5-10 min insufflated, 15-30 min oral",
+        "peak": "30-90 min oral / insufflated, 2-10 min inhaled",
+        "offset": "1-2 h oral, ~60 min insufflated, 30-45 min inhaled",
+        "after_effects": "2-6 h residual stimulation, agitation, comedown (‘crash’)"
       },
       "addiction_potential": "High: pyrrolidinophenone cathinones produce intense but short-lived euphoria that encourages rapid redosing; users describe binge patterns and severe crashes comparable to α-PVP.",
       "interactions": {
@@ -51680,47 +51474,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "intravenous (bolus)",
-            "canonical_routes": [
-              "intravenous"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "1-2 minutes",
-              "peak": "6-10 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "Monitor for resedation for at least 6 hours"
-            }
-          },
-          {
-            "route": "intravenous infusion (resedation prevention)",
-            "canonical_routes": [
-              "intravenous"
-            ],
-            "stages": {
-              "total_duration": "Maintained while infusion continues",
-              "onset": "Immediate",
-              "peak": "Stable during infusion",
-              "offset": "<1 hour after stopping infusion",
-              "after_effects": "Monitor for resedation for at least 6 hours"
-            }
-          },
-          {
-            "route": "intranasal (investigational / pediatric)",
-            "canonical_routes": [
-              "intranasal"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "5-8 minutes",
-              "peak": "10-20 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "Monitor for resedation for at least 6 hours"
-            }
-          }
-        ]
+        "total_duration": "1-2 h (antagonism) - shorter than most long-acting benzodiazepines",
+        "onset": "1-2 min intravenous; 5-8 min intranasal",
+        "peak": "6-10 min",
+        "offset": "1-2 h (resedation possible)",
+        "after_effects": "Return of benzodiazepine toxicity or withdrawal phenomena can occur for ≥6 h after flumazenil wears off"
       },
       "addiction_potential": "None (neutral antagonist with negligible intrinsic activity). However, compulsive redosing is reported in some harm-reduction contexts where users self-administer flumazenil to ‘reset’ tolerance.",
       "interactions": {
@@ -53681,47 +53439,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1.5-3 hours",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-30 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "2-6 hours mild fatigue, mood lability, tachycardia"
-            }
-          },
-          {
-            "route": "vaporized",
-            "canonical_routes": [
-              "vaporized"
-            ],
-            "stages": {
-              "total_duration": "1.5-3 hours",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-30 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "2-6 hours mild fatigue, mood lability, tachycardia"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "3-6 hours",
-              "onset": "20-60 minutes",
-              "peak": "60-120 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "2-6 hours mild fatigue, mood lability, tachycardia"
-            }
-          }
-        ]
+        "total_duration": "1.5 - 3 h (inhaled); 3 - 6 h (oral)",
+        "onset": "Smoked / vaporized 30 s - 2 min; oral 20 - 60 min",
+        "peak": "Smoked 5 - 30 min; oral 60 - 120 min",
+        "offset": "≈1 - 2 h",
+        "after_effects": "2 - 6 h mild fatigue, mood lability or residual tachycardia"
       },
       "addiction_potential": "Moderate-to-high. Animal work shows rapid CB1 down-regulation and mesolimbic adaptation; human case reports describe daily use escalation, pronounced craving, and withdrawal (sweating, tremor, irritability) after multi-month use.",
       "interactions": {
@@ -55992,47 +55714,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "15-45 minutes",
-              "peak": "1-3 hours",
-              "offset": "1-2 hours",
-              "after_effects": "2-12 hours residual fatigue, headache, dysphoria"
-            }
-          },
-          {
-            "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "5-15 minutes",
-              "peak": "1-3 hours",
-              "offset": "1-2 hours",
-              "after_effects": "2-12 hours residual fatigue, headache, dysphoria"
-            }
-          },
-          {
-            "route": "rectal",
-            "canonical_routes": [
-              "rectal"
-            ],
-            "stages": {
-              "total_duration": "4-8 hours",
-              "onset": "Not well documented (research required)",
-              "peak": "1-3 hours",
-              "offset": "1-2 hours",
-              "after_effects": "2-12 hours residual fatigue, headache, dysphoria"
-            }
-          }
-        ]
+        "total_duration": "4-8 h",
+        "onset": "15-45 min (oral) • 5-15 min (intranasal)",
+        "peak": "1-3 h",
+        "offset": "1-2 h",
+        "after_effects": "2-12 h residual fatigue, headache and dysphoria possible"
       },
       "addiction_potential": "Low. 4-FPP shows little dopaminergic reinforcement in animal models and most users report limited craving. Psychological habit-formation is possible with frequent use.",
       "interactions": {
@@ -63918,34 +63604,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1.5-3 hours",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-30 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "Up to 6 hours residual lethargy, anxiety, tachycardia"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "4-6 hours",
-              "onset": "15-60 minutes",
-              "peak": "1-2 hours",
-              "offset": "2-4 hours",
-              "after_effects": "Up to 6 hours residual lethargy, anxiety, tachycardia"
-            }
-          }
-        ]
+        "total_duration": "Smoked / vaporized: 1.5 - 3 h (oral: 4 - 6 h)",
+        "onset": "Smoked: 30 s - 2 min (oral: 15 - 60 min)",
+        "peak": "Smoked: 5 - 30 min (oral: 1 - 2 h)",
+        "offset": "Smoked: 1 - 2 h (oral: 2 - 4 h)",
+        "after_effects": "Residual lethargy, anxiety or tachycardia may persist up to 6 h"
       },
       "addiction_potential": "Moderate to high. Daily users report rapid development of tolerance, withdrawal (insomnia, irritability, nausea) and compulsive redosing similar to other potent synthetic cannabinoids.",
       "interactions": {
@@ -64087,47 +63750,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1-3 hours",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-25 minutes",
-              "offset": "30-90 minutes",
-              "after_effects": "2-6 hours residual lethargy or anxiety"
-            }
-          },
-          {
-            "route": "vaporized",
-            "canonical_routes": [
-              "vaporized"
-            ],
-            "stages": {
-              "total_duration": "1-3 hours",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-25 minutes",
-              "offset": "30-90 minutes",
-              "after_effects": "2-6 hours residual lethargy or anxiety"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "2-4 hours",
-              "onset": "15-45 minutes",
-              "peak": "30-90 minutes",
-              "offset": "30-90 minutes",
-              "after_effects": "2-6 hours residual lethargy or anxiety"
-            }
-          }
-        ]
+        "total_duration": "1-3 h (inhaled); 2-4 h (oral)",
+        "onset": "30 s - 2 min (inhaled); 15-45 min (oral)",
+        "peak": "5-25 min (inhaled); 30-90 min (oral)",
+        "offset": "30-90 min",
+        "after_effects": "2-6 h residual lethargy / anxiety"
       },
       "addiction_potential": "Moderate to high. Rapid tolerance and strong compulsive redosing reported; withdrawal may include insomnia, irritability, tremor and nausea similar to, but often more severe than, high-THC cannabis withdrawal.",
       "interactions": {
@@ -66747,47 +66374,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "30-120 seconds",
-              "peak": "5-25 minutes",
-              "offset": "45-90 minutes",
-              "after_effects": "Up to 4 hours residual lethargy or brain fog"
-            }
-          },
-          {
-            "route": "vaporized",
-            "canonical_routes": [
-              "vaporized"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "30-120 seconds",
-              "peak": "5-25 minutes",
-              "offset": "45-90 minutes",
-              "after_effects": "Up to 4 hours residual lethargy or brain fog"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "2-4 hours",
-              "onset": "10-30 minutes",
-              "peak": "30-90 minutes",
-              "offset": "1-2 hours",
-              "after_effects": "Up to 4 hours residual lethargy or brain fog"
-            }
-          }
-        ]
+        "total_duration": "1 - 2 h (inhaled); 2 - 4 h (oral)",
+        "onset": "30 s - 2 min (inhaled); 10 - 30 min (oral)",
+        "peak": "5 - 25 min (inhaled); 30 - 90 min (oral)",
+        "offset": "45 - 90 min (inhaled); 1 - 2 h (oral)",
+        "after_effects": "Up to 4 h of residual lethargy / brain-fog"
       },
       "addiction_potential": "High – daily use rapidly produces tolerance and compulsive re-dosing patterns similar to other potent indazole cannabinoids; withdrawal may include insomnia, irritability, nausea and tachycardia.",
       "interactions": {
@@ -66924,47 +66515,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "vaporized",
-            "canonical_routes": [
-              "vaporized"
-            ],
-            "stages": {
-              "total_duration": "30-120 minutes",
-              "onset": "1-3 minutes",
-              "peak": "5-15 minutes",
-              "offset": "20-60 minutes",
-              "after_effects": "30-120 minutes residual lethargy or anxiety"
-            }
-          },
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "30-120 minutes",
-              "onset": "1-3 minutes",
-              "peak": "5-15 minutes",
-              "offset": "20-60 minutes",
-              "after_effects": "30-120 minutes residual lethargy or anxiety"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "45-180 minutes",
-              "onset": "15-30 minutes",
-              "peak": "45-90 minutes",
-              "offset": "20-60 minutes",
-              "after_effects": "30-120 minutes residual lethargy or anxiety"
-            }
-          }
-        ]
+        "total_duration": "30 - 120 min (route-dependent)",
+        "onset": "1 - 3 min (inhaled) / 15 - 30 min (oral)",
+        "peak": "5 - 15 min (inhaled) / 45 - 90 min (oral)",
+        "offset": "20 - 60 min",
+        "after_effects": "30 - 120 min residual lethargy, anxiety"
       },
       "addiction_potential": "Moderate to high. Being a full CB1 agonist it can produce tolerance and withdrawal (irritability, insomnia, nausea, diaphoresis) after only a few days of repeated use. Craving-driven compulsive redosing is commonly reported.",
       "interactions": {
@@ -67896,34 +67451,11 @@
         ]
       },
       "duration": {
-        "routes_of_administration": [
-          {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "1-2 hours",
-              "onset": "15-90 seconds",
-              "peak": "5-30 minutes",
-              "offset": "30-90 minutes",
-              "after_effects": "4-6 hours residual lethargy or anxiety; sleep disturbances up to 24 hours"
-            }
-          },
-          {
-            "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
-            "stages": {
-              "total_duration": "3-6 hours",
-              "onset": "30-90 minutes",
-              "peak": "1-2 hours",
-              "offset": "30-90 minutes",
-              "after_effects": "4-6 hours residual lethargy or anxiety; sleep disturbances up to 24 hours"
-            }
-          }
-        ]
+        "total_duration": "Smoked / vaporized ≈ 1-2 h (acute); Oral ≈ 3-6 h",
+        "onset": "Smoked 15-90 s; Oral 30-90 min",
+        "peak": "Smoked 5-30 min; Oral 1-2 h",
+        "offset": "30-90 min",
+        "after_effects": "Residual lethargy / anxiety up to 4-6 h; sleep disturbances up to 24 h"
       },
       "addiction_potential": "High. Synthetic cannabinoids with AKB-type scaffolds show rapid tolerance, withdrawal (irritability, insomnia, nausea) and compulsive redosing similar to other potent SCRAs.",
       "interactions": {
