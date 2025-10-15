@@ -4,15 +4,15 @@ import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
 import { viewToHash } from "../../utils/routing";
+import { GlobalSearch } from "../common/GlobalSearch";
 
 interface HeaderProps {
   currentView: AppView;
   defaultSlug: string;
   onNavigate: (view: AppView) => void;
-  onSearchSlotChange?: (element: HTMLDivElement | null) => void;
 }
 
-export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChange }: HeaderProps) {
+export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
   const articleView: AppView =
     currentView.type === "substance"
@@ -92,7 +92,7 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
   };
 
   return (
-    <header className="ios-sticky-header sticky top-0 z-50 border-b border-white/10 bg-[#0f0a1f]/70 backdrop-blur">
+    <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
         <button
           type="button"
@@ -112,10 +112,12 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
           </span>
         </button>
 
-        <div className="flex flex-1 min-w-0 items-center min-h-[44px]">
-          <div
-            ref={onSearchSlotChange}
-            className="w-full"
+        <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
+          <GlobalSearch
+            currentView={currentView}
+            onNavigate={onNavigate}
+            containerClassName="w-full"
+            compact
           />
         </div>
 
