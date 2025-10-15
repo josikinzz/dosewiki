@@ -355,7 +355,7 @@ export function InteractionsPage({
   const directFromSecondary = comparison?.directMatches.filter((entry) => entry.direction === "secondary") ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-24">
+    <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-12">
       <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
         <div className="flex items-start gap-3 text-amber-100">
           <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-200" aria-hidden="true" />

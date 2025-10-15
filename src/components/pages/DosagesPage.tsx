@@ -64,7 +64,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
   }, [groups, sortKey]);
 
   return (
-    <div className="mx-auto w-full px-4 pb-20 pt-10 2xl:px-8">
+    <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
           title="Substance Index"
@@ -99,7 +99,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
           }
         />
         <div className="mt-10 mb-8">
-          <p className="text-xs uppercase tracking-wide text-white/50">Sort index by</p>
+          <p className="md:text-center text-xs uppercase tracking-wide text-white/50">Sort index by</p>
           <div className="mt-4 flex flex-wrap items-center gap-3 sm:justify-center">
             {SORT_OPTIONS.map((option) => {
               const isActive = option.key === sortKey;

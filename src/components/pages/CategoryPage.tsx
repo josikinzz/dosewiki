@@ -10,7 +10,7 @@ interface CategoryPageProps {
 
 export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
       <PageHeader
         title={detail.definition.name}
         icon={detail.definition.icon}

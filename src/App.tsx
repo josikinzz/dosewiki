@@ -183,7 +183,7 @@ export default function App() {
           const detail = getCategoryDetail(view.categoryKey);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Category not found.</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -219,7 +219,7 @@ export default function App() {
           const detail = getEffectDetail(view.effectSlug);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Effect not found.</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -245,7 +245,7 @@ export default function App() {
           const detail = getMechanismDetail(view.mechanismSlug);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Mechanism not found.</p>
                   <p className="mt-2 text-sm text-white/70">Select a mechanism badge from a substance to explore related entries.</p>
@@ -290,7 +290,7 @@ export default function App() {
 
           if (!isKnownProfile && history.length === 0) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-24">
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Contributor not found.</p>
                   <p className="mt-2 text-sm text-white/70">

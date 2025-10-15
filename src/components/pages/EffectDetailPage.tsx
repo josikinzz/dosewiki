@@ -13,7 +13,7 @@ export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: Eff
   const groups: DosageCategoryGroup[] = detail.groups;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-10">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12">
       <PageHeader
         title={detail.definition.name}
         icon={Sparkles}
