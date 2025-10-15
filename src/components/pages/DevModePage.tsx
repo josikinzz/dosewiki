@@ -12,7 +12,12 @@ import {
   Undo2,
   Wrench,
 } from "lucide-react";
-import { dosageCategoryGroups, substanceRecords } from "../../data/library";
+import {
+  chemicalClassIndexGroups,
+  dosageCategoryGroups,
+  mechanismIndexGroups,
+  substanceRecords,
+} from "../../data/library";
 import {
   useCallback,
   useEffect,
@@ -81,6 +86,14 @@ const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
+
+const classificationOptions = [
+  { value: "psychoactive", label: "Psychoactive class" },
+  { value: "chemical", label: "Chemical class" },
+  { value: "mechanism", label: "Mechanism of action class" },
+] as const;
+
+type ClassificationView = (typeof classificationOptions)[number]["value"];
 
 type StoredCredentialsRecord = {
   username: string;
@@ -222,6 +235,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   getOriginalArticle,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
   const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
@@ -945,8 +959,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     return map;
   }, [articleIndexById, titleToIndex]);
 
-  const categoryDropdowns = useMemo(() =>
-    dosageCategoryGroups
+  const categoryDropdowns = useMemo(() => {
+    const groups =
+      classificationView === "psychoactive"
+        ? dosageCategoryGroups
+        : classificationView === "chemical"
+          ? chemicalClassIndexGroups
+          : mechanismIndexGroups;
+
+    return groups
       .map((group) => {
         const options = group.drugs
           .map((drug) => {
@@ -966,8 +987,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           options,
         };
       })
-      .filter((group) => group.options.length > 0),
-  [slugToArticleIndex]);
+      .filter((group) => group.options.length > 0);
+  }, [classificationView, slugToArticleIndex]);
 
   useEffect(() => {
     setSelectedIndex((current) => {
@@ -1360,6 +1381,20 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleForm.drugName, newArticleForm.title, newArticleJson]);
 
+  const handleClassificationChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    if (!value) {
+      return;
+    }
+
+    const nextValue = classificationOptions.find((option) => option.value === value)?.value;
+    if (!nextValue) {
+      return;
+    }
+
+    setClassificationView(nextValue);
+  };
+
   const handleCategoryJump = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     if (!value) {
@@ -1589,8 +1624,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6">
             <SectionCard className="space-y-6 bg-white/[0.04]">
-              <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Dataset</p>
+            <div className="space-y-2">
               <h2 className="text-xl font-semibold text-fuchsia-200">Select an article</h2>
               <p className="text-sm text-white/65">
                 Choose any record sourced from
@@ -1621,9 +1655,27 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
             {categoryDropdowns.length > 0 && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
-                <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/60">
-                  Jump by psychoactive class
-                </p>
+                <div className="mb-3 space-y-2">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-white/60">Jump by</p>
+                  <div className="relative w-full max-w-full min-w-0 sm:max-w-[14rem]">
+                    <label className="sr-only" htmlFor="dev-mode-classification">
+                      Classification type
+                    </label>
+                    <select
+                      id="dev-mode-classification"
+                      className={`${compactSelectClass} text-sm min-w-0 max-w-full`}
+                      value={classificationView}
+                      onChange={handleClassificationChange}
+                    >
+                      {classificationOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                  </div>
+                </div>
                 <div className="space-y-3">
                   {categoryDropdowns.map((group) => (
                     <div key={group.key} className="flex flex-col gap-1 text-left">
@@ -1658,7 +1710,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
           <SectionCard className="space-y-4 bg-white/[0.04]">
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Guidance</p>
               <h2 className="text-lg font-semibold text-fuchsia-200">Working tips</h2>
             </div>
             <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
@@ -1671,7 +1722,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
           <SectionCard className="space-y-4 bg-white/[0.04]">
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Dataset actions</p>
               <h2 className="text-lg font-semibold text-fuchsia-200">Manage drafts</h2>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
@@ -1707,7 +1757,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           <div className="space-y-6">
           <SectionCard className="space-y-5 bg-white/[0.04]">
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Editing</p>
               <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
               <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
             </div>
@@ -1782,7 +1831,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
           <SectionCard className="space-y-6 bg-white/[0.04]">
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">In progress</p>
               <h2 className="text-xl font-semibold text-fuchsia-200">Current draft diff</h2>
               <p className="text-sm text-white/65">
                 {selectedArticleSummary
@@ -1822,7 +1870,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             )}
             <div className="h-px w-full bg-white/10" />
             <div className="space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">History</p>
               <h2 className="text-lg font-semibold text-fuchsia-200">Previous commits</h2>
               <p className="text-sm text-white/65">
                 {selectedArticleSummary
@@ -1909,7 +1956,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
           <SectionCard className="flex flex-col space-y-4 bg-white/[0.04]">
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Output</p>
               <h2 className="text-lg font-semibold text-fuchsia-200">Generated JSON</h2>
               <p className="text-sm text-white/65">Structure updates as you complete the form.</p>
               {!isNewArticleValid && (
@@ -1957,7 +2003,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           <div className="space-y-6">
             <SectionCard className="space-y-5 bg-white/[0.04] md:sticky md:top-24">
               <div className="space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Filters</p>
                 <h2 className="text-lg font-semibold text-fuchsia-200">Refine history</h2>
               </div>
 
@@ -2098,7 +2143,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
             <SectionCard className="space-y-4 bg-white/[0.04]">
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">History</p>
                 <h2 className="text-lg font-semibold text-fuchsia-200">GitHub commits</h2>
               </div>
 
