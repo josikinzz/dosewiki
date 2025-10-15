@@ -9,7 +9,7 @@ import {
  * Shapes persisted in src/data/userProfiles.json.
  *  - key: ENV credential identifier (uppercase string)
  *  - displayName: Optional friendlier label shown publicly (defaults to derived key)
- *  - avatarUrl: Optional HTTPS image URL for the contributor
+ *  - avatarUrl: Optional HTTPS image URL or local `/profile-avatars/<key>/avatar.<ext>` path with cache buster
  *  - bio: Optional Markdown string (<= 4k characters recommended)
  *  - links: Optional external resources (<=3 entries)
  */
@@ -36,6 +36,7 @@ export type NormalizedUserProfile = {
 };
 
 const HTTPS_PROTOCOL = "https:";
+const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars/";
 const MAX_LINKS = 3;
 const MAX_BIO_LENGTH = 4000;
 
@@ -106,11 +107,23 @@ const sanitizeAvatarUrl = (value: unknown) => {
   }
 
   const trimmed = value.trim();
-  if (!trimmed || !isValidHttpsUrl(trimmed)) {
+  if (!trimmed) {
     return null;
   }
 
-  return trimmed;
+  if (trimmed.startsWith(AVATAR_PUBLIC_BASE_PATH)) {
+    const [pathPart] = trimmed.split("?");
+    if (!pathPart || pathPart.includes("..")) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  if (isValidHttpsUrl(trimmed)) {
+    return trimmed;
+  }
+
+  return null;
 };
 
 const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null => {
