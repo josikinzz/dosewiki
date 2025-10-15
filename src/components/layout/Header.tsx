@@ -92,7 +92,7 @@ export function Header({ currentView, defaultSlug, onNavigate, onSearchSlotChang
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0f0a1f]/70 backdrop-blur">
+    <header className="ios-sticky-header sticky top-0 z-50 border-b border-white/10 bg-[#0f0a1f]/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
         <button
           type="button"
