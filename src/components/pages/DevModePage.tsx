@@ -1,4 +1,17 @@
-import { ChevronDown, Copy, Download, Eye, EyeOff, RefreshCw, Save, Undo2, Wrench } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Save,
+  Undo2,
+  Wrench,
+} from "lucide-react";
 import { dosageCategoryGroups, substanceRecords } from "../../data/library";
 import {
   useCallback,
@@ -68,6 +81,13 @@ const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
+
+type StoredCredentialsRecord = {
+  username: string;
+  password: string;
+  key?: string;
+  lastVerifiedAt?: string;
+};
 
 const formatArticleLabel = (article: unknown, index: number) => {
   if (!article || typeof article !== "object") {
@@ -220,7 +240,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordNotice, setPasswordNotice] = useState<ChangeNotice | null>(null);
   const [passwordKey, setPasswordKey] = useState<string | null>(null);
+  const [lastVerifiedAt, setLastVerifiedAt] = useState<string | null>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isVerifyingCredentials, setIsVerifyingCredentials] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
@@ -322,6 +344,24 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       : trimmedUsername.length > 0
         ? trimmedUsername.toUpperCase()
         : "";
+  const verifiedBadgeText = useMemo(() => {
+    if (!lastVerifiedAt) {
+      return null;
+    }
+
+    const parsed = new Date(lastVerifiedAt);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return parsed.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }, [lastVerifiedAt]);
   const [profileData, setProfileData] = useState(() => getProfileByKey(canonicalProfileKey));
 
   useEffect(() => {
@@ -412,6 +452,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       if (typeof storedValue === "string") {
         let parsedUsername = "";
         let parsedPassword = "";
+        let parsedKey: string | null = null;
+        let parsedVerifiedAt: string | null = null;
 
         try {
           const parsed = JSON.parse(storedValue);
@@ -420,6 +462,18 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             const candidatePassword = typeof parsed.password === "string" ? parsed.password.trim() : "";
             parsedUsername = candidateUsername;
             parsedPassword = candidatePassword;
+            if (typeof (parsed as StoredCredentialsRecord).key === "string") {
+              const candidateKey = ((parsed as StoredCredentialsRecord).key ?? "").trim();
+              if (candidateKey.length > 0) {
+                parsedKey = candidateKey;
+              }
+            }
+            if (typeof (parsed as StoredCredentialsRecord).lastVerifiedAt === "string") {
+              const candidateTimestamp = ((parsed as StoredCredentialsRecord).lastVerifiedAt ?? "").trim();
+              if (candidateTimestamp.length > 0 && !Number.isNaN(Date.parse(candidateTimestamp))) {
+                parsedVerifiedAt = candidateTimestamp;
+              }
+            }
           }
         } catch {
           // Legacy password-only value; handle below.
@@ -434,7 +488,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         setUsernameDraft(parsedUsername);
         setAdminPassword(parsedPassword);
         setPasswordDraft(parsedPassword);
-        setPasswordKey(null);
+        setPasswordKey(parsedKey);
+        setLastVerifiedAt(parsedVerifiedAt);
         setIsPasswordVisible(false);
       }
     } catch {
@@ -589,48 +644,107 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     [],
   );
 
-  const verifyDevCredentials = useCallback(async () => {
-    const currentUsername = username.trim();
-    const currentPassword = adminPassword.trim();
-
-    if (!currentUsername || !currentPassword) {
-      const message = "Save your username and password above before continuing.";
-      showPasswordNotice({ type: "error", message });
-      throw new Error(message);
-    }
-
-    try {
-      const authResponse = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUsername, password: currentPassword }),
-      });
-
-      const authPayload = await authResponse.json().catch(() => ({}));
-      if (!authResponse.ok || authPayload.authorized !== true) {
-        const reason = typeof authPayload.error === "string" ? authPayload.error : "Authentication failed.";
-        throw new Error(reason);
+  const persistCredentialsToLocalStorage = useCallback(
+    (record: { username: string; password: string; key: string; lastVerifiedAt: string }) => {
+      if (typeof window === "undefined") {
+        return false;
       }
 
-      const matchedKey =
-        typeof authPayload.key === "string" && authPayload.key.trim().length > 0
-          ? authPayload.key.trim()
-          : currentUsername;
+      try {
+        const payload: StoredCredentialsRecord = {
+          username: record.username,
+          password: record.password,
+          key: record.key,
+          lastVerifiedAt: record.lastVerifiedAt,
+        };
+        window.localStorage.setItem(PASSWORD_STORAGE_KEY, JSON.stringify(payload));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
 
-      setPasswordKey(matchedKey);
-      showPasswordNotice({ type: "success", message: `Verified as ${matchedKey}.` });
+  const verifyDevCredentials = useCallback(
+    async (options: {
+      username?: string;
+      password?: string;
+      persist?: boolean;
+      showStorageError?: boolean;
+      syncDraftInputs?: boolean;
+    } = {}) => {
+      const candidateUsername = (options.username ?? username).trim();
+      const candidatePassword = (options.password ?? adminPassword).trim();
 
-      return {
-        username: currentUsername,
-        password: currentPassword,
-        key: matchedKey,
-      };
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "Authentication failed.";
-      showPasswordNotice({ type: "error", message: reason });
-      throw new Error(reason);
-    }
-  }, [adminPassword, showPasswordNotice, username]);
+      if (!candidateUsername || !candidatePassword) {
+        const message = "Save your username and password above before continuing.";
+        showPasswordNotice({ type: "error", message });
+        throw new Error(message);
+      }
+
+      try {
+        const authResponse = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: candidateUsername, password: candidatePassword }),
+        });
+
+        const authPayload = await authResponse.json().catch(() => ({}));
+        if (!authResponse.ok || authPayload.authorized !== true) {
+          const reason = typeof authPayload.error === "string" ? authPayload.error : "Authentication failed.";
+          throw new Error(reason);
+        }
+
+        const matchedKey =
+          typeof authPayload.key === "string" && authPayload.key.trim().length > 0
+            ? authPayload.key.trim()
+            : candidateUsername;
+
+        const verifiedAt = new Date().toISOString();
+
+        setPasswordKey(matchedKey);
+        setLastVerifiedAt(verifiedAt);
+        setUsername(candidateUsername);
+        setAdminPassword(candidatePassword);
+
+        if (options.username !== undefined || options.password !== undefined || options.syncDraftInputs) {
+          setUsernameDraft(candidateUsername);
+          setPasswordDraft(candidatePassword);
+        }
+
+        const shouldPersist = options.persist ?? true;
+        let noticeMessage = `Logged in as ${matchedKey}.`;
+        if (shouldPersist) {
+          const persisted = persistCredentialsToLocalStorage({
+            username: candidateUsername,
+            password: candidatePassword,
+            key: matchedKey,
+            lastVerifiedAt: verifiedAt,
+          });
+
+          if (!persisted) {
+            if (options.showStorageError) {
+              noticeMessage = "Verified for this session, but local storage is unavailable.";
+            }
+          }
+        }
+
+        showPasswordNotice({ type: "success", message: noticeMessage });
+
+        return {
+          username: candidateUsername,
+          password: candidatePassword,
+          key: matchedKey,
+        };
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Authentication failed.";
+        showPasswordNotice({ type: "error", message: reason });
+        throw new Error(reason);
+      }
+    },
+    [adminPassword, persistCredentialsToLocalStorage, showPasswordNotice, username],
+  );
 
   useEffect(
     () => () => {
@@ -642,8 +756,35 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     [],
   );
 
+  const handleLogout = useCallback(() => {
+    setUsername("");
+    setUsernameDraft("");
+    setAdminPassword("");
+    setPasswordDraft("");
+    setPasswordKey(null);
+    setLastVerifiedAt(null);
+    setIsPasswordVisible(false);
+    setIsVerifyingCredentials(false);
+    profileVerifyAttemptRef.current = false;
+
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+        showPasswordNotice({ type: "success", message: "Logged out and cleared saved credentials." });
+        return;
+      } catch {
+        // Fall through to session-only notice below.
+      }
+    }
+
+    showPasswordNotice({
+      type: "success",
+      message: "Logged out for this session. Clear local storage manually to remove saved credentials.",
+    });
+  }, [showPasswordNotice]);
+
   const handleCredentialsSave = useCallback(
-    (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
+    async (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
       if (event && "preventDefault" in event) {
         event.preventDefault();
       }
@@ -651,27 +792,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       const trimmedUsernameDraft = usernameDraft.trim();
       const trimmedPasswordDraft = passwordDraft.trim();
 
-      if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
-        setUsername("");
-        setUsernameDraft("");
-        setAdminPassword("");
-        setPasswordDraft("");
-        setPasswordKey(null);
-        setIsPasswordVisible(false);
+      setUsernameDraft(trimmedUsernameDraft);
+      setPasswordDraft(trimmedPasswordDraft);
 
-        if (typeof window !== "undefined") {
-          try {
-            window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
-            showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
-          } catch {
-            showPasswordNotice({
-              type: "error",
-              message: "Credentials cleared for this session. Clear local storage manually to remove saved data.",
-            });
-          }
-        } else {
-          showPasswordNotice({ type: "success", message: "Saved credentials cleared." });
-        }
+      if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
+        handleLogout();
         return;
       }
 
@@ -680,37 +805,29 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         return;
       }
 
-      setUsername(trimmedUsernameDraft);
-      setUsernameDraft(trimmedUsernameDraft);
-      setAdminPassword(trimmedPasswordDraft);
-      setPasswordDraft(trimmedPasswordDraft);
-      setPasswordKey(null);
-      setIsPasswordVisible(false);
-
-      if (typeof window === "undefined") {
-        showPasswordNotice({ type: "success", message: "Credentials ready for this session." });
-        return;
-      }
-
+      setIsVerifyingCredentials(true);
       try {
-        const payload = JSON.stringify({ username: trimmedUsernameDraft, password: trimmedPasswordDraft });
-        window.localStorage.setItem(PASSWORD_STORAGE_KEY, payload);
-        showPasswordNotice({ type: "success", message: "Credentials saved locally." });
-      } catch {
-        showPasswordNotice({
-          type: "error",
-          message: "Unable to access local storage; credentials kept for this session.",
+        await verifyDevCredentials({
+          username: trimmedUsernameDraft,
+          password: trimmedPasswordDraft,
+          showStorageError: true,
+          syncDraftInputs: true,
         });
+        setIsPasswordVisible(false);
+      } catch {
+        // Verification errors are handled through notices.
+      } finally {
+        setIsVerifyingCredentials(false);
       }
     },
-    [passwordDraft, showPasswordNotice, usernameDraft],
+    [handleLogout, passwordDraft, showPasswordNotice, usernameDraft, verifyDevCredentials],
   );
 
   const handleCredentialInputKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        handleCredentialsSave();
+        void handleCredentialsSave();
       }
     },
     [handleCredentialsSave],
@@ -1360,10 +1477,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             </div>
             <button
               type="submit"
-              className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+              className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/10 disabled:text-white/50"
+              disabled={isVerifyingCredentials}
             >
-              <Save className="h-4 w-4" />
-              Save
+              {isVerifyingCredentials ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isVerifyingCredentials ? "Verifying…" : "Save"}
             </button>
           </form>
           <div className="mt-2 min-h-[1.25rem] text-xs">
@@ -1371,12 +1493,37 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
                 {passwordNotice.message}
               </p>
-            ) : passwordKey ? (
-              <p className="text-white/55">Credentials saved locally. Last verified as {passwordKey}.</p>
             ) : (
               <p className="text-white/45">
-                Save once to reuse your username and password after refresh. Leave both blank and save to clear them.
+                Save to verify your ENV credentials. Leave both fields blank and press Save to log out.
               </p>
+            )}
+          </div>
+          <div className="mt-4 flex flex-col gap-3 text-xs text-white/65 md:flex-row md:items-center md:justify-between">
+            {passwordKey ? (
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-200">
+                <BadgeCheck className="h-4 w-4" />
+                <span>Logged in as {passwordKey}</span>
+                <span className="text-emerald-200/75">• Verified {verifiedBadgeText ?? "just now"}</span>
+              </div>
+            ) : hasStoredCredentials ? (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-medium text-white/70">
+                <RefreshCw className="h-4 w-4" />
+                <span>Credentials stored. Save to verify.</span>
+              </div>
+            ) : (
+              <div className="text-white/45">Not logged in.</div>
+            )}
+            {hasStoredCredentials && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 px-3 py-1 font-medium text-white/75 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isVerifyingCredentials}
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </button>
             )}
           </div>
         </div>
