@@ -7,11 +7,17 @@
     color-scheme: dark;
   }
 
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     margin: 0;
     font-family: theme('fontFamily.sans');
     background-color: #0f0a1f;
-    min-height: 100vh;
     scrollbar-gutter: stable both-edges;
   }
 
@@ -54,17 +60,28 @@
 }
 
 @layer components {
-  header {
-    transition: none;
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
-  body.mobile-keyboard-open header {
-    transition: none;
+  .app-header,
+  .app-footer {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 50;
   }
 
-  .ios-sticky-header {
-    position: -webkit-sticky;
+  .app-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
+
   .json-editor pre {
     margin: 0;
     background: transparent;

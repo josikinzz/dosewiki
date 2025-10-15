@@ -28,7 +28,6 @@ interface GlobalSearchProps {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
   containerClassName?: string;
-  onRootReady?: (element: HTMLDivElement | null) => void;
   compact?: boolean;
 }
 
@@ -36,7 +35,6 @@ export function GlobalSearch({
   currentView,
   onNavigate,
   containerClassName,
-  onRootReady,
   compact = false,
 }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
@@ -47,23 +45,6 @@ export function GlobalSearch({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  const handleWrapperRef = useCallback((node: HTMLDivElement | null) => {
-    wrapperRef.current = node;
-    if (onRootReady) {
-      onRootReady(node);
-    }
-  }, [onRootReady]);
-
-  useEffect(() => {
-    return () => {
-      if (onRootReady) {
-        onRootReady(null);
-      }
-    };
-  }, [onRootReady]);
-
   useEffect(() => {
     if (currentView.type === "search") {
       setQuery(currentView.query);
@@ -301,7 +282,7 @@ export function GlobalSearch({
   const wrapperClassName = containerClassName ?? "mx-auto w-full max-w-3xl px-4 sm:px-6";
 
   return (
-    <div ref={handleWrapperRef} className={wrapperClassName}>
+    <div className={wrapperClassName}>
       <div className="relative" ref={containerRef}>
         <label htmlFor="global-search" className="sr-only">
           Search the library

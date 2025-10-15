@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { Hero } from "./components/sections/Hero";
@@ -37,7 +36,6 @@ import { querySearch } from "./data/search";
 import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
 import { parseHash, viewToHash } from "./utils/routing";
-import { GlobalSearch } from "./components/common/GlobalSearch";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
@@ -48,17 +46,7 @@ const DEFAULT_VIEW: AppView = { type: "substances" };
 
 export default function App() {
   const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
-  const [isSearchInHeader, setIsSearchInHeader] = useState(false);
-  const [topSearchContainer, setTopSearchContainer] = useState<HTMLDivElement | null>(null);
-  const [headerSearchContainer, setHeaderSearchContainer] = useState<HTMLDivElement | null>(null);
-  const [searchTarget, setSearchTarget] = useState<HTMLDivElement | null>(null);
-  const searchRootElementRef = useRef<HTMLDivElement | null>(null);
-  const [reservedTopSearchHeight, setReservedTopSearchHeight] = useState<number>(0);
-  const [isHeaderSearchVisible, setHeaderSearchVisible] = useState(false);
-  const [isBodySearchVisible, setBodySearchVisible] = useState(true);
-  const headerShowTimeoutRef = useRef<number | null>(null);
-  const bodyMoveTimeoutRef = useRef<number | null>(null);
-  const FADE_DURATION_MS = 200;
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -146,322 +134,13 @@ export default function App() {
   }, [defaultRoute, activeSlug]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0 });
+    const container = contentScrollRef.current;
+    if (!container) {
+      return;
+    }
+
+    container.scrollTo({ top: 0, left: 0 });
   }, [view]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsSearchInHeader(window.scrollY > 70);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    setIsSearchInHeader(window.scrollY > 70);
-  }, [view]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof document === 'undefined' || typeof navigator === 'undefined') {
-      return;
-    }
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (!isMobile) {
-      return;
-    }
-
-    const header = document.querySelector('header');
-    if (!header) {
-      return;
-    }
-
-    let isInputFocused = false;
-    let scrollUpdateFrame: number | null = null;
-
-    const applyAbsolutePositioning = () => {
-      header.style.position = 'absolute';
-      header.style.top = `${window.scrollY}px`;
-      document.body.classList.add('mobile-keyboard-open');
-    };
-
-    const ensureHeaderPosition = () => {
-      if (!isInputFocused) {
-        return;
-      }
-
-      applyAbsolutePositioning();
-      scrollUpdateFrame = window.requestAnimationFrame(ensureHeaderPosition);
-    };
-
-    const restoreHeader = () => {
-      header.style.position = '';
-      header.style.top = '';
-      document.body.classList.remove('mobile-keyboard-open');
-    };
-
-    const isEditableTarget = (element: HTMLElement) =>
-      element.tagName === 'INPUT' ||
-      element.tagName === 'TEXTAREA' ||
-      element.getAttribute('contenteditable') === 'true';
-
-    const handleFocus = (event: FocusEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target || !isEditableTarget(target)) {
-        return;
-      }
-
-      isInputFocused = true;
-      applyAbsolutePositioning();
-      ensureHeaderPosition();
-    };
-
-    const handleBlur = (event: FocusEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target || !isEditableTarget(target)) {
-        return;
-      }
-
-      isInputFocused = false;
-
-      if (scrollUpdateFrame !== null) {
-        window.cancelAnimationFrame(scrollUpdateFrame);
-        scrollUpdateFrame = null;
-      }
-
-      window.setTimeout(() => {
-        restoreHeader();
-      }, 300);
-    };
-
-    const handleScroll = () => {
-      if (!isInputFocused) {
-        return;
-      }
-
-      header.style.top = `${window.scrollY}px`;
-    };
-
-    document.addEventListener('focusin', handleFocus);
-    document.addEventListener('focusout', handleBlur);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      document.removeEventListener('focusin', handleFocus);
-      document.removeEventListener('focusout', handleBlur);
-      window.removeEventListener('scroll', handleScroll);
-
-      if (scrollUpdateFrame !== null) {
-        window.cancelAnimationFrame(scrollUpdateFrame);
-      }
-
-      restoreHeader();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
-      return;
-    }
-
-    const userAgent = navigator.userAgent;
-    const isIOS = /(iPod|iPhone|iPad)/.test(userAgent) && /AppleWebKit/.test(userAgent);
-    const isAndroid = /Android/i.test(userAgent);
-
-    let scrollTracker: HTMLDivElement | null = null;
-
-    const updateScroll = () => {
-      if (!scrollTracker) {
-        return;
-      }
-      scrollTracker.textContent = window.scrollY.toFixed(0);
-    };
-
-    if (isIOS) {
-      scrollTracker = document.createElement('div');
-      scrollTracker.style.height = '0px';
-      scrollTracker.style.overflow = 'hidden';
-      scrollTracker.style.position = 'absolute';
-      scrollTracker.style.top = '0';
-      scrollTracker.style.left = '0';
-      scrollTracker.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(scrollTracker);
-
-      window.addEventListener('scroll', updateScroll, { passive: true });
-      window.addEventListener('touchmove', updateScroll, { passive: true });
-    }
-
-    const handleResize = () => {
-      if (!isAndroid) {
-        return;
-      }
-
-      const activeElement = document.activeElement as HTMLElement | null;
-      if (!activeElement || activeElement.tagName !== 'INPUT') {
-        return;
-      }
-
-      window.setTimeout(() => {
-        const scrollIntoViewIfNeeded = (activeElement as any).scrollIntoViewIfNeeded;
-        if (typeof scrollIntoViewIfNeeded === 'function') {
-          scrollIntoViewIfNeeded.call(activeElement);
-          return;
-        }
-
-        activeElement.scrollIntoView({
-          block: 'nearest',
-          inline: 'nearest',
-          behavior: 'auto',
-        });
-      }, 100);
-    };
-
-    if (isAndroid) {
-      window.addEventListener('resize', handleResize);
-    }
-
-    return () => {
-      if (isIOS) {
-        window.removeEventListener('scroll', updateScroll);
-        window.removeEventListener('touchmove', updateScroll);
-        if (scrollTracker && scrollTracker.parentNode) {
-          scrollTracker.parentNode.removeChild(scrollTracker);
-        }
-      }
-
-      if (isAndroid) {
-        window.removeEventListener('resize', handleResize);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!topSearchContainer && !headerSearchContainer) {
-      return;
-    }
-
-    if (headerShowTimeoutRef.current !== null) {
-      window.clearTimeout(headerShowTimeoutRef.current);
-      headerShowTimeoutRef.current = null;
-    }
-
-    if (bodyMoveTimeoutRef.current !== null) {
-      window.clearTimeout(bodyMoveTimeoutRef.current);
-      bodyMoveTimeoutRef.current = null;
-    }
-
-    const headerElement = headerSearchContainer;
-    const topElement = topSearchContainer;
-
-    if (isSearchInHeader) {
-      setBodySearchVisible(false);
-
-      if (headerElement && searchTarget !== headerElement) {
-        setSearchTarget(headerElement);
-      }
-
-      setHeaderSearchVisible(false);
-
-      if (headerElement) {
-        headerShowTimeoutRef.current = window.setTimeout(() => {
-          setHeaderSearchVisible(true);
-          headerShowTimeoutRef.current = null;
-        }, FADE_DURATION_MS);
-      }
-
-      return () => {
-        if (headerShowTimeoutRef.current !== null) {
-          window.clearTimeout(headerShowTimeoutRef.current);
-          headerShowTimeoutRef.current = null;
-        }
-      };
-    }
-
-    setHeaderSearchVisible(false);
-
-    if (!topElement) {
-      return undefined;
-    }
-
-    if (!searchTarget) {
-      setSearchTarget(topElement);
-      setBodySearchVisible(true);
-      return undefined;
-    }
-
-    if (searchTarget === topElement) {
-      setBodySearchVisible(true);
-      return undefined;
-    }
-
-    setBodySearchVisible(false);
-
-    bodyMoveTimeoutRef.current = window.setTimeout(() => {
-      setSearchTarget(topElement);
-      requestAnimationFrame(() => {
-        setBodySearchVisible(true);
-      });
-      bodyMoveTimeoutRef.current = null;
-    }, FADE_DURATION_MS);
-
-    return () => {
-      if (bodyMoveTimeoutRef.current !== null) {
-        window.clearTimeout(bodyMoveTimeoutRef.current);
-        bodyMoveTimeoutRef.current = null;
-      }
-    };
-  }, [isSearchInHeader, headerSearchContainer, topSearchContainer, searchTarget]);
-
-  useEffect(() => () => {
-    if (headerShowTimeoutRef.current !== null) {
-      window.clearTimeout(headerShowTimeoutRef.current);
-    }
-    if (bodyMoveTimeoutRef.current !== null) {
-      window.clearTimeout(bodyMoveTimeoutRef.current);
-    }
-  }, []);
-
-  const storeSearchRoot = useCallback((node: HTMLDivElement | null) => {
-    searchRootElementRef.current = node;
-  }, []);
-
-  useLayoutEffect(() => {
-    const element = searchRootElementRef.current;
-    if (!element) {
-      return;
-    }
-
-    if (searchTarget === topSearchContainer) {
-      const rect = element.getBoundingClientRect();
-      setReservedTopSearchHeight(rect.height);
-    }
-  }, [searchTarget, topSearchContainer]);
-
-  const handleTopSearchContainerRef = useCallback((node: HTMLDivElement | null) => {
-    setTopSearchContainer(node);
-  }, []);
-
-  const handleHeaderSearchSlotChange = useCallback((node: HTMLDivElement | null) => {
-    setHeaderSearchContainer(node);
-  }, []);
-
-  const isSearchTargetInHeader = searchTarget === headerSearchContainer;
-
-  const searchContainerClassName = isSearchTargetInHeader
-    ? `w-full px-2 sm:px-3 md:px-4 transition-opacity duration-200 ease-out ${
-        isHeaderSearchVisible ? "opacity-100" : "opacity-0"
-      }`
-    : `mx-auto w-full max-w-[98vw] px-2 sm:max-w-3xl sm:px-6 transition-opacity duration-200 ease-out ${
-        isBodySearchVisible ? "opacity-100" : "opacity-0"
-      }`;
-
-  const topSearchWrapperClassName = `transition-[max-height,padding,opacity] duration-200 ease-out ${
-    isSearchInHeader
-      ? "pointer-events-none max-h-32 px-4 pb-6 pt-4 opacity-0 md:pt-6"
-      : "max-h-32 px-0 pb-6 pt-4 opacity-100 sm:px-4 md:pt-6"
-  }`;
 
   const activeRouteKey: RouteKey | undefined = useMemo(() => {
     if (!content || !defaultRoute) {
@@ -480,42 +159,16 @@ export default function App() {
   }, [route, defaultRoute, content]);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
+    <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-3xl" />
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header
-        currentView={view}
-        defaultSlug={DEFAULT_SLUG}
-        onNavigate={navigate}
-        onSearchSlotChange={handleHeaderSearchSlotChange}
-      />
+      <Header currentView={view} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
 
-      <div
-        ref={handleTopSearchContainerRef}
-        className={topSearchWrapperClassName}
-        style={reservedTopSearchHeight > 0 ? {
-          height: reservedTopSearchHeight,
-          minHeight: reservedTopSearchHeight,
-          maxHeight: reservedTopSearchHeight,
-        } : undefined}
-      />
-
-      {searchTarget &&
-        createPortal(
-          <GlobalSearch
-            currentView={view}
-            onNavigate={navigate}
-            containerClassName={searchContainerClassName}
-            compact={isSearchTargetInHeader}
-            onRootReady={storeSearchRoot}
-          />,
-          searchTarget,
-        )}
-
-      {view.type === "dev" ? (
+      <div ref={contentScrollRef} className="app-content relative">
+        {view.type === "dev" ? (
         <DevModePage activeTab={view.tab} onTabChange={(tab) => navigate({ type: "dev", tab })} />
       ) : view.type === "substances" ? (
         <main>
@@ -698,9 +351,10 @@ export default function App() {
             </div>
           </main>
         </>
-      )}
+        )}
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

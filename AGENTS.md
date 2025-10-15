@@ -26,6 +26,7 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 
 ## Agent Notes
 - Entry point lives in `src/main.tsx` and renders the hash-driven router in `src/App.tsx`; navigation state is stored in React hooks with helpers from `src/utils/routing.ts`.
+- The viewport locks to `.app-container`/`.app-content` (styles in `src/styles.css`) so the header remains static while the scrollable area lives in the inner content panel.
 - Substance content is sourced exclusively from `src/data/articles.json`, normalized via `contentBuilder.ts`, and indexed by `library.ts`; search suggestions reuse the same records through `src/data/search.ts`.
 - UI structure is split into `components/common` (primitives like `SectionCard`, `IconBadge`, `GlobalSearch`, `JsonEditor`), `components/sections` (dose card, info sections, interactions, etc.), and `components/pages` (route-level shells such as `DosagesPage`, `EffectsPage`, `MechanismDetailPage`).
 - `components/sections/CategoryGrid.tsx` manages expandable category buckets, clipboard export, and delegates selections back to router callbacks.
