@@ -164,15 +164,6 @@ export default function App() {
   }, [view]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
-      return;
-    }
-
-    const userAgent = navigator.userAgent;
-    const isIOS = /(iPod|iPhone|iPad)/.test(userAgent) && /AppleWebKit/.test(userAgent);
-    const isAndroid = /Android/i.test(userAgent);
-
-  useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined' || typeof navigator === 'undefined') {
       return;
     }
@@ -269,6 +260,15 @@ export default function App() {
       restoreHeader();
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    const userAgent = navigator.userAgent;
+    const isIOS = /(iPod|iPhone|iPad)/.test(userAgent) && /AppleWebKit/.test(userAgent);
+    const isAndroid = /Android/i.test(userAgent);
 
     let scrollTracker: HTMLDivElement | null = null;
 
