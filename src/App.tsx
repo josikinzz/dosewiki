@@ -172,6 +172,104 @@ export default function App() {
     const isIOS = /(iPod|iPhone|iPad)/.test(userAgent) && /AppleWebKit/.test(userAgent);
     const isAndroid = /Android/i.test(userAgent);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined' || typeof navigator === 'undefined') {
+      return;
+    }
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      return;
+    }
+
+    const header = document.querySelector('header');
+    if (!header) {
+      return;
+    }
+
+    let isInputFocused = false;
+    let scrollUpdateFrame: number | null = null;
+
+    const applyAbsolutePositioning = () => {
+      header.style.position = 'absolute';
+      header.style.top = `${window.scrollY}px`;
+      document.body.classList.add('mobile-keyboard-open');
+    };
+
+    const ensureHeaderPosition = () => {
+      if (!isInputFocused) {
+        return;
+      }
+
+      applyAbsolutePositioning();
+      scrollUpdateFrame = window.requestAnimationFrame(ensureHeaderPosition);
+    };
+
+    const restoreHeader = () => {
+      header.style.position = '';
+      header.style.top = '';
+      document.body.classList.remove('mobile-keyboard-open');
+    };
+
+    const isEditableTarget = (element: HTMLElement) =>
+      element.tagName === 'INPUT' ||
+      element.tagName === 'TEXTAREA' ||
+      element.getAttribute('contenteditable') === 'true';
+
+    const handleFocus = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target || !isEditableTarget(target)) {
+        return;
+      }
+
+      isInputFocused = true;
+      applyAbsolutePositioning();
+      ensureHeaderPosition();
+    };
+
+    const handleBlur = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target || !isEditableTarget(target)) {
+        return;
+      }
+
+      isInputFocused = false;
+
+      if (scrollUpdateFrame !== null) {
+        window.cancelAnimationFrame(scrollUpdateFrame);
+        scrollUpdateFrame = null;
+      }
+
+      window.setTimeout(() => {
+        restoreHeader();
+      }, 300);
+    };
+
+    const handleScroll = () => {
+      if (!isInputFocused) {
+        return;
+      }
+
+      header.style.top = `${window.scrollY}px`;
+    };
+
+    document.addEventListener('focusin', handleFocus);
+    document.addEventListener('focusout', handleBlur);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener('focusin', handleFocus);
+      document.removeEventListener('focusout', handleBlur);
+      window.removeEventListener('scroll', handleScroll);
+
+      if (scrollUpdateFrame !== null) {
+        window.cancelAnimationFrame(scrollUpdateFrame);
+      }
+
+      restoreHeader();
+    };
+  }, []);
+
     let scrollTracker: HTMLDivElement | null = null;
 
     const updateScroll = () => {

@@ -54,6 +54,13 @@
 }
 
 @layer components {
+  header {
+    transition: none;
+  }
+
+  body.mobile-keyboard-open header {
+    transition: none;
+  }
 
   .ios-sticky-header {
     position: -webkit-sticky;
