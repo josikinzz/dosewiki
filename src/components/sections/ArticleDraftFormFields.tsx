@@ -709,8 +709,8 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
         psychoactiveClassOptions={psychoactiveClassOptions}
         mechanismOptions={mechanismOptions}
       />
-      <SubjectiveEffectsFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
       <AddictionFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
+      <SubjectiveEffectsFields idPrefix={idPrefix} form={form} handleFieldChange={handleFieldChange} />
       <InteractionsFields form={form} handleFieldChange={handleFieldChange} />
       <ToleranceFields
         idPrefix={idPrefix}
