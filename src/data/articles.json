@@ -69983,5 +69983,118 @@
       ]
     },
     "id": 629
+  },
+  {
+    "title": "ETH-LAD",
+    "index-category": "psychedelic; lysergamide",
+    "drug_info": {
+      "drug_name": "ETH-LAD",
+      "chemical_name": "(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "alternative_name": "N-Ethyl-nor-LSD; 6-Ethyl-6-nor-lysergic acid diethylamide; N-Ethyl-nor-lysergic acid N,N-diethylamide",
+      "chemical_class": "Lysergamides",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2C receptor agonist; 5-HT1A receptor agonist (high affinity); dopamine D1, D2, D3, D4, D5 receptor binding (lower affinity)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "15 ug",
+              "light": "30-60 ug",
+              "common": "60-150 ug",
+              "strong": "150-225 ug",
+              "heavy": "225+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "20-40 minutes",
+              "peak": "4-6 hours (including 45-90 minute come up)",
+              "offset": "2-4 hours",
+              "after_effects": "8-48 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "ETH-LAD is not considered habit-forming and demonstrates a self-regulating quality typical of psychedelics. Rapid tolerance develops immediately after use, discouraging frequent consumption. Cases of abuse have been rarely reported, though the substance generally decreases in desirability with repeated use.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Cannabis (unpredictable and strongly increased effects, risk of anxiety, paranoia, panic attacks, and psychosis)",
+          "Stimulants including amphetamine, cocaine, methylphenidate (increased risk of anxiety, paranoia, panic attacks, thought loops, mania, and psychosis)"
+        ],
+        "caution": []
+      },
+      "notes": "ETH-LAD requires exceptional caution due to its high potency, unpredictable dose-response curve, and tendency to produce severe physical side effects including pronounced nausea, temperature dysregulation, muscle cramps, and bodily discomfort at higher doses. The substance is notably more difficult to handle than LSD and should only be used by experienced psychedelic users. Accurate measurement with a precise scale is critical. Users should monitor body temperature throughout the experience and maintain access to climate control. Set and setting are paramount, and having a trusted sober sitter is strongly recommended, especially at doses above the common range. Individuals with personal or family history of psychotic disorders should avoid use.",
+      "subjective_effects": [
+        "Intricate Visual Geometry",
+        "Enhanced Pattern Recognition",
+        "Auditory Distortions and Hallucinations",
+        "Analysis Enhancement",
+        "Introspective Thought Patterns",
+        "Time Distortion",
+        "Synaesthesia",
+        "Enhanced Color Perception",
+        "Nausea and Bodily Discomfort",
+        "Temperature Dysregulation",
+        "Emotional Neutrality or Detachment",
+        "Thought Acceleration",
+        "Memory Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics including LSD, psilocybin, mescaline, DMT, and related lysergamides"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy ETH-LAD Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-eth-lad-thread.761505/"
+        },
+        {
+          "name": "Erowid ETH-LAD Experience Vault",
+          "reference": "https://www.erowid.org/experiences/subs/exp_ETHLAD.shtml"
+        },
+        {
+          "name": "Erowid TiHKAL Entry #12: ETH-LAD",
+          "reference": "https://erowid.org/library/books_online/tihkal/tihkal12.shtml"
+        },
+        {
+          "name": "Hoffman AJ, Nichols DE (1985) - Synthesis and LSD-like discriminative stimulus properties",
+          "reference": "https://doi.org/10.1021/jm00147a022"
+        },
+        {
+          "name": "Isomer Design: TiHKAL ETH-LAD Entry",
+          "reference": "http://isomerdesign.com/PiHKAL/read.php?domain=tk&id=12"
+        },
+        {
+          "name": "PsychonautWiki: ETH-LAD",
+          "reference": "https://psychonautwiki.org/wiki/ETH-LAD"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical"
+      ]
+    },
+    "id": 630
   }
 ]
