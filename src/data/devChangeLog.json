@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251016-205804-77914f41",
+    "createdAt": "2025-10-16T20:58:04.237Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 22:58:00"
+    },
+    "articles": [
+      {
+        "id": 176,
+        "title": "Zopiclone",
+        "slug": "zopiclone"
+      }
+    ],
+    "markdown": "# Zopiclone · #176\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-204349-778df3a1",
     "createdAt": "2025-10-16T20:43:49.406Z",
     "commit": {
