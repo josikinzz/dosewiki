@@ -541,11 +541,12 @@ export function buildCategoryGroups(records: SubstanceRecord[]): DosageCategoryG
     }
   });
 
-  if (precomputedFilteredRecords.has("hallucinogen")) {
-    const hallucinogenList = precomputedFilteredRecords
-      .get("hallucinogen")!
-      .filter((record) => !hallucinogenExclusions.has(record.slug));
-    precomputedFilteredRecords.set("hallucinogen", hallucinogenList);
+  const hallucinogenRecords = precomputedFilteredRecords.get("hallucinogen");
+  if (hallucinogenRecords) {
+    const filteredHallucinogens = hallucinogenRecords.filter(
+      (record) => !hallucinogenExclusions.has(record.slug),
+    );
+    precomputedFilteredRecords.set("hallucinogen", filteredHallucinogens);
   }
 
   return CATEGORY_DEFINITIONS.map((definition) => {
@@ -1067,14 +1068,10 @@ const PSYCHEDELIC_GROUP_CONFIG: CategoryGroupConfig[] = [
       "2C-TFM",
     ],
     filter: (context) => {
-      const categoryList = Array.isArray(context.categories) ? context.categories : [];
+      const normalizedTarget = normalizeCategoryKey("2C-X");
+      const hasCategory = context.normalizedCategories.has(normalizedTarget);
       const classList = Array.isArray(context.chemicalClasses) ? context.chemicalClasses : [];
-      const hasCategory = categoryList.some(
-        (entry) => normalizeKey(entry) === normalizeKey("2C-X"),
-      );
-      const hasClass = classList.some(
-        (entry) => normalizeKey(entry) === normalizeKey("2C-X"),
-      );
+      const hasClass = classList.some((entry) => normalizeKey(entry) === normalizedTarget);
       return hasCategory || hasClass;
     },
   },
@@ -1738,10 +1735,12 @@ function buildChemicalClassGroups(records: SubstanceRecord[]): CategoryDetailGro
     const classes = record.chemicalClasses && record.chemicalClasses.length > 0 ? record.chemicalClasses : ["Unspecified"];
     classes.forEach((chemicalClass) => {
       const key = chemicalClass.trim();
-      if (!chemicalMap.has(key)) {
-        chemicalMap.set(key, []);
+      let entries = chemicalMap.get(key);
+      if (!entries) {
+        entries = [];
+        chemicalMap.set(key, entries);
       }
-      chemicalMap.get(key)!.push(createDrugEntry(record));
+      entries.push(createDrugEntry(record));
     });
   });
 
@@ -1993,7 +1992,10 @@ function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCatego
         });
       }
 
-      const bucket = bucketMap.get(key)!;
+      const bucket = bucketMap.get(key);
+      if (!bucket) {
+        return;
+      }
       if (!bucket.drugs.has(record.slug)) {
         bucket.drugs.set(record.slug, createDrugEntry(record));
       }
@@ -2141,7 +2143,11 @@ substanceRecords.forEach((record) => {
       });
     }
 
-    const accumulator = mechanismMap.get(slug)!;
+    const accumulator = mechanismMap.get(slug);
+    if (!accumulator) {
+      return;
+    }
+
     accumulator.records.add(record);
 
     const qualifierKey = qualifier
@@ -2155,7 +2161,8 @@ substanceRecords.forEach((record) => {
       });
     }
 
-    accumulator.qualifierMap.get(qualifierKey)!.records.add(record);
+    const qualifierBucket = accumulator.qualifierMap.get(qualifierKey);
+    qualifierBucket?.records.add(record);
   });
 });
 
@@ -2173,7 +2180,10 @@ substanceRecords.forEach((record) => {
       effectMap.set(slug, { name: effect, records: [] });
     }
 
-    effectMap.get(slug)!.records.push(record);
+    const entry = effectMap.get(slug);
+    if (entry) {
+      entry.records.push(record);
+    }
   });
 });
 

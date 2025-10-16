@@ -48,6 +48,31 @@ export default function App() {
   const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
 
+  const isInvalidSubstanceView = view.type === "substance" && !substanceBySlug.has(view.slug);
+
+  useEffect(() => {
+    if (!isInvalidSubstanceView) {
+      return;
+    }
+
+    const fallbackView: AppView = { type: "substance", slug: DEFAULT_SLUG };
+    setView(fallbackView);
+
+    if (typeof window !== "undefined") {
+      const fallbackHash = viewToHash(fallbackView);
+      if (window.location.hash !== fallbackHash) {
+        window.history.replaceState(null, "", fallbackHash);
+      }
+    }
+  }, [isInvalidSubstanceView]);
+
+  const effectiveView = useMemo<AppView>(() => {
+    if (isInvalidSubstanceView) {
+      return { type: "substance", slug: DEFAULT_SLUG };
+    }
+    return view;
+  }, [isInvalidSubstanceView, view]);
+
   useEffect(() => {
     const handleHashChange = () => {
       setView(parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
@@ -102,7 +127,7 @@ export default function App() {
     [navigate],
   );
 
-  const activeSlug = view.type === "substance" ? view.slug : DEFAULT_SLUG;
+  const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : DEFAULT_SLUG;
   const activeRecord = substanceBySlug.get(activeSlug) ?? DEFAULT_RECORD;
   const content = activeRecord.content;
 
@@ -127,11 +152,44 @@ export default function App() {
     return firstAvailable;
   }, [content]);
 
+  const routePreferencesRef = useRef<Map<string, RouteKey>>(new Map());
   const [route, setRoute] = useState<RouteKey | undefined>(defaultRoute);
 
   useEffect(() => {
-    setRoute(defaultRoute);
-  }, [defaultRoute, activeSlug]);
+    if (!content) {
+      if (route !== undefined) {
+        setRoute(undefined);
+      }
+      return;
+    }
+
+    const storedRoute = routePreferencesRef.current.get(activeSlug);
+    const validStoredRoute = storedRoute && content.routes[storedRoute] ? storedRoute : undefined;
+
+    if (!validStoredRoute && storedRoute) {
+      routePreferencesRef.current.delete(activeSlug);
+    }
+
+    const fallbackRoute = defaultRoute && content.routes[defaultRoute] ? defaultRoute : undefined;
+    const nextRoute = validStoredRoute ?? fallbackRoute;
+
+    if (route !== nextRoute) {
+      setRoute(nextRoute);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlug, content, defaultRoute]);
+
+  const handleRouteChange = useCallback(
+    (nextRoute: RouteKey) => {
+      if (!content || !content.routes[nextRoute]) {
+        return;
+      }
+
+      routePreferencesRef.current.set(activeSlug, nextRoute);
+      setRoute(nextRoute);
+    },
+    [activeSlug, content],
+  );
 
   useEffect(() => {
     const container = contentScrollRef.current;
@@ -165,7 +223,7 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={view} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
+      <Header currentView={effectiveView} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
@@ -325,7 +383,7 @@ export default function App() {
               {activeRouteKey && (
                 <DosageDurationCard
                   route={activeRouteKey}
-                  onRouteChange={(nextRoute) => setRoute(nextRoute)}
+                  onRouteChange={handleRouteChange}
                   routes={content.routes}
                   routeOrder={content.routeOrder}
                   note={content.dosageUnitsNote}

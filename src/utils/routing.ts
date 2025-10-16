@@ -53,92 +53,109 @@ export function parseHash(
   defaultSlug: string,
   defaultView: AppView = { type: "substances" },
 ): AppView {
-  const source = typeof hashValue === "string" ? hashValue : typeof window !== "undefined" ? window.location.hash : "";
-  const raw = source.replace(/^#/, "");
-
   const resolveDefault = () => defaultView;
+  try {
+    const source = typeof hashValue === "string" ? hashValue : typeof window !== "undefined" ? window.location.hash : "";
+    const raw = source.replace(/^#/, "");
 
-  if (!raw) {
-    return resolveDefault();
-  }
-
-  const segments = raw.split("/").filter(Boolean);
-  if (segments.length === 0) {
-    return resolveDefault();
-  }
-
-  const [root, slug] = segments;
-
-  switch (root) {
-    case "substances":
-      return { type: "substances" };
-    case "effects":
-      return { type: "effects" };
-    case "interactions": {
-      const primarySlug = slug;
-      const secondarySlug = segments[2];
-      if (primarySlug && secondarySlug) {
-        return { type: "interactions", primarySlug, secondarySlug };
-      }
-      if (primarySlug) {
-        return { type: "interactions", primarySlug };
-      }
-      return { type: "interactions" };
+    if (!raw) {
+      return resolveDefault();
     }
-    case "about":
-      return { type: "about" };
-    case "category":
-      if (slug) {
-        return { type: "category", categoryKey: slug };
-      }
-      return { type: "substances" };
-    case "effect":
-      if (slug) {
-        return { type: "effect", effectSlug: slug };
-      }
-      return { type: "effects" };
-    case "mechanism":
-      if (slug) {
-        const qualifierSlug = segments[2];
-        if (qualifierSlug) {
-          return { type: "mechanism", mechanismSlug: slug, qualifierSlug };
+
+    const segments = raw.split("/").filter(Boolean);
+    if (segments.length === 0) {
+      return resolveDefault();
+    }
+
+    const [root, slug] = segments;
+
+    switch (root) {
+      case "substances":
+        return { type: "substances" };
+      case "effects":
+        return { type: "effects" };
+      case "interactions": {
+        const primarySlug = slug;
+        const secondarySlug = segments[2];
+        if (primarySlug && secondarySlug) {
+          return { type: "interactions", primarySlug, secondarySlug };
         }
-        return { type: "mechanism", mechanismSlug: slug };
+        if (primarySlug) {
+          return { type: "interactions", primarySlug };
+        }
+        return { type: "interactions" };
       }
-      return { type: "substances" };
-    case "search": {
-      const querySegment = segments.slice(1).join("/");
-      const query = querySegment ? decodeURIComponent(querySegment) : "";
-      return { type: "search", query };
+      case "about":
+        return { type: "about" };
+      case "category":
+        if (slug) {
+          return { type: "category", categoryKey: slug };
+        }
+        return { type: "substances" };
+      case "effect":
+        if (slug) {
+          return { type: "effect", effectSlug: slug };
+        }
+        return { type: "effects" };
+      case "mechanism":
+        if (slug) {
+          const qualifierSlug = segments[2];
+          if (qualifierSlug) {
+            return { type: "mechanism", mechanismSlug: slug, qualifierSlug };
+          }
+          return { type: "mechanism", mechanismSlug: slug };
+        }
+        return { type: "substances" };
+      case "search": {
+        const querySegment = segments.slice(1).join("/");
+        let query = "";
+        if (querySegment) {
+          try {
+            query = decodeURIComponent(querySegment);
+          } catch (error) {
+            console.warn("Failed to decode search query from hash", error);
+            query = querySegment;
+          }
+        }
+        return { type: "search", query };
+      }
+      case "substance":
+        if (slug) {
+          return { type: "substance", slug };
+        }
+        return { type: "substance", slug: defaultSlug };
+      case "contributors": {
+        if (slug) {
+          try {
+            return { type: "contributor", profileKey: decodeURIComponent(slug) };
+          } catch (error) {
+            console.warn("Failed to decode contributor key from hash", error);
+            return { type: "contributor", profileKey: slug };
+          }
+        }
+        return resolveDefault();
+      }
+      case "dev": {
+        const candidate = slug ?? "edit";
+        let tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" = "edit";
+        if (candidate === "create") {
+          tab = "create";
+        } else if (candidate === "change-log" || candidate === "changelog") {
+          tab = "change-log";
+        } else if (candidate === "tag-editor" || candidate === "tag") {
+          tab = "tag-editor";
+        } else if (candidate === "profile" || candidate === "profiles") {
+          tab = "profile";
+        } else if (candidate === "edit") {
+          tab = "edit";
+        }
+        return { type: "dev", tab };
+      }
+      default:
+        return resolveDefault();
     }
-    case "substance":
-      if (slug) {
-        return { type: "substance", slug };
-      }
-      return { type: "substance", slug: defaultSlug };
-    case "contributors": {
-      if (slug) {
-        return { type: "contributor", profileKey: decodeURIComponent(slug) };
-      }
-      return resolveDefault();
-    }
-    case "dev": {
-      const candidate = slug ?? "edit";
-      let tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" = "edit";
-      if (candidate === "create") {
-        tab = "create";
-      } else if (candidate === "change-log" || candidate === "changelog") {
-        tab = "change-log";
-      } else if (candidate === "tag-editor" || candidate === "tag") {
-        tab = "tag-editor";
-      } else if (candidate === "profile" || candidate === "profiles") {
-        tab = "profile";
-      } else if (candidate === "edit") {
-        tab = "edit";
-      }
-      return { type: "dev", tab };
-    }
-    default:
-      return resolveDefault();
+  } catch (error) {
+    console.warn("Failed to parse hash", hashValue, error);
+    return resolveDefault();
   }
 }

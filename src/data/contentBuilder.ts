@@ -101,6 +101,7 @@ interface RawArticle {
   id?: number;
   title?: string | null;
   drug_info?: RawDrugInfo;
+  "index-category"?: string | null;
 }
 
 export interface SubstanceRecord {
@@ -769,7 +770,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
 
   const categories = cleanStringArray(info.categories);
   const normalizedCategories = categories.map((category) => normalizeKey(category));
-  const rawIndexCategory = typeof article["index-category"] === "string" ? article["index-category"] : "";
+  const rawIndexCategory = cleanString(article["index-category"]) ?? "";
   const indexCategories = rawIndexCategory
     ? tokenizeTagString(rawIndexCategory, { splitOnComma: false, splitOnSlash: true })
     : [];
