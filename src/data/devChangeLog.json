@@ -1,5 +1,48 @@
 [
   {
+    "id": "20251016-210425-092f4def",
+    "createdAt": "2025-10-16T21:04:25.208Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 23:04:21"
+    },
+    "articles": [
+      {
+        "id": 242,
+        "title": "Gaboxadol",
+        "slug": "gaboxadol"
+      },
+      {
+        "id": 176,
+        "title": "Zopiclone",
+        "slug": "zopiclone"
+      },
+      {
+        "id": 179,
+        "title": "Zaleplon",
+        "slug": "zaleplon"
+      },
+      {
+        "id": 183,
+        "title": "Zolpidem",
+        "slug": "zolpidem"
+      },
+      {
+        "id": 215,
+        "title": "Ibotenic acid",
+        "slug": "ibotenic-acid"
+      },
+      {
+        "id": 409,
+        "title": "Salvia",
+        "slug": "salvia"
+      }
+    ],
+    "markdown": "# Gaboxadol · #242\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zopiclone · #176\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zaleplon · #179\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zolpidem · #183\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Ibotenic acid · #215\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Salvia · #409\n\n-          \"canonical_routes\": [\n-            \"smoked\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"smoked\"\n+          ]\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"other dissociatives\"\n+      \"other dissociatives\",\n+      \"A-typical Hallucinogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-210204-b30f4dee",
     "createdAt": "2025-10-16T21:02:04.651Z",
     "commit": {
