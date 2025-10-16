@@ -18244,16 +18244,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours (when ingested as part of Amanita muscaria)",
               "onset": "30-120 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Residual effects may last up to 24 hours; including confusion or lethargy."
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -18312,7 +18312,8 @@
       ],
       "categories": [
         "research-chemical",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
