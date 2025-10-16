@@ -44,6 +44,7 @@ export function GlobalSearch({
   const [listboxPosition, setListboxPosition] = useState<{ top: number; left: number } | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const positionRafRef = useRef<number | null>(null);
   const listboxId = useId();
   useEffect(() => {
     if (currentView.type === "search") {
@@ -95,25 +96,93 @@ export function GlobalSearch({
 
     const GAP_PX = 8; // matches mt-2 spacing between input and results
 
-    const updatePosition = () => {
-      if (!containerRef.current || typeof window === "undefined") {
+    const getScrollContainer = () => {
+      if (typeof document === "undefined") {
+        return null;
+      }
+
+      const scoped = containerRef.current?.closest(".app-container")?.querySelector(".app-content");
+      if (scoped instanceof HTMLElement) {
+        return scoped;
+      }
+
+      const fallback = document.querySelector(".app-content");
+      return fallback instanceof HTMLElement ? fallback : null;
+    };
+
+    const schedulePositionUpdate = () => {
+      if (typeof window === "undefined") {
         return;
       }
-      const rect = containerRef.current.getBoundingClientRect();
-      setListboxPosition({
-        top: rect.bottom + GAP_PX,
-        left: window.innerWidth / 2,
+
+      if (positionRafRef.current !== null) {
+        return;
+      }
+
+      positionRafRef.current = window.requestAnimationFrame(() => {
+        positionRafRef.current = null;
+
+        if (!containerRef.current || typeof window === "undefined") {
+          return;
+        }
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const offsetTop = viewport?.offsetTop ?? 0;
+        const offsetLeft = viewport?.offsetLeft ?? 0;
+        const viewportWidth = viewport?.width ?? window.innerWidth;
+
+        setListboxPosition({
+          top: rect.bottom + GAP_PX + offsetTop,
+          left: offsetLeft + viewportWidth / 2,
+        });
       });
     };
 
-    updatePosition();
+    const scrollContainer = getScrollContainer();
+    const visualViewport = typeof window !== "undefined" ? window.visualViewport : null;
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined" && containerRef.current
+        ? new ResizeObserver(() => schedulePositionUpdate())
+        : null;
 
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, { passive: true });
+    schedulePositionUpdate();
+
+    window.addEventListener("resize", schedulePositionUpdate);
+    window.addEventListener("orientationchange", schedulePositionUpdate);
+    scrollContainer?.addEventListener("scroll", schedulePositionUpdate, { passive: true });
+
+    const cleanupViewport: Array<["resize" | "scroll", (event: Event) => void]> = [];
+    if (visualViewport) {
+      const handleViewportChange = () => schedulePositionUpdate();
+      visualViewport.addEventListener("resize", handleViewportChange);
+      visualViewport.addEventListener("scroll", handleViewportChange);
+      cleanupViewport.push(["resize", handleViewportChange], ["scroll", handleViewportChange]);
+    }
+
+    if (resizeObserver && containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
     return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition);
+      if (positionRafRef.current !== null && typeof window !== "undefined") {
+        window.cancelAnimationFrame(positionRafRef.current);
+        positionRafRef.current = null;
+      }
+
+      window.removeEventListener("resize", schedulePositionUpdate);
+      window.removeEventListener("orientationchange", schedulePositionUpdate);
+      scrollContainer?.removeEventListener("scroll", schedulePositionUpdate);
+
+      if (visualViewport) {
+        cleanupViewport.forEach(([type, handler]) => {
+          visualViewport.removeEventListener(type, handler);
+        });
+      }
+
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, [isMobileViewport, showSuggestions]);
 
@@ -332,7 +401,7 @@ export function GlobalSearch({
             role="listbox"
             className={`z-50 max-h-72 overflow-y-scroll rounded-2xl border border-white/10 bg-[#120d27] shadow-xl shadow-black/50 [scrollbar-gutter:stable] ${
               isMobileViewport
-                ? "fixed left-1/2 w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
+                ? "fixed left-1/2 max-w-[calc(100vw-1.5rem)] w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
                 : "absolute left-0 right-0 top-full mt-2"
             }`}
             style={
@@ -377,7 +446,7 @@ export function GlobalSearch({
                           return null;
                         }
                         return (
-                          <span className="mt-1.5 flex flex-wrap gap-1.5">
+                          <span className="mt-1.5 flex flex-wrap gap-2 gap-fallback-wrap-3">
                             {tokens.map((token) => (
                               <span
                                 key={`${match.id}-badge-${token}`}

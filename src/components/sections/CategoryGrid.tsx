@@ -162,8 +162,8 @@ export function CategoryGrid({
   };
 
   const containerClassName = limitColumns
-    ? "columns-1 gap-6 space-y-6 sm:columns-2 lg:columns-3 [column-width:320px]"
-    : "gap-6 space-y-6 [column-width:320px]";
+    ? "[column-gap:1.5rem] columns-1 sm:columns-2 xl:columns-3"
+    : "[column-gap:1.5rem] columns-1 sm:columns-2 lg:columns-3 2xl:columns-4";
 
   return (
     <div className={containerClassName}>
@@ -190,7 +190,7 @@ export function CategoryGrid({
         return (
           <section
             key={group.key}
-            className="mb-6 break-inside-avoid rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur transition hover:border-fuchsia-400/30 hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)]"
+            className="mb-6 w-full break-inside-avoid break-inside-avoid-column rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe transition hover:border-fuchsia-400/30 hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)]"
           >
             <header className="flex items-start justify-between gap-4 pb-2 text-white/90">
               <div className="flex flex-1 items-start gap-3">

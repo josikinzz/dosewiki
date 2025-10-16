@@ -92,8 +92,8 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   };
 
   return (
-    <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+    <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur backdrop-safe">
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
         <button
           type="button"
           onClick={() => handleNavigate(substancesView)}
@@ -121,8 +121,8 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
           />
         </div>
 
-        <div className="hidden flex-shrink-0 items-center gap-4 md:flex">
-          <nav className="flex items-center gap-6 text-sm text-white/80">
+        <div className="hidden flex-shrink-0 items-center gap-4 md:flex gap-fallback-row-4">
+          <nav className="flex items-center gap-6 text-sm text-white/80 gap-fallback-row-6">
             {navItems.map(({ label, view, icon: Icon }) => {
               const itemHash = viewToHash(view.type === "substance" ? articleView : view);
               const active = isActive(view);
@@ -187,7 +187,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
               id="mobile-nav"
               className="absolute right-0 top-[calc(100%+0.75rem)] w-56 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50"
             >
-              <nav className="flex flex-col gap-2 text-sm">
+              <nav className="flex flex-col gap-2 text-sm gap-fallback-col-2">
                 {navItems.map(({ label, view, icon: Icon }) => {
                   const itemHash = viewToHash(view.type === "substance" ? articleView : view);
                   const active = isActive(view);

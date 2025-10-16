@@ -1,4 +1,4 @@
-import articlesSource from "../data/articles.json";
+import articlesSource from "../data/articles";
 import {
   ensureNormalizedTagList,
   joinNormalizedValues,

@@ -1,4 +1,4 @@
-﻿import articles from "./articles.json";
+import articles from "./articles";
 import { buildSubstanceRecord, slugifyDrugName } from "./contentBuilder";
 
 const LSD_KEY = "LSD";
