@@ -1,5 +1,58 @@
 [
   {
+    "id": "20251016-191133-9b6f5ac8",
+    "createdAt": "2025-10-16T19:11:33.130Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 21:11:30"
+    },
+    "articles": [
+      {
+        "id": 514,
+        "title": "2C-BZ",
+        "slug": "2c-bz"
+      },
+      {
+        "id": 321,
+        "title": "2C-C",
+        "slug": "2c-c"
+      }
+    ],
+    "markdown": "# 2C-BZ · #514\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"a-typical hallucinogen\",\n\n# 2C-C · #321\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"insufflated\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"insufflated\"\n+          ]\n-      \"a-typical hallucinogen\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251016-191042-5c6a6d64",
+    "createdAt": "2025-10-16T19:10:42.055Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 21:10:39"
+    },
+    "articles": [
+      {
+        "id": 514,
+        "title": "2C-BZ",
+        "slug": "2c-bz"
+      }
+    ],
+    "markdown": "# 2C-BZ · #514\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"a-typical hallucinogen\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251016-190938-8a5873a8",
+    "createdAt": "2025-10-16T19:09:38.185Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 21:09:35"
+    },
+    "articles": [],
+    "markdown": "No diff details were provided for this commit.",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-083502-09318c26",
     "createdAt": "2025-10-16T08:35:02.514Z",
     "commit": {
