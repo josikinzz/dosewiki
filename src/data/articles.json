@@ -70546,5 +70546,126 @@
       ]
     },
     "id": 633
+  },
+  {
+    "title": "LSM-775",
+    "index-category": "psychedelic; lysergamide; research-chemical",
+    "drug_info": {
+      "drug_name": "LSM-775",
+      "chemical_name": "[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone",
+      "alternative_name": "Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM",
+      "chemical_class": "Lysergamides",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT1A receptor full agonist; 5-HT2A receptor partial agonist; 5-HT2B receptor partial agonist; 5-HT2C receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "250 ug",
+              "light": "500-750 ug",
+              "common": "750-1250 ug",
+              "strong": "1250-1500 ug",
+              "heavy": "1500+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-10 hours",
+              "onset": "10-30 minutes",
+              "peak": "60-150 minutes",
+              "offset": "2-4 hours",
+              "after_effects": "Variable (residual sedation possible)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "LSM-775 is not considered habit-forming and possesses an intrinsic self-regulating quality similar to other psychedelics. Limited evidence suggests no significant dependence potential, though the substance has very little history of human use.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants (increases anxiety, paranoia, and thought loops)",
+          "Cannabis (unpredictable synergy; greatly increases risk of anxiety and psychosis)"
+        ],
+        "caution": [
+          "MDMA (unpredictable synergy; potentially neurotoxic)",
+          "Alcohol (increases dehydration and physical discomfort)",
+          "Other psychedelics (unpredictable intensification)"
+        ]
+      },
+      "notes": "LSM-775 is a novel lysergamide with approximately one-tenth the potency of LSD and a shorter duration. It is characterized by prominent dream-like sedation and significant nausea that may substantially reduce the experience's pleasantness. Use a precise milligram scale as doses are relatively high. Mental health screening is advised before use, particularly for individuals with personal or family history of psychotic disorders. Set and setting remain important factors. Legal status varies by jurisdiction; controlled in Germany and Switzerland as of 2019.",
+      "subjective_effects": [
+        "Dream-Like Sedation",
+        "Prominent Nausea",
+        "Visual Patterning And Geometry",
+        "Time Distortion (Particularly Pronounced)",
+        "Color Enhancement",
+        "Spontaneous Physical Sensations (Tingling)",
+        "Music Enhancement",
+        "Thought Connectivity",
+        "Perception Of Bodily Heaviness",
+        "Drifting (Melting, Breathing, Morphing)",
+        "Internal Hallucinations",
+        "Analysis Enhancement"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, etc.)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "PsychonautWiki: LSM-775",
+          "reference": "https://psychonautwiki.org/wiki/LSM-775"
+        },
+        {
+          "name": "Erowid Experience Vaults: LSM-775",
+          "reference": "https://www.erowid.org/experiences/subs/exp_LSM775.shtml"
+        },
+        {
+          "name": "Isomer Design: LSM-775",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5338"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy LSM-775 Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-lsm-775-lysergic-acid-morpholide-thread.775765/"
+        },
+        {
+          "name": "Gogerty & Dille (1957): Pharmacology of d-LSM",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/13476356/"
+        },
+        {
+          "name": "Shulgin: TiHKAL - LSD-25 Entry",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5338"
+        },
+        {
+          "name": "Brandt et al. (2018): Return of the Lysergamides Part IV",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/28585392/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical",
+        "novel-psychoactive-substance"
+      ]
+    },
+    "id": 634
   }
 ]
