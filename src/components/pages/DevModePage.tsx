@@ -4,16 +4,22 @@ import {
   ChevronDown,
   Copy,
   Download,
+  Edit3,
   Eye,
   EyeOff,
+  FlaskConical,
   Loader2,
   LogOut,
+  PlusCircle,
   RefreshCw,
   Save,
+  ScrollText,
+  Tags,
   Trash2,
   Undo2,
-  Wrench,
   Upload,
+  UserRound,
+  Wrench,
 } from "lucide-react";
 import {
   chemicalClassIndexGroups,
@@ -76,6 +82,28 @@ type ChangeLogFilters = {
 };
 
 type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile";
+
+type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
+
+const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
+  edit: "edit",
+  create: "create",
+  "change-log": "change-log",
+  profile: "profile",
+};
+
+const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
+  if (tab === "edit" || tab === "tag-editor") {
+    return "edit";
+  }
+  if (tab === "create") {
+    return "create";
+  }
+  if (tab === "change-log") {
+    return "change-log";
+  }
+  return "profile";
+};
 
 type DevModePageProps = {
   activeTab: DevModeTab;
@@ -444,7 +472,22 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
   const isCreateCommitDisabled = isCommitDisabled || !isNewArticleStaged;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
-  const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
+  const [newArticleJsonDraft, setNewArticleJsonDraft] = useState(() =>
+    JSON.stringify(newArticlePayload, null, 2),
+  );
+  const newArticleJsonUpdateSourceRef = useRef<"form" | "json" | null>(null);
+  const [newArticleJsonError, setNewArticleJsonError] = useState<string | null>(null);
+  useEffect(() => {
+    if (newArticleJsonUpdateSourceRef.current === "json") {
+      newArticleJsonUpdateSourceRef.current = null;
+      return;
+    }
+
+    const formatted = JSON.stringify(newArticlePayload, null, 2);
+    newArticleJsonUpdateSourceRef.current = "form";
+    setNewArticleJsonDraft((current) => (current === formatted ? current : formatted));
+    setNewArticleJsonError(null);
+  }, [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
     const hasTitle = newArticleForm.title.trim().length > 0;
     const hasDrugName = newArticleForm.drugName.trim().length > 0;
@@ -454,10 +497,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
     return hasTitle && hasDrugName && hasRoute;
   }, [newArticleForm]);
+  const isNewArticleJsonValid = newArticleJsonError === null;
   const previewMinHeight = useMemo(() => {
-    const lines = newArticleJson.split("\n").length;
+    const lines = newArticleJsonDraft.split("\n").length;
     return Math.min(480, Math.max(160, lines * 18));
-  }, [newArticleJson]);
+  }, [newArticleJsonDraft]);
   const nextAvailableArticleId = useMemo(() => {
     const highestId = articles.reduce((max, record) => {
       if (!record) {
@@ -1530,6 +1574,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     verifyDevCredentials,
   ]);
 
+  const activePrimaryTab = useMemo(() => resolvePrimaryTab(activeTab), [activeTab]);
+
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
       if (tab === "edit" || tab === "tag-editor") {
@@ -1555,6 +1601,14 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       onTabChange(tab);
     },
     [activeTab, clearNoticesForTab, onTabChange],
+  );
+
+  const handlePrimaryTabChange = useCallback(
+    (primaryTab: DevModePrimaryTab) => {
+      const nextTab = devModePrimaryDefaults[primaryTab];
+      handleTabChange(nextTab);
+    },
+    [handleTabChange],
   );
 
   useEffect(() => {
@@ -1596,20 +1650,43 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setStagedArticleId,
   ]);
 
+  const handleNewArticleJsonChange = useCallback(
+    (value: string) => {
+      newArticleJsonUpdateSourceRef.current = "json";
+      setNewArticleJsonDraft(value);
+
+      try {
+        const parsed = JSON.parse(value);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Article JSON must be an object.");
+        }
+
+        const hydrated = hydrateArticleDraftForm(parsed);
+        replaceNewArticleForm(hydrated);
+        setNewArticleJsonError(null);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+        setNewArticleJsonError(reason);
+        newArticleJsonUpdateSourceRef.current = null;
+      }
+    },
+    [replaceNewArticleForm],
+  );
+
   const copyNewArticleJson = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(newArticleJson);
+      await navigator.clipboard.writeText(newArticleJsonDraft);
       setCreatorNotice({ type: "success", message: "New article JSON copied to clipboard." });
     } catch {
       setCreatorNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
     }
-  }, [newArticleJson]);
+  }, [newArticleJsonDraft]);
 
   const downloadNewArticleJson = useCallback(() => {
     const baseLabel = newArticleForm.title.trim() || newArticleForm.drugName.trim() || "new-substance";
     const slug = toFileSlug(baseLabel || "new-substance");
     const fileName = `new-article-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-    const blob = new Blob([newArticleJson], { type: "application/json" });
+    const blob = new Blob([newArticleJsonDraft], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -1619,9 +1696,17 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
-  }, [newArticleForm.drugName, newArticleForm.title, newArticleJson]);
+  }, [newArticleForm.drugName, newArticleForm.title, newArticleJsonDraft]);
 
   const handleStageNewArticle = useCallback(() => {
+    if (!isNewArticleJsonValid) {
+      setCreatorNotice({
+        type: "error",
+        message: `Fix JSON before staging: ${newArticleJsonError ?? "Invalid article JSON."}`,
+      });
+      return;
+    }
+
     if (!isNewArticleValid) {
       setCreatorNotice({
         type: "error",
@@ -1707,6 +1792,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     applyArticlesTransform,
     articles,
     buildArticleFromDraft,
+    isNewArticleJsonValid,
+    newArticleJsonError,
     isNewArticleValid,
     newArticleForm,
     nextAvailableArticleId,
@@ -1925,61 +2012,107 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+      <div className="mt-8 flex flex-col items-center gap-4">
+        <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20">
           <button
             type="button"
-            onClick={() => handleTabChange("edit")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              activeTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            onClick={() => handlePrimaryTabChange("edit")}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+              activePrimaryTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
             }`}
-            aria-pressed={activeTab === "edit"}
+            aria-pressed={activePrimaryTab === "edit"}
           >
-            Edit Substances
+            <Edit3 className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>EDIT</span>
           </button>
           <button
             type="button"
-            onClick={() => handleTabChange("create")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              activeTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            onClick={() => handlePrimaryTabChange("create")}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+              activePrimaryTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
             }`}
-            aria-pressed={activeTab === "create"}
+            aria-pressed={activePrimaryTab === "create"}
           >
-            Create Substances
+            <PlusCircle className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>CREATE</span>
           </button>
           <button
             type="button"
-            onClick={() => handleTabChange("change-log")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              activeTab === "change-log" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            onClick={() => handlePrimaryTabChange("change-log")}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+              activePrimaryTab === "change-log"
+                ? "bg-fuchsia-500/20 text-white"
+                : "text-white/70 hover:text-white"
             }`}
-            aria-pressed={activeTab === "change-log"}
+            aria-pressed={activePrimaryTab === "change-log"}
           >
-            Change Log
+            <ScrollText className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>CHANGE LOG</span>
           </button>
-          {hasStoredCredentials && (
-            <button
-              type="button"
-              onClick={() => handleTabChange("profile")}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                activeTab === "profile" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-              }`}
-              aria-pressed={activeTab === "profile"}
-            >
-              Profile
-            </button>
-          )}
           <button
             type="button"
-            onClick={() => handleTabChange("tag-editor")}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-              activeTab === "tag-editor" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+            onClick={() => {
+              if (hasStoredCredentials) {
+                handlePrimaryTabChange("profile");
+              }
+            }}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+              activePrimaryTab === "profile"
+                ? "bg-fuchsia-500/20 text-white"
+                : hasStoredCredentials
+                  ? "text-white/70 hover:text-white"
+                  : "cursor-not-allowed text-white/30"
             }`}
-            aria-pressed={activeTab === "tag-editor"}
+            aria-pressed={activePrimaryTab === "profile"}
+            disabled={!hasStoredCredentials}
           >
-            Tag Editor
+            <UserRound className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>PROFILE</span>
           </button>
         </div>
+
+        {activePrimaryTab === "edit" && (
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20">
+            <button
+              type="button"
+              onClick={() => handleTabChange("edit")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                activeTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "edit"}
+            >
+              <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Substances</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange("tag-editor")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                activeTab === "tag-editor" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "tag-editor"}
+            >
+              <Tags className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Tags</span>
+            </button>
+          </div>
+        )}
+
+        {activePrimaryTab === "create" && (
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20">
+            <button
+              type="button"
+              onClick={() => handleTabChange("create")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                activeTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "create"}
+            >
+              <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Substances</span>
+            </button>
+          </div>
+        )}
       </div>
       {activeTab === "edit" ? (
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
@@ -2391,13 +2524,16 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                   </p>
                 )}
               </div>
-              <JsonEditor value={newArticleJson} minHeight={previewMinHeight} readOnly />
+              <JsonEditor value={newArticleJsonDraft} minHeight={previewMinHeight} onChange={handleNewArticleJsonChange} />
+              {newArticleJsonError && (
+                <p className="text-xs text-rose-300">JSON error: {newArticleJsonError}</p>
+              )}
               <div className="flex flex-wrap gap-2 text-xs">
                 <button
                   type="button"
                   onClick={handleStageNewArticle}
                   className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={!isNewArticleValid}
+                  disabled={!isNewArticleValid || !isNewArticleJsonValid}
                 >
                   <Upload className="h-3.5 w-3.5" />
                   {isNewArticleStaged ? "Restage article" : "Stage article"}
