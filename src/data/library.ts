@@ -1,7 +1,7 @@
 import { Cog, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import articles from "./articles.json";
+import articles from "./articles";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../utils/slug";
 import { getCategoryIcon } from "./categoryIcons";

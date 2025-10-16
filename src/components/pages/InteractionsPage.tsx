@@ -87,6 +87,8 @@ const renderTargetBadge = (target: InteractionTarget) => {
   return null;
 };
 
+const LIST_CHUNK_SIZE = 24;
+
 const InteractionSummaryList = ({
   entries,
   subjectName,
@@ -102,36 +104,58 @@ const InteractionSummaryList = ({
     return <p className="text-sm text-white/60">No documented entries.</p>;
   }
 
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(entries.length, LIST_CHUNK_SIZE));
+
+  useEffect(() => {
+    setVisibleCount(Math.min(entries.length, LIST_CHUNK_SIZE));
+  }, [entries]);
+
+  const visibleEntries = entries.slice(0, visibleCount);
+  const hasAdditionalEntries = visibleCount < entries.length;
+
   return (
-    <ul className="space-y-3">
-      {entries.map((entry) => {
-        const label = formatTargetLabel(entry.target);
-        const badge = renderTargetBadge(entry.target);
-        return (
-          <li key={`${subjectName}-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() => entry.target.matchedSubstanceSlug && onNavigate(entry.target.matchedSubstanceSlug)}
-                  disabled={!entry.target.matchedSubstanceSlug}
-                  className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    entry.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
-                  }`}
-                >
-                  {label}
-                </button>
-                {badge}
-                {renderTargetRationale(entry.target)}
+    <>
+      <ul className="space-y-3 gap-fallback-col-3">
+        {visibleEntries.map((entry) => {
+          const label = formatTargetLabel(entry.target);
+          const badge = renderTargetBadge(entry.target);
+          return (
+            <li key={`${subjectName}-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-start justify-between gap-3 gap-fallback-row-3">
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => entry.target.matchedSubstanceSlug && onNavigate(entry.target.matchedSubstanceSlug)}
+                    disabled={!entry.target.matchedSubstanceSlug}
+                    className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                      entry.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                  {badge}
+                  {renderTargetRationale(entry.target)}
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${SEVERITY_META[severity].chip}`}>
+                  {SEVERITY_META[severity].label}
+                </span>
               </div>
-              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${SEVERITY_META[severity].chip}`}>
-                {SEVERITY_META[severity].label}
-              </span>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          );
+        })}
+      </ul>
+      {hasAdditionalEntries ? (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-full border border-white/15 px-4 py-1.5 text-sm font-medium text-white/85 transition hover:border-fuchsia-400/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            onClick={() => setVisibleCount((previous) => Math.min(entries.length, previous + LIST_CHUNK_SIZE))}
+          >
+            Show more
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 };
 
@@ -150,64 +174,86 @@ const SharedInteractionList = ({
     return <p className="text-sm text-white/60">No shared warnings.</p>;
   }
 
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(entries.length, LIST_CHUNK_SIZE));
+
+  useEffect(() => {
+    setVisibleCount(Math.min(entries.length, LIST_CHUNK_SIZE));
+  }, [entries]);
+
+  const visibleEntries = entries.slice(0, visibleCount);
+  const hasMore = visibleCount < entries.length;
+
   return (
-    <ul className="space-y-3">
-      {entries.map((entry) => {
-        const label = formatTargetLabel(entry.primary.target);
-        const badge = renderTargetBadge(entry.primary.target) ?? renderTargetBadge(entry.secondary.target);
-        return (
-          <li key={`shared-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    entry.primary.target.matchedSubstanceSlug &&
-                    onNavigate(entry.primary.target.matchedSubstanceSlug)
-                  }
-                  disabled={!entry.primary.target.matchedSubstanceSlug}
-                  className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    entry.primary.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
-                  }`}
-                >
-                  {label}
-                </button>
-                {badge}
-                {entry.primary.target.rationale && (
-                  <p className="text-xs text-white/60">
-                    {primaryName}: {entry.primary.target.rationale}
-                  </p>
-                )}
-                {entry.secondary.target.rationale && (
-                  <p className="text-xs text-white/60">
-                    {secondaryName}: {entry.secondary.target.rationale}
-                  </p>
-                )}
+    <>
+      <ul className="space-y-3 gap-fallback-col-3">
+        {visibleEntries.map((entry) => {
+          const label = formatTargetLabel(entry.primary.target);
+          const badge = renderTargetBadge(entry.primary.target) ?? renderTargetBadge(entry.secondary.target);
+          return (
+            <li key={`shared-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-start justify-between gap-3 gap-fallback-row-3">
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      entry.primary.target.matchedSubstanceSlug &&
+                      onNavigate(entry.primary.target.matchedSubstanceSlug)
+                    }
+                    disabled={!entry.primary.target.matchedSubstanceSlug}
+                    className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                      entry.primary.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                  {badge}
+                  {entry.primary.target.rationale && (
+                    <p className="text-xs text-white/60">
+                      {primaryName}: {entry.primary.target.rationale}
+                    </p>
+                  )}
+                  {entry.secondary.target.rationale && (
+                    <p className="text-xs text-white/60">
+                      {secondaryName}: {entry.secondary.target.rationale}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-1 gap-fallback-col-1">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${
+                      SEVERITY_META[entry.highestSeverity].chip
+                    }`}
+                  >
+                    {SEVERITY_META[entry.highestSeverity].label}
+                  </span>
+                  <dl className="text-right text-[11px] text-white/70">
+                    <div>
+                      <dt className="inline text-white/60">{primaryName}:</dt>
+                      <dd className="ml-1 inline capitalize">{entry.primary.severity}</dd>
+                    </div>
+                    <div>
+                      <dt className="inline text-white/60">{secondaryName}:</dt>
+                      <dd className="ml-1 inline capitalize">{entry.secondary.severity}</dd>
+                    </div>
+                  </dl>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${
-                    SEVERITY_META[entry.highestSeverity].chip
-                  }`}
-                >
-                  {SEVERITY_META[entry.highestSeverity].label}
-                </span>
-                <dl className="text-right text-[11px] text-white/70">
-                  <div>
-                    <dt className="inline text-white/60">{primaryName}:</dt>
-                    <dd className="ml-1 inline capitalize">{entry.primary.severity}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline text-white/60">{secondaryName}:</dt>
-                    <dd className="ml-1 inline capitalize">{entry.secondary.severity}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+            </li>
+          );
+        })}
+      </ul>
+      {hasMore ? (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-full border border-white/15 px-4 py-1.5 text-sm font-medium text-white/85 transition hover:border-fuchsia-400/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            onClick={() => setVisibleCount((previous) => Math.min(entries.length, previous + LIST_CHUNK_SIZE))}
+          >
+            Show more
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 };
 
@@ -357,7 +403,7 @@ export function InteractionsPage({
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-12">
       <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
-        <div className="flex items-start gap-3 text-amber-100">
+        <div className="flex items-start gap-3 gap-fallback-row-3 text-amber-100">
           <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-200" aria-hidden="true" />
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-amber-100">
@@ -372,18 +418,18 @@ export function InteractionsPage({
       </div>
 
       <SectionCard className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 gap-fallback-wrap-4">
           <div>
             <h1 className="text-2xl font-semibold text-white">Interactions comparison</h1>
             <p className="mt-1 text-sm text-white/70">
               Select two substances to review overlapping risks, unique warnings, and direct cross references.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 gap-fallback-row-2">
             <button
               type="button"
               onClick={handleSwap}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
               Swap
@@ -391,7 +437,7 @@ export function InteractionsPage({
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               Reset
             </button>
@@ -445,8 +491,8 @@ export function InteractionsPage({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className={`flex items-center gap-3 rounded-xl border bg-white/5 px-3 py-2 ${
+          <div className="flex flex-wrap items-center gap-4 gap-fallback-wrap-4">
+            <div className={`flex items-center gap-3 gap-fallback-row-3 rounded-xl border bg-white/5 px-3 py-2 ${
               severitySummary ? SEVERITY_META[severitySummary].tone : "border-white/10"
             }`}>
               <SummaryIcon className={`h-5 w-5 ${severitySummary ? SEVERITY_META[severitySummary].text : "text-white/60"}`} />
@@ -467,7 +513,7 @@ export function InteractionsPage({
             </div>
 
             {comparison?.sharedClassHighlights.length ? (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 gap-fallback-wrap-3">
                 {comparison.sharedClassHighlights.map((entry) => (
                   <span
                     key={entry.key}
@@ -521,8 +567,8 @@ export function InteractionsPage({
               const severityMeta = SEVERITY_META[bucket.severity];
               return (
                 <div key={`bucket-${bucket.severity}`} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase ${severityMeta.tone}`}>
+                  <div className="flex items-center gap-2 gap-fallback-row-2">
+                    <span className={`inline-flex items-center gap-2 gap-fallback-row-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase ${severityMeta.tone}`}>
                       {severityMeta.label}
                     </span>
                   </div>

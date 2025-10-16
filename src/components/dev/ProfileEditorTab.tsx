@@ -11,7 +11,7 @@ import type { ChangeLogEntry } from "../../data/changeLog";
 const MAX_BIO_LENGTH = 4000;
 const MAX_LINKS = 3;
 const MAX_AVATAR_BYTES = 1024 * 1024 * 2; // 2 MiB
-const ALLOWED_AVATAR_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED_AVATAR_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
 
 export type ChangeNotice = {
   type: "success" | "error";
@@ -109,8 +109,6 @@ const inferAvatarMimeType = (file: File) => {
       return "image/jpeg";
     case "png":
       return "image/png";
-    case "webp":
-      return "image/webp";
     default:
       return "";
   }
@@ -240,7 +238,7 @@ export function ProfileEditorTab({
 
       const inferredMimeType = inferAvatarMimeType(file);
       if (!inferredMimeType || !ALLOWED_AVATAR_MIME_TYPES.has(inferredMimeType)) {
-        setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
+        setNotice({ type: "error", message: "Avatar must be a PNG or JPG image." });
         return;
       }
 
@@ -337,7 +335,7 @@ export function ProfileEditorTab({
       if (avatarFile) {
         const inferredMimeType = inferAvatarMimeType(avatarFile);
         if (!inferredMimeType) {
-          setNotice({ type: "error", message: "Avatar must be a PNG, JPG, or WebP image." });
+          setNotice({ type: "error", message: "Avatar must be a PNG or JPG image." });
           setIsSaving(false);
           return;
         }
@@ -519,7 +517,7 @@ export function ProfileEditorTab({
               />
 
               <p className="text-xs text-white/45">
-                Upload a PNG, JPG, or WebP file up to {formatFileSize(MAX_AVATAR_BYTES)}. Uploading replaces the hosted
+                Upload a PNG or JPG file up to {formatFileSize(MAX_AVATAR_BYTES)}. Uploading replaces the hosted
                 image for your profile.
               </p>
 

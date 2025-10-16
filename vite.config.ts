@@ -62,10 +62,20 @@ export default defineConfig(({ mode }) => {
   const config: UserConfig = {
     base: './',
     plugins: [react(), ...(inline ? [singleFilePlugin()] : [])],
+    esbuild: {
+      target: 'es2017',
+    },
+  };
+
+  config.build = {
+    target: ['es2017', 'chrome80'],
+    cssTarget: 'chrome80',
+    ...(config.build ?? {}),
   };
 
   if (inline) {
     config.build = {
+      ...config.build,
       assetsInlineLimit: Number.MAX_SAFE_INTEGER,
       cssCodeSplit: false,
     };

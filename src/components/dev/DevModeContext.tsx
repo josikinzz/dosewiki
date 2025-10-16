@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
-import articlesSource from "../../data/articles.json";
+import articlesSource from "../../data/articles";
 
 type ArticleRecord = (typeof articlesSource)[number];
 

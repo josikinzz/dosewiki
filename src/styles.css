@@ -11,7 +11,12 @@
   body,
   #root {
     height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+  }
+
+  html,
+  body {
+    overflow-x: hidden;
   }
 
   body {
@@ -62,9 +67,22 @@
   .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    height: 100%;
     overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  @supports (height: 100svh) {
+    .app-container {
+      min-height: 100svh;
+    }
+  }
+
+  @supports (height: 100dvh) {
+    .app-container {
+      min-height: 100dvh;
+    }
   }
 
   .app-header,
@@ -79,6 +97,76 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    scroll-padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .backdrop-safe {
+    background-color: rgba(12, 7, 26, 0.9);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .backdrop-safe {
+      background-color: transparent;
+    }
+  }
+
+  @supports not (gap: 1rem) {
+    .gap-fallback-row-6 > * + * {
+      margin-left: 1.5rem;
+    }
+
+    .gap-fallback-row-4 > * + * {
+      margin-left: 1rem;
+    }
+
+    .gap-fallback-row-3 > * + * {
+      margin-left: 0.75rem;
+    }
+
+    .gap-fallback-row-2 > * + * {
+      margin-left: 0.5rem;
+    }
+
+    .gap-fallback-row-tight > * + * {
+      margin-left: 0.375rem;
+    }
+
+    .gap-fallback-row-1 > * + * {
+      margin-left: 0.25rem;
+    }
+
+    .gap-fallback-col-4 > * + * {
+      margin-top: 1rem;
+    }
+
+    .gap-fallback-col-3 > * + * {
+      margin-top: 0.75rem;
+    }
+
+    .gap-fallback-col-2 > * + * {
+      margin-top: 0.5rem;
+    }
+
+    .gap-fallback-wrap-4 {
+      margin: -1rem;
+    }
+
+    .gap-fallback-wrap-4 > * {
+      margin: 1rem;
+    }
+
+    .gap-fallback-wrap-3 {
+      margin: -0.75rem;
+    }
+
+    .gap-fallback-wrap-3 > * {
+      margin: 0.75rem;
+    }
+
+    .gap-fallback-col-1 > * + * {
+      margin-top: 0.25rem;
+    }
   }
 
   .json-editor pre {

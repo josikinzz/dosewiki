@@ -45,7 +45,13 @@ export function MechanismDetailPage({
       getSectionId(definition.slug, targetQualifierKey),
     );
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const prefersSmoothScroll = typeof document !== "undefined" &&
+        "scrollBehavior" in document.documentElement.style;
+      if (prefersSmoothScroll) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        element.scrollIntoView();
+      }
       lastScrolledQualifierRef.current = targetQualifierKey;
     }
   }, [definition.slug, targetQualifierKey]);
@@ -69,7 +75,7 @@ export function MechanismDetailPage({
       />
 
       {qualifierNav ? (
-        <div className="mt-6 flex flex-wrap gap-2.5">
+        <div className="mt-6 flex flex-wrap gap-3 gap-fallback-wrap-3">
           {qualifiers.map((qualifier) => {
             const isActive = qualifier.key === targetQualifierKey;
             const qualifierSuffix = qualifier.label ?? "general";
@@ -83,7 +89,7 @@ export function MechanismDetailPage({
                 onClick={() => handleQualifierSelect(qualifier.key)}
                 className={`${BADGE_INTERACTIVE_CLASSES} ${
                   isActive ? ACTIVE_QUALIFIER_CLASSES : ""
-                } inline-flex items-center gap-2`}
+                } inline-flex items-center gap-2 gap-fallback-row-2`}
               >
                 <span>{displayLabel}</span>
                 <span className="text-xs text-white/60">{countLabel}</span>

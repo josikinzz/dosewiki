@@ -17,12 +17,12 @@ export function SubjectiveEffectsSection({ effects, onEffectSelect }: Subjective
 
   return (
     <SectionCard delay={0.15}>
-      <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+      <h2 className="flex items-center gap-3 gap-fallback-row-3 text-xl font-semibold text-fuchsia-300">
         <IconBadge icon={Eye} label="Subjective effects" />
         Subjective Effects
       </h2>
       <p className="mt-2 text-sm text-white/70">Effects vary widely by individual, dose, and context.</p>
-      <div className="mt-4 flex flex-wrap gap-2.5">
+      <div className="mt-4 flex flex-wrap gap-3 gap-fallback-wrap-3">
         {effects.map((effect) => {
           const isInteractive = Boolean(onEffectSelect);
           return isInteractive ? (

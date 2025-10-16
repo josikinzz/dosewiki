@@ -29,8 +29,8 @@ export function Hero({
   };
 
   const badgeWrapperClasses = isCompactBadges
-    ? "mt-4 flex flex-wrap justify-center gap-3"
-    : "mt-6 flex flex-wrap justify-center gap-4";
+    ? "mt-4 flex flex-wrap justify-center gap-3 gap-fallback-wrap-3"
+    : "mt-6 flex flex-wrap justify-center gap-4 gap-fallback-wrap-4";
   const badgeIconClasses = isCompactBadges
     ? "h-4 w-4 text-fuchsia-200"
     : "h-5 w-5 text-fuchsia-200";
@@ -38,8 +38,8 @@ export function Hero({
     ? "text-sm font-medium tracking-tight"
     : "font-medium tracking-wide";
   const baseBadgeClasses = isCompactBadges
-    ? "inline-flex items-center gap-1.5 rounded-full bg-gradient-to-tr from-white/12 to-white/6 px-3.5 py-1.5 text-sm text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20"
-    : "inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/10 to-white/5 px-5 py-2.5 text-base text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20";
+    ? "inline-flex items-center gap-1.5 gap-fallback-row-tight rounded-full bg-gradient-to-tr from-white/12 to-white/6 px-3.5 py-1.5 text-sm text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20"
+    : "inline-flex items-center gap-2 gap-fallback-row-2 rounded-full bg-gradient-to-tr from-white/10 to-white/5 px-5 py-2.5 text-base text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20";
   const interactiveBadgeClasses = isCompactBadges
     ? `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`
     : `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`;

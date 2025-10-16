@@ -294,6 +294,32 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const changeLogNoticeTimeoutRef = useRef<number | null>(null);
   const previousArticleIndexRef = useRef<number | null>(null);
   const profileVerifyAttemptRef = useRef(false);
+  const [enableStickyPanels, setEnableStickyPanels] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const query = window.matchMedia("(pointer: fine)");
+    const update = () => {
+      setEnableStickyPanels(query.matches);
+    };
+
+    update();
+
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", update);
+      return () => {
+        query.removeEventListener("change", update);
+      };
+    }
+
+    query.addListener(update);
+    return () => {
+      query.removeListener(update);
+    };
+  }, []);
 
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
@@ -499,13 +525,38 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
   }, [changeLogEntries]);
 
-  useEffect(() => {
+  const localStorageRef = useRef<Storage | null | false>(null);
+
+  const getSafeLocalStorage = useCallback(() => {
     if (typeof window === "undefined") {
+      return null;
+    }
+
+    if (localStorageRef.current !== null) {
+      return localStorageRef.current || null;
+    }
+
+    try {
+      const { localStorage } = window;
+      const probeKey = `${PASSWORD_STORAGE_KEY}-probe`;
+      localStorage.setItem(probeKey, "ok");
+      localStorage.removeItem(probeKey);
+      localStorageRef.current = localStorage;
+      return localStorage;
+    } catch {
+      localStorageRef.current = false;
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const storage = getSafeLocalStorage();
+    if (!storage) {
       return;
     }
 
     try {
-      const storedValue = window.localStorage.getItem(PASSWORD_STORAGE_KEY);
+      const storedValue = storage.getItem(PASSWORD_STORAGE_KEY);
       if (typeof storedValue === "string") {
         let parsedUsername = "";
         let parsedPassword = "";
@@ -552,7 +603,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     } catch {
       // Ignore storage errors; manual entry still works.
     }
-  }, []);
+  }, [getSafeLocalStorage]);
 
   const normalizedRange = useMemo(() => {
     const start = changeLogFilters.startDate
@@ -684,6 +735,10 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     }));
   }, []);
 
+  const changeLogFiltersCardClassName = enableStickyPanels
+    ? "space-y-5 bg-white/[0.04] md:sticky md:top-24"
+    : "space-y-5 bg-white/[0.04]";
+
   const showPasswordNotice = useCallback(
     (next: ChangeNotice) => {
       if (typeof window !== "undefined" && passwordNoticeTimeoutRef.current !== null) {
@@ -703,7 +758,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
   const persistCredentialsToLocalStorage = useCallback(
     (record: { username: string; password: string; key: string; lastVerifiedAt: string }) => {
-      if (typeof window === "undefined") {
+      const storage = getSafeLocalStorage();
+      if (!storage) {
         return false;
       }
 
@@ -714,13 +770,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           key: record.key,
           lastVerifiedAt: record.lastVerifiedAt,
         };
-        window.localStorage.setItem(PASSWORD_STORAGE_KEY, JSON.stringify(payload));
+        storage.setItem(PASSWORD_STORAGE_KEY, JSON.stringify(payload));
         return true;
       } catch {
         return false;
       }
     },
-    [],
+    [getSafeLocalStorage],
   );
 
   const verifyDevCredentials = useCallback(
@@ -824,9 +880,10 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setIsVerifyingCredentials(false);
     profileVerifyAttemptRef.current = false;
 
-    if (typeof window !== "undefined") {
+    const storage = getSafeLocalStorage();
+    if (storage) {
       try {
-        window.localStorage.removeItem(PASSWORD_STORAGE_KEY);
+        storage.removeItem(PASSWORD_STORAGE_KEY);
         showPasswordNotice({ type: "success", message: "Logged out and cleared saved credentials." });
         return;
       } catch {
@@ -2377,7 +2434,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       ) : activeTab === "change-log" ? (
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6">
-            <SectionCard className="space-y-5 bg-white/[0.04] md:sticky md:top-24">
+            <SectionCard className={changeLogFiltersCardClassName}>
               <div className="space-y-1">
                 <h2 className="text-lg font-semibold text-fuchsia-200">Refine history</h2>
               </div>

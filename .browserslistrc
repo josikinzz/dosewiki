@@ -1,0 +1,7 @@
+# Browser targets for autoprefixer and build tooling
+>0.5% in US
+last 2 Chrome major versions
+last 2 Firefox major versions
+last 2 Safari major versions
+Firefox ESR
+not dead
