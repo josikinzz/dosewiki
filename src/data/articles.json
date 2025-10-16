@@ -69499,5 +69499,251 @@
       ]
     },
     "index-category": ""
+  },
+  {
+    "title": "Diphenhydramine",
+    "index-category": "deliriant; otc",
+    "drug_info": {
+      "drug_name": "Diphenhydramine",
+      "chemical_name": "2-(Diphenylmethoxy)-N,N-dimethylethanamine",
+      "alternative_name": "DPH; Benadryl; Nytol; Sominex; Unisom SleepMelts; ZzzQuil; Dimedrol",
+      "chemical_class": "Ethanolamine",
+      "psychoactive_class": "Deliriant",
+      "mechanism_of_action": "H1 histamine receptor inverse agonist; muscarinic acetylcholine receptor antagonist; weak serotonin reuptake inhibition; sodium channel blockade; voltage-gated potassium channel blockade",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "100-200 mg",
+              "common": "200-400 mg",
+              "strong": "400-700 mg",
+              "heavy": "700+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-10 hours",
+              "onset": "30-90 minutes",
+              "peak": "1-4 hours",
+              "offset": "2-6 hours",
+              "after_effects": "Up to 24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Diphenhydramine has low abuse potential due to its overwhelmingly dysphoric and unpleasant effects. While physical dependence is possible with chronic use, most users do not wish to repeat the experience. Tolerance develops rapidly with repeated use.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of severe anticholinergic effects)",
+          "Anticholinergics (severe tachycardia, heart attack risk, abnormal heart rhythm)",
+          "High doses of acetaminophen-containing formulations (liver damage, death)"
+        ],
+        "unsafe": [
+          "Stimulants (severe tachycardia, heart attack risk, abnormal heart rhythm)",
+          "Tramadol (increased seizure risk)",
+          "Alcohol (dangerous sedation, respiratory depression)"
+        ],
+        "caution": [
+          "Benzodiazepines (dangerous sedation, respiratory depression, visual suppression)",
+          "SSRIs (visual suppression, potential serotonin syndrome)",
+          "Opioids (increased sedation, respiratory depression)"
+        ]
+      },
+      "notes": "Diphenhydramine is widely available over-the-counter and used medically for allergies and sleep aid. Recreational use produces intensely dysphoric and unpredictable deliriant effects including realistic hallucinations that users cannot distinguish from reality. The substance has significant cardiovascular risks including QT prolongation and potential for torsades de pointes. Always verify that products contain only diphenhydramine as active ingredient; many combination products contain acetaminophen or other drugs that can be fatal in high doses. A sober trip sitter is essential as users may respond to hallucinations and injure themselves. Chronic use may cause persistent cognitive impairment, memory damage, and has been linked to increased dementia risk.",
+      "subjective_effects": [
+        "Sedation and Body Heaviness",
+        "External Hallucinations (People, Objects, Insects)",
+        "Auditory Hallucinations (Voices, Screams)",
+        "Tactile Hallucinations (Phantom Sensations)",
+        "Shadow People",
+        "Delirium and Confusion",
+        "Memory Suppression and Amnesia",
+        "Dysphoria and Anxiety",
+        "Restless Leg Syndrome",
+        "Dry Mouth and Dehydration",
+        "Visual Acuity Suppression (Blurred Vision)",
+        "Thought Disorganization"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-5 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All deliriants (datura, scopolamine, dimenhydrinate)"
+        ]
+      },
+      "half_life": "5 hours (pediatric); 9 hours (adult); 13.5 hours (elderly)",
+      "citations": [
+        {
+          "name": "Erowid Diphenhydramine Vault",
+          "reference": "https://www.erowid.org/pharms/diphenhydramine/"
+        },
+        {
+          "name": "PsychonautWiki: Diphenhydramine",
+          "reference": "https://psychonautwiki.org/wiki/Diphenhydramine"
+        },
+        {
+          "name": "TripSit Wiki: Diphenhydramine",
+          "reference": "https://wiki.tripsit.me/wiki/Diphenhydramine"
+        },
+        {
+          "name": "Bluelight: Diphenhydramine Discussion",
+          "reference": "https://www.bluelight.org/community/threads/dph-trip.560305/"
+        },
+        {
+          "name": "DrugBank: Diphenhydramine",
+          "reference": "https://go.drugbank.com/drugs/DB01075"
+        },
+        {
+          "name": "StatPearls: Diphenhydramine Toxicity",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK557578/"
+        },
+        {
+          "name": "Gray et al., 2015 - Cumulative Anticholinergic Use and Dementia",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/25621434/"
+        }
+      ],
+      "categories": [
+        "deliriant",
+        "depressant",
+        "antihistamine",
+        "otc"
+      ]
+    },
+    "id": 626
+  },
+  {
+    "title": "Diphenhydramine",
+    "index-category": "deliriant; otc",
+    "drug_info": {
+      "drug_name": "Diphenhydramine",
+      "chemical_name": "2-(Diphenylmethoxy)-N,N-dimethylethanamine",
+      "alternative_name": "DPH; Benadryl; Nytol; Sominex; Unisom SleepMelts; ZzzQuil; Dimedrol",
+      "chemical_class": "Ethanolamine",
+      "psychoactive_class": "Deliriant",
+      "mechanism_of_action": "H1 histamine receptor inverse agonist; muscarinic acetylcholine receptor antagonist; weak serotonin reuptake inhibition; sodium channel blockade; voltage-gated potassium channel blockade",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "100-200 mg",
+              "common": "200-400 mg",
+              "strong": "400-700 mg",
+              "heavy": "700+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-10 hours",
+              "onset": "30-90 minutes",
+              "peak": "1-4 hours",
+              "offset": "2-6 hours",
+              "after_effects": "Up to 24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Diphenhydramine has low abuse potential due to its overwhelmingly dysphoric and unpleasant effects. While physical dependence is possible with chronic use, most users do not wish to repeat the experience. Tolerance develops rapidly with repeated use.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of severe anticholinergic effects)",
+          "Anticholinergics (severe tachycardia, heart attack risk, abnormal heart rhythm)",
+          "High doses of acetaminophen-containing formulations (liver damage, death)"
+        ],
+        "unsafe": [
+          "Stimulants (severe tachycardia, heart attack risk, abnormal heart rhythm)",
+          "Tramadol (increased seizure risk)",
+          "Alcohol (dangerous sedation, respiratory depression)"
+        ],
+        "caution": [
+          "Benzodiazepines (dangerous sedation, respiratory depression, visual suppression)",
+          "SSRIs (visual suppression, potential serotonin syndrome)",
+          "Opioids (increased sedation, respiratory depression)"
+        ]
+      },
+      "notes": "Diphenhydramine is widely available over-the-counter and used medically for allergies and sleep aid. Recreational use produces intensely dysphoric and unpredictable deliriant effects including realistic hallucinations that users cannot distinguish from reality. The substance has significant cardiovascular risks including QT prolongation and potential for torsades de pointes. Always verify that products contain only diphenhydramine as active ingredient; many combination products contain acetaminophen or other drugs that can be fatal in high doses. A sober trip sitter is essential as users may respond to hallucinations and injure themselves. Chronic use may cause persistent cognitive impairment, memory damage, and has been linked to increased dementia risk.",
+      "subjective_effects": [
+        "Sedation and Body Heaviness",
+        "External Hallucinations (People, Objects, Insects)",
+        "Auditory Hallucinations (Voices, Screams)",
+        "Tactile Hallucinations (Phantom Sensations)",
+        "Shadow People",
+        "Delirium and Confusion",
+        "Memory Suppression and Amnesia",
+        "Dysphoria and Anxiety",
+        "Restless Leg Syndrome",
+        "Dry Mouth and Dehydration",
+        "Visual Acuity Suppression (Blurred Vision)",
+        "Thought Disorganization"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-5 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All deliriants (datura, scopolamine, dimenhydrinate)"
+        ]
+      },
+      "half_life": "5 hours (pediatric); 9 hours (adult); 13.5 hours (elderly)",
+      "citations": [
+        {
+          "name": "Erowid Diphenhydramine Vault",
+          "reference": "https://www.erowid.org/pharms/diphenhydramine/"
+        },
+        {
+          "name": "PsychonautWiki: Diphenhydramine",
+          "reference": "https://psychonautwiki.org/wiki/Diphenhydramine"
+        },
+        {
+          "name": "TripSit Wiki: Diphenhydramine",
+          "reference": "https://wiki.tripsit.me/wiki/Diphenhydramine"
+        },
+        {
+          "name": "Bluelight: Diphenhydramine Discussion",
+          "reference": "https://www.bluelight.org/community/threads/dph-trip.560305/"
+        },
+        {
+          "name": "DrugBank: Diphenhydramine",
+          "reference": "https://go.drugbank.com/drugs/DB01075"
+        },
+        {
+          "name": "StatPearls: Diphenhydramine Toxicity",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK557578/"
+        },
+        {
+          "name": "Gray et al., 2015 - Cumulative Anticholinergic Use and Dementia",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/25621434/"
+        }
+      ],
+      "categories": [
+        "deliriant",
+        "depressant",
+        "antihistamine",
+        "otc"
+      ]
+    },
+    "id": 627
   }
 ]
