@@ -1,5 +1,33 @@
 [
   {
+    "id": "20251016-205923-297a11ac",
+    "createdAt": "2025-10-16T20:59:23.332Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 22:59:20"
+    },
+    "articles": [
+      {
+        "id": 176,
+        "title": "Zopiclone",
+        "slug": "zopiclone"
+      },
+      {
+        "id": 179,
+        "title": "Zaleplon",
+        "slug": "zaleplon"
+      },
+      {
+        "id": 183,
+        "title": "Zolpidem",
+        "slug": "zolpidem"
+      }
+    ],
+    "markdown": "# Zopiclone · #176\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zaleplon · #179\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zolpidem · #183\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-205842-8929e224",
     "createdAt": "2025-10-16T20:58:42.976Z",
     "commit": {
