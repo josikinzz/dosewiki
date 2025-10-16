@@ -13,6 +13,7 @@ import {
   Trash2,
   Undo2,
   Wrench,
+  Upload,
 } from "lucide-react";
 import {
   chemicalClassIndexGroups,
@@ -45,6 +46,7 @@ import { buildArticleChangelog, buildDatasetChangelog } from "../../utils/change
 import { DiffPreview } from "../common/DiffPreview";
 import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
 import {
+  ArticleDraftForm,
   ArticleDraftPayload,
   buildArticleFromDraft,
   createEmptyArticleDraftForm,
@@ -238,6 +240,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     resetAll,
     getOriginalArticle,
     replaceArticles,
+    applyArticlesTransform,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
@@ -248,14 +251,24 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const [isDeletingArticle, setIsDeletingArticle] = useState(false);
   const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
   const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
+  const [isNewArticleStaged, setIsNewArticleStaged] = useState(false);
+  const [stagedArticleLabel, setStagedArticleLabel] = useState<string | null>(null);
+  const [stagedArticleId, setStagedArticleId] = useState<number | null>(null);
   const handleCreatorMutate = useCallback(() => {
     setCreatorNotice(null);
-  }, [setCreatorNotice]);
+    setIsNewArticleStaged(false);
+    setStagedArticleLabel(null);
+    setStagedArticleId(null);
+  }, [setCreatorNotice, setIsNewArticleStaged, setStagedArticleLabel, setStagedArticleId]);
   const newArticleController = useArticleDraftForm({
     initialState: createEmptyArticleDraftForm(),
     onMutate: handleCreatorMutate,
   });
-  const { form: newArticleForm, resetForm: resetNewArticleFormState } = newArticleController;
+  const {
+    form: newArticleForm,
+    resetForm: resetNewArticleFormState,
+    replaceForm: replaceNewArticleForm,
+  } = newArticleController;
   const [username, setUsername] = useState("");
   const [usernameDraft, setUsernameDraft] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -403,6 +416,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const hasStoredCredentials = trimmedUsername.length > 0 && trimmedAdminPassword.length > 0;
   const isCommitDisabled =
     isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
+  const isCreateCommitDisabled = isCommitDisabled || !isNewArticleStaged;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const newArticleJson = useMemo(() => JSON.stringify(newArticlePayload, null, 2), [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
@@ -418,6 +432,25 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     const lines = newArticleJson.split("\n").length;
     return Math.min(480, Math.max(160, lines * 18));
   }, [newArticleJson]);
+  const nextAvailableArticleId = useMemo(() => {
+    const highestId = articles.reduce((max, record) => {
+      if (!record) {
+        return max;
+      }
+
+      let candidate: number | null = null;
+      if (typeof record.id === "number") {
+        candidate = record.id;
+      } else if (typeof record.id === "string") {
+        const parsed = Number.parseInt(record.id, 10);
+        candidate = Number.isFinite(parsed) ? parsed : null;
+      }
+
+      return candidate !== null && Number.isFinite(candidate) ? Math.max(max, candidate) : max;
+    }, 0);
+
+    return highestId + 1;
+  }, [articles]);
 
   const articleOptions = useMemo(
     () =>
@@ -1495,7 +1528,16 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const resetNewArticleForm = useCallback(() => {
     resetNewArticleFormState();
     setCreatorNotice({ type: "success", message: "New article form reset." });
-  }, [resetNewArticleFormState]);
+    setIsNewArticleStaged(false);
+    setStagedArticleLabel(null);
+    setStagedArticleId(null);
+  }, [
+    resetNewArticleFormState,
+    setCreatorNotice,
+    setIsNewArticleStaged,
+    setStagedArticleLabel,
+    setStagedArticleId,
+  ]);
 
   const copyNewArticleJson = useCallback(async () => {
     try {
@@ -1521,6 +1563,103 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     URL.revokeObjectURL(url);
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleForm.drugName, newArticleForm.title, newArticleJson]);
+
+  const handleStageNewArticle = useCallback(() => {
+    if (!isNewArticleValid) {
+      setCreatorNotice({
+        type: "error",
+        message: "Complete the required fields (title, drug name, route + units) before staging.",
+      });
+      return;
+    }
+
+    const parsedExistingId = Number.parseInt(newArticleForm.id.trim(), 10);
+    const hasExistingId = Number.isFinite(parsedExistingId);
+    const conflictingIndex = hasExistingId
+      ? articles.findIndex((record) => {
+          if (!record) {
+            return false;
+          }
+          if (typeof record.id === "number") {
+            return record.id === parsedExistingId;
+          }
+          if (typeof record.id === "string") {
+            const parsed = Number.parseInt(record.id, 10);
+            return Number.isFinite(parsed) && parsed === parsedExistingId;
+          }
+          return false;
+        })
+      : -1;
+    const isReusingStagedId = hasExistingId && stagedArticleId === parsedExistingId;
+    const assignedId =
+      !hasExistingId || (conflictingIndex !== -1 && !isReusingStagedId)
+        ? nextAvailableArticleId
+        : parsedExistingId;
+
+    const normalizedForm: ArticleDraftForm = {
+      ...newArticleForm,
+      id: assignedId.toString(),
+    };
+    replaceNewArticleForm(normalizedForm, { emitMutate: false });
+
+    const draftPayload = buildArticleFromDraft(normalizedForm);
+
+    applyArticlesTransform((previous) => {
+      const stagedArticle = draftPayload as (typeof previous)[number];
+      const next = [...previous];
+      const targetIndex = next.findIndex((record) => {
+        if (!record) {
+          return false;
+        }
+        if (typeof record.id === "number") {
+          return record.id === assignedId;
+        }
+        if (typeof record.id === "string") {
+          const parsed = Number.parseInt(record.id, 10);
+          return Number.isFinite(parsed) && parsed === assignedId;
+        }
+        return false;
+      });
+
+      if (targetIndex >= 0) {
+        next[targetIndex] = stagedArticle;
+        return next;
+      }
+
+      next.push(stagedArticle);
+      return next;
+    });
+
+    const stagedLabel = normalizedForm.title.trim() || normalizedForm.drugName.trim() || `Article ${assignedId}`;
+    const noticeParts: string[] = [];
+
+    if (!hasExistingId) {
+      noticeParts.push(`ID auto-assigned to #${assignedId}.`);
+    } else if (parsedExistingId !== assignedId) {
+      noticeParts.push(`ID reset from ${parsedExistingId} to #${assignedId} to avoid conflicts.`);
+    }
+
+    setIsNewArticleStaged(true);
+    setStagedArticleLabel(stagedLabel);
+    setStagedArticleId(assignedId);
+    setCreatorNotice({
+      type: "success",
+      message: `Staged "${stagedLabel}" for commit.${noticeParts.length > 0 ? ` ${noticeParts.join(" ")}` : ""}`,
+    });
+  }, [
+    applyArticlesTransform,
+    articles,
+    buildArticleFromDraft,
+    isNewArticleValid,
+    newArticleForm,
+    nextAvailableArticleId,
+    replaceNewArticleForm,
+    setCreatorNotice,
+    setIsNewArticleStaged,
+    setStagedArticleId,
+    setStagedArticleLabel,
+    stagedArticleId,
+  ]);
 
   const handleClassificationChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -1589,6 +1728,29 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       isSaving={isSaving}
       isCommitDisabled={isCommitDisabled}
       onCommit={handleSaveToGitHub}
+    />
+  );
+
+  const createCommitPanel = (
+    <DevCommitCard
+      notice={githubNotice}
+      trimmedAdminPassword={trimmedAdminPassword}
+      passwordKey={passwordKey}
+      hasInvalidJsonDraft={hasInvalidJsonDraft}
+      isSaving={isSaving}
+      isCommitDisabled={isCreateCommitDisabled}
+      onCommit={handleSaveToGitHub}
+      footerSlot={
+        isNewArticleStaged ? (
+          <span>
+            {`Staged ${
+              stagedArticleLabel ? `"${stagedArticleLabel}"` : "article"
+            }${stagedArticleId ? ` (ID #${stagedArticleId})` : ""}. Dataset diff updated and ready to commit.`}
+          </span>
+        ) : (
+          <span>Stage the draft to add it to the dataset and unlock commits from this tab.</span>
+        )
+      }
     />
   );
 
@@ -2156,49 +2318,61 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
           </SectionCard>
 
-          <SectionCard className="flex flex-col space-y-4 bg-white/[0.04]">
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-fuchsia-200">Generated JSON</h2>
-              <p className="text-sm text-white/65">Structure updates as you complete the form.</p>
-              {!isNewArticleValid && (
-                <p className="text-xs text-amber-300">
-                  Required: title, drug name, and one administration route with units.
-                </p>
-              )}
-              {creatorNotice && (
-                <p className={`text-xs ${creatorNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
-                  {creatorNotice.message}
-                </p>
-              )}
-            </div>
-            <JsonEditor value={newArticleJson} minHeight={previewMinHeight} readOnly />
-            <div className="flex flex-wrap gap-2 text-xs">
-              <button
-                type="button"
-                onClick={copyNewArticleJson}
-                className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Copy JSON
-              </button>
-              <button
-                type="button"
-                onClick={downloadNewArticleJson}
-                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Download JSON
-              </button>
-              <button
-                type="button"
-                onClick={resetNewArticleForm}
-                className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
-              >
-                <Undo2 className="h-3.5 w-3.5" />
-                Reset form
-              </button>
-            </div>
-          </SectionCard>
+          <div className="space-y-6">
+            <SectionCard className="flex flex-col space-y-4 bg-white/[0.04]">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-fuchsia-200">Generated JSON</h2>
+                <p className="text-sm text-white/65">Structure updates as you complete the form.</p>
+                {!isNewArticleValid && (
+                  <p className="text-xs text-amber-300">
+                    Required: title, drug name, and one administration route with units.
+                  </p>
+                )}
+                {creatorNotice && (
+                  <p className={`text-xs ${creatorNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
+                    {creatorNotice.message}
+                  </p>
+                )}
+              </div>
+              <JsonEditor value={newArticleJson} minHeight={previewMinHeight} readOnly />
+              <div className="flex flex-wrap gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={handleStageNewArticle}
+                  className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!isNewArticleValid}
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  {isNewArticleStaged ? "Restage article" : "Stage article"}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyNewArticleJson}
+                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadNewArticleJson}
+                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={resetNewArticleForm}
+                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                >
+                  <Undo2 className="h-3.5 w-3.5" />
+                  Reset form
+                </button>
+              </div>
+            </SectionCard>
+            {createCommitPanel}
+          </div>
         </div>
       ) : activeTab === "change-log" ? (
         <div className="mt-10 grid gap-6 md:grid-cols-[19rem,1fr]">
