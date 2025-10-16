@@ -70390,5 +70390,161 @@
       ]
     },
     "id": 632
+  },
+  {
+    "title": "MET",
+    "index-category": "psychedelic; tryptamine",
+    "drug_info": {
+      "drug_name": "MET",
+      "chemical_name": "N-Ethyl-N-methyltryptamine",
+      "alternative_name": "Methylethyltryptamine",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; serotonin releasing agent (weak)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked/vaporized",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10 mg",
+              "light": "20-40 mg",
+              "common": "40-60 mg",
+              "strong": "60-90 mg",
+              "heavy": "90+ mg"
+            }
+          },
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "60-70 mg",
+              "light": "70-80 mg",
+              "common": "80-110 mg",
+              "strong": "110-150 mg",
+              "heavy": "150+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10-15 mg",
+              "light": "15-30 mg",
+              "common": "30-50 mg",
+              "strong": "50-70 mg",
+              "heavy": "70+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked/vaporized",
+            "stages": {
+              "total_duration": "30-75 minutes",
+              "onset": "30-60 seconds",
+              "peak": "10-20 minutes",
+              "offset": "20-40 minutes",
+              "after_effects": "20-60 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          },
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "20-45 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-3 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "1.5-3 hours",
+              "onset": "5-15 minutes",
+              "peak": "30-90 minutes",
+              "offset": "45-90 minutes",
+              "after_effects": "30-120 minutes"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "MET is not considered habit-forming and appears to be self-regulating. Reports suggest the desire to use it may actually decrease with regular consumption, similar to other psychedelic tryptamines.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of serotonin syndrome and hypertensive crisis)",
+          "Lithium (increased seizure risk)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "Stimulants (increased risk of anxiety and cardiovascular strain)"
+        ],
+        "caution": [
+          "SSRIs (may dampen or prolong effects)",
+          "Cannabis (may intensify experience unpredictably)"
+        ]
+      },
+      "notes": "MET is a research chemical with very limited human use history and unstudied toxicity profile. The freebase form can be harsh when insufflated or smoked. Use an accurate milligram scale for all routes of administration. Set and setting are crucial for psychedelic experiences. Unlike DMT, MET has oral activity without requiring an MAOI. Individuals with personal or family history of psychotic disorders should avoid use.",
+      "subjective_effects": [
+        "Visual Geometry And Patterning",
+        "Internal Hallucinations",
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Stimulation",
+        "Color Enhancement And Shifting",
+        "Cognitive Euphoria",
+        "Empathy And Sociability Enhancement",
+        "Thought Connectivity",
+        "Time Distortion",
+        "Confusion",
+        "Memory Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "Minimal tolerance buildup with repeated use",
+        "half_tolerance": "Unknown",
+        "zero_tolerance": "Approximately 1-2 weeks",
+        "cross_tolerances": [
+          "Other psychedelic tryptamines (minimal to none)",
+          "Classic psychedelics (minimal to none)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy MET Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-met-thread.255405/"
+        },
+        {
+          "name": "Erowid MET Vault",
+          "reference": "https://www.erowid.org/chemicals/met/met.shtml"
+        },
+        {
+          "name": "PsychonautWiki: MET",
+          "reference": "https://psychonautwiki.org/wiki/MET"
+        },
+        {
+          "name": "Wikipedia: Methylethyltryptamine",
+          "reference": "https://en.wikipedia.org/wiki/Methylethyltryptamine"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical"
+      ]
+    },
+    "id": 633
   }
 ]
