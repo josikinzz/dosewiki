@@ -2275,7 +2275,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "common"
       ]
     },
@@ -2391,7 +2390,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -3150,8 +3148,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -3744,7 +3741,6 @@
       ],
       "categories": [
         "deliriant",
-        "a-typical hallucinogen",
         "research-chemical",
         "Other deliriants"
       ]
@@ -4014,8 +4010,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -5875,8 +5870,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -6598,8 +6592,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -6768,16 +6761,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-8 hours",
               "onset": "30-60 minutes",
               "peak": "1-3 hours",
               "offset": "2-4 hours",
               "after_effects": "Mild residual sedation possible for several hours"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -6834,7 +6827,8 @@
         "depressant",
         "sedative",
         "research-chemical",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -7097,8 +7091,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -8119,8 +8112,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -9713,16 +9705,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
+            "canonical_routes": [
+              "oral"
+            ],
             "stages": {
               "total_duration": "8-12 h (reports vary)",
               "onset": "30-90 min",
               "peak": "2-4 h",
               "offset": "3-5 h",
               "after_effects": "1-3 h residual stimulation / insomnia"
-            },
-            "canonical_routes": [
-              "oral"
-            ]
+            }
           }
         ]
       },
@@ -11390,7 +11382,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -11728,8 +11719,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -13173,8 +13163,7 @@
       ],
       "categories": [
         "stimulant",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -14692,16 +14681,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours",
               "onset": "30-60 minutes",
               "peak": "1-2 hours",
               "offset": "4-8 hours",
               "after_effects": "Residual sedation may last into the next day; especially at higher doses."
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -14764,7 +14753,8 @@
         "depressant",
         "sedative",
         "habit-forming",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -15012,16 +15002,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "2-4 hours",
               "onset": "15-30 minutes",
               "peak": "1 hour",
               "offset": "2-4 hours",
               "after_effects": "Minimal to none"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -15082,7 +15072,8 @@
       "categories": [
         "depressant",
         "sedative",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -15477,16 +15468,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours",
               "onset": "15-30 minutes",
               "peak": "1-2 hours",
               "offset": "4-6 hours",
               "after_effects": "Residual sedation may last up to 12 hours; especially at higher doses"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -15554,7 +15545,8 @@
         "depressant",
         "sedative",
         "habit-forming",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -15647,8 +15639,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -16058,7 +16049,6 @@
       ],
       "categories": [
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -16069,8 +16059,8 @@
     "title": "LSD",
     "drug_info": {
       "drug_name": "LSD",
-      "chemical_name": "LSD",
-      "alternative_name": "Lysergic acid diethylamide",
+      "chemical_name": "Lysergic acid diethylamide",
+      "alternative_name": "Lucy; Acid",
       "chemical_class": "Lysergamides",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -16093,16 +16083,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "8-12 hours",
               "onset": "20-90 minutes",
               "peak": "2-6 hours",
               "offset": "6-12 hours",
               "after_effects": "Up to 24 hours (residual stimulation, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16157,8 +16147,7 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
-        "research-chemical"
+        "common"
       ]
     },
     "index-category": ""
@@ -16489,7 +16478,6 @@
         "dissociative",
         "stimulant",
         "depressant",
-        "a-typical hallucinogen",
         "research-chemical",
         "other dissociatives"
       ]
@@ -16591,7 +16579,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "other psychedelics"
       ]
@@ -16600,11 +16587,11 @@
   },
   {
     "id": 200,
-    "title": "Penis Envy",
+    "title": "Psilocybin mushrooms",
     "drug_info": {
-      "drug_name": "Penis Envy",
-      "chemical_name": "Penis Envy",
-      "alternative_name": "Psilocybe cubensis, Penis Envy strain",
+      "drug_name": "Psilocybin mushrooms",
+      "chemical_name": "Psilocybin",
+      "alternative_name": "Psilocybe cubensis; Magic mushrooms; Shrooms",
       "chemical_class": "Tryptamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -16627,16 +16614,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4 - 6 hours",
               "onset": "20 - 60 minutes",
               "peak": "2 - 3 hours",
               "offset": "1 - 2 hours",
               "after_effects": "Up to 24 hours (residual effects, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16694,8 +16681,7 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
-        "research-chemical"
+        "common"
       ]
     },
     "index-category": ""
@@ -17001,8 +16987,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -17115,7 +17100,6 @@
         "opioid",
         "research-chemical",
         "habit-forming",
-        "a-typical hallucinogen",
         "common"
       ]
     },
@@ -17161,27 +17145,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours",
               "onset": "30-120 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, grogginess)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
+              "total_duration": "6-8 hours",
+              "onset": "30-120 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, grogginess)"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           }
         ]
       },
@@ -17243,8 +17229,8 @@
         }
       ],
       "categories": [
-        "a-typical hallucinogen",
-        "research-chemical"
+        "research-chemical",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -18261,16 +18247,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours (when ingested as part of Amanita muscaria)",
               "onset": "30-120 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Residual effects may last up to 24 hours; including confusion or lethargy."
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -18330,7 +18316,7 @@
       "categories": [
         "research-chemical",
         "gabaergic",
-        "A-typical hallucinogen"
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -19467,8 +19453,7 @@
       "categories": [
         "psychedelic",
         "stimulant",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -19698,7 +19683,6 @@
       "categories": [
         "deliriant",
         "research-chemical",
-        "a-typical hallucinogen",
         "Other deliriants"
       ]
     },
@@ -20099,8 +20083,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -20937,7 +20920,6 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
@@ -22375,8 +22357,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -23149,8 +23130,7 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "stimulant",
-        "a-typical hallucinogen"
+        "stimulant"
       ]
     },
     "index-category": ""
@@ -23352,8 +23332,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -23466,7 +23445,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "2C-X"
       ]
@@ -23779,7 +23757,6 @@
       ],
       "categories": [
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -24383,7 +24360,6 @@
       ],
       "categories": [
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -24578,8 +24554,7 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "stimulant",
-        "a-typical hallucinogen"
+        "stimulant"
       ]
     },
     "index-category": ""
@@ -24712,8 +24687,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -24978,7 +24952,6 @@
         "stimulant",
         "research-chemical",
         "entactogen",
-        "a-typical hallucinogen",
         "other entactogens"
       ]
     },
@@ -25294,7 +25267,6 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
@@ -25841,8 +25813,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -26394,7 +26365,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "2C-X"
       ]
@@ -26939,7 +26909,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "common"
       ]
@@ -27248,8 +27217,7 @@
       "categories": [
         "dissociative",
         "research-chemical",
-        "habit-forming",
-        "a-typical hallucinogen"
+        "habit-forming"
       ]
     },
     "index-category": ""
@@ -27429,8 +27397,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -27743,7 +27710,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -28188,7 +28154,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -28878,8 +28843,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -29674,7 +29638,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "2C-X"
       ]
@@ -31209,8 +31172,7 @@
       "categories": [
         "cannabinoid",
         "depressant",
-        "habit-forming",
-        "a-typical hallucinogen"
+        "habit-forming"
       ]
     },
     "index-category": ""
@@ -32426,8 +32388,7 @@
       "categories": [
         "stimulant",
         "entactogen",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -32831,29 +32792,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
+            "canonical_routes": [
+              "oral"
+            ],
             "stages": {
               "total_duration": "6-8 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-3 h",
               "after_effects": "1-2 h"
-            },
-            "canonical_routes": [
-              "oral"
-            ]
+            }
           },
           {
             "route": "insufflated",
+            "canonical_routes": [
+              "insufflated"
+            ],
             "stages": {
               "total_duration": "6-8 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-3 h",
               "after_effects": "1-2 h"
-            },
-            "canonical_routes": [
-              "insufflated"
-            ]
+            }
           }
         ]
       },
@@ -34431,8 +34392,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -35309,7 +35269,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -36074,8 +36033,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -36171,8 +36129,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -36428,7 +36385,6 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
@@ -37356,7 +37312,6 @@
       "categories": [
         "common",
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -37599,7 +37554,6 @@
       "categories": [
         "common",
         "dissociative",
-        "a-typical hallucinogen",
         "depressant",
         "research-chemical"
       ]
@@ -37709,8 +37663,7 @@
         "common",
         "entactogen",
         "stimulant",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -38272,7 +38225,6 @@
       ],
       "categories": [
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -38989,7 +38941,6 @@
       ],
       "categories": [
         "dissociative",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -39266,7 +39217,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -40213,8 +40163,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -41773,7 +41722,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical",
         "2C-X"
       ]
@@ -42713,29 +42661,29 @@
         "routes_of_administration": [
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
               "total_duration": "5-20 minutes",
               "onset": "30 seconds - 2 minutes",
               "peak": "5-10 minutes",
               "offset": "10-20 minutes",
               "after_effects": "30-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           },
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "5-20 minutes",
               "onset": "30 seconds - 2 minutes",
               "peak": "5-10 minutes",
               "offset": "10-20 minutes",
               "after_effects": "30-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -42778,8 +42726,8 @@
         }
       ],
       "categories": [
-        "A-typical hallucinogen",
-        "other dissociatives"
+        "other dissociatives",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
@@ -43389,8 +43337,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -44865,8 +44812,7 @@
       "categories": [
         "psychedelic",
         "entactogen",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -49055,8 +49001,7 @@
         }
       ],
       "categories": [
-        "deliriant",
-        "a-typical hallucinogen"
+        "deliriant"
       ]
     },
     "index-category": ""
@@ -52210,8 +52155,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -53964,8 +53908,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -55268,8 +55211,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -55437,7 +55379,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -55569,8 +55510,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -56260,8 +56200,7 @@
       "categories": [
         "psychedelic",
         "stimulant",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -56598,8 +56537,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -56945,8 +56883,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -57125,8 +57062,7 @@
       "categories": [
         "psychedelic",
         "stimulant",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -57596,7 +57532,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -58385,8 +58320,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -58541,8 +58475,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -58726,7 +58659,6 @@
         "psychedelic",
         "research-chemical",
         "entactogen",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
@@ -59027,7 +58959,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -60293,7 +60224,6 @@
       "categories": [
         "dissociative",
         "research-chemical",
-        "a-typical hallucinogen",
         "habit-forming"
       ]
     },
@@ -60735,8 +60665,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -61847,8 +61776,7 @@
       "categories": [
         "cannabinoid",
         "research-chemical",
-        "habit-forming",
-        "a-typical hallucinogen"
+        "habit-forming"
       ]
     },
     "index-category": ""
@@ -63312,7 +63240,6 @@
         "research-chemical",
         "habit-forming",
         "depressant",
-        "a-typical hallucinogen",
         "sedative"
       ]
     },
@@ -63452,8 +63379,7 @@
         "cannabinoid",
         "research-chemical",
         "habit-forming",
-        "depressant",
-        "a-typical hallucinogen"
+        "depressant"
       ]
     },
     "index-category": ""
@@ -64031,7 +63957,6 @@
       ],
       "categories": [
         "cannabinoid",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -64202,7 +64127,6 @@
         "cannabinoid",
         "research-chemical",
         "depressant",
-        "a-typical hallucinogen",
         "habit-forming"
       ]
     },
@@ -64747,8 +64671,7 @@
       "categories": [
         "cannabinoid",
         "supplement",
-        "nootropic",
-        "a-typical hallucinogen"
+        "nootropic"
       ]
     },
     "index-category": ""
@@ -65155,7 +65078,6 @@
       ],
       "categories": [
         "psychedelic",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -65506,8 +65428,7 @@
         }
       ],
       "categories": [
-        "deliriant",
-        "a-typical hallucinogen"
+        "deliriant"
       ]
     },
     "index-category": ""
@@ -65642,7 +65563,6 @@
       ],
       "categories": [
         "cannabinoid",
-        "a-typical hallucinogen",
         "research-chemical"
       ]
     },
@@ -66381,8 +66301,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -66691,8 +66610,7 @@
       "categories": [
         "cannabinoid",
         "research-chemical",
-        "habit-forming",
-        "a-typical hallucinogen"
+        "habit-forming"
       ]
     },
     "index-category": ""
@@ -66867,7 +66785,6 @@
         "cannabinoid",
         "research-chemical",
         "depressant",
-        "a-typical hallucinogen",
         "habit-forming",
         "sedative"
       ]
@@ -67046,7 +66963,6 @@
         "cannabinoid",
         "research-chemical",
         "habit-forming",
-        "a-typical hallucinogen",
         "sedative"
       ]
     },
@@ -67195,8 +67111,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
@@ -67992,7 +67907,6 @@
         "cannabinoid",
         "research-chemical",
         "depressant",
-        "a-typical hallucinogen",
         "habit-forming"
       ]
     },
@@ -69336,8 +69250,7 @@
       ],
       "categories": [
         "dissociative",
-        "research-chemical",
-        "a-typical hallucinogen"
+        "research-chemical"
       ]
     },
     "index-category": ""
