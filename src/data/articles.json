@@ -16059,8 +16059,8 @@
     "title": "LSD",
     "drug_info": {
       "drug_name": "LSD",
-      "chemical_name": "LSD",
-      "alternative_name": "Lysergic acid diethylamide",
+      "chemical_name": "Lysergic acid diethylamide",
+      "alternative_name": "Lucy; Acid",
       "chemical_class": "Lysergamides",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -16083,16 +16083,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "8-12 hours",
               "onset": "20-90 minutes",
               "peak": "2-6 hours",
               "offset": "6-12 hours",
               "after_effects": "Up to 24 hours (residual stimulation, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16147,7 +16147,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical"
+        "common"
       ]
     },
     "index-category": ""
