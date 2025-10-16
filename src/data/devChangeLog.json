@@ -1,5 +1,508 @@
 [
   {
+    "id": "20251016-204349-778df3a1",
+    "createdAt": "2025-10-16T20:43:49.406Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 22:43:45"
+    },
+    "articles": [
+      {
+        "id": 59,
+        "title": "Mescaline",
+        "slug": "mescaline"
+      },
+      {
+        "id": 60,
+        "title": "5-MeO-DMT",
+        "slug": "5-meo-dmt"
+      },
+      {
+        "id": 73,
+        "title": "4-HO-MET",
+        "slug": "4-ho-met"
+      },
+      {
+        "id": 79,
+        "title": "EA-3167",
+        "slug": "ea-3167"
+      },
+      {
+        "id": 82,
+        "title": "25I-NBOMe",
+        "slug": "25i-nbome"
+      },
+      {
+        "id": 102,
+        "title": "4-AcO-DMT",
+        "slug": "4-aco-dmt"
+      },
+      {
+        "id": 106,
+        "title": "Canket",
+        "slug": "canket"
+      },
+      {
+        "id": 107,
+        "title": "FXE",
+        "slug": "fxe"
+      },
+      {
+        "id": 270,
+        "title": "MAL",
+        "slug": "mal"
+      },
+      {
+        "id": 514,
+        "title": "2C-BZ",
+        "slug": "2c-bz"
+      },
+      {
+        "id": 139,
+        "title": "DOM",
+        "slug": "dom"
+      },
+      {
+        "id": 280,
+        "title": "DOB",
+        "slug": "dob"
+      },
+      {
+        "id": 158,
+        "title": "PMA",
+        "slug": "pma"
+      },
+      {
+        "id": 181,
+        "title": "DiPT",
+        "slug": "dipt"
+      },
+      {
+        "id": 189,
+        "title": "DXM Polistirex",
+        "slug": "dxm-polistirex"
+      },
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      },
+      {
+        "id": 196,
+        "title": "Ibogaine",
+        "slug": "ibogaine"
+      },
+      {
+        "id": 199,
+        "title": "Yopo",
+        "slug": "yopo"
+      },
+      {
+        "id": 200,
+        "title": "Penis Envy",
+        "slug": "penis-envy"
+      },
+      {
+        "id": 205,
+        "title": "Bromo-DragonFLY",
+        "slug": "bromo-dragonfly"
+      },
+      {
+        "id": 206,
+        "title": "Kratom",
+        "slug": "kratom"
+      },
+      {
+        "id": 201,
+        "title": "Amanita Muscaria",
+        "slug": "amanita-muscaria"
+      },
+      {
+        "id": 215,
+        "title": "Ibotenic acid",
+        "slug": "ibotenic-acid"
+      },
+      {
+        "id": 222,
+        "title": "DOET",
+        "slug": "doet"
+      },
+      {
+        "id": 80,
+        "title": "3-Quinuclidinyl benzilate",
+        "slug": "3-quinuclidinyl-benzilate"
+      },
+      {
+        "id": 346,
+        "title": "Tilmetamine",
+        "slug": "tilmetamine"
+      },
+      {
+        "id": 239,
+        "title": "2C-N",
+        "slug": "2c-n"
+      },
+      {
+        "id": 515,
+        "title": "25T-2-NBOMe",
+        "slug": "25t-2-nbome"
+      },
+      {
+        "id": 263,
+        "title": "DOC",
+        "slug": "doc"
+      },
+      {
+        "id": 266,
+        "title": "TMA",
+        "slug": "tma"
+      },
+      {
+        "id": 264,
+        "title": "2C-F",
+        "slug": "2c-f"
+      },
+      {
+        "id": 351,
+        "title": "2-Chloroephenidine",
+        "slug": "2-chloroephenidine"
+      },
+      {
+        "id": 368,
+        "title": "3,4-MD-PCP",
+        "slug": "3-4-md-pcp"
+      },
+      {
+        "id": 49,
+        "title": "ALEPH",
+        "slug": "aleph"
+      },
+      {
+        "id": 268,
+        "title": "ALEPH-2",
+        "slug": "aleph-2"
+      },
+      {
+        "id": 138,
+        "title": "AMT",
+        "slug": "amt"
+      },
+      {
+        "id": 273,
+        "title": "2C-P",
+        "slug": "2c-p"
+      },
+      {
+        "id": 276,
+        "title": "3-HO-PCP",
+        "slug": "3-ho-pcp"
+      },
+      {
+        "id": 281,
+        "title": "2C-EF",
+        "slug": "2c-ef"
+      },
+      {
+        "id": 285,
+        "title": "DMT",
+        "slug": "dmt"
+      },
+      {
+        "id": 289,
+        "title": "O-PCE",
+        "slug": "o-pce"
+      },
+      {
+        "id": 290,
+        "title": "DMXE",
+        "slug": "dmxe"
+      },
+      {
+        "id": 257,
+        "title": "DOEF",
+        "slug": "doef"
+      },
+      {
+        "id": 292,
+        "title": "25CN-NBOH",
+        "slug": "25cn-nboh"
+      },
+      {
+        "id": 293,
+        "title": "HXE",
+        "slug": "hxe"
+      },
+      {
+        "id": 295,
+        "title": "2C-D",
+        "slug": "2c-d"
+      },
+      {
+        "id": 311,
+        "title": "Cannabis",
+        "slug": "cannabis"
+      },
+      {
+        "id": 156,
+        "title": "4-Methylthioamphetamine",
+        "slug": "4-methylthioamphetamine"
+      },
+      {
+        "id": 321,
+        "title": "2C-C",
+        "slug": "2c-c"
+      },
+      {
+        "id": 326,
+        "title": "DPT",
+        "slug": "dpt"
+      },
+      {
+        "id": 329,
+        "title": "4-HO-PiPT",
+        "slug": "4-ho-pipt"
+      },
+      {
+        "id": 508,
+        "title": "4-MeO-MiPT",
+        "slug": "4-meo-mipt"
+      },
+      {
+        "id": 338,
+        "title": "4-HO-McPT",
+        "slug": "4-ho-mcpt"
+      },
+      {
+        "id": 392,
+        "title": "2C-T-21",
+        "slug": "2c-t-21"
+      },
+      {
+        "id": 182,
+        "title": "Sernyl",
+        "slug": "sernyl"
+      },
+      {
+        "id": 44,
+        "title": "Dextromethorphan",
+        "slug": "dextromethorphan"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      },
+      {
+        "id": 353,
+        "title": "Ephenidine",
+        "slug": "ephenidine"
+      },
+      {
+        "id": 359,
+        "title": "3-HO-PCE",
+        "slug": "3-ho-pce"
+      },
+      {
+        "id": 371,
+        "title": "5-MeO-DPT",
+        "slug": "5-meo-dpt"
+      },
+      {
+        "id": 375,
+        "title": "1B-LSD",
+        "slug": "1b-lsd"
+      },
+      {
+        "id": 401,
+        "title": "2C-iP",
+        "slug": "2c-ip"
+      },
+      {
+        "id": 409,
+        "title": "Salvia",
+        "slug": "salvia"
+      },
+      {
+        "id": 412,
+        "title": "AL-LAD",
+        "slug": "al-lad"
+      },
+      {
+        "id": 425,
+        "title": "5-MeO-DiBF",
+        "slug": "5-meo-dibf"
+      },
+      {
+        "id": 460,
+        "title": "Scopolamine",
+        "slug": "scopolamine"
+      },
+      {
+        "id": 485,
+        "title": "LSZ",
+        "slug": "lsz"
+      },
+      {
+        "id": 424,
+        "title": "2-Me-DMT",
+        "slug": "2-me-dmt"
+      },
+      {
+        "id": 507,
+        "title": "25P-NBOMe",
+        "slug": "25p-nbome"
+      },
+      {
+        "id": 518,
+        "title": "2C-T-4-NBOMe",
+        "slug": "2c-t-4-nbome"
+      },
+      {
+        "id": 519,
+        "title": "2C-T-7-NBOMe",
+        "slug": "2c-t-7-nbome"
+      },
+      {
+        "id": 531,
+        "title": "25H-NBOMe",
+        "slug": "25h-nbome"
+      },
+      {
+        "id": 526,
+        "title": "25I-NBMD",
+        "slug": "25i-nbmd"
+      },
+      {
+        "id": 528,
+        "title": "25I-NBF",
+        "slug": "25i-nbf"
+      },
+      {
+        "id": 529,
+        "title": "25I-NBOH",
+        "slug": "25i-nboh"
+      },
+      {
+        "id": 534,
+        "title": "25C-NB3OMe",
+        "slug": "25c-nb3ome"
+      },
+      {
+        "id": 538,
+        "title": "2-MeO-Ketamine",
+        "slug": "2-meo-ketamine"
+      },
+      {
+        "id": 539,
+        "title": "2-MeO-DMT",
+        "slug": "2-meo-dmt"
+      },
+      {
+        "id": 540,
+        "title": "2C-T-7",
+        "slug": "2c-t-7"
+      },
+      {
+        "id": 543,
+        "title": "2C-B-FLY-NBOMe",
+        "slug": "2c-b-fly-nbome"
+      },
+      {
+        "id": 552,
+        "title": "DCK",
+        "slug": "dck"
+      },
+      {
+        "id": 560,
+        "title": "2-TFMXP",
+        "slug": "2-tfmxp"
+      },
+      {
+        "id": 570,
+        "title": "4F-MDMB-BINACA",
+        "slug": "4f-mdmb-binaca"
+      },
+      {
+        "id": 583,
+        "title": "AM-694",
+        "slug": "am-694"
+      },
+      {
+        "id": 584,
+        "title": "ADBICA",
+        "slug": "adbica"
+      },
+      {
+        "id": 589,
+        "title": "AMB-CHMICA",
+        "slug": "amb-chmica"
+      },
+      {
+        "id": 590,
+        "title": "AMB-FUBINACA",
+        "slug": "amb-fubinaca"
+      },
+      {
+        "id": 594,
+        "title": "CBNA",
+        "slug": "cbna"
+      },
+      {
+        "id": 597,
+        "title": "Bufotenin",
+        "slug": "bufotenin"
+      },
+      {
+        "id": 599,
+        "title": "Atropine",
+        "slug": "atropine"
+      },
+      {
+        "id": 600,
+        "title": "AM-1248",
+        "slug": "am-1248"
+      },
+      {
+        "id": 605,
+        "title": "25T-NBOMe",
+        "slug": "25t-nbome"
+      },
+      {
+        "id": 607,
+        "title": "ADB-PINACA",
+        "slug": "adb-pinaca"
+      },
+      {
+        "id": 608,
+        "title": "ADB-PINACA isomer 2",
+        "slug": "adb-pinaca-isomer-2"
+      },
+      {
+        "id": 609,
+        "title": "AM-2201",
+        "slug": "am-2201"
+      },
+      {
+        "id": 611,
+        "title": "BDCK",
+        "slug": "bdck"
+      },
+      {
+        "id": 616,
+        "title": "AKB-57",
+        "slug": "akb-57"
+      },
+      {
+        "id": 622,
+        "title": "4-MXP",
+        "slug": "4-mxp"
+      }
+    ],
+    "markdown": "# Mescaline · #59\n\n-      \"a-typical hallucinogen\",\n\n# 5-MeO-DMT · #60\n\n-      \"a-typical hallucinogen\",\n\n# 4-HO-MET · #73\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# EA-3167 · #79\n\n-      \"a-typical hallucinogen\",\n\n# 25I-NBOMe · #82\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 4-AcO-DMT · #102\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# Canket · #106\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# FXE · #107\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# MAL · #270\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-BZ · #514\n\n-      \"a-typical hallucinogen\",\n\n# DOM · #139\n\n-      \"a-typical hallucinogen\",\n\n# DOB · #280\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# PMA · #158\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# DiPT · #181\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# DXM Polistirex · #189\n\n-      \"a-typical hallucinogen\",\n\n# LSD · #191\n\n-      \"a-typical hallucinogen\",\n\n# Ibogaine · #196\n\n-      \"a-typical hallucinogen\",\n\n# Yopo · #199\n\n-      \"a-typical hallucinogen\",\n\n# Penis Envy · #200\n\n-      \"a-typical hallucinogen\",\n\n# Bromo-DragonFLY · #205\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# Kratom · #206\n\n-      \"a-typical hallucinogen\",\n\n# Amanita Muscaria · #201\n\n-      \"a-typical hallucinogen\",\n\n# Ibotenic acid · #215\n\n-      \"gabaergic\",\n-      \"A-typical hallucinogen\"\n+      \"gabaergic\"\n\n# DOET · #222\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 3-Quinuclidinyl benzilate · #80\n\n-      \"a-typical hallucinogen\",\n\n# Tilmetamine · #346\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-N · #239\n\n-      \"a-typical hallucinogen\",\n\n# 25T-2-NBOMe · #515\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# DOC · #263\n\n-      \"stimulant\",\n-      \"a-typical hallucinogen\"\n+      \"stimulant\"\n\n# TMA · #266\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-F · #264\n\n-      \"a-typical hallucinogen\",\n\n# 2-Chloroephenidine · #351\n\n-      \"a-typical hallucinogen\",\n\n# 3,4-MD-PCP · #368\n\n-      \"a-typical hallucinogen\",\n\n# ALEPH · #49\n\n-      \"stimulant\",\n-      \"a-typical hallucinogen\"\n+      \"stimulant\"\n\n# ALEPH-2 · #268\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# AMT · #138\n\n-      \"a-typical hallucinogen\",\n\n# 2C-P · #273\n\n-      \"a-typical hallucinogen\",\n\n# 3-HO-PCP · #276\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-EF · #281\n\n-      \"a-typical hallucinogen\",\n\n# DMT · #285\n\n-      \"a-typical hallucinogen\",\n\n# O-PCE · #289\n\n-      \"habit-forming\",\n-      \"a-typical hallucinogen\"\n+      \"habit-forming\"\n\n# DMXE · #290\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# DOEF · #257\n\n-      \"a-typical hallucinogen\",\n\n# 25CN-NBOH · #292\n\n-      \"a-typical hallucinogen\",\n\n# HXE · #293\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-D · #295\n\n-      \"a-typical hallucinogen\",\n\n# Cannabis · #311\n\n-      \"habit-forming\",\n-      \"a-typical hallucinogen\"\n+      \"habit-forming\"\n\n# 4-Methylthioamphetamine · #156\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-C · #321\n\n-      \"a-typical hallucinogen\",\n\n# DPT · #326\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 4-HO-PiPT · #329\n\n-      \"a-typical hallucinogen\",\n\n# 4-MeO-MiPT · #508\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 4-HO-McPT · #338\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-T-21 · #392\n\n-      \"a-typical hallucinogen\",\n\n# Sernyl · #182\n\n-      \"a-typical hallucinogen\",\n\n# Dextromethorphan · #44\n\n-      \"a-typical hallucinogen\",\n\n# MDA · #62\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# Ephenidine · #353\n\n-      \"a-typical hallucinogen\",\n\n# 3-HO-PCE · #359\n\n-      \"a-typical hallucinogen\",\n\n# 5-MeO-DPT · #371\n\n-      \"a-typical hallucinogen\",\n\n# 1B-LSD · #375\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-iP · #401\n\n-      \"a-typical hallucinogen\",\n\n# Salvia · #409\n\n-      \"A-typical hallucinogen\",\n\n# AL-LAD · #412\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 5-MeO-DiBF · #425\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# Scopolamine · #460\n\n-      \"deliriant\",\n-      \"a-typical hallucinogen\"\n+      \"deliriant\"\n\n# LSZ · #485\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2-Me-DMT · #424\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25P-NBOMe · #507\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-T-4-NBOMe · #518\n\n-      \"a-typical hallucinogen\",\n\n# 2C-T-7-NBOMe · #519\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25H-NBOMe · #531\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25I-NBMD · #526\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25I-NBF · #528\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25I-NBOH · #529\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 25C-NB3OMe · #534\n\n-      \"a-typical hallucinogen\",\n\n# 2-MeO-Ketamine · #538\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2-MeO-DMT · #539\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 2C-T-7 · #540\n\n-      \"a-typical hallucinogen\",\n\n# 2C-B-FLY-NBOMe · #543\n\n-      \"a-typical hallucinogen\",\n\n# DCK · #552\n\n-      \"a-typical hallucinogen\",\n\n# 2-TFMXP · #560\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# 4F-MDMB-BINACA · #570\n\n-      \"habit-forming\",\n-      \"a-typical hallucinogen\"\n+      \"habit-forming\"\n\n# AM-694 · #583\n\n-      \"a-typical hallucinogen\",\n\n# ADBICA · #584\n\n-      \"depressant\",\n-      \"a-typical hallucinogen\"\n+      \"depressant\"\n\n# AMB-CHMICA · #589\n\n-      \"a-typical hallucinogen\",\n\n# AMB-FUBINACA · #590\n\n-      \"a-typical hallucinogen\",\n\n# CBNA · #594\n\n-      \"nootropic\",\n-      \"a-typical hallucinogen\"\n+      \"nootropic\"\n\n# Bufotenin · #597\n\n-      \"a-typical hallucinogen\",\n\n# Atropine · #599\n\n-      \"deliriant\",\n-      \"a-typical hallucinogen\"\n+      \"deliriant\"\n\n# AM-1248 · #600\n\n-      \"a-typical hallucinogen\",\n\n# 25T-NBOMe · #605\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# ADB-PINACA · #607\n\n-      \"habit-forming\",\n-      \"a-typical hallucinogen\"\n+      \"habit-forming\"\n\n# ADB-PINACA isomer 2 · #608\n\n-      \"a-typical hallucinogen\",\n\n# AM-2201 · #609\n\n-      \"a-typical hallucinogen\",\n\n# BDCK · #611\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"\n\n# AKB-57 · #616\n\n-      \"a-typical hallucinogen\",\n\n# 4-MXP · #622\n\n-      \"research-chemical\",\n-      \"a-typical hallucinogen\"\n+      \"research-chemical\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-191133-9b6f5ac8",
     "createdAt": "2025-10-16T19:11:33.130Z",
     "commit": {
