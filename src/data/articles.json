@@ -70273,5 +70273,122 @@
       ]
     },
     "id": 631
+  },
+  {
+    "title": "MiPLA",
+    "index-category": "psychedelic; lysergamide; research-chemical",
+    "drug_info": {
+      "drug_name": "MiPLA",
+      "chemical_name": "(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "alternative_name": "Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide",
+      "chemical_class": "Lysergamides",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "50 ug",
+              "light": "100-150 ug",
+              "common": "150-200 ug",
+              "strong": "200-250 ug",
+              "heavy": "300+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "20-40 minutes",
+              "peak": "1-2 hours (preceded by 45-90 minute come-up)",
+              "offset": "1-2 hours",
+              "after_effects": "Minimal residual stimulation"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "MiPLA is not considered physically addictive and has low potential for psychological dependence, similar to other serotonergic psychedelics. Rapid tolerance development discourages frequent use.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants (amphetamine, cocaine, methylphenidate - increases risk of anxiety, paranoia, panic attacks, thought loops, mania, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy; significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)",
+          "SSRIs (may alter or blunt effects)"
+        ]
+      },
+      "notes": "MiPLA is a research chemical with very limited history of human use and minimal scientific study of its pharmacology, metabolism, and toxicity. It is approximately two to three times less potent than LSD and has a notably shorter duration of around 4-6 hours. The substance is generally described as producing less anxiety and a lighter headspace compared to LSD. Individuals with personal or family history of mental illness should avoid use. Use precise weighing equipment and employ harm reduction practices including careful set and setting preparation.",
+      "subjective_effects": [
+        "Stimulation",
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Visual Acuity Enhancement",
+        "Color Enhancement",
+        "Pattern Recognition Enhancement",
+        "Visual Drifting",
+        "Geometric Patterns",
+        "Cognitive Euphoria",
+        "Analysis Enhancement",
+        "Music Appreciation Enhancement",
+        "Time Distortion",
+        "Ego Death (at higher doses)",
+        "Nausea",
+        "Increased Body Temperature"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics (due to 5-HT2A receptor activity)"
+        ]
+      },
+      "half_life": "1-3 hours (estimated based on duration profile)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: MiPLA",
+          "reference": "https://psychonautwiki.org/wiki/MiPLA"
+        },
+        {
+          "name": "Erowid MiPLA Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_MIPLA.shtml"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy MIPLA Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-mipla-methylisopropyllysergamide-thread.784440/"
+        },
+        {
+          "name": "Isomer Design: MiPLA (PiHKAL)",
+          "reference": "https://isomerdesign.com/pihkal/explore/5327"
+        },
+        {
+          "name": "Halberstadt et al. (2018) - Pharmacological characterization of ECPLA",
+          "reference": "https://link.springer.com/article/10.1007/s00213-018-5055-9"
+        },
+        {
+          "name": "Nichols, D.E. (2001) - LSD and its lysergamide cousins",
+          "reference": "The Heffter Review of Psychedelic Research, Vol. 2, pp. 80-87"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical"
+      ]
+    },
+    "id": 632
   }
 ]
