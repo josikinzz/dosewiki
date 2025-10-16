@@ -226,7 +226,9 @@ const OverviewFields = ({
             onChange={handleFieldChange("id")}
             placeholder="e.g., 101"
           />
-          <p className={helperTextClass}>Leave blank when creating a draft to auto-assign later.</p>
+          <p className={helperTextClass}>
+            Leave blank to auto-assign the next available ID when staging a new article.
+          </p>
         </div>
         <div>
           <TagMultiSelect
