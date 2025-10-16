@@ -19,7 +19,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
     () => ({
       minHeight,
       fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-      fontSize: 12,
+      fontSize: 16,
       lineHeight: "1.25rem",
       color: "rgba(248, 250, 252, 0.95)",
       backgroundColor: "transparent",
@@ -51,7 +51,7 @@ export function JsonEditor({ id, value, onChange, minHeight = 360, className, re
         padding={16}
         textareaId={id}
         textareaClassName="caret-fuchsia-300 bg-transparent text-white focus:outline-none"
-        className="font-mono text-xs leading-5"
+        className="font-mono text-[16px] leading-5"
         style={editorStyle}
         tabSize={2}
         insertSpaces
