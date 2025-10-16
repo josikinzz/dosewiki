@@ -70096,5 +70096,182 @@
       ]
     },
     "id": 630
+  },
+  {
+    "title": "LSA",
+    "index-category": "psychedelic; natural",
+    "drug_info": {
+      "drug_name": "LSA",
+      "chemical_name": "(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide",
+      "alternative_name": "Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111",
+      "chemical_class": "Lysergamide; Ergoline alkaloid",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral (morning glory seeds)",
+            "units": "seeds",
+            "dose_ranges": {
+              "threshold": "20-50 seeds",
+              "light": "50-100 seeds",
+              "common": "100-250 seeds",
+              "strong": "250-400 seeds",
+              "heavy": "400+ seeds"
+            }
+          },
+          {
+            "route": "oral (hawaiian baby woodrose seeds)",
+            "units": "seeds",
+            "dose_ranges": {
+              "threshold": "1-3 seeds",
+              "light": "3-5 seeds",
+              "common": "5-7 seeds",
+              "strong": "7-12 seeds",
+              "heavy": "12+ seeds"
+            }
+          },
+          {
+            "route": "oral (pure lsa)",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.5 mg",
+              "light": "0.5-1 mg",
+              "common": "1-2 mg",
+              "strong": "2-3 mg",
+              "heavy": "3+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral (morning glory seeds)",
+            "stages": {
+              "total_duration": "4-10 hours",
+              "onset": "20-60 minutes (up to 3 hours reported)",
+              "peak": "90-180 minutes",
+              "offset": "2-7 hours",
+              "after_effects": "1-12 hours (afterglow)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "oral (hawaiian baby woodrose seeds)",
+            "stages": {
+              "total_duration": "4-10 hours",
+              "onset": "20-60 minutes (up to 3 hours reported)",
+              "peak": "90-180 minutes",
+              "offset": "2-7 hours",
+              "after_effects": "1-12 hours (afterglow)"
+            }
+          },
+          {
+            "route": "oral (pure lsa)",
+            "stages": {
+              "total_duration": "4-10 hours",
+              "onset": "20-60 minutes (up to 3 hours reported)",
+              "peak": "90-180 minutes",
+              "offset": "2-7 hours",
+              "after_effects": "1-12 hours (afterglow)"
+            }
+          }
+        ]
+      },
+      "addiction_potential": "LSA is not considered to be addictive with low abuse potential. There is virtually no withdrawal syndrome when use is stopped, and animal studies have not demonstrated self-administration behavior predictive of abuse liability.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants (increased risk of anxiety, paranoia, thought loops, and mania)",
+          "Cannabis (unexpectedly strong and unpredictable synergy; significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ],
+        "caution": [
+          "SSRIs (may suppress visual and cognitive effects)",
+          "MAOIs (may potentiate effects; use caution with potential for dangerous interactions with other substances)",
+          "Dissociatives (greatly enhance cognitive, visual and hallucinatory effects with increased risk of confusion and psychosis)",
+          "Alcohol (may reduce anxiety but can increase dehydration, nausea and physical fatigue)",
+          "Benzodiazepines (can reduce trip intensity; useful for stopping bad trips but may cause amnesia)",
+          "Other psychedelics (unpredictable synergy and intensification of effects)"
+        ]
+      },
+      "notes": "LSA-containing seeds vary widely in alkaloid content between species, batches, and individual seeds. Commercial seeds are often treated with fungicides or pesticides that can be extremely toxic; only use organic, untreated seeds from trusted vendors. Heavy metal testing is recommended before consumption. Extraction methods can significantly reduce nausea and body load. Strong vasoconstriction is common and can cause painful leg cramping; avoid repeated use over short periods. Set and setting strongly influence the experience. Individuals with personal or family histories of psychotic disorders should avoid use.",
+      "subjective_effects": [
+        "Sedation (setting-dependent)",
+        "Physical Euphoria",
+        "Visual Enhancements and Distortions",
+        "Spontaneous Bodily Sensations",
+        "Perception of Bodily Heaviness",
+        "Motor Control Loss",
+        "Nausea and Vasoconstriction",
+        "Dream-Like State",
+        "Introspection and Analysis Enhancement",
+        "Emotion Enhancement",
+        "Time Distortion",
+        "Internal and External Hallucinations",
+        "Thought Connectivity",
+        "Music Appreciation Enhancement",
+        "Spirituality Enhancement"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "3-4 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin mushrooms, mescaline, DMT, 2C-x compounds)"
+        ]
+      },
+      "half_life": "1-3 hours (psilocin is referenced in the original document, but LSA half-life data is limited; serum concentrations detectable for 1-24 hours post-ingestion)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: LSA",
+          "reference": "https://psychonautwiki.org/wiki/LSA"
+        },
+        {
+          "name": "TripSit Wiki: LSA",
+          "reference": "https://wiki.tripsit.me/wiki/LSA"
+        },
+        {
+          "name": "Erowid LSA Vault",
+          "reference": "https://www.erowid.org/chemicals/lsa/lsa.shtml"
+        },
+        {
+          "name": "Erowid LSA Dosage",
+          "reference": "https://erowid.org/chemicals/lsa/lsa_dose.shtml"
+        },
+        {
+          "name": "Erowid LSA Effects",
+          "reference": "https://www.erowid.org/chemicals/lsa/lsa_effects.shtml"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy LSA Thread",
+          "reference": "https://www.bluelight.org/community/threads/lsas-subthread-extraction-of-lsas.123944/"
+        },
+        {
+          "name": "Drugs-Forum: LSA Wiki",
+          "reference": "https://drugs-forum.com/wiki/LSA"
+        },
+        {
+          "name": "Wikipedia: Ergine",
+          "reference": "https://en.wikipedia.org/wiki/Ergine"
+        },
+        {
+          "name": "Lysergic Acid Amide (LSA), an LSD Analog: Systematic Review (MDPI, 2025)",
+          "reference": "https://www.mdpi.com/2226-4787/13/4/98"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "natural",
+        "ergoline"
+      ]
+    },
+    "id": 631
   }
 ]
