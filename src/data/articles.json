@@ -42656,29 +42656,29 @@
         "routes_of_administration": [
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
               "total_duration": "5-20 minutes",
               "onset": "30 seconds - 2 minutes",
               "peak": "5-10 minutes",
               "offset": "10-20 minutes",
               "after_effects": "30-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           },
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "5-20 minutes",
               "onset": "30 seconds - 2 minutes",
               "peak": "5-10 minutes",
               "offset": "10-20 minutes",
               "after_effects": "30-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -42721,7 +42721,8 @@
         }
       ],
       "categories": [
-        "other dissociatives"
+        "other dissociatives",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
