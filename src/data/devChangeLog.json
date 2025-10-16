@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251016-211713-87b4367c",
+    "createdAt": "2025-10-16T21:17:13.242Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 23:17:09"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-    \"chemical_name\": \"LSD\",\n-    \"alternative_name\": \"Lysergic acid diethylamide\",\n+    \"chemical_name\": \"Lysergic acid diethylamide\",\n+    \"alternative_name\": \"Lucy; Acid\",\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"research-chemical\"\n+      \"common\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-210951-3bc6b2e2",
     "createdAt": "2025-10-16T21:09:51.985Z",
     "commit": {
