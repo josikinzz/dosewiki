@@ -157,13 +157,15 @@ export const TagMultiSelect = ({
 
   const hasCreateOption = allowCreate && normalizedQuery.length > 0 && !selectedKeys.has(normalizedQueryKey) && !optionLookup.has(normalizedQueryKey);
 
+  const includeCreateInMenu = openStrategy === "focus";
+
   const menuItems: MenuItem[] = useMemo(() => {
     const items: MenuItem[] = filteredOptions.map((option) => ({ type: "option", option }));
-    if (hasCreateOption) {
+    if (includeCreateInMenu && hasCreateOption) {
       items.push({ type: "create" });
     }
     return items;
-  }, [filteredOptions, hasCreateOption]);
+  }, [filteredOptions, hasCreateOption, includeCreateInMenu]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -203,7 +205,7 @@ export const TagMultiSelect = ({
   );
 
   const handleAddTag = useCallback(
-    (raw: string) => {
+    (raw: string, { keepOpen }: { keepOpen?: boolean } = {}) => {
       if (disabled) {
         return;
       }
@@ -222,11 +224,15 @@ export const TagMultiSelect = ({
 
       onChange([...value, resolved]);
       setQuery("");
-      setIsOpen(true);
       setHighlightedIndex(null);
-      focusInput();
+      if (keepOpen || openStrategy === "focus") {
+        setIsOpen(true);
+        focusInput();
+      } else {
+        setIsOpen(false);
+      }
     },
-    [disabled, focusInput, onChange, resolveTagLabel, value],
+    [disabled, focusInput, onChange, openStrategy, resolveTagLabel, value],
   );
 
   const handleRemoveTag = useCallback(
@@ -293,6 +299,9 @@ export const TagMultiSelect = ({
 
   const commitHighlightedItem = useCallback(() => {
     if (!isOpen) {
+      if (hasCreateOption) {
+        handleAddTag(normalizedQuery);
+      }
       return;
     }
     if (highlightedIndex === null || highlightedIndex < 0 || highlightedIndex >= menuItems.length) {
@@ -376,7 +385,7 @@ export const TagMultiSelect = ({
   const handleOptionClick = useCallback(
     (item: MenuItem) => {
       if (item.type === "option") {
-        handleAddTag(item.option.label);
+        handleAddTag(item.option.label, { keepOpen: true });
       } else if (hasCreateOption) {
         handleAddTag(normalizedQuery);
       }
@@ -442,6 +451,8 @@ export const TagMultiSelect = ({
   const helper = helperText ?? `${allowCreate ? "Search existing tags or press Enter to add." : "Search and select tags."}`;
   const shouldShowTriggerButton = openStrategy === "button";
   const computedAddButtonLabel = addButtonLabel ?? `Add ${label}`;
+  const shouldShowInlineCreateButton = openStrategy === "button" && hasCreateOption && allowCreate;
+  const shouldShowInlineEmptyState = openStrategy === "button" && normalizedQuery.length > 0 && filteredOptions.length === 0;
 
   return (
     <div className={className} ref={containerRef}>
@@ -518,7 +529,25 @@ export const TagMultiSelect = ({
             </button>
           ) : null}
         </div>
-        {isOpen ? (
+        {shouldShowInlineCreateButton ? (
+          <div className="mt-3">
+            <button
+              type="button"
+              className="w-full rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-3 py-2 text-sm font-medium text-fuchsia-100 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-45"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => handleAddTag(normalizedQuery)}
+              disabled={disabled}
+            >
+              {createOptionLabel}
+            </button>
+          </div>
+        ) : null}
+        {shouldShowInlineEmptyState ? (
+          <p className={`${shouldShowInlineCreateButton ? "mt-2" : "mt-3"} text-xs text-white/50`}>
+            {emptyStateText}
+          </p>
+        ) : null}
+        {isOpen && (openStrategy !== "button" || menuItems.length > 0) ? (
           <div
             id={listboxId}
             role="listbox"
@@ -526,7 +555,9 @@ export const TagMultiSelect = ({
             className="absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-auto rounded-xl border border-white/10 bg-[#120d27] p-2 shadow-xl"
           >
             {menuItems.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-white/50">{emptyStateText}</div>
+              shouldShowInlineEmptyState ? null : (
+                <div className="px-3 py-2 text-sm text-white/50">{emptyStateText}</div>
+              )
             ) : (
               menuItems.map((item, index) => renderMenuItem(item, index))
             )}
