@@ -32831,29 +32831,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-3 h",
               "after_effects": "1-2 h"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "6-8 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-3 h",
               "after_effects": "1-2 h"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -32963,7 +32963,6 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
