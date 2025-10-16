@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251016-191042-5c6a6d64",
+    "createdAt": "2025-10-16T19:10:42.055Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 21:10:39"
+    },
+    "articles": [
+      {
+        "id": 514,
+        "title": "2C-BZ",
+        "slug": "2c-bz"
+      }
+    ],
+    "markdown": "# 2C-BZ · #514\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"a-typical hallucinogen\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-190938-8a5873a8",
     "createdAt": "2025-10-16T19:09:38.185Z",
     "commit": {

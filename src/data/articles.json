@@ -9713,16 +9713,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "8-12 h (reports vary)",
               "onset": "30-90 min",
               "peak": "2-4 h",
               "offset": "3-5 h",
               "after_effects": "1-3 h residual stimulation / insomnia"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -9787,7 +9787,6 @@
       "categories": [
         "psychedelic",
         "research-chemical",
-        "a-typical hallucinogen",
         "2C-X"
       ]
     },
