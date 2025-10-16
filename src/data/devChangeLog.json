@@ -1,5 +1,83 @@
 [
   {
+    "id": "20251016-083502-09318c26",
+    "createdAt": "2025-10-16T08:35:02.514Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/16/2025, 2:35:00 AM"
+    },
+    "articles": [
+      {
+        "id": 36,
+        "title": "Trazodone",
+        "slug": "trazodone"
+      },
+      {
+        "id": 86,
+        "title": "Tranylcypromine",
+        "slug": "tranylcypromine"
+      },
+      {
+        "id": 144,
+        "title": "Phenelzine",
+        "slug": "phenelzine"
+      },
+      {
+        "id": 186,
+        "title": "Vilazodone",
+        "slug": "vilazodone"
+      },
+      {
+        "id": 303,
+        "title": "Ondansetron",
+        "slug": "ondansetron"
+      },
+      {
+        "id": 302,
+        "title": "Moclobemide",
+        "slug": "moclobemide"
+      },
+      {
+        "id": 301,
+        "title": "Quetiapine",
+        "slug": "quetiapine"
+      },
+      {
+        "id": 307,
+        "title": "Tianeptine",
+        "slug": "tianeptine"
+      },
+      {
+        "id": 374,
+        "title": "Lean",
+        "slug": "lean"
+      },
+      {
+        "id": 430,
+        "title": "Olanzapine",
+        "slug": "olanzapine"
+      },
+      {
+        "id": 442,
+        "title": "Clobenzorex",
+        "slug": "clobenzorex"
+      },
+      {
+        "id": 458,
+        "title": "Chlorpheniramine",
+        "slug": "chlorpheniramine"
+      },
+      {
+        "id": 530,
+        "title": "Ro5-4864",
+        "slug": "ro5-4864"
+      }
+    ],
+    "markdown": "# Trazodone · #36\n\n-    \"psychoactive_class\": \"Antidepressant (Serotonin Antagonist and Reuptake Inhibitor, SARI)\",\n+    \"psychoactive_class\": \"Antidepressant\",\n\n# Tranylcypromine · #86\n\n-    \"psychoactive_class\": \"Antidepressant (Monoamine Oxidase Inhibitor, MAOI)\",\n+    \"psychoactive_class\": \"Antidepressant\",\n\n# Phenelzine · #144\n\n-    \"psychoactive_class\": \"Antidepressant (Monoamine Oxidase Inhibitor, MAOI)\",\n+    \"psychoactive_class\": \"Antidepressant\",\n\n# Vilazodone · #186\n\n-    \"psychoactive_class\": \"Antidepressant (Selective Serotonin Reuptake Inhibitor and 5-HT1A receptor partial agonist)\",\n+    \"psychoactive_class\": \"Antidepressant\",\n\n# Ondansetron · #303\n\n-    \"psychoactive_class\": \"Antiemetic (not psychoactive in the traditional sense, but acts on the central nervous system to prevent nausea/vomiting)\",\n+    \"psychoactive_class\": \"Antiemetic\",\n\n# Moclobemide · #302\n\n-    \"psychoactive_class\": \"Antidepressant (Reversible MAO-A inhibitor)\",\n+    \"psychoactive_class\": \"Antidepressant\",\n\n# Quetiapine · #301\n\n-    \"psychoactive_class\": \"Atypical antipsychotic\",\n+    \"psychoactive_class\": \"Antipsychotic (atypical)\",\n\n# Tianeptine · #307\n\n-    \"psychoactive_class\": \"Full μ-opioid receptor agonist; atypical antidepressant\",\n+    \"psychoactive_class\": \"Full μ-opioid receptor agonist; Antidepressant (atypical)\",\n\n# Lean · #374\n\n-    \"psychoactive_class\": \"Opioid depressant; antihistamine sedative\",\n+    \"psychoactive_class\": \"Opioid depressant; Antihistamine; Sedative\",\n\n# Olanzapine · #430\n\n-    \"psychoactive_class\": \"Atypical antipsychotic (multi-receptor antagonist)\",\n+    \"psychoactive_class\": \"Antipsychotic (atypical)\",\n\n# Clobenzorex · #442\n\n-    \"psychoactive_class\": \"Catecholaminergic stimulant; prodrug that yields d-amphetamine (~15 % conversion)\",\n+    \"psychoactive_class\": \"Stimulant; prodrug that yields d-amphetamine (~15 % conversion)\",\n\n# Chlorpheniramine · #458\n\n-    \"psychoactive_class\": \"Antihistamine (H1 receptor antagonist)\",\n+    \"psychoactive_class\": \"Antihistamine\",\n\n# Ro5-4864 · #530\n\n-    \"psychoactive_class\": \"atypical benzodiazepine; TSPO (18 kDa translocator protein) agonist with weak or absent classical GABA_A activity\",\n+    \"psychoactive_class\": \"Benzodiazepine (atypical); TSPO (18 kDa translocator protein) agonist with weak or absent classical GABA_A activity\",",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251014-233456-d6536e79",
     "createdAt": "2025-10-14T23:34:56.256Z",
     "commit": {
