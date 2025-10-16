@@ -77,6 +77,7 @@ type OverviewFieldsProps = {
   handleTagFieldChange: ArticleDraftFormController["handleTagFieldChange"];
   replaceForm: ArticleDraftFormController["replaceForm"];
   categoryOptions: TagOption[];
+  indexCategoryOptions: TagOption[];
 };
 
 type DosageDurationFieldsProps = {
@@ -176,10 +177,12 @@ const OverviewFields = ({
   handleTagFieldChange,
   replaceForm,
   categoryOptions,
+  indexCategoryOptions,
 }: OverviewFieldsProps) => {
   const categoryPreview = form.categories;
   const displayNameTitleValue = form.drugName ?? form.title ?? "";
   const handleCategoriesChange = handleTagFieldChange("categories");
+  const handleIndexCategoryChange = handleTagFieldChange("indexCategoryTags");
 
   const handleDisplayTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
@@ -226,17 +229,16 @@ const OverviewFields = ({
           <p className={helperTextClass}>Leave blank when creating a draft to auto-assign later.</p>
         </div>
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-index`}>
-            Index category
-          </label>
-          <input
-            id={`${idPrefix}-index`}
-            className={baseInputClass}
-            value={form.indexCategory}
-            onChange={handleFieldChange("indexCategory")}
-            placeholder="Optional catalog tag"
+          <TagMultiSelect
+            label="Index tags"
+            helperText="Use the + button to pick existing index tags or type to add new ones. Values export as a semicolon-separated list."
+            placeholder="Filter or create index tags"
+            value={form.indexCategoryTags}
+            onChange={handleIndexCategoryChange}
+            options={indexCategoryOptions}
+            addButtonLabel="Add index tag"
+            openStrategy="button"
           />
-          <p className={helperTextClass}>Matches the index filters on the substance explorer.</p>
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
@@ -269,11 +271,13 @@ const OverviewFields = ({
     <div>
       <TagMultiSelect
         label="Categories"
-        helperText="Order controls the hero badges. Start typing to search existing categories or press Enter to add a new one."
-        placeholder="Search categories"
+        helperText="Use the + button to open the picker. Type only when creating or filtering categories."
+        placeholder="Filter or create categories"
         value={form.categories}
         onChange={handleCategoriesChange}
         options={categoryOptions}
+        addButtonLabel="Add category"
+        openStrategy="button"
       />
       <ListPreview items={categoryPreview} emptyLabel="Badges preview appears once categories are added." />
     </div>
@@ -420,30 +424,36 @@ const ChemistryFields = ({
       />
       <div className="grid gap-4 md:grid-cols-2">
         <TagMultiSelect
-        label="Chemical class"
-        helperText="Search existing chemical classes or press Enter to add a new descriptor. Exports as a semicolon-separated list."
-        placeholder="Search chemical classes"
-        value={form.chemicalClasses}
-        onChange={handleChemicalClassChange}
-        options={chemicalClassOptions}
-      />
-      <TagMultiSelect
-        label="Psychoactive class"
-        helperText="Select one or more psychoactive classes. Output joins with semicolons."
-        placeholder="Search psychoactive classes"
-        value={form.psychoactiveClasses}
-        onChange={handlePsychoactiveClassChange}
-        options={psychoactiveClassOptions}
-      />
+          label="Chemical class"
+          helperText="Use the + button to browse chemical classes. Type when filtering or adding a new descriptor."
+          placeholder="Filter or create chemical classes"
+          value={form.chemicalClasses}
+          onChange={handleChemicalClassChange}
+          options={chemicalClassOptions}
+          addButtonLabel="Add chemical class"
+          openStrategy="button"
+        />
+        <TagMultiSelect
+          label="Psychoactive class"
+          helperText="Tap the + button to open the picker. Type to filter or capture a brand-new psychoactive class."
+          placeholder="Filter or create psychoactive classes"
+          value={form.psychoactiveClasses}
+          onChange={handlePsychoactiveClassChange}
+          options={psychoactiveClassOptions}
+          addButtonLabel="Add psychoactive class"
+          openStrategy="button"
+        />
     </div>
     <div className="space-y-2">
       <TagMultiSelect
         label="Mechanism of action"
-        helperText="Select receptor targets or add a new mechanism. Entries export as a semicolon-separated list."
-        placeholder="Search mechanisms"
+        helperText="Use the + button to pick existing targets. Type only when filtering or defining a new mechanism."
+        placeholder="Filter or create mechanisms"
         value={form.mechanismEntries}
         onChange={handleMechanismChange}
         options={mechanismOptions}
+        addButtonLabel="Add mechanism of action"
+        openStrategy="button"
       />
         <CharacterCount value={form.mechanismOfAction} />
       </div>
@@ -703,6 +713,7 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
     chemicalClasses: chemicalClassOptions,
     psychoactiveClasses: psychoactiveClassOptions,
     mechanismEntries: mechanismOptions,
+    indexCategories: indexCategoryOptions,
   } = useDevTagOptions();
 
   return (
@@ -714,6 +725,7 @@ export function ArticleDraftFormFields({ idPrefix, controller }: ArticleDraftFor
         handleTagFieldChange={handleTagFieldChange}
         replaceForm={replaceForm}
         categoryOptions={categoryOptions}
+        indexCategoryOptions={indexCategoryOptions}
       />
       <DosageDurationFields
         idPrefix={idPrefix}

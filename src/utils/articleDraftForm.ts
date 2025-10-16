@@ -76,6 +76,7 @@ export type ArticleDraftForm = {
   id: string;
   title: string;
   indexCategory: string;
+  indexCategoryTags: string[];
   drugName: string;
   chemicalName: string;
   alternativeName: string;
@@ -193,6 +194,7 @@ export const createEmptyArticleDraftForm = (): ArticleDraftForm => ({
   id: "",
   title: "",
   indexCategory: "",
+  indexCategoryTags: [],
   drugName: "",
   chemicalName: "",
   alternativeName: "",
@@ -477,6 +479,13 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
   const psychoactiveClasses = parseDelimitedField(drugInfo.psychoactive_class);
   const mechanismEntries = parseMechanismField(drugInfo.mechanism_of_action);
 
+  const rawIndexCategory = toTrimmedString(article["index-category"]);
+  const indexCategoryTags = rawIndexCategory
+    ? tokenizeTagField(rawIndexCategory, { splitOnComma: false, splitOnSlash: true })
+    : [];
+  const indexCategoryValue =
+    indexCategoryTags.length > 0 ? joinNormalizedValues(indexCategoryTags, "; ") : rawIndexCategory;
+
   const chemicalClassString =
     chemicalClasses.length > 0
       ? joinNormalizedValues(chemicalClasses, "; ")
@@ -508,7 +517,8 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     ...base,
     id: toTrimmedString(article.id),
     title: toTrimmedString(article.title),
-    indexCategory: toTrimmedString(article["index-category"]),
+    indexCategory: indexCategoryValue,
+    indexCategoryTags,
     drugName: toTrimmedString(drugInfo.drug_name),
     chemicalName: toTrimmedString(drugInfo.chemical_name),
     alternativeName: toTrimmedString(drugInfo.alternative_name),
@@ -678,6 +688,11 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
       ? ensureNormalizedTagList(form.mechanismEntries)
       : parseMechanismField(form.mechanismOfAction);
 
+  const normalizedIndexCategoryTags =
+    form.indexCategoryTags.length > 0
+      ? ensureNormalizedTagList(form.indexCategoryTags)
+      : tokenizeTagField(form.indexCategory, { splitOnComma: false, splitOnSlash: true });
+
   const chemicalClassValue =
     normalizedChemicalClasses.length > 0
       ? joinNormalizedValues(normalizedChemicalClasses, "; ")
@@ -714,9 +729,14 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     categories: normalizedCategories,
   };
 
+  const indexCategoryValue =
+    normalizedIndexCategoryTags.length > 0
+      ? joinNormalizedValues(normalizedIndexCategoryTags, "; ")
+      : form.indexCategory.trim();
+
   const payload: ArticleDraftPayload = {
     title: form.title.trim(),
-    "index-category": form.indexCategory.trim(),
+    "index-category": indexCategoryValue,
     drug_info: drugInfo,
   };
 

@@ -107,9 +107,13 @@ export interface InteractionIndexEntry {
 
 export type InteractionIndex = Map<string, InteractionIndexEntry>;
 
-export const substanceRecords: SubstanceRecord[] = articles
+const rawSubstanceRecords: SubstanceRecord[] = articles
   .map((article) => buildSubstanceRecord(article))
   .filter((record): record is SubstanceRecord => record !== null);
+
+export const allSubstanceRecords: SubstanceRecord[] = rawSubstanceRecords;
+
+export const substanceRecords: SubstanceRecord[] = rawSubstanceRecords.filter((record) => !record.isHidden);
 
 export const substanceBySlug = new Map<string, SubstanceRecord>(
   substanceRecords.map((record) => [record.slug, record]),

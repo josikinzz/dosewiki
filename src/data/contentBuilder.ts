@@ -109,8 +109,10 @@ export interface SubstanceRecord {
   slug: string;
   aliases: string[];
   categories: string[];
+  indexCategories: string[];
   chemicalClasses: string[];
   psychoactiveClasses: string[];
+  isHidden: boolean;
   content: SubstanceContent;
 }
 
@@ -767,6 +769,12 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
 
   const categories = cleanStringArray(info.categories);
   const normalizedCategories = categories.map((category) => normalizeKey(category));
+  const rawIndexCategory = typeof article["index-category"] === "string" ? article["index-category"] : "";
+  const indexCategories = rawIndexCategory
+    ? tokenizeTagString(rawIndexCategory, { splitOnComma: false, splitOnSlash: true })
+    : [];
+  const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
+  const isHidden = normalizedIndexCategories.includes("hidden");
   const chemicalClasses = splitToList(info.chemical_class);
   const psychoactiveClasses = splitToList(info.psychoactive_class);
   const aliases = extractAlternativeNames(info, baseName);
@@ -799,8 +807,10 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     aliases,
     slug,
     categories,
+    indexCategories,
     chemicalClasses,
     psychoactiveClasses,
+    isHidden,
     content,
   };
 }
