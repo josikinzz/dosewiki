@@ -69865,5 +69865,123 @@
       ]
     },
     "id": 628
+  },
+  {
+    "title": "ALD-52",
+    "index-category": "psychedelic; lysergamide",
+    "drug_info": {
+      "drug_name": "ALD-52",
+      "chemical_name": "(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide",
+      "alternative_name": "1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine",
+      "chemical_class": "Lysergamides",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist; 5-HT1A receptor partial agonist; D2 receptor agonist (through LSD metabolite)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "30 ug",
+              "light": "30-100 ug",
+              "common": "100-175 ug",
+              "strong": "175-325 ug",
+              "heavy": "325+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-14 hours",
+              "onset": "20-40 minutes",
+              "peak": "3-5 hours (following 1-2 hour come up)",
+              "offset": "3-5 hours",
+              "after_effects": "4-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "ALD-52 is not considered physically addictive and has extremely low potential for psychological dependence. The rapid development of tolerance discourages frequent use patterns, and the desire to use typically decreases with repeated exposure rather than increasing.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "MAOIs (unpredictable effects, possible hypertensive reaction)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold, psychedelics may trigger seizures)",
+          "Stimulants including amphetamines and cocaine (increased risk of anxiety, thought loops, cardiovascular strain)"
+        ],
+        "caution": [
+          "Cannabis (unpredictably strong synergy, increased risk of anxiety and paranoia)",
+          "MDMA (may increase neurotoxicity, unpredictable synergy)",
+          "Other psychedelics (intense cross-tolerance and potentially overwhelming effects)",
+          "SSRIs (may blunt or alter effects)"
+        ]
+      },
+      "notes": "ALD-52 functions as a prodrug for LSD, metabolizing into LSD in the body along with other metabolites. Legal status varies widely by jurisdiction; it is controlled in many countries including the UK, Germany, Switzerland, and Latvia, while remaining technically unscheduled in others such as the United States and Denmark. Individuals with personal or family history of psychotic disorders should avoid use. Famous for being mistakenly associated with 'Orange Sunshine' LSD from the 1960s, though this was later confirmed to be standard LSD at 300 micrograms per dose. Set and setting are critical for a positive experience, and users should approach this potent, long-lasting substance with proper preparation and harm reduction practices.",
+      "subjective_effects": [
+        "Visual Patterning And Geometry",
+        "Enhanced Sensory Perception",
+        "Time Distortion",
+        "Cognitive Euphoria",
+        "Enhanced Introspection",
+        "Emotional Amplification",
+        "Physical Euphoria",
+        "Thought Acceleration",
+        "Enhanced Music Appreciation",
+        "Pupil Dilation",
+        "Increased Energy And Stimulation",
+        "Novel Thought Patterns"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after ingestion, cross-tolerant with all psychedelics",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics including LSD, psilocybin mushrooms, mescaline, and tryptamines"
+        ]
+      },
+      "half_life": "1-3 hours (LSD active metabolite)",
+      "citations": [
+        {
+          "name": "Erowid ALD-52 Vault",
+          "reference": "https://erowid.org/chemicals/lsd/lsd_ald52.shtml"
+        },
+        {
+          "name": "Isomer Design TiHKAL Entry 26 (LSD)",
+          "reference": "https://isomerdesign.com/pihkal/read/tk/26"
+        },
+        {
+          "name": "PsychonautWiki: ALD-52",
+          "reference": "https://psychonautwiki.org/wiki/ALD-52"
+        },
+        {
+          "name": "The Big & Dandy ALD-52 Thread (Bluelight)",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-ald-52-thread.773316/"
+        },
+        {
+          "name": "TripSit Drug Combination Chart",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "Wagmann et al. (2019) In vitro metabolic fate of nine LSD-based new psychoactive substances",
+          "reference": "https://doi.org/10.1007/s00216-018-1558-9"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical",
+        "prodrug"
+      ]
+    },
+    "id": 629
   }
 ]
