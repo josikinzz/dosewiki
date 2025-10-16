@@ -1,5 +1,53 @@
 [
   {
+    "id": "20251016-210536-524a89f5",
+    "createdAt": "2025-10-16T21:05:36.034Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 16/10/2025, 23:05:33"
+    },
+    "articles": [
+      {
+        "id": 242,
+        "title": "Gaboxadol",
+        "slug": "gaboxadol"
+      },
+      {
+        "id": 176,
+        "title": "Zopiclone",
+        "slug": "zopiclone"
+      },
+      {
+        "id": 179,
+        "title": "Zaleplon",
+        "slug": "zaleplon"
+      },
+      {
+        "id": 183,
+        "title": "Zolpidem",
+        "slug": "zolpidem"
+      },
+      {
+        "id": 201,
+        "title": "Amanita Muscaria",
+        "slug": "amanita-muscaria"
+      },
+      {
+        "id": 215,
+        "title": "Ibotenic acid",
+        "slug": "ibotenic-acid"
+      },
+      {
+        "id": 409,
+        "title": "Salvia",
+        "slug": "salvia"
+      }
+    ],
+    "markdown": "# Gaboxadol · #242\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zopiclone · #176\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zaleplon · #179\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Zolpidem · #183\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Amanita Muscaria · #201\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"smoked\"\n-          ],\n+            \"total_duration\": \"6-8 hours\",\n+            \"onset\": \"30-120 minutes\",\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"smoked\"\n+          ]\n-      \"research-chemical\"\n+      \"research-chemical\",\n+      \"A-typical Hallucinogen\"\n\n# Ibotenic acid · #215\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"gabaergic\"\n+      \"gabaergic\",\n+      \"A-typical Hallucinogen\"\n\n# Salvia · #409\n\n-          \"canonical_routes\": [\n-            \"smoked\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"smoked\"\n+          ]\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"other dissociatives\"\n+      \"other dissociatives\",\n+      \"A-typical Hallucinogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251016-210425-092f4def",
     "createdAt": "2025-10-16T21:04:25.208Z",
     "commit": {
