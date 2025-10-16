@@ -71050,5 +71050,134 @@
       ]
     },
     "id": 637
+  },
+  {
+    "title": "4-AcO-DiPT",
+    "index-category": "psychedelic; tryptamine",
+    "drug_info": {
+      "drug_name": "4-AcO-DiPT",
+      "chemical_name": "3-[2-(Diisopropylamino)ethyl]-1H-indol-4-yl acetate",
+      "alternative_name": "4-Acetoxy-DiPT; Ipracetin; Iprocetyl; Aces; 4-Ace",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2C receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3-5 mg",
+              "light": "5-15 mg",
+              "common": "15-30 mg",
+              "strong": "30-45 mg",
+              "heavy": "45+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-4 hours",
+              "onset": "15-40 minutes",
+              "peak": "1.5-2 hours",
+              "offset": "1-1.5 hours",
+              "after_effects": "2-6 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4-AcO-DiPT is not known to be habit-forming and the desire to use it can decrease with repeated administration. However, it may possess a higher liability for frequent or excessive consumption relative to most psychedelics due to its distinctly hedonic and short-duration effects. Compulsive redosing is reported to be atypically prominent for this substance.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "MAOIs (risk of serotonin syndrome)",
+          "Stimulants (increased risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (may significantly intensify and prolong effects unpredictably)",
+          "Alcohol (physically taxing, may dull effects)",
+          "Benzodiazepines (may reduce trip intensity)"
+        ]
+      },
+      "notes": "4-AcO-DiPT is thought to act as a prodrug to 4-HO-DiPT (Iprocin). It is available in both freebase and HCl salt forms, with the freebase being approximately 10% more potent by weight. This substance is characterized by atypically strong physical euphoria and sensuality with minimal visual effects, distinguishing it from most other 4-substituted tryptamines. Accurate weighing with a milligram scale is essential. Individuals with personal or family histories of seizure disorders or psychotic conditions should avoid use. The compound can produce notable increases in body temperature, particularly at peak effects. Set and setting significantly influence the experience.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Increased Libido",
+        "Sedation Followed By Stimulation",
+        "Disinhibition",
+        "Enhanced Sociability",
+        "Color Enhancement",
+        "Spontaneous Physical Sensations",
+        "Changes In Felt Bodily Form",
+        "Music Appreciation Enhancement",
+        "Empathy And Affection Enhancement",
+        "Minimal Visual Effects"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (e.g., psilocybin, LSD, mescaline, other tryptamines)"
+        ]
+      },
+      "half_life": "2-4 hours (rapidly metabolized to 4-HO-DiPT)",
+      "citations": [
+        {
+          "name": "Erowid 4-Acetoxy-DiPT Primer by Toad",
+          "reference": "https://www.erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt_primer.shtml"
+        },
+        {
+          "name": "Erowid 4-Acetoxy-DiPT Vault",
+          "reference": "https://www.erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt.shtml"
+        },
+        {
+          "name": "PsychonautWiki: 4-AcO-DiPT",
+          "reference": "https://psychonautwiki.org/wiki/4-AcO-DiPT"
+        },
+        {
+          "name": "Bluelight 4-AcO-DiPT Discussion Thread",
+          "reference": "https://bluelight.org/xf/threads/4-aco-dipt-new-experience-10-mg-dose-to-test-the-waters.493414/"
+        },
+        {
+          "name": "Isomer Design: 4-AcO-DiPT",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5369"
+        },
+        {
+          "name": "Human Hepatocyte 4-AcO-DiPT Metabolite Profiling Study",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9413566/"
+        },
+        {
+          "name": "Investigation of Structure-Activity Relationships of Psilocybin Analogues",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8033608/"
+        },
+        {
+          "name": "Pharmacologic Activity of Substituted Tryptamines Study",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10029822/"
+        },
+        {
+          "name": "TiHKAL Entry #17: 4-HO-DiPT",
+          "reference": "https://erowid.org/library/books_online/tihkal/tihkal17.shtml"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "synthetic"
+      ]
+    },
+    "id": 638
   }
 ]
