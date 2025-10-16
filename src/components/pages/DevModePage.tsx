@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   BadgeCheck,
   ChevronDown,
   Copy,
@@ -9,6 +10,7 @@ import {
   LogOut,
   RefreshCw,
   Save,
+  Trash2,
   Undo2,
   Wrench,
 } from "lucide-react";
@@ -84,6 +86,8 @@ const baseSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-12 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
+const dangerButtonClass =
+  "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
@@ -228,16 +232,20 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
 export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const {
     articles,
-  close,
-  updateArticleAt,
-  resetArticleAt,
-  resetAll,
-  getOriginalArticle,
+    close,
+    updateArticleAt,
+    resetArticleAt,
+    resetAll,
+    getOriginalArticle,
+    replaceArticles,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
+  const [articleDeleteConfirmed, setArticleDeleteConfirmed] = useState(false);
+  const [articleDeleteNotice, setArticleDeleteNotice] = useState<ChangeNotice | null>(null);
+  const [isDeletingArticle, setIsDeletingArticle] = useState(false);
   const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
   const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
   const handleCreatorMutate = useCallback(() => {
@@ -421,6 +429,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" })),
     [articles],
   );
+  const hasArticles = articleOptions.length > 0;
+  const articleDeleteTargetLabel = selectedArticleSummary?.title ?? articleLabel;
 
   const articleFrequency = useMemo(() => buildArticleFrequencyIndex(changeLogEntries), [changeLogEntries]);
 
@@ -995,12 +1005,20 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       if (articles.length === 0) {
         return 0;
       }
-      if (current < 0 || current >= articles.length) {
+      const maxIndex = articles.length - 1;
+      if (current < 0) {
         return 0;
+      }
+      if (current > maxIndex) {
+        return maxIndex;
       }
       return current;
     });
   }, [articles.length]);
+
+  useEffect(() => {
+    setArticleDeleteConfirmed(false);
+  }, [selectedIndex]);
 
   useEffect(() => {
     replaceEditArticleForm(hydratedSelectedForm, { emitMutate: false });
@@ -1299,6 +1317,129 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     verifyDevCredentials,
   ]);
 
+  const handleDeleteArticle = useCallback(async () => {
+    if (isDeletingArticle) {
+      return;
+    }
+
+    if (!selectedArticle) {
+      setArticleDeleteNotice({ type: "error", message: "Select an article before deleting." });
+      return;
+    }
+
+    if (!articleDeleteConfirmed) {
+      setArticleDeleteNotice({ type: "error", message: "Confirm the deletion before proceeding." });
+      return;
+    }
+
+    const nextArticles = articles.filter((_, index) => index !== selectedIndex);
+    if (nextArticles.length === articles.length) {
+      setArticleDeleteNotice({ type: "error", message: "Unable to identify the article to delete." });
+      return;
+    }
+
+    const deletedLabel = selectedArticleSummary?.title ?? articleLabel ?? `Article ${selectedIndex + 1}`;
+
+    setIsDeletingArticle(true);
+    setArticleDeleteNotice({ type: "success", message: "Verifying credentials…" });
+
+    try {
+      const credentials = await verifyDevCredentials();
+
+      setArticleDeleteNotice({ type: "success", message: "Submitting deletion to GitHub…" });
+
+      const commitMessage = `Remove ${deletedLabel} - ${new Date().toLocaleString()}`;
+
+      const deletionChangelog = buildDatasetChangelog({
+        articles: nextArticles,
+        getOriginalArticle,
+        formatHeading: (article, index) =>
+          formatArticleLabel(article ?? nextArticles[index] ?? articles[index], index),
+        summarizeArticle: (article, index) =>
+          extractChangeLogSummary(article, index) ??
+          extractChangeLogSummary(nextArticles[index], index) ??
+          extractChangeLogSummary(articles[index], index) ??
+          extractChangeLogSummary(getOriginalArticle(index), index),
+      });
+
+      const saveResponse = await fetch("/api/save-articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+          articlesData: nextArticles,
+          commitMessage,
+          changelogMarkdown: deletionChangelog.markdown,
+          changedArticles: deletionChangelog.articles,
+        }),
+      });
+
+      const result = await saveResponse.json().catch(() => ({}));
+
+      if (!saveResponse.ok) {
+        throw new Error(result.details || result.error || "Delete failed.");
+      }
+
+      const resolvedKey =
+        typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
+          ? result.submittedBy.trim()
+          : credentials.key;
+      setPasswordKey(resolvedKey);
+
+      replaceArticles(nextArticles);
+      const nextLength = nextArticles.length;
+      const nextSelectedIndex = nextLength === 0 ? 0 : Math.min(selectedIndex, nextLength - 1);
+      setSelectedIndex(nextSelectedIndex);
+
+      setArticleDeleteNotice({
+        type: "success",
+        message: `Deleted ${deletedLabel}. Commit saved to GitHub.`,
+      });
+
+      if (result.entry && typeof result.entry === "object") {
+        const entry = result.entry as ChangeLogEntry;
+        const sanitizedEntry: ChangeLogEntry = {
+          ...entry,
+          commit: {
+            sha: entry.commit?.sha ?? "",
+            url: entry.commit?.url ?? "",
+            message: entry.commit?.message ?? commitMessage,
+          },
+          submittedBy: entry.submittedBy ?? resolvedKey,
+        };
+        setChangeLogEntries((previous) => appendChangeLogEntry(previous, sanitizedEntry));
+        onTabChange("change-log");
+        pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
+      } else {
+        pushChangeLogNotice({ type: "success", message: `Deleted ${deletedLabel}.` });
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Deletion failed.";
+      setArticleDeleteNotice({ type: "error", message: reason });
+    } finally {
+      setIsDeletingArticle(false);
+      setArticleDeleteConfirmed(false);
+    }
+  }, [
+    appendChangeLogEntry,
+    articleDeleteConfirmed,
+    articleLabel,
+    articles,
+    getOriginalArticle,
+    isDeletingArticle,
+    onTabChange,
+    pushChangeLogNotice,
+    replaceArticles,
+    selectedArticle,
+    selectedArticleSummary,
+    selectedIndex,
+    setChangeLogEntries,
+    setPasswordKey,
+    setSelectedIndex,
+    verifyDevCredentials,
+  ]);
+
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
       if (tab === "edit" || tab === "tag-editor") {
@@ -1407,6 +1548,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       return;
     }
 
+    setArticleDeleteNotice(null);
     setSelectedIndex(nextIndex);
     event.target.value = "";
   };
@@ -1641,14 +1783,30 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <select
                 id="dev-mode-article"
                 className={baseSelectClass}
-                value={selectedIndex}
-                onChange={(event) => setSelectedIndex(Number(event.target.value))}
+                value={hasArticles ? selectedIndex : ""}
+                onChange={(event) => {
+                  const { value } = event.target;
+                  if (value === "") {
+                    return;
+                  }
+                  const nextIndex = Number(value);
+                  if (Number.isNaN(nextIndex)) {
+                    return;
+                  }
+                  setArticleDeleteNotice(null);
+                  setSelectedIndex(nextIndex);
+                }}
+                disabled={!hasArticles}
               >
-                {articleOptions.map(({ index, label }) => (
-                  <option key={index} value={index}>
-                    {label}
-                  </option>
-                ))}
+                {hasArticles ? (
+                  articleOptions.map(({ index, label }) => (
+                    <option key={index} value={index}>
+                      {label}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No articles available</option>
+                )}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
             </div>
@@ -1748,6 +1906,50 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               >
                 <Download className="h-4 w-4" />
                 Download dataset
+              </button>
+            </div>
+            <div className="h-px w-full bg-white/10" />
+            <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-rose-200">
+                <AlertTriangle className="h-4 w-4" aria-hidden="true" focusable="false" />
+                Danger zone
+              </div>
+              <p className="text-sm text-rose-100/80">
+                {selectedArticle
+                  ? `Deleting "${articleDeleteTargetLabel}" removes it immediately and pushes the change to GitHub. Use the dataset reset tools if you need to restore it.`
+                  : "Select an article to enable deletion. The removal is committed to GitHub right away."}
+              </p>
+              {articleDeleteNotice && (
+                <p
+                  className={`text-xs ${
+                    articleDeleteNotice.type === "error" ? "text-rose-200" : "text-emerald-200"
+                  }`}
+                >
+                  {articleDeleteNotice.message}
+                </p>
+              )}
+              <label className="flex items-center gap-2 text-xs text-rose-100/75">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-rose-300/50 bg-slate-950/60 text-rose-400 focus:ring-rose-300/40"
+                  checked={articleDeleteConfirmed}
+                  onChange={(event) => setArticleDeleteConfirmed(event.target.checked)}
+                  disabled={!selectedArticle || isDeletingArticle}
+                />
+                I understand this will permanently remove the article.
+              </label>
+              <button
+                type="button"
+                className={dangerButtonClass}
+                onClick={handleDeleteArticle}
+                disabled={!articleDeleteConfirmed || !selectedArticle || isDeletingArticle}
+              >
+                {isDeletingArticle ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" focusable="false" />
+                ) : (
+                  <Trash2 className="h-4 w-4" aria-hidden="true" focusable="false" />
+                )}
+                {isDeletingArticle ? "Deleting…" : "Delete article"}
               </button>
             </div>
           </SectionCard>

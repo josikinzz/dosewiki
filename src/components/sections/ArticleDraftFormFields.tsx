@@ -57,7 +57,6 @@ type ArticleDraftFormFieldsProps = {
 };
 
 type SectionHeaderProps = {
-  label: string;
   title: string;
   description?: string;
 };
@@ -140,9 +139,8 @@ type CitationsFieldsProps = {
   removeCitationEntry: ArticleDraftFormController["removeCitationEntry"];
 };
 
-const SectionHeader = ({ label, title, description }: SectionHeaderProps) => (
+const SectionHeader = ({ title, description }: SectionHeaderProps) => (
   <div className="space-y-1">
-    <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">{label}</p>
     <h2 className="text-lg font-semibold text-fuchsia-200">{title}</h2>
     {description ? <p className="text-sm text-white/60">{description}</p> : null}
   </div>
@@ -197,11 +195,7 @@ const OverviewFields = ({
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        label="Overview"
-        title="Overview"
-        description="Controls the hero title, alias rail, and index metadata."
-      />
+      <SectionHeader title="Overview" description="Controls the hero title, alias rail, and index metadata." />
       <div>
         <label className={labelClass} htmlFor={`${idPrefix}-display-title`}>
           Display name / Title
@@ -300,7 +294,6 @@ const DosageDurationFields = ({
 }: DosageDurationFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Safety"
       title="Dosage & Duration"
       description="Mirrors the live dosage card with route tables followed by metabolism timing."
     />
@@ -422,7 +415,6 @@ const ChemistryFields = ({
   return (
     <section className="space-y-6">
       <SectionHeader
-        label="Classification"
         title="Chemistry & Pharmacology"
         description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
       />
@@ -478,7 +470,6 @@ const SubjectiveEffectsFields = ({ idPrefix, form, handleFieldChange }: Subjecti
   return (
     <section className="space-y-6">
       <SectionHeader
-        label="Experience"
         title="Subjective Effects"
         description="Powers the badge cloud on the Substance page."
       />
@@ -503,7 +494,6 @@ const SubjectiveEffectsFields = ({ idPrefix, form, handleFieldChange }: Subjecti
 const AddictionFields = ({ idPrefix, form, handleFieldChange }: AddictionFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Risk Profile"
       title="Addiction Potential"
       description="Surfaces as the dedicated Addiction Potential card."
     />
@@ -527,7 +517,6 @@ const AddictionFields = ({ idPrefix, form, handleFieldChange }: AddictionFieldsP
 const InteractionsFields = ({ form, handleFieldChange }: InteractionsFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Combinations"
       title="Interactions"
       description="Match the live Interactions buckets: Dangerous, Unsafe, and Use with Caution."
     />
@@ -572,7 +561,6 @@ const ToleranceFields = ({
 }: ToleranceFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Adaptation"
       title="Tolerance"
       description="Feeds the Tolerance timeline card and cross-tolerance list."
     />
@@ -608,7 +596,6 @@ const ToleranceFields = ({
 const NotesFields = ({ idPrefix, form, handleFieldChange }: NotesFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Guidance"
       title="Notes"
       description="Appears near the end of the article as Markdown-rendered advisory content."
     />
@@ -638,7 +625,6 @@ const CitationsFields = ({
 }: CitationsFieldsProps) => (
   <section className="space-y-6">
     <SectionHeader
-      label="Sourcing"
       title="Citations"
       description="Powers the final citations list; keep order consistent with supporting notes."
     />
