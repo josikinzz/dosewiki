@@ -61,7 +61,12 @@ type CitationChangeHandler = (
   field: keyof CitationEntryForm,
 ) => (event: ChangeEvent<HTMLInputElement>) => void;
 
-type TagField = "categories" | "chemicalClasses" | "psychoactiveClasses" | "mechanismEntries";
+type TagField =
+  | "categories"
+  | "chemicalClasses"
+  | "psychoactiveClasses"
+  | "mechanismEntries"
+  | "indexCategoryTags";
 
 type TagFieldChangeHandler = (field: TagField) => (next: string[]) => void;
 
@@ -169,6 +174,17 @@ export const useArticleDraftForm = ({
           };
         }
 
+        if (field === "indexCategory") {
+          const normalized = ensureNormalizedTagList(
+            tokenizeTagString(value, { splitOnComma: false, splitOnSlash: true }),
+          );
+          return {
+            ...previous,
+            indexCategory: value,
+            indexCategoryTags: normalized,
+          };
+        }
+
         if (field === "chemicalClass") {
           const normalized = ensureNormalizedTagList(splitDelimitedTagInput(value));
           return {
@@ -216,6 +232,14 @@ export const useArticleDraftForm = ({
             ...previous,
             categories: normalized,
             categoriesInput: normalized.join("\n"),
+          };
+        }
+
+        if (field === "indexCategoryTags") {
+          return {
+            ...previous,
+            indexCategoryTags: normalized,
+            indexCategory: joinNormalizedValues(normalized, "; "),
           };
         }
 

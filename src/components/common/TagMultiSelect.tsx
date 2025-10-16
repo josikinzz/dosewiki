@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -47,6 +47,8 @@ export type TagMultiSelectProps = {
   disabled?: boolean;
   allowCreate?: boolean;
   className?: string;
+  addButtonLabel?: string;
+  openStrategy?: "focus" | "button";
 };
 
 type MenuItem =
@@ -84,6 +86,8 @@ export const TagMultiSelect = ({
   disabled = false,
   allowCreate = true,
   className,
+  addButtonLabel,
+  openStrategy = "focus",
 }: TagMultiSelectProps) => {
   const inputId = useId();
   const listboxId = `${inputId}-listbox`;
@@ -250,10 +254,13 @@ export const TagMultiSelect = ({
   }, []);
 
   const handleInputFocus = useCallback(() => {
-    if (!disabled) {
+    if (disabled) {
+      return;
+    }
+    if (openStrategy === "focus") {
       setIsOpen(true);
     }
-  }, [disabled]);
+  }, [disabled, openStrategy]);
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -265,6 +272,24 @@ export const TagMultiSelect = ({
     },
     [disabled],
   );
+
+  const handleTriggerClick = useCallback(() => {
+    if (disabled) {
+      return;
+    }
+
+    if (isOpen) {
+      setIsOpen(false);
+      setHighlightedIndex(null);
+      setQuery("");
+      return;
+    }
+
+    setQuery("");
+    setHighlightedIndex(null);
+    setIsOpen(true);
+    focusInput();
+  }, [disabled, focusInput, isOpen]);
 
   const commitHighlightedItem = useCallback(() => {
     if (!isOpen) {
@@ -415,6 +440,8 @@ export const TagMultiSelect = ({
   };
 
   const helper = helperText ?? `${allowCreate ? "Search existing tags or press Enter to add." : "Search and select tags."}`;
+  const shouldShowTriggerButton = openStrategy === "button";
+  const computedAddButtonLabel = addButtonLabel ?? `Add ${label}`;
 
   return (
     <div className={className} ref={containerRef}>
@@ -426,57 +453,70 @@ export const TagMultiSelect = ({
           disabled ? "opacity-60" : ""
         }`}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {value.map((tag, index) => {
-            const handleRemoveClick = (event: MouseEvent<HTMLButtonElement>) => {
-              event.stopPropagation();
-              event.preventDefault();
-              handleRemoveTag(index);
-            };
-            return (
-              <span
-                key={`${tag}-${index}`}
-                className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-xs text-white/80"
-              >
-                {tag}
-                {!disabled ? (
-                  <button
-                    type="button"
-                    aria-label={`Remove ${tag}`}
-                    onClick={handleRemoveClick}
-                    className="rounded-full p-0.5 text-white/50 transition hover:text-white"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                ) : null}
-              </span>
-            );
-          })}
-          <input
-            id={inputId}
-            ref={inputRef}
-            type="text"
-            name={inputName}
-            value={query}
-            placeholder={value.length === 0 ? placeholder : undefined}
-            onChange={handleInputChange}
-            onKeyDown={handleInputKeyDown}
-            onBlur={handleInputBlur}
-            onFocus={handleInputFocus}
-            className="flex-1 min-w-[8rem] bg-transparent text-sm text-white focus:outline-none"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={isOpen}
-            aria-haspopup="listbox"
-            aria-controls={listboxId}
-            aria-activedescendant={
-              isOpen && highlightedIndex !== null && highlightedIndex >= 0 && highlightedIndex < menuItems.length
-                ? `${listboxId}-item-${highlightedIndex}`
-                : undefined
-            }
-            disabled={disabled}
-            autoComplete="off"
-          />
+        <div className="flex items-center gap-2">
+          <div className="flex flex-1 flex-wrap items-center gap-2">
+            {value.map((tag, index) => {
+              const handleRemoveClick = (event: MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                event.preventDefault();
+                handleRemoveTag(index);
+              };
+              return (
+                <span
+                  key={`${tag}-${index}`}
+                  className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-xs text-white/80"
+                >
+                  {tag}
+                  {!disabled ? (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${tag}`}
+                      onClick={handleRemoveClick}
+                      className="rounded-full p-0.5 text-white/50 transition hover:text-white"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  ) : null}
+                </span>
+              );
+            })}
+            <input
+              id={inputId}
+              ref={inputRef}
+              type="text"
+              name={inputName}
+              value={query}
+              placeholder={value.length === 0 ? placeholder : undefined}
+              onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              onBlur={handleInputBlur}
+              onFocus={handleInputFocus}
+              className="flex-1 min-w-[8rem] bg-transparent text-sm text-white focus:outline-none"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={isOpen}
+              aria-haspopup="listbox"
+              aria-controls={listboxId}
+              aria-activedescendant={
+                isOpen && highlightedIndex !== null && highlightedIndex >= 0 && highlightedIndex < menuItems.length
+                  ? `${listboxId}-item-${highlightedIndex}`
+                  : undefined
+              }
+              disabled={disabled}
+              autoComplete="off"
+            />
+          </div>
+          {shouldShowTriggerButton ? (
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/75 transition hover:border-white/25 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-white/15 disabled:hover:bg-white/5 disabled:hover:text-white/75 disabled:focus:ring-0"
+              onClick={handleTriggerClick}
+              aria-label={computedAddButtonLabel}
+              disabled={disabled}
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" focusable="false" />
+            </button>
+          ) : null}
         </div>
         {isOpen ? (
           <div
@@ -497,4 +537,3 @@ export const TagMultiSelect = ({
     </div>
   );
 };
-
