@@ -70780,5 +70780,118 @@
       ]
     },
     "id": 635
+  },
+  {
+    "title": "DET",
+    "index-category": "psychedelic; research-chemical",
+    "drug_info": {
+      "drug_name": "DET",
+      "chemical_name": "N,N-diethyl-2-(1H-indol-3-yl)ethanamine",
+      "alternative_name": "Diethyltryptamine; N,N-diethyltryptamine; T-9",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10 mg",
+              "light": "20-40 mg",
+              "common": "40-70 mg",
+              "strong": "70-100 mg",
+              "heavy": "100+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "30-90 minutes",
+              "peak": "2-4 hours",
+              "offset": "2-3 hours",
+              "after_effects": "2-8 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "DET is not believed to be habit-forming and the desire to use it can actually decrease with repeated use. No formal studies have been conducted on its addiction potential, but anecdotal evidence suggests no negative dependency patterns.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (seizure risk and amplified intensity)",
+          "MAOIs (serotonin syndrome risk)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "caution": [
+          "Stimulants (may cause anxiety, paranoia, and thought loops)"
+        ]
+      },
+      "notes": "DET is a Schedule I controlled substance internationally under the UN Convention on Psychotropic Substances and is illegal in most countries. Unlike DMT, DET is orally active due to increased resistance to monoamine oxidase breakdown from its ethyl groups. The substance has extremely limited history of human use and no formal toxicity studies exist. Users should employ precise dosing with a milligram scale and ensure proper set and setting. Individuals with personal or family history of psychotic disorders should avoid use.",
+      "subjective_effects": [
+        "Visual Pattern Recognition Enhancement",
+        "Color Enhancement",
+        "Drifting and Morphing",
+        "Internal Hallucinations",
+        "Cognitive Euphoria",
+        "Emotion Enhancement",
+        "Increased Music Appreciation",
+        "Time Distortion",
+        "Pupil Dilation",
+        "Nausea",
+        "Increased Heart Rate",
+        "Conceptual Thinking"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid DET Vault",
+          "reference": "https://www.erowid.org/chemicals/det/det.shtml"
+        },
+        {
+          "name": "PsychonautWiki: DET",
+          "reference": "https://psychonautwiki.org/wiki/DET"
+        },
+        {
+          "name": "TiHKAL #3: DET (Isomer Design)",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5003"
+        },
+        {
+          "name": "TiHKAL #3: DET (Erowid)",
+          "reference": "https://www.erowid.org/library/books_online/tihkal/tihkal03.shtml"
+        },
+        {
+          "name": "Bluelight: 5-substituted tryptamines discussion",
+          "reference": "https://www.bluelight.org/community/threads/5-substituted-tryptamines.340503/"
+        },
+        {
+          "name": "Drug-drug interactions involving classic psychedelics",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10851641/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical"
+      ]
+    },
+    "id": 636
   }
 ]
