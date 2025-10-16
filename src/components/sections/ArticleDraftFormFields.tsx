@@ -15,9 +15,9 @@ import { useDevTagOptions } from "../../hooks/useDevTagOptions";
 import { TagMultiSelect } from "../common/TagMultiSelect";
 
 const baseInputClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
+  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const baseTextareaClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-3 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
+  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-3 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const labelClass = "mb-2 block text-xs font-medium uppercase tracking-wide text-white/50";
 const helperTextClass = "text-[11px] text-white/45";
 

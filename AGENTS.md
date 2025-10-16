@@ -36,6 +36,7 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 - Drafting surfaces now share `src/hooks/useArticleDraftForm.ts` and `src/components/sections/ArticleDraftFormFields.tsx`; the Dev Tools edit tab defaults to a form-first UI with a JSON toggle driven by `draftMode` state.
 - Article Draft form now mirrors live article section order, surfaces category editing, and provides in-form previews for badges/effects plus character counts for long-form copy.
 - Tag pickers for categories/chemical/psychoactive/mechanism fields open via the new `TagMultiSelect` plus-button trigger (`openStrategy="button"`); typing is reserved for filtering or defining brand-new tags.
+- Text entry fields (inputs, textareas, tag pickers, and the JSON editor) now enforce a fixed 16 px font size via shared base classes.
 - Index category now stores semicolon-delimited tags via the same picker; adding a `Hidden` tag removes the article from public search/index surfaces while keeping it available in Dev Tools and the raw JSON.
 - Default landing content is sourced from `src/data/lsd.ts`, which locates the LSD record in `articles.json`; the app throws at build time if that record ever goes missing.
 - `src/components/common/JsonEditor.tsx` uses `react-simple-code-editor` with Prism highlighting, styled via the `.json-editor` rules in `src/styles.css`.
