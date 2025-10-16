@@ -16587,11 +16587,11 @@
   },
   {
     "id": 200,
-    "title": "Penis Envy",
+    "title": "Psilocybin mushrooms",
     "drug_info": {
-      "drug_name": "Penis Envy",
-      "chemical_name": "Penis Envy",
-      "alternative_name": "Psilocybe cubensis, Penis Envy strain",
+      "drug_name": "Psilocybin mushrooms",
+      "chemical_name": "Psilocybin",
+      "alternative_name": "Psilocybe cubensis; Magic mushrooms; Shrooms",
       "chemical_class": "Tryptamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -16614,16 +16614,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4 - 6 hours",
               "onset": "20 - 60 minutes",
               "peak": "2 - 3 hours",
               "offset": "1 - 2 hours",
               "after_effects": "Up to 24 hours (residual effects, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16681,7 +16681,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical"
+        "common"
       ]
     },
     "index-category": ""
