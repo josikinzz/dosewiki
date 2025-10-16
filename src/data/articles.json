@@ -273,7 +273,7 @@
       "alternative_name": "",
       "chemical_class": "Triazolopyridine derivative",
       "mechanism_of_action": "Serotonin reuptake and receptor modulators",
-      "psychoactive_class": "Antidepressant (Serotonin Antagonist and Reuptake Inhibitor, SARI)",
+      "psychoactive_class": "Antidepressant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -4029,7 +4029,7 @@
       "alternative_name": "",
       "chemical_class": "Phenethylamine (specifically, substituted amphetamine)",
       "mechanism_of_action": "Monoamine oxidase inhibitor",
-      "psychoactive_class": "Antidepressant (Monoamine Oxidase Inhibitor, MAOI)",
+      "psychoactive_class": "Antidepressant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -11992,7 +11992,7 @@
       "alternative_name": "",
       "chemical_class": "Hydrazine derivative (β-phenylethylhydrazine)",
       "mechanism_of_action": "Monoamine oxidase inhibitor",
-      "psychoactive_class": "Antidepressant (Monoamine Oxidase Inhibitor, MAOI)",
+      "psychoactive_class": "Antidepressant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -15775,7 +15775,7 @@
       "alternative_name": "",
       "chemical_class": "Indole derivative (structurally related to other serotonergic antidepressants)",
       "mechanism_of_action": "Serotonin reuptake and receptor modulators",
-      "psychoactive_class": "Antidepressant (Selective Serotonin Reuptake Inhibitor and 5-HT1A receptor partial agonist)",
+      "psychoactive_class": "Antidepressant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -28894,7 +28894,7 @@
       "alternative_name": "",
       "chemical_class": "Carbazole derivative (specifically, a serotonin 5-HT3 receptor antagonist)",
       "mechanism_of_action": "Serotonin 5-HT3 receptor antagonist",
-      "psychoactive_class": "Antiemetic (not psychoactive in the traditional sense, but acts on the central nervous system to prevent nausea/vomiting)",
+      "psychoactive_class": "Antiemetic",
       "dosages": {
         "routes_of_administration": [
           {
@@ -29000,7 +29000,7 @@
       "alternative_name": "",
       "chemical_class": "Benzamide (specifically a reversible monoamine oxidase inhibitor, or RIMA)",
       "mechanism_of_action": "Monoamine oxidase inhibitor",
-      "psychoactive_class": "Antidepressant (Reversible MAO-A inhibitor)",
+      "psychoactive_class": "Antidepressant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -29901,7 +29901,7 @@
       "alternative_name": "",
       "chemical_class": "Dibenzothiazepine derivative",
       "mechanism_of_action": "Multiple receptor antagonist",
-      "psychoactive_class": "Atypical antipsychotic",
+      "psychoactive_class": "Antipsychotic (atypical)",
       "dosages": {
         "routes_of_administration": [
           {
@@ -30710,7 +30710,7 @@
       "alternative_name": "",
       "chemical_class": "Atypical tricyclic antidepressant of the dibenzothiazepine class",
       "mechanism_of_action": "Mu-opioid receptor agonists",
-      "psychoactive_class": "Full μ-opioid receptor agonist; atypical antidepressant",
+      "psychoactive_class": "Full μ-opioid receptor agonist; Antidepressant (atypical)",
       "dosages": {
         "routes_of_administration": [
           {
@@ -39558,7 +39558,7 @@
       "alternative_name": "Cough Syrup",
       "chemical_class": "Phenothiazine antihistamine + natural opiate (phenanthrene class)",
       "mechanism_of_action": "μ-Opioid receptor agonist; prodrug of morphine via codiene; H1 histamine receptor antagonist via promethazine",
-      "psychoactive_class": "Opioid depressant; antihistamine sedative",
+      "psychoactive_class": "Opioid depressant; Antihistamine; Sedative",
       "dosages": {
         "routes_of_administration": [
           {
@@ -44882,7 +44882,7 @@
       "alternative_name": "",
       "chemical_class": "Thienobenzodiazepine",
       "mechanism_of_action": "Multiple receptor antagonist",
-      "psychoactive_class": "Atypical antipsychotic (multi-receptor antagonist)",
+      "psychoactive_class": "Antipsychotic (atypical)",
       "dosages": {
         "routes_of_administration": [
           {
@@ -46854,7 +46854,7 @@
       "alternative_name": "",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Dopamine-norepinephrine releasing agent",
-      "psychoactive_class": "Catecholaminergic stimulant; prodrug that yields d-amphetamine (~15 % conversion)",
+      "psychoactive_class": "Stimulant; prodrug that yields d-amphetamine (~15 % conversion)",
       "dosages": {
         "routes_of_administration": [
           {
@@ -48728,7 +48728,7 @@
       "alternative_name": "Chlorpheniramine Maleate",
       "chemical_class": "Alkylamine derivative (first-generation antihistamine)",
       "mechanism_of_action": "Histamine H1 receptor antagonist",
-      "psychoactive_class": "Antihistamine (H1 receptor antagonist)",
+      "psychoactive_class": "Antihistamine",
       "dosages": {
         "routes_of_administration": [
           {
@@ -68009,7 +68009,7 @@
       "alternative_name": "4-Chlorodiazepam",
       "chemical_class": "1,4-benzodiazepine (diazepam analogue)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "atypical benzodiazepine; TSPO (18 kDa translocator protein) agonist with weak or absent classical GABA_A activity",
+      "psychoactive_class": "Benzodiazepine (atypical); TSPO (18 kDa translocator protein) agonist with weak or absent classical GABA_A activity",
       "dosages": {
         "routes_of_administration": [
           {
