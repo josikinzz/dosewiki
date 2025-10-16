@@ -70667,5 +70667,118 @@
       ]
     },
     "id": 634
+  },
+  {
+    "title": "PRO-LAD",
+    "index-category": "psychedelic; lysergamide",
+    "drug_info": {
+      "drug_name": "PRO-LAD",
+      "chemical_name": "(8beta)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide",
+      "alternative_name": "N-Propylnorlysergic acid N,N-diethylamide; 6-Propyl-6-nor-lysergic acid diethylamide; N-PropylnorLSD",
+      "chemical_class": "Lysergamide",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "20 ug",
+              "light": "50-100 ug",
+              "common": "100-200 ug",
+              "strong": "200-350 ug",
+              "heavy": "350+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-8 hours",
+              "onset": "30-45 minutes",
+              "peak": "2-4 hours",
+              "offset": "2-3 hours",
+              "after_effects": "1-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "PRO-LAD is not considered habit-forming and possesses self-regulating properties typical of psychedelics. The desire to use it may actually decrease with repeated administration. No formal dependence studies have been conducted.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of seizures and psychosis)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants including amphetamines, cocaine, methylphenidate (increased risk of anxiety, paranoia, thought loops, mania, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unexpectedly strong and unpredictable synergy; significantly increases risk of anxiety, paranoia, and psychosis)",
+          "MDMA (unpredictable synergy with potential neurotoxicity)",
+          "Benzodiazepines (can reduce or eliminate psychedelic effects)",
+          "Dissociatives (greatly enhanced effects and confusion)",
+          "Other psychedelics (unpredictable synergistic intensification)"
+        ]
+      },
+      "notes": "PRO-LAD is a research chemical with very limited history of human use and minimal scientific documentation regarding its pharmacology, metabolism, and long-term toxicity. Unlike LSD, PRO-LAD has a propyl chain at R6 which may result in slower absorption and different onset characteristics. Users should employ rigorous harm reduction practices including reagent testing, accurate weighing with a microgram scale, and having a trusted sober trip sitter present. Individuals with personal or family history of psychotic disorders should avoid use. PRO-LAD was first synthesized by Hoffman and Nichols in 1984 and later described by Alexander Shulgin in TiHKAL.",
+      "subjective_effects": [
+        "Visual Patterning And Geometry",
+        "Color Enhancement",
+        "Introspection",
+        "Time Distortion",
+        "Ego Death",
+        "Spontaneous Bodily Sensations",
+        "Enhanced Sense Of Humor",
+        "Thought Connectivity",
+        "Physical Euphoria",
+        "Emotional Amplification",
+        "Analysis Enhancement",
+        "Conceptual Thinking"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics including LSD, psilocybin, mescaline, DMT, and other lysergamides"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid TiHKAL Entry #51: PRO-LAD",
+          "reference": "https://www.erowid.org/library/books_online/tihkal/tihkal51.shtml"
+        },
+        {
+          "name": "PsychonautWiki: PRO-LAD",
+          "reference": "https://psychonautwiki.org/wiki/PRO-LAD"
+        },
+        {
+          "name": "TripSit Drug Combination Chart",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "Hoffman AJ, Nichols DE (1985). Synthesis and LSD-like discriminative stimulus properties in a series of N(6)-alkyl norlysergic acid N,N-diethylamide derivatives. Journal of Medicinal Chemistry 28(9):1252-1255",
+          "reference": "https://doi.org/10.1021/jm00147a022"
+        },
+        {
+          "name": "Shulgin A, Shulgin A (1997). TiHKAL: Tryptamines I Have Known And Loved",
+          "reference": "https://www.erowid.org/library/books_online/tihkal/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical"
+      ]
+    },
+    "id": 635
   }
 ]
