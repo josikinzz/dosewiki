@@ -69745,5 +69745,125 @@
       ]
     },
     "id": 627
+  },
+  {
+    "title": "1V-LSD",
+    "index-category": "psychedelic; research-chemical",
+    "drug_info": {
+      "drug_name": "1V-LSD",
+      "chemical_name": "1-Valeroyl-d-lysergic acid diethylamide",
+      "alternative_name": "Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD",
+      "chemical_class": "Lysergamides",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist (weak); acts as prodrug for LSD via deacylation",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "15 ug",
+              "light": "25-75 ug",
+              "common": "75-150 ug",
+              "strong": "150-300 ug",
+              "heavy": "300+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "20-60 minutes",
+              "peak": "3-5 hours (come up 45-120 minutes)",
+              "offset": "3-5 hours",
+              "after_effects": "6-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "1V-LSD is assumed to be non-addictive with low abuse potential, similar to LSD. No literature reports exist of successful attempts to train animals to self-administer LSD analogs. There is virtually no withdrawal syndrome when chronic use is stopped.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Cannabis (strong synergy, significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ],
+        "caution": [
+          "Stimulants (may increase risk of anxiety, paranoia, panic attacks, thought loops, mania and psychosis)",
+          "MDMA (unpredictable synergy, potential increased neurotoxicity)",
+          "Dissociatives (enhanced hallucinatory effects, increased risk of confusion and delusions)",
+          "Benzodiazepines (reduce intensity of effects)",
+          "Alcohol (may reduce anxiety but causes dehydration and physical discomfort)"
+        ]
+      },
+      "notes": "1V-LSD is a novel research chemical with minimal history of human use and unverified safety profile. It is presumed to act as a prodrug for LSD. Those with personal or family history of mental illness should avoid use, particularly outside supervised medical settings. Set and setting are critical factors in determining experience quality. Start with lower doses due to individual variations in body weight, tolerance, metabolism, and sensitivity. No toxic dose is known, but higher doses increase risk of adverse psychological reactions. Test substances with reagent kits, though Ehrlich's reagent reacts slowly with N-acylated lysergamides.",
+      "subjective_effects": [
+        "Geometric Visual Hallucinations",
+        "Time Distortion",
+        "Enhanced Introspection",
+        "Ego Loss",
+        "Stimulation",
+        "Spontaneous Bodily Sensations",
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Color Enhancement",
+        "Pattern Recognition Enhancement",
+        "Visual Drifting",
+        "Analysis Enhancement",
+        "Conceptual Thinking",
+        "Emotion Enhancement",
+        "Cognitive Euphoria",
+        "Creativity Enhancement",
+        "Increased Music Appreciation",
+        "Unity And Interconnectedness"
+      ],
+      "tolerance": {
+        "full_tolerance": "Builds almost immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": [
+          "All psychedelics (including LSD, psilocybin, mescaline, DMT)"
+        ]
+      },
+      "half_life": "Similar to LSD (estimated 3-5 hours for active metabolite)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: 1V-LSD",
+          "reference": "https://psychonautwiki.org/wiki/1V-LSD"
+        },
+        {
+          "name": "Erowid 1V-LSD Experience Vault",
+          "reference": "https://www.erowid.org/experiences/subs/exp_1VLSD.shtml"
+        },
+        {
+          "name": "Bluelight: The Small & Handy 1V-LSD Thread",
+          "reference": "https://bluelight.org/xf/threads/the-small-handy-1v-lsd-thread.904997/"
+        },
+        {
+          "name": "Brandt et al. (2022): Return of the lysergamides Part VII - Analytical and behavioural characterization of 1V-LSD",
+          "reference": "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/dta.3205"
+        },
+        {
+          "name": "Tripsitter: 1V-LSD - A New LSD Analog",
+          "reference": "https://tripsitter.com/1v-lsd/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "lysergamide",
+        "research-chemical",
+        "prodrug"
+      ]
+    },
+    "id": 628
   }
 ]
