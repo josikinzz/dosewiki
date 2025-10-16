@@ -15466,16 +15466,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 hours",
               "onset": "15-30 minutes",
               "peak": "1-2 hours",
               "offset": "4-6 hours",
               "after_effects": "Residual sedation may last up to 12 hours; especially at higher doses"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -15543,7 +15543,8 @@
         "depressant",
         "sedative",
         "habit-forming",
-        "gabaergic"
+        "gabaergic",
+        "A-typical Hallucinogen"
       ]
     },
     "index-category": ""
