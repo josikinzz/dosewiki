@@ -16625,29 +16625,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-8 hours",
               "onset": "20-60 minutes",
               "peak": "90-180 minutes",
               "offset": "2-4 hours",
               "after_effects": "4-24 hours (afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "lemon tek",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "3-6 hours",
               "onset": "10-30 minutes",
               "peak": "60-150 minutes",
               "offset": "2-3 hours",
               "after_effects": "4-24 hours (afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16737,10 +16737,11 @@
         "psychedelic",
         "classic-psychedelic",
         "tryptamine",
-        "plant-based"
+        "plant-based",
+        "common"
       ]
     },
-    "index-category": "psychedelic;classic;tryptamine"
+    "index-category": "psychedelic; classic; tryptamine"
   },
   {
     "id": 202,
