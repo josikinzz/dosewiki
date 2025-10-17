@@ -2185,7 +2185,7 @@
       "drug_name": "Mescaline",
       "chemical_name": "Mescaline",
       "alternative_name": "",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines; Phenethylamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -8018,7 +8018,7 @@
       "drug_name": "MAL",
       "chemical_name": "Methallylescaline",
       "alternative_name": "MAL",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines; Phenethylamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -25026,7 +25026,7 @@
       "drug_name": "AEM",
       "chemical_name": "AEM",
       "alternative_name": "α-Ethylmescaline, 2-Amino-1-(3,4,5-trimethoxyphenyl)butane",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines; Phenethylamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -72162,7 +72162,7 @@
       "drug_name": "Allylescaline",
       "chemical_name": "4-Allyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "AL; 4-allyloxy-3,5-dimethoxy-phenethylamine",
-      "chemical_class": "Mescaline homologues",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
@@ -72274,7 +72274,7 @@
       "drug_name": "Escaline",
       "chemical_name": "3,5-Dimethoxy-4-ethoxyphenethylamine",
       "alternative_name": "E; 4-Ethoxy-3,5-dimethoxyphenethylamine",
-      "chemical_class": "Mescaline homologues",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist (5-8 times greater affinity than mescaline); 5-HT2C receptor agonist",
       "dosages": {
@@ -72390,7 +72390,7 @@
       "drug_name": "Proscaline",
       "chemical_name": "4-Propyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "P; 4-Propoxy-3,5-DMPEA; 3,5-Dimethoxy-4-n-propoxyphenethylamine",
-      "chemical_class": "Mescaline homologues",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist",
       "dosages": {
