@@ -73145,5 +73145,154 @@
       ]
     },
     "id": 653
+  },
+  {
+    "title": "25N-NBOMe",
+    "index-category": "psychedelic; research-chemical; dangerous",
+    "drug_info": {
+      "drug_name": "25N-NBOMe",
+      "chemical_name": "2-(2,5-dimethoxy-4-nitrophenyl)-N-(2-methoxybenzyl)ethanamine",
+      "alternative_name": "2C-N-NBOMe; NBOMe-2C-N; N-Bomb",
+      "chemical_class": "Phenethylamines",
+      "psychoactive_class": "Psychedelic; Stimulant",
+      "mechanism_of_action": "5-HT2A receptor full agonist; 5-HT2C receptor full agonist; 5-HT2B receptor partial agonist; dopamine transporter phosphorylation (increases extracellular dopamine)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "100 ug",
+              "light": "100-300 ug",
+              "common": "300-800 ug",
+              "strong": "800-1300 ug",
+              "heavy": "1300+ ug (potentially fatal)"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "Not recommended",
+              "light": "Not recommended",
+              "common": "Not recommended",
+              "strong": "Not recommended",
+              "heavy": "Not recommended (extremely dangerous)"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "stages": {
+              "total_duration": "5-10 hours",
+              "onset": "45-75 minutes",
+              "peak": "2-3 hours",
+              "offset": "2-3 hours",
+              "after_effects": "5-10 hours"
+            },
+            "canonical_routes": [
+              "sublingual"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "5-10 hours",
+              "onset": "45-75 minutes",
+              "peak": "2-3 hours",
+              "offset": "2-3 hours",
+              "after_effects": "5-10 hours"
+            }
+          }
+        ]
+      },
+      "addiction_potential": "25N-NBOMe is not considered habit-forming and the desire to use often decreases with repeated administration. However, animal studies suggest potential dependence liability through dopaminergic pathways, with conditioned place preference effects comparable to methamphetamine in rodent models. The substance exhibits rapid tolerance development.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases seizure risk)",
+          "MAOIs (unpredictable potentiation and duration increase)",
+          "Tramadol (significantly lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Amphetamines (severe cardiovascular strain, tachycardia, hypertension, and increased seizure risk)",
+          "Cocaine (severe cardiovascular strain and vasoconstriction)",
+          "MDMA (unpredictable intensity, reports of blackouts and severe overstimulation)",
+          "MXE (unpleasantly intense potentiation)",
+          "DOx compounds (unpredictable interactions)",
+          "2C-T-X compounds (unpredictable interactions)",
+          "5-MeO-xxt compounds (unpredictable interactions)",
+          "aMT (increased cardiovascular risk)"
+        ],
+        "caution": [
+          "Cannabis (significantly increases anxiety, paranoia, and psychosis risk)",
+          "Caffeine (uncomfortable overstimulation and anxiety)",
+          "DXM (unpredictable interactions)"
+        ]
+      },
+      "notes": "25N-NBOMe is a highly potent and unpredictable substance that has been linked to numerous hospitalizations and fatalities within the NBOMe series. The compound must only be administered sublingually, as insufflation dramatically increases overdose risk and has been implicated in multiple deaths. Blotter papers may contain uneven dose distribution with dangerous hotspots. Users should employ accurate microgram scales, avoid all drug combinations, and never exceed 1000 ug due to narrow margin between active and toxic doses. Individuals with cardiovascular conditions, seizure disorders, or personal or family history of psychotic disorders should strictly avoid use. The substance is often misrepresented as LSD; always use reagent testing.",
+      "subjective_effects": [
+        "Intense Visual Patterning And Geometry",
+        "Strong Physical Stimulation",
+        "Perception Of Bodily Lightness",
+        "Euphoric Body High",
+        "Tactile Enhancement",
+        "Colour Enhancement",
+        "Time Distortion",
+        "Empathy And Sociability Enhancement (Inconsistent)",
+        "Thought Acceleration",
+        "Anxiety And Paranoia",
+        "Mouth Numbing",
+        "Increased Heart Rate",
+        "Vasoconstriction",
+        "Nausea (Especially During Onset)",
+        "Muscle Tension",
+        "Pupil Dilation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after use",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, 2C-x, other NBOMes)"
+        ]
+      },
+      "half_life": "1-3 hours (estimated from related compounds)",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy 25N-NBOMe Thread",
+          "reference": "http://www.bluelight.org/vb/threads/539694-The-Big-amp-Dandy-25N-NBOMe-Thread"
+        },
+        {
+          "name": "Erowid: NBOMe Series Vault",
+          "reference": "https://www.erowid.org/chemicals/nbome/"
+        },
+        {
+          "name": "Frontiers in Neuroscience: NBOMes - Highly Potent and Toxic Alternatives of LSD",
+          "reference": "https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2020.00078/full"
+        },
+        {
+          "name": "Isomer Design: 25N-NBOMe",
+          "reference": "https://isomerdesign.com/pihkal/"
+        },
+        {
+          "name": "PsychonautWiki: 25N-NBOMe",
+          "reference": "https://psychonautwiki.org/wiki/25N-NBOMe"
+        },
+        {
+          "name": "Wikipedia: 25N-NBOMe",
+          "reference": "https://en.wikipedia.org/wiki/25N-NBOMe"
+        }
+      ],
+      "categories": [
+        "nbome",
+        "phenethylamine",
+        "psychedelic",
+        "research-chemical"
+      ]
+    },
+    "id": 654
   }
 ]
