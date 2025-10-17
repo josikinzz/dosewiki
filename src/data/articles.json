@@ -71970,5 +71970,130 @@
       ]
     },
     "id": 644
+  },
+  {
+    "title": "Psilocin",
+    "index-category": "psychedelic; tryptamine; classic",
+    "drug_info": {
+      "drug_name": "Psilocin",
+      "chemical_name": "4-Hydroxy-N,N-dimethyltryptamine",
+      "alternative_name": "Psilocine; Psilocyn; Psilotsin; 4-HO-DMT; 4-OH-DMT",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor agonist; 5-HT1A receptor agonist; Activates phospholipase A2 instead of phospholipase C",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "10-15 mg",
+              "common": "15-25 mg",
+              "strong": "25-40 mg",
+              "heavy": "40+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "20-45 minutes",
+              "peak": "2-3 hours (come up 1.5-3 hours)",
+              "offset": "1.5-2 hours",
+              "after_effects": "4-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Psilocin is not considered habit-forming and has a low potential for psychological dependence. The desire to use it typically decreases with use, making it largely self-regulating. Rapid tolerance development discourages frequent redosing.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (risk of fatal seizures and heart problems)",
+          "MAOIs (potential for serotonin syndrome, hypertensive crisis)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "Cannabis (greatly intensifies effects, increases anxiety and psychosis risk)"
+        ],
+        "caution": [
+          "SSRIs (may reduce effects or increase risk)",
+          "SNRIs (may alter effects)",
+          "Tricyclic antidepressants (may potentiate effects)",
+          "Benzodiazepines (reduce intensity, may cause amnesia)",
+          "Antipsychotics (significantly dampen effects)",
+          "MDMA (amplifies effects, possible neurotoxicity concerns)",
+          "Dissociatives (intensifies hallucinations and confusion)",
+          "Alcohol (causes dehydration and nausea, dulls effects)"
+        ]
+      },
+      "notes": "Psilocin is the pharmacologically active form of psilocybin and is rarely encountered as a pure synthetic compound. It is relatively unstable and readily forms blue degradation products when exposed to oxygen. Store in cool, dry, dark conditions. Unlike psilocybin mushrooms, pure psilocin has reduced nausea when taken on an empty stomach. Set and setting are critical to the experience. Those with personal or family history of psychotic disorders should avoid use. Always use accurate scales for dosing, as the substance is potent and effects can be overwhelming.",
+      "subjective_effects": [
+        "Visual Patterning And Geometry",
+        "Enhanced Colors And Visual Acuity",
+        "Drifting, Melting, And Morphing Visuals",
+        "Internal And External Hallucinations",
+        "Emotional Amplification And Empathy",
+        "Time Distortion",
+        "Profound Thought Connectivity",
+        "Spirituality And Ego Dissolution",
+        "Physical Euphoria Or Sedation",
+        "Analysis Enhancement",
+        "Excessive Yawning",
+        "Nausea (Less Common Than Mushrooms)",
+        "Body High And Tingling Sensations",
+        "Synesthesia",
+        "Feelings Of Unity"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, mescaline, DMT, 2C-x compounds)"
+        ]
+      },
+      "half_life": "1-3 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Psilocin",
+          "reference": "https://psychonautwiki.org/wiki/Psilocin"
+        },
+        {
+          "name": "Erowid Psilocin Experience Reports",
+          "reference": "https://erowid.org/experiences/subs/exp_Psilocin.shtml"
+        },
+        {
+          "name": "TiHKAL #18: 4-HO-DMT by Alexander Shulgin",
+          "reference": "https://erowid.org/library/books_online/tihkal/tihkal18.shtml"
+        },
+        {
+          "name": "Bluelight: The Big and Dandy 4-HO-DMT Thread",
+          "reference": "https://www.bluelight.org/vb/threads/318367-The-Big-and-Dandy-4-HO-DMT-Thread"
+        },
+        {
+          "name": "Drug-drug interactions involving classic psychedelics: A systematic review",
+          "reference": "https://journals.sagepub.com/doi/10.1177/02698811231211219"
+        },
+        {
+          "name": "Drug-drug interactions between psychiatric medications and MDMA or psilocybin",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9177763/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "serotonergic",
+        "entheogen"
+      ]
+    },
+    "id": 645
   }
 ]
