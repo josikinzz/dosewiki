@@ -8018,7 +8018,7 @@
       "drug_name": "MAL",
       "chemical_name": "Methallylescaline",
       "alternative_name": "MAL",
-      "chemical_class": "Scalines; Phenethylamines",
+      "chemical_class": "Scalines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -8040,16 +8040,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "10-16 hours",
               "onset": "1-2 hours",
               "peak": "4-8 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
