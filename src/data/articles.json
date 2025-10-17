@@ -71399,5 +71399,125 @@
       ]
     },
     "id": 640
+  },
+  {
+    "title": "4-HO-DiPT",
+    "index-category": "psychedelic; tryptamine; research-chemical",
+    "drug_info": {
+      "drug_name": "4-HO-DiPT",
+      "chemical_name": "3-[2-(Diisopropylamino)ethyl]-1H-indol-4-ol",
+      "alternative_name": "Iprocin; 4-Hydroxy-DiPT; 4-Hydroxy-N,N-diisopropyltryptamine",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; Serotonin reuptake inhibitor (weak)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3 mg",
+              "light": "3-10 mg",
+              "common": "10-20 mg",
+              "strong": "20-30 mg",
+              "heavy": "30+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "15-30 minutes",
+              "peak": "60-90 minutes (20-30 minutes after onset)",
+              "offset": "30-60 minutes",
+              "after_effects": "1-3 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4-HO-DiPT is not habit-forming and has minimal psychological dependence potential. Like most psychedelics, it is considered self-regulating, with the desire to use it typically decreasing with regular consumption.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants (increased risk of anxiety, paranoia, panic attacks, thought loops, mania, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy; significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ]
+      },
+      "notes": "4-HO-DiPT is a research chemical with very limited history of human use and no scientific studies on its toxicity. It is noted for its uniquely rapid onset, short duration, narrow dose sensitivity, and high intensity relative to dose. Physical side effects including muscle tremors, leg tremors, bodily malaise, and temperature dysregulation are commonly reported. Set and setting are critical, and harm reduction practices are essential. The substance is unscheduled in most jurisdictions but may be controlled under analogue laws.",
+      "subjective_effects": [
+        "Cognitive Euphoria",
+        "Emotion Enhancement",
+        "Introspective Insights",
+        "Time Distortion",
+        "Increased Music Appreciation",
+        "Enhanced Tactile Sensation",
+        "Sexual Enhancement",
+        "Visual Pattern Recognition Enhancement",
+        "Colour Enhancement",
+        "Muscle Tremors",
+        "Nausea",
+        "Pupil Dilation",
+        "Stimulation",
+        "Temperature Dysregulation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, DMT, 2C-x, DOx, 5-MeO-xxT, other tryptamines)"
+        ]
+      },
+      "half_life": "2.7-4.1 hours (based on prodrug luvesilocin studies)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: 4-HO-DiPT",
+          "reference": "https://psychonautwiki.org/wiki/4-HO-DiPT"
+        },
+        {
+          "name": "Erowid 4-HO-DiPT Vault",
+          "reference": "https://www.erowid.org/chemicals/4_ho_dipt/4_ho_dipt.shtml"
+        },
+        {
+          "name": "TiHKAL Entry #17: 4-HO-DiPT by Alexander Shulgin",
+          "reference": "https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=17"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy 4-HO-DiPT Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-4-ho-dipt-thread.107890/"
+        },
+        {
+          "name": "Drugs-Forum: 4-HO-DiPT Trip Reports",
+          "reference": "https://drugs-forum.com/threads/4-ho-dipt-trip-reports.3095/"
+        },
+        {
+          "name": "Wikipedia: 4-HO-DiPT",
+          "reference": "https://en.wikipedia.org/wiki/4-HO-DiPT"
+        },
+        {
+          "name": "Repke, D. B. et al. (1977). Psilocin analogs synthesis",
+          "reference": "Journal of Heterocyclic Chemistry, 14(1), 71-74"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "synthetic"
+      ]
+    },
+    "id": 641
   }
 ]
