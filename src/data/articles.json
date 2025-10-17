@@ -72620,5 +72620,113 @@
       ]
     },
     "id": 649
+  },
+  {
+    "title": "2,5-DMA",
+    "index-category": "stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "2,5-DMA",
+      "chemical_name": "1-(2,5-Dimethoxyphenyl)propan-2-amine",
+      "alternative_name": "2,5-Dimethoxyamphetamine; DMA; DOH",
+      "chemical_class": "Amphetamines; Phenethylamines",
+      "psychoactive_class": "Stimulant; Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist (low potency); does not bind to monoamine transporters",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10 mg",
+              "light": "10-40 mg",
+              "common": "40-80 mg",
+              "strong": "80-200 mg",
+              "heavy": "200+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-8 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "2,5-DMA is not considered habit-forming and likely has low psychological dependence potential. However, its stimulating properties may present some risk of compulsive use similar to other stimulants. No formal studies have been conducted on addiction potential.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "Cannabis (unpredictable synergy, increased risk of anxiety and psychosis)"
+        ],
+        "caution": [
+          "Stimulants (increased anxiety, paranoia, and cardiovascular risk)",
+          "Other psychedelics (may intensify effects unpredictably)"
+        ]
+      },
+      "notes": "2,5-DMA is a research chemical and the simplest member of the DOx family, primarily known as a precursor in synthesizing other psychedelic amphetamines rather than for its own psychoactive effects. Unlike typical psychedelics, it produces primarily stimulant and physical effects with minimal to no sensory or perceptual changes. Very little data exists about its pharmacology, metabolism, and toxicity. Use accurate weighing equipment and start with lower doses due to individual variability. Those with personal or family history of mental health disorders should avoid use.",
+      "subjective_effects": [
+        "Physical Stimulation",
+        "Increased Heart Rate",
+        "Increased Blood Pressure",
+        "Pupil Dilation",
+        "Muscle Tension",
+        "Tremors",
+        "Body Load",
+        "Enhanced Interest In Surroundings",
+        "Cardiovascular Stimulation",
+        "Temperature Regulation Suppression",
+        "Increased Perspiration"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-5 days",
+        "zero_tolerance": "7-10 days",
+        "cross_tolerances": [
+          "Psychedelics (unlikely but possible)",
+          "Stimulants"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Baltzly & Buck, 1940 - Original Synthesis",
+          "reference": "https://doi.org/10.1021/ja01858a046"
+        },
+        {
+          "name": "Erowid PiHKAL #54: 2,5-DMA",
+          "reference": "https://erowid.org/library/books_online/pihkal/pihkal054.shtml"
+        },
+        {
+          "name": "Isomer Design PiHKAL Info: 2,5-DMA",
+          "reference": "https://isomerdesign.com/PiHKAL/read.php?id=54"
+        },
+        {
+          "name": "PsychonautWiki: 2,5-DMA",
+          "reference": "https://psychonautwiki.org/wiki/2,5-DMA"
+        },
+        {
+          "name": "Wikipedia: 2,5-Dimethoxyamphetamine",
+          "reference": "https://en.wikipedia.org/wiki/2,5-Dimethoxyamphetamine"
+        }
+      ],
+      "categories": [
+        "amphetamine",
+        "phenethylamine",
+        "dox-family",
+        "research-chemical",
+        "stimulant"
+      ]
+    },
+    "id": 650
   }
 ]
