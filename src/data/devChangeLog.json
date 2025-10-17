@@ -1,5 +1,48 @@
 [
   {
+    "id": "20251017-230906-55286484",
+    "createdAt": "2025-10-17T23:09:06.720Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:09:05"
+    },
+    "articles": [
+      {
+        "id": 59,
+        "title": "Mescaline",
+        "slug": "mescaline"
+      },
+      {
+        "id": 270,
+        "title": "MAL",
+        "slug": "mal"
+      },
+      {
+        "id": 271,
+        "title": "AEM",
+        "slug": "aem"
+      },
+      {
+        "id": 646,
+        "title": "Allylescaline",
+        "slug": "allylescaline"
+      },
+      {
+        "id": 647,
+        "title": "Escaline",
+        "slug": "escaline"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      }
+    ],
+    "markdown": "# Mescaline · #59\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# MAL · #270\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# AEM · #271\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# Allylescaline · #646\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",\n\n# Escaline · #647\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",\n\n# Proscaline · #648\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-230611-de87cdeb",
     "createdAt": "2025-10-17T23:06:11.019Z",
     "commit": {
