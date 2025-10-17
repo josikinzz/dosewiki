@@ -73905,5 +73905,121 @@
       ]
     },
     "id": 658
+  },
+  {
+    "title": "Benzydamine",
+    "index-category": "deliriant; stimulant",
+    "drug_info": {
+      "drug_name": "Benzydamine",
+      "chemical_name": "3-(1-Benzyl-1H-indazol-3-yloxy)-N,N-dimethylpropan-1-amine",
+      "alternative_name": "Tantum Verde; Difflam; Benflogin; Andole",
+      "chemical_class": "Indazoles",
+      "psychoactive_class": "Deliriant; Stimulant",
+      "mechanism_of_action": "Possible CB1 cannabinoid receptor agonist (speculated); possible 5-HT2A receptor agonist (speculated); prostaglandin synthetase inhibitor; mechanism underlying hallucinogenic effects remains unstudied",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "150 mg",
+              "light": "300-500 mg",
+              "common": "500-1000 mg",
+              "strong": "1000-2000 mg",
+              "heavy": "2000+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-8 hours",
+              "onset": "20-60 minutes",
+              "peak": "3-6 hours",
+              "offset": "3-8 hours",
+              "after_effects": "24-72 hours (residual stimulation and insomnia)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Benzydamine exhibits powerful reinforcing effects in animal models and shows cross-sensitization with drugs like heroin and cocaine. Individuals with prior substance abuse history may be at significantly higher risk for developing benzydamine dependence due to neurobiological sensitivity to its effects.",
+      "interactions": {
+        "dangerous": [],
+        "unsafe": [
+          "Other deliriants (overwhelming and unpredictable effects)",
+          "Stimulants (increased cardiovascular stress and anxiety)"
+        ],
+        "caution": [
+          "Alcohol (commonly combined; may exacerbate dehydration and confusion)",
+          "Cannabis (frequently co-used by recreational users)",
+          "Benzodiazepines (may blunt effects but can increase confusion)",
+          "CNS depressants (may create unpredictable interactions)"
+        ]
+      },
+      "notes": "Benzydamine products, particularly Tantum Rosa vaginal douching sachets, contain dangerous levels of sodium chloride that can cause severe kidney damage if ingested directly. Proper salt extraction using water filtration is essential before consumption. The substance causes severe and prolonged insomnia lasting up to 48 hours, producing taxing sleep deprivation that often triggers paranoia. Legal and available over-the-counter in many countries for legitimate throat and mouth inflammation treatment. Individuals with personal or family history of psychotic disorders should avoid use due to risk of persistent psychotic symptoms.",
+      "subjective_effects": [
+        "Intense Stimulation",
+        "External Hallucinations (Shadow People, Animals, Autonomous Entities)",
+        "Auditory Hallucinations",
+        "Visual Tracers and After Images",
+        "Delirium and Confusion",
+        "Anxiety and Paranoia",
+        "Feelings of Impending Doom",
+        "Euphoria (During Onset Only)",
+        "Motor Control Loss",
+        "Tactile Suppression",
+        "Time Distortion",
+        "Frequent Urination",
+        "Dehydration"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops rapidly with consecutive use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "Other deliriants (e.g., diphenhydramine, datura)"
+        ]
+      },
+      "half_life": "7-8 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Benzydamine",
+          "reference": "https://psychonautwiki.org/wiki/Benzydamine"
+        },
+        {
+          "name": "Erowid Benzydamine Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_Benzydamine.shtml"
+        },
+        {
+          "name": "Bluelight: Benzydamine Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/benzydamine-nsaid-stimulant-psychedelic.353442/"
+        },
+        {
+          "name": "Drugs-Forum: Benzydamine Discussion",
+          "reference": "https://drugs-forum.com/threads/so-i-have-benzydamine-hcl-a-deliriant.295883/"
+        },
+        {
+          "name": "The Benzydamine Experience: A Systematic Review",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8977632/"
+        },
+        {
+          "name": "Benzydamine - An Affordable OTC Drug with Psychoactive Properties",
+          "reference": "https://www.mdpi.com/1424-8247/16/4/566"
+        }
+      ],
+      "categories": [
+        "deliriant",
+        "stimulant",
+        "indazole",
+        "research-chemical"
+      ]
+    },
+    "id": 659
   }
 ]
