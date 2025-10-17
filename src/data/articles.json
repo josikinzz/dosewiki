@@ -73489,5 +73489,142 @@
       ]
     },
     "id": 655
+  },
+  {
+    "title": "4-MeO-PCP",
+    "index-category": "dissociative; research-chemical",
+    "drug_info": {
+      "drug_name": "4-MeO-PCP",
+      "chemical_name": "1-[1-(4-Methoxyphenyl)cyclohexyl]piperidine",
+      "alternative_name": "Methoxydine; 4-Methoxyphencyclidine; 4-Methoxy-PCP",
+      "chemical_class": "Arylcyclohexylamine",
+      "psychoactive_class": "Dissociative",
+      "mechanism_of_action": "NMDA receptor antagonist (selective ligand without appreciable dopamine transporter affinity)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "75-100 mg",
+              "common": "100-170 mg",
+              "strong": "170-250 mg",
+              "heavy": "250+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "15 mg",
+              "light": "30-75 mg",
+              "common": "75-150 mg",
+              "strong": "150+ mg",
+              "heavy": ""
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "12-20 hours",
+              "onset": "45-120 minutes",
+              "peak": "3-7 hours",
+              "offset": "6-10 hours",
+              "after_effects": "6+ hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "12-18 hours",
+              "onset": "5-15 minutes",
+              "peak": "3-6 hours",
+              "offset": "3 hours",
+              "after_effects": "3 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "As with other NMDA receptor antagonists, the chronic use of 4-MeO-PCP can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence among certain users. When addiction has developed, cravings and withdrawal effects may occur if a person suddenly stops their usage. The long duration may discourage frequent redosing compared to shorter-acting dissociatives.",
+      "interactions": {
+        "dangerous": [
+          "Depressants (risk of respiratory depression, unconsciousness, vomiting and aspiration)"
+        ],
+        "unsafe": [
+          "Stimulants (increased risk of anxiety, mania, delusions and psychosis)"
+        ],
+        "caution": []
+      },
+      "notes": "4-MeO-PCP is a long-acting dissociative with approximately 70% the potency of PCP. Users have reported substantial differences in active dose; these discrepancies may be partially explained by the presence of unreacted PCC and other impurities in samples sold on the grey market. Use a precise milligram scale for dosing. The extended duration of action can be both an advantage and disadvantage, with effects and after-effects persisting well into the next day. Chronic use may lead to urinary tract issues similar to ketamine, though less severe due to higher potency requiring smaller amounts. Set and setting are important, and users should avoid potentially hazardous activities during the experience.",
+      "subjective_effects": [
+        "Consciousness Disconnection",
+        "Visual Disconnection",
+        "Dizziness",
+        "Motor Control Loss",
+        "Physical Euphoria",
+        "Spatial Disorientation",
+        "Tactile Suppression",
+        "Depersonalization",
+        "Derealization",
+        "Amnesia",
+        "Time Distortion",
+        "Creativity Enhancement",
+        "Immersion Enhancement",
+        "Increased Music Appreciation",
+        "Internal Hallucinations"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dissociatives"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy 4-MeO-PCP Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-4-meo-pcp-thread.391328/"
+        },
+        {
+          "name": "Erowid 4-MeO-PCP Vault",
+          "reference": "https://www.erowid.org/chemicals/4meo_pcp/4meo_pcp.shtml"
+        },
+        {
+          "name": "Isomer Design: 4-MeO-PCP",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=963"
+        },
+        {
+          "name": "Morris H, Wallach J. From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs",
+          "reference": "https://doi.org/10.1002/dta.1620"
+        },
+        {
+          "name": "PsychonautWiki: 4-MeO-PCP",
+          "reference": "https://psychonautwiki.org/wiki/4-MeO-PCP"
+        },
+        {
+          "name": "Roth BL et al. The Ketamine Analogue Methoxetamine and 3- and 4-Methoxy Analogues of Phencyclidine Are High Affinity and Selective Ligands for the Glutamate NMDA Receptor",
+          "reference": "https://doi.org/10.1371/journal.pone.0059334"
+        }
+      ],
+      "categories": [
+        "dissociative",
+        "arylcyclohexylamine",
+        "research-chemical"
+      ]
+    },
+    "id": 656
   }
 ]
