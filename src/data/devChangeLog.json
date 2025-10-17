@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251017-220000-06e441b8",
+    "createdAt": "2025-10-17T22:00:00.812Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 17/10/2025, 23:59:58"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-024248-d777a0e9",
     "createdAt": "2025-10-17T02:42:48.647Z",
     "commit": {
