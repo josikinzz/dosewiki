@@ -72733,13 +72733,13 @@
   },
   {
     "title": "DOI",
-    "index-category": "psychedelic; stimulant; dox",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "DOI",
       "chemical_name": "2,5-Dimethoxy-4-iodoamphetamine",
-      "alternative_name": "2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine",
-      "chemical_class": "Amphetamines; Substituted amphetamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "alternative_name": "",
+      "chemical_class": "Psychedelic amphetamine",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist",
       "dosages": {
         "routes_of_administration": [
