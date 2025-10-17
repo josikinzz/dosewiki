@@ -73294,5 +73294,200 @@
       ]
     },
     "id": 654
+  },
+  {
+    "title": "TMA-6",
+    "index-category": "psychedelic; stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "TMA-6",
+      "chemical_name": "1-(2,4,6-Trimethoxyphenyl)propan-2-amine",
+      "alternative_name": "2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2",
+      "chemical_class": "Amphetamine; Phenethylamine",
+      "psychoactive_class": "Psychedelic; Stimulant",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; potent MAO-A inhibitor (IC50 400 nM)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-20 mg",
+              "common": "20-35 mg",
+              "strong": "35-50 mg",
+              "heavy": "50+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-15 mg",
+              "common": "15-25 mg",
+              "strong": "25-35 mg",
+              "heavy": "35+ mg"
+            }
+          },
+          {
+            "route": "rectal",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-15 mg",
+              "common": "15-30 mg",
+              "strong": "30-40 mg",
+              "heavy": "40+ mg"
+            }
+          },
+          {
+            "route": "vaporized",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-15 mg",
+              "common": "15-25 mg",
+              "strong": "25-35 mg",
+              "heavy": "35+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "10-16 hours",
+              "onset": "30-90 minutes",
+              "peak": "5-8 hours",
+              "offset": "3-5 hours",
+              "after_effects": "6-18 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "10-30 minutes",
+              "peak": "4-6 hours",
+              "offset": "2-4 hours",
+              "after_effects": "6-12 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "rectal",
+            "stages": {
+              "total_duration": "8-14 hours",
+              "onset": "10-30 minutes",
+              "peak": "4-7 hours",
+              "offset": "3-5 hours",
+              "after_effects": "6-12 hours"
+            },
+            "canonical_routes": [
+              "rectal"
+            ]
+          },
+          {
+            "route": "vaporized",
+            "stages": {
+              "total_duration": "6-11 hours",
+              "onset": "5-15 minutes",
+              "peak": "3-6 hours",
+              "offset": "2-4 hours",
+              "after_effects": "4-12 hours"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "TMA-6 is not considered habit-forming and has a low potential for psychological dependence. The desire to use it typically decreases with consumption, and rapid tolerance development discourages frequent redosing. It is generally self-regulating.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and serotonin syndrome; TMA-6 itself is a potent MAO-A inhibitor)",
+          "Lithium (elevated risk of seizures and psychosis)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Serotonin releasers (MDMA, 4-FA, methamphetamine, methylone, aMT; risk of serotonin syndrome)",
+          "Stimulants (risk of excessive anxiety, panic, thought loops, and psychosis)"
+        ],
+        "caution": [
+          "SSRIs (citalopram, sertraline; risk of serotonin syndrome and altered effects)",
+          "SNRIs (venlafaxine; risk of serotonin syndrome)",
+          "5-HTP (risk of serotonin syndrome)",
+          "Other psychedelics (risk of overwhelming intensity and unpredictable interactions)"
+        ]
+      },
+      "notes": "TMA-6 is a potent MAO-A inhibitor, which creates significant interaction risks and requires careful attention to dietary restrictions similar to pharmaceutical MAOIs. Individuals with personal or family histories of psychotic disorders should avoid use. The substance is highly dose-sensitive and produces unpredictable effects with considerable body load and nausea. Set and setting strongly influence the experience. Users should be prepared for an extended duration of 10-16 hours. Always use a precise scale for dosing.",
+      "subjective_effects": [
+        "Stimulation",
+        "Spontaneous Tactile Sensations",
+        "Tactile Enhancement",
+        "Empathy And Sociability Enhancement",
+        "Thought Acceleration",
+        "Conceptual Thinking Enhancement",
+        "Emotion Enhancement",
+        "Time Distortion",
+        "Visual Acuity Enhancement",
+        "Colour Enhancement",
+        "Drifting",
+        "Nausea",
+        "Vasoconstriction",
+        "Increased Libido",
+        "Music Appreciation Enhancement"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics",
+          "All stimulants"
+        ]
+      },
+      "half_life": "Not well documented; estimated 3-6 hours based on related compounds",
+      "citations": [
+        {
+          "name": "Erowid TMA-6 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_TMA6.shtml"
+        },
+        {
+          "name": "Erowid TMA-6 Comparison Information",
+          "reference": "https://erowid.org/chemicals/tma2/tma2_info1.shtml"
+        },
+        {
+          "name": "Isomer Design PiHKAL Entry #162 TMA-6",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=162"
+        },
+        {
+          "name": "PsychonautWiki TMA-6",
+          "reference": "https://psychonautwiki.org/wiki/TMA-6"
+        },
+        {
+          "name": "Bluelight TMA Series Thread",
+          "reference": "https://www.bluelight.org/community/threads/suprise-substance-of-july-the-tma-series.384752/"
+        },
+        {
+          "name": "Wikipedia 2,4,6-Trimethoxyamphetamine",
+          "reference": "https://en.wikipedia.org/wiki/2,4,6-Trimethoxyamphetamine"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "stimulant",
+        "amphetamine",
+        "research-chemical"
+      ]
+    },
+    "id": 655
   }
 ]
