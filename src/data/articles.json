@@ -16741,7 +16741,6 @@
       ],
       "categories": [
         "psychedelic",
-        "classic-psychedelic",
         "tryptamine",
         "plant-based",
         "common"
@@ -70331,8 +70330,7 @@
       "categories": [
         "psychedelic",
         "lysergamide",
-        "natural",
-        "ergoline"
+        "natural"
       ]
     },
     "id": 631
@@ -70725,8 +70723,7 @@
       "categories": [
         "psychedelic",
         "lysergamide",
-        "research-chemical",
-        "novel-psychoactive-substance"
+        "research-chemical"
       ]
     },
     "id": 634
@@ -72153,8 +72150,7 @@
       "categories": [
         "psychedelic",
         "tryptamine",
-        "serotonergic",
-        "entheogen"
+        "serotonergic"
       ]
     },
     "id": 645
@@ -72729,7 +72725,6 @@
       "categories": [
         "amphetamine",
         "phenethylamine",
-        "dox-family",
         "research-chemical",
         "stimulant"
       ]
