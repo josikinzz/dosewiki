@@ -70045,7 +70045,7 @@
     "index-category": "psychedelic; lysergamide",
     "drug_info": {
       "drug_name": "ETH-LAD",
-      "chemical_name": "(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "chemical_name": "6-Ethyl-6-nor-lysergic acid diethylamide",
       "alternative_name": "N-Ethyl-nor-LSD; 6-Ethyl-6-nor-lysergic acid diethylamide; N-Ethyl-nor-lysergic acid N,N-diethylamide",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
@@ -70057,7 +70057,7 @@
             "units": "ug",
             "dose_ranges": {
               "threshold": "15 ug",
-              "light": "30-60 ug",
+              "light": "15-60 ug",
               "common": "60-150 ug",
               "strong": "150-225 ug",
               "heavy": "225+ ug"
