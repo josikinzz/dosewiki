@@ -70166,7 +70166,7 @@
       "drug_name": "LSA",
       "chemical_name": "d-Lysergic acid amide",
       "alternative_name": "Ergine; LA-111",
-      "chemical_class": "Lysergamide; Ergoline alkaloid",
+      "chemical_class": "Lysergamide",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
