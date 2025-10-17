@@ -71519,5 +71519,136 @@
       ]
     },
     "id": 641
+  },
+  {
+    "title": "4-HO-EPT",
+    "index-category": "psychedelic; tryptamine; research-chemical",
+    "drug_info": {
+      "drug_name": "4-HO-EPT",
+      "chemical_name": "4-Hydroxy-N-ethyl-N-propyltryptamine",
+      "alternative_name": "Eprocin",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10-15 mg",
+              "light": "15-20 mg",
+              "common": "30-40 mg",
+              "strong": "40-60 mg",
+              "heavy": "60+ mg"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-15 mg",
+              "common": "15-25 mg",
+              "strong": "25-35 mg",
+              "heavy": "35+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-7 hours",
+              "onset": "30-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "1-5 minutes",
+              "peak": "15-30 minutes",
+              "offset": "30-60 minutes",
+              "after_effects": "1-2 hours"
+            }
+          }
+        ]
+      },
+      "addiction_potential": "4-HO-EPT is not habit-forming and the desire to use it can actually decrease with regular consumption. Like most psychedelics, it is generally considered self-regulating. There is no evidence of physical dependence potential.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "Stimulants (increased risk of anxiety, paranoia, thought loops, mania, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy, significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ]
+      },
+      "notes": "4-HO-EPT is a novel research chemical with very little history of human use before 2016 and almost no scientific research on its pharmacology, metabolism, or toxicity. Unlike more visual tryptamines, it primarily enhances colors with a neon quality rather than producing strong visual distortions. Users report a strong euphoric body high sometimes compared to opiates, with a generally light and positive mindset. Accurate weighing with a precise milligram scale is essential. Individuals with personal or family history of psychotic disorders should avoid use. Higher doses may cause vasoconstriction. Set and setting considerations apply as with all psychedelics.",
+      "subjective_effects": [
+        "Color Enhancement",
+        "Cognitive Euphoria",
+        "Euphoric Body High",
+        "Increased Music Appreciation",
+        "Conceptual Thinking",
+        "Analysis Enhancement",
+        "Pattern Recognition Enhancement",
+        "Time Distortion",
+        "Emotion Enhancement",
+        "Sedation",
+        "Memory Suppression",
+        "Thought Loops",
+        "Nausea"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy 4-HO-EPT Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-4-ho-ept-thread.805165/"
+        },
+        {
+          "name": "Erowid 4-HO-EPT Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_4HOEPT.shtml"
+        },
+        {
+          "name": "Isomer Design: 4-HO-EPT",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?id=5770"
+        },
+        {
+          "name": "PMC: Investigation of the Structure-Activity Relationships of Psilocybin Analogues",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8033608/"
+        },
+        {
+          "name": "PsychonautWiki: 4-HO-EPT",
+          "reference": "https://psychonautwiki.org/wiki/4-HO-EPT"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical"
+      ]
+    },
+    "id": 642
   }
 ]
