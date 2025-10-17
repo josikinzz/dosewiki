@@ -73626,5 +73626,162 @@
       ]
     },
     "id": 656
+  },
+  {
+    "title": "PCE",
+    "index-category": "dissociative; research-chemical",
+    "drug_info": {
+      "drug_name": "PCE",
+      "chemical_name": "N-Ethyl-1-phenylcyclohexanamine",
+      "alternative_name": "Eticyclidine; CI-400; Cyclohexamine",
+      "chemical_class": "Arylcyclohexylamine",
+      "psychoactive_class": "Dissociative",
+      "mechanism_of_action": "NMDA receptor antagonist (noncompetitive); dopamine-noradrenaline reuptake inhibitor; serotonin reuptake inhibitor; suspected mu-opioid receptor affinity",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "30-90 minutes",
+              "peak": "2-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "4-48 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "20-60 minutes",
+              "peak": "2-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "4-48 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "30-90 minutes",
+              "peak": "2-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "4-48 hours"
+            }
+          }
+        ]
+      },
+      "addiction_potential": "The chronic use of PCE can be considered highly addictive with a high potential for adverse side effects such as psychosis. In comparison to other dissociatives, PCE has been reported to be more addictive than MXE, diphenidine, ephenidine, and ketamine. Multiple reports exist of people becoming seriously addicted daily users of this substance.",
+      "interactions": {
+        "dangerous": [
+          "Depressants (increased risk of unconsciousness, vomiting, and fatal suffocation)"
+        ],
+        "unsafe": [
+          "Psychedelics (extreme psychological disturbances, psychosis, and mania at significantly higher rates)",
+          "Stimulants (increased risk of anxiety, mania, delusions, and psychosis)"
+        ],
+        "caution": []
+      },
+      "notes": "PCE is a potent dissociative that causes psychosis and mania at significantly higher rates than other dissociatives. Users should avoid taking the drug multiple days in a row or in high doses. Volumetric liquid dosing is strongly recommended due to the drug's extreme potency, as most standard milligram scales cannot accurately weigh doses below 10-15 mg. Compulsive redosing should be avoided. Long-term use may lead to severe memory loss, disorganized thinking, bladder and urinary tract problems, and schizophrenia-like psychotic episodes. Individuals with personal or family histories of psychotic disorders should avoid use. PCE is internationally controlled as a Schedule I substance.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Tactile Suppression",
+        "Motor Control Loss",
+        "Visual Disconnection",
+        "Consciousness Disconnection",
+        "Visual Acuity Suppression",
+        "Cognitive Euphoria",
+        "Thought Acceleration",
+        "Depersonalization",
+        "Derealization",
+        "Memory Suppression",
+        "Ego Death",
+        "Mania",
+        "Delusion",
+        "Disinhibition",
+        "Compulsive Redosing",
+        "Nausea"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dissociatives"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight PCE Bioassay Thread",
+          "reference": "https://www.bluelight.org/community/threads/pce-bioassay-eight-human-trials-with-the-unicorn-dissociative-eticyclidine.927036/"
+        },
+        {
+          "name": "Bluelight PCE Small & Handy Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-small-handy-pce-eticyclidine-thread.919539/"
+        },
+        {
+          "name": "Erowid PCE Experience Reports",
+          "reference": "https://erowid.org/experiences/subs/exp_PCE.shtml"
+        },
+        {
+          "name": "Morris & Wallach 2014: From PCP to MXE",
+          "reference": "https://doi.org/10.1002/dta.1620"
+        },
+        {
+          "name": "PsychonautWiki: PCE",
+          "reference": "https://psychonautwiki.org/wiki/PCE"
+        }
+      ],
+      "categories": [
+        "dissociative",
+        "arylcyclohexylamine",
+        "research-chemical"
+      ]
+    },
+    "id": 657
   }
 ]
