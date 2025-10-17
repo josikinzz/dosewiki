@@ -73145,13 +73145,13 @@
   },
   {
     "title": "25N-NBOMe",
-    "index-category": "psychedelic; research-chemical; dangerous",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25N-NBOMe",
       "chemical_name": "2-(2,5-dimethoxy-4-nitrophenyl)-N-(2-methoxybenzyl)ethanamine",
       "alternative_name": "2C-N-NBOMe; NBOMe-2C-N; N-Bomb",
-      "chemical_class": "Phenethylamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "chemical_class": "N-benzylated phenethylamines",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor full agonist; 5-HT2C receptor full agonist; 5-HT2B receptor partial agonist; dopamine transporter phosphorylation (increases extracellular dopamine)",
       "dosages": {
         "routes_of_administration": [
@@ -73284,8 +73284,6 @@
         }
       ],
       "categories": [
-        "nbome",
-        "phenethylamine",
         "psychedelic",
         "research-chemical"
       ]
