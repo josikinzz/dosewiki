@@ -72500,5 +72500,125 @@
       ]
     },
     "id": 648
+  },
+  {
+    "title": "2C-T",
+    "index-category": "psychedelic; research-chemical",
+    "drug_info": {
+      "drug_name": "2C-T",
+      "chemical_name": "2,5-Dimethoxy-4-methylthiophenethylamine",
+      "alternative_name": "Tesseract",
+      "chemical_class": "Phenethylamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; potential MAOI properties",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "20 mg",
+              "light": "40-60 mg",
+              "common": "60-100 mg",
+              "strong": "100-120 mg",
+              "heavy": "125+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-6 hours",
+              "onset": "30-45 minutes",
+              "peak": "30-115 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "1-2 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "2C-T is not habit-forming and the desire to use it can actually decrease with use. It is most often self-regulating with no significant dependence or abuse potential reported.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (potential serotonin syndrome or neurotransmitter overload)",
+          "Stimulants (increased neurotransmitter release)",
+          "5-MeO-MiPT (serotonergic overload)",
+          "2C-T-7 (serotonergic overload)",
+          "AMT (MAOI properties)",
+          "Cocaine (cardiovascular stress)",
+          "Methamphetamine (neurotoxicity risk)",
+          "MDMA (serotonin syndrome risk)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "caution": [
+          "Other psychedelics (overwhelming intensity)",
+          "2-AI (serotonergic interaction)",
+          "A-PVP (cardiovascular stress)",
+          "Amphetamine (increased strain)",
+          "Mephedrone (combined stimulation)"
+        ]
+      },
+      "notes": "2C-T is a lesser-known research chemical with very limited human use history and minimal scientific data on its pharmacology, metabolism, and toxicity. It is structurally similar to 2C-T-2 and 2C-T-7 and may possess MAOI properties, making it potentially more dangerous when combined with other serotonergic substances. The substance is illegal in many jurisdictions including the United States (Schedule I), United Kingdom (Class A), and Canada (Schedule III). Use accurate milligram scales for dosing, practice harm reduction, and consider having a sober trip sitter present. Individuals with personal or family histories of mental health conditions should avoid use.",
+      "subjective_effects": [
+        "Spontaneous Bodily Sensations",
+        "Tactile Enhancement",
+        "Bodily Control Enhancement",
+        "Emotion Enhancement",
+        "Analysis Enhancement",
+        "Time Distortion",
+        "Increased Music Appreciation",
+        "Colour Enhancement",
+        "Visual Acuity Enhancement",
+        "Drifting and Morphing",
+        "Nausea",
+        "Vasoconstriction"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Nichols & Shulgin (1976) - Sulfur Analogs of Psychotomimetic Amines",
+          "reference": "https://doi.org/10.1002/jps.2600651040"
+        },
+        {
+          "name": "PiHKAL Entry #39: 2C-T",
+          "reference": "https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=39"
+        },
+        {
+          "name": "PsychonautWiki: 2C-T",
+          "reference": "https://psychonautwiki.org/wiki/2C-T"
+        },
+        {
+          "name": "Erowid 2C-T-2 Basics",
+          "reference": "https://erowid.org/chemicals/2ct2/2ct2_basics.shtml"
+        },
+        {
+          "name": "Gallardo-Godoy et al. (2005) - Sulfur-Substituted MAO-A Inhibitors",
+          "reference": "https://doi.org/10.1021/jm0493109"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "phenethylamine",
+        "research-chemical",
+        "2c-x"
+      ]
+    },
+    "id": 649
   }
 ]
