@@ -72157,12 +72157,12 @@
   },
   {
     "title": "Allylescaline",
-    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Allylescaline",
       "chemical_name": "4-Allyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "AL; 4-allyloxy-3,5-dimethoxy-phenethylamine",
-      "chemical_class": "Phenethylamines; Scalines",
+      "chemical_class": "Mescaline homologues",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
@@ -72262,9 +72262,7 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "research-chemical",
-        "mescaline-analog"
+        "research-chemical"
       ]
     },
     "id": 646
