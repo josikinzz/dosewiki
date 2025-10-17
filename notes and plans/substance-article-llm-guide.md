@@ -250,3 +250,5 @@ Top-level `index-category`:
   "index-category": "psychedelic;classic"
 }
 ```
+
+NOTE: to fill out the citations, please use your websearch tool to find available tripsit, erowid, bluelight, isomerdesign, and drugsforum links where available.
