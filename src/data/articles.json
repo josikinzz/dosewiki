@@ -73783,5 +73783,127 @@
       ]
     },
     "id": 657
+  },
+  {
+    "title": "Nitrous Oxide",
+    "index-category": "dissociative; inhalant",
+    "drug_info": {
+      "drug_name": "Nitrous Oxide",
+      "chemical_name": "Dinitrogen monoxide",
+      "alternative_name": "Laughing Gas; Nitrous; NOS; Hippy Crack; N2O; Nangs; Whippits; Nitro",
+      "chemical_class": "Nitrogen oxide",
+      "psychoactive_class": "Dissociative",
+      "mechanism_of_action": "NMDA receptor antagonist (primary); GABA-A receptor potentiation; glycine receptor potentiation; nACh receptor antagonist (beta2-subunit); two-pore-domain K+ channel activation",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "inhaled",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "4 g",
+              "light": "4-8 g (0.5-1 cartridge)",
+              "common": "8-16 g (1-2 cartridges)",
+              "strong": "16-40 g (2-5 cartridges)",
+              "heavy": "40+ g (5+ cartridges)"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "inhaled",
+            "stages": {
+              "total_duration": "1-5 minutes",
+              "onset": "5-10 seconds",
+              "peak": "15-30 seconds",
+              "offset": "1-5 minutes",
+              "after_effects": "15-30 minutes"
+            },
+            "canonical_routes": [
+              "inhaled"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Nitrous oxide is considered to have low to moderate abuse potential and low physical addiction potential. However, it is strongly psychologically compelling due to its brief duration and powerful effects, which can lead to compulsive redosing during a session. Frequent use is rare due to rapid tolerance development.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (risk of unconsciousness, vomit aspiration, memory blackouts)",
+          "GHB/GBL (risk of unconsciousness, vomit aspiration, ataxia)",
+          "Opioids (risk of unconsciousness, vomit aspiration, respiratory depression)",
+          "Tramadol (risk of unconsciousness, vomit aspiration)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Cannabis (potentiates effects)",
+          "Psychedelics (dramatically intensifies visuals and ego dissolution)",
+          "Dissociatives (intensifies disconnection and internal hallucinations)",
+          "MDMA (may cause nausea)"
+        ]
+      },
+      "notes": "Nitrous oxide can cause severe and potentially irreversible vitamin B12 depletion with frequent or chronic use, leading to serious neurological damage including numbness, tingling, and motor control loss. Always supplement with vitamin B12 when using this substance. Never inhale directly from cartridges or tanks due to extreme cold temperature (-40C) which can cause frostbite to lips, throat, and lungs, and high pressure which can rupture lung tissue. Always release gas into a balloon first to warm and depressurize. Ensure adequate oxygen intake between inhalations to prevent hypoxia and brain damage. Use while seated to prevent injury from falls. Filter gas through cloth or cotton to remove metal particles and industrial residue from food-grade cartridges.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Auditory Distortion",
+        "Visual Geometry",
+        "Ego Death",
+        "Laughter Fits",
+        "Motor Control Loss",
+        "Dissociation",
+        "Time Distortion",
+        "Sedation",
+        "Dizziness",
+        "Tactile Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-4 consecutive uses within hours",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": []
+      },
+      "half_life": "5-10 minutes (less than 0.004% metabolized)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Nitrous Oxide",
+          "reference": "https://psychonautwiki.org/wiki/Nitrous"
+        },
+        {
+          "name": "TripSit Nitrous Oxide Factsheet",
+          "reference": "https://tripsit.me/factsheets/nitrous"
+        },
+        {
+          "name": "TripSit Wiki: Nitrous Oxide",
+          "reference": "https://wiki.tripsit.me/wiki/Nitrous_Oxide"
+        },
+        {
+          "name": "Erowid Nitrous Oxide Vault",
+          "reference": "https://www.erowid.org/chemicals/nitrous/nitrous.shtml"
+        },
+        {
+          "name": "Erowid Nitrous Oxide Basics",
+          "reference": "https://www.erowid.org/chemicals/nitrous/nitrous_basics.shtml"
+        },
+        {
+          "name": "Erowid Nitrous Oxide Effects",
+          "reference": "https://www.erowid.org/chemicals/nitrous/nitrous_effects.shtml"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy Nitrous Thread (FAQ)",
+          "reference": "https://bluelight.org/xf/threads/nitrous-oxide-whippits-nangs-johnny-gas-n2o-faq.54176/"
+        },
+        {
+          "name": "DanceWize NSW: Nitrous Oxide Harm Reduction",
+          "reference": "https://hi-ground.org/substances/nitrous-oxide/"
+        }
+      ],
+      "categories": [
+        "dissociative",
+        "inhalant",
+        "anesthetic"
+      ]
+    },
+    "id": 658
   }
 ]
