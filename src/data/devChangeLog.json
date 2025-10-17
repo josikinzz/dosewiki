@@ -1,5 +1,73 @@
 [
   {
+    "id": "20251017-230247-72f6027f",
+    "createdAt": "2025-10-17T23:02:47.222Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:02:45"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 653,
+        "title": "25D-NBOMe",
+        "slug": "25d-nbome"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# 25D-NBOMe · #653\n\n-  \"index-category\": \"psychedelic; research-chemical; nbome\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"research-chemical\",\n-      \"nbome-series\",\n-      \"phenethylamine\"\n+      \"research-chemical\"\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-230207-b2658eaf",
     "createdAt": "2025-10-17T23:02:07.252Z",
     "commit": {
