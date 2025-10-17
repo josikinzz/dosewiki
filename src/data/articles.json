@@ -72860,12 +72860,12 @@
   },
   {
     "title": "25C-NBOH",
-    "index-category": "psychedelic; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25C-NBOH",
       "chemical_name": "2-(4-Chloro-2,5-dimethoxyphenyl)-N-[(2-hydroxyphenyl)methyl]ethanamine",
       "alternative_name": "2C-C-NBOH; NBOH-2C-C; N-bomb; NBOH",
-      "chemical_class": "Phenethylamines",
+      "chemical_class": "N-benzylated phenethylamines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist (potent, pEC50 9.43); 5-HT2C receptor agonist (pKi 7.8)",
       "dosages": {
@@ -72971,9 +72971,7 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "research-chemical",
-        "nboh-series"
+        "research-chemical"
       ]
     },
     "id": 652
