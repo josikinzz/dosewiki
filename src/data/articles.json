@@ -16587,25 +16587,36 @@
   },
   {
     "id": 200,
-    "title": "Psilocybin mushrooms",
+    "title": "Psilocybin Mushrooms",
     "drug_info": {
-      "drug_name": "Psilocybin mushrooms",
-      "chemical_name": "Psilocybin",
-      "alternative_name": "Psilocybe cubensis; Magic mushrooms; Shrooms",
+      "drug_name": "Psilocybin Mushrooms",
+      "chemical_name": "4-Phosphoryloxy-N,N-dimethyltryptamine",
+      "alternative_name": "Magic Mushrooms; Shrooms; Mushies; Psychedelic Mushrooms; Boomers; Magic Truffles",
       "chemical_class": "Tryptamines",
-      "mechanism_of_action": "5-HT2A receptor agonist",
+      "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2C receptor agonist; 5-HT1A receptor agonist (psilocin acts as prodrug)",
       "psychoactive_class": "Psychedelic",
       "dosages": {
         "routes_of_administration": [
           {
             "route": "oral",
-            "units": "g (dried mushrooms)",
+            "units": "g",
             "dose_ranges": {
-              "threshold": "0.25 g",
-              "light": "0.5 - 1 g",
-              "common": "1 - 2.5 g",
-              "strong": "2.5 - 4 g",
-              "heavy": "4+ g"
+              "threshold": "0.1-0.5 g",
+              "light": "0.5-1.5 g",
+              "common": "1.5-3.5 g",
+              "strong": "3.5-5 g",
+              "heavy": "5+ g"
+            }
+          },
+          {
+            "route": "lemon tek",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "0.1-0.3 g",
+              "light": "0.3-1 g",
+              "common": "1-2.5 g",
+              "strong": "2.5-3.5 g",
+              "heavy": "3.5+ g"
             }
           }
         ]
@@ -16614,77 +16625,122 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "stages": {
-              "total_duration": "4 - 6 hours",
-              "onset": "20 - 60 minutes",
-              "peak": "2 - 3 hours",
-              "offset": "1 - 2 hours",
-              "after_effects": "Up to 24 hours (residual effects, afterglow)"
-            },
             "canonical_routes": [
               "oral"
-            ]
+            ],
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "20-60 minutes",
+              "peak": "90-180 minutes",
+              "offset": "2-4 hours",
+              "after_effects": "4-24 hours (afterglow)"
+            }
+          },
+          {
+            "route": "lemon tek",
+            "canonical_routes": [
+              "oral"
+            ],
+            "stages": {
+              "total_duration": "3-6 hours",
+              "onset": "10-30 minutes",
+              "peak": "60-150 minutes",
+              "offset": "2-3 hours",
+              "after_effects": "4-24 hours (afterglow)"
+            }
           }
         ]
       },
-      "addiction_potential": "Psilocybin mushrooms have a very low addiction potential. They are not considered habit-forming and tolerance develops rapidly, discouraging frequent use.",
+      "addiction_potential": "Psilocybin mushrooms are not considered physically addictive and have low potential for psychological dependence. Rapid tolerance development discourages frequent use. They are not associated with compulsive drug-seeking behavior or withdrawal symptoms.",
       "interactions": {
         "dangerous": [
-          "MAOIs (can dangerously potentiate effects)"
+          "Lithium (significantly increased seizure risk)",
+          "MAOIs (risk of hypertensive crisis)"
         ],
         "unsafe": [
-          "SSRIs (may blunt effects)"
+          "Tramadol (lowers seizure threshold)",
+          "Other psychedelics (unpredictable and overwhelming intensity)"
         ],
         "caution": [
-          "Other psychedelics (increased risk of overwhelming experience)"
+          "Cannabis (unpredictable and significantly intensified effects; increased anxiety, paranoia, and psychosis risk)",
+          "Amphetamines (increased anxiety and thought loop risk)",
+          "Cocaine (increased anxiety and thought loop risk)",
+          "SSRIs (may blunt or alter effects)",
+          "Benzodiazepines (may dampen experience; useful for trip abortion)",
+          "Alcohol (may cause dehydration and nausea; can reduce anxiety in low doses)",
+          "MDMA (unknown toxicity; may increase neurotoxicity)"
         ]
       },
-      "notes": "Penis Envy is a well-known strain of Psilocybe cubensis, notable for its higher potency compared to most other P. cubensis strains. Users report that 1 gram of Penis Envy can be as potent as 2 grams of a standard cubensis strain. Effects are highly dose-dependent and can include intense visual and cognitive changes. Set and setting are crucial for a safe experience. Potency can vary depending on cultivation and genetics.",
+      "notes": "Psilocybin mushrooms vary widely in potency by species, strain, and individual specimen; accurate weighing with a precise scale is essential. Dried mushrooms are approximately 10 times more potent by weight than fresh mushrooms. Exercise extreme caution when foraging wild mushrooms due to the risk of consuming poisonous look-alike species; identification should only be performed by experts. Individuals with personal or family history of psychotic disorders should avoid use. Set and setting strongly influence the experience; ensure a safe, comfortable, familiar environment and consider having a trusted sober trip sitter present, especially for first-time users or higher doses.",
       "subjective_effects": [
-        "Visual distortions",
-        "Euphoria",
-        "Altered thinking",
-        "Time dilation",
-        "Synesthesia",
-        "Spiritual or mystical experiences",
-        "Emotional lability",
-        "Introspection",
-        "Body high",
-        "Nausea (sometimes)"
+        "Visual Geometry and Patterning",
+        "Enhanced Mood and Euphoria",
+        "Time Distortion",
+        "Emotional Enhancement and Amplification",
+        "Spirituality and Mystical Experiences",
+        "Ego Loss and Dissolution",
+        "Enhanced Introspection",
+        "Conceptual Thinking",
+        "Unity and Interconnectedness",
+        "Nausea (especially during come-up)",
+        "Sedation and Body Heaviness",
+        "Confusion",
+        "Anxiety or Feelings of Impending Doom (typically during onset)",
+        "Synaesthesia",
+        "Tactile Enhancement",
+        "Excessive Yawning"
       ],
       "tolerance": {
-        "full_tolerance": "After 2-3 consecutive days of use",
-        "half_tolerance": "5-7 days",
-        "zero_tolerance": "2 weeks",
+        "full_tolerance": "After 1-2 consecutive days of use",
+        "half_tolerance": "3-4 days",
+        "zero_tolerance": "7-14 days",
         "cross_tolerances": [
-          "Other tryptamine psychedelics (e.g., LSD, DMT)"
+          "All psychedelics (LSD, mescaline, 2C-x, tryptamines)"
         ]
       },
-      "half_life": "1.5 - 3 hours (psilocybin); effects last longer due to active metabolite psilocin",
+      "half_life": "1-3 hours (psilocin active metabolite)",
       "citations": [
         {
           "name": "Erowid Psilocybin Mushroom Vault",
           "reference": "https://erowid.org/plants/mushrooms/mushrooms.shtml"
         },
         {
-          "name": "Bluelight - Penis Envy Mushrooms Discussion",
-          "reference": "https://www.bluelight.org/community/threads/penis-envy-mushrooms.520747/post-11662949"
+          "name": "Erowid Psilocybin Mushroom Dosage",
+          "reference": "https://erowid.org/plants/mushrooms/mushrooms_dose.shtml"
         },
         {
-          "name": "Bluelight - Getting the Most Out of Mushrooms",
-          "reference": "https://www.bluelight.org/community/threads/getting-the-most-out-of-mushrooms.555352/page-2"
+          "name": "PsychonautWiki: Psilocybin Mushrooms",
+          "reference": "https://psychonautwiki.org/wiki/Psilocybin_mushrooms"
         },
         {
-          "name": "Tripsitter Substack: Penis Envy Mushrooms",
-          "reference": "https://tripsitter.substack.com/p/penis-envy-mushrooms?r=1da21z"
+          "name": "TripSit Mushrooms Factsheet",
+          "reference": "https://drugs.tripsit.me/Mushrooms"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy Psilocybin Mushrooms Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-psilocybin-mushrooms-thread.58587/"
+        },
+        {
+          "name": "Drug Science: Psilocybin",
+          "reference": "https://www.drugscience.org.uk/psilocybin"
+        },
+        {
+          "name": "Frontiers in Psychiatry: Therapeutic use of psilocybin",
+          "reference": "https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2022.1040217/full"
+        },
+        {
+          "name": "PsychonautWiki: Psilocybin Mushroom Lemon Tek",
+          "reference": "https://psychonautwiki.org/wiki/Psilocybin_mushroom_lemon_tek"
         }
       ],
       "categories": [
         "psychedelic",
-        "common"
+        "classic-psychedelic",
+        "tryptamine",
+        "plant-based"
       ]
     },
-    "index-category": ""
+    "index-category": "psychedelic;classic;tryptamine"
   },
   {
     "id": 202,
