@@ -72389,12 +72389,12 @@
   },
   {
     "title": "Proscaline",
-    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Proscaline",
       "chemical_name": "4-Propyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "P; 4-Propoxy-3,5-DMPEA; 3,5-Dimethoxy-4-n-propoxyphenethylamine",
-      "chemical_class": "Phenethylamine",
+      "chemical_class": "Mescaline homologues",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist",
       "dosages": {
@@ -72498,7 +72498,6 @@
       "categories": [
         "psychedelic",
         "phenethylamine",
-        "mescaline-analog",
         "research-chemical"
       ]
     },
