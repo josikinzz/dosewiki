@@ -72978,13 +72978,13 @@
   },
   {
     "title": "25D-NBOMe",
-    "index-category": "psychedelic; research-chemical; nbome",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25D-NBOMe",
       "chemical_name": "2-(2,5-Dimethoxy-4-methylphenyl)-N-(2-methoxybenzyl)ethanamine",
       "alternative_name": "2C-D-NBOMe; NBOMe-2C-D; Divination; N-Bomb",
-      "chemical_class": "Phenethylamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "chemical_class": "N-benzylated phenethylamines",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist (partial); 5-HT2B receptor agonist; 5-HT2C receptor agonist; adrenergic alpha-1 receptor agonist",
       "dosages": {
         "routes_of_administration": [
@@ -73138,9 +73138,7 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "nbome-series",
-        "phenethylamine"
+        "research-chemical"
       ]
     },
     "id": 653
