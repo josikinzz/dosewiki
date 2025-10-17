@@ -72976,5 +72976,174 @@
       ]
     },
     "id": 652
+  },
+  {
+    "title": "25D-NBOMe",
+    "index-category": "psychedelic; research-chemical; nbome",
+    "drug_info": {
+      "drug_name": "25D-NBOMe",
+      "chemical_name": "2-(2,5-Dimethoxy-4-methylphenyl)-N-(2-methoxybenzyl)ethanamine",
+      "alternative_name": "2C-D-NBOMe; NBOMe-2C-D; Divination; N-Bomb",
+      "chemical_class": "Phenethylamines",
+      "psychoactive_class": "Psychedelic; Stimulant",
+      "mechanism_of_action": "5-HT2A receptor agonist (partial); 5-HT2B receptor agonist; 5-HT2C receptor agonist; adrenergic alpha-1 receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "300 ug",
+              "light": "300-800 ug",
+              "common": "800-1000 ug",
+              "strong": "1000-1200 ug",
+              "heavy": "1200+ ug"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "200 ug",
+              "light": "200-600 ug",
+              "common": "600-800 ug",
+              "strong": "800-1000 ug",
+              "heavy": "1000+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "20-40 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "6+ hours"
+            },
+            "canonical_routes": [
+              "sublingual"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "3-5 hours",
+              "onset": "5-15 minutes",
+              "peak": "45-90 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "4-6 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "25D-NBOMe has not been formally studied for addiction potential but appears to have a self-regulating quality with immediate tolerance buildup. Rapid tolerance develops after use, lasting approximately 2-3 weeks. Animal studies have shown reinforcing effects including conditioned place preference and self-administration behavior, suggesting some potential for psychological reinforcement.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased seizure risk)",
+          "Tramadol (lowers seizure threshold)",
+          "MAOIs (hypertensive crisis risk, unpredictable potentiation)",
+          "Amphetamines (severe cardiovascular stress, tachycardia, hypertension, potential heart failure)",
+          "Cocaine (severe vasoconstriction, tachycardia, hypertension, potential heart failure)"
+        ],
+        "unsafe": [
+          "2C-T-X compounds (unpredictable interactions)",
+          "5-MeO-xxt compounds (unpredictable interactions)",
+          "aMT (unpredictable cardiovascular effects)",
+          "DOx compounds (prolonged stimulation, cardiovascular strain)",
+          "DXM (unpredictable effects)",
+          "MDMA (cardiovascular strain, hyperthermia risk)",
+          "MXE (potentiation of NBOMe effects)"
+        ],
+        "caution": [
+          "Cannabis (significantly increases anxiety, paranoia, and unpredictable psychological effects)",
+          "Caffeine (increases uncomfortable stimulation and anxiety)",
+          "SSRIs (may blunt or prolong effects)"
+        ]
+      },
+      "notes": "25D-NBOMe is a highly potent research chemical with an extremely narrow margin between active and potentially lethal doses. The compound is not orally active and must be administered sublingually or via other mucosal routes. Never insufflate NBOMe compounds as this route has been associated with numerous fatalities. Blotter paper doses are notoriously inconsistent due to hotspots of concentrated material. Use only with an analytical balance for weighing, never eyeball doses. Those with personal or family history of psychotic disorders, cardiovascular conditions, or seizure disorders should avoid this substance entirely. The compound produces dose-dependent vasoconstriction and cardiovascular strain. Set and setting are critical; always have a sober trip sitter present. Many deaths have occurred from individuals believing they consumed LSD when they actually ingested an NBOMe compound.",
+      "subjective_effects": [
+        "Visual Acuity Enhancement",
+        "Color Enhancement",
+        "Visual Geometry",
+        "Tracers and After Images",
+        "Physical Euphoria",
+        "Stimulation",
+        "Tactile Hallucination",
+        "Time Distortion",
+        "Mouth and Tongue Numbness",
+        "Metallic Chemical Taste",
+        "Spontaneous Bodily Sensations",
+        "Thought Acceleration",
+        "Music Appreciation Enhancement",
+        "Emotional Amplification",
+        "Nausea",
+        "Vasoconstriction",
+        "Increased Heart Rate",
+        "Increased Blood Pressure",
+        "Temperature Regulation Suppression",
+        "Muscle Tension and Cramps",
+        "Headaches",
+        "Anxiety and Paranoia"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops immediately after use",
+        "half_tolerance": "Approximately 1 week",
+        "zero_tolerance": "2-3 weeks",
+        "cross_tolerances": [
+          "All psychedelics",
+          "Other NBOMe compounds",
+          "2C-x series"
+        ]
+      },
+      "half_life": "1-3 hours (parent compound rapidly cleared from blood)",
+      "citations": [
+        {
+          "name": "Alcohol and Drug Foundation: NBOMes",
+          "reference": "https://adf.org.au/drug-facts/nbomes/"
+        },
+        {
+          "name": "Erowid 25D-NBOMe Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_25DNBOMe.shtml"
+        },
+        {
+          "name": "Erowid NBOMe Series Vault",
+          "reference": "https://www.erowid.org/chemicals/nbome/"
+        },
+        {
+          "name": "Frontiers in Neuroscience: NBOMes - Highly Potent and Toxic Alternatives of LSD",
+          "reference": "https://www.frontiersin.org/articles/10.3389/fnins.2020.00078/full"
+        },
+        {
+          "name": "Isomer Design: 25D-NBOMe",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=342"
+        },
+        {
+          "name": "PsychonautWiki: 25D-NBOMe",
+          "reference": "https://psychonautwiki.org/wiki/25D-NBOMe"
+        },
+        {
+          "name": "Wikipedia: 25D-NBOMe",
+          "reference": "https://en.wikipedia.org/wiki/25D-NBOMe"
+        },
+        {
+          "name": "Yoon et al. (2019): Cardiac Effects of 25D-NBOMe and 25C-NBOMe",
+          "reference": "https://doi.org/10.1016/j.toxlet.2019.01.004"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "research-chemical",
+        "nbome-series",
+        "phenethylamine"
+      ]
+    },
+    "id": 653
   }
 ]
