@@ -72383,5 +72383,122 @@
       ]
     },
     "id": 647
+  },
+  {
+    "title": "Proscaline",
+    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "drug_info": {
+      "drug_name": "Proscaline",
+      "chemical_name": "4-Propyloxy-3,5-dimethoxyphenethylamine",
+      "alternative_name": "P; 4-Propoxy-3,5-DMPEA; 3,5-Dimethoxy-4-n-propoxyphenethylamine",
+      "chemical_class": "Phenethylamine",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10 mg",
+              "light": "15-30 mg",
+              "common": "30-40 mg",
+              "strong": "40-60 mg",
+              "heavy": "60+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "30-60 minutes",
+              "peak": "2-4 hours",
+              "offset": "3-5 hours",
+              "after_effects": "3-5 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Proscaline is not habit-forming and demonstrates a self-regulating usage pattern. The desire to use it typically decreases with repeated consumption. There is no evidence of physical dependence or compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of seizures and psychosis)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "MAOIs (potentially hazardous serotonergic interaction)"
+        ],
+        "caution": [
+          "Stimulants (increased cardiovascular strain)",
+          "Cannabis (may intensify and prolong effects unpredictably)",
+          "SSRIs (may blunt or alter effects)",
+          "Alcohol (reduces therapeutic potential and increases risk of dehydration)"
+        ]
+      },
+      "notes": "Proscaline is a lesser-known mescaline analog approximately five times more potent than mescaline. The substance has minimal research into its pharmacology and toxicity. Use a precise milligram scale for accurate dosing. It is controlled in Germany, Switzerland, and the United Kingdom but remains unscheduled in the United States. Individuals with personal or family history of psychotic disorders should avoid use. Ensure adequate set and setting preparation, as with all psychedelics.",
+      "subjective_effects": [
+        "Visual Pattern Enhancement",
+        "Color Enhancement",
+        "Time Distortion",
+        "Enhanced Music Appreciation",
+        "Tactile Enhancement",
+        "Cognitive Euphoria",
+        "Conceptual Thinking",
+        "Increased Body Temperature",
+        "Nausea",
+        "Enhanced Introspection",
+        "Emotional Amplification",
+        "Drifting Visual Effects"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (mescaline, LSD, psilocybin, DMT, 2C-x compounds)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Proscaline",
+          "reference": "https://psychonautwiki.org/wiki/Proscaline"
+        },
+        {
+          "name": "PiHKAL Entry #140: Proscaline (Isomer Design)",
+          "reference": "https://isomerdesign.com/pihkal/explore/140"
+        },
+        {
+          "name": "Erowid PiHKAL: Proscaline",
+          "reference": "https://erowid.org/library/books_online/pihkal/pihkal140.shtml"
+        },
+        {
+          "name": "Erowid Proscaline Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_Proscaline.shtml"
+        },
+        {
+          "name": "Bluelight: Proscaline Discussion",
+          "reference": "https://www.bluelight.org/community/threads/proscaline-new-experience-shiny-happy-people.522598/"
+        },
+        {
+          "name": "Nichols and Dyer (1977) - Journal of Medicinal Chemistry",
+          "reference": "https://doi.org/10.1021/jm00212a022"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "phenethylamine",
+        "mescaline-analog",
+        "research-chemical"
+      ]
+    },
+    "id": 648
   }
 ]
