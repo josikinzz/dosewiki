@@ -70335,8 +70335,8 @@
     "index-category": "psychedelic; lysergamide; research-chemical",
     "drug_info": {
       "drug_name": "MiPLA",
-      "chemical_name": "(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
-      "alternative_name": "Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide",
+      "chemical_name": "Lysergic acid methylisopropylamide",
+      "alternative_name": "Lamide",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
