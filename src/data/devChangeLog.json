@@ -1,5 +1,28 @@
 [
   {
+    "id": "20251017-220355-972e3296",
+    "createdAt": "2025-10-17T22:03:55.871Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:03:53"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-220000-06e441b8",
     "createdAt": "2025-10-17T22:00:00.812Z",
     "commit": {
