@@ -72269,12 +72269,12 @@
   },
   {
     "title": "Escaline",
-    "index-category": "psychedelic; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Escaline",
       "chemical_name": "3,5-Dimethoxy-4-ethoxyphenethylamine",
       "alternative_name": "E; 4-Ethoxy-3,5-dimethoxyphenethylamine",
-      "chemical_class": "Phenethylamines",
+      "chemical_class": "Mescaline homologues",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist (5-8 times greater affinity than mescaline); 5-HT2C receptor agonist",
       "dosages": {
@@ -72378,8 +72378,6 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "mescaline-analog",
         "research-chemical"
       ]
     },
