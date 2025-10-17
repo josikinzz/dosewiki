@@ -72856,5 +72856,125 @@
       ]
     },
     "id": 651
+  },
+  {
+    "title": "25C-NBOH",
+    "index-category": "psychedelic; research-chemical",
+    "drug_info": {
+      "drug_name": "25C-NBOH",
+      "chemical_name": "2-(4-Chloro-2,5-dimethoxyphenyl)-N-[(2-hydroxyphenyl)methyl]ethanamine",
+      "alternative_name": "2C-C-NBOH; NBOH-2C-C; N-bomb; NBOH",
+      "chemical_class": "Phenethylamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor agonist (potent, pEC50 9.43); 5-HT2C receptor agonist (pKi 7.8)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "100 ug",
+              "light": "250-500 ug",
+              "common": "500-750 ug",
+              "strong": "750-1000 ug",
+              "heavy": "1000+ ug (potentially fatal)"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "stages": {
+              "total_duration": "5-7 hours",
+              "onset": "15-45 minutes",
+              "peak": "90-180 minutes (come up 30-90 minutes)",
+              "offset": "2-4 hours",
+              "after_effects": "3-6 days (afterglow may persist)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "25C-NBOH is not considered habit-forming and the desire to use it typically decreases with repeated use. The substance is generally self-regulating, though research on its addiction potential is extremely limited.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "MAOIs (potentially dangerous interaction)"
+        ],
+        "unsafe": [
+          "Stimulants (increased risk of anxiety, paranoia, panic attacks, thought loops, mania, and psychosis)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "caution": [
+          "Cannabis (unpredictably strong synergy, significantly increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ]
+      },
+      "notes": "25C-NBOH is a novel research chemical with extremely limited human use history and assumed similar toxicity to 25C-NBOMe, which has been linked to multiple deaths. This substance must NEVER be insufflated (snorted) due to high risk of fatal overdose. Compounds of the NBOH family are NOT orally active and must be administered sublingually, holding in the mouth for 15-25 minutes. Use an accurate microgram scale for all dosing. The substance exhibits dose-independent intensity and unpredictable effects even at seemingly identical doses. Start with threshold doses and avoid combinations. Heavy doses may be fatal. Individuals with personal or family history of psychotic disorders should avoid use. This substance is controlled in many jurisdictions.",
+      "subjective_effects": [
+        "Intense Visual Patterning And Geometry",
+        "Strong Physical Stimulation",
+        "Perception Of Bodily Lightness",
+        "Color Enhancement",
+        "Time Distortion",
+        "Spontaneous Euphoric Tingling Sensations",
+        "Enhanced Pattern Recognition",
+        "Mouth And Tongue Numbing",
+        "Nausea (Typically During Come-Up)",
+        "Anxiety And Paranoia (More Common Than Classical Psychedelics)",
+        "Mild Cognitive Effects (Notably Light Headspace)",
+        "Increased Sociability And Empathy (Inconsistent)",
+        "Enhanced Music Appreciation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "Approximately 1 week",
+        "zero_tolerance": "2 weeks",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, DMT, 2C-x series, NBOMe series)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy 25C-NBOH Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-25c-nboh-thread.621629/"
+        },
+        {
+          "name": "Erowid 25C-NBOH Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_25CNBOH.shtml"
+        },
+        {
+          "name": "Hansen, M. (2012). Design and Synthesis of Selective Serotonin Receptor Agonists for PET Imaging",
+          "reference": "https://www.researchgate.net/publication/266388124"
+        },
+        {
+          "name": "Hansen et al. (2014). Synthesis and Structure-Activity Relationships of N-Benzyl Phenethylamines as 5-HT2A/2C Agonists",
+          "reference": "https://doi.org/10.1021/cn400216u"
+        },
+        {
+          "name": "Isomer Design: 25C-NBOH",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=1252"
+        },
+        {
+          "name": "PsychonautWiki: 25C-NBOH",
+          "reference": "https://psychonautwiki.org/wiki/25C-NBOH"
+        },
+        {
+          "name": "Silva et al. (2011). Theoretical Studies on the Interaction of Partial Agonists with the 5-HT2A Receptor",
+          "reference": "https://doi.org/10.1007/s10822-010-9400-2"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "phenethylamine",
+        "research-chemical",
+        "nboh-series"
+      ]
+    },
+    "id": 652
   }
 ]
