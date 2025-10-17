@@ -72151,5 +72151,119 @@
       ]
     },
     "id": 645
+  },
+  {
+    "title": "Allylescaline",
+    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "drug_info": {
+      "drug_name": "Allylescaline",
+      "chemical_name": "4-Allyloxy-3,5-dimethoxyphenethylamine",
+      "alternative_name": "AL; 4-allyloxy-3,5-dimethoxy-phenethylamine",
+      "chemical_class": "Phenethylamines; Scalines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "15 mg",
+              "light": "20-30 mg",
+              "common": "30-40 mg",
+              "strong": "40-60 mg",
+              "heavy": "60+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "45-240 minutes",
+              "after_effects": "Up to 12 hours (residual effects possible)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Allylescaline is not habit-forming and the desire to use it can actually decrease with use. It is most often self-regulating, with little evidence of compulsive redosing patterns. However, given the limited human usage data, these observations should be considered preliminary.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (increased seizure risk with psychedelics)",
+          "Tramadol (lowers seizure threshold with psychedelics)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "MAOIs (theoretical risk based on phenethylamine structure)",
+          "Stimulants (increased body load and cardiovascular strain)",
+          "Other psychedelics (cross-tolerance and unpredictable intensity)",
+          "Dissociatives (unpredictable combination effects)"
+        ]
+      },
+      "notes": "Allylescaline is a research chemical with very little history of human usage and no formal toxicology studies. As a structural analog of mescaline with significantly increased potency, accurate weighing with a milligram scale is essential. The substance has a notably slow and variable onset ranging from 45 minutes to 4 hours, which may lead to accidental overdosing if users redose prematurely. Legal status varies by jurisdiction; it is controlled in Germany, Japan, Sweden, Switzerland, and the United Kingdom. Set and setting remain important considerations, and individuals with personal or family histories of mental health conditions should exercise extreme caution.",
+      "subjective_effects": [
+        "Physical Stimulation",
+        "Spontaneous Tactile Sensations",
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Color Enhancement",
+        "Pattern Recognition Enhancement",
+        "Drifting and Flowing Visuals",
+        "Cognitive Euphoria",
+        "Enhanced Empathy and Sociability",
+        "Increased Music Appreciation",
+        "Time Distortion",
+        "Nausea",
+        "Increased Heart Rate"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (mescaline, LSD, psilocybin, DMT, 2C-x compounds, etc.)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid Allylescaline Vault",
+          "reference": "https://www.erowid.org/experiences/subs/exp_Allylescaline.shtml"
+        },
+        {
+          "name": "Isomer Design - PiHKAL Entry #2: AL",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=2"
+        },
+        {
+          "name": "PsychonautWiki - Allylescaline",
+          "reference": "https://psychonautwiki.org/wiki/Allylescaline"
+        },
+        {
+          "name": "Shulgin, A.; Shulgin, A. (1991). PiHKAL: A Chemical Love Story, Entry #2",
+          "reference": "https://erowid.org/library/books_online/pihkal/pihkal002.shtml"
+        },
+        {
+          "name": "Bluelight - The Big & Dandy Allylescaline Thread",
+          "reference": "https://bluelight.org"
+        },
+        {
+          "name": "Kolaczynska et al. (2022). Receptor interaction profiles of mescaline derivatives",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8865417/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "phenethylamine",
+        "research-chemical",
+        "mescaline-analog"
+      ]
+    },
+    "id": 646
   }
 ]
