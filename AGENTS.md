@@ -45,3 +45,4 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 - Dev Tools credentials now verify immediately on save; successful auth persists `{ username, password, key, lastVerifiedAt }` to local storage, shows a "Logged in" badge, and enables the dedicated logout control.
 - Edit tab now includes a tag-editor-style danger zone for deleting the currently selected article; the action verifies credentials, pushes a GitHub commit, and requires a checkbox confirmation.
 - Profile avatars can be uploaded directly in Dev Tools (PNG/JPG/WebP ≤2 MB); uploads store under `public/profile-avatars/<key>/avatar.<ext>` with cache-busting query strings, and sanitizer still accepts remote HTTPS URLs.
+- Home screen icons ship from `public/apple-touch-icon.png`, `public/icon-192.png`, and `public/icon-512.png`; the PWA manifest lives at `public/manifest.webmanifest` and `index.html` links them via `<link rel="apple-touch-icon">` and `<link rel="manifest">` tags.
