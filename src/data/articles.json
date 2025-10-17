@@ -72728,5 +72728,133 @@
       ]
     },
     "id": 650
+  },
+  {
+    "title": "DOI",
+    "index-category": "psychedelic; stimulant; dox",
+    "drug_info": {
+      "drug_name": "DOI",
+      "chemical_name": "2,5-Dimethoxy-4-iodoamphetamine",
+      "alternative_name": "2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine",
+      "chemical_class": "Amphetamines; Substituted amphetamines",
+      "psychoactive_class": "Psychedelic; Stimulant",
+      "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.5 mg",
+              "light": "0.5-1 mg",
+              "common": "1-2 mg",
+              "strong": "2-3 mg",
+              "heavy": "3+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "16-24 hours",
+              "onset": "1-2 hours",
+              "peak": "3-6 hours (come up 1.5-3 hours)",
+              "offset": "6-12 hours",
+              "after_effects": "24-48 hours (residual stimulation)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "DOI is not habit-forming and the desire to use it can actually decrease with use. It is most often self-regulating. There is no evidence of physical dependence or compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants such as amphetamine, cocaine, or methylphenidate (increased risk of anxiety, paranoia, thought loops, and psychosis)",
+          "MAOIs (potential for unpredictable interactions)"
+        ],
+        "caution": [
+          "Cannabis (unexpectedly strong and unpredictable synergy; significant increase in anxiety, paranoia, and psychosis risk)",
+          "5-MeO tryptamines (unpredictable interactions with increased physical side effects)",
+          "MDMA (combined stimulating effects can be uncomfortable and anxiogenic during comedown)",
+          "Caffeine (may cause anxiety and physical discomfort)",
+          "Amphetamines (uncomfortable body load and thought loops)",
+          "Cocaine (uncomfortable body load and thought loops)",
+          "Ketamine (potentiation; go slowly)",
+          "Alcohol (reduced sedative effects lead to excessive drinking)"
+        ]
+      },
+      "notes": "DOI is an extremely potent and long-lasting psychedelic with a very sensitive dose-response curve. It is sometimes sold falsely as LSD, which can be dangerous due to differing safety profiles and dosage ranges. Use a precise milligram scale for accurate dosing. The exceptionally long duration of 16-24 hours with residual stimulation lasting up to 48 hours requires adequate time preparation. Individuals with personal or family history of psychotic disorders should avoid use. Start with the lowest possible dose due to high individual variability in response.",
+      "subjective_effects": [
+        "Extreme Stimulation",
+        "Visual Patterning And Geometry",
+        "Colour Enhancement",
+        "Energetic Body High",
+        "Thought Acceleration",
+        "Enhanced Tactile Sensation",
+        "Internal And External Hallucinations",
+        "Time Distortion",
+        "Emotional Amplification",
+        "Enhanced Music Appreciation",
+        "Nausea",
+        "Muscle Tension And Vasoconstriction",
+        "Increased Body Temperature",
+        "Pupil Dilation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after ingestion",
+        "half_tolerance": "5-7 days",
+        "zero_tolerance": "10-14 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, 2C-x, DOx compounds)"
+        ]
+      },
+      "half_life": "Unknown; estimated duration of primary effects 16-24 hours with residual effects up to 48 hours",
+      "citations": [
+        {
+          "name": "Coutts & Malicky 1973 - Synthesis of DOI Analogs",
+          "reference": "https://doi.org/10.1139/v73-210"
+        },
+        {
+          "name": "PsychonautWiki DOI Profile",
+          "reference": "https://psychonautwiki.org/wiki/DOI"
+        },
+        {
+          "name": "TripSit DOI Factsheet",
+          "reference": "https://drugs.tripsit.me/DOI"
+        },
+        {
+          "name": "Erowid DOI Vault",
+          "reference": "https://www.erowid.org/chemicals/doi/doi.shtml"
+        },
+        {
+          "name": "PiHKAL Entry #67 - DOI (Isomer Design)",
+          "reference": "https://isomerdesign.com/PiHKAL/read.php?id=67"
+        },
+        {
+          "name": "Shulgin & Shulgin - PiHKAL: A Chemical Love Story",
+          "reference": "Transform Press, 1991"
+        },
+        {
+          "name": "Bluelight DOI Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-doi-thread.216778/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "stimulant",
+        "substituted-amphetamine",
+        "research-chemical"
+      ]
+    },
+    "id": 651
   }
 ]
