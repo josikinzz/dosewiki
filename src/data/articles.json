@@ -25026,7 +25026,7 @@
       "drug_name": "AEM",
       "chemical_name": "AEM",
       "alternative_name": "α-Ethylmescaline, 2-Amino-1-(3,4,5-trimethoxyphenyl)butane",
-      "chemical_class": "Scalines; Phenethylamines",
+      "chemical_class": "Scalines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -25048,16 +25048,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "Unknown (not well documented)",
               "onset": "Unknown",
               "peak": "Unknown",
               "offset": "Unknown",
               "after_effects": "Unknown"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
