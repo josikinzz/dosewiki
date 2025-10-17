@@ -71179,5 +71179,116 @@
       ]
     },
     "id": 638
+  },
+  {
+    "title": "4-AcO-MiPT",
+    "index-category": "psychedelic; tryptamine",
+    "drug_info": {
+      "drug_name": "4-AcO-MiPT",
+      "chemical_name": "4-Acetoxy-N-methyl-N-isopropyltryptamine",
+      "alternative_name": "Mipracetin; O-Acetylmiprocin; 4-Acetoxy-MiPT",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist (prodrug of 4-HO-MiPT)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "10-15 mg",
+              "common": "15-20 mg",
+              "strong": "20-35 mg",
+              "heavy": "35+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "20-60 minutes",
+              "peak": "1.5-3 hours (come up 1-2 hours)",
+              "offset": "1-2 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4-AcO-MiPT is not habit-forming and demonstrates a self-regulating pattern typical of psychedelics. The desire to use it tends to decrease with regular consumption rather than increase.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)",
+          "Stimulants (increases risk of anxiety, paranoia, panic attacks, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy, may significantly intensify effects)"
+        ]
+      },
+      "notes": "4-AcO-MiPT is a synthetic psychedelic tryptamine that remains relatively uncommon with limited history of human use. The substance is hygroscopic and degrades quickly when exposed to moisture or improper storage; it should be kept in an inert atmosphere in a freezer. The material can develop a sticky, goop-like consistency when exposed to air. Accurate weighing with a precise milligram scale is essential, as the substance is potent and can appear deceptively small. It is theorized to act as a prodrug for 4-HO-MiPT, though debate continues about whether it possesses innate activity. Set and setting are critical factors for the experience.",
+      "subjective_effects": [
+        "Visual Geometry (Organic, Intricate, Natural-Feeling)",
+        "Colour Enhancement",
+        "Pattern Recognition Enhancement",
+        "Sedation With Mild Euphoria",
+        "Pleasurable Body High (Warm, Tingling Sensations)",
+        "Excessive Yawning",
+        "Enhanced Music Appreciation",
+        "Auditory Distortions (Downward Pitch Shift)",
+        "Emotion Enhancement",
+        "Thought Connectivity",
+        "Time Distortion",
+        "Internal Hallucinations (Dark Environments)",
+        "Memory Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid 4-Acetoxy-MiPT Vault",
+          "reference": "https://erowid.org/chemicals/4_acetoxy_mipt/4_acetoxy_mipt.shtml"
+        },
+        {
+          "name": "Isomer Design: 4-AcO-MIPT",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=5546"
+        },
+        {
+          "name": "PsychonautWiki: 4-AcO-MiPT",
+          "reference": "https://psychonautwiki.org/wiki/4-AcO-MiPT"
+        },
+        {
+          "name": "The Big & Dandy 4-AcO-MiPT Thread (Bluelight)",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-4-aco-mipt-thread.101872/"
+        },
+        {
+          "name": "Takahashi et al. - Psychoactive Designer Drugs Data Library",
+          "reference": "https://doi.org/10.1016/j.talanta.2008.07.062"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "synthetic"
+      ]
+    },
+    "id": 639
   }
 ]
