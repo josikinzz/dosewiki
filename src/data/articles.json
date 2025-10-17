@@ -70730,12 +70730,12 @@
   },
   {
     "title": "PRO-LAD",
-    "index-category": "psychedelic; lysergamide",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "PRO-LAD",
       "chemical_name": "6-Propyl-6-nor-lysergic acid diethylamide",
       "alternative_name": "",
-      "chemical_class": "Lysergamide",
+      "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
