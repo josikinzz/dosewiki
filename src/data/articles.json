@@ -71788,5 +71788,187 @@
       ]
     },
     "id": 643
+  },
+  {
+    "title": "5-MeO-DiPT",
+    "index-category": "psychedelic; tryptamine; research-chemical",
+    "drug_info": {
+      "drug_name": "5-MeO-DiPT",
+      "chemical_name": "5-Methoxy-N,N-diisopropyltryptamine",
+      "alternative_name": "Foxy; Foxy Methoxy",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic; Entactogen; Stimulant",
+      "mechanism_of_action": "5-HT2A receptor agonist (primary); 5-HT1A receptor agonist (strongest binding affinity); weak serotonin reuptake inhibitor; possible monoamine oxidase inhibition",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3-4 mg",
+              "light": "3-10 mg",
+              "common": "10-15 mg",
+              "strong": "15-20 mg",
+              "heavy": "20+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2-4 mg",
+              "light": "4-7 mg",
+              "common": "7-12 mg",
+              "strong": "12-18 mg",
+              "heavy": "18+ mg"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2-3 mg",
+              "light": "3-5 mg",
+              "common": "5-8 mg",
+              "strong": "8-12 mg",
+              "heavy": "12+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "20-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-4 hours",
+              "after_effects": "2-6 hours (residual stimulation, possible insomnia)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "3-6 hours",
+              "onset": "5-20 minutes",
+              "peak": "45-90 minutes",
+              "offset": "1-3 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "1-5 minutes",
+              "peak": "30-90 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "2-6 hours (prolonged compared to other smoked tryptamines)"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "5-MeO-DiPT is not considered physically addictive and has low potential for psychological dependence. Some users report compulsive redosing due to the extended onset, particularly among inexperienced users who mistake the delayed effects for inadequate dosing. Tryptamines of this class are not known for addictive patterns.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of serotonin syndrome; 5-MeO-DiPT may have weak MAOI properties)",
+          "Tramadol (increased risk of serotonin syndrome and seizures)",
+          "aMT (increased risk of serotonin syndrome)"
+        ],
+        "unsafe": [
+          "2C-T-X (both classes unpredictable alone)",
+          "2C-X (unpredictable potentiation of psychedelic effects)",
+          "NBOMe (both classes unpredictable; increased risk of unpleasant physical side effects)",
+          "DOx (unpredictable interactions; increased risk of unpleasant physical side effects)",
+          "MDMA (5-MeO tryptamines unpredictable with MDMA)",
+          "Mescaline (unpredictable interactions)",
+          "DXM (little information; possible unpredictable effects)",
+          "PCP (little information; may increase risk of psychosis and excessive stimulation)"
+        ],
+        "caution": [
+          "Cannabis (may increase risk of anxiety, paranoia, and psychosis)",
+          "Amphetamines (anxiogenic and focusing effects increase risk of thought loops; combination generally unnecessary)",
+          "Cocaine (anxiogenic and focusing effects increase risk of thought loops; combination generally unnecessary)"
+        ]
+      },
+      "notes": "5-MeO-DiPT varies widely in individual response; some users report profound experiences while others experience uncomfortable gastrointestinal distress including severe diarrhea, gas, and stomach bloating. Use a precise milligram scale as dosages are in the low milligram range. The extended onset of 20-60 minutes has led to accidental overdoses from premature redosing. Individuals with personal or family history of psychotic disorders should avoid use. At least one death has been attributed to rectal administration overdose. The substance has been reported to be neurotoxic in rats. Set and setting are important; some users report significant anxiety and paranoia at higher doses.",
+      "subjective_effects": [
+        "Tactile Enhancement",
+        "Stimulation",
+        "Emotional Enhancement",
+        "Increased Music Appreciation",
+        "Enhanced Libido",
+        "Spontaneous Physical Sensations",
+        "Auditory Distortions",
+        "Cognitive Euphoria",
+        "Nausea",
+        "Body Load",
+        "Diarrhea",
+        "Time Distortion",
+        "Visual Drifting (at higher doses)",
+        "Pupil Dilation"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (LSD, psilocybin, mescaline, DMT, other tryptamines)"
+        ]
+      },
+      "half_life": "3-6 hours (estimated from duration data)",
+      "citations": [
+        {
+          "name": "Erowid 5-MeO-DiPT Vault",
+          "reference": "https://erowid.org/chemicals/5meo_dipt/"
+        },
+        {
+          "name": "Erowid TiHKAL Entry #37: 5-MeO-DiPT",
+          "reference": "https://erowid.org/library/books_online/tihkal/tihkal37.shtml"
+        },
+        {
+          "name": "PsychonautWiki: 5-MeO-DiPT",
+          "reference": "https://psychonautwiki.org/wiki/5-MeO-DiPT"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy 5-MeO-DiPT Thread",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-5-meo-dipt-thread.57817/"
+        },
+        {
+          "name": "TripSit Drug Combinations Wiki",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "Shulgin, A. T.; Carter, M. F. (1980). Communications in Psychopharmacology",
+          "reference": "N,N-Diisopropyltryptamine (DIPT) and 5-methoxy-N,N-diisopropyltryptamine (5-MeO-DIPT). Two orally active tryptamine analogs with CNS activity"
+        },
+        {
+          "name": "Noworyta-Sokolowska et al. (2016). Neurotoxicity Research",
+          "reference": "Neurotoxic Effects of 5-MeO-DIPT: A Psychoactive Tryptamine Derivative in Rats"
+        },
+        {
+          "name": "US DEA Drug Fact Sheet: 5-MeO-DiPT",
+          "reference": "https://www.deadiversion.usdoj.gov/drug_chem_info/5meodipt.pdf"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "entactogen"
+      ]
+    },
+    "id": 644
   }
 ]
