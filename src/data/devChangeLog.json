@@ -1,5 +1,43 @@
 [
   {
+    "id": "20251017-224638-e2ec09b9",
+    "createdAt": "2025-10-17T22:46:38.115Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:46:34"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-223937-dd93a95c",
     "createdAt": "2025-10-17T22:39:37.130Z",
     "commit": {
