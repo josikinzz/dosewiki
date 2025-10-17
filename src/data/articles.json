@@ -71650,5 +71650,143 @@
       ]
     },
     "id": 642
+  },
+  {
+    "title": "4-HO-MPT",
+    "index-category": "psychedelic; tryptamine; research-chemical",
+    "drug_info": {
+      "drug_name": "4-HO-MPT",
+      "chemical_name": "3-[2-(Methylpropylamino)ethyl]-4-indolol",
+      "alternative_name": "Meprocin; 4-Hydroxy-N-methyl-N-propyltryptamine",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor full agonist; 5-HT2B receptor partial agonist (moderate-efficacy); 5-HT2C receptor partial agonist (high-efficacy)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "5-10 mg",
+              "common": "10-20 mg",
+              "strong": "20-30 mg",
+              "heavy": "30+ mg"
+            }
+          },
+          {
+            "route": "vaporized",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-7 hours",
+              "onset": "20-60 minutes",
+              "peak": "2-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-12 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "vaporized",
+            "stages": {
+              "total_duration": "45-90 minutes",
+              "onset": "1-3 minutes",
+              "peak": "10-30 minutes",
+              "offset": "15-45 minutes",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4-HO-MPT is generally considered not habit-forming, and the desire to use it can actually decrease with regular consumption. Like most psychedelics, it is thought to be self-regulating with low potential for psychological dependence.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy; increases risk of anxiety, paranoia, panic attacks, and psychosis)",
+          "Stimulants (increases risk of anxiety, paranoia, panic attacks, thought loops, mania, and psychosis)"
+        ]
+      },
+      "notes": "4-HO-MPT is a research chemical with very little history of human usage and minimal scientific data on its pharmacology, metabolism, and toxicity. Legal status varies by jurisdiction; it is unscheduled in most countries but is a Class A drug in the United Kingdom under the tryptamine catch-all clause and controlled under Germany's NpSG. Use precise scales for dosing as potency varies between salt forms (freebase is approximately 25% more potent than fumarate salts). Individuals with personal or family histories of mental illness should avoid use.",
+      "subjective_effects": [
+        "Visual Distortions And Patterning",
+        "Color Enhancement And Shifting",
+        "Time Distortion",
+        "Emotion Enhancement",
+        "Cognitive Euphoria",
+        "Nausea",
+        "Increased Heart Rate",
+        "Pupil Dilation",
+        "Thought Loops",
+        "Vertigo Or Dizziness",
+        "Memory Suppression",
+        "Internal And External Hallucinations"
+      ],
+      "tolerance": {
+        "full_tolerance": "Immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics (including LSD, psilocybin, mescaline, and other tryptamines)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid 4-HO-MPT Vault",
+          "reference": "https://www.erowid.org/chemicals/4_ho_mpt/4_ho_mpt.shtml"
+        },
+        {
+          "name": "PsychonautWiki 4-HO-MPT",
+          "reference": "https://psychonautwiki.org/wiki/4-HO-MPT"
+        },
+        {
+          "name": "TripSit 4-HO-MPT Factsheet",
+          "reference": "https://tripbot.tripsit.me/factsheet/4-HO-MPT"
+        },
+        {
+          "name": "TiHKAL Entry #23: 4-HO-MPT (Isomer Design)",
+          "reference": "https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=23"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy 4-HO-MPT Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-4-ho-mpt-thread.550416/"
+        },
+        {
+          "name": "Drugs-Forum 4-HO-MPT Wiki",
+          "reference": "https://drugs-forum.com/wiki/4-HO-MPT"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "synthetic"
+      ]
+    },
+    "id": 643
   }
 ]
