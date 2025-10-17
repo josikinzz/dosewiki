@@ -71290,5 +71290,114 @@
       ]
     },
     "id": 639
+  },
+  {
+    "title": "4-HO-DET",
+    "index-category": "psychedelic; tryptamine; research-chemical",
+    "drug_info": {
+      "drug_name": "4-HO-DET",
+      "chemical_name": "3-(2-diethylaminoethyl)-1H-indol-4-ol",
+      "alternative_name": "Ethocin; CZ-74; 4-Hydroxy-N,N-diethyltryptamine",
+      "chemical_class": "Tryptamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "10-15 mg",
+              "common": "20-30 mg",
+              "strong": "30-45 mg",
+              "heavy": "45+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-7 hours",
+              "onset": "20-45 minutes",
+              "peak": "2.5-3.5 hours (with 30-60 minute come up)",
+              "offset": "1.5-2 hours",
+              "after_effects": "1-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4-HO-DET is not habit-forming and the desire to use it can actually decrease with use. It is most often self-regulating. Limited evidence suggests no significant addiction potential.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Cannabis (unpredictable synergy, may significantly increase risk of anxiety, paranoia, panic attacks, and psychosis)",
+          "Stimulants (may increase risk of anxiety, paranoia, panic attacks, thought loops, mania and psychosis)"
+        ]
+      },
+      "notes": "4-HO-DET is a research chemical with very little history of human usage. The toxicity and long-term health effects have not been studied in any scientific context. It is strongly recommended to use harm reduction practices when using this substance. Legal status varies by jurisdiction; it is unscheduled in the United States but may be prosecuted under the Federal Analogue Act. It is controlled in Germany, Sweden, Switzerland, and the United Kingdom.",
+      "subjective_effects": [
+        "Visual Patterning And Geometry",
+        "Colour Enhancement",
+        "Tactile Enhancement",
+        "Thought Connectivity",
+        "Analysis Enhancement",
+        "Increased Music Appreciation",
+        "Time Distortion",
+        "Ego Death",
+        "Memory Suppression",
+        "Excessive Yawning",
+        "Temperature Regulation Suppression",
+        "Pupil Dilation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight 4-HO-DET Discussion Thread",
+          "reference": "http://www.bluelight.org/vb/threads/480200-The-Big-amp-Dandy-4-HO-DET-Thread"
+        },
+        {
+          "name": "Erowid 4-HO-DET Experience Vaults",
+          "reference": "https://www.erowid.org/experiences/subs/exp_4HODET.shtml"
+        },
+        {
+          "name": "Isomer Design TiHKAL Entry #16: 4-HO-DET",
+          "reference": "https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5016"
+        },
+        {
+          "name": "PsychonautWiki: 4-HO-DET",
+          "reference": "https://psychonautwiki.org/wiki/4-HO-DET"
+        },
+        {
+          "name": "Wikipedia: 4-HO-DET",
+          "reference": "https://en.wikipedia.org/wiki/4-HO-DET"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "tryptamine",
+        "research-chemical",
+        "synthetic"
+      ]
+    },
+    "id": 640
   }
 ]
