@@ -73303,9 +73303,9 @@
     "drug_info": {
       "drug_name": "TMA-6",
       "chemical_name": "1-(2,4,6-Trimethoxyphenyl)propan-2-amine",
-      "alternative_name": "2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2",
-      "chemical_class": "Amphetamine; Phenethylamine",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "alternative_name": "",
+      "chemical_class": "Psychedelic amphetamine",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; potent MAO-A inhibitor (IC50 400 nM)",
       "dosages": {
         "routes_of_administration": [
@@ -73485,8 +73485,6 @@
       ],
       "categories": [
         "psychedelic",
-        "stimulant",
-        "amphetamine",
         "research-chemical"
       ]
     },
