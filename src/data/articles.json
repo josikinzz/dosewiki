@@ -72265,5 +72265,123 @@
       ]
     },
     "id": 646
+  },
+  {
+    "title": "Escaline",
+    "index-category": "psychedelic; research-chemical",
+    "drug_info": {
+      "drug_name": "Escaline",
+      "chemical_name": "3,5-Dimethoxy-4-ethoxyphenethylamine",
+      "alternative_name": "E; 4-Ethoxy-3,5-dimethoxyphenethylamine",
+      "chemical_class": "Phenethylamines",
+      "psychoactive_class": "Psychedelic",
+      "mechanism_of_action": "5-HT2A receptor partial agonist (5-8 times greater affinity than mescaline); 5-HT2C receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "20-25 mg",
+              "light": "30-50 mg",
+              "common": "50-100 mg",
+              "strong": "100-150 mg",
+              "heavy": "150+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "40-120 minutes",
+              "peak": "5-6 hours",
+              "offset": "2-4 hours",
+              "after_effects": "3-5 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Escaline is not considered habit-forming and the desire to use it typically decreases with use. It is generally self-regulating and lacks compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increases risk of psychosis and seizures)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "Stimulants (increases risk of anxiety, paranoia, thought loops, mania, and psychosis)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy; significantly increases risk of adverse psychological reactions)"
+        ]
+      },
+      "notes": "Escaline is a research chemical with very limited human use history and no formal toxicology studies. It is controlled as a Schedule I substance in the United States, Germany, Japan, Switzerland, and the UK. Users report more intense negative physical side effects compared to mescaline, including heavier body load and greater stimulation. Accurate weighing with a milligram scale is essential. The compound has a very long onset and extended duration, making sleep difficult without sedatives.",
+      "subjective_effects": [
+        "Stimulation",
+        "Enhanced Music Appreciation",
+        "Visual Patterning And Drifting",
+        "Color Enhancement",
+        "Thought Acceleration And Connectivity",
+        "Time Distortion",
+        "Bodily Sensations",
+        "Pupil Dilation",
+        "Increased Heart Rate",
+        "Muscle Tension",
+        "Euphoria",
+        "Temperature Dysregulation"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops almost immediately after ingestion",
+        "half_tolerance": "3 days",
+        "zero_tolerance": "7 days",
+        "cross_tolerances": [
+          "All psychedelics"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Blaazer et al. (2008) - ChemMedChem",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/18666267/"
+        },
+        {
+          "name": "Erowid Escaline Experience Vault",
+          "reference": "https://www.erowid.org/experiences/subs/exp_Escaline.shtml"
+        },
+        {
+          "name": "Halberstadt & Geyer (2018) - PMC",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6848748/"
+        },
+        {
+          "name": "Isomer Design: Escaline (PiHKAL Entry #72)",
+          "reference": "https://isomerdesign.com/pihkal/explore/72"
+        },
+        {
+          "name": "PsychonautWiki: Escaline",
+          "reference": "https://psychonautwiki.org/wiki/Escaline"
+        },
+        {
+          "name": "Shulgin & Shulgin (1991) - PiHKAL Entry #72",
+          "reference": "https://isomerdesign.com/pihkal/read/pk/72"
+        },
+        {
+          "name": "The Big & Dandy Escaline Thread - Bluelight",
+          "reference": "https://bluelight.org/xf/threads/the-big-dandy-escaline-thread.656624/"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "phenethylamine",
+        "mescaline-analog",
+        "research-chemical"
+      ]
+    },
+    "id": 647
   }
 ]
