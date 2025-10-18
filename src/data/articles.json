@@ -2185,7 +2185,7 @@
       "drug_name": "Mescaline",
       "chemical_name": "Mescaline",
       "alternative_name": "",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines; Phenethylamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -8018,7 +8018,7 @@
       "drug_name": "MAL",
       "chemical_name": "Methallylescaline",
       "alternative_name": "MAL",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -8040,16 +8040,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "10-16 hours",
               "onset": "1-2 hours",
               "peak": "4-8 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -10620,11 +10620,11 @@
   },
   {
     "id": 133,
-    "title": "Crack",
+    "title": "Cocaine",
     "drug_info": {
-      "drug_name": "Crack",
-      "chemical_name": "Cocaine",
-      "alternative_name": "Cocaine",
+      "drug_name": "Cocaine",
+      "chemical_name": "Benzoylmethylecgonine",
+      "alternative_name": "Coke; Blow; White; Snow; Crack",
       "chemical_class": "Tropanes",
       "mechanism_of_action": "Serotonin-dopamine-norepinephrine reuptake inhibitor",
       "psychoactive_class": "Stimulant",
@@ -10680,48 +10680,55 @@
         "routes_of_administration": [
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "30-90 minutes",
               "onset": "1-3 minutes",
               "peak": "15-30 minutes",
               "offset": "30-60 minutes",
               "after_effects": "1-3 hours (comedown, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           },
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
+              "total_duration": "30-90 minutes",
+              "onset": "1-3 minutes",
+              "peak": "15-30 minutes",
               "offset": "30-60 minutes",
               "after_effects": "1-3 hours (comedown, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "intravenous",
-            "canonical_routes": [
-              "intravenous"
-            ],
             "stages": {
+              "total_duration": "30-90 minutes",
               "onset": "seconds",
+              "peak": "15-30 minutes",
               "offset": "30-60 minutes",
               "after_effects": "1-3 hours (comedown, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "intravenous"
+            ]
           },
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
+              "total_duration": "30-90 minutes",
               "onset": "seconds",
+              "peak": "15-30 minutes",
               "offset": "30-60 minutes",
               "after_effects": "1-3 hours (comedown, afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           }
         ]
       },
@@ -10778,8 +10785,7 @@
       "categories": [
         "common",
         "stimulant",
-        "habit-forming",
-        "research-chemical"
+        "habit-forming"
       ]
     },
     "index-category": ""
@@ -16059,7 +16065,7 @@
     "title": "LSD",
     "drug_info": {
       "drug_name": "LSD",
-      "chemical_name": "Lysergic acid diethylamide",
+      "chemical_name": "d-Lysergic acid diethylamide",
       "alternative_name": "Lucy; Acid",
       "chemical_class": "Lysergamides",
       "mechanism_of_action": "5-HT2A receptor agonist",
@@ -16625,29 +16631,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-8 hours",
               "onset": "20-60 minutes",
               "peak": "90-180 minutes",
               "offset": "2-4 hours",
               "after_effects": "4-24 hours (afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "lemon tek",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "3-6 hours",
               "onset": "10-30 minutes",
               "peak": "60-150 minutes",
               "offset": "2-3 hours",
               "after_effects": "4-24 hours (afterglow)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -16735,12 +16741,12 @@
       ],
       "categories": [
         "psychedelic",
-        "classic-psychedelic",
         "tryptamine",
-        "plant-based"
+        "plant-based",
+        "common"
       ]
     },
-    "index-category": "psychedelic;classic;tryptamine"
+    "index-category": "psychedelic; classic; tryptamine"
   },
   {
     "id": 202,
@@ -25020,7 +25026,7 @@
       "drug_name": "AEM",
       "chemical_name": "AEM",
       "alternative_name": "α-Ethylmescaline, 2-Amino-1-(3,4,5-trimethoxyphenyl)butane",
-      "chemical_class": "Mescaline homologues; Phenethylamines",
+      "chemical_class": "Scalines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
       "dosages": {
@@ -25042,16 +25048,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "Unknown (not well documented)",
               "onset": "Unknown",
               "peak": "Unknown",
               "offset": "Unknown",
               "after_effects": "Unknown"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -69808,7 +69814,7 @@
     "drug_info": {
       "drug_name": "1V-LSD",
       "chemical_name": "1-Valeroyl-d-lysergic acid diethylamide",
-      "alternative_name": "Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD",
+      "alternative_name": "Valerie",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist (weak); acts as prodrug for LSD via deacylation",
@@ -69927,8 +69933,8 @@
     "index-category": "psychedelic; lysergamide",
     "drug_info": {
       "drug_name": "ALD-52",
-      "chemical_name": "(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide",
-      "alternative_name": "1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine",
+      "chemical_name": "1-Acetyl-d-lysergic acid diethylamide",
+      "alternative_name": "Orange Sunshine",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist; 5-HT1A receptor partial agonist; D2 receptor agonist (through LSD metabolite)",
@@ -70045,7 +70051,7 @@
     "index-category": "psychedelic; lysergamide",
     "drug_info": {
       "drug_name": "ETH-LAD",
-      "chemical_name": "(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "chemical_name": "6-Ethyl-6-nor-lysergic acid diethylamide",
       "alternative_name": "N-Ethyl-nor-LSD; 6-Ethyl-6-nor-lysergic acid diethylamide; N-Ethyl-nor-lysergic acid N,N-diethylamide",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
@@ -70057,7 +70063,7 @@
             "units": "ug",
             "dose_ranges": {
               "threshold": "15 ug",
-              "light": "30-60 ug",
+              "light": "15-60 ug",
               "common": "60-150 ug",
               "strong": "150-225 ug",
               "heavy": "225+ ug"
@@ -70158,9 +70164,9 @@
     "index-category": "psychedelic; natural",
     "drug_info": {
       "drug_name": "LSA",
-      "chemical_name": "(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide",
-      "alternative_name": "Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111",
-      "chemical_class": "Lysergamide; Ergoline alkaloid",
+      "chemical_name": "d-Lysergic acid amide",
+      "alternative_name": "Ergine; LA-111",
+      "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
@@ -70324,8 +70330,7 @@
       "categories": [
         "psychedelic",
         "lysergamide",
-        "natural",
-        "ergoline"
+        "natural"
       ]
     },
     "id": 631
@@ -70335,8 +70340,8 @@
     "index-category": "psychedelic; lysergamide; research-chemical",
     "drug_info": {
       "drug_name": "MiPLA",
-      "chemical_name": "(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
-      "alternative_name": "Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide",
+      "chemical_name": "Lysergic acid methylisopropylamide",
+      "alternative_name": "Lamide",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
@@ -70608,8 +70613,8 @@
     "index-category": "psychedelic; lysergamide; research-chemical",
     "drug_info": {
       "drug_name": "LSM-775",
-      "chemical_name": "[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone",
-      "alternative_name": "Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM",
+      "chemical_name": "Lysergic acid morpholide",
+      "alternative_name": "",
       "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT1A receptor full agonist; 5-HT2A receptor partial agonist; 5-HT2B receptor partial agonist; 5-HT2C receptor partial agonist",
@@ -70718,20 +70723,19 @@
       "categories": [
         "psychedelic",
         "lysergamide",
-        "research-chemical",
-        "novel-psychoactive-substance"
+        "research-chemical"
       ]
     },
     "id": 634
   },
   {
     "title": "PRO-LAD",
-    "index-category": "psychedelic; lysergamide",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "PRO-LAD",
-      "chemical_name": "(8beta)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide",
-      "alternative_name": "N-Propylnorlysergic acid N,N-diethylamide; 6-Propyl-6-nor-lysergic acid diethylamide; N-PropylnorLSD",
-      "chemical_class": "Lysergamide",
+      "chemical_name": "6-Propyl-6-nor-lysergic acid diethylamide",
+      "alternative_name": "",
+      "chemical_class": "Lysergamides",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
@@ -72146,20 +72150,19 @@
       "categories": [
         "psychedelic",
         "tryptamine",
-        "serotonergic",
-        "entheogen"
+        "serotonergic"
       ]
     },
     "id": 645
   },
   {
     "title": "Allylescaline",
-    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Allylescaline",
       "chemical_name": "4-Allyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "AL; 4-allyloxy-3,5-dimethoxy-phenethylamine",
-      "chemical_class": "Phenethylamines; Scalines",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist",
       "dosages": {
@@ -72259,21 +72262,19 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "research-chemical",
-        "mescaline-analog"
+        "research-chemical"
       ]
     },
     "id": 646
   },
   {
     "title": "Escaline",
-    "index-category": "psychedelic; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Escaline",
       "chemical_name": "3,5-Dimethoxy-4-ethoxyphenethylamine",
       "alternative_name": "E; 4-Ethoxy-3,5-dimethoxyphenethylamine",
-      "chemical_class": "Phenethylamines",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist (5-8 times greater affinity than mescaline); 5-HT2C receptor agonist",
       "dosages": {
@@ -72377,8 +72378,6 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "mescaline-analog",
         "research-chemical"
       ]
     },
@@ -72386,12 +72385,12 @@
   },
   {
     "title": "Proscaline",
-    "index-category": "psychedelic; phenethylamine; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "Proscaline",
       "chemical_name": "4-Propyloxy-3,5-dimethoxyphenethylamine",
       "alternative_name": "P; 4-Propoxy-3,5-DMPEA; 3,5-Dimethoxy-4-n-propoxyphenethylamine",
-      "chemical_class": "Phenethylamine",
+      "chemical_class": "Scalines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; 5-HT2C receptor partial agonist",
       "dosages": {
@@ -72495,7 +72494,6 @@
       "categories": [
         "psychedelic",
         "phenethylamine",
-        "mescaline-analog",
         "research-chemical"
       ]
     },
@@ -72722,7 +72720,6 @@
       "categories": [
         "amphetamine",
         "phenethylamine",
-        "dox-family",
         "research-chemical",
         "stimulant"
       ]
@@ -72731,13 +72728,13 @@
   },
   {
     "title": "DOI",
-    "index-category": "psychedelic; stimulant; dox",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "DOI",
       "chemical_name": "2,5-Dimethoxy-4-iodoamphetamine",
-      "alternative_name": "2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine",
-      "chemical_class": "Amphetamines; Substituted amphetamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "alternative_name": "",
+      "chemical_class": "Psychedelic amphetamine",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist",
       "dosages": {
         "routes_of_administration": [
@@ -72859,12 +72856,12 @@
   },
   {
     "title": "25C-NBOH",
-    "index-category": "psychedelic; research-chemical",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25C-NBOH",
       "chemical_name": "2-(4-Chloro-2,5-dimethoxyphenyl)-N-[(2-hydroxyphenyl)methyl]ethanamine",
       "alternative_name": "2C-C-NBOH; NBOH-2C-C; N-bomb; NBOH",
-      "chemical_class": "Phenethylamines",
+      "chemical_class": "N-benzylated phenethylamines",
       "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist (potent, pEC50 9.43); 5-HT2C receptor agonist (pKi 7.8)",
       "dosages": {
@@ -72970,22 +72967,20 @@
       ],
       "categories": [
         "psychedelic",
-        "phenethylamine",
-        "research-chemical",
-        "nboh-series"
+        "research-chemical"
       ]
     },
     "id": 652
   },
   {
     "title": "25D-NBOMe",
-    "index-category": "psychedelic; research-chemical; nbome",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25D-NBOMe",
       "chemical_name": "2-(2,5-Dimethoxy-4-methylphenyl)-N-(2-methoxybenzyl)ethanamine",
       "alternative_name": "2C-D-NBOMe; NBOMe-2C-D; Divination; N-Bomb",
-      "chemical_class": "Phenethylamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "chemical_class": "N-benzylated phenethylamines",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor agonist (partial); 5-HT2B receptor agonist; 5-HT2C receptor agonist; adrenergic alpha-1 receptor agonist",
       "dosages": {
         "routes_of_administration": [
@@ -73139,22 +73134,20 @@
       ],
       "categories": [
         "psychedelic",
-        "research-chemical",
-        "nbome-series",
-        "phenethylamine"
+        "research-chemical"
       ]
     },
     "id": 653
   },
   {
     "title": "25N-NBOMe",
-    "index-category": "psychedelic; research-chemical; dangerous",
+    "index-category": "psychedelic",
     "drug_info": {
       "drug_name": "25N-NBOMe",
       "chemical_name": "2-(2,5-dimethoxy-4-nitrophenyl)-N-(2-methoxybenzyl)ethanamine",
       "alternative_name": "2C-N-NBOMe; NBOMe-2C-N; N-Bomb",
-      "chemical_class": "Phenethylamines",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "chemical_class": "N-benzylated phenethylamines",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor full agonist; 5-HT2C receptor full agonist; 5-HT2B receptor partial agonist; dopamine transporter phosphorylation (increases extracellular dopamine)",
       "dosages": {
         "routes_of_administration": [
@@ -73287,8 +73280,6 @@
         }
       ],
       "categories": [
-        "nbome",
-        "phenethylamine",
         "psychedelic",
         "research-chemical"
       ]
@@ -73301,9 +73292,9 @@
     "drug_info": {
       "drug_name": "TMA-6",
       "chemical_name": "1-(2,4,6-Trimethoxyphenyl)propan-2-amine",
-      "alternative_name": "2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2",
-      "chemical_class": "Amphetamine; Phenethylamine",
-      "psychoactive_class": "Psychedelic; Stimulant",
+      "alternative_name": "",
+      "chemical_class": "Psychedelic amphetamine",
+      "psychoactive_class": "Psychedelic",
       "mechanism_of_action": "5-HT2A receptor partial agonist; potent MAO-A inhibitor (IC50 400 nM)",
       "dosages": {
         "routes_of_administration": [
@@ -73483,8 +73474,6 @@
       ],
       "categories": [
         "psychedelic",
-        "stimulant",
-        "amphetamine",
         "research-chemical"
       ]
     },
