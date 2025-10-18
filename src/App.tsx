@@ -10,6 +10,7 @@ import { InteractionsSection } from "./components/sections/InteractionsSection";
 import { ToleranceSection } from "./components/sections/ToleranceSection";
 import { NotesSection } from "./components/sections/NotesSection";
 import { CitationsSection } from "./components/sections/CitationsSection";
+import { HarmReductionBanner } from "./components/sections/HarmReductionBanner";
 import { DosagesPage } from "./components/pages/DosagesPage";
 import { CategoryPage } from "./components/pages/CategoryPage";
 import { EffectsPage } from "./components/pages/EffectsPage";
@@ -43,10 +44,17 @@ import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/user
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
 const DEFAULT_VIEW: AppView = { type: "substances" };
+const HARM_REDUCTION_DISMISS_KEY = "dosewiki:harmReductionBannerDismissed";
 
 export default function App() {
   const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.localStorage.getItem(HARM_REDUCTION_DISMISS_KEY) === "true";
+  });
 
   const isInvalidSubstanceView = view.type === "substance" && !substanceBySlug.has(view.slug);
 
@@ -137,6 +145,13 @@ export default function App() {
     },
     [navigate],
   );
+
+  const dismissHarmReductionBanner = useCallback(() => {
+    setIsBannerDismissed(true);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(HARM_REDUCTION_DISMISS_KEY, "true");
+    }
+  }, []);
 
   const defaultRoute = useMemo<RouteKey | undefined>(() => {
     if (!content) {
@@ -368,6 +383,11 @@ export default function App() {
         })()
       ) : (
         <>
+          {!isBannerDismissed && (
+            <div className="mx-auto max-w-3xl px-4 pb-6 pt-6 md:max-w-4xl">
+              <HarmReductionBanner citations={content.citations} onDismiss={dismissHarmReductionBanner} />
+            </div>
+          )}
           <Hero
             title={content.name}
             subtitle={content.aliases.length > 0 ? undefined : content.subtitle}
