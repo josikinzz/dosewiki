@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251018-175942-0150e55e",
+    "createdAt": "2025-10-18T17:59:42.517Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 19:59:39"
+    },
+    "articles": [
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      }
+    ],
+    "markdown": "# MDA · #62\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"entactogen\",\n-      \"stimulant\",\n-      \"research-chemical\"\n+      \"entactogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-231137-c5596ffa",
     "createdAt": "2025-10-17T23:11:37.907Z",
     "commit": {

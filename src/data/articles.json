@@ -37651,16 +37651,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-12 hours",
               "onset": "20-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-6 hours",
               "after_effects": "up to 24 hours (residual)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -37723,9 +37723,7 @@
       ],
       "categories": [
         "common",
-        "entactogen",
-        "stimulant",
-        "research-chemical"
+        "entactogen"
       ]
     },
     "index-category": ""
