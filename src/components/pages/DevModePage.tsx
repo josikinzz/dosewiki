@@ -27,6 +27,7 @@ import {
   mechanismIndexGroups,
   substanceRecords,
 } from "../../data/library";
+import type articlesSource from "../../data/articles";
 import {
   useCallback,
   useEffect,
@@ -73,6 +74,8 @@ type ChangeNotice = {
   type: "success" | "error";
   message: string;
 };
+
+type ArticleRecord = (typeof articlesSource)[number];
 
 type ChangeLogFilters = {
   articleSlug: string | null;
@@ -475,9 +478,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   }, [canonicalProfileKey, changeLogEntries]);
 
   const hasStoredCredentials = trimmedUsername.length > 0 && trimmedAdminPassword.length > 0;
-  const isCommitDisabled =
-    isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
-  const isCreateCommitDisabled = isCommitDisabled || !isNewArticleStaged;
+  const isCommitDisabled = isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const [newArticleJsonDraft, setNewArticleJsonDraft] = useState(() =>
     JSON.stringify(newArticlePayload, null, 2),
@@ -505,6 +506,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     return hasTitle && hasDrugName && hasRoute;
   }, [newArticleForm]);
   const isNewArticleJsonValid = newArticleJsonError === null;
+  const isCreateCommitDisabled =
+    isCommitDisabled || !isNewArticleValid || !isNewArticleJsonValid;
   const previewMinHeight = useMemo(() => {
     const lines = newArticleJsonDraft.split("\n").length;
     return Math.min(480, Math.max(160, lines * 18));
@@ -1383,6 +1386,34 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       return;
     }
 
+    const needsAutoStage = activeTab === "create" && !isNewArticleStaged;
+    let articlesForCommit = articles;
+    let datasetChangelogForCommit = datasetChangelog;
+
+    if (needsAutoStage) {
+      const stagedArticles = handleStageNewArticle();
+      if (!stagedArticles) {
+        setGithubNotice({
+          type: "error",
+          message: "Staging failed. Fix the issues noted above and try again.",
+        });
+        window.setTimeout(() => setGithubNotice(null), 10000);
+        return;
+      }
+
+      articlesForCommit = stagedArticles;
+      datasetChangelogForCommit = buildDatasetChangelog({
+        articles: stagedArticles,
+        originalArticles,
+        getArticleKey: (article, index) => {
+          const summary = extractChangeLogSummary(article, index);
+          return summary?.id ?? null;
+        },
+        formatHeading: (article, index) => formatArticleLabel(article, index),
+        summarizeArticle: (article, index) => extractChangeLogSummary(article, index),
+      });
+    }
+
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
     try {
@@ -1402,10 +1433,10 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         body: JSON.stringify({
           username: credentials.username,
           password: credentials.password,
-          articlesData: articles,
+          articlesData: articlesForCommit,
           commitMessage,
-          changelogMarkdown: datasetChangelog.markdown,
-          changedArticles: datasetChangelog.articles,
+          changelogMarkdown: datasetChangelogForCommit.markdown,
+          changedArticles: datasetChangelogForCommit.articles,
         }),
       });
 
@@ -1447,12 +1478,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
   }, [
+    activeTab,
     appendChangeLogEntry,
     articles,
-    datasetChangelog.articles,
-    datasetChangelog.markdown,
+    datasetChangelog,
+    handleStageNewArticle,
     hasInvalidJsonDraft,
+    isNewArticleStaged,
     onTabChange,
+    originalArticles,
     pushChangeLogNotice,
     setPasswordKey,
     verifyDevCredentials,
@@ -1736,13 +1770,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleForm.drugName, newArticleForm.title, newArticleJsonDraft]);
 
-  const handleStageNewArticle = useCallback(() => {
+  const handleStageNewArticle = useCallback((): ArticleRecord[] | null => {
     if (!isNewArticleJsonValid) {
       setCreatorNotice({
         type: "error",
         message: `Fix JSON before staging: ${newArticleJsonError ?? "Invalid article JSON."}`,
       });
-      return;
+      return null;
     }
 
     if (!isNewArticleValid) {
@@ -1750,7 +1784,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         type: "error",
         message: "Complete the required fields (title, drug name, route + units) before staging.",
       });
-      return;
+      return null;
     }
 
     const parsedExistingId = Number.parseInt(newArticleForm.id.trim(), 10);
@@ -1784,6 +1818,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
     const draftPayload = buildArticleFromDraft(normalizedForm);
 
+    let stagedArticles: ArticleRecord[] | null = null;
     applyArticlesTransform((previous) => {
       const stagedArticle = draftPayload as (typeof previous)[number];
       const next = [...previous];
@@ -1803,12 +1838,22 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
       if (targetIndex >= 0) {
         next[targetIndex] = stagedArticle;
+        stagedArticles = next;
         return next;
       }
 
       next.push(stagedArticle);
+      stagedArticles = next;
       return next;
     });
+
+    if (!stagedArticles) {
+      setCreatorNotice({
+        type: "error",
+        message: "Unable to stage the article. Try again.",
+      });
+      return null;
+    }
 
     const stagedLabel = normalizedForm.title.trim() || normalizedForm.drugName.trim() || `Article ${assignedId}`;
     const noticeParts: string[] = [];
@@ -1826,6 +1871,8 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       type: "success",
       message: `Staged "${stagedLabel}" for commit.${noticeParts.length > 0 ? ` ${noticeParts.join(" ")}` : ""}`,
     });
+
+    return stagedArticles;
   }, [
     applyArticlesTransform,
     articles,
@@ -1930,7 +1977,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             }${stagedArticleId ? ` (ID #${stagedArticleId})` : ""}. Dataset diff updated and ready to commit.`}
           </span>
         ) : (
-          <span>Stage the draft to add it to the dataset and unlock commits from this tab.</span>
+          <span>Commit will auto-stage this draft when validation passes.</span>
         )
       }
     />
