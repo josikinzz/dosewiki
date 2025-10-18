@@ -2,9 +2,16 @@ import type { LucideIcon } from "lucide-react";
 
 export type RouteKey = string;
 
-export interface DoseEntry {
+export interface DoseEntryDetail {
   label: string;
   value: string;
+}
+
+export interface DoseEntry {
+  label: string;
+  value?: string;
+  details?: DoseEntryDetail[];
+  description?: string;
 }
 
 export interface RouteInfo {
