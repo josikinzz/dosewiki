@@ -1,5 +1,28 @@
 [
   {
+    "id": "20251018-180009-6a8da329",
+    "createdAt": "2025-10-18T18:00:09.916Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 20:00:07"
+    },
+    "articles": [
+      {
+        "id": 291,
+        "title": "MDMA",
+        "slug": "mdma"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      }
+    ],
+    "markdown": "# MDMA · #291\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"insufflated\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"insufflated\"\n+          ]\n-      \"entactogen\",\n-      \"stimulant\"\n+      \"entactogen\"\n\n# MDA · #62\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"entactogen\",\n-      \"stimulant\",\n-      \"research-chemical\"\n+      \"entactogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251018-175942-0150e55e",
     "createdAt": "2025-10-18T17:59:42.517Z",
     "commit": {

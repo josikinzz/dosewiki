@@ -27504,29 +27504,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-6 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-4 h",
               "after_effects": "12-48 h (residual lethargy / low mood)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "4-6 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-4 h",
               "after_effects": "12-48 h (residual lethargy / low mood)"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -27642,8 +27642,7 @@
       ],
       "categories": [
         "common",
-        "entactogen",
-        "stimulant"
+        "entactogen"
       ]
     },
     "index-category": ""
