@@ -1380,6 +1380,126 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setNotice({ type: "success", message: "Diff file downloaded." });
   };
 
+  const handleStageNewArticle = useCallback((): ArticleRecord[] | null => {
+    if (!isNewArticleJsonValid) {
+      setCreatorNotice({
+        type: "error",
+        message: `Fix JSON before staging: ${newArticleJsonError ?? "Invalid article JSON."}`,
+      });
+      return null;
+    }
+
+    if (!isNewArticleValid) {
+      setCreatorNotice({
+        type: "error",
+        message: "Complete the required fields (title, drug name, route + units) before staging.",
+      });
+      return null;
+    }
+
+    const parsedExistingId = Number.parseInt(newArticleForm.id.trim(), 10);
+    const hasExistingId = Number.isFinite(parsedExistingId);
+    const conflictingIndex = hasExistingId
+      ? articles.findIndex((record) => {
+          if (!record) {
+            return false;
+          }
+          if (typeof record.id === "number") {
+            return record.id === parsedExistingId;
+          }
+          if (typeof record.id === "string") {
+            const parsed = Number.parseInt(record.id, 10);
+            return Number.isFinite(parsed) && parsed === parsedExistingId;
+          }
+          return false;
+        })
+      : -1;
+    const isReusingStagedId = hasExistingId && stagedArticleId === parsedExistingId;
+    const assignedId =
+      !hasExistingId || (conflictingIndex !== -1 && !isReusingStagedId)
+        ? nextAvailableArticleId
+        : parsedExistingId;
+
+    const normalizedForm: ArticleDraftForm = {
+      ...newArticleForm,
+      id: assignedId.toString(),
+    };
+    replaceNewArticleForm(normalizedForm, { emitMutate: false });
+
+    const draftPayload = buildArticleFromDraft(normalizedForm);
+
+    let stagedArticles: ArticleRecord[] | null = null;
+    applyArticlesTransform((previous) => {
+      const stagedArticle = draftPayload as (typeof previous)[number];
+      const next = [...previous];
+      const targetIndex = next.findIndex((record) => {
+        if (!record) {
+          return false;
+        }
+        if (typeof record.id === "number") {
+          return record.id === assignedId;
+        }
+        if (typeof record.id === "string") {
+          const parsed = Number.parseInt(record.id, 10);
+          return Number.isFinite(parsed) && parsed === assignedId;
+        }
+        return false;
+      });
+
+      if (targetIndex >= 0) {
+        next[targetIndex] = stagedArticle;
+        stagedArticles = next;
+        return next;
+      }
+
+      next.push(stagedArticle);
+      stagedArticles = next;
+      return next;
+    });
+
+    if (!stagedArticles) {
+      setCreatorNotice({
+        type: "error",
+        message: "Unable to stage the article. Try again.",
+      });
+      return null;
+    }
+
+    const stagedLabel = normalizedForm.title.trim() || normalizedForm.drugName.trim() || `Article ${assignedId}`;
+    const noticeParts: string[] = [];
+
+    if (!hasExistingId) {
+      noticeParts.push(`ID auto-assigned to #${assignedId}.`);
+    } else if (parsedExistingId !== assignedId) {
+      noticeParts.push(`ID reset from ${parsedExistingId} to #${assignedId} to avoid conflicts.`);
+    }
+
+    setIsNewArticleStaged(true);
+    setStagedArticleLabel(stagedLabel);
+    setStagedArticleId(assignedId);
+    setCreatorNotice({
+      type: "success",
+      message: `Staged "${stagedLabel}" for commit.${noticeParts.length > 0 ? ` ${noticeParts.join(" ")}` : ""}`,
+    });
+
+    return stagedArticles;
+  }, [
+    applyArticlesTransform,
+    articles,
+    buildArticleFromDraft,
+    isNewArticleJsonValid,
+    newArticleJsonError,
+    isNewArticleValid,
+    newArticleForm,
+    nextAvailableArticleId,
+    replaceNewArticleForm,
+    setCreatorNotice,
+    setIsNewArticleStaged,
+    setStagedArticleId,
+    setStagedArticleLabel,
+    stagedArticleId,
+  ]);
+
   const handleSaveToGitHub = useCallback(async () => {
     if (hasInvalidJsonDraft) {
       setGithubNotice({ type: "error", message: "Fix JSON syntax before committing." });
@@ -1769,126 +1889,6 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     URL.revokeObjectURL(url);
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleForm.drugName, newArticleForm.title, newArticleJsonDraft]);
-
-  const handleStageNewArticle = useCallback((): ArticleRecord[] | null => {
-    if (!isNewArticleJsonValid) {
-      setCreatorNotice({
-        type: "error",
-        message: `Fix JSON before staging: ${newArticleJsonError ?? "Invalid article JSON."}`,
-      });
-      return null;
-    }
-
-    if (!isNewArticleValid) {
-      setCreatorNotice({
-        type: "error",
-        message: "Complete the required fields (title, drug name, route + units) before staging.",
-      });
-      return null;
-    }
-
-    const parsedExistingId = Number.parseInt(newArticleForm.id.trim(), 10);
-    const hasExistingId = Number.isFinite(parsedExistingId);
-    const conflictingIndex = hasExistingId
-      ? articles.findIndex((record) => {
-          if (!record) {
-            return false;
-          }
-          if (typeof record.id === "number") {
-            return record.id === parsedExistingId;
-          }
-          if (typeof record.id === "string") {
-            const parsed = Number.parseInt(record.id, 10);
-            return Number.isFinite(parsed) && parsed === parsedExistingId;
-          }
-          return false;
-        })
-      : -1;
-    const isReusingStagedId = hasExistingId && stagedArticleId === parsedExistingId;
-    const assignedId =
-      !hasExistingId || (conflictingIndex !== -1 && !isReusingStagedId)
-        ? nextAvailableArticleId
-        : parsedExistingId;
-
-    const normalizedForm: ArticleDraftForm = {
-      ...newArticleForm,
-      id: assignedId.toString(),
-    };
-    replaceNewArticleForm(normalizedForm, { emitMutate: false });
-
-    const draftPayload = buildArticleFromDraft(normalizedForm);
-
-    let stagedArticles: ArticleRecord[] | null = null;
-    applyArticlesTransform((previous) => {
-      const stagedArticle = draftPayload as (typeof previous)[number];
-      const next = [...previous];
-      const targetIndex = next.findIndex((record) => {
-        if (!record) {
-          return false;
-        }
-        if (typeof record.id === "number") {
-          return record.id === assignedId;
-        }
-        if (typeof record.id === "string") {
-          const parsed = Number.parseInt(record.id, 10);
-          return Number.isFinite(parsed) && parsed === assignedId;
-        }
-        return false;
-      });
-
-      if (targetIndex >= 0) {
-        next[targetIndex] = stagedArticle;
-        stagedArticles = next;
-        return next;
-      }
-
-      next.push(stagedArticle);
-      stagedArticles = next;
-      return next;
-    });
-
-    if (!stagedArticles) {
-      setCreatorNotice({
-        type: "error",
-        message: "Unable to stage the article. Try again.",
-      });
-      return null;
-    }
-
-    const stagedLabel = normalizedForm.title.trim() || normalizedForm.drugName.trim() || `Article ${assignedId}`;
-    const noticeParts: string[] = [];
-
-    if (!hasExistingId) {
-      noticeParts.push(`ID auto-assigned to #${assignedId}.`);
-    } else if (parsedExistingId !== assignedId) {
-      noticeParts.push(`ID reset from ${parsedExistingId} to #${assignedId} to avoid conflicts.`);
-    }
-
-    setIsNewArticleStaged(true);
-    setStagedArticleLabel(stagedLabel);
-    setStagedArticleId(assignedId);
-    setCreatorNotice({
-      type: "success",
-      message: `Staged "${stagedLabel}" for commit.${noticeParts.length > 0 ? ` ${noticeParts.join(" ")}` : ""}`,
-    });
-
-    return stagedArticles;
-  }, [
-    applyArticlesTransform,
-    articles,
-    buildArticleFromDraft,
-    isNewArticleJsonValid,
-    newArticleJsonError,
-    isNewArticleValid,
-    newArticleForm,
-    nextAvailableArticleId,
-    replaceNewArticleForm,
-    setCreatorNotice,
-    setIsNewArticleStaged,
-    setStagedArticleId,
-    setStagedArticleLabel,
-    stagedArticleId,
-  ]);
 
   const handleClassificationChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
