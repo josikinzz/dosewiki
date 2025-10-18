@@ -1,5 +1,33 @@
 [
   {
+    "id": "20251018-180229-56ec8a6c",
+    "createdAt": "2025-10-18T18:02:29.253Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 20:02:26"
+    },
+    "articles": [
+      {
+        "id": 229,
+        "title": "Methylenedioxyphenmetrazine",
+        "slug": "methylenedioxyphenmetrazine"
+      },
+      {
+        "id": 291,
+        "title": "MDMA",
+        "slug": "mdma"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      }
+    ],
+    "markdown": "# Methylenedioxyphenmetrazine · #229\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"insufflated\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"insufflated\"\n+          ]\n-      \"entactogen\",\n\n# MDMA · #291\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"insufflated\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"insufflated\"\n+          ]\n-      \"entactogen\",\n-      \"stimulant\"\n+      \"entactogen\"\n\n# MDA · #62\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"entactogen\",\n-      \"stimulant\",\n-      \"research-chemical\"\n+      \"entactogen\"",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251018-180009-6a8da329",
     "createdAt": "2025-10-18T18:00:09.916Z",
     "commit": {
