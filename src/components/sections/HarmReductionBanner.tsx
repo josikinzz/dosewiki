@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShieldAlert, SquareArrowOutUpRight, X } from "lucide-react";
 import type { CitationEntry } from "../../types/content";
 
@@ -44,12 +44,35 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
     });
   }, [citations]);
 
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (!isClosing) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      onDismiss?.();
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [isClosing, onDismiss]);
+
+  const handleDismissClick = () => {
+    if (isClosing) {
+      return;
+    }
+    setIsClosing(true);
+  };
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)] transition duration-200 hover:border-red-300/50 hover:bg-red-500/15 hover:shadow-[0_18px_46px_-25px_rgba(239,68,68,0.65)]">
-      {onDismiss ? (
+      {onDismiss && !isClosing ? (
         <button
           type="button"
-          onClick={onDismiss}
+          onClick={handleDismissClick}
           className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-400/40 bg-red-500/20 text-red-200 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
           aria-label="Dismiss harm reduction disclaimer"
         >
@@ -57,31 +80,43 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
         </button>
       ) : null}
       <div className="flex gap-4 pr-10 text-sm text-red-100/90 md:pr-16">
-        <ShieldAlert className="mt-1 h-12 w-12 flex-shrink-0 text-red-100" aria-hidden="true" focusable="false" />
-        <div className="flex flex-1 flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2 text-sm leading-relaxed text-red-100/90">
-            <span className="flex-grow text-red-100/90">
-              <span className="mr-1 font-semibold uppercase tracking-[0.25em] text-red-200/90">Disclaimer:</span>
-              This webpage provides information on the basis of harm reduction and educational purposes. We are not
-              responsible for your actions and implore you to consult with resources beyond this page...
-            </span>
-            {links.length > 0 && (
-              <span className="flex flex-wrap gap-1">
-                {links.map((link) => (
-                  <a
-                    key={link.key}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-100/85 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50"
-                  >
-                    <span>{link.label}</span>
-                    <SquareArrowOutUpRight className="h-3 w-3" aria-hidden="true" focusable="false" />
-                  </a>
-                ))}
+        <ShieldAlert
+          className={`${isClosing ? "h-14 w-14" : "mt-1 h-12 w-12"} flex-shrink-0 text-red-100 ${
+            isClosing ? "animate-pulse" : ""
+          }`}
+          aria-hidden="true"
+          focusable="false"
+        />
+        <div className="flex flex-1 flex-col justify-center gap-3">
+          {isClosing ? (
+            <p className="w-full text-center text-lg font-semibold uppercase tracking-[0.5em] text-red-100 animate-pulse">
+              You Have Been Warned
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2 text-sm leading-relaxed text-red-100/90">
+              <span className="flex-grow text-red-100/90">
+                <span className="mr-1 font-semibold uppercase tracking-[0.25em] text-red-200/90">Disclaimer:</span>
+                This webpage provides information on the basis of harm reduction and educational purposes. We are not
+                responsible for your actions and implore you to consult with resources beyond this page...
               </span>
-            )}
-          </div>
+              {links.length > 0 && (
+                <span className="flex flex-wrap gap-1">
+                  {links.map((link) => (
+                    <a
+                      key={link.key}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-100/85 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50"
+                    >
+                      <span>{link.label}</span>
+                      <SquareArrowOutUpRight className="h-3 w-3" aria-hidden="true" focusable="false" />
+                    </a>
+                  ))}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>
