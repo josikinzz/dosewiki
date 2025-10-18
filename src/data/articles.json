@@ -42679,7 +42679,7 @@
     "index-category": ""
   },
   {
-    "id": null,
+    "id": 409,
     "title": "Salvia divinorum",
     "drug_info": {
       "drug_name": "Salvia divinorum",
@@ -42761,43 +42761,82 @@
       "duration": {
         "routes_of_administration": [
           {
-            "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
+            "route": "smoked (dried leaf)",
             "stages": {
               "total_duration": "15-90 minutes",
               "onset": "15-60 seconds",
               "peak": "5-20 minutes",
               "offset": "10-30 minutes",
               "after_effects": "15-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           },
           {
-            "route": "sublingual/quid",
+            "route": "smoked (5x extract)",
+            "stages": {
+              "total_duration": "15-90 minutes",
+              "onset": "15-60 seconds",
+              "peak": "5-20 minutes",
+              "offset": "10-30 minutes",
+              "after_effects": "15-60 minutes"
+            },
             "canonical_routes": [
-              "oral"
-            ],
+              "smoked"
+            ]
+          },
+          {
+            "route": "smoked (10x extract)",
+            "stages": {
+              "total_duration": "15-90 minutes",
+              "onset": "15-60 seconds",
+              "peak": "5-20 minutes",
+              "offset": "10-30 minutes",
+              "after_effects": "15-60 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          },
+          {
+            "route": "sublingual/quid (fresh leaf)",
             "stages": {
               "total_duration": "60-180 minutes",
               "onset": "10-20 minutes",
               "peak": "30-60 minutes",
               "offset": "30-90 minutes",
               "after_effects": "60-120 minutes"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
-            "route": "vaporized",
+            "route": "sublingual/quid (dried leaf)",
+            "stages": {
+              "total_duration": "60-180 minutes",
+              "onset": "10-20 minutes",
+              "peak": "30-60 minutes",
+              "offset": "30-90 minutes",
+              "after_effects": "60-120 minutes"
+            },
             "canonical_routes": [
-              "smoked"
-            ],
+              "oral"
+            ]
+          },
+          {
+            "route": "vaporized (pure salvinorin A)",
             "stages": {
               "total_duration": "15-60 minutes",
               "onset": "15-60 seconds",
               "peak": "2-10 minutes",
               "offset": "10-20 minutes",
               "after_effects": "15-60 minutes"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           }
         ]
       },
@@ -42918,7 +42957,7 @@
         "kappa-opioid-agonist"
       ]
     },
-    "index-category": "dissociative;atypical-psychedelic;entheogen"
+    "index-category": "dissociative; atypical-psychedelic; entheogen"
   },
   {
     "id": 358,
