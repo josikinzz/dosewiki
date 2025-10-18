@@ -74932,5 +74932,140 @@
       ]
     },
     "id": 667
+  },
+  {
+    "title": "Flualprazolam",
+    "index-category": "depressant; benzodiazepine; research-chemical",
+    "drug_info": {
+      "drug_name": "Flualprazolam",
+      "chemical_name": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-benzo[f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "alternative_name": "Flualp; F-Alp; 2'-Fluoro-Alprazolam",
+      "chemical_class": "Triazolobenzodiazepines",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.05 mg",
+              "light": "0.1-0.3 mg",
+              "common": "0.3-0.5 mg",
+              "strong": "0.5-1 mg",
+              "heavy": "1+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-8 hours",
+              "onset": "20-40 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-6 hours",
+              "after_effects": "6-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Flualprazolam is considered highly addictive with a high potential for abuse. It has been reported by users to dramatically and rapidly increase benzodiazepine cross-tolerance. Tolerance to sedative-hypnotic effects develops within a couple of days of continuous use. Withdrawal symptoms may occur after ceasing usage abruptly following steady dosing and can include rebound anxiety, seizures, and potentially life-threatening complications.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (respiratory depression, loss of consciousness)",
+          "Opioids (respiratory depression, loss of consciousness)",
+          "GHB/GBL (respiratory depression, loss of consciousness)",
+          "Barbiturates (respiratory depression, loss of consciousness)"
+        ],
+        "unsafe": [
+          "Dissociatives (unpredictable amnesia, sedation, respiratory depression)",
+          "Other benzodiazepines (potentiated CNS depression)"
+        ],
+        "caution": [
+          "Stimulants (masks sedation, risk of blackouts)",
+          "Tramadol (lowers seizure threshold during withdrawal)"
+        ]
+      },
+      "notes": "Flualprazolam is a highly potent designer benzodiazepine that is 1.5-5 times stronger than alprazolam by weight. It is typically sold as counterfeit alprazolam (Xanax) tablets or as a research chemical. Accurate weighing with a precise milligram scale is critical due to extreme potency. This substance is particularly hypnotic and sedating compared to alprazolam, with strong amnestic effects and compulsive redosing tendencies. Sudden discontinuation after regular use can be life-threatening; individuals physically dependent on benzodiazepines must taper gradually. Use extreme caution and harm reduction practices. Flualprazolam is Schedule I in the United States as of January 2023 and controlled in many other jurisdictions.",
+      "subjective_effects": [
+        "Sedation",
+        "Muscle Relaxation",
+        "Anxiety Suppression",
+        "Memory Suppression",
+        "Disinhibition",
+        "Physical Euphoria (Short-Lasting)",
+        "Cognitive Euphoria (Short-Lasting)",
+        "Compulsive Redosing",
+        "Delusions of Sobriety",
+        "Motor Control Loss",
+        "Sleepiness",
+        "Emotion Suppression",
+        "Respiratory Depression",
+        "Dizziness"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "7-14 days",
+        "zero_tolerance": "2-4 weeks",
+        "cross_tolerances": [
+          "All benzodiazepines",
+          "Thienodiazepines",
+          "Z-drugs (zopiclone, zolpidem)",
+          "Gabapentinoids (pregabalin, gabapentin)"
+        ]
+      },
+      "half_life": "6-12 hours (approximately double that of alprazolam)",
+      "citations": [
+        {
+          "name": "Bluelight Flualprazolam Discussion Thread",
+          "reference": "https://bluelight.org/xf/threads/flualprazolam.835125/"
+        },
+        {
+          "name": "DEA Federal Register - Schedule I Placement",
+          "reference": "https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam"
+        },
+        {
+          "name": "Erowid Experience Vaults: Flualprazolam",
+          "reference": "https://erowid.org/experiences/subs/exp_Flualprazolam.shtml"
+        },
+        {
+          "name": "Forensic Toxicology - Fatal Flualprazolam Intoxication Case Report",
+          "reference": "https://link.springer.com/article/10.1007/s11419-021-00591-w"
+        },
+        {
+          "name": "Forensic Toxicology - Flualprazolam Review Article",
+          "reference": "https://link.springer.com/article/10.1007/s11419-020-00565-4"
+        },
+        {
+          "name": "Journal of Forensic Sciences - Flualprazolam Distribution Study",
+          "reference": "https://onlinelibrary.wiley.com/doi/10.1111/1556-4029.14893"
+        },
+        {
+          "name": "PsychonautWiki: Flualprazolam",
+          "reference": "https://psychonautwiki.org/wiki/Flualprazolam"
+        },
+        {
+          "name": "Reddit r/researchchemicals Flualprazolam Review",
+          "reference": "https://www.reddit.com/r/researchchemicals/comments/7m1qns/flualprazolam_review/"
+        },
+        {
+          "name": "Wikipedia: Flualprazolam",
+          "reference": "https://en.wikipedia.org/wiki/Flualprazolam"
+        }
+      ],
+      "categories": [
+        "benzodiazepine",
+        "triazolobenzodiazepine",
+        "research-chemical",
+        "depressant"
+      ]
+    },
+    "id": 668
   }
 ]
