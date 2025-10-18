@@ -130,11 +130,12 @@ const hasTag = (tags: Set<string>, ...candidates: string[]) =>
 
 const formatAlias = (record: SubstanceRecord): string | undefined => {
   const aliases = record.aliases ?? [];
-  if (aliases.length !== 1) {
+  if (aliases.length === 0) {
     return undefined;
   }
 
-  return aliases[0];
+  const firstAlias = aliases[0]?.trim();
+  return firstAlias ? firstAlias : undefined;
 };
 
 const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
