@@ -74422,5 +74422,137 @@
       ]
     },
     "id": 663
+  },
+  {
+    "title": "AB-FUBINACA",
+    "index-category": "synthetic-cannabinoid; research-chemical",
+    "drug_info": {
+      "drug_name": "AB-FUBINACA",
+      "chemical_name": "N-[(1S)-1-(Aminocarbonyl)-2-methylpropyl]-1-[(4-fluorophenyl)methyl]-1H-indazole-3-carboxamide",
+      "alternative_name": "Ab-fubi; AMB-FUBINACA",
+      "chemical_class": "Indazolecarboxamide",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 cannabinoid receptor full agonist (Ki 0.9 nM, EC50 1.8 nM); CB2 cannabinoid receptor full agonist (Ki 23.2 nM, EC50 3.2 nM) with selectivity for CB2",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "< 1 mg",
+              "light": "1-2 mg",
+              "common": "2-3 mg",
+              "strong": "3-5 mg",
+              "heavy": "5+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "0-20 minutes",
+              "peak": "30-60 minutes",
+              "offset": "10-20 minutes",
+              "after_effects": "15-30 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "AB-FUBINACA can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. When addiction develops, cravings and withdrawal effects may occur if use is stopped suddenly. Physical dependence has been demonstrated in animal studies, with precipitated withdrawal signs including head twitches and paw tremors.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Amphetamines (increased anxiety and thought loops)",
+          "Cocaine (increased anxiety and thought loops)"
+        ],
+        "caution": [
+          "2C-T-x (unpredictable interactions)",
+          "2C-x (unpredictable interactions)",
+          "5-MeO-xxT (unpredictable interactions)",
+          "aMT (unpredictable interactions)",
+          "DMT (unpredictable interactions)",
+          "DOx (unpredictable interactions)",
+          "LSD (unpredictable interactions)",
+          "Mescaline (unpredictable interactions)",
+          "Psilocybin mushrooms (unpredictable interactions)",
+          "25x-NBOMe (unpredictable interactions)"
+        ]
+      },
+      "notes": "AB-FUBINACA is a highly potent synthetic cannabinoid that is active at very low milligram doses, making accurate measurement with a precision scale absolutely critical. Unlike cannabis, chronic abuse of synthetic cannabinoids has been associated with multiple deaths, hospitalizations, and more dangerous side effects. The substance is insoluble in water but dissolves in ethanol and lipids. Extended use or high doses are strongly discouraged. Individuals with personal or family histories of psychotic disorders should avoid this substance, as prolonged use may increase disposition to psychosis.",
+      "subjective_effects": [
+        "Sedation",
+        "Spontaneous Physical Sensations (Warm Tingling Body High)",
+        "Motor Control Loss",
+        "Appetite Enhancement (Munchies)",
+        "Changes In Felt Gravity (Vertigo)",
+        "Perception Of Bodily Heaviness",
+        "Dehydration",
+        "Dry Mouth",
+        "Nausea",
+        "Visual Recursion",
+        "Visual Haze",
+        "Anxiety",
+        "Paranoia",
+        "Thought Connectivity",
+        "Thought Deceleration",
+        "Conceptual Thinking",
+        "Analysis Suppression",
+        "Dream Suppression",
+        "Immersion Enhancement",
+        "Personal Meaning Enhancement",
+        "Increased Music Appreciation",
+        "Auditory Distortion"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated daily use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids (including THC and other synthetic cannabinoids)"
+        ]
+      },
+      "half_life": "Less than 1 hour (brain levels undetectable at 4 hours post-administration)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: AB-FUBINACA",
+          "reference": "https://psychonautwiki.org/wiki/AB-FUBINACA"
+        },
+        {
+          "name": "Wikipedia: AB-FUBINACA",
+          "reference": "https://en.wikipedia.org/wiki/AB-FUBINACA"
+        },
+        {
+          "name": "Erowid Experience Vaults: AB-FUBINACA",
+          "reference": "https://www.erowid.org/experiences/subs/exp_ABFUBINACA.shtml"
+        },
+        {
+          "name": "NCBI: The short-acting synthetic cannabinoid AB-FUBINACA induces physical dependence in mice",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7461724/"
+        },
+        {
+          "name": "NCBI: Pharmacology of Indole and Indazole Synthetic Cannabinoid Designer Drugs",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/26134475/"
+        },
+        {
+          "name": "NCBI: Overview of Synthetic Cannabinoids ADB-FUBINACA and AMB-FUBINACA",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7996508/"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "research-chemical",
+        "cannabinoid"
+      ]
+    },
+    "id": 664
   }
 ]
