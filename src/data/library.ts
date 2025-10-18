@@ -363,6 +363,8 @@ const CATEGORY_DEFINITIONS: CategoryDefinition[] = [
       "hallucinogens",
       "a-typical hallucinogen",
       "a-typical hallucinogens",
+      "a typical hallucinogen",
+      "a typical hallucinogens",
       "atypical hallucinogen",
       "atypical hallucinogens",
     ],
@@ -460,6 +462,14 @@ const CATEGORY_INDEX_EXCLUDED_KEYS = new Set([
   "supplement",
 ]);
 
+// Prevent duplicates with the primary hallucinogen buckets, but allow atypicals to
+// coexist with other pharmacological categories (e.g., GABAergic, opioid).
+const HALLUCINOGEN_EXCLUSION_KEYS = new Set([
+  "psychedelic",
+  "dissociative",
+  "deliriant",
+]);
+
 const FALLBACK_CATEGORY = CATEGORY_DEFINITIONS.find((definition) => definition.fallback) ?? CATEGORY_DEFINITIONS[CATEGORY_DEFINITIONS.length - 1];
 
 export function normalizeCategoryKey(value: string): string {
@@ -470,14 +480,28 @@ export function findCategoryByKey(input: string): CategoryDefinition | undefined
   return CATEGORY_LOOKUP.get(normalizeKey(input));
 }
 
+function collectCategoryTags(record: SubstanceRecord): Set<string> {
+  const tags = new Set<string>();
+
+  const addValues = (values: string[] | undefined) => {
+    values?.forEach((value) => {
+      const normalized = normalizeKey(value);
+      if (normalized) {
+        tags.add(normalized);
+      }
+    });
+  };
+
+  addValues(record.categories);
+  addValues(record.indexCategories);
+  addValues(record.psychoactiveClasses);
+  addValues(record.content?.categoryKeys);
+
+  return tags;
+}
+
 function resolveCategories(record: SubstanceRecord): CategoryDefinition[] {
-  const tagSource = new Set<string>();
-  (record.categories ?? []).forEach((category) => {
-    const normalized = normalizeKey(category);
-    if (normalized) {
-      tagSource.add(normalized);
-    }
-  });
+  const tagSource = collectCategoryTags(record);
 
   const matches = CATEGORY_DEFINITIONS.filter((definition) => !definition.fallback && definition.match(tagSource));
 
@@ -537,9 +561,10 @@ export function buildCategoryGroups(records: SubstanceRecord[]): DosageCategoryG
 
   const hallucinogenExclusions = new Set<string>();
   precomputedFilteredRecords.forEach((list, key) => {
-    if (key !== "hallucinogen" && key !== "miscellaneous") {
-      list.forEach((record) => hallucinogenExclusions.add(record.slug));
+    if (!HALLUCINOGEN_EXCLUSION_KEYS.has(key)) {
+      return;
     }
+    list.forEach((record) => hallucinogenExclusions.add(record.slug));
   });
 
   const hallucinogenRecords = precomputedFilteredRecords.get("hallucinogen");
