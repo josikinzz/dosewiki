@@ -779,13 +779,19 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   const chemicalClasses = splitToList(info.chemical_class);
   const psychoactiveClasses = splitToList(info.psychoactive_class);
   const aliases = extractAlternativeNames(info, baseName);
+  const displayAliases = chemicalName
+    ? aliases.filter(
+        (alias) =>
+          alias.localeCompare(chemicalName, undefined, { sensitivity: "accent" }) !== 0,
+      )
+    : aliases;
 
   const { routes, routeOrder, unitsNote } = buildRoutes(info.dosages, info.duration);
 
   const content: SubstanceContent = {
     name: baseName,
     subtitle: "",
-    aliases,
+    aliases: displayAliases,
     moleculePlaceholder: buildPlaceholder(baseName),
     heroBadges: buildHeroBadges(info, categories, normalizedCategories),
     categoryKeys: normalizedCategories,
