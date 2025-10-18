@@ -74691,5 +74691,134 @@
       ]
     },
     "id": 665
+  },
+  {
+    "title": "THJ-018",
+    "index-category": "synthetic-cannabinoid; research-chemical",
+    "drug_info": {
+      "drug_name": "THJ-018",
+      "chemical_name": "1-Naphthalenyl(1-pentyl-1H-indazol-3-yl)-methanone",
+      "alternative_name": "SGT-17",
+      "chemical_class": "Naphthoylindazoles",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 cannabinoid receptor full agonist (Ki 5.84 nM); CB2 cannabinoid receptor full agonist (Ki 4.57 nM, with slight selectivity)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "< 1 mg",
+              "light": "1-2 mg",
+              "common": "2-3 mg",
+              "strong": "3-5 mg",
+              "heavy": "5+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "2-3 hours",
+              "onset": "5-10 minutes",
+              "peak": "60-90 minutes",
+              "offset": "5-10 minutes",
+              "after_effects": "60-90 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Chronic use of THJ-018 can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. When addiction has developed, cravings and withdrawal effects may occur upon sudden cessation. Evidence of dependence with synthetic cannabinoids is limited but documented.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Amphetamines (increased anxiety and thought loop risk)",
+          "Cocaine (increased anxiety and thought loop risk)"
+        ],
+        "caution": [
+          "Psychedelics (intensified and extended visual and cognitive effects)",
+          "Dissociatives (greatly enhanced geometry, euphoria, dissociation and hallucinatory effects)",
+          "Alcohol (extreme nausea, dizziness, and changes in gravity)",
+          "2C-x compounds (unpredictable effects)",
+          "2C-T-x compounds (unpredictable effects)",
+          "5-MeO-xxT compounds (unpredictable effects)",
+          "aMT (unpredictable effects)",
+          "DOx compounds (unpredictable effects)",
+          "DMT (unpredictable effects)",
+          "LSD (unpredictable effects)",
+          "Mescaline (unpredictable effects)",
+          "Psilocybin mushrooms (unpredictable effects)",
+          "25x-NBOMe compounds (unpredictable effects)"
+        ]
+      },
+      "notes": "THJ-018 is a synthetic cannabinoid analog of JWH-018 marketed as a legal alternative after JWH-018 was banned in 2009. It appears as a brown, sticky, chunky powder with a naphthalene-like smell. As synthetic cannabinoids are active in the milligram range, accurate weighing with a precision scale is essential. The naphthalene group may be toxic or carcinogenic with chronic use. Unlike cannabis, synthetic cannabinoids have been associated with multiple deaths and dangerous side effects. Individuals with personal or family history of psychotic disorders should avoid use, as prolonged usage may increase disposition to psychosis. It is strongly discouraged to take this substance for extended periods or in excessive doses.",
+      "subjective_effects": [
+        "Spontaneous Physical Sensations",
+        "Sedation",
+        "Motor Control Loss",
+        "Appetite Enhancement",
+        "Pain Relief",
+        "Vasodilation",
+        "Perception of Bodily Lightness",
+        "Dehydration",
+        "Color Enhancement",
+        "Acuity Suppression",
+        "Closed-Eye Geometry",
+        "Emotion Enhancement",
+        "Anxiety",
+        "Paranoia",
+        "Thought Connectivity",
+        "Thought Deceleration",
+        "Conceptual Thinking",
+        "Mindfulness",
+        "Analysis Suppression",
+        "Dream Suppression",
+        "Immersion Enhancement",
+        "Increased Music Appreciation",
+        "Auditory Enhancement"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "DanceSafe Drug Checking",
+          "reference": "https://dancesafe.org/drug-checking/"
+        },
+        {
+          "name": "Erowid THJ-018 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_THJ018.shtml"
+        },
+        {
+          "name": "PsychonautWiki THJ-018",
+          "reference": "https://psychonautwiki.org/wiki/THJ-018"
+        },
+        {
+          "name": "Wikipedia THJ-018",
+          "reference": "https://en.wikipedia.org/wiki/THJ-018"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "research-chemical",
+        "cannabinoid",
+        "naphthoylindazole"
+      ]
+    },
+    "id": 666
   }
 ]
