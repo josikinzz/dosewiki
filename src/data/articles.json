@@ -74820,5 +74820,117 @@
       ]
     },
     "id": 666
+  },
+  {
+    "title": "2M2B",
+    "index-category": "depressant; alcohol",
+    "drug_info": {
+      "drug_name": "2M2B",
+      "chemical_name": "2-methylbutan-2-ol",
+      "alternative_name": "tert-Amyl alcohol; Amylene hydrate; TAA",
+      "chemical_class": "Tertiary alcohol",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator (binds to proconvulsant site)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ml",
+            "dose_ranges": {
+              "threshold": "0.5 ml",
+              "light": "1-5 ml",
+              "common": "5-10 ml",
+              "strong": "10-15 ml",
+              "heavy": "15+ ml"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-14 hours",
+              "onset": "10-50 minutes",
+              "peak": "6-8 hours",
+              "offset": "4-6 hours",
+              "after_effects": "Up to 24 hours (sedation and lethargy)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "2M2B has moderate to high addiction potential and can cause physical dependence. As with other GABA receptor agonists, repeated use leads to tolerance and withdrawal symptoms upon discontinuation resembling alcohol, barbiturate, or benzodiazepine withdrawal, including potentially life-threatening delirium tremens. Users report compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Depressants (alcohol, benzodiazepines, barbiturates, opioids, GHB/GBL) - Potentially fatal respiratory depression",
+          "Dissociatives (ketamine, DXM, PCP) - Unpredictable potentiation of amnesia, sedation, and respiratory depression"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Stimulants - Mask sedative effects leading to dangerous disinhibition and blackout states when stimulant wears off"
+        ]
+      },
+      "notes": "2M2B is approximately 20 times more potent than ethanol by weight. Fatal overdoses have been reported at doses as low as 18-30 ml. It has an extremely unpleasant taste and smell resembling gasoline, camphor, or solvents. Unlike primary alcohols, 2M2B cannot be metabolized into toxic aldehydes, resulting in significantly reduced hangover effects but extended duration of action lasting up to 24 hours. Precise measurement with graduated equipment is essential due to high potency. The substance is not detected by standard alcohol or drug tests but can be identified via gas chromatography-mass spectrometry. Gelatin capsules are recommended for oral administration to avoid the harsh taste.",
+      "subjective_effects": [
+        "Sedation (significantly more than ethanol)",
+        "Muscle Relaxation",
+        "Motor Control Loss (disproportionately severe)",
+        "Anxiety Suppression",
+        "Cognitive Euphoria (less than ethanol)",
+        "Delusions of Sobriety",
+        "Disinhibition",
+        "Memory Suppression and Amnesia",
+        "Respiratory Depression",
+        "Pain Relief",
+        "Appetite Enhancement",
+        "Dizziness"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All GABAergic depressants (alcohol, benzodiazepines, barbiturates, GHB)"
+        ]
+      },
+      "half_life": "Extended elimination time via glucuronidation; effects last 8-14 hours with residual sedation up to 24 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: 2M2B",
+          "reference": "https://psychonautwiki.org/wiki/2M2B"
+        },
+        {
+          "name": "TripSit: 2-methyl-2-butanol Factsheet",
+          "reference": "https://drugs.tripsit.me/2-methyl-2-butanol"
+        },
+        {
+          "name": "Erowid Experience Vaults: 2-Methyl-2-Butanol",
+          "reference": "https://www.erowid.org/experiences/subs/exp_2Methyl2Butanol.shtml"
+        },
+        {
+          "name": "Bluelight: 2M2B Synthetic Alcohols Megathread",
+          "reference": "https://www.bluelight.org/community/threads/2m2b-2-methyl-2-butanol-synthetic-alcohols-megathread.538800/"
+        },
+        {
+          "name": "Wikipedia: tert-Amyl alcohol",
+          "reference": "https://en.wikipedia.org/wiki/Tert-Amyl_alcohol"
+        },
+        {
+          "name": "Drugs-Forum: 2-Methyl-2-Butanol Discussion",
+          "reference": "https://drugs-forum.com/threads/2-methyl-2-butanol-2m2b.146071/"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "alcohol",
+        "gaba-agonist",
+        "tertiary-alcohol"
+      ]
+    },
+    "id": 667
   }
 ]
