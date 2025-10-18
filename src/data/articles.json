@@ -20190,29 +20190,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 h · 2-3 h",
               "onset": "15-40 min · 5-10 min",
               "peak": "1-3 h",
               "offset": "2-4 h",
               "after_effects": "2-6 h residual stimulation / insomnia"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "6-8 h · 2-3 h",
               "onset": "15-40 min · 5-10 min",
               "peak": "1-3 h",
               "offset": "2-4 h",
               "after_effects": "2-6 h residual stimulation / insomnia"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -20299,7 +20299,6 @@
       ],
       "categories": [
         "stimulant",
-        "entactogen",
         "research-chemical"
       ]
     },
@@ -27504,29 +27503,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-6 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-4 h",
               "after_effects": "12-48 h (residual lethargy / low mood)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "4-6 h",
               "onset": "20-60 min",
               "peak": "2-3 h",
               "offset": "2-4 h",
               "after_effects": "12-48 h (residual lethargy / low mood)"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -27642,8 +27641,7 @@
       ],
       "categories": [
         "common",
-        "entactogen",
-        "stimulant"
+        "entactogen"
       ]
     },
     "index-category": ""
@@ -37222,11 +37220,11 @@
   },
   {
     "id": 182,
-    "title": "Sernyl",
+    "title": "PCP",
     "drug_info": {
-      "drug_name": "Sernyl",
-      "chemical_name": "PCP",
-      "alternative_name": "Phencyclidine",
+      "drug_name": "PCP",
+      "chemical_name": "Phencyclidine",
+      "alternative_name": "Sernyl",
       "chemical_class": "Arylcyclohexylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -37271,42 +37269,42 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -37373,8 +37371,7 @@
       ],
       "categories": [
         "common",
-        "dissociative",
-        "research-chemical"
+        "dissociative"
       ]
     },
     "index-category": ""
@@ -37651,16 +37648,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-12 hours",
               "onset": "20-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-6 hours",
               "after_effects": "up to 24 hours (residual)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -37723,9 +37720,7 @@
       ],
       "categories": [
         "common",
-        "entactogen",
-        "stimulant",
-        "research-chemical"
+        "entactogen"
       ]
     },
     "index-category": ""
@@ -45729,142 +45724,6 @@
       "categories": [
         "stimulant",
         "research-chemical"
-      ]
-    },
-    "index-category": ""
-  },
-  {
-    "id": 435,
-    "title": "Crack (Cocaine)",
-    "drug_info": {
-      "drug_name": "Crack (Cocaine)",
-      "chemical_name": "Crack",
-      "alternative_name": "Cocaine",
-      "chemical_class": "Tropanes",
-      "mechanism_of_action": "Serotonin-dopamine-norepinephrine reuptake inhibitor",
-      "psychoactive_class": "Powerful CNS stimulant (dopamine-norepinephrine-serotonin re-uptake inhibitor; sodium-channel blocker)",
-      "dosages": {
-        "routes_of_administration": [
-          {
-            "route": "vaporized / smoked",
-            "units": "mg (free-base)",
-            "dose_ranges": {
-              "threshold": "10-20",
-              "light": "20-40",
-              "common": "40-100",
-              "strong": "100-200",
-              "heavy": "200+"
-            }
-          }
-        ]
-      },
-      "duration": {
-        "routes_of_administration": [
-          {
-            "route": "vaporized / smoked",
-            "canonical_routes": [
-              "vaporized",
-              "smoked"
-            ],
-            "stages": {
-              "total_duration": "5-20 minutes",
-              "onset": "5-10 seconds",
-              "peak": "0.5-2 minutes",
-              "offset": "5-15 minutes",
-              "after_effects": "15-60 minutes craving, agitation, dysphoria"
-            }
-          }
-        ]
-      },
-      "addiction_potential": "Extremely high: the short, intense rush and rapid dissipation create potent reinforcement; binges of multiple grams in a night are common.",
-      "interactions": {
-        "dangerous": [
-          "alcohol (cocaethylene formation)",
-          "MAOIs",
-          "strong stimulants (methamphetamine, α-PVP)",
-          "synthetic cannabinoids (tachyarrhythmia synergy)"
-        ],
-        "unsafe": [
-          "MDMA / mephedrone",
-          "caffeine in large amounts",
-          "tramadol (seizure risk)"
-        ],
-        "caution": [
-          "benzodiazepines (post-binge respiratory depression)",
-          "opioids (masked overdose risk)",
-          "antipsychotics (QT-prolongation)"
-        ]
-      },
-      "notes": "Use a dedicated glass stem with fresh chore (copper or brillo) to reduce burns; share no mouthpieces to avoid hepatitis/HIV transmission. Keep the flame below the rock—vaporise, don't burn—to minimise loss and throat damage. Start low, go slow, and pause at least 10 min between hits to assess cardiovascular strain. Carry water to counteract dry mouth and maintain hydration. If mixing with alcohol, recognise heightened cardiotoxicity. Naloxone will not reverse a stimulant overdose; call EMS if chest pain, severe tachycardia (>140 bpm), or seizures occur.",
-      "subjective_effects": [
-        "intense euphoria / 'rush'",
-        "sharp mental stimulation",
-        "boosted confidence and talkativeness",
-        "enhanced libido",
-        "jaw clenching",
-        "anxiety / paranoia on comedown",
-        "powerful cravings",
-        "insomnia"
-      ],
-      "tolerance": {
-        "full_tolerance": "Can escalate within a single multi-gram binge",
-        "half_tolerance": "2-3 days",
-        "zero_tolerance": "7-10 days",
-        "cross_tolerances": [
-          "powder cocaine",
-          "other rapid-acting stimulants"
-        ]
-      },
-      "half_life": "≈70-80 min systemic (psychoactive window much shorter when smoked)",
-      "citations": [
-        {
-          "name": "Cocaine - Anodyne Wiki",
-          "reference": "https://anodyne.wiki/substance/cocaine"
-        },
-        {
-          "name": "NIDA - cocaine overview & risks",
-          "reference": "https://nida.nih.gov/research-topics/cocaine"
-        },
-        {
-          "name": "PubMed - cocaine pharmacokinetics (half-life)",
-          "reference": "https://pubmed.ncbi.nlm.nih.gov/2565204/"
-        },
-        {
-          "name": "PMC - cocaethylene review",
-          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8956485/"
-        },
-        {
-          "name": "DOJ Crack Fast Facts - appearance & smoking",
-          "reference": "https://www.justice.gov/archive/ndic/pubs3/3978/3978p.pdf"
-        },
-        {
-          "name": "Bluelight - crack dosage per hit",
-          "reference": "https://www.bluelight.org/community/threads/crack-dosage-per-hit.736965/"
-        },
-        {
-          "name": "Drugs-Forum - typical dose 0.1-0.2 g",
-          "reference": "https://drugs-forum.com/threads/crack-overdose-amount.154834/"
-        },
-        {
-          "name": "National Harm Reduction Coalition - safer smoking tips",
-          "reference": "https://harmreduction.org/issues/safer-drug-use/facts/"
-        },
-        {
-          "name": "Vital Strategies - stimulant harm-reduction tip-sheet",
-          "reference": "https://harmreduction.org/wp-content/uploads/2021/09/COVID-19-Simulant-Use-and-Harm-Reduction.pdf"
-        },
-        {
-          "name": "UNODC World Drug Report (prevalence)",
-          "reference": "https://erowid.org/psychoactives/statistics/statistics_unodc_world_drug_report_2014.pdf"
-        },
-        {
-          "name": "Wikipedia: Crack cocaine",
-          "reference": "https://en.wikipedia.org/wiki/Crack_cocaine"
-        }
-      ],
-      "categories": [
-        "stimulant",
-        "habit-forming"
       ]
     },
     "index-category": ""
@@ -67489,163 +67348,6 @@
       ],
       "categories": [
         "stimulant",
-        "research-chemical"
-      ]
-    },
-    "index-category": ""
-  },
-  {
-    "id": 614,
-    "title": "MGM-15",
-    "drug_info": {
-      "drug_name": "MGM-15",
-      "chemical_name": "MGM-15",
-      "alternative_name": "",
-      "chemical_class": "Indole alkaloids",
-      "psychoactive_class": "Opioid receptor agonist (mu/delta dual agonist)",
-      "dosages": {
-        "routes_of_administration": [
-          {
-            "route": "oral / sublingual",
-            "units": "mg",
-            "dose_ranges": {
-              "threshold": "5 mg",
-              "light": "5 mg - 15 mg",
-              "common": "15 mg - 40 mg",
-              "strong": "40 mg - 80 mg",
-              "heavy": "80 mg+"
-            }
-          },
-          {
-            "route": "rectal",
-            "units": "mg",
-            "dose_ranges": {
-              "threshold": "5 mg",
-              "light": "5 mg - 12 mg",
-              "common": "12 mg - 30 mg",
-              "strong": "30 mg - 60 mg",
-              "heavy": "60 mg+"
-            }
-          }
-        ]
-      },
-      "duration": {
-        "routes_of_administration": [
-          {
-            "route": "oral / sublingual",
-            "canonical_routes": [
-              "oral",
-              "sublingual"
-            ],
-            "stages": {
-              "total_duration": "6-12 h",
-              "onset": "20-60 min",
-              "peak": "1-3 h",
-              "offset": "3-6 h",
-              "after_effects": "6-24 h residual sedation; pruritus; constipation risk"
-            }
-          },
-          {
-            "route": "rectal",
-            "canonical_routes": [
-              "rectal"
-            ],
-            "stages": {
-              "total_duration": "6-12 h",
-              "peak": "1-3 h",
-              "offset": "3-6 h",
-              "after_effects": "6-24 h residual sedation; pruritus; constipation risk"
-            }
-          }
-        ]
-      },
-      "addiction_potential": "High (opioid-class). Rapid tolerance and dependence are possible with daily use; some users report using multiple times per day or substituting for other opioids/7-OH.",
-      "interactions": {
-        "dangerous": [
-          "benzodiazepines (alprazolam, diazepam) and Z-drugs (additive CNS/respiratory depression)",
-          "alcohol (respiratory depression, emesis aspiration)",
-          "other opioids or opioid-like drugs (tianeptine, tramadol, oxycodone, kratom extracts)",
-          "gabapentinoids at high doses (pregabalin, gabapentin)",
-          "barbiturates",
-          "GHB/GBL"
-        ],
-        "unsafe": [
-          "MAOIs (unpredictable potentiation, serotonin/adrenergic effects)",
-          "CYP3A/CYP2D6 inhibitors or inducers (may alter levels; examples: fluoxetine, paroxetine, bupropion, clarithromycin, azoles, grapefruit, rifampin, carbamazepine)"
-        ],
-        "caution": [
-          "stimulants (tachycardia, masking sedation)",
-          "antihistamines with anticholinergic effects (additive sedation, constipation)",
-          "muscle relaxants (cyclobenzaprine, tizanidine)",
-          "cannabis (can intensify sedation/anxiety)"
-        ]
-      },
-      "notes": "MGM-15 is a semi-synthetic analogue of the kratom alkaloid 7-hydroxymitragynine (7-OH). It was developed alongside MGM-16 as mu/delta-opioid dual agonists; animal and in vitro work consistently finds MGM-16 more potent than MGM-15. Human pharmacokinetics for MGM-15 are unknown; harm-reduction dosing must rely on cautious titration and scattered user reports. Duration described online is longer than 7-OH, with many reporting 6-12 h between doses, which increases overdose risk if redosing too early. Do not combine with other depressants; claims that kratom-derived opioids lack respiratory depression are not supported by clinical data and should not be trusted. Product variability is extreme: vendors sell different salts/purities and the name may cover nonidentical compounds; start low, weigh with a 0.001 g scale, and avoid eyeballing. Because identity is often uncertain, consider third-party analytical testing (LC-MS/HPLC) where available; reagent kits are not reliable for this class. Users attempting to substitute MGM-15 for 7-OH often report lower-per-dose numbers than their 7-OH habits (e.g., single-digit to tens of mg), but some report needing 50-100 mg depending on tolerance and source potency; this spread likely reflects tolerance, salt form, and adulteration. Expect typical opioid effects and adverse effects: miosis, pruritus, constipation, nausea, sedation, and potential respiratory depression at high doses or with CNS depressants. Set a firm session cap before dosing, wait a full 3-4 h before considering any redose, and prefer single-route, single-substance trials to understand sensitivity. Tapering strategies reported online (using small repeated doses of MGM-15 to replace frequent 7-OH) are anecdotal and carry dependence risks; if dependent, seek medical support.",
-      "subjective_effects": [
-        "analgesia",
-        "anxiolysis",
-        "warmth/euphoria",
-        "sedation",
-        "itching/pruritus",
-        "miosis (pinpoint pupils)",
-        "GI slowing/constipation",
-        "reduced cravings for other opioids (anecdotal)"
-      ],
-      "tolerance": {
-        "full_tolerance": "can develop within days of daily use",
-        "half_tolerance": "3-7 days after last use (highly variable)",
-        "zero_tolerance": "2-3+ weeks after last use (conservative estimate)",
-        "cross_tolerances": [
-          "7-hydroxymitragynine",
-          "mitragynine/kratom",
-          "classical opioids (morphine, oxycodone, fentanyl)"
-        ]
-      },
-      "half_life": "unknown in humans (anecdotal duration suggests multi-hour activity)",
-      "citations": [
-        {
-          "name": "Matsumoto et al. 2014 (primary; development of MGM-15 and -16 as mu/delta dual agonists)",
-          "reference": "https://pubmed.ncbi.nlm.nih.gov/24345467/"
-        },
-        {
-          "name": "Prevete et al. 2021 – Systematic review (notes MGM-16 > MGM-15 potency; lists MGM-15 doses used in mice)",
-          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9285932/"
-        },
-        {
-          "name": "Drugs.com Kratom monograph (summarizes MGM-15/16 rationale and potency of MGM-16 vs morphine)",
-          "reference": "https://www.drugs.com/npp/kratom.html"
-        },
-        {
-          "name": "ResearchGate figure/text – MGM-15 and MGM-16 dosing in mice (oral 0.84-1.88 mg/kg for MGM-15)",
-          "reference": "https://www.researchgate.net/figure/Chemical-structure-and-conformation-of-7-hydroxymitragynine-MGM-15-and-MGM-16_fig2_259351839"
-        },
-        {
-          "name": "Science.org (Derek Lowe) – discussion of kratom-derived analogues MGM-9, -15, -16",
-          "reference": "https://www.science.org/content/blog-post/kratom-and-fda"
-        },
-        {
-          "name": "r/mgm15 – user dosing reports (10-30 mg/day split; 7-10 mg TID)",
-          "reference": "https://www.reddit.com/r/mgm15/comments/1maa8ix/what_dose_do_you_guys_take_of_mgm15/"
-        },
-        {
-          "name": "r/mgm15 – user report starting 50 mg; combos with 7-OH",
-          "reference": "https://www.reddit.com/r/mgm15/comments/1k6c603/mgm15_98_from_ps/"
-        },
-        {
-          "name": "r/mgm15 – various dosing experiences (80 mg MGM with 20 mg 7-OH; some recommend 100 mg alone; reflects wide variability)",
-          "reference": "https://www.reddit.com/r/mgm15/comments/1k8azz8/how_much/"
-        },
-        {
-          "name": "r/mgm15 – low-dose approaches alongside kratom leaf (<=10-12 mg suggestions)",
-          "reference": "https://www.reddit.com/r/mgm15/comments/1lkxxm2/proper_dosage/"
-        },
-        {
-          "name": "r/researchchemicals – lay summary that MGM-15 is mu/delta; longer duration than 7-OH (anecdotal)",
-          "reference": "https://www.reddit.com/r/researchchemicals/comments/1lpjos3/mgm15looking_for_anyone_knowledgeable_with/"
-        }
-      ],
-      "categories": [
-        "opioid",
         "research-chemical"
       ]
     },
