@@ -23,8 +23,16 @@ import { tokenizeTagString } from "../utils/tagDelimiters";
 import { getCategoryIcon } from "./categoryIcons";
 import { canonicalizeRouteLabel } from "./routeSynonyms";
 
+type RawDoseRangePrimitive = string | number | null | undefined;
+
+interface RawDoseRangeDetail {
+  [key: string]: RawDoseRangePrimitive;
+}
+
+type RawDoseRangeValue = RawDoseRangePrimitive | RawDoseRangeDetail;
+
 interface RawDoseRanges {
-  [key: string]: string | null | undefined;
+  [key: string]: RawDoseRangeValue;
 }
 
 interface RawRouteDefinition {
@@ -34,6 +42,7 @@ interface RawRouteDefinition {
 }
 
 interface RawDosages {
+  note?: string | null;
   routes_of_administration?: RawRouteDefinition[];
 }
 
@@ -167,6 +176,38 @@ function cleanString(value: string | null | undefined): string | undefined {
   return value.trim();
 }
 
+function toDoseValueString(value: RawDoseRangePrimitive): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) {
+      return undefined;
+    }
+    return cleanString(String(value));
+  }
+
+  if (typeof value === "string") {
+    return cleanString(value);
+  }
+
+  return undefined;
+}
+
+function normalizeDoseDetailLabel(key: string): string {
+  const trimmed = key.trim();
+  if (trimmed.length === 0) {
+    return "";
+  }
+
+  if (trimmed.toLowerCase() === "bac") {
+    return "BAC";
+  }
+
+  return titleize(trimmed);
+}
+
 function cleanStringArray(values: unknown): string[] {
   if (!Array.isArray(values)) {
     return [];
@@ -217,15 +258,60 @@ function buildDoseEntries(ranges?: RawDoseRanges): RouteInfo["dosage"] {
 
   return Object.entries(ranges)
     .map(([key, rawValue]) => {
-      const value = cleanString(rawValue);
-      if (!value) {
-        return null;
-      }
       const label = titleize(key);
-      return {
-        label,
-        value,
-      };
+
+      if (typeof rawValue === "string" || typeof rawValue === "number" || rawValue === null || rawValue === undefined) {
+        const value = toDoseValueString(rawValue);
+        if (!value) {
+          return null;
+        }
+        return {
+          label,
+          value,
+        };
+      }
+
+      if (rawValue && typeof rawValue === "object") {
+        const detailEntries: Array<{ label: string; value: string }> = [];
+        let description: string | undefined;
+
+        Object.entries(rawValue as RawDoseRangeDetail).forEach(([detailKey, detailValue]) => {
+          const value = toDoseValueString(detailValue);
+          if (!value) {
+            return;
+          }
+
+          if (detailKey.trim().toLowerCase() === "effects") {
+            description = value;
+            return;
+          }
+
+          const detailLabel = normalizeDoseDetailLabel(detailKey);
+          if (detailLabel.length === 0) {
+            return;
+          }
+
+          detailEntries.push({
+            label: detailLabel,
+            value,
+          });
+        });
+
+        if (detailEntries.length === 0 && !description) {
+          return null;
+        }
+
+        const primaryValue = detailEntries.length === 1 ? detailEntries[0]!.value : undefined;
+
+        return {
+          label,
+          value: primaryValue,
+          details: detailEntries.length > 0 ? detailEntries : undefined,
+          description,
+        };
+      }
+
+      return null;
     })
     .filter((entry): entry is RouteInfo["dosage"][number] => entry !== null);
 }
@@ -359,6 +445,8 @@ function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | un
   const routes: Record<RouteKey, RouteInfo> = {};
   const routeOrder: RouteKey[] = [];
   const units = new Set<string>();
+  const explicitNote =
+    typeof dosages?.note === "string" ? cleanString(dosages.note) : undefined;
 
   const structuredDuration = isStructuredDurationValue(duration) ? duration : undefined;
   const generalStageMap = structuredDuration
@@ -412,10 +500,18 @@ function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | un
     }
   }
 
+  const unitsNote = buildUnitsNote(units);
+  const noteSegments = [explicitNote, unitsNote].filter((segment): segment is string => Boolean(segment));
+  const combinedNote =
+    noteSegments.length === 0
+      ? ""
+      : noteSegments.join(explicitNote && unitsNote ? " " : "");
+
   return {
     routes,
     routeOrder,
-    unitsNote: buildUnitsNote(units),
+    note: combinedNote,
+    unitsNote,
   };
 }
 
@@ -786,7 +882,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
       )
     : aliases;
 
-  const { routes, routeOrder, unitsNote } = buildRoutes(info.dosages, info.duration);
+  const { routes, routeOrder, note } = buildRoutes(info.dosages, info.duration);
 
   const content: SubstanceContent = {
     name: baseName,
@@ -795,7 +891,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     moleculePlaceholder: buildPlaceholder(baseName),
     heroBadges: buildHeroBadges(info, categories, normalizedCategories),
     categoryKeys: normalizedCategories,
-    dosageUnitsNote: unitsNote,
+    dosageUnitsNote: note,
     routes,
     routeOrder,
     addictionSummary: cleanString(info.addiction_potential) ?? "",

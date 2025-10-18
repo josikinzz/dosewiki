@@ -62,9 +62,7 @@ export function DosageDurationCard({
             <h2 className="text-xl font-semibold text-fuchsia-300">Dosage & Duration</h2>
           </div>
         </div>
-        <div className="flex flex-col gap-2 text-left md:items-end md:text-right">
-          {showNote && <p className="text-xs text-white/65 md:text-[13px]">{trimmedNote}</p>}
-          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
           {orderedRoutes.map((key) => {
             const info = routes[key];
             if (!info) {
@@ -90,9 +88,11 @@ export function DosageDurationCard({
               </button>
             );
           })}
-          </div>
         </div>
       </div>
+      {showNote && (
+        <p className="mt-3 text-xs text-white/70 md:text-sm">{trimmedNote}</p>
+      )}
       <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
         <div>
           <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
@@ -101,15 +101,37 @@ export function DosageDurationCard({
           </h3>
           <div className="space-y-1.5">
             {activeRoute.dosage.length > 0 ? (
-              activeRoute.dosage.map((entry) => (
-                <div
-                  key={entry.label}
-                  className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
-                >
-                  <span className="font-semibold text-white/90">{entry.label}</span>
-                  <span className="text-white/75">{entry.value}</span>
-                </div>
-              ))
+              activeRoute.dosage.map((entry) => {
+                const details = Array.isArray(entry.details) ? entry.details : [];
+                const hasDetails = details.length > 0;
+
+                return (
+                  <div
+                    key={entry.label}
+                    className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="font-semibold text-white/90">{entry.label}</span>
+                        {entry.value && <span className="text-white/75">{entry.value}</span>}
+                      </div>
+                      {hasDetails && (
+                        <div className="space-y-1.5 text-xs">
+                          {details.map((detail, index) => (
+                            <div
+                              key={`${entry.label}-${detail.label}-${index}`}
+                              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/75"
+                            >
+                              <span className="font-medium text-white/85">{detail.label}</span>
+                              <span className="text-white/75">{detail.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             ) : (
               <p className="rounded-xl bg-white/[0.06] px-4 py-3 text-sm italic text-white/60 ring-1 ring-dashed ring-white/15">
                 Dosage guidance is not available for this route in the dataset.
