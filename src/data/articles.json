@@ -75260,5 +75260,134 @@
       ]
     },
     "id": 669
+  },
+  {
+    "title": "Metizolam",
+    "index-category": "depressant; thienodiazepine; research-chemical",
+    "drug_info": {
+      "drug_name": "Metizolam",
+      "chemical_name": "4-(2-chlorophenyl)-2-ethyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "alternative_name": "Desmethyletizolam",
+      "chemical_class": "Thienodiazepine; Thienotriazolodiazepine",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "Full agonist at benzodiazepine/GABA-A receptor; enhances GABA efficiency and effects",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "1-2 mg",
+              "common": "2-4 mg",
+              "strong": "4-6 mg",
+              "heavy": "6+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-8 hours",
+              "onset": "30-90 minutes",
+              "peak": "30 minutes-2 hours (plasma peak)",
+              "offset": "3-6 hours",
+              "after_effects": "10-30 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Thienodiazepines are extremely addictive. Tolerance develops within a couple of days of repeated administration, and the short duration of action encourages compulsive redosing. Abrupt discontinuation following regular use can result in potentially life-threatening withdrawal symptoms including seizures. Limited research exists on metizolam specifically, but similar risks to other thienodiazepines are expected.",
+      "interactions": {
+        "dangerous": [
+          "Opioids (potentially fatal respiratory depression)",
+          "Alcohol (potentially fatal respiratory depression)",
+          "GHB/GBL (potentially fatal respiratory depression)",
+          "Barbiturates (potentially fatal respiratory depression)",
+          "Gabapentinoids (increased respiratory depression risk)",
+          "Tramadol (lowers seizure threshold during withdrawal)"
+        ],
+        "unsafe": [
+          "Dissociatives (increased risk of vomiting during unconsciousness and aspiration)"
+        ],
+        "caution": [
+          "Stimulants (masks sedation leading to excessive intoxication; severe dehydration risk)",
+          "Other depressants (potentiated sedation and amnesia)"
+        ]
+      },
+      "notes": "Metizolam is a research chemical with very little history of human use and minimal scientific study. It was patented in 1995 but never marketed as a medication. Due to its extreme potency, volumetric liquid dosing is strongly recommended to ensure accurate administration. Abrupt discontinuation after regular use is potentially life-threatening; users should taper their dose gradually over weeks under medical supervision if possible. Metizolam is illegal or controlled in many jurisdictions including Sweden, Germany, Switzerland, Turkey, and the United Kingdom. Individuals with personal or family histories of substance use disorders should avoid this substance entirely due to high addiction potential.",
+      "subjective_effects": [
+        "Anxiety Suppression",
+        "Sedation",
+        "Muscle Relaxation",
+        "Motor Control Loss",
+        "Disinhibition",
+        "Amnesia",
+        "Respiratory Depression",
+        "Dizziness",
+        "Thought Deceleration",
+        "Emotion Suppression",
+        "Delusions of Sobriety",
+        "Compulsive Redosing",
+        "Dream Potentiation",
+        "Euphoria (mild)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All thienodiazepines",
+          "All benzodiazepines"
+        ]
+      },
+      "half_life": "3.4 hours (mean elimination half-life, approximately 60% longer than etizolam)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Metizolam",
+          "reference": "https://psychonautwiki.org/wiki/Metizolam"
+        },
+        {
+          "name": "Bluelight: Novel Thienodiazepine, Metizolam",
+          "reference": "http://www.bluelight.org/vb/threads/769635-Novel-Thienodiazepine-Metizolam"
+        },
+        {
+          "name": "Tripsitter: Metizolam Fact Sheet & Harm Reduction Tips",
+          "reference": "https://tripsitter.com/benzodiazepines/metizolam/"
+        },
+        {
+          "name": "Wikipedia: Metizolam",
+          "reference": "https://en.wikipedia.org/wiki/Metizolam"
+        },
+        {
+          "name": "TripSit: Risks of Combining Depressants",
+          "reference": "https://combo.tripsit.me/"
+        },
+        {
+          "name": "PMC: New/Designer Benzodiazepines - An Analysis of the Literature and Psychonauts' Trip Reports",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7569319/"
+        },
+        {
+          "name": "EMCDDA/EUDA: New benzodiazepines in Europe - a review",
+          "reference": "https://www.euda.europa.eu/system/files/publications/13759/TD0221596ENN_002.pdf"
+        },
+        {
+          "name": "Kintz et al.: Detection of the designer benzodiazepine metizolam in urine and preliminary data on its metabolism",
+          "reference": "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/abs/10.1002/dta.2099"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "thienodiazepine",
+        "research-chemical"
+      ]
+    },
+    "id": 670
   }
 ]
