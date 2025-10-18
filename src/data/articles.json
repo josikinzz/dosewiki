@@ -74629,5 +74629,650 @@
       ]
     },
     "index-category": "depressant;legal"
+  },
+  {
+    "title": "AB-FUBINACA",
+    "index-category": "synthetic-cannabinoid; research-chemical",
+    "drug_info": {
+      "drug_name": "AB-FUBINACA",
+      "chemical_name": "N-[(1S)-1-(Aminocarbonyl)-2-methylpropyl]-1-[(4-fluorophenyl)methyl]-1H-indazole-3-carboxamide",
+      "alternative_name": "Ab-fubi; AMB-FUBINACA",
+      "chemical_class": "Indazolecarboxamide",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 cannabinoid receptor full agonist (Ki 0.9 nM, EC50 1.8 nM); CB2 cannabinoid receptor full agonist (Ki 23.2 nM, EC50 3.2 nM) with selectivity for CB2",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "< 1 mg",
+              "light": "1-2 mg",
+              "common": "2-3 mg",
+              "strong": "3-5 mg",
+              "heavy": "5+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "0-20 minutes",
+              "peak": "30-60 minutes",
+              "offset": "10-20 minutes",
+              "after_effects": "15-30 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "AB-FUBINACA can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. When addiction develops, cravings and withdrawal effects may occur if use is stopped suddenly. Physical dependence has been demonstrated in animal studies, with precipitated withdrawal signs including head twitches and paw tremors.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Amphetamines (increased anxiety and thought loops)",
+          "Cocaine (increased anxiety and thought loops)"
+        ],
+        "caution": [
+          "2C-T-x (unpredictable interactions)",
+          "2C-x (unpredictable interactions)",
+          "5-MeO-xxT (unpredictable interactions)",
+          "aMT (unpredictable interactions)",
+          "DMT (unpredictable interactions)",
+          "DOx (unpredictable interactions)",
+          "LSD (unpredictable interactions)",
+          "Mescaline (unpredictable interactions)",
+          "Psilocybin mushrooms (unpredictable interactions)",
+          "25x-NBOMe (unpredictable interactions)"
+        ]
+      },
+      "notes": "AB-FUBINACA is a highly potent synthetic cannabinoid that is active at very low milligram doses, making accurate measurement with a precision scale absolutely critical. Unlike cannabis, chronic abuse of synthetic cannabinoids has been associated with multiple deaths, hospitalizations, and more dangerous side effects. The substance is insoluble in water but dissolves in ethanol and lipids. Extended use or high doses are strongly discouraged. Individuals with personal or family histories of psychotic disorders should avoid this substance, as prolonged use may increase disposition to psychosis.",
+      "subjective_effects": [
+        "Sedation",
+        "Spontaneous Physical Sensations (Warm Tingling Body High)",
+        "Motor Control Loss",
+        "Appetite Enhancement (Munchies)",
+        "Changes In Felt Gravity (Vertigo)",
+        "Perception Of Bodily Heaviness",
+        "Dehydration",
+        "Dry Mouth",
+        "Nausea",
+        "Visual Recursion",
+        "Visual Haze",
+        "Anxiety",
+        "Paranoia",
+        "Thought Connectivity",
+        "Thought Deceleration",
+        "Conceptual Thinking",
+        "Analysis Suppression",
+        "Dream Suppression",
+        "Immersion Enhancement",
+        "Personal Meaning Enhancement",
+        "Increased Music Appreciation",
+        "Auditory Distortion"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated daily use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids (including THC and other synthetic cannabinoids)"
+        ]
+      },
+      "half_life": "Less than 1 hour (brain levels undetectable at 4 hours post-administration)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: AB-FUBINACA",
+          "reference": "https://psychonautwiki.org/wiki/AB-FUBINACA"
+        },
+        {
+          "name": "Wikipedia: AB-FUBINACA",
+          "reference": "https://en.wikipedia.org/wiki/AB-FUBINACA"
+        },
+        {
+          "name": "Erowid Experience Vaults: AB-FUBINACA",
+          "reference": "https://www.erowid.org/experiences/subs/exp_ABFUBINACA.shtml"
+        },
+        {
+          "name": "NCBI: The short-acting synthetic cannabinoid AB-FUBINACA induces physical dependence in mice",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7461724/"
+        },
+        {
+          "name": "NCBI: Pharmacology of Indole and Indazole Synthetic Cannabinoid Designer Drugs",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/26134475/"
+        },
+        {
+          "name": "NCBI: Overview of Synthetic Cannabinoids ADB-FUBINACA and AMB-FUBINACA",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7996508/"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "research-chemical",
+        "cannabinoid"
+      ]
+    },
+    "id": 665
+  },
+  {
+    "title": "JWH-073",
+    "index-category": "cannabinoid; synthetic",
+    "drug_info": {
+      "drug_name": "JWH-073",
+      "chemical_name": "Naphthalen-1-yl-(1-butylindol-3-yl)methanone",
+      "alternative_name": "Spice",
+      "chemical_class": "Naphthoylindole",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 receptor full agonist; CB2 receptor full agonist (5x lower affinity than CB1)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "Under 3 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "5-10 minutes",
+              "peak": "60-90 minutes",
+              "offset": "5-10 minutes",
+              "after_effects": "60-90 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "JWH-073 is considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. The short duration of action may lead to more frequent use and strengthen habitual patterns. Cravings and withdrawal effects may occur upon sudden cessation after chronic use.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "2C-T-x series",
+          "2C-x series",
+          "5-MeO-xxT series",
+          "DMT",
+          "DOx series",
+          "LSD",
+          "Mescaline",
+          "Psilocybin mushrooms",
+          "25x-NBOMe series"
+        ],
+        "caution": [
+          "Amphetamines (increased anxiety and thought loops)",
+          "aMT",
+          "Cocaine (increased anxiety and thought loops)",
+          "Alcohol (extreme nausea, dizziness, changes in gravity when combined)"
+        ]
+      },
+      "notes": "JWH-073 is a synthetic cannabinoid active in the milligram range and requires precise weighing with a milligram scale to avoid overdose. Unlike cannabis, chronic abuse of synthetic cannabinoids has been associated with multiple deaths and more dangerous side effects. Individuals with personal or family history of psychotic disorders should strictly avoid use. The substance may be carcinogenic due to its naphthalene moiety. Set and setting are important factors. JWH-073 was commonly found in Spice and similar synthetic cannabis products.",
+      "subjective_effects": [
+        "Warm Pleasurable Body High",
+        "Sedation",
+        "Motor Control Loss",
+        "Appetite Enhancement",
+        "Pain Relief",
+        "Emotion Enhancement",
+        "Euphoria",
+        "Thought Connectivity",
+        "Color Enhancement",
+        "Visual Geometry (Mild)",
+        "Auditory Enhancement",
+        "Anxiety (Less Than JWH-018)",
+        "Paranoia (Dose-Dependent)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids including THC, JWH-018, AM-2201, and other synthetic cannabinoids"
+        ]
+      },
+      "half_life": "Extended half-life with less receptor internalization compared to JWH-018 (specific duration not well-established in humans)",
+      "citations": [
+        {
+          "name": "Bluelight JWH-073 Discussion Threads",
+          "reference": "https://www.bluelight.org/community/threads/jwh-any-advice.538784/"
+        },
+        {
+          "name": "Drugs-Forum Cannabinoid Dose and Duration Chart",
+          "reference": "https://drugs-forum.com/threads/cannabinoid-dose-and-duration-chart-beta.111754/"
+        },
+        {
+          "name": "Erowid JWH-073 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_JWH073.shtml"
+        },
+        {
+          "name": "Frontiers in Neuroscience: JWH-073 and JWH-210 Behavioral Profile",
+          "reference": "https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2018.00703/full"
+        },
+        {
+          "name": "PMC: JWH-073 Electrophysiological Effects in Mice",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9634257/"
+        },
+        {
+          "name": "PsychonautWiki: JWH-073",
+          "reference": "https://psychonautwiki.org/wiki/JWH-073"
+        },
+        {
+          "name": "ScienceDirect Topics: JWH-073 Overview",
+          "reference": "https://www.sciencedirect.com/topics/neuroscience/jwh-073"
+        },
+        {
+          "name": "WHO Expert Committee on Drug Dependence: JWH-073",
+          "reference": "https://ecddrepository.org/en/jwh-073"
+        },
+        {
+          "name": "Wikipedia: JWH-073",
+          "reference": "https://en.wikipedia.org/wiki/JWH-073"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "cannabinoid",
+        "naphthoylindole",
+        "research-chemical"
+      ]
+    },
+    "id": 666
+  },
+  {
+    "title": "THJ-018",
+    "index-category": "synthetic-cannabinoid; research-chemical",
+    "drug_info": {
+      "drug_name": "THJ-018",
+      "chemical_name": "1-Naphthalenyl(1-pentyl-1H-indazol-3-yl)-methanone",
+      "alternative_name": "SGT-17",
+      "chemical_class": "Naphthoylindazoles",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 cannabinoid receptor full agonist (Ki 5.84 nM); CB2 cannabinoid receptor full agonist (Ki 4.57 nM, with slight selectivity)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "< 1 mg",
+              "light": "1-2 mg",
+              "common": "2-3 mg",
+              "strong": "3-5 mg",
+              "heavy": "5+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "2-3 hours",
+              "onset": "5-10 minutes",
+              "peak": "60-90 minutes",
+              "offset": "5-10 minutes",
+              "after_effects": "60-90 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Chronic use of THJ-018 can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. When addiction has developed, cravings and withdrawal effects may occur upon sudden cessation. Evidence of dependence with synthetic cannabinoids is limited but documented.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "Amphetamines (increased anxiety and thought loop risk)",
+          "Cocaine (increased anxiety and thought loop risk)"
+        ],
+        "caution": [
+          "Psychedelics (intensified and extended visual and cognitive effects)",
+          "Dissociatives (greatly enhanced geometry, euphoria, dissociation and hallucinatory effects)",
+          "Alcohol (extreme nausea, dizziness, and changes in gravity)",
+          "2C-x compounds (unpredictable effects)",
+          "2C-T-x compounds (unpredictable effects)",
+          "5-MeO-xxT compounds (unpredictable effects)",
+          "aMT (unpredictable effects)",
+          "DOx compounds (unpredictable effects)",
+          "DMT (unpredictable effects)",
+          "LSD (unpredictable effects)",
+          "Mescaline (unpredictable effects)",
+          "Psilocybin mushrooms (unpredictable effects)",
+          "25x-NBOMe compounds (unpredictable effects)"
+        ]
+      },
+      "notes": "THJ-018 is a synthetic cannabinoid analog of JWH-018 marketed as a legal alternative after JWH-018 was banned in 2009. It appears as a brown, sticky, chunky powder with a naphthalene-like smell. As synthetic cannabinoids are active in the milligram range, accurate weighing with a precision scale is essential. The naphthalene group may be toxic or carcinogenic with chronic use. Unlike cannabis, synthetic cannabinoids have been associated with multiple deaths and dangerous side effects. Individuals with personal or family history of psychotic disorders should avoid use, as prolonged usage may increase disposition to psychosis. It is strongly discouraged to take this substance for extended periods or in excessive doses.",
+      "subjective_effects": [
+        "Spontaneous Physical Sensations",
+        "Sedation",
+        "Motor Control Loss",
+        "Appetite Enhancement",
+        "Pain Relief",
+        "Vasodilation",
+        "Perception of Bodily Lightness",
+        "Dehydration",
+        "Color Enhancement",
+        "Acuity Suppression",
+        "Closed-Eye Geometry",
+        "Emotion Enhancement",
+        "Anxiety",
+        "Paranoia",
+        "Thought Connectivity",
+        "Thought Deceleration",
+        "Conceptual Thinking",
+        "Mindfulness",
+        "Analysis Suppression",
+        "Dream Suppression",
+        "Immersion Enhancement",
+        "Increased Music Appreciation",
+        "Auditory Enhancement"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "DanceSafe Drug Checking",
+          "reference": "https://dancesafe.org/drug-checking/"
+        },
+        {
+          "name": "Erowid THJ-018 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_THJ018.shtml"
+        },
+        {
+          "name": "PsychonautWiki THJ-018",
+          "reference": "https://psychonautwiki.org/wiki/THJ-018"
+        },
+        {
+          "name": "Wikipedia THJ-018",
+          "reference": "https://en.wikipedia.org/wiki/THJ-018"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "research-chemical",
+        "cannabinoid",
+        "naphthoylindazole"
+      ]
+    },
+    "id": 667
+  },
+  {
+    "title": "2M2B",
+    "index-category": "depressant; alcohol",
+    "drug_info": {
+      "drug_name": "2M2B",
+      "chemical_name": "2-methylbutan-2-ol",
+      "alternative_name": "tert-Amyl alcohol; Amylene hydrate; TAA",
+      "chemical_class": "Tertiary alcohol",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator (binds to proconvulsant site)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "ml",
+            "dose_ranges": {
+              "threshold": "0.5 ml",
+              "light": "1-5 ml",
+              "common": "5-10 ml",
+              "strong": "10-15 ml",
+              "heavy": "15+ ml"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-14 hours",
+              "onset": "10-50 minutes",
+              "peak": "6-8 hours",
+              "offset": "4-6 hours",
+              "after_effects": "Up to 24 hours (sedation and lethargy)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "2M2B has moderate to high addiction potential and can cause physical dependence. As with other GABA receptor agonists, repeated use leads to tolerance and withdrawal symptoms upon discontinuation resembling alcohol, barbiturate, or benzodiazepine withdrawal, including potentially life-threatening delirium tremens. Users report compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Depressants (alcohol, benzodiazepines, barbiturates, opioids, GHB/GBL) - Potentially fatal respiratory depression",
+          "Dissociatives (ketamine, DXM, PCP) - Unpredictable potentiation of amnesia, sedation, and respiratory depression"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Stimulants - Mask sedative effects leading to dangerous disinhibition and blackout states when stimulant wears off"
+        ]
+      },
+      "notes": "2M2B is approximately 20 times more potent than ethanol by weight. Fatal overdoses have been reported at doses as low as 18-30 ml. It has an extremely unpleasant taste and smell resembling gasoline, camphor, or solvents. Unlike primary alcohols, 2M2B cannot be metabolized into toxic aldehydes, resulting in significantly reduced hangover effects but extended duration of action lasting up to 24 hours. Precise measurement with graduated equipment is essential due to high potency. The substance is not detected by standard alcohol or drug tests but can be identified via gas chromatography-mass spectrometry. Gelatin capsules are recommended for oral administration to avoid the harsh taste.",
+      "subjective_effects": [
+        "Sedation (significantly more than ethanol)",
+        "Muscle Relaxation",
+        "Motor Control Loss (disproportionately severe)",
+        "Anxiety Suppression",
+        "Cognitive Euphoria (less than ethanol)",
+        "Delusions of Sobriety",
+        "Disinhibition",
+        "Memory Suppression and Amnesia",
+        "Respiratory Depression",
+        "Pain Relief",
+        "Appetite Enhancement",
+        "Dizziness"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All GABAergic depressants (alcohol, benzodiazepines, barbiturates, GHB)"
+        ]
+      },
+      "half_life": "Extended elimination time via glucuronidation; effects last 8-14 hours with residual sedation up to 24 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: 2M2B",
+          "reference": "https://psychonautwiki.org/wiki/2M2B"
+        },
+        {
+          "name": "TripSit: 2-methyl-2-butanol Factsheet",
+          "reference": "https://drugs.tripsit.me/2-methyl-2-butanol"
+        },
+        {
+          "name": "Erowid Experience Vaults: 2-Methyl-2-Butanol",
+          "reference": "https://www.erowid.org/experiences/subs/exp_2Methyl2Butanol.shtml"
+        },
+        {
+          "name": "Bluelight: 2M2B Synthetic Alcohols Megathread",
+          "reference": "https://www.bluelight.org/community/threads/2m2b-2-methyl-2-butanol-synthetic-alcohols-megathread.538800/"
+        },
+        {
+          "name": "Wikipedia: tert-Amyl alcohol",
+          "reference": "https://en.wikipedia.org/wiki/Tert-Amyl_alcohol"
+        },
+        {
+          "name": "Drugs-Forum: 2-Methyl-2-Butanol Discussion",
+          "reference": "https://drugs-forum.com/threads/2-methyl-2-butanol-2m2b.146071/"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "alcohol",
+        "gaba-agonist",
+        "tertiary-alcohol"
+      ]
+    },
+    "id": 668
+  },
+  {
+    "title": "Flualprazolam",
+    "index-category": "depressant; benzodiazepine; research-chemical",
+    "drug_info": {
+      "drug_name": "Flualprazolam",
+      "chemical_name": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-benzo[f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "alternative_name": "Flualp; F-Alp; 2'-Fluoro-Alprazolam",
+      "chemical_class": "Triazolobenzodiazepines",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.05 mg",
+              "light": "0.1-0.3 mg",
+              "common": "0.3-0.5 mg",
+              "strong": "0.5-1 mg",
+              "heavy": "1+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-8 hours",
+              "onset": "20-40 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-6 hours",
+              "after_effects": "6-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Flualprazolam is considered highly addictive with a high potential for abuse. It has been reported by users to dramatically and rapidly increase benzodiazepine cross-tolerance. Tolerance to sedative-hypnotic effects develops within a couple of days of continuous use. Withdrawal symptoms may occur after ceasing usage abruptly following steady dosing and can include rebound anxiety, seizures, and potentially life-threatening complications.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (respiratory depression, loss of consciousness)",
+          "Opioids (respiratory depression, loss of consciousness)",
+          "GHB/GBL (respiratory depression, loss of consciousness)",
+          "Barbiturates (respiratory depression, loss of consciousness)"
+        ],
+        "unsafe": [
+          "Dissociatives (unpredictable amnesia, sedation, respiratory depression)",
+          "Other benzodiazepines (potentiated CNS depression)"
+        ],
+        "caution": [
+          "Stimulants (masks sedation, risk of blackouts)",
+          "Tramadol (lowers seizure threshold during withdrawal)"
+        ]
+      },
+      "notes": "Flualprazolam is a highly potent designer benzodiazepine that is 1.5-5 times stronger than alprazolam by weight. It is typically sold as counterfeit alprazolam (Xanax) tablets or as a research chemical. Accurate weighing with a precise milligram scale is critical due to extreme potency. This substance is particularly hypnotic and sedating compared to alprazolam, with strong amnestic effects and compulsive redosing tendencies. Sudden discontinuation after regular use can be life-threatening; individuals physically dependent on benzodiazepines must taper gradually. Use extreme caution and harm reduction practices. Flualprazolam is Schedule I in the United States as of January 2023 and controlled in many other jurisdictions.",
+      "subjective_effects": [
+        "Sedation",
+        "Muscle Relaxation",
+        "Anxiety Suppression",
+        "Memory Suppression",
+        "Disinhibition",
+        "Physical Euphoria (Short-Lasting)",
+        "Cognitive Euphoria (Short-Lasting)",
+        "Compulsive Redosing",
+        "Delusions of Sobriety",
+        "Motor Control Loss",
+        "Sleepiness",
+        "Emotion Suppression",
+        "Respiratory Depression",
+        "Dizziness"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "7-14 days",
+        "zero_tolerance": "2-4 weeks",
+        "cross_tolerances": [
+          "All benzodiazepines",
+          "Thienodiazepines",
+          "Z-drugs (zopiclone, zolpidem)",
+          "Gabapentinoids (pregabalin, gabapentin)"
+        ]
+      },
+      "half_life": "6-12 hours (approximately double that of alprazolam)",
+      "citations": [
+        {
+          "name": "Bluelight Flualprazolam Discussion Thread",
+          "reference": "https://bluelight.org/xf/threads/flualprazolam.835125/"
+        },
+        {
+          "name": "DEA Federal Register - Schedule I Placement",
+          "reference": "https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam"
+        },
+        {
+          "name": "Erowid Experience Vaults: Flualprazolam",
+          "reference": "https://erowid.org/experiences/subs/exp_Flualprazolam.shtml"
+        },
+        {
+          "name": "Forensic Toxicology - Fatal Flualprazolam Intoxication Case Report",
+          "reference": "https://link.springer.com/article/10.1007/s11419-021-00591-w"
+        },
+        {
+          "name": "Forensic Toxicology - Flualprazolam Review Article",
+          "reference": "https://link.springer.com/article/10.1007/s11419-020-00565-4"
+        },
+        {
+          "name": "Journal of Forensic Sciences - Flualprazolam Distribution Study",
+          "reference": "https://onlinelibrary.wiley.com/doi/10.1111/1556-4029.14893"
+        },
+        {
+          "name": "PsychonautWiki: Flualprazolam",
+          "reference": "https://psychonautwiki.org/wiki/Flualprazolam"
+        },
+        {
+          "name": "Reddit r/researchchemicals Flualprazolam Review",
+          "reference": "https://www.reddit.com/r/researchchemicals/comments/7m1qns/flualprazolam_review/"
+        },
+        {
+          "name": "Wikipedia: Flualprazolam",
+          "reference": "https://en.wikipedia.org/wiki/Flualprazolam"
+        }
+      ],
+      "categories": [
+        "benzodiazepine",
+        "triazolobenzodiazepine",
+        "research-chemical",
+        "depressant"
+      ]
+    },
+    "id": 669
   }
 ]
