@@ -6479,7 +6479,7 @@
     "drug_info": {
       "drug_name": "Canket",
       "chemical_name": "Canket",
-      "alternative_name": "FXE, 2-F-2'-Oxo-PCE, 2F-NENDCK",
+      "alternative_name": "FXE; 2-F-2'-Oxo-PCE; 2F-NENDCK",
       "chemical_class": "Arylcyclohexylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -12942,7 +12942,7 @@
     "drug_info": {
       "drug_name": "3-Fluoroamphetamine",
       "chemical_name": "3-Fluoroamphetamine",
-      "alternative_name": "3-FA, PAL-353",
+      "alternative_name": "3-FA; PAL-353",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Dopamine-norepinephrine releasing agent",
       "psychoactive_class": "Stimulant",
@@ -19526,7 +19526,7 @@
     "drug_info": {
       "drug_name": "3-Fluorophenmetrazine",
       "chemical_name": "3-Fluorophenmetrazine",
-      "alternative_name": "3-FPM, 3-FPH, PAL-593",
+      "alternative_name": "3-FPM; 3-FPH; PAL-593",
       "chemical_class": "Phenmetrazines",
       "mechanism_of_action": "Dopamine-norepinephrine releasing agent",
       "psychoactive_class": "Stimulant",
@@ -20156,7 +20156,7 @@
     "drug_info": {
       "drug_name": "Methylenedioxyphenmetrazine",
       "chemical_name": "3,4-Methylenedioxyphenmetrazine",
-      "alternative_name": "MDPM, 3-MDPM",
+      "alternative_name": "MDPM; 3-MDPM",
       "chemical_class": "MDXX",
       "mechanism_of_action": "Serotonin-dopamine-norepinephrine releasing agent",
       "psychoactive_class": "Stimulant; mild empathogen",
@@ -23653,7 +23653,7 @@
     "drug_info": {
       "drug_name": "2-Chloroephenidine",
       "chemical_name": "2-Chloroephenidine",
-      "alternative_name": "2-Cl-Eph, 2-Cl-diphenidine",
+      "alternative_name": "2-Cl-Eph; 2-Cl-diphenidine",
       "chemical_class": "Substituted diarylethylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -23967,7 +23967,7 @@
     "drug_info": {
       "drug_name": "Spirochlorphine",
       "chemical_name": "Spirochlorphine",
-      "alternative_name": "R-6890, SPC",
+      "alternative_name": "R-6890; SPC",
       "chemical_class": "Benzimidazoles",
       "mechanism_of_action": "Nociceptin receptor agonist with μ-opioid receptor affinity",
       "psychoactive_class": "Opioid analgesic (μ-opioid/NOP agonist)",
@@ -24275,7 +24275,7 @@
     "drug_info": {
       "drug_name": "3,4-MD-PCP",
       "chemical_name": "3,4-Methylenediox​y-phencyclidine",
-      "alternative_name": "3,4-MD-PCP, MDPCP",
+      "alternative_name": "3,4-MD-PCP; MDPCP",
       "chemical_class": "Arylcyclohexylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -24760,7 +24760,7 @@
     "drug_info": {
       "drug_name": "4-Chloromethcathinone",
       "chemical_name": "4-CMC",
-      "alternative_name": "4-Chloromethcathinone, Clephedrone",
+      "alternative_name": "4-Chloromethcathinone; Clephedrone",
       "chemical_class": "Cathinones",
       "mechanism_of_action": "Dopamine-norepinephrine reuptake inhibitor",
       "psychoactive_class": "Stimulant; entactogen",
@@ -25025,7 +25025,7 @@
     "drug_info": {
       "drug_name": "AEM",
       "chemical_name": "AEM",
-      "alternative_name": "α-Ethylmescaline, 2-Amino-1-(3,4,5-trimethoxyphenyl)butane",
+      "alternative_name": "α-Ethylmescaline; 2-Amino-1-(3,4,5-trimethoxyphenyl)butane",
       "chemical_class": "Scalines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -25113,7 +25113,7 @@
     "drug_info": {
       "drug_name": "4C-D",
       "chemical_name": "ARIADNE",
-      "alternative_name": "4C-D, Dimoxamine, 4C-DOM, BL-3912",
+      "alternative_name": "4C-D; Dimoxamine; 4C-DOM; BL-3912",
       "chemical_class": "Psychedelic amphetamine",
       "mechanism_of_action": "5-HT2A receptor agonist (partial); anti-parkinsonian",
       "psychoactive_class": "Psychedelic; stimulant",
@@ -28227,7 +28227,7 @@
     "drug_info": {
       "drug_name": "alpha-PVP",
       "chemical_name": "α-Pyrrolidinopentiophenone",
-      "alternative_name": "α-PVP, Flakka, Gravel, A-PVP",
+      "alternative_name": "α-PVP; Flakka; Gravel; A-PVP",
       "chemical_class": "Substituted pyrrolidines",
       "mechanism_of_action": "Dopamine-norepinephrine reuptake inhibitor (potent)",
       "psychoactive_class": "Stimulant",
@@ -28647,7 +28647,7 @@
     "drug_info": {
       "drug_name": "4-Fluorophenibut",
       "chemical_name": "4-Fluorophenibut",
-      "alternative_name": "F-Phenibut, 4-F-Phenibut, Fluorophenibut",
+      "alternative_name": "F-Phenibut; 4-F-Phenibut; Fluorophenibut",
       "chemical_class": "GABA analogue (phenibut analogue)",
       "mechanism_of_action": "Gamma-aminobutyric acid type B receptor agonist",
       "psychoactive_class": "Depressant; Anxiolytic; Gabapentinoid",
@@ -31092,7 +31092,7 @@
     "drug_info": {
       "drug_name": "Cannabis",
       "chemical_name": "Cannabis",
-      "alternative_name": "Tetrahydrocannabinol+Cannabidiol, THC+CBD",
+      "alternative_name": "Tetrahydrocannabinol+Cannabidiol; THC+CBD",
       "chemical_class": "Phytocannabinoids",
       "mechanism_of_action": "CB1 and CB2 receptor partial agonist",
       "psychoactive_class": "cannabinoid; hallucinogen",
@@ -32349,7 +32349,7 @@
     "drug_info": {
       "drug_name": "4-Methylthioamphetamine",
       "chemical_name": "4-Methylthioamphetamine",
-      "alternative_name": "4-MTA, MTA",
+      "alternative_name": "4-MTA; MTA",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Serotonin releasing agent",
       "psychoactive_class": "Stimulant; Entactogen",
@@ -33596,7 +33596,7 @@
     "drug_info": {
       "drug_name": "5-ADPI",
       "chemical_name": "5-APDI",
-      "alternative_name": "5-IAP, IAP",
+      "alternative_name": "5-IAP; IAP",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Serotonin releasing agent",
       "psychoactive_class": "Entactogen; stimulant; mild psychedelic",
@@ -37984,7 +37984,7 @@
     "drug_info": {
       "drug_name": "Isotonitazepyne",
       "chemical_name": "Isotonitazepyne",
-      "alternative_name": "N-pyrrolidino isotonitazene, iso-pyne",
+      "alternative_name": "N-pyrrolidino isotonitazene; iso-pyne",
       "chemical_class": "Benzimidazoles",
       "mechanism_of_action": "μ-Opioid receptor agonist (full)",
       "psychoactive_class": "Opioid analgesic; μ-opioid receptor super-agonist",
@@ -38144,7 +38144,7 @@
     "drug_info": {
       "drug_name": "Ephenidine",
       "chemical_name": "Ephenidine",
-      "alternative_name": "DPD-E, 1,2-DP-E",
+      "alternative_name": "DPD-E; 1,2-DP-E",
       "chemical_class": "Substituted diarylethylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -39410,7 +39410,7 @@
     "drug_info": {
       "drug_name": "Adderall",
       "chemical_name": "Adderall",
-      "alternative_name": "Addy, Dextroamphetamine+Amphetamine",
+      "alternative_name": "Addy; Dextroamphetamine+Amphetamine",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Dopamine-norepinephrine releasing agent",
       "psychoactive_class": "Central-nervous-system stimulant; dopamine-norepinephrine releasing agent",
@@ -40637,7 +40637,7 @@
     "drug_info": {
       "drug_name": "2-MA",
       "chemical_name": "2-Methylamphetamine",
-      "alternative_name": "2-MA, Ortetamine",
+      "alternative_name": "2-MA; Ortetamine",
       "chemical_class": "Amphetamines",
       "mechanism_of_action": "Dopamine-norepinephrine releasing agent",
       "psychoactive_class": "stimulant",
@@ -41181,7 +41181,7 @@
     "drug_info": {
       "drug_name": "4-Cl-MAR",
       "chemical_name": "4′-Chloro-4-methylaminorex",
-      "alternative_name": "4C-MAR, 4-Cl-MAR",
+      "alternative_name": "4C-MAR; 4-Cl-MAR",
       "chemical_class": "Aminorexes",
       "mechanism_of_action": "Serotonin-dopamine-norepinephrine releasing agent",
       "psychoactive_class": "Stimulant; monoamine-releasing agent",
@@ -41339,7 +41339,7 @@
     "drug_info": {
       "drug_name": "Fen-Phen",
       "chemical_name": "Phentermine+Fenfluramine",
-      "alternative_name": "Phen/Fen, Fen-Phen",
+      "alternative_name": "Phen/Fen; Fen-Phen",
       "chemical_class": "Substituted amphetamine & substituted amphetamine analogue (phenethylamine derivatives)",
       "mechanism_of_action": "Combination mechanism",
       "psychoactive_class": "Stimulant anorectic (DA/NE releaser) + serotonergic releasing agent",
@@ -47173,7 +47173,7 @@
     "drug_info": {
       "drug_name": "EDMC",
       "chemical_name": "EDMC",
-      "alternative_name": "3,4-Ethylenedioxymethcathinone, 3,4-EDMC",
+      "alternative_name": "3,4-Ethylenedioxymethcathinone; 3,4-EDMC",
       "chemical_class": "Cathinones",
       "mechanism_of_action": "Serotonin releasing agent; Dopamine-norepinephrine reuptake inhibitor",
       "psychoactive_class": "Serotonin–norepinephrine–dopamine releasing agent; stimulant-entactogen",
@@ -53813,7 +53813,7 @@
     "drug_info": {
       "drug_name": "2-Me-DMT",
       "chemical_name": "2-Me-DMT",
-      "alternative_name": "2-Methyl-N,N-dimethyltryptamine, 2,N,N-TMT",
+      "alternative_name": "2-Methyl-N,N-dimethyltryptamine; 2,N,N-TMT",
       "chemical_class": "Tryptamines",
       "mechanism_of_action": "5-HT2A receptor agonist",
       "psychoactive_class": "Psychedelic",
@@ -59199,7 +59199,7 @@
     "drug_info": {
       "drug_name": "alpha-D2PV",
       "chemical_name": "alpha-D2PV",
-      "alternative_name": "α-D2PV, a-D2PV, 2-Diphenylmethylpyrrolidin-1-ylpentan-1-one",
+      "alternative_name": "α-D2PV; a-D2PV; 2-Diphenylmethylpyrrolidin-1-ylpentan-1-one",
       "chemical_class": "Substituted pyrrolidines",
       "mechanism_of_action": "Dopamine-norepinephrine reuptake inhibitor (potent)",
       "psychoactive_class": "Dopamine; norepinephrine re-uptake inhibitor (DNRI)",
@@ -59386,7 +59386,7 @@
     "drug_info": {
       "drug_name": "Monotropa uniflora",
       "chemical_name": "Monotropa uniflora",
-      "alternative_name": "Ghost Pipe, Indian Pipe",
+      "alternative_name": "Ghost Pipe; Indian Pipe",
       "chemical_class": "Phenolic-glycoside–rich parasitic herb (family Ericaceae)",
       "mechanism_of_action": "Stimulant (uncertain mechanism)",
       "psychoactive_class": "Analgesic; anxiolytic; putative sodium-channel modulator (grayanotoxins) and salicylate pro-drug",
