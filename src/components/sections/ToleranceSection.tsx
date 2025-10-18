@@ -1,4 +1,4 @@
-import { Gauge } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { ToleranceEntry } from "../../types/content";
@@ -12,7 +12,7 @@ export function ToleranceSection({ tolerance }: ToleranceSectionProps) {
     <SectionCard delay={0.25}>
       <div className="flex flex-col gap-3">
         <h2 className="flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-          <IconBadge icon={Gauge} label="Tolerance" />
+          <IconBadge icon={TrendingUp} label="Tolerance" />
           Tolerance
         </h2>
       </div>

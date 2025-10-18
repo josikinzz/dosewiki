@@ -103,11 +103,11 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
             <img
               src={logoDataUri}
               alt="dose.wiki logo"
-              className="h-9 w-9 md:h-10 md:w-10"
+              className="h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
               draggable={false}
             />
           </span>
-          <span className="inline-flex items-center bg-gradient-to-r from-fuchsia-300 to-violet-200 bg-clip-text text-xl font-bold tracking-tight text-transparent transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+          <span className="inline-flex items-center text-xl font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
             dose.wiki
           </span>
         </button>

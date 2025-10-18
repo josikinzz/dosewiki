@@ -4,7 +4,7 @@
  * `dosages.routes_of_administration`, and `subjective_effects` that we
  * restructure into `SubstanceContent` for components.
  */
-import { BrainCircuit, BrainCog, Cog, Hexagon, Timer } from "lucide-react";
+import { BrainCircuit, BrainCog, Cog, Hexagon, Timer, TrendingDown } from "lucide-react";
 
 import type {
   SubstanceContent,
@@ -598,7 +598,7 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
 
   const halfLife = cleanString(info.half_life);
   if (halfLife) {
-    items.push({ label: "Half-life", value: halfLife, icon: Timer });
+    items.push({ label: "Half-life", value: halfLife, icon: TrendingDown });
   }
 
 

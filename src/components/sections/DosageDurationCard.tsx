@@ -1,4 +1,4 @@
-import { Pill, Scale, Timer } from 'lucide-react';
+import { ChartNoAxesCombined, Scale, Timer } from 'lucide-react';
 import { SectionCard } from '../common/SectionCard';
 import { IconBadge } from '../common/IconBadge';
 import { RouteInfo, RouteKey } from '../../types/content';
@@ -57,7 +57,7 @@ export function DosageDurationCard({
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex items-start gap-3">
-          <IconBadge icon={Scale} label="Dosage and duration" />
+          <IconBadge icon={ChartNoAxesCombined} label="Dosage and duration" />
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-semibold text-fuchsia-300">Dosage & Duration</h2>
           </div>
@@ -96,7 +96,7 @@ export function DosageDurationCard({
       <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
         <div>
           <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
-            <Pill className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            <Scale className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
             <span>Dosage ({resolveLabel(activeRouteKey)})</span>
           </h3>
           <div className="space-y-1.5">
