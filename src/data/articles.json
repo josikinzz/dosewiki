@@ -42679,37 +42679,81 @@
     "index-category": ""
   },
   {
-    "id": 409,
-    "title": "Salvia",
+    "id": null,
+    "title": "Salvia divinorum",
     "drug_info": {
-      "drug_name": "Salvia",
-      "chemical_name": "Salvinorin A",
-      "alternative_name": "Salvinorin A",
-      "chemical_class": "Diterpenoid",
-      "mechanism_of_action": "κ-Opioid receptor agonist",
-      "psychoactive_class": "Psychedelic",
+      "drug_name": "Salvia divinorum",
+      "chemical_name": "Methyl (2S,4aR,6aR,7R,9S,10aS,10bR)-9-(acetyloxy)-2-(furan-3-yl)-6a,10b-dimethyl-4,10-dioxododecahydro-2H-benzo[f]isochromene-7-carboxylate",
+      "alternative_name": "Salvinorin A; Diviner's Sage; Ska Maria Pastora; Seer's Sage; Sally; Sally D; Magic Mint; Yerba de la Pastora",
+      "chemical_class": "Diterpenoid; Neoclerodane",
+      "mechanism_of_action": "Kappa-opioid receptor agonist; D2 dopamine receptor agonist (weak)",
+      "psychoactive_class": "Dissociative; Atypical psychedelic",
       "dosages": {
         "routes_of_administration": [
           {
-            "route": "smoked",
-            "units": "\u001fg",
+            "route": "smoked (dried leaf)",
+            "units": "g",
             "dose_ranges": {
-              "threshold": "50 \u001fg",
-              "light": "200-500 \u001fg",
-              "common": "500-1000 \u001fg",
-              "strong": "1000-2000 \u001fg",
-              "heavy": "2000+ \u001fg"
+              "threshold": "0.1-0.2 g",
+              "light": "0.25 g",
+              "common": "0.5 g",
+              "strong": "0.75-1 g",
+              "heavy": "1+ g"
             }
           },
           {
-            "route": "oral",
-            "units": "\u001fg",
+            "route": "smoked (5x extract)",
+            "units": "mg",
             "dose_ranges": {
-              "threshold": "200 \u001fg",
-              "light": "500-1000 \u001fg",
-              "common": "1000-2000 \u001fg",
-              "strong": "2000-4000 \u001fg",
-              "heavy": "4000+ \u001fg"
+              "threshold": "20-40 mg",
+              "light": "40-100 mg",
+              "common": "100-200 mg",
+              "strong": "200-300 mg",
+              "heavy": "300+ mg"
+            }
+          },
+          {
+            "route": "smoked (10x extract)",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10-20 mg",
+              "light": "20-50 mg",
+              "common": "50-100 mg",
+              "strong": "100-150 mg",
+              "heavy": "150+ mg"
+            }
+          },
+          {
+            "route": "sublingual/quid (fresh leaf)",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "5-10 g",
+              "light": "10 g",
+              "common": "30 g",
+              "strong": "50 g",
+              "heavy": "50+ g"
+            }
+          },
+          {
+            "route": "sublingual/quid (dried leaf)",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "1-2 g",
+              "light": "2 g",
+              "common": "6 g",
+              "strong": "10 g",
+              "heavy": "10+ g"
+            }
+          },
+          {
+            "route": "vaporized (pure salvinorin A)",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "200-500 ug",
+              "light": "500-800 ug",
+              "common": "800-1200 ug",
+              "strong": "1200-2000 ug",
+              "heavy": "2000+ ug"
             }
           }
         ]
@@ -42718,76 +42762,163 @@
         "routes_of_administration": [
           {
             "route": "smoked",
-            "stages": {
-              "total_duration": "5-20 minutes",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-10 minutes",
-              "offset": "10-20 minutes",
-              "after_effects": "30-60 minutes"
-            },
             "canonical_routes": [
               "smoked"
-            ]
+            ],
+            "stages": {
+              "total_duration": "15-90 minutes",
+              "onset": "15-60 seconds",
+              "peak": "5-20 minutes",
+              "offset": "10-30 minutes",
+              "after_effects": "15-60 minutes"
+            }
           },
           {
-            "route": "oral",
-            "stages": {
-              "total_duration": "5-20 minutes",
-              "onset": "30 seconds - 2 minutes",
-              "peak": "5-10 minutes",
-              "offset": "10-20 minutes",
-              "after_effects": "30-60 minutes"
-            },
+            "route": "sublingual/quid",
             "canonical_routes": [
               "oral"
-            ]
+            ],
+            "stages": {
+              "total_duration": "60-180 minutes",
+              "onset": "10-20 minutes",
+              "peak": "30-60 minutes",
+              "offset": "30-90 minutes",
+              "after_effects": "60-120 minutes"
+            }
+          },
+          {
+            "route": "vaporized",
+            "canonical_routes": [
+              "smoked"
+            ],
+            "stages": {
+              "total_duration": "15-60 minutes",
+              "onset": "15-60 seconds",
+              "peak": "2-10 minutes",
+              "offset": "10-20 minutes",
+              "after_effects": "15-60 minutes"
+            }
           }
         ]
       },
-      "addiction_potential": "Salvinorin A is not considered to have significant addiction potential.",
+      "addiction_potential": "Salvia divinorum is not considered habit-forming or physically addictive. The desire to use it can actually decrease with repeated use due to its often intense and dysphoric effects. Many users report the experience as so uncomfortable or overwhelming that they are reluctant to repeat it. Some individuals may develop psychological dependence as an escape from reality, but this is uncommon. The substance may even exhibit reverse tolerance, where effects become stronger with repeated use.",
       "interactions": {
         "dangerous": [],
-        "unsafe": [],
+        "unsafe": [
+          "Alcohol (increased neurological, cardiovascular, and gastrointestinal side effects)",
+          "Stimulants (increased cardiovascular stress and unpredictable psychological effects)",
+          "Other psychedelics (potentially overwhelming and confusing experiences)"
+        ],
         "caution": [
-          "May increase the CNS depressant activities of fluoxetine."
+          "MAOIs (potential potentiation and prolongation of effects)",
+          "Antidepressants (possible serotonin interactions)",
+          "Cannabis (intensified hallucinatory experience and increased anxiety)",
+          "Prescription medications (unpredictable interactions and altered mental states)",
+          "Dissociatives (may transform experience, proceed with extreme caution)"
         ]
       },
-      "notes": "Salvinorin A is a potent kappa-opioid receptor agonist, leading to its unique psychoactive effects. It is known for its intense and short-lived hallucinogenic experiences, often described as dissociative and dream-like. Due to its high potency, precise dosing is crucial to avoid overwhelming experiences.",
+      "notes": "Salvia divinorum requires exceptional care and preparation, including a dedicated sitter for moderate to high doses due to potential loss of motor control and reality contact. Users should be positioned safely to prevent injury during the experience. The substance has a long history of traditional use by Mazatec shamans for spiritual healing and divination. Set and setting profoundly influence the experience. A butane torch lighter is recommended for smoking to ensure proper vaporization of salvinorin A due to its high boiling point. Extracts vary significantly in potency and should be approached with extreme caution. Individuals with personal or family history of psychotic disorders should avoid use. The experience is often described as more intense, bizarre, and dysphoric compared to classical psychedelics, with many users finding it profoundly uncomfortable rather than recreational.",
       "subjective_effects": [
-        "Visual hallucinations",
-        "Dissociation",
-        "Time distortion",
-        "Ego dissolution",
-        "Auditory hallucinations",
-        "Intense emotional experiences"
+        "Intense Dissociation",
+        "Ego Replacement or Loss",
+        "Reality Distortion",
+        "Becoming Inanimate Objects",
+        "Changes in Felt Gravity (Salvia Gravity)",
+        "Uncontrollable Laughter",
+        "Time Distortion",
+        "Vivid Internal Hallucinations",
+        "Visual Geometry and Fractals",
+        "Machinescapes and Mechanical Visions",
+        "Entity Contact",
+        "Memory Suppression",
+        "Sedation",
+        "Confusion and Cognitive Dysphoria",
+        "Auditory Distortions",
+        "Synesthesia",
+        "Depersonalization",
+        "Body Transformation Sensations",
+        "Pins and Needles Sensation",
+        "Anxiety and Paranoia",
+        "Near-Death Experience Phenomenology"
       ],
       "tolerance": {
-        "full_tolerance": "Unknown",
-        "half_tolerance": "Unknown",
-        "zero_tolerance": "Unknown",
+        "full_tolerance": "Salvia exhibits reverse tolerance rather than traditional tolerance",
+        "half_tolerance": "Not applicable (reverse tolerance)",
+        "zero_tolerance": "Not applicable (reverse tolerance)",
         "cross_tolerances": []
       },
-      "half_life": "Unknown",
+      "half_life": "Not well established for salvinorin A; effects are extremely short-acting",
       "citations": [
         {
-          "name": "Erowid Salvinorin A Vault",
-          "reference": "https://erowid.org/chemicals/salvinorin_a/"
+          "name": "PsychonautWiki: Salvia divinorum",
+          "reference": "https://psychonautwiki.org/wiki/Salvia_divinorum"
         },
         {
-          "name": "Roth et al. Study on Salvinorin A",
-          "reference": "https://erowid.org/plants/salvia/salvia_info5.shtml"
+          "name": "PsychonautWiki: Salvinorin A",
+          "reference": "https://psychonautwiki.org/wiki/Salvinorin_A"
         },
         {
-          "name": "DrugBank on Salvinorin A Interactions",
-          "reference": "https://go.drugbank.com/drugs/DB12327"
+          "name": "Erowid Salvia divinorum Vault",
+          "reference": "https://www.erowid.org/plants/salvia/salvia.shtml"
+        },
+        {
+          "name": "Erowid Salvia Dosage Information",
+          "reference": "https://www.erowid.org/plants/salvia/salvia_dose.shtml"
+        },
+        {
+          "name": "Erowid Salvia Effects",
+          "reference": "https://www.erowid.org/plants/salvia/salvia_effects.shtml"
+        },
+        {
+          "name": "Erowid Salvia FAQ",
+          "reference": "https://www.erowid.org/plants/salvia/salvia_faq.shtml"
+        },
+        {
+          "name": "TripSit Salvia Wiki",
+          "reference": "https://wiki.tripsit.me/index.php?title=Salvia"
+        },
+        {
+          "name": "TripSit Salvia Factsheet",
+          "reference": "https://drugs.tripsit.me/salvia"
+        },
+        {
+          "name": "Bluelight: The Big & Dandy Salvia Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-salvia-thread-3rd-dimension.654135/"
+        },
+        {
+          "name": "Wikipedia: Salvia divinorum",
+          "reference": "https://en.wikipedia.org/wiki/Salvia_divinorum"
+        },
+        {
+          "name": "Alcohol and Drug Foundation: Salvia",
+          "reference": "https://adf.org.au/drug-facts/salvia/"
+        },
+        {
+          "name": "Johnson MW et al. (2011) - Human Psychopharmacology and Dose-Effects of Salvinorin A",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/19416753/"
+        },
+        {
+          "name": "Lange JE et al. (2010) - Salvia divinorum: Effects and Use Among YouTube Users",
+          "reference": "https://www.sciencedirect.com/science/article/abs/pii/S0376871609004177"
+        },
+        {
+          "name": "Coffeen E et al. (2019) - Salvia divinorum: From Recreational Use to Analgesic Action",
+          "reference": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6434906/"
+        },
+        {
+          "name": "Vohra R et al. (2011) - Salvia divinorum Exposures to Poison Control",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/19765944/"
         }
       ],
       "categories": [
-        "other dissociatives",
-        "A-typical Hallucinogen"
+        "dissociative",
+        "atypical-psychedelic",
+        "plant-based",
+        "entheogen",
+        "kappa-opioid-agonist"
       ]
     },
-    "index-category": ""
+    "index-category": "dissociative;atypical-psychedelic;entheogen"
   },
   {
     "id": 358,
