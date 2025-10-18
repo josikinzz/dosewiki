@@ -1,5 +1,1150 @@
 [
   {
+    "id": "20251017-231137-c5596ffa",
+    "createdAt": "2025-10-17T23:11:37.907Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:11:36"
+    },
+    "articles": [
+      {
+        "id": 270,
+        "title": "MAL",
+        "slug": "mal"
+      },
+      {
+        "id": 271,
+        "title": "AEM",
+        "slug": "aem"
+      }
+    ],
+    "markdown": "# MAL · #270\n\n-    \"chemical_class\": \"Scalines; Phenethylamines\",\n+    \"chemical_class\": \"Scalines\",\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n\n# AEM · #271\n\n-    \"chemical_class\": \"Scalines; Phenethylamines\",\n+    \"chemical_class\": \"Scalines\",\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-231118-d997ce32",
+    "createdAt": "2025-10-17T23:11:18.245Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:11:16"
+    },
+    "articles": [
+      {
+        "id": 271,
+        "title": "AEM",
+        "slug": "aem"
+      }
+    ],
+    "markdown": "# AEM · #271\n\n-    \"chemical_class\": \"Scalines; Phenethylamines\",\n+    \"chemical_class\": \"Scalines\",\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230906-55286484",
+    "createdAt": "2025-10-17T23:09:06.720Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:09:05"
+    },
+    "articles": [
+      {
+        "id": 59,
+        "title": "Mescaline",
+        "slug": "mescaline"
+      },
+      {
+        "id": 270,
+        "title": "MAL",
+        "slug": "mal"
+      },
+      {
+        "id": 271,
+        "title": "AEM",
+        "slug": "aem"
+      },
+      {
+        "id": 646,
+        "title": "Allylescaline",
+        "slug": "allylescaline"
+      },
+      {
+        "id": 647,
+        "title": "Escaline",
+        "slug": "escaline"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      }
+    ],
+    "markdown": "# Mescaline · #59\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# MAL · #270\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# AEM · #271\n\n-    \"chemical_class\": \"Mescaline homologues; Phenethylamines\",\n+    \"chemical_class\": \"Scalines; Phenethylamines\",\n\n# Allylescaline · #646\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",\n\n# Escaline · #647\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",\n\n# Proscaline · #648\n\n-    \"chemical_class\": \"Mescaline homologues\",\n+    \"chemical_class\": \"Scalines\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230611-de87cdeb",
+    "createdAt": "2025-10-17T23:06:11.019Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:06:09"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 646,
+        "title": "Allylescaline",
+        "slug": "allylescaline"
+      },
+      {
+        "id": 647,
+        "title": "Escaline",
+        "slug": "escaline"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 653,
+        "title": "25D-NBOMe",
+        "slug": "25d-nbome"
+      },
+      {
+        "id": 654,
+        "title": "25N-NBOMe",
+        "slug": "25n-nbome"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Allylescaline · #646\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines; Scalines\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"mescaline-analog\"\n+      \"research-chemical\"\n\n# Escaline · #647\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"phenethylamine\",\n-      \"mescaline-analog\",\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# 25D-NBOMe · #653\n\n-  \"index-category\": \"psychedelic; research-chemical; nbome\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"research-chemical\",\n-      \"nbome-series\",\n-      \"phenethylamine\"\n+      \"research-chemical\"\n\n# 25N-NBOMe · #654\n\n-  \"index-category\": \"psychedelic; research-chemical; dangerous\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"nbome\",\n-      \"phenethylamine\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230513-56577c36",
+    "createdAt": "2025-10-17T23:05:13.508Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:05:11"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 646,
+        "title": "Allylescaline",
+        "slug": "allylescaline"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 653,
+        "title": "25D-NBOMe",
+        "slug": "25d-nbome"
+      },
+      {
+        "id": 654,
+        "title": "25N-NBOMe",
+        "slug": "25n-nbome"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Allylescaline · #646\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines; Scalines\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"mescaline-analog\"\n+      \"research-chemical\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# 25D-NBOMe · #653\n\n-  \"index-category\": \"psychedelic; research-chemical; nbome\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"research-chemical\",\n-      \"nbome-series\",\n-      \"phenethylamine\"\n+      \"research-chemical\"\n\n# 25N-NBOMe · #654\n\n-  \"index-category\": \"psychedelic; research-chemical; dangerous\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"nbome\",\n-      \"phenethylamine\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230337-b5d7fa64",
+    "createdAt": "2025-10-17T23:03:37.485Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:03:35"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 653,
+        "title": "25D-NBOMe",
+        "slug": "25d-nbome"
+      },
+      {
+        "id": 654,
+        "title": "25N-NBOMe",
+        "slug": "25n-nbome"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# 25D-NBOMe · #653\n\n-  \"index-category\": \"psychedelic; research-chemical; nbome\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"research-chemical\",\n-      \"nbome-series\",\n-      \"phenethylamine\"\n+      \"research-chemical\"\n\n# 25N-NBOMe · #654\n\n-  \"index-category\": \"psychedelic; research-chemical; dangerous\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"nbome\",\n-      \"phenethylamine\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230247-72f6027f",
+    "createdAt": "2025-10-17T23:02:47.222Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:02:45"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 653,
+        "title": "25D-NBOMe",
+        "slug": "25d-nbome"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# 25D-NBOMe · #653\n\n-  \"index-category\": \"psychedelic; research-chemical; nbome\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"research-chemical\",\n-      \"nbome-series\",\n-      \"phenethylamine\"\n+      \"research-chemical\"\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230207-b2658eaf",
+    "createdAt": "2025-10-17T23:02:07.252Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:02:05"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 652,
+        "title": "25C-NBOH",
+        "slug": "25c-nboh"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# 25C-NBOH · #652\n\n-  \"index-category\": \"psychedelic; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamines\",\n+    \"chemical_class\": \"N-benzylated phenethylamines\",\n-      \"phenethylamine\",\n-      \"research-chemical\",\n-      \"nboh-series\"\n+      \"research-chemical\"\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-230054-23cef8b5",
+    "createdAt": "2025-10-17T23:00:54.567Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 01:00:52"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 648,
+        "title": "Proscaline",
+        "slug": "proscaline"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# Proscaline · #648\n\n-  \"index-category\": \"psychedelic; phenethylamine; research-chemical\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Phenethylamine\",\n+    \"chemical_class\": \"Mescaline homologues\",\n-      \"mescaline-analog\",\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-225903-124bba46",
+    "createdAt": "2025-10-17T22:59:03.878Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:59:02"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# PRO-LAD · #635\n\n-  \"index-category\": \"psychedelic; lysergamide\",\n+  \"index-category\": \"psychedelic\",\n-    \"chemical_class\": \"Lysergamide\",\n+    \"chemical_class\": \"Lysergamides\",\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-225826-341c926a",
+    "createdAt": "2025-10-17T22:58:26.327Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:58:24"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamides\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-225755-1693f827",
+    "createdAt": "2025-10-17T22:57:55.924Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:57:54"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-    \"chemical_class\": \"Lysergamide; Ergoline alkaloid\",\n+    \"chemical_class\": \"Lysergamide\",\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-225716-849d325d",
+    "createdAt": "2025-10-17T22:57:16.016Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:57:14"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 651,
+        "title": "DOI",
+        "slug": "doi"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# DOI · #651\n\n-  \"index-category\": \"psychedelic; stimulant; dox\",\n+  \"index-category\": \"psychedelic\",\n-    \"alternative_name\": \"2,5-Dimethoxy-4-iodoamphetamine; Dimethoxyiodoamphetamine\",\n-    \"chemical_class\": \"Amphetamines; Substituted amphetamines\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-225553-0c946599",
+    "createdAt": "2025-10-17T22:55:53.864Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:55:50"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      },
+      {
+        "id": 655,
+        "title": "TMA-6",
+        "slug": "tma-6"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",\n\n# TMA-6 · #655\n\n-    \"alternative_name\": \"2,4,6-Trimethoxyamphetamine; 2,4,6-TMA; psi-TMA-2\",\n-    \"chemical_class\": \"Amphetamine; Phenethylamine\",\n-    \"psychoactive_class\": \"Psychedelic; Stimulant\",\n+    \"alternative_name\": \"\",\n+    \"chemical_class\": \"Psychedelic amphetamine\",\n+    \"psychoactive_class\": \"Psychedelic\",\n-      \"stimulant\",\n-      \"amphetamine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-224638-e2ec09b9",
+    "createdAt": "2025-10-17T22:46:38.115Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:46:34"
+    },
+    "articles": [
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 645,
+        "title": "Psilocin",
+        "slug": "psilocin"
+      },
+      {
+        "id": 650,
+        "title": "2,5-DMA",
+        "slug": "2-5-dma"
+      }
+    ],
+    "markdown": "# Psilocybin Mushrooms · #200\n\n-      \"classic-psychedelic\",\n\n# LSA · #631\n\n-      \"natural\",\n-      \"ergoline\"\n+      \"natural\"\n\n# LSM-775 · #634\n\n-      \"research-chemical\",\n-      \"novel-psychoactive-substance\"\n+      \"research-chemical\"\n\n# Psilocin · #645\n\n-      \"serotonergic\",\n-      \"entheogen\"\n+      \"serotonergic\"\n\n# 2,5-DMA · #650\n\n-      \"dox-family\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-223937-dd93a95c",
+    "createdAt": "2025-10-17T22:39:37.130Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:39:34"
+    },
+    "articles": [
+      {
+        "id": 133,
+        "title": "Cocaine",
+        "slug": "cocaine"
+      }
+    ],
+    "markdown": "# Cocaine · #133\n\n-  \"title\": \"Crack\",\n+  \"title\": \"Cocaine\",\n-    \"drug_name\": \"Crack\",\n-    \"chemical_name\": \"Cocaine\",\n-    \"alternative_name\": \"Cocaine\",\n+    \"drug_name\": \"Cocaine\",\n+    \"chemical_name\": \"Benzoylmethylecgonine\",\n+    \"alternative_name\": \"Coke; Blow; White; Snow; Crack\",\n-          \"canonical_routes\": [\n-            \"insufflated\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"insufflated\"\n+          ]\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n+            \"total_duration\": \"30-90 minutes\",\n+            \"onset\": \"1-3 minutes\",\n+            \"peak\": \"15-30 minutes\",\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"intravenous\"\n-          ],\n+            \"total_duration\": \"30-90 minutes\",\n+            \"peak\": \"15-30 minutes\",\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"intravenous\"\n+          ]\n-          \"canonical_routes\": [\n-            \"smoked\"\n-          ],\n+            \"total_duration\": \"30-90 minutes\",\n+            \"peak\": \"15-30 minutes\",\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"smoked\"\n+          ]\n-      \"habit-forming\",\n-      \"research-chemical\"\n+      \"habit-forming\"",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-223318-678eb5f6",
+    "createdAt": "2025-10-17T22:33:18.182Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:33:15"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      },
+      {
+        "id": 200,
+        "title": "Psilocybin Mushrooms",
+        "slug": "psilocybin-mushrooms"
+      },
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 632,
+        "title": "MiPLA",
+        "slug": "mipla"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-    \"chemical_name\": \"Lysergic acid diethylamide\",\n+    \"chemical_name\": \"d-Lysergic acid diethylamide\",\n\n# Psilocybin Mushrooms · #200\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-      \"plant-based\"\n+      \"plant-based\",\n+      \"common\"\n-  \"index-category\": \"psychedelic;classic;tryptamine\"\n+  \"index-category\": \"psychedelic; classic; tryptamine\"\n\n# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",\n\n# MiPLA · #632\n\n-    \"chemical_name\": \"(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n-    \"alternative_name\": \"Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide\",\n+    \"chemical_name\": \"Lysergic acid methylisopropylamide\",\n+    \"alternative_name\": \"Lamide\",\n\n# LSM-775 · #634\n\n-    \"chemical_name\": \"[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone\",\n-    \"alternative_name\": \"Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM\",\n+    \"chemical_name\": \"Lysergic acid morpholide\",\n+    \"alternative_name\": \"\",\n\n# PRO-LAD · #635\n\n-    \"chemical_name\": \"(8beta)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide\",\n-    \"alternative_name\": \"N-Propylnorlysergic acid N,N-diethylamide; 6-Propyl-6-nor-lysergic acid diethylamide; N-PropylnorLSD\",\n+    \"chemical_name\": \"6-Propyl-6-nor-lysergic acid diethylamide\",\n+    \"alternative_name\": \"\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-223147-1e6cc8e4",
+    "createdAt": "2025-10-17T22:31:47.024Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:31:44"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      },
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 632,
+        "title": "MiPLA",
+        "slug": "mipla"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-    \"chemical_name\": \"Lysergic acid diethylamide\",\n+    \"chemical_name\": \"d-Lysergic acid diethylamide\",\n\n# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",\n\n# MiPLA · #632\n\n-    \"chemical_name\": \"(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n-    \"alternative_name\": \"Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide\",\n+    \"chemical_name\": \"Lysergic acid methylisopropylamide\",\n+    \"alternative_name\": \"Lamide\",\n\n# LSM-775 · #634\n\n-    \"chemical_name\": \"[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone\",\n-    \"alternative_name\": \"Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM\",\n+    \"chemical_name\": \"Lysergic acid morpholide\",\n+    \"alternative_name\": \"\",\n\n# PRO-LAD · #635\n\n-    \"chemical_name\": \"(8beta)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide\",\n-    \"alternative_name\": \"N-Propylnorlysergic acid N,N-diethylamide; 6-Propyl-6-nor-lysergic acid diethylamide; N-PropylnorLSD\",\n+    \"chemical_name\": \"6-Propyl-6-nor-lysergic acid diethylamide\",\n+    \"alternative_name\": \"\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-223101-a0dbd0f3",
+    "createdAt": "2025-10-17T22:31:01.480Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:30:58"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 632,
+        "title": "MiPLA",
+        "slug": "mipla"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      },
+      {
+        "id": 635,
+        "title": "PRO-LAD",
+        "slug": "pro-lad"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",\n\n# MiPLA · #632\n\n-    \"chemical_name\": \"(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n-    \"alternative_name\": \"Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide\",\n+    \"chemical_name\": \"Lysergic acid methylisopropylamide\",\n+    \"alternative_name\": \"Lamide\",\n\n# LSM-775 · #634\n\n-    \"chemical_name\": \"[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone\",\n-    \"alternative_name\": \"Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM\",\n+    \"chemical_name\": \"Lysergic acid morpholide\",\n+    \"alternative_name\": \"\",\n\n# PRO-LAD · #635\n\n-    \"chemical_name\": \"(8beta)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide\",\n-    \"alternative_name\": \"N-Propylnorlysergic acid N,N-diethylamide; 6-Propyl-6-nor-lysergic acid diethylamide; N-PropylnorLSD\",\n+    \"chemical_name\": \"6-Propyl-6-nor-lysergic acid diethylamide\",\n+    \"alternative_name\": \"\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-222634-f8c2838b",
+    "createdAt": "2025-10-17T22:26:34.604Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:26:31"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 632,
+        "title": "MiPLA",
+        "slug": "mipla"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",\n\n# MiPLA · #632\n\n-    \"chemical_name\": \"(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n-    \"alternative_name\": \"Lamide; Methylisopropyllysergamide; N-Methyl-N-isopropyllysergamide\",\n+    \"chemical_name\": \"Lysergic acid methylisopropylamide\",\n+    \"alternative_name\": \"Lamide\",\n\n# LSM-775 · #634\n\n-    \"chemical_name\": \"[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone\",\n-    \"alternative_name\": \"Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM\",\n+    \"chemical_name\": \"Lysergic acid morpholide\",\n+    \"alternative_name\": \"\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-222215-fbbbfbe1",
+    "createdAt": "2025-10-17T22:22:15.676Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:22:13"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      },
+      {
+        "id": 634,
+        "title": "LSM-775",
+        "slug": "lsm-775"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",\n\n# LSM-775 · #634\n\n-    \"chemical_name\": \"[(8beta)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone\",\n-    \"alternative_name\": \"Lysergic acid morpholide; N-Morpholinyllysergamide; LA-Morph; LSM\",\n+    \"chemical_name\": \"Lysergic acid morpholide\",\n+    \"alternative_name\": \"\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-221822-e197294f",
+    "createdAt": "2025-10-17T22:18:22.551Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:18:19"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      },
+      {
+        "id": 631,
+        "title": "LSA",
+        "slug": "lsa"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",\n\n# LSA · #631\n\n-    \"chemical_name\": \"(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide\",\n-    \"alternative_name\": \"Ergine; d-Lysergic acid amide; d-Lysergamide; LA-111\",\n+    \"chemical_name\": \"d-Lysergic acid amide\",\n+    \"alternative_name\": \"Ergine; LA-111\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-220954-cba27055",
+    "createdAt": "2025-10-17T22:09:54.431Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:09:52"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      },
+      {
+        "id": 630,
+        "title": "ETH-LAD",
+        "slug": "eth-lad"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",\n\n# ETH-LAD · #630\n\n-    \"chemical_name\": \"(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide\",\n+    \"chemical_name\": \"6-Ethyl-6-nor-lysergic acid diethylamide\",\n-            \"light\": \"30-60 ug\",\n+            \"light\": \"15-60 ug\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-220355-972e3296",
+    "createdAt": "2025-10-17T22:03:55.871Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 18/10/2025, 00:03:53"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      },
+      {
+        "id": 629,
+        "title": "ALD-52",
+        "slug": "ald-52"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",\n\n# ALD-52 · #629\n\n-    \"chemical_name\": \"(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]-quinoline-9-carboxamide\",\n-    \"alternative_name\": \"1-Acetyl-LSD; 1A-LSD; 1A-LAD; Orange Sunshine\",\n+    \"chemical_name\": \"1-Acetyl-d-lysergic acid diethylamide\",\n+    \"alternative_name\": \"Orange Sunshine\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251017-220000-06e441b8",
+    "createdAt": "2025-10-17T22:00:00.812Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 17/10/2025, 23:59:58"
+    },
+    "articles": [
+      {
+        "id": 628,
+        "title": "1V-LSD",
+        "slug": "1v-lsd"
+      }
+    ],
+    "markdown": "# 1V-LSD · #628\n\n-    \"alternative_name\": \"Valerie; 1-Valeryl-LSD; 1-Pentanoyl-LSD\",\n+    \"alternative_name\": \"Valerie\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251017-024248-d777a0e9",
     "createdAt": "2025-10-17T02:42:48.647Z",
     "commit": {
