@@ -75389,5 +75389,149 @@
       ]
     },
     "id": 670
+  },
+  {
+    "title": "Pentobarbital",
+    "index-category": "depressant; barbiturate; sedative",
+    "drug_info": {
+      "drug_name": "Pentobarbital",
+      "chemical_name": "5-Ethyl-5-(1-methylbutyl)-2,4,6(1H,3H,5H)-pyrimidinetrione",
+      "alternative_name": "Pentobarbitone; Nembutal; Yellow Jackets",
+      "chemical_class": "Barbiturates",
+      "psychoactive_class": "Depressant; Sedative-Hypnotic",
+      "mechanism_of_action": "GABAA receptor positive allosteric modulator (binds to barbiturate site, increases chloride ion pore opening duration); AMPA glutamate receptor antagonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "50-100 mg",
+              "common": "100-200 mg",
+              "strong": "200-300 mg",
+              "heavy": "300+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "15-60 minutes",
+              "peak": "1-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-36 hours (prolonged anxiolytic effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Pentobarbital is extremely physically and psychologically addictive. Tolerance develops after prolonged use, particularly to sedative-hypnotic effects. Abrupt discontinuation in dependent individuals may be life-threatening and can lead to seizures, psychosis, and death. Dependence threshold is estimated at over 400 mg daily for more than 90 days, with withdrawal seizures reported at dosages of 600-800 mg daily for more than 35 days.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (severe respiratory depression, potentially fatal)",
+          "Opioids (severe respiratory depression, potentially fatal)",
+          "Benzodiazepines (potentiated respiratory depression; barbiturates increase chloride pore duration while benzodiazepines increase opening frequency)",
+          "GHB/GBL (severe respiratory depression, potentially fatal)",
+          "Other barbiturates (severe respiratory depression, potentially fatal)",
+          "Methaqualone (severe respiratory depression, potentially fatal)",
+          "Gabapentinoids (severe respiratory depression)",
+          "Thienodiazepines (severe respiratory depression)"
+        ],
+        "unsafe": [
+          "Dissociatives (increased risk of vomiting and aspiration during unconsciousness)",
+          "Tramadol (lowers seizure threshold during withdrawal)",
+          "Amphetamines (masks sedation leading to dangerous redosing; lowers seizure threshold during withdrawal)"
+        ],
+        "caution": [
+          "Stimulants (masks level of intoxication, risk of severe dehydration)",
+          "MAO inhibitors (potential cardiovascular complications)",
+          "Beta-blockers (pentobarbital increases clearance and reduces effectiveness)",
+          "Anticoagulants (altered metabolism)",
+          "Doxycycline (reduced effectiveness)",
+          "Hormonal contraceptives (reduced effectiveness)",
+          "Corticosteroids (reduced effectiveness)"
+        ]
+      },
+      "notes": "Pentobarbital is a Schedule II controlled substance in the United States and similarly restricted internationally. It has largely been replaced by benzodiazepines for medical use due to its narrow therapeutic window and high addiction potential. The drug is currently used primarily in veterinary medicine for euthanasia and in some jurisdictions for physician-assisted suicide. Users should be aware that pentobarbital carries significantly higher risks of serious adverse effects when combined with other depressants compared to other sedative classes. Barbiturate overdose is a medical emergency requiring immediate hospitalization. Due to high protein binding and lipid solubility, treatments like forced diuresis and hemodialysis are largely ineffective. Individuals with liver or kidney impairment, cardiovascular disease, respiratory conditions, or porphyria should avoid pentobarbital entirely. Never use pentobarbital during pregnancy as it poses severe risks to fetal development.",
+      "subjective_effects": [
+        "Profound Sedation",
+        "Anxiety Suppression",
+        "Cognitive Euphoria (particularly strong compared to other GABAergic depressants)",
+        "Physical Euphoria",
+        "Motor Control Loss",
+        "Muscle Relaxation",
+        "Amnesia",
+        "Thought Deceleration",
+        "Disinhibition",
+        "Slurred Speech",
+        "Emotion Suppression",
+        "Delusions of Sobriety",
+        "Dizziness",
+        "Compulsive Redosing"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2 weeks of continued daily use at fixed doses (most effectiveness for inducing and maintaining sleep is lost)",
+        "half_tolerance": "Unknown; research insufficient",
+        "zero_tolerance": "Unknown; likely several weeks to months",
+        "cross_tolerances": [
+          "All barbiturates",
+          "Benzodiazepines (partial cross-tolerance)",
+          "Other GABAergic sedatives"
+        ]
+      },
+      "half_life": "15-48 hours (average approximately 22 hours); highly variable based on individual metabolism, liver function, and concurrent medications",
+      "citations": [
+        {
+          "name": "DanceSafe Harm Reduction Resources",
+          "reference": "https://dancesafe.org/"
+        },
+        {
+          "name": "Erowid Pentobarbital Experience Reports",
+          "reference": "https://erowid.org/experiences/subs/exp_Pharms_Pentobarbital.shtml"
+        },
+        {
+          "name": "Erowid Barbiturates Vault",
+          "reference": "https://www.erowid.org/chemicals/barbiturates/"
+        },
+        {
+          "name": "PsychonautWiki: Dangerous Combinations Chart",
+          "reference": "https://psychonautwiki.org/wiki/Dangerous_combinations"
+        },
+        {
+          "name": "PsychonautWiki: Pentobarbital",
+          "reference": "https://psychonautwiki.org/wiki/Pentobarbital"
+        },
+        {
+          "name": "RollSafe Drug Harm Reduction Guide",
+          "reference": "https://rollsafe.org/drug-harm-reduction/"
+        },
+        {
+          "name": "StatPearls: Pentobarbital Pharmacology",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK545288/"
+        },
+        {
+          "name": "TripSit Combination Chart",
+          "reference": "https://combo.tripsit.me/"
+        },
+        {
+          "name": "TripSit Wiki Drug Combinations",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "barbiturate",
+        "sedative-hypnotic",
+        "gabaergic"
+      ]
+    },
+    "id": 671
   }
 ]
