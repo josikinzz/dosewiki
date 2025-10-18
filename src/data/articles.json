@@ -20190,29 +20190,29 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6-8 h · 2-3 h",
               "onset": "15-40 min · 5-10 min",
               "peak": "1-3 h",
               "offset": "2-4 h",
               "after_effects": "2-6 h residual stimulation / insomnia"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "6-8 h · 2-3 h",
               "onset": "15-40 min · 5-10 min",
               "peak": "1-3 h",
               "offset": "2-4 h",
               "after_effects": "2-6 h residual stimulation / insomnia"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -20299,7 +20299,6 @@
       ],
       "categories": [
         "stimulant",
-        "entactogen",
         "research-chemical"
       ]
     },
