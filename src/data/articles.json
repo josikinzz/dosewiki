@@ -73712,5 +73712,227 @@
       ]
     },
     "id": 659
+  },
+  {
+    "title": "Ayahuasca",
+    "index-category": "psychedelic; entheogen; traditional",
+    "drug_info": {
+      "drug_name": "Ayahuasca",
+      "chemical_name": "N,N-Dimethyltryptamine with Harmala Alkaloids (MAOI combination)",
+      "alternative_name": "Aya; Caapi; Yage; Yaje; Hoasca; Vegetal; Natem; Shori; Pharmahuasca",
+      "chemical_class": "Tryptamines; Beta-carbolines",
+      "psychoactive_class": "Psychedelic; Entheogen",
+      "mechanism_of_action": "5-HT2A receptor agonist (DMT component); reversible monoamine oxidase-A inhibitor (harmala alkaloids)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral (syrian rue + mimosa hostilis)",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "1.5-2g syrian rue + 3-4g mimosa hostilis",
+              "light": "2-2.5g syrian rue + 4-6g mimosa hostilis",
+              "common": "2.5-3g syrian rue + 6-8g mimosa hostilis",
+              "strong": "3-3.5g syrian rue + 8-10g mimosa hostilis",
+              "heavy": "3.5+ g syrian rue + 10+ g mimosa hostilis"
+            }
+          },
+          {
+            "route": "oral (syrian rue + acacia confusa)",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "1.5-2g syrian rue + 3-5g acacia confusa",
+              "light": "2-2.5g syrian rue + 5-10g acacia confusa",
+              "common": "2.5-3g syrian rue + 10-15g acacia confusa",
+              "strong": "3-3.5g syrian rue + 15-20g acacia confusa",
+              "heavy": "3.5+ g syrian rue + 20+ g acacia confusa"
+            }
+          },
+          {
+            "route": "oral (pharmahuasca - extracted alkaloids)",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50mg harmala alkaloids + 15-20mg DMT",
+              "light": "50-75mg harmala alkaloids + 20-30mg DMT",
+              "common": "75-100mg harmala alkaloids + 30-50mg DMT",
+              "strong": "100-150mg harmala alkaloids + 50-75mg DMT",
+              "heavy": "150+ mg harmala alkaloids + 75+ mg DMT"
+            }
+          },
+          {
+            "route": "oral (traditional b. caapi + p. viridis brew)",
+            "units": "variable",
+            "dose_ranges": {
+              "threshold": "Variable - depends on brew strength and preparation",
+              "light": "Small cup (50-75ml of traditional brew)",
+              "common": "One cup (75-150ml of traditional brew)",
+              "strong": "Large cup (150-200ml of traditional brew)",
+              "heavy": "Multiple servings or very concentrated brew"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral (syrian rue + mimosa hostilis)",
+            "stages": {
+              "total_duration": "5-10 hours",
+              "onset": "20-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-8 hours (afterglow and residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "oral (syrian rue + acacia confusa)",
+            "stages": {
+              "total_duration": "5-10 hours",
+              "onset": "20-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-8 hours (afterglow and residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "oral (pharmahuasca - extracted alkaloids)",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "15-30 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-6 hours (afterglow and residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "oral (traditional b. caapi + p. viridis brew)",
+            "stages": {
+              "total_duration": "5-10 hours",
+              "onset": "20-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-8 hours (afterglow and residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Ayahuasca is not considered physically addictive and has a low potential for psychological dependence. The intense purgative effects and profound nature of the experience tend to discourage frequent use, and it is typically self-regulating.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and serotonin syndrome)",
+          "SSRIs (serotonin syndrome risk)",
+          "SNRIs (serotonin syndrome risk)",
+          "Lithium (significantly increased seizure risk)",
+          "Tramadol (lowers seizure threshold)",
+          "MDMA (unpredictable potentiation and serotonin syndrome)",
+          "Amphetamines (hypertensive crisis and cardiovascular stress)",
+          "Cocaine (cardiovascular complications)",
+          "5-MeO-MiPT (serotonin syndrome)",
+          "2C-T-7 (serotonin syndrome)",
+          "AMT (serotonin syndrome)",
+          "Tricyclic antidepressants (serotonin syndrome)",
+          "St. John's Wort (serotonin syndrome)",
+          "Dextromethorphan (serotonin syndrome)",
+          "Tyramine-containing foods with irreversible MAOIs (hypertensive crisis - less risk with harmala RIMAs)"
+        ],
+        "unsafe": [
+          "Other psychedelics (overwhelming intensity)",
+          "Mescaline (potentiation and altered character)",
+          "Psilocybin mushrooms (significantly increased intensity)",
+          "LSD (greatly increased intensity and unpredictability)"
+        ],
+        "caution": [
+          "Cannabis (unpredictable synergy, may increase anxiety or trigger psychosis)",
+          "Alcohol (unpredictable effects and increased nausea)",
+          "Benzodiazepines (may dampen experience)",
+          "Nicotine (mild interaction)"
+        ]
+      },
+      "notes": "Ayahuasca is a brew combining DMT-containing plants with MAOI-containing plants, requiring both components to produce psychoactive effects. Traditional brews vary widely in potency depending on plant sources, preparation methods, and regional practices. The purgative effects (nausea, vomiting, diarrhea) are considered an integral part of the traditional experience and can be intense. Due to the MAOI component, numerous dangerous drug interactions exist, particularly with SSRIs, other antidepressants, stimulants, and certain foods when using irreversible MAOIs. Harmala alkaloids from Syrian rue or B. caapi are reversible MAOIs (RIMAs), posing less dietary restriction risk than pharmaceutical MAOIs, though caution is still advised. Set and setting are crucial, and the substance should ideally be used with an experienced facilitator. Individuals with personal or family history of psychotic disorders should avoid use.",
+      "subjective_effects": [
+        "Intense visual hallucinations and patterns",
+        "Internal visions and dreamlike imagery",
+        "Spiritual insight and mystical experiences",
+        "Unity and interconnectedness",
+        "Emotional amplification and catharsis",
+        "Ego death or dissolution",
+        "Time distortion",
+        "Nausea and purging (vomiting, diarrhea)",
+        "Physical discomfort and heaviness",
+        "Autonomous entity contact",
+        "Synesthesia",
+        "Mindfulness and clarity"
+      ],
+      "tolerance": {
+        "full_tolerance": "Tolerance does not develop in the traditional sense",
+        "half_tolerance": "Not applicable - ayahuasca can be used repeatedly without tolerance buildup",
+        "zero_tolerance": "Immediate - no tolerance develops to ayahuasca",
+        "cross_tolerances": [
+          "Does not produce cross-tolerance with other psychedelics"
+        ]
+      },
+      "half_life": "1-3 hours (psilocin active metabolite of DMT); 2-4 hours (harmala alkaloids)",
+      "citations": [
+        {
+          "name": "Erowid Ayahuasca Vault",
+          "reference": "https://erowid.org/chemicals/ayahuasca/ayahuasca.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Ayahuasca",
+          "reference": "https://psychonautwiki.org/wiki/Ayahuasca"
+        },
+        {
+          "name": "TripSit Wiki: Ayahuasca",
+          "reference": "https://wiki.tripsit.me/wiki/Ayahuasca"
+        },
+        {
+          "name": "TripSit Factsheet: DMT",
+          "reference": "https://drugs.tripsit.me/DMT"
+        },
+        {
+          "name": "TripSit Drug Combination Chart",
+          "reference": "https://combo.tripsit.me/"
+        },
+        {
+          "name": "Erowid: DMT Freebase Content in Ayahuasca/Pharmahuasca Preparations",
+          "reference": "https://www.erowid.org/chemicals/ayahuasca/ayahuasca_info8.shtml"
+        },
+        {
+          "name": "Erowid: Ayahuasca Analogues and Pharmahuasca",
+          "reference": "https://erowid.org/chemicals/ayahuasca/ayahuasca_info11.shtml"
+        },
+        {
+          "name": "Alcohol and Drug Foundation: Ayahuasca",
+          "reference": "https://adf.org.au/drug-facts/ayahuasca/"
+        },
+        {
+          "name": "PsychonautWiki: Peganum harmala",
+          "reference": "https://psychonautwiki.org/wiki/Peganum_harmala"
+        },
+        {
+          "name": "PsychonautWiki: Harmala alkaloid",
+          "reference": "https://psychonautwiki.org/wiki/Harmala_alkaloid"
+        }
+      ],
+      "categories": [
+        "psychedelic",
+        "entheogen",
+        "plant-based",
+        "tryptamine",
+        "maoi-combination"
+      ]
+    },
+    "id": 661
   }
 ]
