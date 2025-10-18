@@ -73934,5 +73934,323 @@
       ]
     },
     "id": 661
+  },
+  {
+    "title": "Datura",
+    "index-category": "deliriant; dangerous; anticholinergic",
+    "drug_info": {
+      "drug_name": "Datura",
+      "chemical_name": "Tropane alkaloid mixture (Scopolamine, Hyoscyamine, Atropine)",
+      "alternative_name": "Jimson Weed; Devil's Trumpet; Thorn Apple; Moonflower; Devil's Weed; Hell's Bells; Stinkweed; Angel's Trumpets; Devil's Apple; Toloache",
+      "chemical_class": "Tropane alkaloids",
+      "psychoactive_class": "Deliriant",
+      "mechanism_of_action": "Competitive antagonist at muscarinic acetylcholine receptors M1 and M2 (anticholinergic)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "seeds",
+            "dose_ranges": {
+              "threshold": "Extremely variable - no safe dosage can be recommended",
+              "light": "Extremely variable - no safe dosage can be recommended",
+              "common": "Extremely variable - no safe dosage can be recommended",
+              "strong": "Extremely variable - no safe dosage can be recommended",
+              "heavy": "Extremely variable - no safe dosage can be recommended"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "plant material",
+            "dose_ranges": {
+              "threshold": "Extremely variable - no safe dosage can be recommended",
+              "light": "Extremely variable - no safe dosage can be recommended",
+              "common": "Extremely variable - no safe dosage can be recommended",
+              "strong": "Extremely variable - no safe dosage can be recommended",
+              "heavy": "Extremely variable - no safe dosage can be recommended"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-18 hours (can extend to 48-72 hours at higher doses)",
+              "onset": "20-120 minutes",
+              "peak": "5-12 hours",
+              "offset": "2-3 hours",
+              "after_effects": "6-24 hours (can persist for days or weeks including vision disturbances)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "4-12 hours",
+              "onset": "5-10 minutes",
+              "peak": "3-8 hours",
+              "offset": "1-3 hours",
+              "after_effects": "4-24 hours"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Datura has low addiction potential as the vast majority of users report extremely unpleasant experiences and do not wish to repeat use. However, rare cases of psychological dependence and compulsive redosing have been documented, particularly among individuals seeking deliriant experiences despite negative consequences.",
+      "interactions": {
+        "dangerous": [
+          "Other anticholinergics (severe anticholinergic syndrome)",
+          "MAOIs (unpredictable interactions)",
+          "Alcohol (severe dehydration and unpredictable delirium)",
+          "CNS depressants (respiratory depression risk)"
+        ],
+        "unsafe": [
+          "Stimulants (cardiac stress and hyperthermia)",
+          "Other deliriants (extreme confusion and toxicity)",
+          "Tramadol (seizure risk)"
+        ],
+        "caution": [
+          "Any medication or substance (anticholinergic effects interfere with many drugs)",
+          "Cannabis (increased confusion and paranoia)"
+        ]
+      },
+      "notes": "Datura is extremely dangerous and potentially fatal. Potency varies wildly between plants, plant parts, growing conditions, and even within the same plant (up to 20:1 variation). There is no safe or reliable dosage. The margin between an active dose and a lethal dose is extremely narrow. Datura causes severe anticholinergic syndrome, prolonged delirium lasting days, realistic and terrifying hallucinations, hyperthermia, seizures, and has resulted in numerous deaths and permanent injuries. Medical literature documents extensive cases of poisoning, hospitalization, psychosis, and fatality. Indigenous shamanic use involves years of careful tolerance building under expert guidance and should not be replicated recreationally. Strongly advised to avoid entirely. If encountered medically, seek immediate emergency treatment.",
+      "subjective_effects": [
+        "Realistic And Indistinguishable Hallucinations",
+        "Complete Delirium And Confusion",
+        "Conversations With Imaginary People",
+        "Extreme Dry Mouth And Dehydration",
+        "Severe Pupil Dilation And Vision Impairment",
+        "Amnesia And Memory Loss",
+        "Extreme Paranoia And Fear",
+        "Perception Of Bodily Heaviness",
+        "Painful Electric Shock Sensations",
+        "Difficulty Urinating Despite Urge",
+        "Hyperthermia And Flushing",
+        "Tachycardia And Elevated Blood Pressure",
+        "Motor Control Loss And Ataxia",
+        "Complete Inability To Distinguish Reality From Hallucination"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops with repeated use within days",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "Other deliriants (diphenhydramine, dimenhydrinate)",
+          "Other anticholinergics"
+        ]
+      },
+      "half_life": "Scopolamine: 2-4 hours; Atropine: 2-3 hours; Hyoscyamine: 3-5 hours (effects persist far longer than half-life)",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy Datura Thread",
+          "reference": "https://www.bluelight.org/community/threads/datura-takers.615462/"
+        },
+        {
+          "name": "DoubleBlind Magazine: Sacred Datura Overview",
+          "reference": "https://doubleblindmag.com/sacred-datura-trip-reports/"
+        },
+        {
+          "name": "Erowid Datura Vault",
+          "reference": "https://erowid.org/plants/datura/datura.shtml"
+        },
+        {
+          "name": "Medscape: Tropane Alkaloid Poisoning Overview",
+          "reference": "https://emedicine.medscape.com/article/816657-overview"
+        },
+        {
+          "name": "PMC: Long-term Intentional Datura Use Consequences",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6767831/"
+        },
+        {
+          "name": "PsychonautWiki: Datura",
+          "reference": "https://psychonautwiki.org/wiki/Datura"
+        },
+        {
+          "name": "The Third Wave: Guide to Datura",
+          "reference": "https://thethirdwave.co/psychedelics/datura/"
+        },
+        {
+          "name": "Tripsitter: Datura Risks and Experience",
+          "reference": "https://tripsitter.com/datura/"
+        },
+        {
+          "name": "Wikipedia: Datura stramonium",
+          "reference": "https://en.wikipedia.org/wiki/Datura_stramonium"
+        }
+      ],
+      "categories": [
+        "deliriant",
+        "anticholinergic",
+        "tropane-alkaloid",
+        "extremely-dangerous",
+        "plant-based"
+      ]
+    },
+    "id": 662
+  },
+  {
+    "title": "Datura",
+    "index-category": "deliriant; dangerous; anticholinergic",
+    "drug_info": {
+      "drug_name": "Datura",
+      "chemical_name": "Tropane alkaloid mixture (Scopolamine, Hyoscyamine, Atropine)",
+      "alternative_name": "Jimson Weed; Devil's Trumpet; Thorn Apple; Moonflower; Devil's Weed; Hell's Bells; Stinkweed; Angel's Trumpets; Devil's Apple; Toloache",
+      "chemical_class": "Tropane alkaloids",
+      "psychoactive_class": "Deliriant",
+      "mechanism_of_action": "Competitive antagonist at muscarinic acetylcholine receptors M1 and M2 (anticholinergic)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "seeds",
+            "dose_ranges": {
+              "threshold": "Extremely variable - no safe dosage can be recommended",
+              "light": "Extremely variable - no safe dosage can be recommended",
+              "common": "Extremely variable - no safe dosage can be recommended",
+              "strong": "Extremely variable - no safe dosage can be recommended",
+              "heavy": "Extremely variable - no safe dosage can be recommended"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "plant material",
+            "dose_ranges": {
+              "threshold": "Extremely variable - no safe dosage can be recommended",
+              "light": "Extremely variable - no safe dosage can be recommended",
+              "common": "Extremely variable - no safe dosage can be recommended",
+              "strong": "Extremely variable - no safe dosage can be recommended",
+              "heavy": "Extremely variable - no safe dosage can be recommended"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-18 hours (can extend to 48-72 hours at higher doses)",
+              "onset": "20-120 minutes",
+              "peak": "5-12 hours",
+              "offset": "2-3 hours",
+              "after_effects": "6-24 hours (can persist for days or weeks including vision disturbances)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "4-12 hours",
+              "onset": "5-10 minutes",
+              "peak": "3-8 hours",
+              "offset": "1-3 hours",
+              "after_effects": "4-24 hours"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Datura has low addiction potential as the vast majority of users report extremely unpleasant experiences and do not wish to repeat use. However, rare cases of psychological dependence and compulsive redosing have been documented, particularly among individuals seeking deliriant experiences despite negative consequences.",
+      "interactions": {
+        "dangerous": [
+          "Other anticholinergics (severe anticholinergic syndrome)",
+          "MAOIs (unpredictable interactions)",
+          "Alcohol (severe dehydration and unpredictable delirium)",
+          "CNS depressants (respiratory depression risk)"
+        ],
+        "unsafe": [
+          "Stimulants (cardiac stress and hyperthermia)",
+          "Other deliriants (extreme confusion and toxicity)",
+          "Tramadol (seizure risk)"
+        ],
+        "caution": [
+          "Any medication or substance (anticholinergic effects interfere with many drugs)",
+          "Cannabis (increased confusion and paranoia)"
+        ]
+      },
+      "notes": "Datura is extremely dangerous and potentially fatal. Potency varies wildly between plants, plant parts, growing conditions, and even within the same plant (up to 20:1 variation). There is no safe or reliable dosage. The margin between an active dose and a lethal dose is extremely narrow. Datura causes severe anticholinergic syndrome, prolonged delirium lasting days, realistic and terrifying hallucinations, hyperthermia, seizures, and has resulted in numerous deaths and permanent injuries. Medical literature documents extensive cases of poisoning, hospitalization, psychosis, and fatality. Indigenous shamanic use involves years of careful tolerance building under expert guidance and should not be replicated recreationally. Strongly advised to avoid entirely. If encountered medically, seek immediate emergency treatment.",
+      "subjective_effects": [
+        "Realistic And Indistinguishable Hallucinations",
+        "Complete Delirium And Confusion",
+        "Conversations With Imaginary People",
+        "Extreme Dry Mouth And Dehydration",
+        "Severe Pupil Dilation And Vision Impairment",
+        "Amnesia And Memory Loss",
+        "Extreme Paranoia And Fear",
+        "Perception Of Bodily Heaviness",
+        "Painful Electric Shock Sensations",
+        "Difficulty Urinating Despite Urge",
+        "Hyperthermia And Flushing",
+        "Tachycardia And Elevated Blood Pressure",
+        "Motor Control Loss And Ataxia",
+        "Complete Inability To Distinguish Reality From Hallucination"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops with repeated use within days",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "Other deliriants (diphenhydramine, dimenhydrinate)",
+          "Other anticholinergics"
+        ]
+      },
+      "half_life": "Scopolamine: 2-4 hours; Atropine: 2-3 hours; Hyoscyamine: 3-5 hours (effects persist far longer than half-life)",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy Datura Thread",
+          "reference": "https://www.bluelight.org/community/threads/datura-takers.615462/"
+        },
+        {
+          "name": "DoubleBlind Magazine: Sacred Datura Overview",
+          "reference": "https://doubleblindmag.com/sacred-datura-trip-reports/"
+        },
+        {
+          "name": "Erowid Datura Vault",
+          "reference": "https://erowid.org/plants/datura/datura.shtml"
+        },
+        {
+          "name": "Medscape: Tropane Alkaloid Poisoning Overview",
+          "reference": "https://emedicine.medscape.com/article/816657-overview"
+        },
+        {
+          "name": "PMC: Long-term Intentional Datura Use Consequences",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6767831/"
+        },
+        {
+          "name": "PsychonautWiki: Datura",
+          "reference": "https://psychonautwiki.org/wiki/Datura"
+        },
+        {
+          "name": "The Third Wave: Guide to Datura",
+          "reference": "https://thethirdwave.co/psychedelics/datura/"
+        },
+        {
+          "name": "Tripsitter: Datura Risks and Experience",
+          "reference": "https://tripsitter.com/datura/"
+        },
+        {
+          "name": "Wikipedia: Datura stramonium",
+          "reference": "https://en.wikipedia.org/wiki/Datura_stramonium"
+        }
+      ],
+      "categories": [
+        "deliriant",
+        "anticholinergic",
+        "tropane-alkaloid",
+        "extremely-dangerous",
+        "plant-based"
+      ]
+    },
+    "id": 663
   }
 ]
