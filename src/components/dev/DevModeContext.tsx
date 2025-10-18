@@ -12,6 +12,7 @@ type DevModeContextValue = {
   resetArticleAt: (index: number) => void;
   resetAll: () => void;
   getOriginalArticle: (index: number) => ArticleRecord | undefined;
+  getOriginalArticles: () => ArticleRecord[];
   replaceArticles: (nextArticles: ArticleRecord[]) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
 };
@@ -110,6 +111,8 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     return deepClone(original);
   }, []);
 
+  const getOriginalArticles = useCallback(() => deepClone(originalArticlesRef.current), []);
+
   const replaceArticles = useCallback((nextArticles: ArticleRecord[]) => {
     setArticles(deepClone(nextArticles));
   }, []);
@@ -129,6 +132,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     resetArticleAt,
     resetAll,
     getOriginalArticle,
+    getOriginalArticles,
     replaceArticles,
     applyArticlesTransform,
   }), [
@@ -136,6 +140,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     articles,
     close,
     getOriginalArticle,
+    getOriginalArticles,
     open,
     replaceArticles,
     resetAll,

@@ -152,25 +152,112 @@ export type DatasetChangelogResult = {
 
 export interface BuildDatasetChangelogOptions<Article> {
   articles: Article[];
-  getOriginalArticle: (index: number) => Article | undefined;
+  originalArticles: Article[];
+  getArticleKey?: (article: Article | undefined, index: number) => string | number | null;
   formatHeading: (article: Article | undefined, index: number) => string;
   summarizeArticle: (article: Article | undefined, index: number) => ChangeLogArticleSummary | null;
 }
 
 export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOptions<Article>): DatasetChangelogResult => {
   const sections: DatasetChangelogSection[] = [];
-  const summaries: ChangeLogArticleSummary[] = [];
+  const summaryBySlug = new Map<string, ChangeLogArticleSummary>();
+
+  const getArticleKey =
+    options.getArticleKey ??
+    ((article: Article | undefined) => {
+      if (!article || typeof article !== "object") {
+        return null;
+      }
+
+      const candidate = (article as { id?: unknown }).id;
+      if (typeof candidate === "number" && Number.isFinite(candidate)) {
+        return candidate;
+      }
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
+        return candidate.trim();
+      }
+      return null;
+    });
+
+  const toKey = (article: Article | undefined, index: number, source: "original" | "updated") => {
+    const key = getArticleKey(article, index);
+    if (key !== null && key !== undefined) {
+      return `id:${String(key)}`;
+    }
+    return `${source}:${index}`;
+  };
+
+  const originalMap = new Map<
+    string,
+    {
+      article: Article | undefined;
+      index: number;
+    }
+  >();
+
+  options.originalArticles.forEach((article, index) => {
+    const key = toKey(article, index, "original");
+    originalMap.set(key, { article, index });
+  });
+
+  const updatedMap = new Map<
+    string,
+    {
+      article: Article | undefined;
+      index: number;
+    }
+  >();
 
   options.articles.forEach((article, index) => {
-    const original = options.getOriginalArticle(index);
-    const heading = options.formatHeading(article, index);
-    const { markdown, hasChanges } = buildArticleChangelog(heading, original, article);
+    const key = toKey(article, index, "updated");
+    updatedMap.set(key, { article, index });
+  });
 
-    if (hasChanges) {
-      sections.push({ index, heading, markdown });
-      const summary = options.summarizeArticle(article, index) ?? options.summarizeArticle(original, index);
-      if (summary) {
-        summaries.push(summary);
+  const orderedKeys: string[] = [];
+  const seenKeys = new Set<string>();
+
+  options.articles.forEach((article, index) => {
+    const key = toKey(article, index, "updated");
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      orderedKeys.push(key);
+    }
+  });
+
+  options.originalArticles.forEach((article, index) => {
+    const key = toKey(article, index, "original");
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      orderedKeys.push(key);
+    }
+  });
+
+  orderedKeys.forEach((key) => {
+    const updated = updatedMap.get(key);
+    const original = originalMap.get(key);
+
+    const updatedArticle = updated?.article;
+    const originalArticle = original?.article;
+    const headingIndex = updated?.index ?? original?.index ?? 0;
+    const headingArticle = updatedArticle ?? originalArticle;
+
+    const heading = options.formatHeading(headingArticle, headingIndex);
+    const { markdown, hasChanges } = buildArticleChangelog(heading, originalArticle, updatedArticle);
+
+    if (!hasChanges) {
+      return;
+    }
+
+    sections.push({ index: headingIndex, heading, markdown });
+
+    const summary =
+      options.summarizeArticle(updatedArticle, updated?.index ?? headingIndex) ??
+      options.summarizeArticle(originalArticle, original?.index ?? headingIndex);
+
+    if (summary) {
+      const summaryKey = summary.slug || String(summary.id);
+      if (!summaryBySlug.has(summaryKey)) {
+        summaryBySlug.set(summaryKey, summary);
       }
     }
   });
@@ -179,7 +266,7 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
 
   return {
     markdown,
-    articles: summaries,
+    articles: [...summaryBySlug.values()],
     sections,
   };
 };

@@ -267,6 +267,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     resetArticleAt,
     resetAll,
     getOriginalArticle,
+    getOriginalArticles,
     replaceArticles,
     applyArticlesTransform,
   } = useDevMode();
@@ -411,18 +412,21 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   }, [articleLabel, comparisonTarget, isDraftValid, originalArticle]);
 
   const changelogMarkdown = changelogResult.markdown;
+  const originalArticles = useMemo(() => getOriginalArticles(), [getOriginalArticles]);
+
   const datasetChangelog = useMemo(
     () =>
       buildDatasetChangelog({
         articles,
-        getOriginalArticle,
-        formatHeading: (article, index) => formatArticleLabel(article ?? articles[index], index),
-        summarizeArticle: (article, index) =>
-          extractChangeLogSummary(article, index) ??
-          extractChangeLogSummary(articles[index], index) ??
-          extractChangeLogSummary(getOriginalArticle(index), index),
+        originalArticles,
+        getArticleKey: (article, index) => {
+          const summary = extractChangeLogSummary(article, index);
+          return summary?.id ?? null;
+        },
+        formatHeading: (article, index) => formatArticleLabel(article, index),
+        summarizeArticle: (article, index) => extractChangeLogSummary(article, index),
       }),
-    [articles, getOriginalArticle],
+    [articles, originalArticles],
   );
   const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
   const trimmedUsername = username.trim();
@@ -1486,14 +1490,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
 
       const deletionChangelog = buildDatasetChangelog({
         articles: nextArticles,
-        getOriginalArticle,
-        formatHeading: (article, index) =>
-          formatArticleLabel(article ?? nextArticles[index] ?? articles[index], index),
-        summarizeArticle: (article, index) =>
-          extractChangeLogSummary(article, index) ??
-          extractChangeLogSummary(nextArticles[index], index) ??
-          extractChangeLogSummary(articles[index], index) ??
-          extractChangeLogSummary(getOriginalArticle(index), index),
+        originalArticles,
+        getArticleKey: (article, index) => {
+          const summary = extractChangeLogSummary(article, index);
+          return summary?.id ?? null;
+        },
+        formatHeading: (article, index) => formatArticleLabel(article, index),
+        summarizeArticle: (article, index) => extractChangeLogSummary(article, index),
       });
 
       const saveResponse = await fetch("/api/save-articles", {
@@ -1560,7 +1563,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     articleDeleteConfirmed,
     articleLabel,
     articles,
-    getOriginalArticle,
+    originalArticles,
     isDeletingArticle,
     onTabChange,
     pushChangeLogNotice,
