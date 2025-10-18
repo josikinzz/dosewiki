@@ -26,6 +26,9 @@ const neutralButtonClass =
 const dangerButtonClass =
   "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
 
+const glassPillButtonBaseClass =
+  "inline-flex items-center gap-2 rounded-full bg-white/12 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+
 type SelectedTag = {
   field: TagField;
   key: string;
@@ -582,7 +585,7 @@ export function TagEditorTab({
         <div className="flex flex-wrap gap-2 text-xs">
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className={`${glassPillButtonBaseClass} px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60`}
             onClick={handleCopyDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >
@@ -591,7 +594,7 @@ export function TagEditorTab({
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className={`${glassPillButtonBaseClass} px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60`}
             onClick={handleDownloadDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >

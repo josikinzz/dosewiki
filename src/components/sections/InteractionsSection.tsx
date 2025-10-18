@@ -10,24 +10,24 @@ interface InteractionsSectionProps {
 
 const severityStyles: Record<InteractionGroup["severity"], { border: string; bg: string; Icon: LucideIcon; iconClass: string; label: string }> = {
   danger: {
-    border: "border-red-500/30",
-    bg: "bg-red-500/10",
+    border: "border-rose-500/40",
+    bg: "bg-rose-500/10",
     Icon: AlertOctagon,
-    iconClass: "text-red-300",
+    iconClass: "text-rose-200",
     label: "High risk interaction",
   },
   unsafe: {
-    border: "border-amber-500/30",
-    bg: "bg-amber-500/10",
+    border: "border-rose-400/35",
+    bg: "bg-rose-400/10",
     Icon: AlertTriangle,
-    iconClass: "text-amber-200",
+    iconClass: "text-rose-200",
     label: "Unsafe combination",
   },
   caution: {
-    border: "border-yellow-500/30",
-    bg: "bg-yellow-500/10",
+    border: "border-rose-300/30",
+    bg: "bg-rose-300/10",
     Icon: AlertCircle,
-    iconClass: "text-yellow-200",
+    iconClass: "text-rose-200",
     label: "Use caution",
   },
 };

@@ -70,6 +70,9 @@ const bioComponents = {
   ),
 };
 
+const contributionBadgeClass =
+  "inline-flex items-center rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20";
+
 export function UserProfilePage({ profile, history }: UserProfilePageProps) {
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
@@ -163,7 +166,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
                         )}
                       </p>
                     </div>
-                    <span className="rounded-full border border-white/12 px-3 py-1 text-xs text-white/70">
+                    <span className={contributionBadgeClass}>
                       {entry.articles.length} article{entry.articles.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -176,7 +179,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
                             const isRemoved = line.startsWith("-");
                             const isHunk = line.startsWith("@@");
                             const lineClass = isHunk
-                              ? "text-amber-200"
+                              ? "text-rose-200"
                               : isAdded
                                 ? "text-emerald-300"
                                 : isRemoved

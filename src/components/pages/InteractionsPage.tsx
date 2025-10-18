@@ -28,21 +28,21 @@ interface InteractionsPageProps {
 const SEVERITY_META: Record<InteractionGroup["severity"], { label: string; tone: string; text: string; chip: string }> = {
   danger: {
     label: "Danger",
-    tone: "border-red-500/40 bg-red-500/10",
-    text: "text-red-200",
-    chip: "bg-red-500/20 text-red-100",
+    tone: "border-rose-500/40 bg-rose-500/10",
+    text: "text-rose-200",
+    chip: "bg-rose-500/20 text-rose-100",
   },
   unsafe: {
     label: "Unsafe",
-    tone: "border-amber-500/40 bg-amber-500/10",
-    text: "text-amber-100",
-    chip: "bg-amber-500/20 text-amber-100",
+    tone: "border-rose-400/35 bg-rose-400/10",
+    text: "text-rose-200",
+    chip: "bg-rose-400/20 text-rose-100",
   },
   caution: {
     label: "Caution",
-    tone: "border-yellow-500/40 bg-yellow-500/10",
-    text: "text-yellow-100",
-    chip: "bg-yellow-500/20 text-yellow-900",
+    tone: "border-rose-300/30 bg-rose-300/10",
+    text: "text-rose-200",
+    chip: "bg-rose-300/15 text-rose-100",
   },
 };
 
@@ -402,14 +402,14 @@ export function InteractionsPage({
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-12">
-      <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
-        <div className="flex items-start gap-3 gap-fallback-row-3 text-amber-100">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-200" aria-hidden="true" />
+      <div className="mb-6 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
+        <div className="flex items-start gap-3 gap-fallback-row-3 text-rose-100">
+          <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-200" aria-hidden="true" />
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-amber-100">
+            <p className="text-sm font-semibold uppercase tracking-wide text-rose-100">
               Under construction
             </p>
-            <p className="mt-1 text-sm text-amber-100/80">
+            <p className="mt-1 text-sm text-rose-100/80">
               This interactions comparison is still under construction, and we&apos;re continuing to collect the
               dataset that powers it.
             </p>
