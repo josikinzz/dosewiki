@@ -75067,5 +75067,198 @@
       ]
     },
     "id": 668
+  },
+  {
+    "title": "Midazolam",
+    "index-category": "depressant; benzodiazepine",
+    "drug_info": {
+      "drug_name": "Midazolam",
+      "chemical_name": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-imidazo[1,5-a][1,4]benzodiazepine",
+      "alternative_name": "Versed; Hypnovel; Dormicum",
+      "chemical_class": "Benzodiazepine; Imidazobenzodiazepine",
+      "psychoactive_class": "Depressant",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator (increases frequency of chloride channel opening)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "2.5-5 mg",
+              "common": "5-15 mg",
+              "strong": "15-30 mg",
+              "heavy": "30+ mg"
+            }
+          },
+          {
+            "route": "intranasal",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "2-4 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          },
+          {
+            "route": "intramuscular",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "2-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          },
+          {
+            "route": "intravenous",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.5-1 mg",
+              "light": "1-2.5 mg",
+              "common": "2.5-7.5 mg",
+              "strong": "7.5-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "30-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "Up to 6 hours (residual impairment)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "intranasal",
+            "stages": {
+              "total_duration": "1.5-3 hours",
+              "onset": "5-15 minutes",
+              "peak": "10-30 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "Up to 4 hours (residual impairment)"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "intramuscular",
+            "stages": {
+              "total_duration": "1.5-4 hours",
+              "onset": "2-30 minutes",
+              "peak": "30-60 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "Up to 6 hours (residual impairment)"
+            },
+            "canonical_routes": [
+              "intramuscular"
+            ]
+          },
+          {
+            "route": "intravenous",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "1-5 minutes",
+              "peak": "5-15 minutes",
+              "offset": "30-90 minutes",
+              "after_effects": "Up to 4 hours (residual impairment)"
+            },
+            "canonical_routes": [
+              "intravenous"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Midazolam has moderate potential for physical dependence and withdrawal when used regularly for longer than 4 weeks. Tolerance develops rapidly, particularly with continuous use, and withdrawal syndrome can occur with abrupt discontinuation. Risk factors for dependence include prolonged use, higher doses, and history of substance abuse. Infusions may induce tolerance and withdrawal within days.",
+      "interactions": {
+        "dangerous": [
+          "Opioids (severe respiratory depression and death risk)",
+          "Alcohol (severe respiratory depression and death risk)",
+          "GHB/GBL (severe respiratory depression and death risk)",
+          "Barbiturates (severe respiratory depression and death risk)",
+          "Other CNS depressants (respiratory depression and unconsciousness)"
+        ],
+        "unsafe": [
+          "Tramadol (increased seizure risk)",
+          "Strong CYP3A4 inhibitors (prolonged and intensified effects; includes ketoconazole, itraconazole, erythromycin, clarithromycin, diltiazem, verapamil, protease inhibitors, grapefruit juice)",
+          "Tricyclic antidepressants (increased toxicity)"
+        ],
+        "caution": [
+          "CYP3A4 inducers (reduced effectiveness; includes St John's Wort, rifampin, phenytoin, carbamazepine)",
+          "Sedating antihistamines (increased sedation)",
+          "Antipsychotics (increased sedation)",
+          "Antiepileptics (altered effects)"
+        ]
+      },
+      "notes": "Midazolam is a Schedule IV controlled substance in the United States and a prescription-only medication in most countries. It should never be combined with other depressants due to extreme risk of fatal respiratory depression. Users with liver or kidney impairment may experience prolonged effects and should avoid use or reduce doses significantly. The sudden discontinuation after prolonged use can be dangerous or life-threatening and requires medical supervision with gradual tapering. Midazolam causes anterograde amnesia, meaning users will not remember events during peak effects. Paradoxical reactions including agitation, aggression, and hallucinations can occur. Never operate vehicles or machinery after use.",
+      "subjective_effects": [
+        "Sedation",
+        "Anxiety Suppression",
+        "Muscle Relaxation",
+        "Disinhibition",
+        "Anterograde Amnesia",
+        "Respiratory Depression",
+        "Motor Control Loss",
+        "Euphoria (mild to moderate)",
+        "Cognitive Impairment",
+        "Dream Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-4 days of continuous use",
+        "half_tolerance": "2-4 days after cessation",
+        "zero_tolerance": "7-14 days",
+        "cross_tolerances": [
+          "All benzodiazepines",
+          "Other GABAergic depressants"
+        ]
+      },
+      "half_life": "1.5-3 hours (elimination half-life); active metabolite alpha-1-hydroxymidazolam has similar duration but contributes only 10% of biological activity",
+      "citations": [
+        {
+          "name": "Erowid Midazolam Vault",
+          "reference": "https://erowid.org/pharms/midazolam/"
+        },
+        {
+          "name": "Midazolam - StatPearls - NCBI Bookshelf",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK537321/"
+        },
+        {
+          "name": "PsychonautWiki: Midazolam",
+          "reference": "https://psychonautwiki.org/wiki/Midazolam"
+        },
+        {
+          "name": "TripSit Drug Combinations Chart",
+          "reference": "https://combo.tripsit.me/"
+        },
+        {
+          "name": "TripSit Midazolam Factsheet",
+          "reference": "https://drugs.tripsit.me/midazolam"
+        },
+        {
+          "name": "Wikipedia: Midazolam",
+          "reference": "https://en.wikipedia.org/wiki/Midazolam"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "benzodiazepine",
+        "short-acting",
+        "prescription"
+      ]
+    },
+    "id": 669
   }
 ]
