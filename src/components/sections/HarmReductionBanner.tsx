@@ -45,7 +45,7 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
   }, [citations]);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)]">
+    <section className="relative overflow-hidden rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)] transition duration-200 hover:border-red-300/50 hover:bg-red-500/15 hover:shadow-[0_18px_46px_-25px_rgba(239,68,68,0.65)]">
       {onDismiss ? (
         <button
           type="button"
