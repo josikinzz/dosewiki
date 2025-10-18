@@ -37220,11 +37220,11 @@
   },
   {
     "id": 182,
-    "title": "Sernyl",
+    "title": "PCP",
     "drug_info": {
-      "drug_name": "Sernyl",
-      "chemical_name": "PCP",
-      "alternative_name": "Phencyclidine",
+      "drug_name": "PCP",
+      "chemical_name": "Phencyclidine",
+      "alternative_name": "Sernyl",
       "chemical_class": "Arylcyclohexylamines",
       "mechanism_of_action": "NMDA receptor antagonist",
       "psychoactive_class": "Dissociative; Hallucinogen",
@@ -37269,42 +37269,42 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           },
           {
             "route": "smoked",
-            "canonical_routes": [
-              "smoked"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
           },
           {
             "route": "insufflated",
-            "canonical_routes": [
-              "insufflated"
-            ],
             "stages": {
               "total_duration": "4-8 hours (can be longer depending on dose and route)",
               "onset": "2-60 minutes",
               "peak": "2-4 hours",
               "offset": "2-4 hours",
               "after_effects": "Up to 24 hours (residual effects, cognitive disturbances)"
-            }
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
           }
         ]
       },
@@ -37371,8 +37371,7 @@
       ],
       "categories": [
         "common",
-        "dissociative",
-        "research-chemical"
+        "dissociative"
       ]
     },
     "index-category": ""
