@@ -1,4 +1,4 @@
-import { Scale } from 'lucide-react';
+import { Pill, Scale, Timer } from 'lucide-react';
 import { SectionCard } from '../common/SectionCard';
 import { IconBadge } from '../common/IconBadge';
 import { RouteInfo, RouteKey } from '../../types/content';
@@ -46,17 +46,25 @@ export function DosageDurationCard({
     return formatRouteLabel(String(key));
   };
 
+  const trimmedNote = note.trim();
+  const showNote =
+    trimmedNote.length > 0 && !trimmedNote.toLowerCase().startsWith('units');
+
   return (
     <SectionCard
       delay={0.05}
       className="border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-500/10 to-violet-500/10 shadow-[0_10px_30px_-12px_rgba(168,85,247,0.35)] hover:shadow-[0_18px_50px_-12px_rgba(168,85,247,0.45)]"
     >
-      <div className="flex flex-col gap-4">
-        <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex items-start gap-3">
           <IconBadge icon={Scale} label="Dosage and duration" />
-          Dosage & Duration
-        </h2>
-        <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-semibold text-fuchsia-300">Dosage & Duration</h2>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 text-left md:items-end md:text-right">
+          {showNote && <p className="text-xs text-white/65 md:text-[13px]">{trimmedNote}</p>}
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
           {orderedRoutes.map((key) => {
             const info = routes[key];
             if (!info) {
@@ -71,7 +79,7 @@ export function DosageDurationCard({
                 key={key}
                 type="button"
                 onClick={() => onRouteChange(key)}
-                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
+                className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                   isActive
                     ? 'border-white/40 bg-white/20 text-white shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]'
                     : 'border-white/20 bg-white/0 text-white/75 hover:bg-white/10 hover:text-white'
@@ -82,49 +90,51 @@ export function DosageDurationCard({
               </button>
             );
           })}
+          </div>
         </div>
       </div>
-      {note && <p className="mt-4 text-xs text-white/70">{note}</p>}
-      <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
         <div>
-          <h3 className="mb-3 text-sm font-semibold opacity-90">
-            Dosage ({resolveLabel(activeRouteKey)})
+          <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
+            <Pill className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            <span>Dosage ({resolveLabel(activeRouteKey)})</span>
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {activeRoute.dosage.length > 0 ? (
               activeRoute.dosage.map((entry) => (
                 <div
                   key={entry.label}
-                  className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-sm text-white/85 ring-1 ring-white/10 transition hover:bg-white/10"
+                  className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
                 >
-                  <span className="text-white/80">{entry.label}</span>
-                  <span className="font-semibold tracking-tight">{entry.value}</span>
+                  <span className="font-semibold text-white/90">{entry.label}</span>
+                  <span className="text-white/75">{entry.value}</span>
                 </div>
               ))
             ) : (
-              <p className="rounded-xl bg-white/5 px-4 py-3 text-sm italic text-white/60 ring-1 ring-dashed ring-white/15">
+              <p className="rounded-xl bg-white/[0.06] px-4 py-3 text-sm italic text-white/60 ring-1 ring-dashed ring-white/15">
                 Dosage guidance is not available for this route in the dataset.
               </p>
             )}
           </div>
         </div>
         <div>
-          <h3 className="mb-3 text-sm font-semibold opacity-90">
-            Duration ({resolveLabel(activeRouteKey)})
+          <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
+            <Timer className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            <span>Duration ({resolveLabel(activeRouteKey)})</span>
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {activeRoute.duration.length > 0 ? (
               activeRoute.duration.map((entry) => (
                 <div
                   key={entry.label}
-                  className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5 text-sm text-white/85 ring-1 ring-white/10 transition hover:bg-white/10"
+                  className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
                 >
-                  <span className="text-white/80">{entry.label}</span>
-                  <span className="font-semibold tracking-tight">{entry.value}</span>
+                  <span className="font-semibold text-white/90">{entry.label}</span>
+                  <span className="text-white/75">{entry.value}</span>
                 </div>
               ))
             ) : (
-              <p className="rounded-xl bg-white/5 px-4 py-3 text-sm italic text-white/60 ring-1 ring-dashed ring-white/15">
+              <p className="rounded-xl bg-white/[0.06] px-4 py-3 text-sm italic text-white/60 ring-1 ring-dashed ring-white/15">
                 Duration details are not available for this route in the dataset.
               </p>
             )}

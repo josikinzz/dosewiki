@@ -46,7 +46,7 @@ export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps)
           ) : null}
           Chemistry & Pharmacology
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="columns-1 gap-4 md:columns-2 xl:columns-3">
           {orderedCards.map((item) => {
             const { label, value, href, icon: ItemIcon, chips } = item;
             const normalizedLabel = label.toLowerCase().trim();
@@ -91,7 +91,7 @@ export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps)
             return (
               <article
                 key={`${label}-${value}`}
-                className="flex h-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20"
+                className="mb-4 flex w-full flex-col gap-3 break-inside-avoid rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20 last:mb-0"
               >
                 <h3 className="flex items-center gap-2 text-base font-semibold leading-tight text-white">
                   {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" /> : null}
