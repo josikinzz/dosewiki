@@ -1,8 +1,11 @@
-import rawEntries from "./devChangeLog.json";
+import activeEntries from "./devChangeLog.json";
+import archivedEntries from "./devChangeLog.archive.json";
 
 /**
  * Change log entry captured from the Dev Tools GitHub workflow.
- * Persisted in src/data/devChangeLog.json and hydrated at runtime for the Change log tab.
+ * Persisted in src/data/devChangeLog.json (recent entries) and src/data/devChangeLog.archive.json (older entries).
+ * Both files are merged client-side so the Change log tab shows the complete history without hitting GitHub's
+ * 1 MB contents API limit for the writable file.
  */
 export type ChangeLogEntry = {
   id: string;
@@ -91,6 +94,8 @@ const normalizeEntries = (entries: unknown): ChangeLogEntry[] => {
     })
     .filter((value): value is ChangeLogEntry => value !== null);
 };
+
+const rawEntries = [...(Array.isArray(activeEntries) ? activeEntries : []), ...(Array.isArray(archivedEntries) ? archivedEntries : [])];
 
 export const initialChangeLogEntries = normalizeEntries(rawEntries);
 
