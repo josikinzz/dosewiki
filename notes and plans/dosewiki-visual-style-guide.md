@@ -21,7 +21,7 @@ _Comprehensive reference for maintaining visual consistency across dose.wiki sur
 | **Success** | `border-emerald-400/50`, `bg-emerald-500/10`, `text-emerald-200` | Positive CTAs (Dev save button) | Keep consistent with Dev tools actions.
 | **Risk states** | `border-red-500/30`, `bg-red-500/10`, `text-red-300`; `border-amber-500/30`; `border-yellow-500/30` | Interaction cards | Derived from `InteractionsSection` severity map.
 | **Inputs** | `bg-slate-950/60`, `border-white/10`, `placeholder:text-white/45` | Form controls | Includes JSON editor container and creation form inputs.
-| **Badges** | `bg-white/10`, `ring-white/10`, `text-white/85` | Chips, effect tags | Apply interactive variant for clickable badges.
+| **Badges / glass pills** | `bg-white/12`, `ring-white/20`, `shadow-fuchsia-500/10`, `text-white/80` | Chips, change-log filters, pill buttons | Match Dev Tools pills (`glassPillButtonBaseClass`) and lighten hover with subtle translucency instead of white borders.
 
 Use opacity-based whites (`white/xx`) to keep overlays harmonised with the dark base. Avoid pure white borders/backgrounds except for selection highlights.
 
@@ -51,6 +51,7 @@ Use opacity-based whites (`white/xx`) to keep overlays harmonised with the dark 
   - Base: `rounded-2xl border border-white/10 bg-white/5 p-6` with animated entry and hover shadow intensification.
   - Variations: Dosage card overlays accent gradient + `border-fuchsia-500/30`; Dev Creator uses `bg-white/[0.04]`.
 - **Info list tiles**: Use nested `rounded-xl bg-white/5 ring-white/10` articles with hover lighten for Chemistry & Pharmacology details.
+- **Dev Tools change log**: Anchor filters and copy/download pills with the glass treatment (`bg-white/12 ring-white/20 shadow-fuchsia-500/10`); pair diff cards with `border-white/10` containers so pills read as elevated chips instead of bordered buttons.
 - **Empty states**: Compose with dashed borders (`border-dashed border-white/20`) or italicised `text-white/60` copy inside `bg-white/5` containers.
 
 ## 6. Navigation & Global Shell
@@ -61,7 +62,7 @@ Use opacity-based whites (`white/xx`) to keep overlays harmonised with the dark 
 
 ## 7. Buttons, Badges & Chips
 - **Primary pills**: `rounded-full px-5 py-2.5`, gradient backgrounds for active states, `ring-1 ring-fuchsia-300/60` (Dosage sort toggles).
-- **Secondary buttons**: `border-white/12 px-3 py-1.5 text-white/75` with hover border brighten; used for Dev copy/export controls.
+- **Glass pills (Dev copy/export)**: `glassPillButtonBaseClass` → `bg-white/12 ring-white/20 shadow-fuchsia-500/10 text-white/80` with `hover:bg-white/16 hover:ring-white/35`; size with `px-3 py-1.5 text-xs` for changelog actions or `text-sm` when paired with icons.
 - **Icon badges**: `IconBadge` yields `inline-grid h-8 w-8 rounded-xl bg-white/10 ring-white/15` with white icon strokes.
 - **Effect chips**: `BADGE_BASE_CLASSES` / `BADGE_INTERACTIVE_CLASSES` for enumerations. Add `focus-visible:outline-fuchsia-400` for keyboard support.
 - **Status badges**: Search metadata tokens adopt `border-fuchsia-400/25 bg-fuchsia-500/10 text-fuchsia-200/90` with uppercase tracking.

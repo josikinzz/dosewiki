@@ -118,6 +118,8 @@ const compactSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const dangerButtonClass =
   "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
+const pillButtonBaseClass =
+  "inline-flex items-center gap-2 rounded-full bg-white/12 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
@@ -279,6 +281,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const [articleDeleteNotice, setArticleDeleteNotice] = useState<ChangeNotice | null>(null);
   const [isDeletingArticle, setIsDeletingArticle] = useState(false);
   const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
+  const [createDraftMode, setCreateDraftMode] = useState<"ui" | "json">("ui");
   const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
   const [isNewArticleStaged, setIsNewArticleStaged] = useState(false);
   const [stagedArticleLabel, setStagedArticleLabel] = useState<string | null>(null);
@@ -1645,12 +1648,14 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     setIsNewArticleStaged(false);
     setStagedArticleLabel(null);
     setStagedArticleId(null);
+    setCreateDraftMode("ui");
   }, [
     resetNewArticleFormState,
     setCreatorNotice,
     setIsNewArticleStaged,
     setStagedArticleLabel,
     setStagedArticleId,
+    setCreateDraftMode,
   ]);
 
   const handleNewArticleJsonChange = useCallback(
@@ -1675,6 +1680,36 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     },
     [replaceNewArticleForm],
   );
+
+  const switchToCreateJsonMode = useCallback(() => {
+    if (createDraftMode === "json") {
+      return;
+    }
+
+    setCreateDraftMode("json");
+    setCreatorNotice(null);
+  }, [createDraftMode, setCreatorNotice]);
+
+  const switchToCreateUiMode = useCallback(() => {
+    if (createDraftMode === "ui") {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(newArticleJsonDraft);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Article JSON must be an object.");
+      }
+
+      const hydrated = hydrateArticleDraftForm(parsed);
+      replaceNewArticleForm(hydrated);
+      setCreateDraftMode("ui");
+      setCreatorNotice(null);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+      setCreatorNotice({ type: "error", message: `Switch failed: ${reason}` });
+    }
+  }, [createDraftMode, newArticleJsonDraft, replaceNewArticleForm, setCreatorNotice]);
 
   const copyNewArticleJson = useCallback(async () => {
     try {
@@ -2240,28 +2275,28 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <div className="flex flex-wrap gap-2 text-xs">
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                   onClick={resetArticle}
-              >
-                <Undo2 className="h-4 w-4" />
-                Reset article
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
-                onClick={resetDataset}
-              >
-                <RefreshCw className="h-4 w-4" />
-                Reset all
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
-                onClick={downloadDraft}
-              >
-                <Download className="h-4 w-4" />
-                Download dataset
-              </button>
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Reset article
+                </button>
+                <button
+                  type="button"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
+                  onClick={resetDataset}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Reset all
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                  onClick={downloadDraft}
+                >
+                  <Download className="h-4 w-4" />
+                  Download dataset
+                </button>
             </div>
             <div className="h-px w-full bg-white/10" />
             <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
@@ -2317,12 +2352,12 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
                 <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
               </div>
-              <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 text-xs shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-1">
+              <div className="mx-auto flex w-fit flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 text-xs shadow-inner shadow-black/20 sm:flex-nowrap sm:gap-1">
                 <button
                   type="button"
                   onClick={switchToUiMode}
                   aria-pressed={draftMode === "ui"}
-                  className={`flex flex-1 items-center justify-center rounded-full px-3 py-1.5 font-semibold transition sm:flex-none ${
+                  className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
                     draftMode === "ui" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
                   }`}
                 >
@@ -2332,7 +2367,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                   type="button"
                   onClick={switchToJsonMode}
                   aria-pressed={draftMode === "json"}
-                  className={`flex flex-1 items-center justify-center rounded-full px-3 py-1.5 font-semibold transition sm:flex-none ${
+                  className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
                     draftMode === "json" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
                   }`}
                 >
@@ -2370,7 +2405,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                   </button>
                   <button
                     type="button"
-                    className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                    className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                     onClick={copyDraft}
                   >
                     <Copy className="h-3.5 w-3.5" />
@@ -2403,7 +2438,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <div className="flex flex-wrap gap-2 text-xs">
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                   onClick={copyChangelog}
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -2411,7 +2446,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 </button>
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                   onClick={downloadChangelog}
                 >
                   <Download className="h-3.5 w-3.5" />
@@ -2485,7 +2520,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
                             <Copy className="h-4 w-4" />
@@ -2493,7 +2528,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                           </button>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
                             <Download className="h-4 w-4" />
@@ -2511,31 +2546,62 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
         </div>
       ) : activeTab === "create" ? (
         <div className="mt-10 grid w-full items-start gap-6 lg:grid-cols-[2fr,1fr]">
-          <SectionCard className="min-w-0 space-y-8 bg-white/[0.04]">
-            <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
-          </SectionCard>
-
-          <div className="space-y-6 min-w-0">
-            <SectionCard className="min-w-0 flex flex-col space-y-4 bg-white/[0.04]">
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-fuchsia-200">Generated JSON</h2>
-                <p className="text-sm text-white/65">Structure updates as you complete the form.</p>
-                {!isNewArticleValid && (
-                  <p className="text-xs text-amber-300">
-                    Required: title, drug name, and one administration route with units.
-                  </p>
-                )}
+          <SectionCard className="min-w-0 space-y-6 bg-white/[0.04]">
+            <div className="space-y-1">
+              <h2 className="text-xl font-semibold text-fuchsia-200">New article workspace</h2>
+              <p className="text-sm text-white/65">
+                Switch between structured form controls and raw JSON as you assemble a new record.
+              </p>
+            </div>
+            {!isNewArticleValid && (
+              <p className="text-xs text-rose-300">
+                Required: title, drug name, and one administration route with units.
+              </p>
+            )}
+            <div className="mx-auto flex w-fit flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 text-xs shadow-inner shadow-black/20 sm:flex-nowrap sm:gap-1">
+              <button
+                type="button"
+                onClick={switchToCreateUiMode}
+                aria-pressed={createDraftMode === "ui"}
+                className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
+                  createDraftMode === "ui" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+                }`}
+              >
+                UI view
+              </button>
+              <button
+                type="button"
+                onClick={switchToCreateJsonMode}
+                aria-pressed={createDraftMode === "json"}
+                className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
+                  createDraftMode === "json" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+                }`}
+              >
+                JSON view
+              </button>
+            </div>
+            {createDraftMode === "ui" ? (
+              <div className="space-y-8">
+                <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
+              </div>
+            ) : (
+              <JsonEditor
+                value={newArticleJsonDraft}
+                minHeight={previewMinHeight}
+                onChange={handleNewArticleJsonChange}
+                className="flex-1"
+              />
+            )}
+            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+              <div className="min-h-[1.25rem] space-y-1">
                 {creatorNotice && (
-                  <p className={`text-xs ${creatorNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
+                  <p className={creatorNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
                     {creatorNotice.message}
                   </p>
                 )}
+                {newArticleJsonError && <p className="text-rose-300">JSON error: {newArticleJsonError}</p>}
               </div>
-              <JsonEditor value={newArticleJsonDraft} minHeight={previewMinHeight} onChange={handleNewArticleJsonChange} />
-              {newArticleJsonError && (
-                <p className="text-xs text-rose-300">JSON error: {newArticleJsonError}</p>
-              )}
-              <div className="flex flex-wrap gap-2 text-xs">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={handleStageNewArticle}
@@ -2548,7 +2614,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 <button
                   type="button"
                   onClick={copyNewArticleJson}
-                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                 >
                   <Copy className="h-3.5 w-3.5" />
                   Copy JSON
@@ -2564,13 +2630,16 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 <button
                   type="button"
                   onClick={resetNewArticleForm}
-                  className="flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-white/75 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                 >
                   <Undo2 className="h-3.5 w-3.5" />
                   Reset form
                 </button>
               </div>
-            </SectionCard>
+            </div>
+          </SectionCard>
+
+          <div className="space-y-6 min-w-0">
             {createCommitPanel}
           </div>
         </div>
@@ -2634,21 +2703,21 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <div className="flex flex-wrap gap-2 text-xs">
                 <button
                   type="button"
-                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                   onClick={() => applyQuickDateRange(7)}
                 >
                   Past 7 days
                 </button>
                 <button
                   type="button"
-                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                   onClick={() => applyQuickDateRange(30)}
                 >
                   Past 30 days
                 </button>
                 <button
                   type="button"
-                  className="rounded-full border border-white/12 px-3 py-1.5 text-white/80 transition hover:border-white/25 hover:text-white"
+                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                   onClick={() => applyQuickDateRange(null)}
                 >
                   All time
@@ -2767,7 +2836,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
                             <Copy className="h-4 w-4" />
@@ -2775,7 +2844,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                           </button>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-white/12 px-3 py-1.5 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
                             <Download className="h-4 w-4" />
@@ -2789,7 +2858,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                           <button
                             key={`${entry.id}-${article.slug}`}
                             type="button"
-                            className="rounded-full border border-white/12 px-3 py-1 text-xs text-white/80 transition hover:border-white/25 hover:text-white"
+                            className={`${pillButtonBaseClass} px-3 py-1 text-xs`}
                             onClick={() => focusArticleFilter(article.slug)}
                           >
                             {article.title}
