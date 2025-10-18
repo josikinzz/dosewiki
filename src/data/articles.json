@@ -74554,5 +74554,142 @@
       ]
     },
     "id": 664
+  },
+  {
+    "title": "JWH-073",
+    "index-category": "cannabinoid; synthetic",
+    "drug_info": {
+      "drug_name": "JWH-073",
+      "chemical_name": "Naphthalen-1-yl-(1-butylindol-3-yl)methanone",
+      "alternative_name": "Spice",
+      "chemical_class": "Naphthoylindole",
+      "psychoactive_class": "Cannabinoid",
+      "mechanism_of_action": "CB1 receptor full agonist; CB2 receptor full agonist (5x lower affinity than CB1)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "Under 3 mg",
+              "light": "3-5 mg",
+              "common": "5-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "5-10 minutes",
+              "peak": "60-90 minutes",
+              "offset": "5-10 minutes",
+              "after_effects": "60-90 minutes"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "JWH-073 is considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. The short duration of action may lead to more frequent use and strengthen habitual patterns. Cravings and withdrawal effects may occur upon sudden cessation after chronic use.",
+      "interactions": {
+        "dangerous": [
+          "Lithium (significantly increased risk of psychosis and seizures)"
+        ],
+        "unsafe": [
+          "2C-T-x series",
+          "2C-x series",
+          "5-MeO-xxT series",
+          "DMT",
+          "DOx series",
+          "LSD",
+          "Mescaline",
+          "Psilocybin mushrooms",
+          "25x-NBOMe series"
+        ],
+        "caution": [
+          "Amphetamines (increased anxiety and thought loops)",
+          "aMT",
+          "Cocaine (increased anxiety and thought loops)",
+          "Alcohol (extreme nausea, dizziness, changes in gravity when combined)"
+        ]
+      },
+      "notes": "JWH-073 is a synthetic cannabinoid active in the milligram range and requires precise weighing with a milligram scale to avoid overdose. Unlike cannabis, chronic abuse of synthetic cannabinoids has been associated with multiple deaths and more dangerous side effects. Individuals with personal or family history of psychotic disorders should strictly avoid use. The substance may be carcinogenic due to its naphthalene moiety. Set and setting are important factors. JWH-073 was commonly found in Spice and similar synthetic cannabis products.",
+      "subjective_effects": [
+        "Warm Pleasurable Body High",
+        "Sedation",
+        "Motor Control Loss",
+        "Appetite Enhancement",
+        "Pain Relief",
+        "Emotion Enhancement",
+        "Euphoria",
+        "Thought Connectivity",
+        "Color Enhancement",
+        "Visual Geometry (Mild)",
+        "Auditory Enhancement",
+        "Anxiety (Less Than JWH-018)",
+        "Paranoia (Dose-Dependent)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All cannabinoids including THC, JWH-018, AM-2201, and other synthetic cannabinoids"
+        ]
+      },
+      "half_life": "Extended half-life with less receptor internalization compared to JWH-018 (specific duration not well-established in humans)",
+      "citations": [
+        {
+          "name": "Bluelight JWH-073 Discussion Threads",
+          "reference": "https://www.bluelight.org/community/threads/jwh-any-advice.538784/"
+        },
+        {
+          "name": "Drugs-Forum Cannabinoid Dose and Duration Chart",
+          "reference": "https://drugs-forum.com/threads/cannabinoid-dose-and-duration-chart-beta.111754/"
+        },
+        {
+          "name": "Erowid JWH-073 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_JWH073.shtml"
+        },
+        {
+          "name": "Frontiers in Neuroscience: JWH-073 and JWH-210 Behavioral Profile",
+          "reference": "https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2018.00703/full"
+        },
+        {
+          "name": "PMC: JWH-073 Electrophysiological Effects in Mice",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9634257/"
+        },
+        {
+          "name": "PsychonautWiki: JWH-073",
+          "reference": "https://psychonautwiki.org/wiki/JWH-073"
+        },
+        {
+          "name": "ScienceDirect Topics: JWH-073 Overview",
+          "reference": "https://www.sciencedirect.com/topics/neuroscience/jwh-073"
+        },
+        {
+          "name": "WHO Expert Committee on Drug Dependence: JWH-073",
+          "reference": "https://ecddrepository.org/en/jwh-073"
+        },
+        {
+          "name": "Wikipedia: JWH-073",
+          "reference": "https://en.wikipedia.org/wiki/JWH-073"
+        }
+      ],
+      "categories": [
+        "synthetic-cannabinoid",
+        "cannabinoid",
+        "naphthoylindole",
+        "research-chemical"
+      ]
+    },
+    "id": 665
   }
 ]
