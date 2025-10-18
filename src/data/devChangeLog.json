@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251018-205110-50922f5e",
+    "createdAt": "2025-10-18T20:51:10.357Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/18/2025, 2:51:07 PM"
+    },
+    "articles": [
+      {
+        "id": 409,
+        "title": "Salvia divinorum",
+        "slug": "salvia-divinorum"
+      }
+    ],
+    "markdown": "# Salvia divinorum · #409\n\n-      \"atypical-psychedelic\",\n-      \"kappa-opioid-agonist\"\n+      \"kappa-opioid-agonist\",\n+      \"A-typical Hallucinogen\"\n-  \"index-category\": \"dissociative; atypical-psychedelic; entheogen\"\n+  \"index-category\": \"dissociative; entheogen\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251018-204215-817da4b7",
     "createdAt": "2025-10-18T20:42:15.845Z",
     "commit": {
