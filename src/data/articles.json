@@ -76876,5 +76876,202 @@
       ]
     },
     "id": 680
+  },
+  {
+    "title": "U-47700",
+    "index-category": "opioid; research-chemical; synthetic",
+    "drug_info": {
+      "drug_name": "U-47700",
+      "chemical_name": "trans-3,4-dichloro-N-(2-(dimethylamino)cyclohexyl)-N-methylbenzamide",
+      "alternative_name": "U4; Pink; Pinky",
+      "chemical_class": "Benzamides",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "mu-opioid receptor agonist (selective); kappa-opioid receptor agonist (weak)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-5 mg",
+              "light": "5-7.5 mg",
+              "common": "7.5-15 mg",
+              "strong": "15-25 mg",
+              "heavy": "25+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1 mg",
+              "light": "4-6 mg",
+              "common": "6-8 mg",
+              "strong": "8-10 mg",
+              "heavy": "10+ mg"
+            }
+          },
+          {
+            "route": "intravenous",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.5-1 mg",
+              "light": "2-4 mg",
+              "common": "4-6 mg",
+              "strong": "6-8 mg",
+              "heavy": "8+ mg"
+            }
+          },
+          {
+            "route": "rectal",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "4-6 mg",
+              "common": "6-10 mg",
+              "strong": "10-15 mg",
+              "heavy": "15+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-7 hours",
+              "onset": "10-15 minutes",
+              "peak": "2-3 hours",
+              "offset": "2-3 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "5-15 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "intravenous",
+            "stages": {
+              "total_duration": "1-2 hours",
+              "onset": "0-1 minutes",
+              "peak": "30-60 minutes",
+              "offset": "30-60 minutes",
+              "after_effects": "1-3 hours"
+            },
+            "canonical_routes": [
+              "intravenous"
+            ]
+          },
+          {
+            "route": "rectal",
+            "stages": {
+              "total_duration": "3-4 hours",
+              "onset": "10-15 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-4 hours"
+            },
+            "canonical_routes": [
+              "rectal"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "U-47700 has extremely high addiction potential with rapid development of physical and psychological dependence. The short duration and intense effects drive compulsive redosing behavior. Physical dependence can develop within days of regular use, and withdrawal symptoms emerge as quickly as 2-4 hours after the last dose, making cessation particularly difficult and painful.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (severe respiratory depression, unconsciousness, vomit aspiration risk)",
+          "Benzodiazepines (unpredictable potentiation, rapid unconsciousness, respiratory arrest)",
+          "GHB/GBL (severe CNS depression, unconsciousness, vomit aspiration risk)",
+          "Ketamine (unconsciousness, vomit aspiration risk)",
+          "MAOIs (severe adverse reactions including hypertension, hyperpyrexia, seizures, coma)",
+          "Nitrous oxide (severe ataxia, unconsciousness, vomit aspiration risk)"
+        ],
+        "unsafe": [
+          "DXM (CNS depression, respiratory issues, heart problems, liver toxicity)",
+          "MXE (potentiated effects, increased organ toxicity risk)",
+          "PCP (reduced opioid tolerance, increased overdose risk)",
+          "Tramadol (increased seizure risk, additive CNS depression)"
+        ],
+        "caution": [
+          "Stimulants (masks respiratory depression, overdose risk when stimulant wears off)",
+          "Grapefruit (may inhibit metabolism, increasing toxicity with repeated doses)"
+        ]
+      },
+      "notes": "U-47700 is an extremely dangerous synthetic opioid with approximately 7.5 times the potency of morphine and very little history of human use. It is uniquely caustic to mucous membranes and can cause severe tissue damage with insufflated, sublingual, or smoked administration. A laboratory-grade milligram scale is absolutely essential as sub-milligram differences can mean the difference between an active dose and fatal overdose. Respiratory depression is reportedly more severe than with traditional opioids at equivalent doses. U-47700 is now illegal in most jurisdictions worldwide following numerous overdose deaths. The substance should never be vaporized as it severely damages lung tissue, and nasal administration requires diligent saline rinses to prevent permanent nasal damage.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Pain Relief",
+        "Anxiety Suppression",
+        "Sedation",
+        "Respiratory Depression",
+        "Itchiness",
+        "Pupil Constriction",
+        "Constipation",
+        "Cough Suppression",
+        "Difficulty Urinating",
+        "Compulsive Redosing",
+        "Cognitive Fatigue",
+        "Thought Deceleration",
+        "Decreased Libido"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All opioids (morphine, heroin, fentanyl, oxycodone, hydrocodone)"
+        ]
+      },
+      "half_life": "1-3 hours (estimated from duration data)",
+      "citations": [
+        {
+          "name": "Bluelight: Novel Opioid U-47700 Mega Thread and FAQ",
+          "reference": "https://www.bluelight.org/vb/threads/739960-Novel-opioid-U-47700-Mega-Thread-and-FAQ"
+        },
+        {
+          "name": "Drugs-Forum: U-47700",
+          "reference": "https://drugs-forum.com/wiki/U-47700"
+        },
+        {
+          "name": "Erowid: U-47700 Vault",
+          "reference": "https://www.erowid.org/chemicals/u-47700/u-47700.shtml"
+        },
+        {
+          "name": "PsychonautWiki: U-47700",
+          "reference": "https://psychonautwiki.org/wiki/U-47700"
+        },
+        {
+          "name": "TripSit: U-47700 Factsheet",
+          "reference": "https://drugs.tripsit.me/u-47700"
+        },
+        {
+          "name": "Wikipedia: U-47700",
+          "reference": "https://en.wikipedia.org/wiki/U-47700"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "synthetic-opioid",
+        "research-chemical",
+        "benzamide"
+      ]
+    },
+    "id": 681
   }
 ]
