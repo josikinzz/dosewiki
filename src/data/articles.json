@@ -79091,5 +79091,132 @@
       ]
     },
     "id": 696
+  },
+  {
+    "title": "6-APDB",
+    "index-category": "entactogen; stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "6-APDB",
+      "chemical_name": "6-(2-aminopropyl)-2,3-dihydrobenzofuran",
+      "alternative_name": "4-Desoxy-MDA; EMA-3",
+      "chemical_class": "Amphetamine; Benzofuran",
+      "psychoactive_class": "Entactogen; Stimulant",
+      "mechanism_of_action": "Serotonin releaser and reuptake inhibitor; dopamine releaser and reuptake inhibitor; norepinephrine releaser and reuptake inhibitor",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "20 mg",
+              "light": "30-70 mg",
+              "common": "70-100 mg",
+              "strong": "100-130 mg",
+              "heavy": "130+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-8 hours",
+              "onset": "30-60 minutes",
+              "peak": "2-3 hours",
+              "offset": "2-3 hours",
+              "after_effects": "Up to 24 hours (residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "6-APDB can be moderately addictive with a high potential for abuse and is capable of causing psychological dependence. Chronic use may result in cravings and withdrawal effects upon cessation.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (potentially fatal serotonin syndrome and hypertensive crisis)",
+          "SSRIs (risk of potentially fatal serotonin syndrome; also significantly blunts effects)",
+          "SNRIs (risk of potentially fatal serotonin syndrome; also significantly blunts effects)",
+          "5-HTP (risk of potentially fatal serotonin syndrome)",
+          "MDMA (risk of serotonin syndrome; greatly increased neurotoxicity and cardiotoxicity)",
+          "Serotonin releasers including methylone, mephedrone, 4-FA (risk of potentially fatal serotonin syndrome)",
+          "25x-NBOMe (excessive stimulation, severe hypertension, risk of seizures and heart failure)",
+          "25x-NBOH (excessive stimulation, severe hypertension, risk of seizures and heart failure)",
+          "Tramadol (lowers seizure threshold and risk of serotonin syndrome)"
+        ],
+        "unsafe": [
+          "DXM (risk of panic attacks, hypertensive crisis, and serotonin syndrome)",
+          "MXE (may increase blood pressure and risk of mania and psychosis)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)",
+          "Stimulants (increased heart rate and blood pressure to dangerous levels)"
+        ],
+        "caution": [
+          "Alcohol (risk of accidental over-intoxication; stimulant effects mask alcohol depressant effects)"
+        ]
+      },
+      "notes": "6-APDB was designed as a potentially less neurotoxic alternative to MDMA but may still pose neurotoxic and cardiotoxic risks with repeated or high-dose use. CRITICAL WARNING: As a potent serotonin releaser, 6-APDB carries serious risk of potentially fatal serotonin syndrome when combined with antidepressants, MAOIs, or other serotonergic drugs. The substance causes significant hyperthermia which can be life-threatening; users must monitor body temperature and stay properly hydrated. Individuals with personal or family histories of heart conditions should avoid use. Use accurate milligram scales for dosing, as the therapeutic window is narrow and overdose can be dangerous.",
+      "subjective_effects": [
+        "Intense Physical Euphoria",
+        "Empathy And Sociability Enhancement",
+        "Emotional Warmth",
+        "Time Distortion",
+        "Enhanced Music Appreciation",
+        "Sedation And Relaxation",
+        "Mild Visual Geometry",
+        "Tactile Enhancement",
+        "Cognitive Euphoria",
+        "Teeth Grinding",
+        "Nystagmus",
+        "Dehydration"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "21-30 days",
+        "zero_tolerance": "2-3 months",
+        "cross_tolerances": [
+          "All dopaminergic stimulants",
+          "MDMA",
+          "MDA",
+          "Other benzofurans (e.g., 5-APB, 6-APB, 5-APDB)"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid 6-APDB Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_6APDB.shtml"
+        },
+        {
+          "name": "Monte et al. (1993) - Synthesis and pharmacological examination of benzofuran analogues",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/8411003/"
+        },
+        {
+          "name": "PsychonautWiki: 6-APDB",
+          "reference": "https://psychonautwiki.org/wiki/6-APDB"
+        },
+        {
+          "name": "Bluelight: The Main 6-APDB Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-main-6-apdb-thread.661435/"
+        },
+        {
+          "name": "Pharmacological profile of novel psychoactive benzofurans (2015)",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4500375/"
+        },
+        {
+          "name": "Wikipedia: 6-APB",
+          "reference": "https://en.wikipedia.org/wiki/6-APB"
+        }
+      ],
+      "categories": [
+        "entactogen",
+        "stimulant",
+        "benzofuran",
+        "research-chemical"
+      ]
+    },
+    "id": 697
   }
 ]
