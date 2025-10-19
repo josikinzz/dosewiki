@@ -75959,5 +75959,134 @@
       ]
     },
     "id": 674
+  },
+  {
+    "title": "Codeine",
+    "index-category": "opioid; depressant",
+    "drug_info": {
+      "drug_name": "Codeine",
+      "chemical_name": "(5a,6a)-7,8-Didehydro-4,5-epoxy-3-methoxy-17-methylmorphinan-6-ol",
+      "alternative_name": "Lean; Purple Drank; Syrup; 3-methylmorphine",
+      "chemical_class": "Morphinan",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist (as morphine after first-pass metabolism); prodrug metabolized by CYP2D6 to morphine",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "30 mg",
+              "light": "50-100 mg",
+              "common": "100-150 mg",
+              "strong": "150-200 mg",
+              "heavy": "200+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-6 hours",
+              "onset": "30-45 minutes",
+              "peak": "1-2 hours after onset",
+              "offset": "2-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Codeine has moderate addiction potential with a high potential for abuse and is capable of causing psychological dependence among certain users. Compulsive redosing may occur despite the metabolic ceiling dose of approximately 400mg. When addiction develops, cravings and withdrawal symptoms may occur if use is suddenly stopped.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (respiratory depression, loss of consciousness, vomit aspiration risk)",
+          "Benzodiazepines (respiratory depression, rapid unconsciousness, vomit aspiration)",
+          "GHB/GBL (rapid unconsciousness, respiratory depression, vomit aspiration)",
+          "MAOIs (severe adverse reactions including agitation, hyperpyrexia, seizures, coma, death)"
+        ],
+        "unsafe": [
+          "DXM (CNS depression, respiratory difficulties, cardiac issues, liver toxicity)",
+          "Ketamine (unconsciousness, vomit aspiration risk)",
+          "MXE (potentiated effects, increased respiratory depression and organ toxicity)",
+          "PCP (reduced opioid tolerance, increased overdose risk)",
+          "Tramadol (increased seizure risk, additive CNS/respiratory depression)"
+        ],
+        "caution": [
+          "Stimulants (increased respiration allows higher opiate doses; respiratory arrest if stimulant wears off first)",
+          "Nitrous oxide (potentiated ataxia and sedation, unconsciousness risk)",
+          "Grapefruit (CYP3A4 inhibition alters metabolism; may increase toxicity with repeated doses)"
+        ]
+      },
+      "notes": "Codeine is frequently sold over-the-counter in combination with paracetamol (acetaminophen), ibuprofen, or aspirin, which are dangerous or fatal at recreational codeine doses. A cold water extraction should be performed to separate codeine from these compounds. There is a metabolic ceiling dose around 400mg beyond which additional consumption increases side effects without enhancing euphoria. Genetic variations in CYP2D6 enzyme production cause some individuals to experience reduced effects (poor metabolizers) or dangerous hypersensitivity (ultra-rapid metabolizers). Codeine should not be used intravenously as it can cause severe mast-cell degranulation and anaphylactoid reactions.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Pain Relief",
+        "Cognitive Euphoria",
+        "Anxiety Suppression",
+        "Sedation",
+        "Respiratory Depression",
+        "Itchiness",
+        "Constipation",
+        "Cough Suppression",
+        "Nausea",
+        "Pupil Constriction",
+        "Thought Deceleration"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All opioids (morphine, heroin, oxycodone, hydrocodone, etc.)"
+        ]
+      },
+      "half_life": "2.5-3 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Codeine",
+          "reference": "https://psychonautwiki.org/wiki/Codeine"
+        },
+        {
+          "name": "TripSit Codeine Factsheet",
+          "reference": "https://drugs.tripsit.me/Codeine"
+        },
+        {
+          "name": "TripSit Wiki: Codeine",
+          "reference": "https://wiki.tripsit.me/wiki/Codeine"
+        },
+        {
+          "name": "Erowid Codeine Vault",
+          "reference": "https://www.erowid.org/pharms/codeine/"
+        },
+        {
+          "name": "Erowid Codeine FAQ",
+          "reference": "https://www.erowid.org/pharms/codeine/codeine_faq.shtml"
+        },
+        {
+          "name": "Wikipedia: Codeine",
+          "reference": "https://en.wikipedia.org/wiki/Codeine"
+        },
+        {
+          "name": "DrugBank: Codeine",
+          "reference": "https://go.drugbank.com/drugs/DB00318"
+        },
+        {
+          "name": "StatPearls: Codeine",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK526029/"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "morphinan",
+        "alkaloid",
+        "prodrug"
+      ]
+    },
+    "id": 675
   }
 ]
