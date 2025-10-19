@@ -78272,5 +78272,168 @@
       ]
     },
     "id": 690
+  },
+  {
+    "title": "Dichloropane",
+    "index-category": "stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "Dichloropane",
+      "chemical_name": "Methyl (2S,3S)-3-(3,4-dichlorophenyl)-8-methyl-8-azabicyclo[3.2.1]octane-2-carboxylate",
+      "alternative_name": "RTI-111; O-401",
+      "chemical_class": "Phenyltropanes",
+      "psychoactive_class": "Stimulant",
+      "mechanism_of_action": "Serotonin-norepinephrine-dopamine reuptake inhibitor (SNDRI); blocks dopamine transporter (DAT IC50: 0.79 nM); blocks serotonin transporter (SERT IC50: 3.13 nM); blocks norepinephrine transporter (NET IC50: 17.96 nM)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3-5 mg",
+              "light": "5-10 mg",
+              "common": "10-20 mg",
+              "strong": "20-40 mg",
+              "heavy": "40+ mg"
+            }
+          },
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5-10 mg",
+              "light": "10-15 mg",
+              "common": "15-30 mg",
+              "strong": "30-50 mg",
+              "heavy": "50+ mg"
+            }
+          },
+          {
+            "route": "smoked",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "3 mg",
+              "light": "10-20 mg",
+              "common": "20-40 mg",
+              "strong": "40-60 mg",
+              "heavy": "60+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "5-15 minutes",
+              "peak": "60-90 minutes",
+              "offset": "60-90 minutes",
+              "after_effects": "Up to several hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          },
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "10-30 minutes",
+              "peak": "60-90 minutes",
+              "offset": "60-90 minutes",
+              "after_effects": "Up to several hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "smoked",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "15-30 minutes",
+              "peak": "60-90 minutes",
+              "offset": "60-90 minutes",
+              "after_effects": "Up to several hours"
+            },
+            "canonical_routes": [
+              "smoked"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Dichloropane is considered moderately addictive with a high potential for abuse, though potentially less compulsive than cocaine. Chronic use can lead to psychological dependence, cravings, and withdrawal symptoms including depression, anxiety, fatigue, and intense drug cravings. Evidence suggests less motivation enhancement and compulsive redosing compared to cocaine.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and dangerous elevation of neurotransmitters)",
+          "Other stimulants (severe cardiovascular strain, dangerously elevated heart rate and blood pressure, risk of cardiac arrest)",
+          "Depressants including opioids and benzodiazepines (conflicting cardiovascular effects leading to irregular heart rate and potential cardiac arrest)",
+          "Alcohol (masked intoxication, excessive drinking, respiratory depression when stimulant wears off, formation of potentially toxic metabolites)"
+        ],
+        "unsafe": [
+          "MDMA (increased neurotoxicity and cardiotoxicity, blocks desirable effects of MDMA while increasing cardiac strain)",
+          "Tramadol (increased seizure risk from combination)",
+          "Psychedelics including NBOMes (severe vasoconstriction, tachycardia, hypertension, risk of heart failure in extreme cases)"
+        ],
+        "caution": [
+          "Nicotine (may enhance euphoria via dopamine potentiation but increases cardiovascular strain and may promote compulsive tobacco use)"
+        ]
+      },
+      "notes": "Dichloropane is a novel research chemical with very limited human use history since its appearance around 2010. Due to structural similarity to cocaine, it may carry similar cardiovascular risks including potential for sudden cardiac death at high doses and long-term cardiomyopathy. Regular insufflation can severely damage nasal tissue, causing loss of smell, nosebleeds, and chronic nasal problems. The substance is notably harsh on nasal passages and has a longer, more difficult comedown than cocaine. Always use precise milligram scales, as dosages are in the low milligram range. Start with threshold doses due to individual variation and limited safety data.",
+      "subjective_effects": [
+        "Mental Stimulation",
+        "Thought Acceleration",
+        "Focus Enhancement",
+        "Appetite Suppression",
+        "Cognitive Euphoria",
+        "Increased Sociability",
+        "Increased Libido",
+        "Teeth Grinding",
+        "Vasoconstriction",
+        "Increased Heart Rate",
+        "Anxiety",
+        "Protracted Comedown"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops with prolonged and repeated use",
+        "half_tolerance": "2-4 days",
+        "zero_tolerance": "1-1.5 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants",
+          "Cocaine",
+          "Amphetamines"
+        ]
+      },
+      "half_life": "Not well established in humans",
+      "citations": [
+        {
+          "name": "Bluelight: RTI-111 (Dichloropane) Experience Reports",
+          "reference": "https://bluelight.org/xf/threads/200-mg-dichloropane-a-k-a-rti-111-first-time-is-this-so-good.576247/"
+        },
+        {
+          "name": "PsychonautWiki: Dichloropane",
+          "reference": "https://psychonautwiki.org/wiki/Dichloropane"
+        },
+        {
+          "name": "TripSit Drug Combinations Wiki",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "TripSit RTI-111 Factsheet",
+          "reference": "https://drugs.tripsit.me/rti-111"
+        },
+        {
+          "name": "Wikipedia: Dichloropane",
+          "reference": "https://en.wikipedia.org/wiki/Dichloropane"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "research-chemical",
+        "phenyltropane"
+      ]
+    },
+    "id": 691
   }
 ]
