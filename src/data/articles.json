@@ -77862,5 +77862,155 @@
       ]
     },
     "id": 687
+  },
+  {
+    "title": "Mexedrone",
+    "index-category": "stimulant; entactogen; research-chemical",
+    "drug_info": {
+      "drug_name": "Mexedrone",
+      "chemical_name": "3-methoxy-2-(methylamino)-1-(p-tolyl)propan-1-one",
+      "alternative_name": "4-MMC-MeO",
+      "chemical_class": "Cathinones; Substituted cathinones",
+      "psychoactive_class": "Stimulant; Entactogen",
+      "mechanism_of_action": "Serotonin releasing agent; serotonin reuptake inhibitor; dopamine reuptake inhibitor (weak); norepinephrine reuptake inhibitor (weak)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50 mg",
+              "light": "100-150 mg",
+              "common": "150-250 mg",
+              "strong": "250-350 mg",
+              "heavy": "350+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "40 mg",
+              "light": "60-80 mg",
+              "common": "80-100 mg",
+              "strong": "100-150 mg",
+              "heavy": "150+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "30-60 minutes",
+              "peak": "2-3 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-12 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "3-5 hours",
+              "onset": "5-20 minutes",
+              "peak": "1.5-2.5 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-12 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Mexedrone can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence among certain users. When addiction has developed, cravings and withdrawal effects may occur if a person suddenly stops their usage. However, anecdotal reports suggest it is less compulsive than mephedrone.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and serotonin syndrome)",
+          "Serotonin releasers such as MDMA, methylone (risk of serotonin syndrome)",
+          "Tramadol (lowers seizure threshold)",
+          "25x-NBOMe and 25x-NBOH (risk of excessive stimulation, heart strain, and seizures)"
+        ],
+        "unsafe": [
+          "MXE (may dangerously increase blood pressure and risk of mania)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)",
+          "Other stimulants including cocaine (increased heart rate and blood pressure)",
+          "MDMA (any neurotoxic effects are likely increased)"
+        ],
+        "caution": [
+          "Alcohol (stimulants mask alcohol's depressant effects, risk of over-intoxication)",
+          "DXM (increased risk of panic attacks and hypertensive crisis)",
+          "SSRIs such as citalopram and sertraline (serotonin syndrome risk)",
+          "SNRIs such as venlafaxine (serotonin syndrome risk)",
+          "5-HTP (serotonin syndrome risk)"
+        ]
+      },
+      "notes": "Mexedrone is a research chemical with very little history of human use prior to 2015. It was marketed as a legal alternative to mephedrone but is reported to be approximately 10-20 times weaker in potency, requiring higher doses to achieve comparable effects. The substance has been associated with significant sedation rather than stimulation, distinguishing it from mephedrone. Legal status varies by jurisdiction; it is controlled in Sweden, Switzerland, Brazil, and the United Kingdom under blanket bans on cathinones or psychoactive substances. Users should employ accurate milligram scales and practice harm reduction. Clinical reports have documented cases of severe agitation, aggression, delusions, hallucinations with paranoid and supernatural themes, and tachycardia requiring sedation and restraint.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Sedation",
+        "Warm Tingling Sensations",
+        "Mild Euphoria",
+        "Thought Acceleration",
+        "Thought Connectivity",
+        "Auditory Enhancement",
+        "Dehydration",
+        "Increased Perspiration",
+        "Temperature Dysregulation",
+        "Teeth Grinding",
+        "Nystagmus (Eye Wiggles)",
+        "Anxiety",
+        "Cognitive Fatigue",
+        "Depression (Comedown)",
+        "Irritability"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants",
+          "Mephedrone",
+          "Other cathinones"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight Mexedrone Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/mexedrone.764088/"
+        },
+        {
+          "name": "McLaughlin et al. (2017) - Synthesis, characterization and monoamine transporter activity of mexedrone",
+          "reference": "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/dta.2053"
+        },
+        {
+          "name": "PsychonautWiki: Mexedrone",
+          "reference": "https://psychonautwiki.org/wiki/Mexedrone"
+        },
+        {
+          "name": "WEDINOS Mexedrone Sample Analysis",
+          "reference": "http://www.wedinos.org/db/materials/view/00716"
+        },
+        {
+          "name": "Wikipedia: Mexedrone",
+          "reference": "https://en.wikipedia.org/wiki/Mexedrone"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "entactogen",
+        "cathinone",
+        "research-chemical"
+      ]
+    },
+    "id": 688
   }
 ]
