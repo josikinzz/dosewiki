@@ -79457,5 +79457,118 @@
       ]
     },
     "id": 699
+  },
+  {
+    "title": "Alpha-GPC",
+    "index-category": "nootropic; cognitive-enhancer",
+    "drug_info": {
+      "drug_name": "Alpha-GPC",
+      "chemical_name": "L-alpha-glycerylphosphorylcholine",
+      "alternative_name": "Choline Alfoscerate; L-Alpha Glycerylphosphorylcholine; Alfa-GPC",
+      "chemical_class": "Choline derivative",
+      "psychoactive_class": "Nootropic",
+      "mechanism_of_action": "Precursor to choline and glycerophosphate in the brain; increases acetylcholine synthesis and release via enhanced choline availability; supports phospholipid biosynthesis and cell membrane integrity",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50 mg",
+              "light": "100-300 mg",
+              "common": "300-500 mg",
+              "strong": "500-1000 mg",
+              "heavy": "1000+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "45-75 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-4 hours",
+              "after_effects": "Up to 6 hours (residual cognitive effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Alpha-GPC is not considered habit-forming or addictive. The desire to use it may actually decrease with regular use, as it is self-regulating. No physical or psychological dependence has been reported.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (may unpredictably potentiate effects)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Scopolamine (may reduce anticholinergic effects)",
+          "Anticholinergic medications (may reduce therapeutic effects)"
+        ]
+      },
+      "notes": "Alpha-GPC is legal as a dietary supplement in the US and Canada but is a prescription medication in some European countries. A 2021 study found increased stroke risk with long-term use (10+ years), so extended daily use may warrant caution. Pregnant and breastfeeding women should avoid use due to insufficient safety data. Individuals prone to hypotension should consult a healthcare provider before use. Side effects are typically dose-dependent; start with lower doses and increase gradually. Alpha-GPC is approximately 40% choline by weight.",
+      "subjective_effects": [
+        "Focus Enhancement",
+        "Memory Enhancement",
+        "Motivation Enhancement",
+        "Wakefulness",
+        "Bodily Control Enhancement",
+        "Subtle Stimulation",
+        "Dream Potentiation",
+        "Mindfulness",
+        "Stamina Enhancement",
+        "Headaches (from excess choline)",
+        "Gastrointestinal Distress",
+        "Fatigue"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated daily usage",
+        "half_tolerance": "7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": []
+      },
+      "half_life": "4-6 hours",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Alpha-GPC",
+          "reference": "https://psychonautwiki.org/wiki/Alpha-GPC"
+        },
+        {
+          "name": "Examine: Alpha-GPC Research Breakdown",
+          "reference": "https://examine.com/supplements/alpha-gpc/"
+        },
+        {
+          "name": "Erowid Experience Vaults: Alpha-GPC",
+          "reference": "https://erowid.org/experiences/subs/exp_alphaGPC.shtml"
+        },
+        {
+          "name": "Nootropics Expert: Alpha-GPC Guide",
+          "reference": "https://nootropicsexpert.com/alpha-gpc/"
+        },
+        {
+          "name": "Wikipedia: Glycerophosphorylcholine",
+          "reference": "https://en.wikipedia.org/wiki/Glycerophosphorylcholine"
+        },
+        {
+          "name": "WebMD: Alpha-GPC Overview",
+          "reference": "https://www.webmd.com/vitamins/ai/ingredientmono-1087/alpha-gpc"
+        },
+        {
+          "name": "Alzheimer's Drug Discovery Foundation: Alpha-GPC Review",
+          "reference": "https://www.alzdiscovery.org/cognitive-vitality/ratings/alpha-gpc-choline-alfoscerate"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "cognitive-enhancer",
+        "choline-supplement"
+      ]
+    },
+    "id": 700
   }
 ]
