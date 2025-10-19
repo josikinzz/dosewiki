@@ -77198,5 +77198,122 @@
       ]
     },
     "id": 682
+  },
+  {
+    "title": "4F-EPH",
+    "index-category": "stimulant; phenidate; research-chemical",
+    "drug_info": {
+      "drug_name": "4F-EPH",
+      "chemical_name": "Ethyl 2-(4-fluorophenyl)-2-(piperidin-2-yl)acetate",
+      "alternative_name": "4-Fluoroethylphenidate; 4-FEPH",
+      "chemical_class": "Phenidate; Substituted phenethylamine",
+      "psychoactive_class": "Stimulant",
+      "mechanism_of_action": "Dopamine reuptake inhibitor; Norepinephrine reuptake inhibitor (likely triple monoamine reuptake inhibitor)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "5-10 mg",
+              "common": "10-15 mg",
+              "strong": "15-30 mg",
+              "heavy": "30+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "5-6 hours",
+              "onset": "10-25 minutes",
+              "after_effects": "4-12 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "4F-EPH can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence. When addiction develops, cravings and withdrawal effects may occur upon cessation. Anecdotal reports suggest it is less compulsive than ethylphenidate but still presents redosing urges.",
+      "interactions": {
+        "dangerous": [
+          "25x-NBOMe (risk of excessive stimulation, heart strain, panic attacks, seizures)",
+          "25x-NBOH (risk of excessive stimulation and heart strain)",
+          "MAOIs (potentially fatal increase in neurotransmitter levels)"
+        ],
+        "unsafe": [
+          "Alcohol (risk of over-intoxication as stimulant masks depressant effects)",
+          "DXM (increased risk of panic attacks and hypertensive crisis)",
+          "MDMA (increased neurotoxicity and cardiotoxicity)",
+          "MXE (dangerously increased blood pressure, risk of mania and psychosis)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)",
+          "Other stimulants (dangerous increase in heart rate and blood pressure)",
+          "Tramadol (lowered seizure threshold)"
+        ],
+        "caution": []
+      },
+      "notes": "4F-EPH is a novel research chemical with minimal human use history and unknown long-term toxicity. It is notably less caustic to nasal cavities than ethylphenidate but still causes mild to moderate damage with intranasal use. Users should perform sterile saline nasal rinses after insufflation and allow adequate recovery time between uses. The substance was controlled in the UK as a Class B drug on May 31, 2017, and is illegal in several other countries including Germany, Switzerland, and Turkey. Always use accurate weighing equipment and practice proper harm reduction.",
+      "subjective_effects": [
+        "Mild To Moderate Stimulation",
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Focus Enhancement",
+        "Thought Acceleration",
+        "Increased Music Appreciation",
+        "Empathy And Sociability Enhancement",
+        "Motivation Enhancement",
+        "Appetite Suppression",
+        "Increased Libido",
+        "Pupil Dilation",
+        "Vasoconstriction",
+        "Increased Heart Rate"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops with prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Bluelight 4F-EPH Review Thread",
+          "reference": "https://www.bluelight.org/community/threads/4f-eph-review.873749/"
+        },
+        {
+          "name": "Bluelight 4F-MPH vs 4F-EPH Discussion",
+          "reference": "https://bluelight.org/xf/threads/4-fluoromethylphenidate-4f-mph-vs-4-fluoromethylphenidate-4f-eph.781436/"
+        },
+        {
+          "name": "Drugs-Forum 4F-EPH Thread",
+          "reference": "https://drugs-forum.com/threads/4f-eph.291385/"
+        },
+        {
+          "name": "First Death Involving 4F-EPH Case Report (PMC)",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9761242/"
+        },
+        {
+          "name": "PsychonautWiki 4F-EPH",
+          "reference": "https://psychonautwiki.org/wiki/4F-EPH"
+        },
+        {
+          "name": "Wikipedia 4-Fluoroethylphenidate",
+          "reference": "https://en.m.wikipedia.org/wiki/4-Fluoroethylphenidate"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "phenidate",
+        "research-chemical"
+      ]
+    },
+    "id": 683
   }
 ]
