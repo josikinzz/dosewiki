@@ -79570,5 +79570,110 @@
       ]
     },
     "id": 700
+  },
+  {
+    "title": "Citicoline",
+    "index-category": "nootropic; supplement",
+    "drug_info": {
+      "drug_name": "Citicoline",
+      "chemical_name": "Cytidine 5'-diphosphocholine",
+      "alternative_name": "CDP-choline; Cytidine diphosphate choline",
+      "chemical_class": "Ammonium salt; Nucleotide",
+      "psychoactive_class": "Nootropic",
+      "mechanism_of_action": "Metabolizes to choline and cytidine; enhances acetylcholine synthesis via cholinergic pathways; cytidine converts to uridine enhancing phosphatidylcholine synthesis; increases dopamine and norepinephrine levels in CNS; stimulates glutathione synthesis",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50 mg",
+              "light": "100-250 mg",
+              "common": "250-1000 mg",
+              "strong": "1000-2000 mg",
+              "heavy": "2000+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "58-74 hours",
+              "onset": "1-2 hours",
+              "peak": "2.5-3.5 hours",
+              "offset": "30-40 hours",
+              "after_effects": "40-60 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Citicoline is non-addictive and not habit-forming. The desire to use it may actually decrease with continued use, making it self-regulating. Tolerance does not build immediately, and effects may strengthen with prolonged use.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (unpredictable potentiation of effects; suspected monoaminergic interaction)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Anticholinergic medications (may reduce effectiveness)",
+          "Dopamine agonists (potential interaction)",
+          "Antipsychotic medications (may exacerbate psychotic episodes)"
+        ]
+      },
+      "notes": "Citicoline has very high oral bioavailability (over 90%) and is generally well-tolerated with minimal side effects. Not recommended for continuous use beyond two weeks due to its extremely long half-life and cumulative effects. Individuals with trimethylaminuria may experience body odor changes as choline is a precursor to trimethylamine. Pregnant or breastfeeding individuals should avoid use due to insufficient safety data. Store in a cool, dry place and use an accurate scale for dosing.",
+      "subjective_effects": [
+        "Memory Enhancement",
+        "Focus Enhancement",
+        "Wakefulness",
+        "Mental Stimulation",
+        "Dream Potentiation",
+        "Mindfulness",
+        "Acuity Enhancement",
+        "Pain Relief",
+        "Appetite Suppression",
+        "Addiction Suppression",
+        "Headaches (occasional)",
+        "Body Odor Alteration (rare)"
+      ],
+      "tolerance": {
+        "full_tolerance": "Does not develop immediate tolerance; effects strengthen with prolonged use",
+        "half_tolerance": "Not applicable",
+        "zero_tolerance": "Not recommended to use continuously for more than 2 weeks",
+        "cross_tolerances": [
+          "Potentially with other cholinergic nootropics (Alpha-GPC, phosphatidylcholine)"
+        ]
+      },
+      "half_life": "56 hours (respiratory elimination as CO2); 71 hours (urinary excretion)",
+      "citations": [
+        {
+          "name": "Examine.com: CDP-Choline",
+          "reference": "https://examine.com/supplements/cdp-choline/"
+        },
+        {
+          "name": "Erowid Citicoline Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_Citicoline.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Citicoline",
+          "reference": "https://psychonautwiki.org/wiki/Citicoline"
+        },
+        {
+          "name": "Wikipedia: Citicoline",
+          "reference": "https://en.wikipedia.org/wiki/Citicoline"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "cholinergic",
+        "cognitive-enhancer",
+        "supplement"
+      ]
+    },
+    "id": 701
   }
 ]
