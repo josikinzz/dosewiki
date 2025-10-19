@@ -79789,5 +79789,114 @@
       ]
     },
     "id": 702
+  },
+  {
+    "title": "Creatine",
+    "index-category": "nootropic; supplement",
+    "drug_info": {
+      "drug_name": "Creatine",
+      "chemical_name": "2-[Carbamimidoyl(methyl)amino]acetic acid",
+      "alternative_name": "N-Carbamimidoyl-N-methylglycine; Methylguanidoacetic acid; Creatine monohydrate",
+      "chemical_class": "Amino acid",
+      "psychoactive_class": "Nootropic; Stimulant",
+      "mechanism_of_action": "Stores high-energy phosphate groups as phosphocreatine (creatine phosphate); releases phosphate to regenerate ATP during periods of stress or high-intensity exercise",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "g",
+            "dose_ranges": {
+              "threshold": "0.25 g",
+              "light": "1-5 g",
+              "common": "5-10 g",
+              "strong": "10-20 g",
+              "heavy": "20+ g"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "30-36 hours",
+              "onset": "30-90 minutes"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Creatine is not habit-forming and has a low potential for abuse. It does not cause psychological or physiological dependence. Tolerance to the effects of creatine does not build with prolonged use.",
+      "interactions": {
+        "dangerous": [],
+        "unsafe": [],
+        "caution": [
+          "Caffeine (may reduce effectiveness in some studies)",
+          "NSAIDs (may increase kidney stress)",
+          "Diuretics (may increase dehydration risk)"
+        ]
+      },
+      "notes": "Creatine is a naturally occurring amino acid and one of the most well-researched dietary supplements. While generally considered safe at recommended doses (3-5 g/day maintenance), proper hydration is essential to prevent cramping and gastrointestinal distress. Individuals with pre-existing kidney disease should consult a healthcare provider before use. Creatine supplementation typically causes temporary water retention (2-4 pounds in the first week). Vegetarians and vegans may see greater benefits from supplementation due to lower baseline creatine stores from diet.",
+      "subjective_effects": [
+        "Physical Stimulation",
+        "Stamina Enhancement",
+        "Bodily Control Enhancement",
+        "Perception Of Bodily Heaviness",
+        "Appetite Enhancement",
+        "Tactile Enhancement",
+        "Focus Enhancement",
+        "Memory Enhancement",
+        "Motivation Enhancement",
+        "Thought Connectivity",
+        "Thought Organization",
+        "Analysis Enhancement",
+        "Wakefulness",
+        "Rejuvenation",
+        "Anxiety Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "No tolerance develops with prolonged use",
+        "half_tolerance": "Not applicable",
+        "zero_tolerance": "Not applicable",
+        "cross_tolerances": []
+      },
+      "half_life": "3-5 hours (plasma creatine)",
+      "citations": [
+        {
+          "name": "Examine.com: Creatine",
+          "reference": "https://examine.com/supplements/creatine/"
+        },
+        {
+          "name": "ISSN Position Stand: Safety and Efficacy of Creatine Supplementation",
+          "reference": "https://jissn.biomedcentral.com/articles/10.1186/s12970-021-00412-w"
+        },
+        {
+          "name": "PsychonautWiki: Creatine",
+          "reference": "https://psychonautwiki.org/wiki/Creatine"
+        },
+        {
+          "name": "Wikipedia: Creatine",
+          "reference": "https://en.wikipedia.org/wiki/Creatine"
+        },
+        {
+          "name": "Harvard Health: Creatine Benefits and Risks",
+          "reference": "https://www.health.harvard.edu/exercise-and-fitness/what-is-creatine-potential-benefits-and-risks-of-this-popular-supplement"
+        },
+        {
+          "name": "WebMD: Creatine Overview",
+          "reference": "https://www.webmd.com/vitamins/ai/ingredientmono-873/creatine"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "stimulant",
+        "supplement",
+        "amino-acid"
+      ]
+    },
+    "id": 703
   }
 ]
