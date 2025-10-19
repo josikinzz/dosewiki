@@ -77606,5 +77606,129 @@
       ]
     },
     "id": 685
+  },
+  {
+    "title": "Ethylone",
+    "index-category": "stimulant; entactogen; research-chemical",
+    "drug_info": {
+      "drug_name": "Ethylone",
+      "chemical_name": "3,4-methylenedioxy-N-ethylcathinone",
+      "alternative_name": "bk-MDEA; MDEC; 3,4-MDEC",
+      "chemical_class": "Cathinones",
+      "psychoactive_class": "Stimulant; Entactogen",
+      "mechanism_of_action": "Serotonin reuptake inhibitor and releaser; norepinephrine reuptake inhibitor and releaser; dopamine reuptake inhibitor and releaser",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "75 mg",
+              "light": "75-150 mg",
+              "common": "150-225 mg",
+              "strong": "225-325 mg",
+              "heavy": "325+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "15-45 minutes",
+              "peak": "60-90 minutes",
+              "offset": "60-120 minutes",
+              "after_effects": "2-12 hours (residual stimulation)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Ethylone is moderately addictive with a high potential for abuse and can cause psychological dependence among certain users. Users report compulsive redosing tendencies, and chronic use can lead to cravings and withdrawal effects if usage is suddenly stopped. Evidence suggests it may be more reinforcing than methylone for some individuals.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and serotonin syndrome)",
+          "SSRIs (risk of serotonin syndrome)",
+          "SNRIs (risk of serotonin syndrome)",
+          "Serotonin releasers such as MDMA, methylone, and mephedrone (risk of serotonin syndrome)",
+          "5-HTP (risk of serotonin syndrome)",
+          "25x-NBOMe and 25x-NBOH (risk of excessive stimulation, heart strain, seizures)",
+          "Tramadol (lowers seizure threshold)",
+          "Lithium (potential seizure risk)"
+        ],
+        "unsafe": [
+          "Other stimulants (increased heart rate and blood pressure)",
+          "Cocaine (increased cardiovascular strain)",
+          "DXM (increased risk of panic attacks and hypertensive crisis)",
+          "MXE (may dangerously increase blood pressure and psychosis risk)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)"
+        ],
+        "caution": [
+          "Alcohol (risk of accidental over-intoxication; stimulants mask depressant effects)"
+        ]
+      },
+      "notes": "Ethylone is significantly less potent than MDMA and methylone, producing more classical stimulant effects with reduced empathogenic qualities. Users should weigh dosages carefully on a precision scale (0.001g) due to variable potency. Set and setting remain important factors. Individuals with cardiovascular conditions, personal or family histories of psychotic disorders, or those taking psychiatric medications (especially lithium or MAOIs) should avoid use. Prolonged residual stimulation can make sleep difficult; plan accordingly. Oily meals may delay onset significantly (up to 2 hours). Adequate hydration is essential, but avoid overdrinking. Since late 2011, ethylone has commonly been sold as a substitute for MDMA or methylone; always test substances before use.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Stimulation",
+        "Tactile Enhancement",
+        "Empathy and Sociability Enhancement",
+        "Cognitive Euphoria",
+        "Time Distortion",
+        "Increased Music Appreciation",
+        "Increased Libido",
+        "Teeth Grinding",
+        "Dehydration",
+        "Temperature Regulation Suppression",
+        "Vibrating Vision"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Ethylone",
+          "reference": "https://psychonautwiki.org/wiki/Ethylone"
+        },
+        {
+          "name": "Erowid: bk-MDEA (Ethylone) Vault",
+          "reference": "https://erowid.org/chemicals/bk_mdea/"
+        },
+        {
+          "name": "Bluelight: Ethylone / BK-MDEA Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/ethylone-bk-mdea.590326/"
+        },
+        {
+          "name": "Wikipedia: Ethylone",
+          "reference": "https://en.wikipedia.org/wiki/Ethylone"
+        },
+        {
+          "name": "Cozzi et al. (1999) - Beta-ketoamphetamine transporter inhibition",
+          "reference": "https://doi.org/10.1016/s0014-2999(99)00538-5"
+        },
+        {
+          "name": "Simmler et al. (2013) - Pharmacological characterization of designer cathinones",
+          "reference": "https://doi.org/10.1111/j.1476-5381.2012.02145.x"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "entactogen",
+        "research-chemical",
+        "cathinone"
+      ]
+    },
+    "id": 686
   }
 ]
