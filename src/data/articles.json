@@ -78970,5 +78970,126 @@
       ]
     },
     "id": 695
+  },
+  {
+    "title": "MDEA",
+    "index-category": "entactogen; empathogen",
+    "drug_info": {
+      "drug_name": "MDEA",
+      "chemical_name": "(RS)-1-(benzo[d][1,3]dioxol-5-yl)-N-ethylpropan-2-amine",
+      "alternative_name": "MDE; Eve",
+      "chemical_class": "Amphetamines; MDxx",
+      "psychoactive_class": "Entactogen",
+      "mechanism_of_action": "Serotonin releasing agent and reuptake inhibitor; Norepinephrine releasing agent and reuptake inhibitor; Dopamine releasing agent and reuptake inhibitor",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "40 mg",
+              "light": "70-120 mg",
+              "common": "120-180 mg",
+              "strong": "180-225 mg",
+              "heavy": "225+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-6 hours",
+              "onset": "20-60 minutes",
+              "peak": "1.5-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "12-48 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "The chronic use of MDEA can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence among certain users. When addiction has developed, cravings and withdrawal effects may occur if a person suddenly stops their usage. Evidence of physical addiction is limited.",
+      "interactions": {
+        "dangerous": [
+          "25x-NBOMe and 25x-NBOH (risk of excessive stimulation, seizures, and heart failure)",
+          "MAOIs (risk of dangerous increases in neurotransmitters and serotonin syndrome)",
+          "Serotonin releasers such as MDMA, 4-FA, methamphetamine, methylone, and aMT (risk of serotonin syndrome)"
+        ],
+        "unsafe": [
+          "DXM (increased risk of panic attacks, hypertensive crisis, and serotonin syndrome)",
+          "MXE (may dangerously increase blood pressure and risk of mania)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)",
+          "Tramadol (lowers seizure threshold)",
+          "Cocaine (increased heart strain)",
+          "Other stimulants (increased neurotoxicity and cardiotoxicity)"
+        ],
+        "caution": [
+          "Alcohol (risk of accidental over-intoxication and dehydration)",
+          "SSRIs (significantly reduced effects and increased serotonin syndrome risk)",
+          "SNRIs (significantly reduced effects and increased serotonin syndrome risk)",
+          "5-HTP (increased serotonin syndrome risk)"
+        ]
+      },
+      "notes": "MDEA is a Schedule I controlled substance in most countries. The substance is characterized by a more sedating, 'stoning' quality compared to MDMA, with less emphasis on social connection and more on physical relaxation. MDEA requires careful dosing with an accurate milligram scale, adequate hydration without over-drinking, and temperature regulation in warm environments. Users with personal or family histories of heart conditions or mental health disorders should avoid use. Set and setting influence the experience significantly.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Spontaneous Bodily Sensations",
+        "Tactile Enhancement",
+        "Perception of Bodily Heaviness",
+        "Cognitive Euphoria",
+        "Empathy and Sociability Enhancement (less pronounced than MDMA)",
+        "Anxiety Suppression",
+        "Increased Music Appreciation",
+        "Time Distortion",
+        "Sedation (more pronounced than MDMA)",
+        "Teeth Grinding",
+        "Pupil Dilation",
+        "Temperature Dysregulation"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "1-1.5 months",
+        "zero_tolerance": "2-3 months",
+        "cross_tolerances": [
+          "All dopaminergic stimulants",
+          "All serotonergic stimulants and entactogens (MDMA, MDA, etc.)"
+        ]
+      },
+      "half_life": "7-9 hours (estimated, similar to MDMA based on structural similarity)",
+      "citations": [
+        {
+          "name": "Erowid MDE Vault",
+          "reference": "https://erowid.org/chemicals/mde/mde.shtml"
+        },
+        {
+          "name": "Freudenmann & Spitzer - The Neuropsychopharmacology and Toxicology of MDEA",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/15179441/"
+        },
+        {
+          "name": "PiHKAL Entry #106 - MDE",
+          "reference": "https://erowid.org/library/books_online/pihkal/pihkal106.shtml"
+        },
+        {
+          "name": "PsychonautWiki - MDEA",
+          "reference": "https://psychonautwiki.org/wiki/MDEA"
+        },
+        {
+          "name": "Wikipedia - 3,4-Methylenedioxy-N-ethylamphetamine",
+          "reference": "https://en.wikipedia.org/wiki/3,4-Methylenedioxy-N-ethylamphetamine"
+        }
+      ],
+      "categories": [
+        "entactogen",
+        "amphetamine",
+        "mdxx",
+        "research-chemical"
+      ]
+    },
+    "id": 696
   }
 ]
