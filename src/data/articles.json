@@ -75663,5 +75663,146 @@
       ]
     },
     "id": 672
+  },
+  {
+    "title": "Eszopiclone",
+    "index-category": "depressant; sedative; prescription",
+    "drug_info": {
+      "drug_name": "Eszopiclone",
+      "chemical_name": "(S)-6-(5-Chloro-2-pyridinyl)-7-oxo-6,7-dihydro-5H-pyrrolo[3,4-b]pyrazin-5-yl-4-methyl-1-piperazinecarboxylate",
+      "alternative_name": "Lunesta; Eszop",
+      "chemical_class": "Cyclopyrrolone",
+      "psychoactive_class": "Depressant; Hallucinogen",
+      "mechanism_of_action": "GABA-A receptor positive allosteric modulator (preferential affinity for alpha-1, alpha-3, and alpha-5 subunits); increases chloride channel opening frequency when GABA is present",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "0.5 mg",
+              "light": "1-1.5 mg",
+              "common": "2-3 mg",
+              "strong": "4-5 mg",
+              "heavy": "6+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-8 hours",
+              "onset": "10-20 minutes",
+              "peak": "30-90 minutes (approximately 1 hour)",
+              "offset": "3-5 hours",
+              "after_effects": "Up to 24 hours (next-day impairment possible)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Eszopiclone is highly physically and psychologically addictive, potentially with even greater addiction potential than benzodiazepines. Physical and psychological dependence develop with regular use, and the risk increases with dose, duration, and concurrent use of other psychoactive substances. Compulsive redosing is commonly reported.",
+      "interactions": {
+        "dangerous": [
+          "Opioids (respiratory depression, coma, death)",
+          "Alcohol (severe respiratory depression, blackouts, death)",
+          "Benzodiazepines (respiratory depression, unconsciousness)",
+          "Barbiturates (respiratory depression, fatal overdose)",
+          "GHB/GBL (respiratory depression, unconsciousness)",
+          "Sodium oxybate (contraindicated; severe CNS depression)"
+        ],
+        "unsafe": [
+          "Other CNS depressants (increased sedation, amnesia, respiratory depression)",
+          "Dissociatives (increased vomiting risk during unconsciousness)",
+          "Other Z-drugs (compounded sedation)"
+        ],
+        "caution": [
+          "CYP3A4 inhibitors (ketoconazole, itraconazole; increased eszopiclone levels)",
+          "CYP3A4 inducers (rifampicin, carbamazepine; decreased effectiveness)",
+          "Antihistamines (increased drowsiness)",
+          "Muscle relaxants (increased sedation)",
+          "Antipsychotics (combined sedation effects)"
+        ]
+      },
+      "notes": "Eszopiclone is a Schedule IV controlled substance in the United States. Tolerance develops rapidly within a couple of weeks of daily use. Abrupt cessation after prolonged use can cause severe withdrawal symptoms; gradual tapering or cross-over to long-acting benzodiazepines like diazepam is recommended. Should not be taken with or immediately after high-fat meals as this delays absorption. Users should avoid driving or operating machinery the next day due to potential next-day impairment. Contraindicated in those with severe hepatic impairment (reduce dose to maximum 2 mg) and during activities requiring mental alertness. Complex sleep behaviors including sleep-walking, sleep-driving, and sleep-eating have been reported and may result in serious injury or death.",
+      "subjective_effects": [
+        "Sedation",
+        "Respiratory Depression",
+        "Muscle Relaxation",
+        "Dizziness",
+        "Motor Control Loss",
+        "Metallic Taste (Gustatory Hallucination)",
+        "Amnesia",
+        "Anxiety Suppression",
+        "Disinhibition",
+        "Emotion Suppression",
+        "Time Compression",
+        "Shadow People",
+        "Visual Drifting",
+        "External Hallucinations",
+        "Delirium",
+        "Euphoria (Short-Lived, Onset Only)",
+        "Irritability",
+        "Compulsive Redosing"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 weeks of consecutive daily use",
+        "half_tolerance": "Not well documented; develops slower than benzodiazepines",
+        "zero_tolerance": "7-14 days after cessation",
+        "cross_tolerances": [
+          "All benzodiazepines",
+          "Other Z-drugs (zolpidem, zaleplon, zopiclone)",
+          "Barbiturates",
+          "Most GABAergic depressants"
+        ]
+      },
+      "half_life": "6 hours (approximately 6.1 hours in healthy adults; prolonged in elderly and hepatic impairment)",
+      "citations": [
+        {
+          "name": "DrugBank: Eszopiclone",
+          "reference": "https://go.drugbank.com/drugs/DB00402"
+        },
+        {
+          "name": "Drugs.com: Eszopiclone Information",
+          "reference": "https://www.drugs.com/eszopiclone.html"
+        },
+        {
+          "name": "Erowid: Zopiclone/Eszopiclone Vault",
+          "reference": "https://www.erowid.org/pharms/zopiclone/zopiclone.shtml"
+        },
+        {
+          "name": "FDA: Lunesta (Eszopiclone) Prescribing Information",
+          "reference": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/021476s030lbl.pdf"
+        },
+        {
+          "name": "Mayo Clinic: Eszopiclone Side Effects & Precautions",
+          "reference": "https://www.mayoclinic.org/drugs-supplements/eszopiclone-oral-route/precautions/drg-20063743"
+        },
+        {
+          "name": "NIAAA: Alcohol-Medication Interactions",
+          "reference": "https://www.niaaa.nih.gov/health-professionals-communities/core-resource-on-alcohol/alcohol-medication-interactions-potentially-dangerous-mixes"
+        },
+        {
+          "name": "PsychonautWiki: Eszopiclone",
+          "reference": "https://psychonautwiki.org/wiki/Eszopiclone"
+        },
+        {
+          "name": "Wikipedia: Eszopiclone",
+          "reference": "https://en.wikipedia.org/wiki/Eszopiclone"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "sedative-hypnotic",
+        "z-drug",
+        "prescription"
+      ]
+    },
+    "id": 673
   }
 ]
