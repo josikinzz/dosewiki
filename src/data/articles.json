@@ -75533,5 +75533,135 @@
       ]
     },
     "id": 671
+  },
+  {
+    "title": "Secobarbital",
+    "index-category": "depressant; barbiturate",
+    "drug_info": {
+      "drug_name": "Secobarbital",
+      "chemical_name": "5-[(2R)-pentan-2-yl]-5-prop-2-enyl-1,3-diazinane-2,4,6-trione",
+      "alternative_name": "Secobarbitone; Seconal; Reds; Red Birds; Red Devils; Seggy",
+      "chemical_class": "Barbiturates",
+      "psychoactive_class": "Depressant; Sedative-hypnotic",
+      "mechanism_of_action": "GABAA receptor positive allosteric modulator (binds to distinct site from benzodiazepines); increases duration of chloride ion channel opening",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "20 mg",
+              "light": "25-50 mg",
+              "common": "50-150 mg",
+              "strong": "150-300 mg",
+              "heavy": "300+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-10 hours",
+              "onset": "15-60 minutes",
+              "peak": "4-8 hours",
+              "offset": "2-4 hours",
+              "after_effects": "1-24 hours (anxiolytic effects may persist)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Secobarbital is extremely physically and psychologically addictive. Tolerance develops rapidly, often within two weeks of regular use. Barbiturate dependence is considered one of the most dangerous forms of substance dependence, and abrupt discontinuation can result in life-threatening withdrawal symptoms including seizures, psychosis, and death.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (fatal respiratory depression and overdose risk)",
+          "Opioids (fatal respiratory depression and overdose risk)",
+          "Benzodiazepines (synergistic respiratory depression; barbiturates increase benzodiazepine binding affinity)",
+          "GHB/GBL (severe respiratory depression)",
+          "Other barbiturates (compounded CNS depression)",
+          "Methaqualone (respiratory depression)"
+        ],
+        "unsafe": [
+          "Dissociatives (increased risk of vomiting and aspiration)",
+          "Gabapentinoids (respiratory depression)",
+          "Thienodiazepines (respiratory depression)"
+        ],
+        "caution": [
+          "Stimulants (masks sedation leading to dangerous redosing; risk of severe dehydration)",
+          "Tramadol (lowers seizure threshold during withdrawal; enzyme induction increases tramadol potency)",
+          "Amphetamines (should be avoided during withdrawal)",
+          "Warfarin (reduced anticoagulant effectiveness)",
+          "Oral contraceptives (reduced effectiveness; use backup contraception)",
+          "Tricyclic antidepressants (prolonged sedation and CNS depression)"
+        ]
+      },
+      "notes": "Secobarbital has a narrow therapeutic index, meaning the difference between an effective dose and a lethal dose is small. It is a Schedule II controlled substance in most jurisdictions due to high abuse potential. Production was largely discontinued in the early 2000s, making pharmaceutical secobarbital rare. Barbiturate withdrawal requires medical supervision and often involves substitution with phenobarbital or long-acting benzodiazepines. Individuals with respiratory conditions, liver disease, porphyria, or history of substance abuse should not use this medication. Secobarbital drastically reduces the effectiveness of hormonal birth control and many other medications through enzyme induction.",
+      "subjective_effects": [
+        "Sedation",
+        "Anxiety Suppression",
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Motor Control Loss",
+        "Muscle Relaxation",
+        "Amnesia",
+        "Disinhibition",
+        "Thought Deceleration",
+        "Compulsive Redosing",
+        "Slurred Speech",
+        "Delusions of Sobriety"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops rapidly after 2 weeks of continuous use",
+        "half_tolerance": "Unknown; barbiturate tolerance persists longer than other depressants",
+        "zero_tolerance": "Several weeks to months after discontinuation",
+        "cross_tolerances": [
+          "All barbiturates",
+          "Partial cross-tolerance with alcohol and benzodiazepines"
+        ]
+      },
+      "half_life": "15-40 hours (plasma elimination)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Secobarbital",
+          "reference": "https://psychonautwiki.org/wiki/Secobarbital"
+        },
+        {
+          "name": "Erowid Experience Vaults: Secobarbital",
+          "reference": "https://erowid.org/experiences/subs/exp_Pharms_Secobarbital.shtml"
+        },
+        {
+          "name": "Erowid Barbiturate Vault",
+          "reference": "https://www.erowid.org/chemicals/barbiturates/"
+        },
+        {
+          "name": "TripSit Wiki: Risks of Combining Depressants",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "DrugBank: Secobarbital",
+          "reference": "https://go.drugbank.com/drugs/DB00418"
+        },
+        {
+          "name": "Drugs.com: Secobarbital Interactions",
+          "reference": "https://www.drugs.com/drug-interactions/secobarbital.html"
+        },
+        {
+          "name": "Wikipedia: Barbiturate",
+          "reference": "https://en.wikipedia.org/wiki/Barbiturate"
+        }
+      ],
+      "categories": [
+        "depressant",
+        "barbiturate",
+        "sedative-hypnotic",
+        "gaba-modulator"
+      ]
+    },
+    "id": 672
   }
 ]
