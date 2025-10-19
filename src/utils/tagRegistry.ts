@@ -1,4 +1,5 @@
 import articlesSource from "../data/articles";
+import { slugifyDrugName } from "../data/contentBuilder";
 import {
   ensureNormalizedTagList,
   joinNormalizedValues,
@@ -14,6 +15,7 @@ export interface TagArticleRef {
   index: number;
   id?: number;
   title?: string;
+  slug?: string;
 }
 
 export interface TagUsage {
@@ -121,6 +123,38 @@ const parseTitle = (value: unknown): string | undefined => {
     return trimmed.length > 0 ? trimmed : undefined;
   }
   return undefined;
+};
+
+const parseSlug = (value: unknown): string | undefined => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return undefined;
+};
+
+const deriveArticleSlug = (article: ArticleRecord): string | undefined => {
+  const info =
+    typeof article === "object" && article !== null && "drug_info" in article
+      ? ((article as { drug_info?: unknown }).drug_info as { [key: string]: unknown } | undefined)
+      : undefined;
+
+  const drugName = info ? parseTitle(info.drug_name) : undefined;
+  const title = parseTitle((article as { title?: unknown }).title);
+  const chemicalName = info ? parseTitle(info.chemical_name) : undefined;
+
+  const candidates = [drugName, title, chemicalName].filter((value): value is string => Boolean(value));
+  const baseName = candidates.find((value) => !value.includes("(")) ?? candidates[0];
+
+  const fallbackId = parseId((article as { id?: unknown }).id);
+  const fallback = fallbackId !== undefined ? `article-${fallbackId}` : baseName;
+
+  const primary = baseName ?? fallback;
+  if (!primary || !fallback) {
+    return undefined;
+  }
+
+  return slugifyDrugName(primary, fallback);
 };
 
 const cloneArticle = (article: ArticleRecord): ArticleRecord => {
@@ -252,7 +286,8 @@ export const buildTagRegistry = (articles: ArticleRecord[]): TagRegistry => {
 
         if (!seen.has(key)) {
           usage.count += 1;
-          usage.articleRefs.push({ index, id, title });
+          const slug = parseSlug((article as { slug?: unknown }).slug) ?? deriveArticleSlug(article);
+          usage.articleRefs.push({ index, id, title, slug });
           seen.add(key);
         }
 

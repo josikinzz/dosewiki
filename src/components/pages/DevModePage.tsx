@@ -60,6 +60,7 @@ import {
   hydrateArticleDraftForm,
 } from "../../utils/articleDraftForm";
 import { slugify } from "../../utils/slug";
+import { viewToHash } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
 import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/TagEditorTab";
@@ -2901,16 +2902,21 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        {entry.articles.map((article) => (
-                          <button
-                            key={`${entry.id}-${article.slug}`}
-                            type="button"
-                            className={`${pillButtonBaseClass} px-3 py-1 text-xs`}
-                            onClick={() => focusArticleFilter(article.slug)}
-                          >
-                            {article.title}
-                          </button>
-                        ))}
+                        {entry.articles.map((article) => {
+                          const href = viewToHash({ type: "substance", slug: article.slug });
+                          return (
+                            <a
+                              key={`${entry.id}-${article.slug}`}
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`${pillButtonBaseClass} px-3 py-1 text-xs`}
+                              onClick={() => focusArticleFilter(article.slug)}
+                            >
+                              {article.title}
+                            </a>
+                          );
+                        })}
                       </div>
 
                       <DiffPreview diffText={entry.markdown} className="max-h-56" />

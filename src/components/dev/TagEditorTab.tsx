@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowLeftRight, Copy, Download, Pencil, RefreshCw, Search, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
+import { viewToHash } from "../../utils/routing";
 import { TagMutation, TAG_FIELD_LABELS, TAG_FIELDS, applyTagMutation, buildTagRegistry, getTagUsage, normalizeTagLabel, summarizeMutation, toTagKey, type TagField, type TagUsage } from "../../utils/tagRegistry";
 import { DiffPreview } from "../common/DiffPreview";
 import { SectionCard } from "../common/SectionCard";
@@ -435,11 +436,28 @@ export function TagEditorTab({
                     {selectedUsage.articleRefs.map((ref) => {
                       const label = ref.title?.trim()?.length ? ref.title : `Article ${ref.index + 1}`;
                       const identifier = typeof ref.id === "number" ? `#${ref.id}` : `Index ${ref.index + 1}`;
+                      const href = ref.slug ? viewToHash({ type: "substance", slug: ref.slug }) : undefined;
+
+                      if (!href) {
+                        return (
+                          <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+                            <span className="truncate text-white/80">{label}</span>
+                            <span className="text-xs uppercase tracking-[0.28em] text-white/45">{identifier}</span>
+                          </div>
+                        );
+                      }
+
                       return (
-                        <div key={`${ref.index}-${ref.id ?? "no-id"}`} className="flex items-center justify-between gap-3">
-                          <span className="truncate text-white/80">{label}</span>
-                          <span className="text-xs uppercase tracking-[0.28em] text-white/45">{identifier}</span>
-                        </div>
+                        <a
+                          key={`${ref.index}-${ref.id ?? "no-id"}`}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-white/80 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
+                        >
+                          <span className="truncate">{label}</span>
+                          <span className="text-xs uppercase tracking-[0.28em] text-white/55">{identifier}</span>
+                        </a>
                       );
                     })}
                   </div>
