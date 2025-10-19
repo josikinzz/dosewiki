@@ -78012,5 +78012,146 @@
       ]
     },
     "id": 688
+  },
+  {
+    "title": "Pentedrone",
+    "index-category": "stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "Pentedrone",
+      "chemical_name": "2-(Methylamino)-1-phenylpentan-1-one",
+      "alternative_name": "Drone; Alpha-methylamino-valerophenone",
+      "chemical_class": "Cathinone",
+      "psychoactive_class": "Stimulant",
+      "mechanism_of_action": "Norepinephrine-dopamine reuptake inhibitor (NDRI); minimal serotonin activity",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2 mg",
+              "light": "5-10 mg",
+              "common": "10-15 mg",
+              "strong": "15-25 mg",
+              "heavy": "25+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2 mg",
+              "light": "5-10 mg",
+              "common": "10-15 mg",
+              "strong": "15-20 mg",
+              "heavy": "20+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-6 hours",
+              "onset": "15-30 minutes",
+              "peak": "1-2 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-10 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "1.5-4 hours",
+              "onset": "5-15 minutes",
+              "peak": "30-90 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "1-8 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Pentedrone is considered moderately addictive with a high potential for abuse and is readily liable to cause psychological dependence. It has a notable tendency to induce compulsive redosing behaviors and can readily induce paranoid, delusional states and stimulant psychosis when abused.",
+      "interactions": {
+        "dangerous": [
+          "25x-NBOMe and 25x-NBOH (risk of excessive stimulation, vasoconstriction, panic attacks, seizures, and heart failure)",
+          "MAOIs (dangerous increase in neurotransmitter levels)"
+        ],
+        "unsafe": [
+          "Stimulants (increased heart rate and blood pressure to dangerous levels)",
+          "Cocaine (increased strain on the heart)",
+          "MDMA (increased neurotoxicity and cardiotoxicity)",
+          "MXE (may dangerously increase blood pressure and risk of mania and psychosis)",
+          "Dissociatives (multiplied risk of delusions, mania, and psychosis)"
+        ],
+        "caution": [
+          "Alcohol (masks depressant effects, risk of over-intoxication and respiratory depression)",
+          "DXM (increased risk of panic attacks, hypertensive crisis, or serotonin syndrome)",
+          "Tramadol (lowers seizure threshold)"
+        ]
+      },
+      "notes": "Pentedrone is a Schedule I controlled substance in the United States and is illegal in many countries. The toxicity and long-term health effects have not been studied in scientific contexts, and exact toxic dosage is unknown. Use accurate milligram scales for dosing. Individuals with cardiovascular conditions or personal or family histories of psychotic disorders should avoid use. Harm reduction practices are strongly recommended including starting with low doses, avoiding combinations, and having a sober sitter present.",
+      "subjective_effects": [
+        "Stimulation",
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Spontaneous Physical Sensations",
+        "Focus Enhancement",
+        "Motivation Enhancement",
+        "Compulsive Redosing",
+        "Appetite Suppression",
+        "Increased Heart Rate",
+        "Vasoconstriction",
+        "Teeth Grinding",
+        "Dehydration",
+        "Anxiety",
+        "Paranoia"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Pentedrone",
+          "reference": "https://psychonautwiki.org/wiki/Pentedrone"
+        },
+        {
+          "name": "Pentedrone - Wikipedia",
+          "reference": "https://en.wikipedia.org/wiki/Pentedrone"
+        },
+        {
+          "name": "Erowid Experience Vaults: Pentedrone",
+          "reference": "https://erowid.org/experiences/subs/exp_Pentedrone.shtml"
+        },
+        {
+          "name": "Bluelight: Pentedrone Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/pentedrone.588475/"
+        },
+        {
+          "name": "Simmler et al. - Monoamine transporter and receptor interaction profiles of designer cathinones",
+          "reference": "https://doi.org/10.1016/j.neuropharm.2013.11.008"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "cathinone",
+        "research-chemical"
+      ]
+    },
+    "id": 689
   }
 ]
