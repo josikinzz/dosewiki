@@ -1,5 +1,468 @@
 [
   {
+    "id": "20251019-201514-b1ba5d82",
+    "createdAt": "2025-10-19T20:15:14.114Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/19/2025, 2:15:12 PM"
+    },
+    "articles": [
+      {
+        "id": 163,
+        "title": "Mitragynine Pseudoindoxyl",
+        "slug": "mitragynine-pseudoindoxyl"
+      },
+      {
+        "id": 161,
+        "title": "Hexen",
+        "slug": "hexen"
+      },
+      {
+        "id": 56,
+        "title": "Oxycodone",
+        "slug": "oxycodone"
+      },
+      {
+        "id": 67,
+        "title": "Phenobarbital",
+        "slug": "phenobarbital"
+      },
+      {
+        "id": 68,
+        "title": "Triazolam",
+        "slug": "triazolam"
+      },
+      {
+        "id": 66,
+        "title": "Hydrocodone",
+        "slug": "hydrocodone"
+      },
+      {
+        "id": 71,
+        "title": "Mirogabalin",
+        "slug": "mirogabalin"
+      },
+      {
+        "id": 81,
+        "title": "Remifentanil",
+        "slug": "remifentanil"
+      },
+      {
+        "id": 89,
+        "title": "Heroin",
+        "slug": "heroin"
+      },
+      {
+        "id": 90,
+        "title": "Oxazepam",
+        "slug": "oxazepam"
+      },
+      {
+        "id": 91,
+        "title": "Alprazolam",
+        "slug": "alprazolam"
+      },
+      {
+        "id": 97,
+        "title": "Fentanyl",
+        "slug": "fentanyl"
+      },
+      {
+        "id": 103,
+        "title": "Clobromazolam",
+        "slug": "clobromazolam"
+      },
+      {
+        "id": 242,
+        "title": "Gaboxadol",
+        "slug": "gaboxadol"
+      },
+      {
+        "id": 586,
+        "title": "Acrylfentanyl",
+        "slug": "acrylfentanyl"
+      },
+      {
+        "id": 125,
+        "title": "Midazolam",
+        "slug": "midazolam"
+      },
+      {
+        "id": 126,
+        "title": "Etizolam",
+        "slug": "etizolam"
+      },
+      {
+        "id": 128,
+        "title": "Diclazepam",
+        "slug": "diclazepam"
+      },
+      {
+        "id": 132,
+        "title": "Brotizolam",
+        "slug": "brotizolam"
+      },
+      {
+        "id": 142,
+        "title": "Flutoprazepam",
+        "slug": "flutoprazepam"
+      },
+      {
+        "id": 151,
+        "title": "Hydromorphone",
+        "slug": "hydromorphone"
+      },
+      {
+        "id": 166,
+        "title": "Morphine",
+        "slug": "morphine"
+      },
+      {
+        "id": 170,
+        "title": "Nimetazepam",
+        "slug": "nimetazepam"
+      },
+      {
+        "id": 153,
+        "title": "Gamma-hydroxybutyric acid",
+        "slug": "gamma-hydroxybutyric-acid"
+      },
+      {
+        "id": 171,
+        "title": "Temazepam",
+        "slug": "temazepam"
+      },
+      {
+        "id": 175,
+        "title": "Gabapentin",
+        "slug": "gabapentin"
+      },
+      {
+        "id": 176,
+        "title": "Zopiclone",
+        "slug": "zopiclone"
+      },
+      {
+        "id": 177,
+        "title": "Methaqualone",
+        "slug": "methaqualone"
+      },
+      {
+        "id": 179,
+        "title": "Zaleplon",
+        "slug": "zaleplon"
+      },
+      {
+        "id": 183,
+        "title": "Zolpidem",
+        "slug": "zolpidem"
+      },
+      {
+        "id": 190,
+        "title": "Benzphetamine",
+        "slug": "benzphetamine"
+      },
+      {
+        "id": 206,
+        "title": "Kratom",
+        "slug": "kratom"
+      },
+      {
+        "id": 217,
+        "title": "Chloral Hydrate",
+        "slug": "chloral-hydrate"
+      },
+      {
+        "id": 221,
+        "title": "Flurazepam",
+        "slug": "flurazepam"
+      },
+      {
+        "id": 347,
+        "title": "DPP-26",
+        "slug": "dpp-26"
+      },
+      {
+        "id": 245,
+        "title": "Desomorphine",
+        "slug": "desomorphine"
+      },
+      {
+        "id": 249,
+        "title": "Butylone",
+        "slug": "butylone"
+      },
+      {
+        "id": 255,
+        "title": "Halazepam",
+        "slug": "halazepam"
+      },
+      {
+        "id": 366,
+        "title": "SR-14968",
+        "slug": "sr-14968"
+      },
+      {
+        "id": 364,
+        "title": "Spirochlorphine",
+        "slug": "spirochlorphine"
+      },
+      {
+        "id": 365,
+        "title": "Lofentanil",
+        "slug": "lofentanil"
+      },
+      {
+        "id": 45,
+        "title": "O-DSMT",
+        "slug": "o-dsmt"
+      },
+      {
+        "id": 283,
+        "title": "MD-PiHP",
+        "slug": "md-pihp"
+      },
+      {
+        "id": 291,
+        "title": "MDMA",
+        "slug": "mdma"
+      },
+      {
+        "id": 130,
+        "title": "Pregabalin",
+        "slug": "pregabalin"
+      },
+      {
+        "id": 134,
+        "title": "Flunitrazepam",
+        "slug": "flunitrazepam"
+      },
+      {
+        "id": 294,
+        "title": "Bromantane",
+        "slug": "bromantane"
+      },
+      {
+        "id": 304,
+        "title": "DHC",
+        "slug": "dhc"
+      },
+      {
+        "id": 305,
+        "title": "Thiopental",
+        "slug": "thiopental"
+      },
+      {
+        "id": 309,
+        "title": "MD-PHP",
+        "slug": "md-php"
+      },
+      {
+        "id": 314,
+        "title": "Methadone",
+        "slug": "methadone"
+      },
+      {
+        "id": 313,
+        "title": "6-MAM",
+        "slug": "6-mam"
+      },
+      {
+        "id": 318,
+        "title": "Melatonin",
+        "slug": "melatonin"
+      },
+      {
+        "id": 319,
+        "title": "Pronitazene",
+        "slug": "pronitazene"
+      },
+      {
+        "id": 322,
+        "title": "SL-164",
+        "slug": "sl-164"
+      },
+      {
+        "id": 324,
+        "title": "Cychlorphine",
+        "slug": "cychlorphine"
+      },
+      {
+        "id": 344,
+        "title": "SR-17018",
+        "slug": "sr-17018"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      },
+      {
+        "id": 357,
+        "title": "Isotonitazepyne",
+        "slug": "isotonitazepyne"
+      },
+      {
+        "id": 360,
+        "title": "Bezitramide",
+        "slug": "bezitramide"
+      },
+      {
+        "id": 374,
+        "title": "Lean",
+        "slug": "lean"
+      },
+      {
+        "id": 421,
+        "title": "MGM-15",
+        "slug": "mgm-15"
+      },
+      {
+        "id": 408,
+        "title": "Mitragynine",
+        "slug": "mitragynine"
+      },
+      {
+        "id": 358,
+        "title": "NDP",
+        "slug": "ndp"
+      },
+      {
+        "id": 416,
+        "title": "IC-26",
+        "slug": "ic-26"
+      },
+      {
+        "id": 417,
+        "title": "Avizafone",
+        "slug": "avizafone"
+      },
+      {
+        "id": 418,
+        "title": "Isotonitazene",
+        "slug": "isotonitazene"
+      },
+      {
+        "id": 423,
+        "title": "7-OH",
+        "slug": "7-oh"
+      },
+      {
+        "id": 443,
+        "title": "Fluminorex",
+        "slug": "fluminorex"
+      },
+      {
+        "id": 455,
+        "title": "Fluclotizolam",
+        "slug": "fluclotizolam"
+      },
+      {
+        "id": 459,
+        "title": "Flupirtine",
+        "slug": "flupirtine"
+      },
+      {
+        "id": 460,
+        "title": "Scopolamine",
+        "slug": "scopolamine"
+      },
+      {
+        "id": 462,
+        "title": "Ethylbromazolam",
+        "slug": "ethylbromazolam"
+      },
+      {
+        "id": 463,
+        "title": "Nifoxipam",
+        "slug": "nifoxipam"
+      },
+      {
+        "id": 474,
+        "title": "Bromonordiazepam",
+        "slug": "bromonordiazepam"
+      },
+      {
+        "id": 475,
+        "title": "Agmatine Sulfate",
+        "slug": "agmatine-sulfate"
+      },
+      {
+        "id": 484,
+        "title": "Imodium",
+        "slug": "imodium"
+      },
+      {
+        "id": 489,
+        "title": "D2PM",
+        "slug": "d2pm"
+      },
+      {
+        "id": 520,
+        "title": "4-Methoxybutyrfentanyl",
+        "slug": "4-methoxybutyrfentanyl"
+      },
+      {
+        "id": 547,
+        "title": "Monotropa uniflora",
+        "slug": "monotropa-uniflora"
+      },
+      {
+        "id": 549,
+        "title": "Tapentadol",
+        "slug": "tapentadol"
+      },
+      {
+        "id": 551,
+        "title": "Desmethylflunitrazepam",
+        "slug": "desmethylflunitrazepam"
+      },
+      {
+        "id": 598,
+        "title": "Butorphanol",
+        "slug": "butorphanol"
+      },
+      {
+        "id": 603,
+        "title": "Acetyldihydrocodeine",
+        "slug": "acetyldihydrocodeine"
+      },
+      {
+        "id": 604,
+        "title": "Acetildenafil",
+        "slug": "acetildenafil"
+      },
+      {
+        "id": 612,
+        "title": "Beta-meprodine",
+        "slug": "beta-meprodine"
+      },
+      {
+        "id": 615,
+        "title": "Amobarbital",
+        "slug": "amobarbital"
+      },
+      {
+        "id": 174,
+        "title": "Carisoprodol",
+        "slug": "carisoprodol"
+      },
+      {
+        "id": 671,
+        "title": "Pentobarbital",
+        "slug": "pentobarbital"
+      },
+      {
+        "id": 672,
+        "title": "Secobarbital",
+        "slug": "secobarbital"
+      }
+    ],
+    "markdown": "# Mitragynine Pseudoindoxyl · #163\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Hexen · #161\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Oxycodone · #56\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Euphoriant; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Phenobarbital · #67\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anticonvulsant; Anxiolytic; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anticonvulsant; Anxiolytic; Muscle Relaxant; GABAergic\",\n\n# Triazolam · #68\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; GABAergic; Muscle Relaxant\",\n\n# Hydrocodone · #66\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Euphoriant; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Mirogabalin · #71\n\n-    \"psychoactive_class\": \"Anticonvulsant; Analgesic\",\n+    \"psychoactive_class\": \"Anticonvulsant\",\n\n# Remifentanil · #81\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Anesthetic; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Heroin · #89\n\n-    \"psychoactive_class\": \"Opioid; Euphoriant; Analgesic; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Oxazepam · #90\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; GABAergic; Muscle Relaxant\",\n\n# Alprazolam · #91\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; GABAergic; Anticonvulsant\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; GABAergic; Anticonvulsant\",\n\n# Fentanyl · #97\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Clobromazolam · #103\n\n-    \"psychoactive_class\": \"Sedative; Anxiolytic; Hypnotic; Depressant; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; Depressant; GABAergic; Muscle Relaxant\",\n\n# Gaboxadol · #242\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; GABAergic; Hallucinogen; Deliriant; Oneirogen\",\n+    \"psychoactive_class\": \"Depressant; Sedative; GABAergic; Hallucinogen; Deliriant; Oneirogen\",\n\n# Acrylfentanyl · #586\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Midazolam · #125\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic; Anticonvulsant; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; GABAergic; Anticonvulsant; Muscle Relaxant\",\n\n# Etizolam · #126\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; GABAergic\",\n\n# Diclazepam · #128\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; Anticonvulsant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; Anticonvulsant; GABAergic\",\n\n# Brotizolam · #132\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Anxiolytic; Anticonvulsant; Muscle Relaxant; GABAergic; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; Anticonvulsant; Muscle Relaxant; GABAergic; Depressant\",\n\n# Flutoprazepam · #142\n\n-    \"psychoactive_class\": \"Hypnotic; Sedative; Anxiolytic; Depressant; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; Depressant; Muscle Relaxant; GABAergic\",\n\n# Hydromorphone · #151\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Morphine · #166\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Nimetazepam · #170\n\n-    \"psychoactive_class\": \"Depressant; Hypnotic; Sedative; Anxiolytic; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; GABAergic; Muscle Relaxant\",\n\n# Gamma-hydroxybutyric acid · #153\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Anesthetic\",\n+    \"psychoactive_class\": \"Depressant; Sedative\",\n\n# Temazepam · #171\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; GABAergic; Muscle Relaxant\",\n\n# Gabapentin · #175\n\n-    \"psychoactive_class\": \"Anticonvulsant; Anxiolytic; Sedative; Analgesic; GABAergic; Muscle Relaxant; Depressant\",\n+    \"psychoactive_class\": \"Anticonvulsant; Anxiolytic; Sedative; GABAergic; Muscle Relaxant; Depressant\",\n\n# Zopiclone · #176\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Depressant\",\n\n# Methaqualone · #177\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anxiolytic; Muscle Relaxant; GABAergic; Euphoriant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; Muscle Relaxant; GABAergic\",\n\n# Zaleplon · #179\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Depressant\",\n\n# Zolpidem · #183\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Depressant\",\n\n# Benzphetamine · #190\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Kratom · #206\n\n-    \"psychoactive_class\": \"Opioid; Stimulant; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Stimulant; Depressant\",\n\n# Chloral Hydrate · #217\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Sedative; GABAergic\",\n\n# Flurazepam · #221\n\n-    \"psychoactive_class\": \"Hypnotic; Sedative; Anxiolytic; Depressant; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; Depressant; Muscle Relaxant; GABAergic\",\n\n# DPP-26 · #347\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Desomorphine · #245\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Butylone · #249\n\n-    \"psychoactive_class\": \"Stimulant; Entactogen; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant; Entactogen\",\n\n# Halazepam · #255\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; GABAergic\",\n\n# SR-14968 · #366\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Spirochlorphine · #364\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Lofentanil · #365\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Anesthetic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# O-DSMT · #45\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Anxiolytic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Anxiolytic; Depressant\",\n\n# MD-PiHP · #283\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# MDMA · #291\n\n-    \"psychoactive_class\": \"Entactogen; Euphoriant; Stimulant; Psychedelic (mild); Hallucinogen\",\n+    \"psychoactive_class\": \"Entactogen; Stimulant; Psychedelic (mild); Hallucinogen\",\n\n# Pregabalin · #130\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Anticonvulsant; Sedative; Euphoriant\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Anticonvulsant; Sedative\",\n\n# Flunitrazepam · #134\n\n-    \"psychoactive_class\": \"Hypnotic; Sedative; Anxiolytic; Depressant; Euphoriant; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; Depressant; GABAergic; Muscle Relaxant\",\n\n# Bromantane · #294\n\n-    \"psychoactive_class\": \"Stimulant; Anxiolytic; Nootropic; Euphoriant (mild)\",\n+    \"psychoactive_class\": \"Stimulant; Anxiolytic; Nootropic\",\n\n# DHC · #304\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Thiopental · #305\n\n-    \"psychoactive_class\": \"Depressant; anesthetic; sedative; hypnotic\",\n+    \"psychoactive_class\": \"Depressant; sedative\",\n\n# MD-PHP · #309\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant; Entactogen (mild)\",\n+    \"psychoactive_class\": \"Stimulant; Entactogen (mild)\",\n\n# Methadone · #314\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# 6-MAM · #313\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Melatonin · #318\n\n-    \"psychoactive_class\": \"Hypnotic; Sedative; Oneirogen; Hormone Modulator; Hallucinogen; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Oneirogen; Hormone Modulator; Hallucinogen; Depressant\",\n\n# Pronitazene · #319\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# SL-164 · #322\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Depressant\",\n+    \"psychoactive_class\": \"Sedative; Depressant\",\n\n# Cychlorphine · #324\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Hypnotic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# SR-17018 · #344\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# MDA · #62\n\n-    \"psychoactive_class\": \"Entactogen; Psychedelic; Stimulant; Euphoriant; Hallucinogen\",\n+    \"psychoactive_class\": \"Entactogen; Psychedelic; Stimulant; Hallucinogen\",\n\n# Isotonitazepyne · #357\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Bezitramide · #360\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Lean · #374\n\n-    \"psychoactive_class\": \"Opioid; Depressant; Sedative; Analgesic; Euphoriant\",\n+    \"psychoactive_class\": \"Opioid; Depressant; Sedative\",\n\n# MGM-15 · #421\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Mitragynine · #408\n\n-    \"psychoactive_class\": \"Stimulant; Opioid; Analgesic; Antidepressant; Anxiolytic; Depressant\",\n+    \"psychoactive_class\": \"Stimulant; Opioid; Antidepressant; Anxiolytic; Depressant\",\n\n# NDP · #358\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# IC-26 · #416\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Avizafone · #417\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; GABAergic\",\n\n# Isotonitazene · #418\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# 7-OH · #423\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Fluminorex · #443\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Fluclotizolam · #455\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; Hypnotic; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anxiolytic; Muscle Relaxant; GABAergic\",\n\n# Flupirtine · #459\n\n-    \"psychoactive_class\": \"Analgesic\",\n+    \"psychoactive_class\": \"\",\n\n# Scopolamine · #460\n\n-    \"psychoactive_class\": \"Deliriant; Sedative; Hypnotic; Hallucinogen; Depressant\",\n+    \"psychoactive_class\": \"Deliriant; Sedative; Hallucinogen; Depressant\",\n\n# Ethylbromazolam · #462\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; GABAergic\",\n\n# Nifoxipam · #463\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; GABAergic; Muscle Relaxant\",\n\n# Bromonordiazepam · #474\n\n-    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic; Muscle Relaxant; Anticonvulsant; GABAergic\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Muscle Relaxant; Anticonvulsant; GABAergic\",\n\n# Agmatine Sulfate · #475\n\n-    \"psychoactive_class\": \"Nootropic; Anxiolytic; Antidepressant; Analgesic\",\n+    \"psychoactive_class\": \"Nootropic; Anxiolytic; Antidepressant\",\n\n# Imodium · #484\n\n-    \"psychoactive_class\": \"Opioid; Analgesic (weak); Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# D2PM · #489\n\n-    \"psychoactive_class\": \"Stimulant; Euphoriant\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# 4-Methoxybutyrfentanyl · #520\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Monotropa uniflora · #547\n\n-    \"psychoactive_class\": \"Analgesic; Anxiolytic; Sedative; Depressant\",\n+    \"psychoactive_class\": \"Anxiolytic; Sedative; Depressant\",\n\n# Tapentadol · #549\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Desmethylflunitrazepam · #551\n\n-    \"psychoactive_class\": \"Sedative; Hypnotic; Anxiolytic; GABAergic; Depressant; Muscle Relaxant\",\n+    \"psychoactive_class\": \"Sedative; Anxiolytic; GABAergic; Depressant; Muscle Relaxant\",\n\n# Butorphanol · #598\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative (mild); Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative (mild); Depressant\",\n\n# Acetyldihydrocodeine · #603\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Depressant\",\n\n# Acetildenafil · #604\n\n-    \"psychoactive_class\": \"Aphrodisiac\",\n+    \"psychoactive_class\": \"\",\n\n# Beta-meprodine · #612\n\n-    \"psychoactive_class\": \"Opioid; Analgesic; Sedative; Euphoriant; Depressant\",\n+    \"psychoactive_class\": \"Opioid; Sedative; Depressant\",\n\n# Amobarbital · #615\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; GABAergic; Anxiolytic; Anticonvulsant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; GABAergic; Anxiolytic; Anticonvulsant\",\n\n# Carisoprodol · #174\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Muscle Relaxant; Anxiolytic; GABAergic; Analgesic (weak)\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Muscle Relaxant; Anxiolytic; GABAergic\",\n\n# Pentobarbital · #671\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anticonvulsant; Anxiolytic; Anesthetic; Muscle Relaxant; GABAergic; Euphoriant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anticonvulsant; Anxiolytic; Muscle Relaxant; GABAergic\",\n\n# Secobarbital · #672\n\n-    \"psychoactive_class\": \"Depressant; Sedative; Hypnotic; Anticonvulsant; Anxiolytic; Anesthetic; Muscle Relaxant; GABAergic; Euphoriant\",\n+    \"psychoactive_class\": \"Depressant; Sedative; Anticonvulsant; Anxiolytic; Muscle Relaxant; GABAergic\",",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251019-182404-cb5da347",
     "createdAt": "2025-10-19T18:24:04.639Z",
     "commit": {
