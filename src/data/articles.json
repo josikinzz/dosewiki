@@ -76088,5 +76088,134 @@
       ]
     },
     "id": 675
+  },
+  {
+    "title": "Dextropropoxyphene",
+    "index-category": "opioid; synthetic",
+    "drug_info": {
+      "drug_name": "Dextropropoxyphene",
+      "chemical_name": "(2S,3R)-4-(dimethylamino)-3-methyl-1,2-diphenylbutan-2-yl propanoate",
+      "alternative_name": "Propoxyphene; Darvon; Darvocet",
+      "chemical_class": "Phenylpropylamine",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist; weak serotonin reuptake inhibitor; potent nicotinic acetylcholine antagonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "15 mg",
+              "light": "30-65 mg",
+              "common": "65-100 mg",
+              "strong": "100-200 mg",
+              "heavy": "200+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "3-10 hours",
+              "onset": "20-30 minutes",
+              "peak": "1-4 hours",
+              "offset": "2-4 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Dextropropoxyphene has moderate addictive potential with a high potential for abuse and is capable of causing psychological and physical dependence. Chronic use can lead to tolerance development, cravings, and withdrawal symptoms upon cessation. Compulsive redosing patterns have been reported.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (hypertensive crisis, serotonin syndrome, seizures, death)",
+          "Alcohol (severe CNS depression, unconsciousness, respiratory depression)",
+          "Benzodiazepines (life-threatening respiratory depression, unconsciousness)",
+          "GHB/GBL (rapid unconsciousness, respiratory depression)",
+          "Tramadol (seizure risk, serotonin syndrome)",
+          "Lithium (seizure risk)"
+        ],
+        "unsafe": [
+          "Stimulants (respiratory arrest when stimulant wears off)",
+          "DXM (toxicity, CNS depression, liver issues)",
+          "Ketamine (unconsciousness, vomiting, aspiration risk)",
+          "MXE (respiratory depression, organ toxicity)",
+          "PCP (reduced tolerance, overdose risk)",
+          "Nitrous (unconsciousness, respiratory depression)",
+          "Serotonin releasers (serotonin syndrome)",
+          "SNRIs (serotonin syndrome)",
+          "SSRIs (serotonin syndrome)",
+          "5-HTP (serotonin syndrome)"
+        ],
+        "caution": [
+          "Grapefruit (metabolism inhibition via CYP3A4)",
+          "CYP3A4 inhibitors (increased plasma levels and toxicity)"
+        ]
+      },
+      "notes": "Dextropropoxyphene was withdrawn from the US and European markets in 2010 due to serious cardiac toxicity, including QT prolongation and fatal arrhythmias at therapeutic doses. The drug causes seizures and potentially fatal cardiac complications that cannot be reversed by naloxone. It has a narrow therapeutic index and high toxicity relative to dose. The metabolite norpropoxyphene accumulates with repeated use and contributes to cardiotoxicity. Contraindicated in individuals with suicidal ideation, substance abuse history, or cardiac conditions. Should not be used during benzodiazepine withdrawal as it lowers the seizure threshold. Use a precise milligram scale for dosing if obtained, though this substance is rarely encountered today.",
+      "subjective_effects": [
+        "Pain Relief",
+        "Physical Euphoria (mild)",
+        "Cognitive Euphoria (mild)",
+        "Anxiety Suppression",
+        "Sedation",
+        "Respiratory Depression",
+        "Itchiness",
+        "Pupil Constriction",
+        "Constipation",
+        "Nausea",
+        "Dizziness (higher rate than other opioids)",
+        "Confusion (higher rate than other opioids)",
+        "Cough Suppression",
+        "Decreased Libido",
+        "Difficulty Urinating",
+        "Appetite Suppression",
+        "Dream Potentiation",
+        "Compulsive Redosing"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All other opioids (morphine, codeine, heroin, oxycodone, etc.)"
+        ]
+      },
+      "half_life": "6-12 hours (dextropropoxyphene); 30-36 hours (norpropoxyphene metabolite)",
+      "citations": [
+        {
+          "name": "DrugBank: Dextropropoxyphene",
+          "reference": "https://go.drugbank.com/drugs/DB00647"
+        },
+        {
+          "name": "Erowid Propoxyphene Experience Vaults",
+          "reference": "https://erowid.org/experiences/subs/exp_Pharms_Propoxyphene.shtml"
+        },
+        {
+          "name": "FDA Drug Safety Communication on Propoxyphene",
+          "reference": "https://www.fda.gov/drugs/drug-safety-and-availability/fda-drug-safety-communication-fda-recommends-against-continued-use-propoxyphene"
+        },
+        {
+          "name": "PsychonautWiki: Dextropropoxyphene",
+          "reference": "https://psychonautwiki.org/wiki/Dextropropoxyphene"
+        },
+        {
+          "name": "Wikipedia: Dextropropoxyphene",
+          "reference": "https://en.wikipedia.org/wiki/Dextropropoxyphene"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "synthetic-opioid",
+        "withdrawn-substance"
+      ]
+    },
+    "id": 676
   }
 ]
