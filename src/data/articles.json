@@ -77730,5 +77730,137 @@
       ]
     },
     "id": 686
+  },
+  {
+    "title": "Methylone",
+    "index-category": "stimulant; entactogen; research-chemical",
+    "drug_info": {
+      "drug_name": "Methylone",
+      "chemical_name": "3,4-Methylenedioxy-N-methylcathinone",
+      "alternative_name": "bk-MDMA; M1; MDMC; beta-keto-MDMA",
+      "chemical_class": "Cathinones; Substituted phenethylamines",
+      "psychoactive_class": "Stimulant; Entactogen",
+      "mechanism_of_action": "Serotonin-norepinephrine-dopamine releasing agent (SNDRA); serotonin reuptake inhibitor; norepinephrine reuptake inhibitor; dopamine reuptake inhibitor",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "75 mg",
+              "light": "75-150 mg",
+              "common": "150-225 mg",
+              "strong": "225-325 mg",
+              "heavy": "325+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2.5-4 hours",
+              "onset": "15-45 minutes",
+              "peak": "60-90 minutes",
+              "offset": "60-90 minutes",
+              "after_effects": "6-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Methylone can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence among certain users. Compulsive redosing is commonly reported due to the drug's shorter duration compared to MDMA. When addiction has developed, cravings and withdrawal effects may occur if a person suddenly stops their usage.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis and serotonin syndrome)",
+          "25x-NBOMe and 25x-NBOH (risk of excessive stimulation, heart strain, seizures, and heart failure)"
+        ],
+        "unsafe": [
+          "DXM (increased risk of hypertensive crisis and serotonin syndrome)",
+          "MDMA (increased neurotoxicity and cardiotoxicity)",
+          "MXE (may dangerously increase blood pressure and risk of mania and psychosis)",
+          "Other dissociatives (multiplied risk of delusions, mania, and psychosis)",
+          "Other stimulants including cocaine (dangerous increases in heart rate and blood pressure)",
+          "Tramadol (lowers seizure threshold)",
+          "SSRIs (risk of serotonin syndrome)",
+          "SNRIs (risk of serotonin syndrome)",
+          "5-HTP (risk of serotonin syndrome)",
+          "Other serotonin releasers (risk of serotonin syndrome)"
+        ],
+        "caution": [
+          "Alcohol (risk of accidental over-intoxication and severe respiratory depression)"
+        ]
+      },
+      "notes": "Methylone has a very limited history of human usage and its long-term health effects have not been well-studied in any scientific context. It is strongly recommended to use harm reduction practices including reagent testing, as methylone was frequently mis-sold as MDMA until its scheduling. Accurate weighing with a milligram scale is essential. The drug's shorter duration and reduced empathogenic effects compared to MDMA may lead to compulsive redosing. Users should space sessions at least 2-4 weeks apart to allow serotonin levels to recover and avoid tolerance buildup.",
+      "subjective_effects": [
+        "Stimulation",
+        "Cognitive Euphoria",
+        "Empathy Enhancement",
+        "Sociability Enhancement",
+        "Tactile Enhancement",
+        "Increased Music Appreciation",
+        "Time Compression",
+        "Spontaneous Physical Sensations",
+        "Pupil Dilation",
+        "Teeth Grinding",
+        "Dehydration",
+        "Difficulty Urinating"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "1-3 weeks",
+        "zero_tolerance": "3-6 weeks",
+        "cross_tolerances": [
+          "All dopaminergic stimulants",
+          "MDMA and other serotonergic entactogens"
+        ]
+      },
+      "half_life": "5.8-6.9 hours (following oral doses of 50-200 mg)",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy bk-MDMA (Methylone) Thread",
+          "reference": "https://bluelight.org/"
+        },
+        {
+          "name": "Erowid Methylone Vault",
+          "reference": "https://www.erowid.org/chemicals/methylone/"
+        },
+        {
+          "name": "Erowid Methylone Vault: Dosage",
+          "reference": "https://www.erowid.org/chemicals/methylone/methylone_dose.shtml"
+        },
+        {
+          "name": "Erowid Methylone Vault: Effects",
+          "reference": "https://erowid.org/chemicals/methylone/methylone_effects.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Methylone",
+          "reference": "https://psychonautwiki.org/wiki/Methylone"
+        },
+        {
+          "name": "TripSit Factsheets: Methylone",
+          "reference": "https://drugs.tripsit.me/methylone"
+        },
+        {
+          "name": "TripSit Wiki: Drug Combinations",
+          "reference": "https://wiki.tripsit.me/wiki/Drug_combinations"
+        },
+        {
+          "name": "Wikipedia: Methylone",
+          "reference": "https://en.wikipedia.org/wiki/Methylone"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "entactogen",
+        "cathinone",
+        "research-chemical"
+      ]
+    },
+    "id": 687
   }
 ]
