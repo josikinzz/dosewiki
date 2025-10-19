@@ -78435,5 +78435,148 @@
       ]
     },
     "id": 691
+  },
+  {
+    "title": "Theacrine",
+    "index-category": "stimulant; nootropic",
+    "drug_info": {
+      "drug_name": "Theacrine",
+      "chemical_name": "1,3,7,9-Tetramethyluric acid",
+      "alternative_name": "Teacrine; Temorine; Temurin",
+      "chemical_class": "Xanthines",
+      "psychoactive_class": "Stimulant; Nootropic",
+      "mechanism_of_action": "Adenosine receptor antagonist (competitive inhibitor); affects dopamine, acetylcholine, and serotonin receptors; at high doses affects norepinephrine receptors; to a lesser extent affects epinephrine, glutamate, and cortisol",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "50-100 mg",
+              "common": "100-150 mg",
+              "strong": "150-300 mg",
+              "heavy": "300+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "",
+              "common": "25-100 mg",
+              "strong": "",
+              "heavy": ""
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-10 hours",
+              "onset": "30-60 minutes"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "1-3 hours",
+              "onset": "5-30 minutes"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Theacrine produces dependence with chronic use and has a low abuse potential. When dependence develops, cravings and withdrawal effects may occur upon sudden cessation. However, tolerance builds more slowly compared to caffeine, and compulsive redosing is less persistent than with caffeine due to its longer duration of effects.",
+      "interactions": {
+        "dangerous": [],
+        "unsafe": [
+          "Tramadol (increased seizure risk)",
+          "Other stimulants (increased seizure risk)",
+          "MAOIs (potential interaction through neurotransmitter effects)"
+        ],
+        "caution": [
+          "Caffeine (caffeine increases theacrine plasma levels)",
+          "Other adenosine receptor antagonists (cross-tolerance)",
+          "CNS depressants (opposing effects)",
+          "Antidepressants (caution due to serotonergic effects)"
+        ]
+      },
+      "notes": "Theacrine is a structural analog of caffeine with about two-thirds the potency for stimulation but stronger effects on focus. It has a biphasic dose-response: low doses may be sedating while higher doses are stimulating. Unlike caffeine, theacrine does not appear to significantly affect blood pressure. Effects take longer to manifest (2-3 hours) compared to caffeine (30-60 minutes) but are more persistent. At higher doses, forced stimulation may lead to jaw clenching, involuntary shakes, and loss of motor control. Use a precise milligram scale for accurate dosing.",
+      "subjective_effects": [
+        "Stimulation",
+        "Focus Enhancement",
+        "Analysis Enhancement",
+        "Motivation Enhancement",
+        "Memory Enhancement",
+        "Wakefulness",
+        "Pain Relief",
+        "Thought Acceleration",
+        "Increased Music Appreciation",
+        "Increased Libido",
+        "Euphoria (Mild)",
+        "Appetite Suppression",
+        "Anxiety",
+        "Nausea (At High Doses)",
+        "Bruxism",
+        "Compulsive Redosing"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "Caffeine",
+          "Theobromine",
+          "Other adenosine receptor antagonists"
+        ]
+      },
+      "half_life": "20-30 hours (plasma elimination half-life based on pharmacokinetic studies)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Theacrine",
+          "reference": "https://psychonautwiki.org/wiki/Theacrine"
+        },
+        {
+          "name": "WebMD: Theacrine Overview",
+          "reference": "https://www.webmd.com/vitamins/ai/ingredientmono-1280/theacrine"
+        },
+        {
+          "name": "RxList: Theacrine Health Benefits and Side Effects",
+          "reference": "https://www.rxlist.com/theacrine/supplements.htm"
+        },
+        {
+          "name": "He et al. (2017): Assessment of Drug-Drug Interaction Potential Between Theacrine and Caffeine",
+          "reference": "https://www.memphis.edu/nutraceutical/pdfs/8-2017-jcr-theacrine-pk.pdf"
+        },
+        {
+          "name": "Scientific Reports (2024): Dose Response Effects of Theacrine on Cognitive Performance and Sleep",
+          "reference": "https://www.nature.com/articles/s41598-024-79046-2"
+        },
+        {
+          "name": "SelfDecode: 3 Potential Benefits of Theacrine",
+          "reference": "https://supplements.selfdecode.com/blog/theacrine-benefits/"
+        },
+        {
+          "name": "Nootropics Depot: TeaCrine Guide",
+          "reference": "https://nootropicsdepot.com/articles/teacrine-the-supplement-alternative-to-caffeine/"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "nootropic",
+        "xanthine"
+      ]
+    },
+    "id": 692
   }
 ]
