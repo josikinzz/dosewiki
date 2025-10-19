@@ -75804,5 +75804,160 @@
       ]
     },
     "id": 673
+  },
+  {
+    "title": "Acetylfentanyl",
+    "index-category": "opioid; synthetic; research-chemical",
+    "drug_info": {
+      "drug_name": "Acetylfentanyl",
+      "chemical_name": "N-(1-Phenethylpiperidin-4-yl)-N-phenylacetamide",
+      "alternative_name": "Acetyl Fentanyl; Desmethyl Fentanyl",
+      "chemical_class": "Anilidopiperidine",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2 mg",
+              "light": "5-10 mg",
+              "common": "10-15 mg",
+              "strong": "15-20 mg",
+              "heavy": "20+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "3-7 mg",
+              "common": "7-12 mg",
+              "strong": "12-18 mg",
+              "heavy": "18+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "sublingual",
+            "stages": {
+              "total_duration": "1-4 hours",
+              "onset": "20-40 minutes",
+              "peak": "1-2 hours",
+              "offset": "30-90 minutes",
+              "after_effects": "1-4 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "1-3 hours",
+              "onset": "5-15 minutes",
+              "peak": "30-90 minutes",
+              "offset": "30-60 minutes",
+              "after_effects": "1-3 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Acetylfentanyl has an extremely high potential for physical and psychological addiction. As with other opioids, chronic use leads to rapid tolerance development and severe physical dependence. Withdrawal symptoms and cravings occur when use is discontinued, and compulsive redosing is common.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (risk of unconsciousness, vomit aspiration, and respiratory depression)",
+          "Benzodiazepines (unpredictable potentiation, rapid unconsciousness, respiratory depression)",
+          "GHB/GBL (unpredictable potentiation, rapid unconsciousness, respiratory depression)",
+          "Ketamine (risk of vomiting and unconsciousness with severe aspiration risk)",
+          "MXE (potentiation of effects, increased respiratory depression and organ toxicity)",
+          "Nitrous (ataxia, sedation, unconsciousness, aspiration risk)",
+          "Tramadol (increased seizure risk, CNS and respiratory depression)",
+          "MAOIs (severe adverse reactions including agitation, hyperpyrexia, seizures, coma, and death)",
+          "PCP (may reduce tolerance, increasing overdose risk)"
+        ],
+        "unsafe": [
+          "Stimulants (masking of respiratory depression, overdose risk when stimulant wears off)",
+          "DXM (CNS depression, respiratory issues, heart problems, liver toxicity)"
+        ],
+        "caution": [
+          "Grapefruit (inhibits CYP3A4 metabolism, may increase toxicity)",
+          "SSRIs (rare risk of serotonin syndrome)",
+          "SNRIs (rare risk of serotonin syndrome)",
+          "5-HTP (rare risk of serotonin syndrome)",
+          "Serotonin releasers like MDMA (rare risk of serotonin syndrome)"
+        ]
+      },
+      "notes": "Acetylfentanyl is 5-15 times more potent than heroin and 80 times more potent than morphine, making it extremely dangerous and easy to fatally overdose. This substance has been involved in hundreds of deaths worldwide and is often sold misrepresented as heroin or pressed into counterfeit pills. Volumetric dosing is absolutely critical due to extreme potency; unintentional skin contact with powder can result in overdose. Fentanyl test strips should be used on any suspected opioid supply. Have naloxone immediately available and never use alone. Acetylfentanyl is Schedule I in the United States and similarly controlled in most countries.",
+      "subjective_effects": [
+        "Pain Relief",
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Anxiety Suppression",
+        "Respiratory Depression",
+        "Sedation",
+        "Itchiness (minimal)",
+        "Pupil Constriction",
+        "Constipation",
+        "Decreased Libido",
+        "Dehydration",
+        "Compulsive Redosing",
+        "Double Vision"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All opioids including morphine, heroin, fentanyl, oxycodone, and hydrocodone"
+        ]
+      },
+      "half_life": "Not well established in humans; estimated 3-8 hours based on structural analogs",
+      "citations": [
+        {
+          "name": "DanceSafe Fentanyl Information",
+          "reference": "https://dancesafe.org/fentanyl/"
+        },
+        {
+          "name": "Erowid Acetylfentanyl Vault",
+          "reference": "https://erowid.org/chemicals/acetylfentanyl/acetylfentanyl.shtml"
+        },
+        {
+          "name": "PsychonautWiki Acetylfentanyl",
+          "reference": "https://psychonautwiki.org/wiki/Acetylfentanyl"
+        },
+        {
+          "name": "TripSit Acetylfentanyl Wiki",
+          "reference": "https://wiki.tripsit.me/wiki/Acetylfentanyl"
+        },
+        {
+          "name": "TripSit Drug Combinations Chart",
+          "reference": "https://combo.tripsit.me/"
+        },
+        {
+          "name": "US DEA Acetylfentanyl Report",
+          "reference": "https://www.deadiversion.usdoj.gov/drug_chem_info/acetylfentanyl.pdf"
+        },
+        {
+          "name": "World Health Organization Acetylfentanyl Critical Review",
+          "reference": "http://www.who.int/medicines/access/controlled-substances/5.2_Acetylfentanyl_CRev.pdf"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "synthetic-opioid",
+        "fentanyl-analog",
+        "research-chemical"
+      ]
+    },
+    "id": 674
   }
 ]
