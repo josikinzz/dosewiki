@@ -77315,5 +77315,160 @@
       ]
     },
     "id": 683
+  },
+  {
+    "title": "Methylnaphthidate",
+    "index-category": "stimulant; research-chemical",
+    "drug_info": {
+      "drug_name": "Methylnaphthidate",
+      "chemical_name": "Methyl (naphthalen-2-yl)(piperidin-2-yl)acetate",
+      "alternative_name": "HDMP-28; Methylnapthidate",
+      "chemical_class": "Phenidates",
+      "psychoactive_class": "Stimulant",
+      "mechanism_of_action": "Monoamine triple reuptake inhibitor (dopamine, norepinephrine, serotonin)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "4-8 mg",
+              "light": "10-15 mg",
+              "common": "15-30 mg",
+              "strong": "30-50 mg",
+              "heavy": "50+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "4-8 mg",
+              "light": "10-15 mg",
+              "common": "15-25 mg",
+              "strong": "25-40 mg",
+              "heavy": "40+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "2-5 hours",
+              "onset": "1-10 minutes",
+              "peak": "1.5-2 hours",
+              "offset": "1.5-2 hours",
+              "after_effects": "1-8 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "1-5 minutes",
+              "peak": "1-1.5 hours",
+              "offset": "1-2 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Methylnaphthidate has abuse potential comparable to amphetamine, cocaine, or methylphenidate due to its euphoric effects and action on dopamine and serotonin transporters. Acute tolerance develops gradually with repeated extended use, though it is generally considered less recreational than traditional stimulants. Compulsive redosing may occur due to its short-lived euphoric rush.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of serotonin syndrome and hypertensive crisis)",
+          "25x-NBOMe and 25x-NBOH (excessive stimulation, heart strain, seizure risk)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "unsafe": [
+          "MDMA (increased neurotoxicity and cardiotoxicity)",
+          "Stimulants and Cocaine (dangerous heart rate and blood pressure elevation)",
+          "MXE (risk of elevated blood pressure, mania, and psychosis)",
+          "Dissociatives (increased risk of delusions, mania, and psychosis)",
+          "DXM (risk of hypertensive crisis and serotonin syndrome)"
+        ],
+        "caution": [
+          "Alcohol (stimulants mask depressant effects, risk of over-intoxication)"
+        ]
+      },
+      "notes": "Methylnaphthidate is a research chemical with very little data on its pharmacological properties, metabolism, and toxicity. It has a limited history of human use and appeared on the research chemical market around 2014. Unlike typical methylphenidate analogs, it displays notable serotonin reuptake inhibition, giving it subjective effects more similar to cocaine or amphetamine. Use precise weighing equipment and start with low doses. Some users report nasal irritation and throat discomfort when insufflated. The naphthalene structure has raised theoretical toxicity concerns, though metabolic pathways likely produce readily excreted acid metabolites. Exercise extreme caution and employ comprehensive harm reduction practices.",
+      "subjective_effects": [
+        "Stimulation",
+        "Focus Enhancement",
+        "Motivation Enhancement",
+        "Thought Acceleration",
+        "Euphoria (Short-Lived And Compulsive)",
+        "Analysis Enhancement",
+        "Increased Music Appreciation",
+        "Appetite Suppression",
+        "Dehydration",
+        "Increased Heart Rate (Particularly Pronounced)",
+        "Teeth Grinding",
+        "Time Distortion",
+        "Anxiety (During Comedown)",
+        "Cognitive Fatigue (During Comedown)",
+        "Depression (During Comedown)",
+        "Irritability (During Comedown)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After multiple consecutive days of extended use",
+        "half_tolerance": "2-4 days",
+        "zero_tolerance": "1 week",
+        "cross_tolerances": [
+          "Other phenidates (methylphenidate, ethylphenidate, isopropylphenidate)",
+          "Dopaminergic stimulants"
+        ]
+      },
+      "half_life": "1-2 hours (short duration of action)",
+      "citations": [
+        {
+          "name": "Bluelight: HDMP-28 or Methylnaphthidate Discussion Thread",
+          "reference": "https://www.bluelight.org/community/threads/hdmp-28-or-methylnaphthidate.492618/"
+        },
+        {
+          "name": "Bluelight: New Stimulant Methylnaphthidate Thread",
+          "reference": "https://www.bluelight.org/community/threads/new-stimulant-methylnaphthidate-or-hdmp-28.739961/"
+        },
+        {
+          "name": "Drugs-Forum: HDMP-28 Wiki",
+          "reference": "https://drugs-forum.com/wiki/HDMP-28"
+        },
+        {
+          "name": "Erowid: HDMP-28 Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_HDMP28.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Methylnaphthidate",
+          "reference": "https://psychonautwiki.org/wiki/Methylnaphthidate"
+        },
+        {
+          "name": "The Drug Classroom: HDMP-28",
+          "reference": "https://thedrugclassroom.com/video/hdmp-28/"
+        },
+        {
+          "name": "TripSit: HDMP-28 Factsheet",
+          "reference": "https://tripbot.tripsit.me/factsheet/HDMP-28"
+        },
+        {
+          "name": "Wikipedia: HDMP-28",
+          "reference": "https://en.wikipedia.org/wiki/HDMP-28"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "phenidate",
+        "research-chemical"
+      ]
+    },
+    "id": 684
   }
 ]
