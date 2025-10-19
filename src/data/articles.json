@@ -80268,5 +80268,114 @@
       ]
     },
     "id": 706
+  },
+  {
+    "title": "Pramiracetam",
+    "index-category": "nootropic; racetam",
+    "drug_info": {
+      "drug_name": "Pramiracetam",
+      "chemical_name": "N-[2-(Diisopropylamino)ethyl]-2-(2-oxopyrrolidin-1-yl)acetamide",
+      "alternative_name": "Pramistar; Neupramir; Remen",
+      "chemical_class": "Racetam",
+      "psychoactive_class": "Nootropic; Stimulant",
+      "mechanism_of_action": "Enhanced high-affinity choline uptake (HACU) in the hippocampus; increased acetylcholine synthesis; increased nitric oxide activity (cerebral blood flow enhancement)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "100 mg",
+              "light": "250-500 mg",
+              "common": "500-800 mg",
+              "strong": "800-1200 mg",
+              "heavy": "1200+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-7 hours",
+              "onset": "30-90 minutes",
+              "peak": "2-3 hours",
+              "offset": "2-4 hours",
+              "after_effects": "Up to 6 hours (residual cognitive enhancement)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Pramiracetam is not considered physically addictive and has a low potential for psychological dependence. It does not appear to cause compulsive redosing patterns. Tolerance develops with prolonged use, which naturally limits abuse potential.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (potential unpredictable increase in effects; racetams show nonselective MAO activity in animal studies)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Choline supplements (may enhance effects and reduce headaches; generally recommended)",
+          "Stimulants (combined stimulatory effects may increase anxiety or cardiovascular strain)",
+          "Alcohol (may interfere with cognitive benefits and exacerbate side effects)"
+        ]
+      },
+      "notes": "Pramiracetam is fat-soluble and should be taken with dietary fats for optimal absorption. Never administer sublingually, as this can cause painful chemical burns. The compound is marketed as a prescription drug in parts of Europe for treating memory deficits in aging populations with neurodegenerative disorders. In the United States, it is available as a dietary supplement. Use precise measurement scales for dosing, and consider supplementing with a choline source to enhance effects and reduce the likelihood of headaches. Long-term safety data in healthy individuals is limited.",
+      "subjective_effects": [
+        "Stimulation (comparable to caffeine)",
+        "Focus Enhancement",
+        "Memory Enhancement",
+        "Emotion Suppression",
+        "Mindfulness",
+        "Wakefulness",
+        "Thought Connectivity",
+        "Motivation Enhancement",
+        "Anxiety Suppression",
+        "Dream Potentiation",
+        "Acuity Enhancement",
+        "Headaches"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All racetam nootropics (piracetam, aniracetam, oxiracetam, etc.)"
+        ]
+      },
+      "half_life": "4.5-6.5 hours",
+      "citations": [
+        {
+          "name": "Erowid Pramiracetam Vault",
+          "reference": "https://erowid.org/smarts/pramiracetam/pramiracetam.shtml"
+        },
+        {
+          "name": "Nootropics Expert: Pramiracetam",
+          "reference": "https://nootropicsexpert.com/pramiracetam/"
+        },
+        {
+          "name": "PsychonautWiki: Pramiracetam",
+          "reference": "https://psychonautwiki.org/wiki/Pramiracetam"
+        },
+        {
+          "name": "Chang et al. (1985) - Pharmacokinetics of Oral Pramiracetam in Normal Volunteers",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/4008675/"
+        },
+        {
+          "name": "Wikipedia: Pramiracetam",
+          "reference": "https://en.wikipedia.org/wiki/Pramiracetam"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "racetam",
+        "research-chemical",
+        "cognitive-enhancer"
+      ]
+    },
+    "id": 707
   }
 ]
