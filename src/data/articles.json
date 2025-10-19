@@ -78835,5 +78835,140 @@
       ]
     },
     "id": 694
+  },
+  {
+    "title": "MDAI",
+    "index-category": "entactogen; research-chemical",
+    "drug_info": {
+      "drug_name": "MDAI",
+      "chemical_name": "5,6-Methylenedioxy-2-aminoindane",
+      "alternative_name": "Sparkle; Mindy; 6,7-Dihydro-5H-cyclopenta[f][1,3]benzodioxol-6-amine",
+      "chemical_class": "Aminoindanes",
+      "psychoactive_class": "Entactogen",
+      "mechanism_of_action": "Selective serotonin releasing agent (SSRA); selective serotonin reuptake inhibitor (SSRI); minor norepinephrine releasing agent",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "40 mg",
+              "light": "40-100 mg",
+              "common": "100-175 mg",
+              "strong": "175-300 mg",
+              "heavy": "300+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "20-40 minutes",
+              "peak": "2-2.5 hours",
+              "offset": "1-2 hours",
+              "after_effects": "Up to 12 hours (residual effects)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "MDAI is considered to have low potential for abuse and is unlikely to cause psychological dependence among most users. Unlike traditional stimulants, MDAI does not significantly increase dopamine concentrations. Compulsive redosing is minimal compared to other entactogens.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (severe risk of serotonin syndrome and hypertensive crisis)",
+          "Serotonin releasers including MDMA, methylone, and mephedrone (serotonin syndrome risk)",
+          "SSRIs such as citalopram and sertraline (serotonin syndrome risk)",
+          "SNRIs such as venlafaxine (serotonin syndrome risk)",
+          "5-HTP (serotonin syndrome risk)",
+          "Amphetamine (neurotoxicity when combined)"
+        ],
+        "unsafe": [
+          "25x-NBOMe and 25x-NBOH (excessive stimulation, heart strain, seizure risk)",
+          "DXM (panic attacks, hypertensive crisis, serotonin syndrome)",
+          "MXE (increased blood pressure, mania, psychosis risk)",
+          "Dissociatives (increased risk of delusions, mania, psychosis)",
+          "Stimulants including cocaine (dangerous heart rate and blood pressure elevation)",
+          "Tramadol (lowered seizure threshold)"
+        ],
+        "caution": [
+          "Alcohol (risk of over-intoxication when stimulant effects mask depressant effects)"
+        ]
+      },
+      "notes": "MDAI was developed as a putatively non-neurotoxic MDMA analogue, but research indicates it may still cause neurotoxicity when combined with amphetamines or used chronically. Three UK deaths in 2011-2012 were linked to MDAI use with serotonin syndrome as a suspected factor. The substance should be accurately weighed on a milligram scale due to variable purity. Users should be aware that MDAI is primarily sedating rather than stimulating, lacks the dopaminergic effects of MDMA, and is often described as producing empathogenic effects without euphoric stimulation. Set and setting remain important considerations.",
+      "subjective_effects": [
+        "Sedation",
+        "Physical Euphoria",
+        "Tactile Enhancement",
+        "Anxiety Suppression",
+        "Empathy Enhancement",
+        "Sociability Enhancement",
+        "Cognitive Euphoria",
+        "Music Appreciation",
+        "Spontaneous Physical Sensations",
+        "Temperature Regulation Suppression",
+        "Dehydration",
+        "Difficulty Urinating",
+        "Nystagmus"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All entactogens and serotonergic stimulants",
+          "MDMA",
+          "MDA",
+          "Other aminoindanes"
+        ]
+      },
+      "half_life": "Detected in serum up to 4 days; detected in urine up to 6 days (elimination half-life not well established)",
+      "citations": [
+        {
+          "name": "Bluelight: The Big & Dandy MDAI Thread",
+          "reference": "https://www.bluelight.org/community/threads/the-big-dandy-mdai-thread.434331/"
+        },
+        {
+          "name": "Erowid MDAI Vault",
+          "reference": "https://erowid.org/chemicals/mdai/mdai.shtml"
+        },
+        {
+          "name": "PsychonautWiki: MDAI",
+          "reference": "https://psychonautwiki.org/wiki/MDAI"
+        },
+        {
+          "name": "Wikipedia: MDAI",
+          "reference": "https://en.wikipedia.org/wiki/MDAI"
+        },
+        {
+          "name": "Angerer et al. (2024): Acute psychotropic, autonomic, and endocrine effects of MDAI compared with MDMA",
+          "reference": "https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/dta.3622"
+        },
+        {
+          "name": "Corkery et al. (2013): MDAI toxicity - a brief overview and update",
+          "reference": "https://onlinelibrary.wiley.com/doi/10.1002/hup.2298"
+        },
+        {
+          "name": "Oeri (2021): Beyond ecstasy - Alternative entactogens to MDMA",
+          "reference": "https://journals.sagepub.com/doi/full/10.1177/0269881120920420"
+        },
+        {
+          "name": "Release UK: MDAI Information",
+          "reference": "https://www.release.org.uk/drugs/mdai/pharmacology"
+        }
+      ],
+      "categories": [
+        "entactogen",
+        "aminoindane",
+        "research-chemical",
+        "serotonergic"
+      ]
+    },
+    "id": 695
   }
 ]
