@@ -79361,5 +79361,101 @@
       ]
     },
     "id": 698
+  },
+  {
+    "title": "Choline Bitartrate",
+    "index-category": "nootropic; supplement",
+    "drug_info": {
+      "drug_name": "Choline Bitartrate",
+      "chemical_name": "2-Hydroxy-N,N,N-trimethylethan-1-aminium",
+      "alternative_name": "Choline; Vitamin B4",
+      "chemical_class": "Ammonium Salt",
+      "psychoactive_class": "Nootropic",
+      "mechanism_of_action": "Acetylcholine precursor; supports phospholipid synthesis for cell membrane structure; facilitates trimethylamine (betaine) production for osmoregulation and SAM-e synthesis",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50 mg",
+              "light": "100-250 mg",
+              "common": "250-1000 mg",
+              "strong": "1000-2000 mg",
+              "heavy": "2000+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "45-75 minutes",
+              "peak": "2-4 hours",
+              "offset": "1-2 hours",
+              "after_effects": "2-8 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Choline bitartrate is not habit-forming and has no known addiction potential. The desire to use it can actually decrease with use as it is self-regulating. It does not cause physical or psychological dependence.",
+      "interactions": {
+        "dangerous": [],
+        "unsafe": [],
+        "caution": [
+          "Scopolamine (known adverse interaction)",
+          "High-dose stimulants (potential for overstimulation when combined)",
+          "Anticholinergic drugs (opposing mechanisms)"
+        ]
+      },
+      "notes": "Choline bitartrate is legally available as a dietary supplement in most countries and is required in non-dairy infant formulas in the United States. Use a precise scale for accurate dosing, especially at higher doses. Individuals with trimethylaminuria may experience fishy body odor as a side effect. When using with racetam nootropics, maintain adequate choline supplementation to prevent headaches and optimize cognitive benefits. Choline bitartrate has lower bioavailability than Alpha-GPC or CDP-choline, requiring higher doses for comparable effects.",
+      "subjective_effects": [
+        "Subtle Stimulation",
+        "Enhanced Focus And Attention",
+        "Improved Memory",
+        "Dream Potentiation",
+        "Mental Clarity",
+        "Mood Enhancement",
+        "Headache (Without Adequate Dosing Or With Racetams)",
+        "Body Odor Alteration (In Some Individuals)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After prolonged and repeated usage",
+        "half_tolerance": "7 days",
+        "zero_tolerance": "14 days",
+        "cross_tolerances": []
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Erowid Choline Experience Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_Vitamins_Choline.shtml"
+        },
+        {
+          "name": "Nootropics Expert: Choline Bitartrate",
+          "reference": "https://nootropicsexpert.com/choline-bitartrate/"
+        },
+        {
+          "name": "Nootropics Depot: Choline Supplements Guide",
+          "reference": "https://nootropicsdepot.com/articles/ultimate-guide-to-nootropics-part-6-choline-supplements/"
+        },
+        {
+          "name": "PsychonautWiki: Choline Bitartrate",
+          "reference": "https://psychonautwiki.org/wiki/Choline_bitartrate"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "supplement",
+        "cholinergic"
+      ]
+    },
+    "id": 699
   }
 ]
