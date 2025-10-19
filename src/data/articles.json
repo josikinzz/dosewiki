@@ -14232,7 +14232,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant",
+      "psychoactive_class": "Depressant; Sedative; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
