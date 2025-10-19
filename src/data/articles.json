@@ -80028,5 +80028,122 @@
       ]
     },
     "id": 704
+  },
+  {
+    "title": "SAM-e",
+    "index-category": "nootropic; supplement",
+    "drug_info": {
+      "drug_name": "SAM-e",
+      "chemical_name": "(2S)-2-Amino-4-(((2S,3S,4R,5R)-5-(6-aminopurin-9-yl)-3,4-dihydroxyoxolan-2-yl)methyl-methylsulfonio)butanoate",
+      "alternative_name": "S-Adenosyl Methionine; S-Adenosylmethionine; AdoMet; Methylguanidoacetic Acid; Ademetionine",
+      "chemical_class": "Nitrogenous organic acid",
+      "psychoactive_class": "Nootropic",
+      "mechanism_of_action": "Methyl group donor in neurotransmitter synthesis; increases serotonin, dopamine, and norepinephrine activity; glutathione precursor; converts nicotinamide to N-methyl-nicotinamide",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "200 mg",
+              "light": "400-800 mg",
+              "common": "800-1200 mg",
+              "strong": "1200-1600 mg",
+              "heavy": "1600+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "8-12 hours",
+              "onset": "100-180 minutes",
+              "peak": "4-6 hours",
+              "offset": "2-4 hours",
+              "after_effects": "Up to 24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "SAM-e is not habit-forming and has a low potential for abuse. It does not appear capable of causing psychological or physiological dependence among users. Tolerance develops over several weeks of prolonged use, requiring 3-7 days for half-tolerance reduction and 1-2 weeks to return to baseline.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of serotonin syndrome)",
+          "SSRIs when combined at high doses (serotonin syndrome risk)"
+        ],
+        "unsafe": [
+          "Antidepressants (increased serotonin levels)",
+          "Tramadol (serotonergic effects)",
+          "Dextromethorphan (serotonergic effects)",
+          "Meperidine (serotonergic effects)"
+        ],
+        "caution": [
+          "Other serotonergic substances",
+          "Stimulants (may increase anxiety)",
+          "Immunosuppressants (theoretical Pneumocystis infection risk)"
+        ]
+      },
+      "notes": "SAM-e should be taken with B-vitamins (B6, B12, and folate) to prevent homocysteine buildup and ensure optimal efficacy. It is best absorbed when taken on an empty stomach using enteric-coated tablets, which improve bioavailability by 600%. Individuals with bipolar disorder should avoid SAM-e due to risk of triggering mania or hypomania. Those with compromised immune systems should use caution. SAM-e is unstable and should be stored in blister packs away from air and moisture.",
+      "subjective_effects": [
+        "Cognitive Enhancement",
+        "Mood Elevation",
+        "Motivation Enhancement",
+        "Mental Clarity",
+        "Energy Increase",
+        "Focus Enhancement",
+        "Anxiety Reduction",
+        "Pain Relief",
+        "Improved Joint Mobility",
+        "Wakefulness",
+        "Thought Organization",
+        "Reduced Brain Fog"
+      ],
+      "tolerance": {
+        "full_tolerance": "After several weeks of prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": []
+      },
+      "half_life": "Not well-established; SAM-e is rapidly metabolized",
+      "citations": [
+        {
+          "name": "Examine.com SAM-e Overview",
+          "reference": "https://examine.com/supplements/s-adenosyl-methionine/"
+        },
+        {
+          "name": "Erowid SAM-e Experience Vaults",
+          "reference": "https://erowid.org/experiences/subs/exp_SAMe.shtml"
+        },
+        {
+          "name": "NCCIH SAM-e In Depth",
+          "reference": "https://www.nccih.nih.gov/health/sadenosyllmethionine-same-in-depth"
+        },
+        {
+          "name": "Nootropics Expert SAM-e Guide",
+          "reference": "https://nootropicsexpert.com/sam-e/"
+        },
+        {
+          "name": "PsychonautWiki SAM-e",
+          "reference": "https://psychonautwiki.org/wiki/SAM-e"
+        },
+        {
+          "name": "Wikipedia S-Adenosyl methionine",
+          "reference": "https://en.wikipedia.org/wiki/S-Adenosyl_methionine"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "supplement",
+        "mood-enhancer",
+        "cognitive-enhancer"
+      ]
+    },
+    "id": 705
   }
 ]
