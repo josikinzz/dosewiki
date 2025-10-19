@@ -76340,5 +76340,171 @@
       ]
     },
     "id": 677
+  },
+  {
+    "title": "Sufentanil",
+    "index-category": "opioid; synthetic",
+    "drug_info": {
+      "drug_name": "Sufentanil",
+      "chemical_name": "N-[4-(Methoxymethyl)-1-(2-thiofuran-2-ylethyl)-4-piperidyl]-N-phenylpropanamide",
+      "alternative_name": "Sufentanyl; Sufenta; Chronogesic",
+      "chemical_class": "Anilidopiperidine",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist (highly selective)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "intravenous",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "0.1 ug",
+              "light": "1-5 ug",
+              "common": "5-10 ug",
+              "strong": "10-25 ug",
+              "heavy": "25+ ug"
+            }
+          },
+          {
+            "route": "epidural",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "1 ug",
+              "light": "10-30 ug",
+              "common": "30-50 ug",
+              "strong": "50-75 ug",
+              "heavy": "75+ ug"
+            }
+          },
+          {
+            "route": "sublingual",
+            "units": "ug",
+            "dose_ranges": {
+              "threshold": "15 ug",
+              "light": "15-30 ug",
+              "common": "30-60 ug",
+              "strong": "60-90 ug",
+              "heavy": "90+ ug"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "intravenous",
+            "stages": {
+              "total_duration": "30-90 minutes",
+              "onset": "1-2 minutes",
+              "peak": "5-10 minutes",
+              "offset": "15-30 minutes",
+              "after_effects": "1-12 hours"
+            },
+            "canonical_routes": [
+              "iv"
+            ]
+          },
+          {
+            "route": "epidural",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "5-15 minutes",
+              "peak": "30-60 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "2-8 hours"
+            },
+            "canonical_routes": [
+              "epidural"
+            ]
+          },
+          {
+            "route": "sublingual",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "10-30 minutes",
+              "peak": "60-90 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "2-8 hours"
+            },
+            "canonical_routes": [
+              "sublingual"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Sufentanil is highly physically addictive due to its potent mu-opioid agonist activity. Chronic use rapidly leads to tolerance and physical dependence. Discontinuation after regular use results in severe withdrawal symptoms. The extremely short duration of action can promote compulsive redosing patterns.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (severe respiratory depression and unconsciousness)",
+          "Benzodiazepines (unpredictable potentiation, rapid unconsciousness, aspiration risk)",
+          "GHB/GBL (severe respiratory depression, unconsciousness)",
+          "Ketamine (respiratory depression, vomit aspiration)",
+          "MAOIs (serotonin syndrome, hypertensive crisis, seizures)",
+          "Nitrous oxide (severe respiratory depression, unconsciousness)",
+          "PCP (increased overdose risk)",
+          "Tramadol (seizure risk, respiratory depression)"
+        ],
+        "unsafe": [
+          "DXM (CNS depression, respiratory depression, liver toxicity)",
+          "MXE (potentiated effects, respiratory depression)",
+          "Stimulants (masked respiratory depression, overdose when stimulant wears off)"
+        ],
+        "caution": [
+          "Grapefruit (CYP3A4 inhibition, prolonged effects)",
+          "Serotonin releasers (serotonin syndrome risk)",
+          "SNRIs (serotonin syndrome risk)",
+          "SSRIs (serotonin syndrome risk)",
+          "5-HTP (serotonin syndrome risk)"
+        ]
+      },
+      "notes": "Sufentanil is extraordinarily potent and active in the microgram range. Pure powder can cause fatal overdose through skin contact. Never eyeball this substance. Use only volumetric dosing with accurate analytical scales and wear protective gloves when handling. The extremely high potency makes precise measurement critical for safety. Naloxone is the antidote for overdose but may require higher doses than for other opioids. This is a Schedule II controlled substance in most jurisdictions with strict medical use only. Contraindicated in individuals with respiratory depression or compromised respiratory function.",
+      "subjective_effects": [
+        "Pain Relief",
+        "Respiratory Depression",
+        "Sedation",
+        "Physical Euphoria",
+        "Anxiety Suppression",
+        "Constipation",
+        "Cough Suppression",
+        "Difficulty Urinating",
+        "Itchiness",
+        "Muscle Relaxation",
+        "Nausea",
+        "Pupil Constriction"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 1-3 consecutive days of use",
+        "half_tolerance": "7-14 days",
+        "zero_tolerance": "14-28 days",
+        "cross_tolerances": [
+          "All opioids (morphine, heroin, fentanyl, oxycodone, etc.)"
+        ]
+      },
+      "half_life": "2.7 hours (162 minutes)",
+      "citations": [
+        {
+          "name": "PsychonautWiki: Sufentanil",
+          "reference": "https://psychonautwiki.org/wiki/Sufentanil"
+        },
+        {
+          "name": "Wikipedia: Sufentanil",
+          "reference": "https://en.wikipedia.org/wiki/Sufentanil"
+        },
+        {
+          "name": "Erowid: Opioid Analgesics FAQ",
+          "reference": "https://erowid.org/chemicals/opiates/opiates_faq_analgesics.shtml"
+        },
+        {
+          "name": "DrugBank: Sufentanil",
+          "reference": "https://go.drugbank.com/drugs/DB00708"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "synthetic-opioid",
+        "anilidopiperidine",
+        "pharmaceutical"
+      ]
+    },
+    "id": 678
   }
 ]
