@@ -76217,5 +76217,128 @@
       ]
     },
     "id": 676
+  },
+  {
+    "title": "Ethylmorphine",
+    "index-category": "opioid; depressant",
+    "drug_info": {
+      "drug_name": "Ethylmorphine",
+      "chemical_name": "7,8-Didehydro-4,5-alpha-epoxy-3-ethoxy-17-methylmorphinan-6-alpha-ol",
+      "alternative_name": "Codethyline; Dionine; Ethyl morphine; 3-Ethylmorphine",
+      "chemical_class": "Substituted morphinans",
+      "psychoactive_class": "Opioid; Depressant",
+      "mechanism_of_action": "Mu-opioid receptor agonist (via active metabolite morphine); metabolized by CYP2D6 and CYP3A4",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10-20 mg",
+              "light": "40-50 mg",
+              "common": "50-100 mg",
+              "strong": "100-200 mg",
+              "heavy": "200+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-5 hours",
+              "onset": "15-30 minutes",
+              "peak": "45-90 minutes",
+              "offset": "2-3 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Ethylmorphine has a high potential for addiction and can cause psychological dependence with chronic use. Compulsive redosing is common, and withdrawal symptoms including cravings may occur when usage is discontinued abruptly. Evidence suggests a 'ceiling effect' where increased dosage produces diminishing euphoric returns.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (respiratory depression, unconsciousness, vomit aspiration risk)",
+          "Benzodiazepines (unpredictable CNS depression, respiratory arrest)",
+          "GHB/GBL (rapid unconsciousness, respiratory depression)",
+          "MAOIs (severe reactions including hyperpyrexia, seizures, coma, potential fatality)",
+          "Tramadol (increased seizure risk, additive CNS depression)"
+        ],
+        "unsafe": [
+          "DXM (CNS depression, respiratory issues, hepatotoxicity)",
+          "Ketamine (vomit aspiration risk when unconscious)",
+          "MXE (potentiation plus increased organ toxicity)",
+          "Nitrous oxide (ataxia, sedation, loss of consciousness)",
+          "PCP (reduced opioid tolerance, overdose risk)"
+        ],
+        "caution": [
+          "Stimulants (masking of respiratory depression until stimulant wears off)",
+          "Grapefruit juice (CYP3A4 inhibition may increase toxicity)"
+        ]
+      },
+      "notes": "Ethylmorphine is a Schedule II controlled substance in the United States and regulated internationally under Schedule III of the Single Convention on Narcotic Drugs. Contraindications include asthma, respiratory insufficiency, and age under 8 years. The substance is metabolized to morphine by CYP2D6, with significant inter-individual variation in conversion rates affecting efficacy and safety. Users should employ precise scales for dosing and avoid driving or operating heavy machinery. Not marketed in the United States but available as cough suppressant in some European countries.",
+      "subjective_effects": [
+        "Pain Relief",
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Anxiety Suppression",
+        "Sedation",
+        "Respiratory Depression",
+        "Cough Suppression",
+        "Constipation",
+        "Itchiness",
+        "Nausea",
+        "Difficulty Urinating",
+        "Pupil Constriction",
+        "Compulsive Redosing"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops with prolonged and repeated use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All opioids (morphine, codeine, heroin, oxycodone, etc.)"
+        ]
+      },
+      "half_life": "2 hours (ethylmorphine); active metabolites persist longer",
+      "citations": [
+        {
+          "name": "Erowid Ethylmorphine Vault",
+          "reference": "https://erowid.org/experiences/subs/exp_Pharms_Ethylmorphine.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Ethylmorphine",
+          "reference": "https://psychonautwiki.org/wiki/Ethylmorphine"
+        },
+        {
+          "name": "TripSit Ethylmorphine Factsheet",
+          "reference": "https://drugs.tripsit.me/ethylmorphine"
+        },
+        {
+          "name": "Wikipedia: Ethylmorphine",
+          "reference": "https://en.wikipedia.org/wiki/Ethylmorphine"
+        },
+        {
+          "name": "Biotransformation and Pharmacokinetics Study (PMC)",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1365072/"
+        },
+        {
+          "name": "DrugBank: Ethylmorphine",
+          "reference": "https://go.drugbank.com/drugs/DB01466"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "depressant",
+        "semi-synthetic",
+        "pharmaceutical"
+      ]
+    },
+    "id": 677
   }
 ]
