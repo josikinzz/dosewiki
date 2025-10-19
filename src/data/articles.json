@@ -79675,5 +79675,119 @@
       ]
     },
     "id": 701
+  },
+  {
+    "title": "Meclofenoxate",
+    "index-category": "nootropic",
+    "drug_info": {
+      "drug_name": "Meclofenoxate",
+      "chemical_name": "2-Dimethylaminoethyl (4-chlorophenoxy)acetate",
+      "alternative_name": "Centrophenoxine; Lucidril",
+      "chemical_class": "Cholinergic",
+      "psychoactive_class": "Nootropic",
+      "mechanism_of_action": "Metabolizes into DMAE and pCPA; DMAE is converted to choline which serves as a precursor for acetylcholine synthesis; may inhibit MAO-A and MAO-B",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "50 mg",
+              "light": "50-200 mg",
+              "common": "400-800 mg",
+              "strong": "800-1000 mg",
+              "heavy": "1000+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "30-90 minutes",
+              "peak": "2-4 hours",
+              "offset": "2-4 hours",
+              "after_effects": "Up to 12 hours (residual alertness)"
+            }
+          }
+        ]
+      },
+      "addiction_potential": "Meclofenoxate is not considered addictive and has no known physical or psychological dependence potential. It is generally regarded as non-habit forming with an extremely low toxicity profile relative to dose.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of unpredictable potentiation due to MAO inhibition)"
+        ],
+        "unsafe": [],
+        "caution": [
+          "Acetylcholinesterase inhibitors (may cause cholinergic overactivity)",
+          "Anticholinergic medications (may reduce effectiveness)",
+          "Other cholinergic supplements (risk of excessive acetylcholine)"
+        ]
+      },
+      "notes": "Meclofenoxate is not FDA-approved in the United States but is sold as a dietary supplement; it is a prescription medication in some countries including Japan and parts of Europe. Individuals with depression, mania, epilepsy, or convulsive disorders should avoid use entirely. The substance is prohibited for athletes under WADA regulations as a stimulant. Quality and purity of supplements vary significantly; only 14% of tested products contained labeled amounts within 10% accuracy. Cycling recommended with 5 days on and 2 days off to prevent acetylcholine toxicity.",
+      "subjective_effects": [
+        "Focus Enhancement",
+        "Memory Enhancement",
+        "Wakefulness",
+        "Mental Clarity",
+        "Motivation Enhancement",
+        "Stamina Enhancement",
+        "Dream Potentiation",
+        "Bodily Control Enhancement",
+        "Visual Acuity Enhancement",
+        "Anxiolytic Effects",
+        "Mindfulness",
+        "Increased Alertness"
+      ],
+      "tolerance": {
+        "full_tolerance": "Not well documented; may develop with daily use after several weeks",
+        "half_tolerance": "Unknown",
+        "zero_tolerance": "1-2 weeks with cycling protocol",
+        "cross_tolerances": [
+          "Other cholinergic nootropics",
+          "DMAE"
+        ]
+      },
+      "half_life": "3-5 hours (estimated based on related cholinergic compounds)",
+      "citations": [
+        {
+          "name": "Alzheimer's Drug Discovery Foundation: Centrophenoxine Review",
+          "reference": "https://www.alzdiscovery.org/cognitive-vitality/ratings/centrophenoxine"
+        },
+        {
+          "name": "Erowid Meclofenoxate Vault",
+          "reference": "https://www.erowid.org/smarts/meclofenoxate/meclofenoxate.shtml"
+        },
+        {
+          "name": "Nootropics Expert: Centrophenoxine",
+          "reference": "https://nootropicsexpert.com/centrophenoxine/"
+        },
+        {
+          "name": "PsychonautWiki: Meclofenoxate",
+          "reference": "https://psychonautwiki.org/wiki/Meclofenoxate"
+        },
+        {
+          "name": "SelfHacked: Centrophenoxine Guide",
+          "reference": "https://selfhacked.com/blog/centrophenoxine/"
+        },
+        {
+          "name": "USADA: Meclofenoxate Information",
+          "reference": "https://www.usada.org/spirit-of-sport/athletes-need-know-meclofenoxate/"
+        },
+        {
+          "name": "Wikipedia: Meclofenoxate",
+          "reference": "https://en.wikipedia.org/wiki/Meclofenoxate"
+        }
+      ],
+      "categories": [
+        "nootropic",
+        "cholinergic",
+        "cognitive-enhancer"
+      ]
+    },
+    "id": 702
   }
 ]
