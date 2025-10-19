@@ -1,5 +1,128 @@
 [
   {
+    "id": "20251019-182404-cb5da347",
+    "createdAt": "2025-10-19T18:24:04.639Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/19/2025, 12:24:02 PM"
+    },
+    "articles": [
+      {
+        "id": 41,
+        "title": "Modafinil",
+        "slug": "modafinil"
+      },
+      {
+        "id": 74,
+        "title": "Methamphetamine",
+        "slug": "methamphetamine"
+      },
+      {
+        "id": 75,
+        "title": "Serdexmethylphenidate",
+        "slug": "serdexmethylphenidate"
+      },
+      {
+        "id": 90,
+        "title": "Oxazepam",
+        "slug": "oxazepam"
+      },
+      {
+        "id": 127,
+        "title": "Prazepam",
+        "slug": "prazepam"
+      },
+      {
+        "id": 169,
+        "title": "Nitrazepam",
+        "slug": "nitrazepam"
+      },
+      {
+        "id": 170,
+        "title": "Nimetazepam",
+        "slug": "nimetazepam"
+      },
+      {
+        "id": 178,
+        "title": "Mefloquine",
+        "slug": "mefloquine"
+      },
+      {
+        "id": 187,
+        "title": "Pemoline",
+        "slug": "pemoline"
+      },
+      {
+        "id": 211,
+        "title": "Phenethylamine",
+        "slug": "phenethylamine"
+      },
+      {
+        "id": 256,
+        "title": "Medazepam",
+        "slug": "medazepam"
+      },
+      {
+        "id": 258,
+        "title": "Phenylephrine",
+        "slug": "phenylephrine"
+      },
+      {
+        "id": 305,
+        "title": "Thiopental",
+        "slug": "thiopental"
+      },
+      {
+        "id": 384,
+        "title": "5-IAI",
+        "slug": "5-iai"
+      },
+      {
+        "id": 362,
+        "title": "Coluracetam",
+        "slug": "coluracetam"
+      },
+      {
+        "id": 415,
+        "title": "MDMPEA",
+        "slug": "mdmpea"
+      },
+      {
+        "id": 431,
+        "title": "Phenazolam",
+        "slug": "phenazolam"
+      },
+      {
+        "id": 448,
+        "title": "MDPV",
+        "slug": "mdpv"
+      },
+      {
+        "id": 480,
+        "title": "Flumazenil",
+        "slug": "flumazenil"
+      },
+      {
+        "id": 488,
+        "title": "Rasagiline",
+        "slug": "rasagiline"
+      },
+      {
+        "id": 493,
+        "title": "GABOB",
+        "slug": "gabob"
+      },
+      {
+        "id": 530,
+        "title": "Ro5-4864",
+        "slug": "ro5-4864"
+      }
+    ],
+    "markdown": "# Modafinil · #41\n\n-    \"psychoactive_class\": \"Stimulant; Eugeroic (wakefulness-promoting agent)\",\n+    \"psychoactive_class\": \"Stimulant; Eugeroic\",\n\n# Methamphetamine · #74\n\n-    \"psychoactive_class\": \"Stimulant (psychostimulant, sympathomimetic)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Serdexmethylphenidate · #75\n\n-    \"psychoactive_class\": \"Stimulant (CNS stimulant, prodrug of dexmethylphenidate)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Oxazepam · #90\n\n-    \"psychoactive_class\": \"Depressant (Anxiolytic, Sedative-Hypnotic)\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative; Hypnotic\",\n\n# Prazepam · #127\n\n-    \"psychoactive_class\": \"Depressant (Anxiolytic, Sedative)\",\n+    \"psychoactive_class\": \"Depressant; Anxiolytic; Sedative\",\n\n# Nitrazepam · #169\n\n-    \"psychoactive_class\": \"Depressant (Benzodiazepine)\",\n+    \"psychoactive_class\": \"Depressant; GABAergic; Anxiolytic\",\n\n# Nimetazepam · #170\n\n-    \"psychoactive_class\": \"Depressant (hypnotic, sedative, anxiolytic)\",\n+    \"psychoactive_class\": \"Depressant; Hypnotic; Sedative; Anxiolytic\",\n\n# Mefloquine · #178\n\n-    \"psychoactive_class\": \"Not primarily psychoactive\",\n+    \"psychoactive_class\": \"Not psychoactive\",\n\n# Pemoline · #187\n\n-    \"psychoactive_class\": \"Stimulant (CNS stimulant, centrally-acting sympathomimetic)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Phenethylamine · #211\n\n-    \"psychoactive_class\": \"Stimulant (not psychoactive at normal doses)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Medazepam · #256\n\n-    \"psychoactive_class\": \"Depressant (Benzodiazepine)\",\n+    \"psychoactive_class\": \"Depressant; GABAergic; Anxiolytic\",\n\n# Phenylephrine · #258\n\n-    \"psychoactive_class\": \"Stimulant (peripheral sympathomimetic)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Thiopental · #305\n\n-    \"psychoactive_class\": \"Depressant (general anesthetic, sedative-hypnotic)\",\n+    \"psychoactive_class\": \"Depressant; anesthetic; sedative; hypnotic\",\n\n# 5-IAI · #384\n\n-    \"psychoactive_class\": \"Entactogen; Stimulant (weak)\",\n+    \"psychoactive_class\": \"Entactogen; Stimulant (mild)\",\n\n# Coluracetam · #362\n\n-    \"psychoactive_class\": \"Nootropic; Stimulant (weak)\",\n+    \"psychoactive_class\": \"Nootropic; Stimulant (mild)\",\n\n# MDMPEA · #415\n\n-    \"psychoactive_class\": \"Stimulant (weak); Entactogen (theoretical)\",\n+    \"psychoactive_class\": \"Stimulant (mild); Entactogen (theoretical)\",\n\n# Phenazolam · #431\n\n-    \"psychoactive_class\": \"Depressant ‒ GABAA positive-allosteric modulator\",\n+    \"psychoactive_class\": \"Depressant; GABAergic; Anxiolytic\",\n\n# MDPV · #448\n\n-    \"psychoactive_class\": \"Norepinephrine–dopamine reuptake inhibitor (NDRI)\",\n+    \"psychoactive_class\": \"Stimulant\",\n\n# Flumazenil · #480\n\n-    \"psychoactive_class\": \"Not primarily psychoactive\",\n+    \"psychoactive_class\": \"Not psychoactive\",\n\n# Rasagiline · #488\n\n-    \"psychoactive_class\": \"Not primarily psychoactive\",\n+    \"psychoactive_class\": \"Not psychoactive\",\n\n# GABOB · #493\n\n-    \"psychoactive_class\": \"Anticonvulsant; GABAergic; Depressant (weak)\",\n+    \"psychoactive_class\": \"Anticonvulsant; GABAergic; Depressant (mild)\",\n\n# Ro5-4864 · #530\n\n-    \"psychoactive_class\": \"Not primarily psychoactive\",\n+    \"psychoactive_class\": \"Not psychoactive\",",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251019-015613-e967778a",
     "createdAt": "2025-10-19T01:56:13.734Z",
     "commit": {
