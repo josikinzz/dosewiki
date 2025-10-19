@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251019-013101-c731ad61",
+    "createdAt": "2025-10-19T01:31:01.736Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/18/2025, 7:31:00 PM"
+    },
+    "articles": [
+      {
+        "id": 699,
+        "title": "Choline Bitartrate",
+        "slug": "choline-bitartrate"
+      }
+    ],
+    "markdown": "# Choline Bitartrate · #699\n\n+{\n+  \"title\": \"Choline Bitartrate\",\n+  \"index-category\": \"nootropic; supplement\",\n+  \"drug_info\": {\n+    \"drug_name\": \"Choline Bitartrate\",\n+    \"chemical_name\": \"2-Hydroxy-N,N,N-trimethylethan-1-aminium\",\n+    \"alternative_name\": \"Choline; Vitamin B4\",\n+    \"chemical_class\": \"Ammonium Salt\",\n+    \"psychoactive_class\": \"Nootropic\",\n+    \"mechanism_of_action\": \"Acetylcholine precursor; supports phospholipid synthesis for cell membrane structure; facilitates trimethylamine (betaine) production for osmoregulation and SAM-e synthesis\",\n+    \"dosages\": {\n+      \"routes_of_administration\": [\n+        {\n+          \"route\": \"oral\",\n+          \"units\": \"mg\",\n+          \"dose_ranges\": {\n+            \"threshold\": \"50 mg\",\n+            \"light\": \"100-250 mg\",\n+            \"common\": \"250-1000 mg\",\n+            \"strong\": \"1000-2000 mg\",\n+            \"heavy\": \"2000+ mg\"\n+          }\n+        }\n+      ]\n+    },\n+    \"duration\": {\n+      \"routes_of_administration\": [\n+        {\n+          \"route\": \"oral\",\n+          \"stages\": {\n+            \"total_duration\": \"4-8 hours\",\n+            \"onset\": \"45-75 minutes\",\n+            \"peak\": \"2-4 hours\",\n+            \"offset\": \"1-2 hours\",\n+            \"after_effects\": \"2-8 hours\"\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n+        }\n+      ]\n+    },\n+    \"addiction_potential\": \"Choline bitartrate is not habit-forming and has no known addiction potential. The desire to use it can actually decrease with use as it is self-regulating. It does not cause physical or psychological dependence.\",\n+    \"interactions\": {\n+      \"dangerous\": [],\n+      \"unsafe\": [],\n+      \"caution\": [\n+        \"Scopolamine (known adverse interaction)\",\n+        \"High-dose stimulants (potential for overstimulation when combined)\",\n+        \"Anticholinergic drugs (opposing mechanisms)\"\n+      ]\n+    },\n+    \"notes\": \"Choline bitartrate is legally available as a dietary supplement in most countries and is required in non-dairy infant formulas in the United States. Use a precise scale for accurate dosing, especially at higher doses. Individuals with trimethylaminuria may experience fishy body odor as a side effect. When using with racetam nootropics, maintain adequate choline supplementation to prevent headaches and optimize cognitive benefits. Choline bitartrate has lower bioavailability than Alpha-GPC or CDP-choline, requiring higher doses for comparable effects.\",\n+    \"subjective_effects\": [\n+      \"Subtle Stimulation\",\n+      \"Enhanced Focus And Attention\",\n+      \"Improved Memory\",\n+      \"Dream Potentiation\",\n+      \"Mental Clarity\",\n+      \"Mood Enhancement\",\n+      \"Headache (Without Adequate Dosing Or With Racetams)\",\n+      \"Body Odor Alteration (In Some Individuals)\"\n+    ],\n+    \"tolerance\": {\n+      \"full_tolerance\": \"After prolonged and repeated usage\",\n+      \"half_tolerance\": \"7 days\",\n+      \"zero_tolerance\": \"14 days\",\n+      \"cross_tolerances\": []\n+    },\n+    \"half_life\": \"\",\n+    \"citations\": [\n+      {\n+        \"name\": \"Erowid Choline Experience Vault\",\n+        \"reference\": \"https://erowid.org/experiences/subs/exp_Vitamins_Choline.shtml\"\n+      },\n+      {\n+        \"name\": \"Nootropics Expert: Choline Bitartrate\",\n+        \"reference\": \"https://nootropicsexpert.com/choline-bitartrate/\"\n+      },\n+      {\n+        \"name\": \"Nootropics Depot: Choline Supplements Guide\",\n+        \"reference\": \"https://nootropicsdepot.com/articles/ultimate-guide-to-nootropics-part-6-choline-supplements/\"\n+      },\n+      {\n+        \"name\": \"PsychonautWiki: Choline Bitartrate\",\n+        \"reference\": \"https://psychonautwiki.org/wiki/Choline_bitartrate\"\n+      }\n+    ],\n+    \"categories\": [\n+      \"nootropic\",\n+      \"supplement\",\n+      \"cholinergic\"\n+    ]\n+  },\n+  \"id\": 699\n+}",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251019-012834-214de31a",
     "createdAt": "2025-10-19T01:28:34.452Z",
     "commit": {
