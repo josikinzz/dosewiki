@@ -76700,5 +76700,181 @@
       ]
     },
     "id": 679
+  },
+  {
+    "title": "Oxymorphone",
+    "index-category": "opioid; depressant; semi-synthetic",
+    "drug_info": {
+      "drug_name": "Oxymorphone",
+      "chemical_name": "(4R,4aS,7aR,12bS)-4a,9-dihydroxy-3-methyl-2,4,5,6,7a,13-hexahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinoline-7-one",
+      "alternative_name": "Opana; Numorphan; Stop Signs",
+      "chemical_class": "Morphinans",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist; delta-opioid receptor agonist (weak); kappa-opioid receptor agonist (weak)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "2.5 mg",
+              "light": "5-10 mg",
+              "common": "10-20 mg",
+              "strong": "20-30 mg",
+              "heavy": "30+ mg"
+            }
+          },
+          {
+            "route": "insufflated",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "2-4 mg",
+              "common": "4-6 mg",
+              "strong": "6-8 mg",
+              "heavy": "8+ mg"
+            }
+          },
+          {
+            "route": "rectal",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "5 mg",
+              "light": "5-10 mg",
+              "common": "10-20 mg",
+              "strong": "20-30 mg",
+              "heavy": "30+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "20-45 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-4 hours",
+              "after_effects": "Up to 6 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "insufflated",
+            "stages": {
+              "total_duration": "6-14 hours",
+              "onset": "1-1.5 hours",
+              "peak": "3-5 hours",
+              "offset": "4-8 hours",
+              "after_effects": "Up to 12 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "rectal",
+            "stages": {
+              "total_duration": "5-8 hours",
+              "onset": "1-5 minutes",
+              "peak": "15-45 minutes",
+              "offset": "3-5 hours",
+              "after_effects": "Up to 8 hours"
+            },
+            "canonical_routes": [
+              "insufflated"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Oxymorphone carries an extremely high potential for psychological and physical dependence. Chronic use leads to rapid tolerance development and severe physical dependence, with withdrawal symptoms occurring upon cessation. The drug's potent euphoric effects and compulsive redosing patterns make it highly addictive, comparable to or exceeding other strong opioids like morphine and heroin.",
+      "interactions": {
+        "dangerous": [
+          "Alcohol (severe respiratory depression and unconsciousness risk)",
+          "Benzodiazepines (unpredictable potentiation leading to unconsciousness)",
+          "GHB/GBL (rapid unconsciousness and respiratory arrest)",
+          "MAOIs (excitatory or depressive reactions; potentially fatal)",
+          "Other CNS depressants (compounding respiratory depression)"
+        ],
+        "unsafe": [
+          "DXM (CNS depression, respiratory difficulty, cardiac issues, hepatotoxicity)",
+          "Ketamine (vomit aspiration risk when unconscious)",
+          "MXE (increased respiratory depression and organ toxicity)",
+          "Nitrous oxide (unexpected loss of consciousness and memory blackouts)",
+          "PCP (may reduce opioid tolerance, increasing overdose risk)",
+          "Stimulants (masked respiratory depression; overdose when stimulant wears off)",
+          "Tramadol (increased seizure risk and additive CNS depression)"
+        ],
+        "caution": [
+          "Grapefruit (may inhibit CYP3A4 metabolism, increasing toxicity with repeated doses)"
+        ]
+      },
+      "notes": "Oxymorphone is a Schedule II controlled substance approximately 10 times more potent than morphine parenterally and 3 times more potent orally. The oral bioavailability is only 10-20%, making insufflated and rectal routes more efficient but riskier. A rare blood disorder has been reported with intravenous use of extended-release formulations. Users should start with significantly lower doses than other opioids due to high potency. Always use precise scales for measurement. Naloxone should be available in case of overdose. The drug is contraindicated in patients with moderate to severe hepatic impairment, and caution is required in renal impairment. Extended-release tablets were discontinued in the US in 2017 due to abuse potential, though immediate-release and generic versions remain available.",
+      "subjective_effects": [
+        "Intense Physical Euphoria",
+        "Cognitive Euphoria And Contentment",
+        "Pain Relief",
+        "Sedation And Relaxation",
+        "Respiratory Depression",
+        "Pupil Constriction",
+        "Constipation",
+        "Nausea And Vomiting",
+        "Itchiness",
+        "Dry Mouth",
+        "Difficulty Urinating",
+        "Decreased Libido",
+        "Compulsive Redosing",
+        "Dream Potentiation And Nodding",
+        "Skin Flushing",
+        "Appetite Suppression"
+      ],
+      "tolerance": {
+        "full_tolerance": "Develops rapidly with daily use, typically within 3-7 days of consecutive dosing",
+        "half_tolerance": "Reduction to baseline occurs within 7-14 days after cessation",
+        "zero_tolerance": "Complete tolerance reset takes approximately 2-4 weeks of abstinence",
+        "cross_tolerances": [
+          "All opioids (morphine, oxycodone, hydromorphone, heroin, fentanyl, etc.)",
+          "Cross-tolerance is incomplete when switching between opioids"
+        ]
+      },
+      "half_life": "3-8 hours (immediate release: approximately 3-5 hours; extended release: approximately 8-10 hours)",
+      "citations": [
+        {
+          "name": "Erowid Oxymorphone Vault",
+          "reference": "https://erowid.org/pharms/oxymorphone/oxymorphone.shtml"
+        },
+        {
+          "name": "PsychonautWiki: Oxymorphone",
+          "reference": "https://psychonautwiki.org/wiki/Oxymorphone"
+        },
+        {
+          "name": "TripSit Oxymorphone Factsheet",
+          "reference": "https://drugs.tripsit.me/oxymorphone"
+        },
+        {
+          "name": "TripSit Wiki: Oxymorphone",
+          "reference": "https://wiki.tripsit.me/wiki/Oxymorphone"
+        },
+        {
+          "name": "DrugBank: Oxymorphone",
+          "reference": "https://go.drugbank.com/drugs/DB01192"
+        },
+        {
+          "name": "Wikipedia: Oxymorphone",
+          "reference": "https://en.wikipedia.org/wiki/Oxymorphone"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "depressant",
+        "semi-synthetic",
+        "morphinan"
+      ]
+    },
+    "id": 680
   }
 ]
