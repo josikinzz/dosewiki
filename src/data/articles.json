@@ -76506,5 +76506,199 @@
       ]
     },
     "id": 678
+  },
+  {
+    "title": "Pethidine",
+    "index-category": "opioid; depressant; synthetic",
+    "drug_info": {
+      "drug_name": "Pethidine",
+      "chemical_name": "Ethyl 1-methyl-4-phenylpiperidine-4-carboxylate",
+      "alternative_name": "Meperidine; Demerol; Dolantin; Dolcontral",
+      "chemical_class": "Phenylpiperidine",
+      "psychoactive_class": "Opioid",
+      "mechanism_of_action": "Mu-opioid receptor agonist; kappa-opioid receptor agonist; muscarinic acetylcholine receptor antagonist; dopamine reuptake inhibitor; norepinephrine reuptake inhibitor (metabolite norpethidine is a serotonin reuptake inhibitor)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25-50 mg",
+              "light": "50-100 mg",
+              "common": "100-200 mg",
+              "strong": "200-400 mg",
+              "heavy": "400+ mg"
+            }
+          },
+          {
+            "route": "intramuscular",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "",
+              "light": "25-50 mg",
+              "common": "50-100 mg",
+              "strong": "100-150 mg",
+              "heavy": "150+ mg"
+            }
+          },
+          {
+            "route": "intravenous",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "",
+              "light": "25-50 mg",
+              "common": "50-75 mg",
+              "strong": "75-100 mg",
+              "heavy": "100+ mg (extreme caution - rapid respiratory depression)"
+            }
+          },
+          {
+            "route": "subcutaneous",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "",
+              "light": "25-50 mg",
+              "common": "50-100 mg",
+              "strong": "100-150 mg",
+              "heavy": "150+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-8 hours",
+              "onset": "30-60 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-4 hours",
+              "after_effects": "2-10 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "intramuscular",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "10-15 minutes",
+              "peak": "30-60 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "intramuscular"
+            ]
+          },
+          {
+            "route": "intravenous",
+            "stages": {
+              "total_duration": "2-3 hours",
+              "onset": "1-5 minutes (nearly instantaneous)",
+              "peak": "5-10 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "intravenous"
+            ]
+          },
+          {
+            "route": "subcutaneous",
+            "stages": {
+              "total_duration": "2-4 hours",
+              "onset": "10-20 minutes",
+              "peak": "30-60 minutes",
+              "offset": "1-2 hours",
+              "after_effects": "1-6 hours"
+            },
+            "canonical_routes": [
+              "subcutaneous"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Pethidine has a high potential for psychological and physical dependence. Prolonged use leads to tolerance and withdrawal symptoms upon cessation. The drug's unique pharmacological profile, including dopamine reuptake inhibition, may contribute to compulsive redosing patterns. Chronic use can result in severe addiction with cravings and withdrawal symptoms if use is suddenly stopped.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (serotonin syndrome, severe hypertensive reactions, coma, death)",
+          "Alcohol (profound respiratory depression, unconsciousness, death)",
+          "Benzodiazepines (severe respiratory depression, unconsciousness, death)",
+          "GHB/GBL (rapid unconsciousness, respiratory failure, death)",
+          "DXM (CNS depression, respiratory failure, liver toxicity)"
+        ],
+        "unsafe": [
+          "Stimulants (masks respiratory depression, overdose risk)",
+          "Tramadol (increased seizure risk, CNS depression)",
+          "Ketamine (vomiting, unconsciousness, aspiration risk)",
+          "MXE (respiratory depression, organ toxicity)",
+          "PCP (reduced opioid tolerance, overdose risk)"
+        ],
+        "caution": [
+          "Nitrous (increased sedation, unconsciousness)",
+          "SSRIs (serotonin syndrome risk)",
+          "SNRIs (serotonin syndrome risk)",
+          "5-HTP (serotonin syndrome risk)",
+          "Grapefruit (altered metabolism, increased toxicity)",
+          "Serotonin releasers (serotonin syndrome risk)"
+        ]
+      },
+      "notes": "Pethidine is significantly less safe than other opioids due to its toxic metabolite norpethidine, which accumulates with repeated dosing and can cause seizures, tremors, and CNS excitation. It should not be used for more than 48 hours or at doses exceeding 600 mg per 24 hours. The drug has a particularly high risk of serotonin syndrome compared to other opioids and should never be combined with MAOIs, SSRIs, or other serotonergic drugs. Intravenous administration carries extreme risks and should only be done in medical settings with naloxone and respiratory support immediately available. Norpethidine accumulation is especially dangerous in patients with renal impairment.",
+      "subjective_effects": [
+        "Physical Euphoria",
+        "Cognitive Euphoria",
+        "Pain Relief",
+        "Anxiety Suppression",
+        "Sedation (or stimulation in some users)",
+        "Respiratory Depression",
+        "Itchiness",
+        "Pupil Constriction",
+        "Nausea",
+        "Constipation",
+        "Difficulty Urinating",
+        "Blurred Vision (anticholinergic effect)",
+        "Warmth and Relaxation",
+        "Dream Potentiation",
+        "Cough Suppression",
+        "Seizures (at high doses due to norpethidine)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 2-3 consecutive days of use",
+        "half_tolerance": "3-7 days",
+        "zero_tolerance": "1-2 weeks",
+        "cross_tolerances": [
+          "All opioids (morphine, oxycodone, hydrocodone, heroin, fentanyl)"
+        ]
+      },
+      "half_life": "3-5 hours (pethidine); 15-20 hours (norpethidine metabolite)",
+      "citations": [
+        {
+          "name": "Erowid Meperidine Vault",
+          "reference": "https://www.erowid.org/pharms/meperidine/meperidine.shtml"
+        },
+        {
+          "name": "Meperidine - StatPearls NCBI",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK470362/"
+        },
+        {
+          "name": "PsychonautWiki - Pethidine",
+          "reference": "https://psychonautwiki.org/wiki/Pethidine"
+        },
+        {
+          "name": "Wikipedia - Pethidine",
+          "reference": "https://en.wikipedia.org/wiki/Pethidine"
+        }
+      ],
+      "categories": [
+        "opioid",
+        "synthetic-opioid",
+        "phenylpiperidine",
+        "depressant"
+      ]
+    },
+    "id": 679
   }
 ]
