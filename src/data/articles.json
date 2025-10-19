@@ -690,7 +690,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -1804,7 +1804,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -2404,7 +2404,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic; Anticonvulsant",
+      "psychoactive_class": "Depressant; Anxiolytic; Anticonvulsant; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -2639,7 +2639,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (triazolobenzodiazepine)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Sedative; Hypnotic; Anxiolytic",
+      "psychoactive_class": "Depressant; Sedative; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -4577,7 +4577,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic; Sedative; Hypnotic",
+      "psychoactive_class": "Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -5658,7 +5658,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -5884,7 +5884,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -6323,7 +6323,7 @@
       "alternative_name": "Phenazolam",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Sedative; Anxiolytic; Hypnotic; Depressant",
+      "psychoactive_class": "Sedative; Anxiolytic; Hypnotic; Depressant; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -9199,7 +9199,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -10051,7 +10051,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic; Sedative",
+      "psychoactive_class": "Depressant; Anxiolytic; Sedative; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -10268,7 +10268,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -10904,7 +10904,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -13183,7 +13183,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -13926,7 +13926,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; GABAergic; Anxiolytic",
+      "psychoactive_class": "Depressant; GABAergic; Anxiolytic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -14024,7 +14024,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Hypnotic; Sedative; Anxiolytic",
+      "psychoactive_class": "Depressant; Hypnotic; Sedative; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -14232,7 +14232,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Hypnotic",
+      "psychoactive_class": "Depressant; Hypnotic; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -21866,7 +21866,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (prodrug)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -21962,7 +21962,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (prodrug)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -22157,7 +22157,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -22583,7 +22583,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (prodrug)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; GABAergic; Anxiolytic",
+      "psychoactive_class": "Depressant; GABAergic; Anxiolytic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -28536,7 +28536,7 @@
       "alternative_name": "Rohypnol",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Hypnotic; Sedative; Anxiolytic; Depressant; Euphoriant; GABAergic",
+      "psychoactive_class": "Hypnotic; Sedative; Anxiolytic; Depressant; Euphoriant; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -33922,7 +33922,7 @@
       "alternative_name": "",
       "chemical_class": "Thienodiazepine (benzodiazepine analogue)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -35343,7 +35343,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -45201,7 +45201,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; GABAergic; Anxiolytic",
+      "psychoactive_class": "Depressant; GABAergic; Anxiolytic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -48406,7 +48406,7 @@
       "alternative_name": "",
       "chemical_class": "Thienodiazepine (benzodiazepine analogue)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -48675,7 +48675,7 @@
       "alternative_name": "",
       "chemical_class": "Thienodiazepine (benzodiazepine analogue)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Sedative; Depressant",
+      "psychoactive_class": "Sedative; Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -49452,7 +49452,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic",
+      "psychoactive_class": "Depressant; Anxiolytic; Sedative; Hypnotic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -59989,7 +59989,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Sedative; Hypnotic; Anxiolytic; GABAergic; Depressant",
+      "psychoactive_class": "Sedative; Hypnotic; Anxiolytic; GABAergic; Depressant; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -63609,7 +63609,7 @@
       "alternative_name": "",
       "chemical_class": "Benzodiazepine (triazolobenzodiazepine)",
       "mechanism_of_action": "Gamma-aminobutyric acid type A receptor positive allosteric modulator (benzodiazepine site)",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "dosages": {
         "routes_of_administration": [
           {
@@ -74941,7 +74941,7 @@
       "chemical_name": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-benzo[f][1,2,4]triazolo[4,3-a][1,4]diazepine",
       "alternative_name": "Flualp; F-Alp; 2'-Fluoro-Alprazolam",
       "chemical_class": "Triazolobenzodiazepines",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "mechanism_of_action": "GABA-A receptor positive allosteric modulator",
       "dosages": {
         "routes_of_administration": [
@@ -75076,7 +75076,7 @@
       "chemical_name": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-imidazo[1,5-a][1,4]benzodiazepine",
       "alternative_name": "Versed; Hypnovel; Dormicum",
       "chemical_class": "Benzodiazepine; Imidazobenzodiazepine",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "mechanism_of_action": "GABA-A receptor positive allosteric modulator (increases frequency of chloride channel opening)",
       "dosages": {
         "routes_of_administration": [
@@ -75269,7 +75269,7 @@
       "chemical_name": "4-(2-chlorophenyl)-2-ethyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
       "alternative_name": "Desmethyletizolam",
       "chemical_class": "Thienodiazepine; Thienotriazolodiazepine",
-      "psychoactive_class": "Depressant",
+      "psychoactive_class": "Depressant; Anxiolytic; GABAergic; Muscle Relaxant",
       "mechanism_of_action": "Full agonist at benzodiazepine/GABA-A receptor; enhances GABA efficiency and effects",
       "dosages": {
         "routes_of_administration": [
