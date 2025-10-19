@@ -77073,5 +77073,130 @@
       ]
     },
     "id": 681
+  },
+  {
+    "title": "3,4-Dichloromethylphenidate",
+    "index-category": "stimulant; phenidate",
+    "drug_info": {
+      "drug_name": "3,4-Dichloromethylphenidate",
+      "chemical_name": "Methyl 2-(3,4-dichlorophenyl)-2-(piperidin-2-yl)acetate",
+      "alternative_name": "3,4-CTMP; 3,4-DCMP; Dichloromethylphenidate",
+      "chemical_class": "Phenidates",
+      "psychoactive_class": "Stimulant",
+      "mechanism_of_action": "Dopamine reuptake inhibitor; norepinephrine reuptake inhibitor; 5-HT2B receptor agonist",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "1-2 mg",
+              "light": "2-4 mg",
+              "common": "4-6 mg",
+              "strong": "6-8 mg",
+              "heavy": "8+ mg"
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "6-18 hours",
+              "onset": "1-2 hours",
+              "peak": "3-6 hours",
+              "offset": "4-8 hours",
+              "after_effects": "2-24 hours"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "3,4-CTMP has been reported to have abuse potential comparable to amphetamine or MDMA due to its dopaminergic activity. Tolerance builds gradually over extended use rather than acutely, with some reports indicating sudden increases in tolerance after prolonged use. The extremely long duration and slow onset may reduce compulsive redosing compared to faster-acting stimulants, but dependency on the substance for wakefulness and productivity can develop with regular use.",
+      "interactions": {
+        "dangerous": [
+          "MAOIs (risk of hypertensive crisis)",
+          "25x-NBOMe (risk of excessive stimulation, heart strain, seizures)",
+          "25x-NBOH (risk of excessive stimulation, heart strain, seizures)"
+        ],
+        "unsafe": [
+          "Alcohol (masks depressant effects, risk of over-intoxication)",
+          "DXM (risk of panic attacks, hypertensive crisis)",
+          "MDMA (increased neurotoxicity and cardiotoxicity)",
+          "MXE (dangerous blood pressure increases, mania risk)",
+          "Dissociatives (increased risk of delusions, mania, psychosis)",
+          "Stimulants (dangerous increases in heart rate and blood pressure)",
+          "Tramadol (lowers seizure threshold)"
+        ],
+        "caution": []
+      },
+      "notes": "3,4-CTMP is approximately seven times more potent than methylphenidate and has a significantly longer duration of 6-18 hours. A critical safety concern is its agonist activity at 5-HT2B receptors, which can cause pulmonary hypertension and heart valve fibrosis with repeated use. Insufflation is strongly discouraged as the substance has low water solubility, is extremely caustic to nasal tissues, and has poor absorption leading to delayed onset that increases overdose risk. Users must use precise milligram scales due to the extremely low active doses. The very long onset (1-2 hours) and extended duration require careful dose timing to avoid unwanted sleep disruption and accidental overdoses from premature redosing.",
+      "subjective_effects": [
+        "Stimulation",
+        "Focus Enhancement",
+        "Motivation Enhancement",
+        "Appetite Suppression",
+        "Wakefulness",
+        "Increased Heart Rate",
+        "Vasoconstriction",
+        "Dehydration",
+        "Teeth Grinding",
+        "Thought Acceleration",
+        "Analysis Enhancement",
+        "Time Distortion",
+        "Euphoria (inconsistent)",
+        "Anxiety (at higher doses)",
+        "Headaches",
+        "Pupil Dilation",
+        "Temporary Erectile Dysfunction"
+      ],
+      "tolerance": {
+        "full_tolerance": "Does not develop acutely; instead builds gradually over regular and extended use",
+        "half_tolerance": "Variable; some reports indicate sudden increases after prolonged use",
+        "zero_tolerance": "2-4 weeks of abstinence",
+        "cross_tolerances": [
+          "Methylphenidate",
+          "Other phenidates",
+          "Dopaminergic stimulants"
+        ]
+      },
+      "half_life": "",
+      "citations": [
+        {
+          "name": "Davies et al. (2004) - Synthesis and binding affinities",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/15026073/"
+        },
+        {
+          "name": "Davidson et al. (2018) - Neurochemical assessment in rat nucleus accumbens",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/29892233/"
+        },
+        {
+          "name": "Drugs-Forum 3,4-CTMP Wiki",
+          "reference": "https://drugs-forum.com/wiki/3_4-CTMP"
+        },
+        {
+          "name": "Erowid 3,4-Dichloromethylphenidate Experience Reports",
+          "reference": "https://erowid.org/experiences/subs/exp_34Dichloromethylphenidate.shtml"
+        },
+        {
+          "name": "PsychonautWiki 3,4-CTMP",
+          "reference": "https://psychonautwiki.org/wiki/3,4-CTMP"
+        },
+        {
+          "name": "Wikipedia 3,4-Dichloromethylphenidate",
+          "reference": "https://en.wikipedia.org/wiki/3,4-Dichloromethylphenidate"
+        }
+      ],
+      "categories": [
+        "stimulant",
+        "phenidate",
+        "research-chemical"
+      ]
+    },
+    "id": 682
   }
 ]
