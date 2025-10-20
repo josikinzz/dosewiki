@@ -1,5 +1,23 @@
 [
   {
+    "id": "20251020-055501-976653da",
+    "createdAt": "2025-10-20T05:55:01.553Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/19/2025, 11:55:00 PM"
+    },
+    "articles": [
+      {
+        "id": 557,
+        "title": "1-(2,5-Dimethoxybenzyl) piperazine",
+        "slug": "1-2-5-dimethoxybenzyl-piperazine"
+      }
+    ],
+    "markdown": "# 1-(2,5-Dimethoxybenzyl) piperazine · #557\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-  \"index-category\": \"\"\n+  \"index-category\": \"Hidden\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251019-201514-b1ba5d82",
     "createdAt": "2025-10-19T20:15:14.114Z",
     "commit": {
