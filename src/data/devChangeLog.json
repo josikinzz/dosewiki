@@ -1,5 +1,28 @@
 [
   {
+    "id": "20251020-130830-013c2a77",
+    "createdAt": "2025-10-20T13:08:30.193Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 20/10/2025, 15:08:28"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-  \"index-category\": \"\"\n+  \"index-category\": \"lysergamide\"\n\n# MDA · #62\n\n-    \"mechanism_of_action\": \"Serotonin-dopamine-norepinephrine releasing agent\",\n-    \"psychoactive_class\": \"Entactogen; Psychedelic; Stimulant; Hallucinogen\",\n+    \"mechanism_of_action\": \"Serotonin-dopamine-norepinephrine releasing agent; 5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist\",\n+    \"psychoactive_class\": \"Entactogen; Stimulant\",",
+    "submittedBy": "WITCHY"
+  },
+  {
     "id": "20251020-130327-70d56828",
     "createdAt": "2025-10-20T13:03:27.845Z",
     "commit": {
