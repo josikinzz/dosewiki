@@ -60349,16 +60349,16 @@
         "routes_of_administration": [
           {
             "route": "oral",
-            "canonical_routes": [
-              "oral"
-            ],
             "stages": {
               "total_duration": "6 - 10 h",
               "onset": "45 - 120 min",
               "peak": "3 - 6 h",
               "offset": "1.5 - 3 h",
               "after_effects": "Residual stimulation / insomnia up to 12-24 h"
-            }
+            },
+            "canonical_routes": [
+              "oral"
+            ]
           }
         ]
       },
@@ -60432,7 +60432,7 @@
         "research-chemical"
       ]
     },
-    "index-category": ""
+    "index-category": "Hidden"
   },
   {
     "id": 558,
