@@ -37627,8 +37627,8 @@
       "chemical_name": "3,4-Methylenedioxyamphetamine",
       "alternative_name": "MDA",
       "chemical_class": "MDxx",
-      "mechanism_of_action": "Serotonin-dopamine-norepinephrine releasing agent",
-      "psychoactive_class": "Entactogen; Psychedelic; Stimulant; Hallucinogen",
+      "mechanism_of_action": "Serotonin-dopamine-norepinephrine releasing agent; 5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist",
+      "psychoactive_class": "Entactogen; Stimulant",
       "dosages": {
         "routes_of_administration": [
           {
