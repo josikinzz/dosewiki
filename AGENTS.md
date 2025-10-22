@@ -19,7 +19,7 @@ The repo is unversioned; initialize git if needed and follow Conventional Commit
 - Always npm run build:inline after completing a task so that the user can manually review the change
 - Keep this Agent.md document up to do date, it shouldnt endlessly grow, but if something new seems worth adding to it, then add it or tweak this document. 
 - When asked to write a review, guide, report, or document that is for the user or for yourself instead of an actual change to the site, always output it into the notes and plans folder as a .md file.
-- Before making visual changes or designing new UI elements, consult `notes and plans/dosewiki-visual-style-guide.md` for the canonical styling rules.
+- **Before introducing, tweaking, or replacing any visual element (components, badges, spacing, colors, icons, etc.), read `notes and plans/dosewiki-visual-style-guide.md` and align the work to it. Do not ship UI changes if the style guide hasn’t been consulted during the task.**
 
 ## Documentation
 - `README.md` contains onboarding steps, build commands, and release checklist.
