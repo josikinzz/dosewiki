@@ -23,6 +23,7 @@ export function Hero({
   onCategorySelect,
 }: HeroProps) {
   const isCompactBadges = badgeVariant === "compact";
+  const hasMolecule = Boolean(moleculeAsset);
 
   const handleBadgeClick = (badge: HeroBadge) => {
     if (badge.categoryKey && onCategorySelect) {
@@ -46,30 +47,31 @@ export function Hero({
     ? `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`
     : `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`;
 
-  const moleculeAlt = moleculeAsset
-    ? `${moleculeAsset.matchedValue || title} molecule diagram`
+  const moleculeAlt = hasMolecule
+    ? `${moleculeAsset!.matchedValue || title} molecule diagram`
     : undefined;
 
-  const heroImageProps = moleculeAsset
+  const heroImageProps = hasMolecule
     ? {}
     : ({ role: "img", "aria-label": "Molecule placeholder image" } as const);
+
+  const heroImageWrapperClasses = hasMolecule
+    ? "relative flex w-full max-w-[22rem] items-center justify-center md:max-w-[26rem]"
+    : "relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#030112] via-[#07031a] to-[#110a24] text-4xl font-semibold tracking-[0.65em] text-white/35 shadow-[0_28px_65px_-36px_rgba(0,0,0,0.95)]";
 
   return (
     <section className="mx-auto max-w-6xl px-4 pb-6 pt-14 text-center">
       <div className="flex flex-col items-center gap-6">
-        <div
-          className="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#030112] via-[#07031a] to-[#110a24] text-4xl font-semibold tracking-[0.65em] text-white/35 shadow-[0_28px_65px_-36px_rgba(0,0,0,0.95)]"
-          {...heroImageProps}
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff14,transparent_75%)]" aria-hidden="true" />
-          {moleculeAsset ? (
+        <div className={heroImageWrapperClasses} {...heroImageProps}>
+          {hasMolecule ? (
             <img
-              src={moleculeAsset.url}
+              src={moleculeAsset!.url}
               alt={moleculeAlt}
-              className="pointer-events-none h-full w-full scale-95 object-contain p-6 drop-shadow-[0_18px_32px_rgba(32,5,65,0.45)]"
+              className="pointer-events-none w-full max-h-[22rem] object-contain drop-shadow-[0_18px_32px_rgba(32,5,65,0.45)] md:max-h-[26rem]"
             />
           ) : (
             <>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff14,transparent_75%)]" aria-hidden="true" />
               <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.35em] text-white/65">
                 molecule placeholder image
               </span>
