@@ -1,0 +1,2162 @@
+{
+  "version": 1,
+  "defaults": {
+    "fallbackCategoryKey": "miscellaneous",
+    "dedupeStrategy": "first-match",
+    "implicitSort": "alpha"
+  },
+  "categories": [
+    {
+      "key": "psychedelic",
+      "label": "Psychedelic",
+      "iconKey": "psychedelic",
+      "aliases": [
+        "psychedelics"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "psychedelic"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "LSD",
+            "Mescaline",
+            "DMT (Dimethyltryptamine)",
+            "2C-B"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "lysergamides",
+          "label": "Lysergamides",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Lysergamides"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "LSD",
+            "AL-LAD",
+            "LSZ",
+            "1B-LSD",
+            "1cP-AL-LAD",
+            "1cP-LSD",
+            "1cP-MiPLA",
+            "1D-LSD",
+            "1P-ETH-LAD",
+            "1P-LSD",
+            "1S-LSD"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "tryptamines",
+          "label": "Tryptamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Tryptamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "DMT (Dimethyltryptamine)",
+            "Ibogaine",
+            "alpha-Methyltryptamine (AMT)",
+            "DiPT (N,N-Diisopropyltryptamine)",
+            "DPT (N,N-Dipropyltryptamine)",
+            "2-Me-DMT (2-Methyl-N,N-dimethyltryptamine, 2,N,N-TMT)",
+            "2-MeO-DMT",
+            "4-AcO-DET",
+            "4-AcO-DMT (O-Acetylpsilocin)",
+            "4-AcO-DPT",
+            "4-HO-McPT",
+            "4-HO-MET",
+            "4-HO-PiPT",
+            "4-MeO-MiPT",
+            "4-PrO-DMT",
+            "4-PrO-MET (4-propionoxy-4-HO-MET prodrug)",
+            "5-Bromo-DMT",
+            "5-Cl-AMT",
+            "Bufotenin",
+            "5-MeO-AMT",
+            "5-MeO-DALT",
+            "5-MeO-DiBF (5-Methoxy-diisopropylbenzofuranethylamine)",
+            "5-MeO-DMT",
+            "5-MeO-DPT (5-methoxy-N,N-dipropyltryptamine)",
+            "5-MeO-MiPT"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "2c-x",
+          "label": "2C-X",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "2C-X"
+                ]
+              },
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "2C-X"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2C-B",
+            "2C-B-AN",
+            "2C-B-FLY",
+            "2C-BZ",
+            "2C-C",
+            "2C-D",
+            "2C-E",
+            "2C-EF",
+            "2C-F (2,5-dimethoxy-4-fluorophenethylamine)",
+            "2C-G",
+            "2C-I",
+            "2C-iP",
+            "2C-N",
+            "2C-P",
+            "2C-T-2",
+            "2C-T-21",
+            "2C-T-4",
+            "2C-T-7",
+            "2C-TFM"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "mescaline-homologues",
+          "label": "Mescaline homologues",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Mescaline homologues"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Mescaline",
+            "AEM (α-Ethylmescaline, 2-Amino-1-(3,4,5-trimethoxyphenyl)butane)",
+            "Methallylescaline (MAL)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "n-benzylated-phenethylamines",
+          "label": "N-benzylated phenethylamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "N-benzylated phenethylamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2C-B-FLY-NBOMe",
+            "25B-NBOH",
+            "25C-NB3OMe",
+            "25CN-NBOH",
+            "25E-NBOH",
+            "25H-NBOMe",
+            "25I-NBF",
+            "25I-NBMD",
+            "25I-NBOH",
+            "25I-NBOMe",
+            "25iP-NBOMe",
+            "25T-2-NBOMe",
+            "25T-NBOMe",
+            "2C-P-NBOMe (25P-NBOMe, NBOMe-2C-P)",
+            "2C-T-4-NBOMe",
+            "2C-T-7-NBOMe",
+            "C30-NBOMe"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "psychedelic-amphetamines",
+          "label": "Psychedelic amphetamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Psychedelic amphetamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2,5-Dimethoxy-4-ethoxyamphetamine (MEM)",
+            "3C-E (3,5-dimethoxy-4-ethoxy-amphetamine)",
+            "3C-P (4-propoxy-3,5-dimethoxyamphetamine)",
+            "ALEPH",
+            "ALEPH-2 (2,5-Dimethoxy-4-ethylthioamphetamine)",
+            "ALEPH-6 (2,5-Dimethoxy-4-phenylthioamphetamine)",
+            "ARIADNE (4C-D, Dimoxamine, 4C-DOM, BL-3912)",
+            "Bromo-DragonFLY",
+            "DOB (2,5-Dimethoxy-4-bromoamphetamine)",
+            "DOC (2,5-Dimethoxy-4-chloroamphetamine)",
+            "DOEF",
+            "DOET",
+            "DOM (2,5-Dimethoxy-4-methylamphetamine)",
+            "TMA (3,4,5-Trimethoxyamphetamine)",
+            "TMA-2 (2,4,5-Trimethoxyamphetamine)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-psychedelics",
+          "label": "Other psychedelics",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other psychedelics"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "BOH-2C-B (BOHB)",
+            "Yopo (Anadenanthera peregrina)"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "dissociative",
+      "label": "Dissociative",
+      "iconKey": "dissociative",
+      "aliases": [
+        "dissociatives"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "dissociative"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Ketamine",
+            "PCP (Phencyclidine)",
+            "Dextromethorphan (DXM)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "arylcyclohexylamines",
+          "label": "Arylcyclohexylamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Arylcyclohexylamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Ketamine",
+            "PCP (Phencyclidine)",
+            "Deschloroketamine",
+            "Deoxymethoxetamine (DMXE)",
+            "Hydroxetamine (HXE)",
+            "Methoxetamine",
+            "Methoxmetamine (MXM)",
+            "MXPCP",
+            "MXiPr",
+            "O-PCE",
+            "O-PCP (2-Keto-PCP)",
+            "O-PCPr",
+            "Tiletamine",
+            "Bromoketamine (BDCK, 2-Bromodeschloroketamine)",
+            "2-Fluorodeschloroketamine (2-FDCK)",
+            "Canket (FXE, 2-F-2'-Oxo-PCE, 2F-NENDCK)",
+            "Fluorexetamine (3'-Fluoro-2-oxo-PCE, 3-FXE)",
+            "2-MeO-Ketamine (Methoxyketamine)",
+            "3-Cl-PCP",
+            "3-EtO-PCP",
+            "3-F-PCP (3-Fluoro-PCP)",
+            "3-HO-PCE",
+            "3-HO-PCP",
+            "3-Me-PCPy",
+            "3-MeO-PCE",
+            "3-MeO-PCMo",
+            "3-MeO-PCP",
+            "3-MeO-PCPr",
+            "3-MeO-PCPy",
+            "3,4-Methylenediox?y-phencyclidine (3,4-MD-PCP, MDPCP)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "substituted-diarylethylamines",
+          "label": "Substituted diarylethylamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Substituted diarylethylamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Diphenidine",
+            "Ephenidine (DPD-E, 1,2-DP-E)",
+            "Fluorolintane",
+            "MXP",
+            "2-Chloroephenidine (2-Cl-Eph, 2-Cl-diphenidine)",
+            "2-TFMXP",
+            "4-MXP"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "morphinans",
+          "label": "Morphinans",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Morphinans"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Dextromethorphan (DXM)",
+            "Dextrorphan (DXO)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "adamantanes",
+          "label": "Adamantanes",
+          "match": {
+            "mode": "all",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Adamantanes"
+                ]
+              },
+              {
+                "field": "name",
+                "values": [
+                  "Memantine"
+                ],
+                "negate": true
+              }
+            ]
+          },
+          "manualOrder": [
+            "Memantine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-dissociatives",
+          "label": "Other dissociatives",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "name",
+                "values": [
+                  "Dizocilpine (MK-801)",
+                  "Etoxadrol",
+                  "Memantine",
+                  "Salvinorin A",
+                  "Xenon"
+                ]
+              },
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other dissociatives"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Dizocilpine (MK-801)",
+            "Etoxadrol",
+            "Memantine",
+            "Salvinorin A",
+            "Xenon"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "deliriant",
+      "label": "Deliriant",
+      "iconKey": "deliriant",
+      "aliases": [
+        "deliriants"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "deliriant"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "tropane-alkaloids",
+          "label": "Tropane alkaloids",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Tropane alkaloids"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Scopolamine (Hyoscine)",
+            "Atropine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "antihistamines",
+          "label": "Antihistamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "antihistamine"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Dimenhydrinate",
+            "Cyproheptadine",
+            "Chlorpheniramine (Chlorpheniramine Maleate)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-deliriants",
+          "label": "Other deliriants",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other deliriants"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "3-Quinuclidinyl benzilate (BZ)",
+            "EA-1367",
+            "EA-3167",
+            "Myristicin (Nutmeg)"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "hallucinogen",
+      "label": "A-typical Hallucinogen",
+      "iconKey": "hallucinogen",
+      "aliases": [
+        "hallucinogens",
+        "a-typical hallucinogen",
+        "a-typical hallucinogens",
+        "a typical hallucinogen",
+        "a typical hallucinogens",
+        "atypical hallucinogen",
+        "atypical hallucinogens"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "a-typical hallucinogen"
+            ]
+          }
+        ]
+      },
+      "sections": [],
+      "overflow": {
+        "strategy": "alpha"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "stimulant",
+      "label": "Stimulant",
+      "iconKey": "stimulant",
+      "aliases": [
+        "stimulants"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "stimulant",
+              "anorectic"
+            ]
+          }
+        ]
+      },
+      "exclude": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "normalizedCategory",
+            "values": [
+              "opioid"
+            ]
+          },
+          {
+            "field": "normalizedCategory",
+            "values": [
+              "psychedelic"
+            ]
+          },
+          {
+            "field": "normalizedCategory",
+            "values": [
+              "dissociative"
+            ]
+          },
+          {
+            "field": "normalizedCategory",
+            "values": [
+              "a-typical hallucinogen"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Amphetamine",
+            "Dextroamphetamine",
+            "Methylphenidate (MPH)",
+            "Cocaine",
+            "Caffeine",
+            "Lisdexamfetamine (Vyvanse)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "amphetamines",
+          "label": "Amphetamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Amphetamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Amphetamine",
+            "Dextroamphetamine",
+            "Lisdexamfetamine (Vyvanse)",
+            "Amfecloral",
+            "Benzphetamine",
+            "Clobenzorex",
+            "Dextromethamphetamine (Desoxyn)",
+            "Ephedrine",
+            "Fenethylline (Captagon)",
+            "Phenylephrine",
+            "Methyl-K",
+            "2-Fluoroamphetamine (2-FA)",
+            "2-Fluoroethamphetamine (2-FEA)",
+            "2-FMA (2-Fluoromethamphetamine)",
+            "3-CAF (3-chloroamphetamine)",
+            "2-Methylamphetamine (2-MA, Ortetamine)",
+            "3-Fluoroamphetamine (3-FA, PAL-353)",
+            "3-Fluoroethamphetamine (3-FEA)",
+            "3-Fluoromethamphetamine (3-FMA)",
+            "4-Fluoroamphetamine (4-FA, para-fluoroamphetamine, PFA)",
+            "4-Bromoamphetamine (PBA, 4-BA)",
+            "4-Fluoroethamphetamine (4-FEA)",
+            "4-Fluoromethamphetamine (4-FMA)",
+            "4-Methylephedrine",
+            "4-Methylthioamphetamine (4-MTA, MTA)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "phenidates",
+          "label": "Phenidates",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Phenidates"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Methylphenidate (MPH)",
+            "Ethylphenidate (EPH)",
+            "Isopropylphenidate (IPPH)",
+            "Serdexmethylphenidate",
+            "4-Methylmethylphenidate (4-Me-TMP)",
+            "4F-MPH (4-Fluoromethylphenidate)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "cathinones",
+          "label": "Cathinones",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Cathinones"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2-Methylethcathinone",
+            "2-MMC",
+            "2-NMC (2'-Propionaphthone)",
+            "3-CEC (3-Chloroethcathinone)",
+            "3-Chloromethcathinone (3-CMC)",
+            "3-Fluoromethcathinone",
+            "3-Methylethcathinone",
+            "3-Methylmethcathinone",
+            "3,4-DMMC (3,4-dimethyl-methcathinone)",
+            "3,4-Trimethylenepentedrone",
+            "4-Bromomethcathinone",
+            "4-CBC (4-Chlorobuphedrone)",
+            "4-CEC (4-Chloroethcathinone)",
+            "4-CMC (4-Chloromethcathinone, Clephedrone)",
+            "4-EEC (4-Ethylethcathinone)",
+            "4-EMC",
+            "4-Ethylpentedrone (4-EPD)",
+            "4-Fluoropentedrone",
+            "4-MBC (Benzedrone)",
+            "4-MEC (4-Methylethcathinone)",
+            "4F-MABP (4-fluorobuphedrone)",
+            "4-MPD (4-Methylpentedrone)",
+            "4-Me-NEB (4-methyl NEB)",
+            "5-BPDi",
+            "Amfepramone (Diethylpropion)",
+            "Brephedrone",
+            "Bupropion",
+            "Dimethylpentylone (N,N-Dimethylpentylone)",
+            "Dipentylone",
+            "EDMC (3,4-Ethylenedioxymethcathinone, 3,4-EDMC)",
+            "Hexedrone",
+            "Hexen (N-Ethylhexedrone)",
+            "Flephedrone (4-Fluoromethcathinone, 4-FMC)",
+            "Mephedrone (4-MMC)",
+            "Methcathinone",
+            "N-Ethylpentedrone",
+            "Naphyrone",
+            "Butylone (�k-MBDB)",
+            "Cyputylone (N-Cyclohexylmethylone)",
+            "Eutylone"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "substituted-pyrrolidines",
+          "label": "Substituted pyrrolidines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Substituted pyrrolidines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2-Me-PiHP",
+            "3F-PiHP (3-Fluoro-PiHP)",
+            "4-Cl-PPP",
+            "3-Methyl-4-fluoro-a-pyrrolidinovalerophenone",
+            "3,4-Dimethoxy-a-PHP (DMO-PHP)",
+            "4-Fluoro-alpha-PHP (4F-PHP)",
+            "4-Fluoro-a-pyrrolidinopropiophenone (4F-PPP)",
+            "4-MEPPP",
+            "5-DBFPV",
+            "alpha-D2PV (a-D2PV, a-D2PV, 2-Diphenylmethylpyrrolidin-1-ylpentan-1-one)",
+            "alpha-PiHP (A-PiHP)",
+            "alpha-Pyrrolidinohexiophenone (a-PHP)",
+            "MD-PHP",
+            "MD-PiHP",
+            "MD-prolintane",
+            "MDPV",
+            "Prolintane",
+            "Pyrovalerone",
+            "a-PCYP (alpha-PyrrolidinoCyclohexanoPhenone)",
+            "a-Pyrrolidinopentiophenone (a-PVP, Flakka, Gravel, A-PVP)",
+            "a-Pyrrolidinopropiophenone"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "tropanes",
+          "label": "Tropanes",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Tropanes"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Cocaine",
+            "Cocaethylene"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "xanthines",
+          "label": "Xanthines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Xanthines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Caffeine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "piperazines",
+          "label": "Piperazines",
+          "match": {
+            "mode": "all",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other entactogens"
+                ],
+                "negate": true
+              },
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Piperazines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "1-(2,3,4-Trimethoxybenzyl)piperazine",
+            "1-(2,5-Dimethoxybenzyl) piperazine",
+            "3,4-CFPP (Kleferein)",
+            "4-Benzylpiperidine",
+            "4-Fluorophenylpiperazine",
+            "BZP (Benzylpiperazine)",
+            "DMNPC"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "phenmetrazines",
+          "label": "Phenmetrazines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Phenmetrazines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "3-Chlorophenmetrazine (3-CPM)",
+            "3-Fluorophenmetrazine (3-FPM, 3-FPH, PAL-593)",
+            "3,4-Methylenedioxyphenmetrazine (MDPM, 3-MDPM)",
+            "Phendimetrazine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "alkyl-amines",
+          "label": "Alkyl amines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Alkyl amines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "1,4-DMAA (1,4-dimethylamylamine)",
+            "DMHA (Octodrine)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "pipradrol-homologues",
+          "label": "Pipradrol homologues",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Pipradrol homologues"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Pipradrol",
+            "Diphenylprolinol (D2PM)",
+            "2-DPMP (Desoxypipradrol)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "aminoindanes",
+          "label": "Aminoindanes",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Aminoindanes"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "2-Aminoindane (2-AI)",
+            "NM-2-AI"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "aminorexes",
+          "label": "Aminorexes",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Aminorexes"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Aminorex",
+            "Cyclazodone",
+            "3-Methylaminorex (3-MAR)",
+            "4-Methylaminorex",
+            "4,4'-Dimethylaminorex",
+            "4'-Fluoro-4-methylaminorex",
+            "4'-Chloro-4-methylaminorex (4C-MAR, 4-Cl-MAR)",
+            "4B-MAR (4-Bromo Aminorex)",
+            "Fluminorex",
+            "Fenozolone",
+            "N-Methyl-Cyclazodone (NMC)",
+            "Pemoline"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-stimulants",
+          "label": "Other stimulants",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other stimulants"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "3,3-Diphenylcyclobutanamine (3,3-DPCB)",
+            "2-PA",
+            "2-PTA",
+            "Arecoline",
+            "Bromantane",
+            "Mazindol",
+            "Nicotine",
+            "Phenylpropylaminopentane",
+            "Sibutramine",
+            "Tesofensine",
+            "Viloxazine"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "entactogen",
+      "label": "Entactogen",
+      "iconKey": "entactogen",
+      "aliases": [
+        "entactogens",
+        "empathogen",
+        "empathogens"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "entactogen",
+              "empathogen"
+            ]
+          }
+        ]
+      },
+      "denylist": {
+        "names": [
+          "5-Cl-AMT",
+          "5-MeO-AMT",
+          "5-MeO-DiBF (5-Methoxy-diisopropylbenzofuranethylamine)",
+          "2C-T-2",
+          "2C-T-7",
+          "Galantamine",
+          "Fenfluramine"
+        ],
+        "slugs": []
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "MDMA",
+            "3,4-Methylenedioxyamphetamine (MDA)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "mdxx",
+          "label": "MDXX",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "MDXX"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "MDMA",
+            "3,4-Methylenedioxyamphetamine (MDA)",
+            "2-Bromo-4,5-MDMA"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "benzofurans",
+          "label": "Benzofurans",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Benzofurans"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "5-AEDB",
+            "5-APB",
+            "5-EAPB",
+            "5-MAPB",
+            "5-MAPDB",
+            "6-APB"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "amphetamines",
+          "label": "Amphetamines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Amphetamines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "4-Fluoroamphetamine (4-FA, para-fluoroamphetamine, PFA)",
+            "4-Fluoroethamphetamine (4-FEA)",
+            "4-Fluoromethamphetamine (4-FMA)",
+            "4-Methylthioamphetamine (4-MTA, MTA)",
+            "3-Fluoroethamphetamine (3-FEA)",
+            "4-Bromoamphetamine (PBA, 4-BA)",
+            "5-APDI (5-IAP, IAP)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "cathinones",
+          "label": "Cathinones",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Cathinones"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Butylone (βk-MBDB)",
+            "Eutylone",
+            "4-CMC (4-Chloromethcathinone, Clephedrone)",
+            "4-EMC",
+            "4-MEC (4-Methylethcathinone)",
+            "Mephedrone (4-MMC)",
+            "3-Methylmethcathinone",
+            "2-MMC",
+            "EDMC (3,4-Ethylenedioxymethcathinone, 3,4-EDMC)",
+            "Flephedrone (4-Fluoromethcathinone, 4-FMC)",
+            "Brephedrone"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "piperazines",
+          "label": "Piperazines",
+          "match": {
+            "mode": "all",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other entactogens"
+                ],
+                "negate": true
+              },
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Piperazines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "3,4-CFPP (Kleferein)",
+            "4-Fluorophenylpiperazine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "aminoindanes",
+          "label": "Aminoindanes",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Aminoindanes"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "5-IAI (5-Iodo-2-amino-indan)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-entactogens",
+          "label": "Other entactogens",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other entactogens"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "4-FPP (para-Fluorophenylpiperazine, pFPP)",
+            "alpha-Methyltryptamine (AMT)"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      }
+    },
+    {
+      "key": "opioid",
+      "label": "Opioid",
+      "iconKey": "opioid",
+      "aliases": [
+        "opioids"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "opioid"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Codeine",
+            "Morphine",
+            "Oxycodone",
+            "Heroin (Diacetylmorphine)",
+            "Fentanyl",
+            "Tramadol",
+            "Kratom",
+            "Methadone"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "morphinans",
+          "label": "Morphinans",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Morphinans"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Codeine",
+            "Morphine",
+            "Oxycodone",
+            "Heroin (Diacetylmorphine)",
+            "Acetorphine",
+            "6-Monoacetylmorphine",
+            "Buprenorphine",
+            "Acetyldihydrocodeine",
+            "Butorphanol",
+            "Desomorphine",
+            "Dihydrocodeine (DHC)",
+            "Hydrocodone",
+            "Hydromorphone",
+            "Levomethorphan"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "benzimidazoles",
+          "label": "Benzimidazoles",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Benzimidazoles"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Etonitazene",
+            "Isotonitazene",
+            "Isotonitazepyne (N-pyrrolidino isotonitazene, iso-pyne)",
+            "Metonitazene",
+            "N-Desethylprotonitazene (NDP)",
+            "Pronitazene",
+            "SR-14968",
+            "SR-17018",
+            "Bezitramide (Burgodin)",
+            "Cychlorphine",
+            "Spirochlorphine (R-6890, SPC)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "anilinopiperidines",
+          "label": "Anilinopiperidines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Anilinopiperidines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Fentanyl",
+            "Acrylfentanyl",
+            "Alfentanil",
+            "4-Methoxybutyrfentanyl",
+            "4Cl-iBF (p-Chloro-isobutyrylfentanyl)",
+            "Lofentanil",
+            "Remifentanil (Ultiva)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "indole-alkaloids",
+          "label": "Indole alkaloids",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Indole alkaloids"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Kratom",
+            "7-Hydroxymitragynine (7-OH)",
+            "MGM-15",
+            "Mitragynine",
+            "Mitragynine pseudoindoxyl (Pseudo)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "phenylpiperidines",
+          "label": "Phenylpiperidines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Phenylpiperidines"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Beta-meprodine",
+            "MPPP",
+            "Loperamide (Imodium)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "diphenylheptanes",
+          "label": "Diphenylheptanes",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Diphenylheptanes"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Methadone",
+            "Dipipanone",
+            "Methiodone (IC-26)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "phenylpropylaminopentane",
+          "label": "Phenylpropylaminopentane",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Phenylpropylaminopentane"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Tramadol",
+            "Tapentadol",
+            "O-Desmethyltramadol (O-DSMT)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-opioids",
+          "label": "Other opioids",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other opioids"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Tianeptine"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "gabaergic",
+      "label": "GABAergic",
+      "iconKey": "gabaergic",
+      "aliases": [
+        "gabaergics"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "gabaergic"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "common"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "GHB (Gamma-Hydroxybutyric Acid)",
+            "Alprazolam",
+            "Diazepam (Valium)",
+            "Lorazepam",
+            "Oxazepam",
+            "Temazepam"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "benzodiazepines",
+          "label": "Benzodiazepines",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "benzodiazepine"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "3-Hydroxyphenazepam",
+            "Adinazolam",
+            "Alprazolam",
+            "Avizafone",
+            "Bromazepam",
+            "Bromazolam",
+            "Bromonordiazepam",
+            "Brotizolam",
+            "Chlordiazepoxide",
+            "Clobazam",
+            "Clobromazolam",
+            "Clonazepam",
+            "Deschloroetizolam",
+            "Desmethylflunitrazepam",
+            "Delorazepam",
+            "Diazepam (Valium)",
+            "Diclazepam",
+            "Ethylbromazolam",
+            "Etizolam",
+            "Flubromazepam",
+            "Flubromazolam",
+            "Flubrotizolam",
+            "Fluclotizolam",
+            "Fluetizolam",
+            "Flunitrazepam (Rohypnol)",
+            "Flunitrazolam",
+            "Flurazepam",
+            "Flutoprazepam",
+            "Fosazepam",
+            "Gidazepam",
+            "Halazepam",
+            "Lorazepam",
+            "Medazepam",
+            "Midazolam",
+            "Nifoxipam",
+            "Nimetazepam",
+            "Nitrazepam",
+            "Norflurazepam (Norfludiazepam)",
+            "Oxazepam",
+            "Phenazepam",
+            "Phenazolam",
+            "Prazepam",
+            "Pyrazolam",
+            "Temazepam",
+            "Triazolam"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "barbiturates",
+          "label": "Barbiturates",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "barbiturate"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Amobarbital",
+            "Phenobarbital",
+            "Thiopental"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "gaba-analogues",
+          "label": "GABA analogues",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "gaba analogue"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "GHB (Gamma-Hydroxybutyric Acid)",
+            "GABOB (γ-Amino-β-hydroxybutyric acid)",
+            "1,4-BDO (1,4-Butanediol)",
+            "GVL (Gamma-Valerolactone)",
+            "Baclofen",
+            "GBL (Gamma-Butyrolactone)",
+            "Gabapentin",
+            "4-Fluorophenibut (F-Phenibut, 4-F-Phenibut, Fluorophenibut)",
+            "Pregabalin",
+            "Phenibut",
+            "Mirogabalin",
+            "Aceburic acid"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "3-hydroxyisoxazoles",
+          "label": "3-Hydroxyisoxazoles",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "3-hydroxyisoxazole"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Gaboxadol (THIP)",
+            "Muscimol",
+            "Ibotenic acid"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "quinazolinones",
+          "label": "Quinazolinones",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "quinazolinone"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Afloqualone",
+            "Methaqualone",
+            "SL-164 (Dicloqualone)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "z-drugs",
+          "label": "Z-drugs",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "z-drug"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Zaleplon",
+            "Zolpidem (Ambien)",
+            "Zopiclone"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "carbamates",
+          "label": "Carbamates",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClassContains",
+                "values": [
+                  "carbamate"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Carisoprodol"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-gabaergics",
+          "label": "Other GABAergics",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedCategory",
+                "values": [
+                  "other gabaergics"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Kava (Piper methysticum)",
+            "Chloral Hydrate"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "antidepressant",
+      "label": "Antidepressant",
+      "iconKey": "antidepressant",
+      "aliases": [
+        "antidepressants"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "antidepressant"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "monoamine-oxidase-inhibitors",
+          "label": "Monoamine oxidase inhibitors",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "monoamine-oxidase-inhibitors"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Moclobemide",
+            "Phenelzine",
+            "Selegiline",
+            "Tranylcypromine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "norepinephrine-and-dopamine-reuptake-inhibitors",
+          "label": "Norepinephrine and dopamine reuptake inhibitors",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "norepinephrine-and-dopamine-reuptake-inhibitors"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Bupropion"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "norepinephrine-reuptake-inhibitors",
+          "label": "Norepinephrine reuptake inhibitors",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "norepinephrine-reuptake-inhibitors"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Viloxazine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "serotonin-reuptake-and-receptor-modulators",
+          "label": "Serotonin reuptake and receptor modulators",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "serotonin-reuptake-and-receptor-modulators"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Vilazodone",
+            "Trazodone",
+            "Mirtazapine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "mu-opioid-receptor-agonists",
+          "label": "Mu-opioid receptor agonists",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "mu-opioid-receptor-agonists"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Tianeptine"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "sodium-channel-blockers",
+          "label": "Sodium channel blockers",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "sodium-channel-blockers"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Lamotrigine (Lamictal)"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "beta-adrenergic-receptor-antagonists",
+          "label": "Beta-adrenergic receptor antagonists",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "beta-adrenergic-receptor-antagonists"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Propranolol"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "other-antidepressants",
+          "label": "Other antidepressants",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "normalizedMechanism",
+                "values": [
+                  "monoamine-oxidase-inhibitors",
+                  "norepinephrine-and-dopamine-reuptake-inhibitors",
+                  "norepinephrine-reuptake-inhibitors",
+                  "serotonin-reuptake-and-receptor-modulators",
+                  "mu-opioid-receptor-agonists",
+                  "sodium-channel-blockers",
+                  "beta-adrenergic-receptor-antagonists"
+                ],
+                "negate": true
+              }
+            ]
+          },
+          "manualOrder": [],
+          "sort": "alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "cannabinoid",
+      "label": "Cannabinoid",
+      "iconKey": "cannabinoid",
+      "aliases": [
+        "cannabinoids"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "cannabinoid"
+            ]
+          }
+        ]
+      },
+      "sections": [
+        {
+          "key": "phytocannabinoids",
+          "label": "Phytocannabinoids",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Phytocannabinoids"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "Cannabichromene (CBC)",
+            "Cannabicyclol (CBL)",
+            "Cannabidiolic acid",
+            "Cannabigerol (CBG)",
+            "Cannabis (Tetrahydrocannabinol+Cannabidiol, THC+CBD)",
+            "CBDV",
+            "CBDVA",
+            "CBN",
+            "CBNA"
+          ],
+          "sort": "manual-alpha"
+        },
+        {
+          "key": "synthetic-cannabinoids",
+          "label": "Synthetic cannabinoids",
+          "match": {
+            "mode": "any",
+            "rules": [
+              {
+                "field": "chemicalClass",
+                "values": [
+                  "Synthetic cannabinoids"
+                ]
+              }
+            ]
+          },
+          "manualOrder": [
+            "4F-MDMB-BINACA",
+            "ADB-INACA",
+            "ADB-PINACA (isomer 1)",
+            "ADB-PINACA isomer 2",
+            "ADBICA",
+            "AKB-57",
+            "AM-1248",
+            "AM-2201",
+            "AM-2233",
+            "AM-694",
+            "AMB-CHMICA",
+            "AMB-FUBINACA (AMB)",
+            "CB-13 (SAB-378)",
+            "JWH-018 (1-pentyl-3-(1-naphthoyl)-indole)"
+          ],
+          "sort": "manual-alpha"
+        }
+      ],
+      "overflow": {
+        "strategy": "chemicalClass"
+      },
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "nootropic",
+      "label": "Nootropic",
+      "iconKey": "nootropic",
+      "aliases": [
+        "nootropics"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "nootropic"
+            ]
+          }
+        ]
+      },
+      "autoSections": "chemicalClass",
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "antipsychotic",
+      "label": "Antipsychotic",
+      "iconKey": "antipsychotic",
+      "aliases": [
+        "antipsychotics"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": [
+          {
+            "field": "anyTag",
+            "values": [
+              "antipsychotic"
+            ]
+          }
+        ]
+      },
+      "autoSections": "chemicalClass",
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    },
+    {
+      "key": "miscellaneous",
+      "label": "Miscellaneous",
+      "iconKey": "miscellaneous",
+      "aliases": [
+        "misc"
+      ],
+      "match": {
+        "mode": "any",
+        "rules": []
+      },
+      "fallback": true,
+      "autoSections": "alpha",
+      "denylist": {
+        "names": [],
+        "slugs": []
+      }
+    }
+  ],
+  "exclusionMatrix": [
+    {
+      "source": "psychedelic",
+      "target": "hallucinogen"
+    },
+    {
+      "source": "dissociative",
+      "target": "hallucinogen"
+    },
+    {
+      "source": "deliriant",
+      "target": "hallucinogen"
+    }
+  ]
+}

@@ -94,7 +94,8 @@ src/
 ## 6. Dev Tools & Drafting Workflow
 - **Provider**: `DevModeProvider` clones `articles.json` in memory. All edits happen against that clone; a refresh reverts to the shipped dataset.
 - **Access**: Header/footer “wrench” icon navigates users to `#/dev/edit`. `open()` stores the last non-dev hash to support “Exit” flows.
-- **Tabs** (`DevModePage`): Edit, Draft, Changelog, Settings. Article selection is alphabetical with psychoactive-class shortcuts.
+- **Tabs** (`DevModePage`): Edit, Create, Change Log, Index Layout, Tag Editor, Profile. Article selection is alphabetical with psychoactive-class shortcuts, and authenticated users can manage contributor bios.
+- **Index Layout tab**: Manually composes `src/data/psychoactiveIndexManual.json`. Each category column mirrors the public index with editable labels, icon keys, notes, top-level substances, and nested sections. Editors can add substances via slug input or the browse picker, attach taxonomy links per section, reorder categories/sections, and toggle a JSON editor for bulk updates. Hidden/missing slugs surface inline warnings so the public grid stays in sync.
 - **Form editing**: `useArticleDraftForm` hook + `ArticleDraftFormFields` mirrored to the live article schema.
 - **JSON editor**: `JsonEditor` (react-simple-code-editor + Prism) with custom styling in `styles.css`.
 - **Exports**: Users can download individual articles, full datasets, or copy JSON to clipboard; timestamps appended automatically to filenames.

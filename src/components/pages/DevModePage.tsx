@@ -7,6 +7,7 @@ import {
   Edit3,
   Eye,
   EyeOff,
+  LayoutDashboard,
   FlaskConical,
   Loader2,
   LogOut,
@@ -59,6 +60,7 @@ import {
   createEmptyArticleDraftForm,
   hydrateArticleDraftForm,
 } from "../../utils/articleDraftForm";
+import { IndexLayoutTab } from "../sections/dev-tools/index-layout/IndexLayoutTab";
 import { slugify } from "../../utils/slug";
 import { viewToHash } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
@@ -85,7 +87,7 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile";
+type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile" | "index-layout";
 
 type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
 
@@ -97,7 +99,7 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "edit" || tab === "tag-editor") {
+  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout") {
     return "edit";
   }
   if (tab === "create") {
@@ -115,7 +117,7 @@ type DevModePageProps = {
 };
 
 const baseInputClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
+  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 md:text-sm";
 const baseSelectClass =
   "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-12 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
 const compactSelectClass =
@@ -123,7 +125,7 @@ const compactSelectClass =
 const dangerButtonClass =
   "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
 const pillButtonBaseClass =
-  "inline-flex items-center gap-2 rounded-full bg-white/12 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+  "inline-flex items-center justify-center gap-2 rounded-full bg-white/12 p-2 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
@@ -268,12 +270,14 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
 export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const {
     articles,
+    psychoactiveIndexManual,
     close,
     updateArticleAt,
     resetArticleAt,
     resetAll,
     getOriginalArticle,
     getOriginalArticles,
+    getOriginalPsychoactiveIndexManual,
     replaceArticles,
     applyArticlesTransform,
   } = useDevMode();
@@ -1535,6 +1539,30 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       });
     }
 
+    const manualChangelog = buildArticleChangelog(
+      "Psychoactive Index Layout",
+      getOriginalPsychoactiveIndexManual(),
+      psychoactiveIndexManual,
+    );
+
+    const trimmedDatasetMarkdown = datasetChangelogForCommit.markdown.trim();
+    let combinedMarkdown = "";
+
+    if (trimmedDatasetMarkdown.length > 0) {
+      combinedMarkdown = `${trimmedDatasetMarkdown}\n`;
+    }
+
+    if (manualChangelog.hasChanges) {
+      const manualMarkdown = manualChangelog.markdown.trimEnd();
+      combinedMarkdown = combinedMarkdown.length > 0
+        ? `${combinedMarkdown.trimEnd()}\n\n${manualMarkdown}`
+        : manualMarkdown;
+    }
+
+    if (combinedMarkdown.length > 0) {
+      combinedMarkdown = `${combinedMarkdown.trimEnd()}\n`;
+    }
+
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
     try {
@@ -1556,8 +1584,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           password: credentials.password,
           articlesData: articlesForCommit,
           commitMessage,
-          changelogMarkdown: datasetChangelogForCommit.markdown,
+          changelogMarkdown: combinedMarkdown,
           changedArticles: datasetChangelogForCommit.articles,
+          psychoactiveIndexManualData: psychoactiveIndexManual,
         }),
       });
 
@@ -1607,8 +1636,10 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     hasInvalidJsonDraft,
     isNewArticleStaged,
     onTabChange,
+    psychoactiveIndexManual,
     originalArticles,
     pushChangeLogNotice,
+    getOriginalPsychoactiveIndexManual,
     setPasswordKey,
     verifyDevCredentials,
   ]);
@@ -1736,10 +1767,15 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   ]);
 
   const activePrimaryTab = useMemo(() => resolvePrimaryTab(activeTab), [activeTab]);
+  const isIndexLayoutTab = activeTab === "index-layout";
+  const mainClassName = isIndexLayoutTab
+    ? "w-full px-4 py-12 text-white md:px-6 lg:px-8"
+    : "mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8";
+  const contentWrapperClass = isIndexLayoutTab ? "mt-10 w-full" : "mx-auto w-full max-w-6xl";
 
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
-      if (tab === "edit" || tab === "tag-editor") {
+      if (tab === "edit" || tab === "tag-editor" || tab === "index-layout") {
         setCreatorNotice(null);
       }
       if (tab === "create" || tab === "tag-editor") {
@@ -1985,120 +2021,121 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-12 text-white md:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl text-center">
-        <h1 className="mt-4 flex items-center justify-center gap-3 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
-          <Wrench className="h-8 w-8 text-current" aria-hidden="true" focusable="false" />
-          <span>Dev Tools</span>
-        </h1>
-      </div>
+    <main className={mainClassName}>
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto max-w-3xl text-center">
+          <h1 className="mt-4 flex items-center justify-center gap-3 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
+            <Wrench className="h-8 w-8 text-current" aria-hidden="true" focusable="false" />
+            <span>Dev Tools</span>
+          </h1>
+        </div>
 
-      <div className="mt-10 flex justify-center">
-        <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
-          <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handleCredentialsSave}>
-            <div className="flex-1 space-y-3">
-              <div>
-                <label
-                  className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
-                  htmlFor="dev-mode-saved-username"
-                >
-                  Username (ENV key)
-                </label>
-                <input
-                  id="dev-mode-saved-username"
-                  type="text"
-                  className={baseInputClass}
-                  placeholder="Enter your username"
-                  autoComplete="username"
-                  value={usernameDraft}
-                  onChange={(event) => setUsernameDraft(event.target.value)}
-                  onKeyDown={handleCredentialInputKeyDown}
-                />
-              </div>
-              <div>
-                <label
-                  className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
-                  htmlFor="dev-mode-saved-password"
-                >
-                  User password
-                </label>
-                <div className="relative">
+        <div className="mt-10 flex justify-center">
+          <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
+            <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handleCredentialsSave}>
+              <div className="flex-1 space-y-3">
+                <div>
+                  <label
+                    className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
+                    htmlFor="dev-mode-saved-username"
+                  >
+                    Username (ENV key)
+                  </label>
                   <input
-                    id="dev-mode-saved-password"
-                    type={isPasswordVisible ? "text" : "password"}
-                    className={`${baseInputClass} pr-12`}
-                    placeholder="Paste your user password"
-                    autoComplete="current-password"
-                    value={passwordDraft}
-                    onChange={(event) => setPasswordDraft(event.target.value)}
+                    id="dev-mode-saved-username"
+                    type="text"
+                    className={baseInputClass}
+                    placeholder="Enter your username"
+                    autoComplete="username"
+                    value={usernameDraft}
+                    onChange={(event) => setUsernameDraft(event.target.value)}
                     onKeyDown={handleCredentialInputKeyDown}
                   />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-3 flex items-center text-white/55 transition hover:text-white"
-                    onClick={() => setIsPasswordVisible((prev) => !prev)}
-                    aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                </div>
+                <div>
+                  <label
+                    className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
+                    htmlFor="dev-mode-saved-password"
                   >
-                    {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                    User password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="dev-mode-saved-password"
+                      type={isPasswordVisible ? "text" : "password"}
+                      className={`${baseInputClass} pr-12`}
+                      placeholder="Paste your user password"
+                      autoComplete="current-password"
+                      value={passwordDraft}
+                      onChange={(event) => setPasswordDraft(event.target.value)}
+                      onKeyDown={handleCredentialInputKeyDown}
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-3 flex items-center text-white/55 transition hover:text-white"
+                      onClick={() => setIsPasswordVisible((prev) => !prev)}
+                      aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                    >
+                      {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <button
-              type="submit"
-              className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/10 disabled:text-white/50"
-              disabled={isVerifyingCredentials}
-            >
-              {isVerifyingCredentials ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {isVerifyingCredentials ? "Verifying…" : "Save"}
-            </button>
-          </form>
-          <div className="mt-2 min-h-[1.25rem] text-xs">
-            {passwordNotice ? (
-              <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-                {passwordNotice.message}
-              </p>
-            ) : (
-              <p className="text-white/45">
-                Save to verify your ENV credentials. Leave both fields blank and press Save to log out.
-              </p>
-            )}
-          </div>
-          <div className="mt-4 flex flex-col gap-3 text-xs text-white/65 md:flex-row md:items-center md:justify-between">
-            {passwordKey ? (
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-200">
-                <BadgeCheck className="h-4 w-4" />
-                <span>Logged in as {passwordKey}</span>
-                <span className="text-emerald-200/75">• Verified {verifiedBadgeText ?? "just now"}</span>
-              </div>
-            ) : hasStoredCredentials ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-medium text-white/70">
-                <RefreshCw className="h-4 w-4" />
-                <span>Credentials stored. Save to verify.</span>
-              </div>
-            ) : (
-              <div className="text-white/45">Not logged in.</div>
-            )}
-            {hasStoredCredentials && (
               <button
-                type="button"
-                onClick={handleLogout}
-                className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 px-3 py-1 font-medium text-white/75 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                type="submit"
+                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/10 disabled:text-white/50"
                 disabled={isVerifyingCredentials}
               >
-                <LogOut className="h-4 w-4" />
-                Log out
+                {isVerifyingCredentials ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {isVerifyingCredentials ? "Verifying…" : "Save"}
               </button>
-            )}
+            </form>
+            <div className="mt-2 min-h-[1.25rem] text-xs">
+              {passwordNotice ? (
+                <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
+                  {passwordNotice.message}
+                </p>
+              ) : (
+                <p className="text-white/45">
+                  Save to verify your ENV credentials. Leave both fields blank and press Save to log out.
+                </p>
+              )}
+            </div>
+            <div className="mt-4 flex flex-col gap-3 text-xs text-white/65 md:flex-row md:items-center md:justify-between">
+              {passwordKey ? (
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-200">
+                  <BadgeCheck className="h-4 w-4" />
+                  <span>Logged in as {passwordKey}</span>
+                  <span className="text-emerald-200/75">• Verified {verifiedBadgeText ?? "just now"}</span>
+                </div>
+              ) : hasStoredCredentials ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-medium text-white/70">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Credentials stored. Save to verify.</span>
+                </div>
+              ) : (
+                <div className="text-white/45">Not logged in.</div>
+              )}
+              {hasStoredCredentials && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 px-3 py-1 font-medium text-white/75 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isVerifyingCredentials}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-8 flex w-full flex-col items-center gap-4">
+        <div className="mt-8 flex w-full flex-col items-center gap-4">
         <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
           <button
             type="button"
@@ -2181,6 +2218,19 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <Tags className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Tags</span>
             </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange("index-layout")}
+              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
+                activeTab === "index-layout"
+                  ? "bg-fuchsia-500/20 text-white"
+                  : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "index-layout"}
+            >
+              <LayoutDashboard className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Index layout</span>
+            </button>
           </div>
         )}
 
@@ -2200,8 +2250,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           </div>
         )}
       </div>
-      {activeTab === "edit" ? (
-        <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
+      </div>
+
+      <div className={contentWrapperClass}>
+        {activeTab === "edit" ? (
+          <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6 min-w-0">
             <SectionCard className="min-w-0 space-y-6 bg-white/[0.04]">
               <div className="space-y-2">
@@ -2936,6 +2989,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           onProfileUpdated={handleProfileUpdated}
           hasStoredCredentials={hasStoredCredentials}
         />
+      ) : activeTab === "index-layout" ? (
+        <IndexLayoutTab
+          baseInputClass={baseInputClass}
+          baseSelectClass={baseSelectClass}
+          pillButtonBaseClass={pillButtonBaseClass}
+          commitPanel={commitPanel}
+        />
       ) : activeTab === "tag-editor" ? (
         <TagEditorTab
           commitPanel={commitPanel}
@@ -2945,6 +3005,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
         />
       ) : null}
+      </div>
     </main>
   );
 }
