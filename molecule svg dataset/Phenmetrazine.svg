@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:ns2="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns4="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="490.66483" height="373.2673" viewBox="0 0 490.66482 373.26731" id="svg2" version="1.1" ns1:version="0.91 r13725" ns2:docname="Phenmetrazine.svg" style="stroke:none">
+  <defs id="defs4" />
+  <ns2:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" ns1:pageopacity="0.0" ns1:pageshadow="2" ns1:zoom="0.35" ns1:cx="-719.66759" ns1:cy="149.49078" ns1:document-units="px" ns1:current-layer="layer1" showgrid="false" fit-margin-top="10" fit-margin-left="10" fit-margin-right="10" fit-margin-bottom="10" units="px" ns1:window-width="1920" ns1:window-height="1058" ns1:window-x="-8" ns1:window-y="-8" ns1:window-maximized="1" />
+  <metadata id="metadata7">
+    <rdf:RDF>
+      <ns4:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </ns4:Work>
+    </rdf:RDF>
+  </metadata>
+  <g ns1:label="Layer 1" ns1:groupmode="layer" id="layer1" transform="translate(-263.23901,-308.5857)" style="fill:#000000;stroke:none">
+    <g style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#000000;fill-opacity:1;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto" id="g4245" transform="translate(236.96795,195.21935)">
+      <g id="g4139" style="fill:#000000;stroke:none">
+        <defs id="368190111886-defs1">
+          <clipPath id="368190111848-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4143" d="M 0,0 800,0 800,600 0,600 0,0 Z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="368190111551-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4146" d="m 383.7755,285.7285 c -21.6474,0 -39.1961,17.5487 -39.1961,39.1962 0,21.6474 17.5487,39.196 39.1961,39.196 21.6474,0 39.1961,-17.5486 39.1961,-39.196 0,-21.6475 -17.5487,-39.1962 -39.1961,-39.1962 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="368190111173-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4149" d="m 470.1204,212.7806 c -20.6554,0 -37.3999,16.7445 -37.3999,37.3999 0,20.6553 16.7445,37.3998 37.3999,37.3998 20.6554,0 37.3998,-16.7445 37.3998,-37.3998 0,-20.6554 -16.7444,-37.3999 -37.3998,-37.3999 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="368190111746-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4152" d="m 383.7824,87.3818 c -21.0657,0 -38.1428,17.0772 -38.1428,38.1429 0,21.0657 17.0771,38.1428 38.1428,38.1428 21.0658,0 38.1429,-17.0771 38.1429,-38.1428 0,-21.0657 -17.0771,-38.1429 -38.1429,-38.1429 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="368190111977-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4155" d="m 297.4363,238.246 c -20.3399,0 -36.8287,16.4887 -36.8287,36.8286 0,20.34 16.4888,36.8287 36.8287,36.8287 20.3399,0 36.8286,-16.4887 36.8286,-36.8287 0,-20.3399 -16.4887,-36.8286 -36.8286,-36.8286 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="368190111332-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4158" d="m -457.6859,-254.0716 800,0 0,600 -800,0 0,-600 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+          <clipPath id="36819011176-clipPath1" clipPathUnits="userSpaceOnUse">
+            <path id="path4161" d="m -283.7704,-154.3777 800,0 0,600 -800,0 0,-600 z" ns1:connector-curvature="0" style="stroke:none" />
+          </clipPath>
+        </defs>
+        <g id="g4163" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4165" clip-path="url(#368190111848-clipPath1)" d="m 123.9692,298.7874 c 1.0322,-0.596 1.3857,-1.9154 0.7897,-2.9477 -0.5961,-1.0323 -1.9155,-1.3857 -2.9477,-0.7897 l -64.6098,37.3062 c -1.0323,0.596 -1.3858,1.9155 -0.7897,2.9477 0.596,1.0323 1.9154,1.3858 2.9477,0.7897 z m 1.8681,-21.8433 c 1.0322,-0.596 1.3857,-1.9154 0.7897,-2.9477 -0.5961,-1.0323 -1.9155,-1.3857 -2.9477,-0.7897 l -86.3289,49.8469 c -1.0323,0.5961 -1.3858,1.9155 -0.7897,2.9478 0.596,1.0322 1.9154,1.3857 2.9477,0.7897 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4167" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4169" clip-path="url(#368190111848-clipPath1)" d="m 36.2715,324.9224 0,99.706 c 0,1.1919 0.9659,2.1578 2.1579,2.1578 1.192,0 2.1578,-0.9659 2.1578,-2.1578 l 0,-99.706 c 0,-1.192 -0.9658,-2.1579 -2.1578,-2.1579 -1.192,0 -2.1579,0.9659 -2.1579,2.1579 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4171" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4173" clip-path="url(#368190111848-clipPath1)" d="m 59.3594,413.4571 c -1.0323,-0.596 -2.3517,-0.2426 -2.9477,0.7897 -0.5961,1.0323 -0.2426,2.3517 0.7897,2.9477 l 64.6098,37.3062 c 1.0322,0.596 2.3516,0.2426 2.9477,-0.7897 0.596,-1.0323 0.2425,-2.3517 -0.7897,-2.9477 z m -19.851,9.3025 c -1.0323,-0.596 -2.3517,-0.2425 -2.9477,0.7897 -0.5961,1.0323 -0.2426,2.3517 0.7897,2.9478 l 86.3289,49.8469 c 1.0322,0.5961 2.3516,0.2426 2.9477,-0.7897 0.596,-1.0322 0.2425,-2.3517 -0.7897,-2.9477 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4175" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4177" clip-path="url(#368190111848-clipPath1)" d="m 125.8372,476.3441 86.3409,-49.847 c 1.0323,-0.5959 1.3859,-1.9153 0.7899,-2.9476 -0.596,-1.0323 -1.9154,-1.3859 -2.9477,-0.7899 l -86.3409,49.8469 c -1.0323,0.596 -1.3859,1.9154 -0.7899,2.9477 0.596,1.0323 1.9154,1.3859 2.9477,0.7899 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4179" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4181" clip-path="url(#368190111848-clipPath1)" d="m 190.9591,412.0882 c 0,1.192 0.9659,2.1579 2.1578,2.1579 1.192,0 2.1579,-0.9659 2.1579,-2.1579 l 0,-74.6257 c 0,-1.192 -0.9659,-2.1578 -2.1579,-2.1578 -1.1919,0 -2.1578,0.9658 -2.1578,2.1578 z m 17.9823,12.5402 c 0,1.1919 0.9658,2.1578 2.1578,2.1578 1.192,0 2.1579,-0.9659 2.1579,-2.1578 l 0,-99.706 c 0,-1.192 -0.9659,-2.1579 -2.1579,-2.1579 -1.192,0 -2.1578,0.9659 -2.1578,2.1579 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4183" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4185" clip-path="url(#368190111848-clipPath1)" d="m 212.1781,323.0536 -86.3409,-49.847 c -1.0323,-0.5959 -2.3517,-0.2424 -2.9477,0.7899 -0.596,1.0323 -0.2424,2.3517 0.7899,2.9477 l 86.3409,49.8469 c 1.0323,0.596 2.3517,0.2425 2.9477,-0.7898 0.596,-1.0323 0.2424,-2.3517 -0.7899,-2.9477 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4187" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4189" clip-path="url(#368190111848-clipPath1)" d="m 212.1782,326.7911 86.337,-49.8477 c 1.0323,-0.596 1.3858,-1.9154 0.7898,-2.9477 -0.596,-1.0323 -1.9154,-1.3858 -2.9477,-0.7898 l -86.337,49.8477 c -1.0323,0.596 -1.3858,1.9154 -0.7898,2.9477 0.596,1.0323 1.9154,1.3858 2.9477,0.7898 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4191" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4193" clip-path="url(#368190111848-clipPath1)" d="m 471.1904,173.5121 -86.3288,-49.856 c -1.0322,-0.5962 -2.3517,-0.2428 -2.9478,0.7894 -0.5961,1.0322 -0.2427,2.3517 0.7895,2.9478 l 86.3287,49.856 c 1.0323,0.5962 2.3517,0.2428 2.9478,-0.7894 0.5962,-1.0322 0.2428,-2.3517 -0.7894,-2.9478 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4195" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4197" clip-path="url(#368190111848-clipPath1)" d="m 296.3573,276.9434 86.3392,49.85 c 1.0323,0.596 2.3517,0.2425 2.9477,-0.7898 0.596,-1.0323 0.2425,-2.3517 -0.7897,-2.9477 l -86.3393,-49.85 c -1.0323,-0.596 -2.3517,-0.2425 -2.9477,0.7898 -0.596,1.0323 -0.2425,2.3517 0.7898,2.9477 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4199" style="fill:#333399;stroke:none;text-rendering:geometricPrecision">
+          <path id="path4201" clip-path="url(#368190111848-clipPath1)" d="m 384.8544,326.7934 67.8896,-39.1961 c 1.0323,-0.596 1.3859,-1.9154 0.7899,-2.9477 -0.596,-1.0323 -1.9154,-1.3858 -2.9477,-0.7898 l -67.8896,39.1961 c -1.0323,0.596 -1.3859,1.9154 -0.7899,2.9477 0.596,1.0323 1.9154,1.3858 2.9477,0.7898 z" ns1:connector-curvature="0" style="stroke:none" />
+          <path id="path4203" clip-path="url(#368190111551-clipPath1)" d="m 384.8544,326.7934 67.8896,-39.1961 c 1.0323,-0.596 1.3859,-1.9154 0.7899,-2.9477 -0.596,-1.0323 -1.9154,-1.3858 -2.9477,-0.7898 l -67.8896,39.1961 c -1.0323,0.596 -1.3859,1.9154 -0.7899,2.9477 0.596,1.0323 1.9154,1.3858 2.9477,0.7898 z" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+        </g>
+        <g id="g4205" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4207" clip-path="url(#368190111848-clipPath1)" d="m 472.2782,250.1802 -0.009,-74.7997 c -1e-4,-1.192 -0.9661,-2.1578 -2.1581,-2.1576 -1.192,1e-4 -2.1577,0.9661 -2.1576,2.1581 l 0.009,74.7997 c 1e-4,1.192 0.9661,2.1578 2.1581,2.1576 1.192,-1e-4 2.1578,-0.9661 2.1576,-2.1581 z" ns1:connector-curvature="0" style="stroke:none" />
+          <path id="path4209" clip-path="url(#368190111173-clipPath1)" d="m 472.2782,250.1802 -0.009,-74.7997 c -1e-4,-1.192 -0.9661,-2.1578 -2.1581,-2.1576 -1.192,1e-4 -2.1577,0.9661 -2.1576,2.1581 l 0.009,74.7997 c 1e-4,1.192 0.9661,2.1578 2.1581,2.1576 1.192,-1e-4 2.1578,-0.9661 2.1576,-2.1581 z" ns1:connector-curvature="0" style="fill:#333399;stroke:none" />
+        </g>
+        <g id="g4211" style="fill:#ff0000;stroke:none;text-rendering:geometricPrecision">
+          <path id="path4213" clip-path="url(#368190111848-clipPath1)" d="m 382.7035,123.6559 -66.0653,38.1429 c -1.0323,0.596 -1.3859,1.9154 -0.7899,2.9477 0.596,1.0322 1.9154,1.3858 2.9477,0.7898 l 66.0654,-38.1429 c 1.0322,-0.596 1.3858,-1.9154 0.7898,-2.9477 -0.596,-1.0322 -1.9154,-1.3858 -2.9477,-0.7898 z" ns1:connector-curvature="0" style="stroke:none" />
+          <path id="path4215" clip-path="url(#368190111746-clipPath1)" d="m 382.7035,123.6559 -66.0653,38.1429 c -1.0323,0.596 -1.3859,1.9154 -0.7899,2.9477 0.596,1.0322 1.9154,1.3858 2.9477,0.7898 l 66.0654,-38.1429 c 1.0322,-0.596 1.3858,-1.9154 0.7898,-2.9477 -0.596,-1.0322 -1.9154,-1.3858 -2.9477,-0.7898 z" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+        </g>
+        <g id="g4217" style="fill:#ff0000;stroke:none;text-rendering:geometricPrecision">
+          <path id="path4219" clip-path="url(#368190111848-clipPath1)" d="m 299.5941,275.0746 -0.001,-73.6573 c 0,-1.192 -0.9659,-2.1578 -2.1579,-2.1578 -1.1919,0 -2.1578,0.9659 -2.1578,2.1579 l 10e-4,73.6573 c 0,1.192 0.9659,2.1578 2.1579,2.1578 1.192,0 2.1578,-0.9659 2.1578,-2.1579 z" ns1:connector-curvature="0" style="stroke:none" />
+          <path id="path4221" clip-path="url(#368190111977-clipPath1)" d="m 299.5941,275.0746 -0.001,-73.6573 c 0,-1.192 -0.9659,-2.1578 -2.1579,-2.1578 -1.1919,0 -2.1578,0.9659 -2.1578,2.1579 l 10e-4,73.6573 c 0,1.192 0.9659,2.1578 2.1579,2.1578 1.192,0 2.1578,-0.9659 2.1578,-2.1579 z" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+        </g>
+        <g id="g4223" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+          <path id="path4225" clip-path="url(#368190111848-clipPath1)" d="m 381.6176,324.9246 -8e-4,91.0625 c 0,1.192 0.9659,2.1579 2.1579,2.1579 1.1919,0 2.1578,-0.9659 2.1578,-2.1578 l 8e-4,-91.0625 c 0,-1.192 -0.9658,-2.1579 -2.1578,-2.1579 -1.192,0 -2.1579,0.9658 -2.1579,2.1578 z" ns1:connector-curvature="0" style="stroke:none" />
+        </g>
+        <g id="g4227" style="fill:#ffffff;stroke:none;text-rendering:geometricPrecision">
+          </g>
+        <g id="g4231" transform="translate(457.6859,254.0716)" font-size="35px" style="font-size:35px;font-family:sans-serif;fill:#333399;stroke:none;text-rendering:geometricPrecision">
+          <text id="text4233" clip-path="url(#368190111332-clipPath1)" y="34" xml:space="preserve" x="0" style="stroke:none">NH</text>
+        </g>
+        <g id="g4235" font-size="35px" style="font-size:35px;font-family:sans-serif;fill:#ffffff;stroke:none;text-rendering:geometricPrecision">
+          <text id="text4239" xml:space="preserve" clip-path="url(#36819011176-clipPath1)" transform="translate(283.7704,154.3777)" y="34" x="0" style="fill:#ff0000;stroke:none">O</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

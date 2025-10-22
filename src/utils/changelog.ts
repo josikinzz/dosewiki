@@ -138,6 +138,50 @@ export const buildArticleChangelog = (heading: string, original: unknown, update
   };
 };
 
+export const buildTextChangelog = (heading: string, original: string, updated: string) => {
+  const normalizedHeading = heading.trim() || "Text";
+  const baseline = ensureTrailingNewline(typeof original === "string" ? original : "");
+  const next = ensureTrailingNewline(typeof updated === "string" ? updated : "");
+
+  if (baseline === next) {
+    return {
+      markdown: `# ${normalizedHeading}\n\nNo differences detected.\n`,
+      hasChanges: false,
+    };
+  }
+
+  const patch = createPatch(`${toDiffFileName(normalizedHeading)}.md`, baseline, next, "", "", { context: 0 });
+  const trimmedPatch = patch.trimEnd();
+  const meaningfulLines = trimmedPatch
+    .split("\n")
+    .filter((line) => {
+      if (line.length === 0) {
+        return false;
+      }
+      if (line.startsWith("Index:")) {
+        return false;
+      }
+      if (line.startsWith("====")) {
+        return false;
+      }
+      if (line.startsWith("---") || line.startsWith("+++")) {
+        return false;
+      }
+      if (line.startsWith("@@")) {
+        return false;
+      }
+      return line.startsWith("+") || line.startsWith("-");
+    });
+  const body = meaningfulLines.join("\n");
+
+  const hasChanges = meaningfulLines.length > 0;
+
+  return {
+    markdown: `# ${normalizedHeading}\n\n${body.length > 0 ? body : "No differences detected."}\n`,
+    hasChanges,
+  };
+};
+
 export type DatasetChangelogSection = {
   index: number;
   heading: string;

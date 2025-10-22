@@ -16,6 +16,9 @@ import {
 const ARTICLES_PATH = "src/data/articles.json";
 const CHANGE_LOG_PATH = "src/data/devChangeLog.json";
 const PSYCHOACTIVE_INDEX_PATH = "src/data/psychoactiveIndexManual.json";
+const ABOUT_MARKDOWN_PATH = "src/data/aboutContent.md";
+const ABOUT_SUBTITLE_PATH = "src/data/aboutSubtitle.md";
+const ABOUT_CONFIG_PATH = "src/data/aboutConfig.json";
 const CHANGE_LOG_LIMIT = 250;
 
 const normalizeChangedArticles = (rawArticles) => {
@@ -83,6 +86,51 @@ const loadChangeLogEntries = async (token) => {
   }
 };
 
+const normalizeAboutMarkdown = (value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.replace(/
+/g, "\n").trim();
+  return `${normalized}
+`;
+};
+
+const normalizeFounderKeys = (value) => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seen = new Set();
+  const keys = [];
+
+  value.forEach((entry) => {
+    if (typeof entry !== "string") {
+      return;
+    }
+
+    const normalized = entry.trim().toUpperCase();
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+
+    seen.add(normalized);
+    keys.push(normalized);
+  });
+
+  return keys;
+};
+
+const normalizeAboutConfig = (value) => {
+  if (!value || typeof value !== "object") {
+    return { founderProfileKeys: [] };
+  }
+
+  const founderProfileKeys = normalizeFounderKeys(value.founderProfileKeys);
+  return { founderProfileKeys };
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -130,6 +178,31 @@ export default async function handler(req, res) {
         .status(400)
         .json({ error: `Unable to serialize psychoactiveIndexManualData: ${error instanceof Error ? error.message : String(error)}` });
     }
+  }
+
+  let normalizedAboutMarkdown = null;
+  if (Object.prototype.hasOwnProperty.call(body, 'aboutMarkdown')) {
+    if (typeof body.aboutMarkdown !== "string") {
+      return res.status(400).json({ error: "aboutMarkdown must be a string when provided." });
+    }
+    normalizedAboutMarkdown = normalizeAboutMarkdown(body.aboutMarkdown);
+  }
+
+  let normalizedAboutSubtitle = null;
+  if (Object.prototype.hasOwnProperty.call(body, 'aboutSubtitleMarkdown')) {
+    if (typeof body.aboutSubtitleMarkdown !== "string") {
+      return res.status(400).json({ error: "aboutSubtitleMarkdown must be a string when provided." });
+    }
+    normalizedAboutSubtitle = normalizeAboutMarkdown(body.aboutSubtitleMarkdown);
+  }
+
+  let serializedAboutConfig = null;
+  if (Object.prototype.hasOwnProperty.call(body, 'aboutConfig')) {
+    if (typeof body.aboutConfig !== "object" || body.aboutConfig === null) {
+      return res.status(400).json({ error: "aboutConfig must be an object when provided." });
+    }
+    const normalizedAboutConfigPayload = normalizeAboutConfig(body.aboutConfig);
+    serializedAboutConfig = JSON.stringify(normalizedAboutConfigPayload, null, 2);
   }
 
   const rawChangelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
@@ -193,6 +266,36 @@ export default async function handler(req, res) {
         mode: "100644",
         type: "blob",
         sha: manualBlobSha,
+      });
+    }
+
+    if (normalizedAboutMarkdown !== null) {
+      const aboutMarkdownBlobSha = await createBlob(githubToken, normalizedAboutMarkdown);
+      treeEntries.push({
+        path: ABOUT_MARKDOWN_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: aboutMarkdownBlobSha,
+      });
+    }
+
+    if (normalizedAboutSubtitle !== null) {
+      const aboutSubtitleBlobSha = await createBlob(githubToken, normalizedAboutSubtitle);
+      treeEntries.push({
+        path: ABOUT_SUBTITLE_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: aboutSubtitleBlobSha,
+      });
+    }
+
+    if (serializedAboutConfig !== null) {
+      const aboutConfigBlobSha = await createBlob(githubToken, serializedAboutConfig);
+      treeEntries.push({
+        path: ABOUT_CONFIG_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: aboutConfigBlobSha,
       });
     }
 

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:ns2="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns4="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="623.26379" stroke-miterlimit="10" font-weight="normal" height="128.92461" font-style="normal" font-size="12px" id="svg2" version="1.1" ns1:version="0.91 r13725" ns2:docname="Cyanogen chloride.svg" style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#000000;fill-opacity:1;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto">
+  <metadata id="metadata45">
+    <rdf:RDF>
+      <ns4:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </ns4:Work>
+    </rdf:RDF>
+  </metadata>
+  <ns2:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" ns1:pageopacity="0" ns1:pageshadow="2" ns1:window-width="1920" ns1:window-height="1058" id="namedview43" showgrid="false" fit-margin-top="10" fit-margin-left="10" fit-margin-right="10" fit-margin-bottom="10" ns1:zoom="0.36375" ns1:cx="431.90705" ns1:cy="64.4623" ns1:window-x="-8" ns1:window-y="-8" ns1:window-maximized="1" ns1:current-layer="svg2" />
+  
+  <defs id="genericDefs" />
+  <g id="g5" transform="translate(-87.680575,-235.5377)" style="fill:#000000;stroke:none">
+    <defs id="1418625174186-defs1">
+      <clipPath clipPathUnits="userSpaceOnUse" id="1418625174377-clipPath1">
+        <path d="M 0,0 800,0 800,600 0,600 0,0 Z" id="path9" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="1418625174347-clipPath1">
+        <path d="m 393.3555,190.1298 c -60.6797,0 -109.8702,49.1906 -109.8702,109.8702 0,60.6796 49.1905,109.8702 109.8702,109.8702 60.6796,0 109.8701,-49.1906 109.8701,-109.8702 0,-60.6796 -49.1905,-109.8702 -109.8701,-109.8702 z" id="path12" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="1418625174442-clipPath1">
+        <path d="m 393.3555,196.7744 c -57.01,0 -103.2257,46.2157 -103.2257,103.2256 0,57.0099 46.2157,103.2256 103.2257,103.2256 57.0099,0 103.2256,-46.2157 103.2256,-103.2256 0,-57.0099 -46.2157,-103.2256 -103.2256,-103.2256 z" id="path15" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="1418625174190-clipPath1">
+        <path d="m -616.1475,-243.5 799.9999,0 0,600 -799.9999,0 0,-600 z" id="path18" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="1418625174291-clipPath1">
+        <path d="m -88.2587,-243.5 800,0 0,600 -800,0 0,-600 z" id="path21" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+    </defs>
+    <g id="g23" style="fill:#333399;stroke:none;text-rendering:geometricPrecision">
+      <path d="m 393.3555,354.4623 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z m 0,-48.6271 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z m 0,-48.6271 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z" clip-path="url(#1418625174377-clipPath1)" id="path25" ns1:connector-curvature="0" style="stroke:none" />
+      <path d="m 393.3555,354.4623 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z m 0,-48.6271 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z m 0,-48.6271 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -219.7404,0 c -3.2233,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6119,5.8352 5.8352,5.8352 z" clip-path="url(#1418625174347-clipPath1)" id="path27" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+    </g>
+    <g id="g29" style="fill:#009900;stroke:none;text-rendering:geometricPrecision">
+      <path d="m 393.3555,305.8352 206.4513,0 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -206.4513,0 c -3.2234,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6118,5.8352 5.8352,5.8352 z" clip-path="url(#1418625174377-clipPath1)" id="path31" ns1:connector-curvature="0" style="stroke:none" />
+      <path d="m 393.3555,305.8352 206.4513,0 c 3.2233,0 5.8352,-2.6119 5.8352,-5.8352 0,-3.2233 -2.6119,-5.8352 -5.8352,-5.8352 l -206.4513,0 c -3.2234,0 -5.8352,2.6119 -5.8352,5.8352 0,3.2233 2.6118,5.8352 5.8352,5.8352 z" clip-path="url(#1418625174442-clipPath1)" id="path33" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+    </g>
+    <g font-size="96px" transform="translate(616.1475,243.5)" id="g35" style="font-size:96px;font-family:sans-serif;fill:#009900;stroke:none;text-rendering:geometricPrecision">
+      <text x="0" xml:space="preserve" y="92" clip-path="url(#1418625174190-clipPath1)" id="text37" style="stroke:none">Cl</text>
+    </g>
+    <g font-size="96px" transform="translate(88.2587,243.5)" id="g39" style="font-size:96px;font-family:sans-serif;fill:#333399;stroke:none;text-rendering:geometricPrecision">
+      <text x="0" xml:space="preserve" y="92" clip-path="url(#1418625174291-clipPath1)" id="text41" style="stroke:none">N</text>
+    </g>
+  </g>
+</svg>

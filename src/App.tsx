@@ -393,6 +393,7 @@ export default function App() {
             subtitle={content.aliases.length > 0 ? undefined : content.subtitle}
             aliases={content.aliases}
             placeholder={content.moleculePlaceholder}
+            moleculeAsset={content.moleculeAsset}
             badges={content.heroBadges}
             badgeVariant="compact"
             onCategorySelect={selectCategory}
