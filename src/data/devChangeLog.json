@@ -1,5 +1,64 @@
 [
   {
+    "id": "20251020-130830-013c2a77",
+    "createdAt": "2025-10-20T13:08:30.193Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 20/10/2025, 15:08:28"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      },
+      {
+        "id": 62,
+        "title": "MDA",
+        "slug": "mda"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-  \"index-category\": \"\"\n+  \"index-category\": \"lysergamide\"\n\n# MDA · #62\n\n-    \"mechanism_of_action\": \"Serotonin-dopamine-norepinephrine releasing agent\",\n-    \"psychoactive_class\": \"Entactogen; Psychedelic; Stimulant; Hallucinogen\",\n+    \"mechanism_of_action\": \"Serotonin-dopamine-norepinephrine releasing agent; 5-HT2A receptor agonist; 5-HT2B receptor agonist; 5-HT2C receptor agonist\",\n+    \"psychoactive_class\": \"Entactogen; Stimulant\",",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251020-130327-70d56828",
+    "createdAt": "2025-10-20T13:03:27.845Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 20/10/2025, 15:03:25"
+    },
+    "articles": [
+      {
+        "id": 191,
+        "title": "LSD",
+        "slug": "lsd"
+      }
+    ],
+    "markdown": "# LSD · #191\n\n-  \"index-category\": \"\"\n+  \"index-category\": \"lysergamide\"",
+    "submittedBy": "WITCHY"
+  },
+  {
+    "id": "20251020-055501-976653da",
+    "createdAt": "2025-10-20T05:55:01.553Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 10/19/2025, 11:55:00 PM"
+    },
+    "articles": [
+      {
+        "id": 557,
+        "title": "1-(2,5-Dimethoxybenzyl) piperazine",
+        "slug": "1-2-5-dimethoxybenzyl-piperazine"
+      }
+    ],
+    "markdown": "# 1-(2,5-Dimethoxybenzyl) piperazine · #557\n\n-          \"canonical_routes\": [\n-            \"oral\"\n-          ],\n-          }\n+          },\n+          \"canonical_routes\": [\n+            \"oral\"\n+          ]\n-  \"index-category\": \"\"\n+  \"index-category\": \"Hidden\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20251019-201514-b1ba5d82",
     "createdAt": "2025-10-19T20:15:14.114Z",
     "commit": {
