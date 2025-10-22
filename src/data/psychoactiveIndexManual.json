@@ -14,162 +14,10 @@
             "2c-b",
             "dmt",
             "lsd",
-            "mda",
             "mescaline",
-            "psilocybin-mushrooms"
-          ]
-        },
-        {
-          "key": "2c-x",
-          "label": "2C-X",
-          "drugs": [
-            "2c-b",
-            "2c-b-an",
-            "2c-b-fly",
-            "2c-bz",
-            "2c-c",
-            "2c-d",
-            "2c-e",
-            "2c-ef",
-            "2c-f",
-            "2c-g",
-            "2c-i",
-            "2c-ip",
-            "2c-n",
-            "2c-p",
-            "2c-t",
-            "2c-t-2",
-            "2c-t-4",
-            "2c-t-7",
-            "2c-t-21",
-            "2c-tfm"
-          ]
-        },
-        {
-          "key": "other-psychedelics",
-          "label": "Other psychedelics",
-          "drugs": [
-            "boh-2c-b",
-            "fenfluramine",
-            "yopo"
-          ]
-        },
-        {
-          "key": "amphetamine",
-          "label": "Amphetamine",
-          "drugs": [
-            "2-5-dma"
-          ]
-        },
-        {
-          "key": "amphetamine-psychedelic",
-          "label": "Amphetamine (psychedelic)",
-          "drugs": [
-            "3c-e",
-            "3c-p",
-            "4c-d",
-            "aleph",
-            "aleph-2",
-            "aleph-6",
-            "bromo-dragonfly",
-            "dob",
-            "doc",
-            "doef",
-            "doet",
-            "doi",
-            "dom",
-            "mem",
-            "tma",
-            "tma-2",
-            "tma-6"
-          ]
-        },
-        {
-          "key": "benzofuran",
-          "label": "Benzofuran",
-          "drugs": [
-            "5-apb"
-          ]
-        },
-        {
-          "key": "lysergamide",
-          "label": "Lysergamide",
-          "drugs": [
-            "1b-lsd",
-            "1cp-al-lad",
-            "1cp-lsd",
-            "1cp-mipla",
-            "1d-lsd",
-            "1p-eth-lad",
-            "1p-lsd",
-            "1s-lsd",
-            "1v-lsd",
-            "al-lad",
-            "ald-52",
-            "eth-lad",
-            "lsa",
-            "lsm-775",
-            "lsz",
-            "mipla",
-            "pro-lad"
-          ]
-        },
-        {
-          "key": "phenethylamine",
-          "label": "Phenethylamine",
-          "drugs": [
-            "2-5-dma"
-          ]
-        },
-        {
-          "key": "phenethylamine-n-benzylated",
-          "label": "Phenethylamine (N-benzylated)",
-          "drugs": [
-            "2c-b-fly-nbome",
-            "2c-t-4-nbome",
-            "2c-t-7-nbome",
-            "25b-nboh",
-            "25c-nb3ome",
-            "25c-nboh",
-            "25cn-nboh",
-            "25d-nbome",
-            "25e-nboh",
-            "25h-nbome",
-            "25i-nbf",
-            "25i-nbmd",
-            "25i-nboh",
-            "25i-nbome",
-            "25ip-nbome",
-            "25n-nbome",
-            "25p-nbome",
-            "25t-2-nbome",
-            "25t-nbome",
-            "c30-nbome"
-          ]
-        },
-        {
-          "key": "phenethylamine-substituted",
-          "label": "Phenethylamine (substituted)",
-          "drugs": [
-            "pma"
-          ]
-        },
-        {
-          "key": "piperazine",
-          "label": "Piperazine",
-          "drugs": [
-            "1-2-5-dimethoxybenzyl-piperazine"
-          ]
-        },
-        {
-          "key": "scaline",
-          "label": "Scaline",
-          "drugs": [
-            "aem",
-            "allylescaline",
-            "escaline",
-            "mal",
-            "proscaline"
+            "psilocybin-mushrooms",
+            "5-meo-dmt",
+            "ayahuasca"
           ]
         },
         {
@@ -215,10 +63,128 @@
           ]
         },
         {
-          "key": "carboline",
-          "label": "β-carboline",
+          "key": "lysergamide",
+          "label": "Lysergamide",
           "drugs": [
-            "ayahuasca"
+            "1b-lsd",
+            "1cp-al-lad",
+            "1cp-lsd",
+            "1cp-mipla",
+            "1d-lsd",
+            "1p-eth-lad",
+            "1p-lsd",
+            "1s-lsd",
+            "1v-lsd",
+            "al-lad",
+            "ald-52",
+            "eth-lad",
+            "lsa",
+            "lsm-775",
+            "lsz",
+            "mipla",
+            "pro-lad"
+          ]
+        },
+        {
+          "key": "2c-x",
+          "label": "2C-X",
+          "drugs": [
+            "2c-b",
+            "2c-b-an",
+            "2c-b-fly",
+            "2c-bz",
+            "2c-c",
+            "2c-d",
+            "2c-e",
+            "2c-ef",
+            "2c-f",
+            "2c-g",
+            "2c-i",
+            "2c-ip",
+            "2c-n",
+            "2c-p",
+            "2c-t",
+            "2c-t-2",
+            "2c-t-4",
+            "2c-t-7",
+            "2c-t-21",
+            "2c-tfm"
+          ]
+        },
+        {
+          "key": "scaline",
+          "label": "Scalines",
+          "drugs": [
+            "aem",
+            "allylescaline",
+            "escaline",
+            "mal",
+            "proscaline"
+          ]
+        },
+        {
+          "key": "amphetamine-psychedelic",
+          "label": "Amphetamines",
+          "drugs": [
+            "3c-e",
+            "3c-p",
+            "4c-d",
+            "aleph",
+            "aleph-2",
+            "aleph-6",
+            "bromo-dragonfly",
+            "dob",
+            "doc",
+            "doef",
+            "doet",
+            "doi",
+            "dom",
+            "mem",
+            "tma",
+            "tma-2",
+            "tma-6"
+          ]
+        },
+        {
+          "key": "phenethylamine-n-benzylated",
+          "label": "NBOMes",
+          "drugs": [
+            "2c-b-fly-nbome",
+            "2c-t-4-nbome",
+            "2c-t-7-nbome",
+            "25b-nboh",
+            "25c-nb3ome",
+            "25c-nboh",
+            "25cn-nboh",
+            "25d-nbome",
+            "25e-nboh",
+            "25h-nbome",
+            "25i-nbf",
+            "25i-nbmd",
+            "25i-nboh",
+            "25i-nbome",
+            "25ip-nbome",
+            "25n-nbome",
+            "25p-nbome",
+            "25t-2-nbome",
+            "25t-nbome",
+            "c30-nbome"
+          ]
+        },
+        {
+          "key": "phenethylamine-substituted",
+          "label": "Phenethylamine (substituted)",
+          "drugs": [
+            "pma"
+          ]
+        },
+        {
+          "key": "other-psychedelics",
+          "label": "Other psychedelics",
+          "drugs": [
+            "boh-2c-b",
+            "fenfluramine",
+            "yopo"
           ]
         }
       ],
