@@ -1,11 +1,12 @@
 import dosewikiLogo from "../../assets/dosewiki-logo.svg";
-import { HeroBadge } from "../../types/content";
+import type { HeroBadge, MoleculeAsset } from "../../types/content";
 
 interface HeroProps {
   title: string;
   subtitle?: string;
   aliases?: string[];
   placeholder: string;
+  moleculeAsset?: MoleculeAsset;
   badges?: HeroBadge[];
   badgeVariant?: "default" | "compact";
   onCategorySelect?: (categoryKey: string) => void;
@@ -16,6 +17,7 @@ export function Hero({
   subtitle,
   aliases = [],
   placeholder,
+  moleculeAsset,
   badges = [],
   badgeVariant = "default",
   onCategorySelect,
@@ -44,25 +46,42 @@ export function Hero({
     ? `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`
     : `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`;
 
+  const moleculeAlt = moleculeAsset
+    ? `${moleculeAsset.matchedValue || title} molecule diagram`
+    : undefined;
+
+  const heroImageProps = moleculeAsset
+    ? {}
+    : ({ role: "img", "aria-label": "Molecule placeholder image" } as const);
+
   return (
     <section className="mx-auto max-w-6xl px-4 pb-6 pt-14 text-center">
       <div className="flex flex-col items-center gap-6">
         <div
           className="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#030112] via-[#07031a] to-[#110a24] text-4xl font-semibold tracking-[0.65em] text-white/35 shadow-[0_28px_65px_-36px_rgba(0,0,0,0.95)]"
-          role="img"
-          aria-label="Molecule placeholder image"
+          {...heroImageProps}
         >
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.35em] text-white/65">
-            molecule placeholder image
-          </span>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff14,transparent_75%)]" aria-hidden="true" />
-          <img
-            src={dosewikiLogo}
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 mx-auto my-auto h-44 w-44 scale-105 opacity-45 mix-blend-multiply saturate-0 brightness-75"
-          />
-          <span className="sr-only">{placeholder}</span>
+          {moleculeAsset ? (
+            <img
+              src={moleculeAsset.url}
+              alt={moleculeAlt}
+              className="pointer-events-none h-full w-full scale-95 object-contain p-6 drop-shadow-[0_18px_32px_rgba(32,5,65,0.45)]"
+            />
+          ) : (
+            <>
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.35em] text-white/65">
+                molecule placeholder image
+              </span>
+              <img
+                src={dosewikiLogo}
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 mx-auto my-auto h-44 w-44 scale-105 opacity-45 mix-blend-multiply saturate-0 brightness-75"
+              />
+              <span className="sr-only">{placeholder}</span>
+            </>
+          )}
         </div>
         <h1 className="text-4xl font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-6xl">
           {title}

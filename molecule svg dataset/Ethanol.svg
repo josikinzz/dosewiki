@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:ns2="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns4="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="471.20615" stroke-miterlimit="10" font-weight="normal" height="173.20811" font-style="normal" font-size="12px" id="svg2" version="1.1" ns1:version="0.91 r13725" ns2:docname="Ethanol.svg" style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#000000;fill-opacity:1;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto">
+  <metadata id="metadata37">
+    <rdf:RDF>
+      <ns4:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </ns4:Work>
+    </rdf:RDF>
+  </metadata>
+  <ns2:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" ns1:pageopacity="0" ns1:pageshadow="2" ns1:window-width="1060" ns1:window-height="480" id="namedview35" showgrid="false" fit-margin-top="10" fit-margin-left="10" fit-margin-right="10" fit-margin-bottom="10" ns1:zoom="0.36375" ns1:cx="235.26414" ns1:cy="-56.5599" ns1:window-x="0" ns1:window-y="0" ns1:window-maximized="0" ns1:current-layer="svg2" />
+  
+  <defs id="genericDefs" />
+  <g id="g5" transform="translate(-164.73586,-70.231981)" style="fill:#000000;stroke:none">
+    <defs id="556595606755-defs1">
+      <clipPath clipPathUnits="userSpaceOnUse" id="556595606870-clipPath1">
+        <path d="M 0,0 800,0 800,600 0,600 0,0 Z" id="path9" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="556595606314-clipPath1">
+        <path d="m 353.9547,0.5204 c -46.6602,0 -84.4858,37.8256 -84.4858,84.4858 0,46.6602 37.8256,84.4858 84.4858,84.4858 46.6602,0 84.4858,-37.8256 84.4858,-84.4858 0,-46.6602 -37.8256,-84.4858 -84.4858,-84.4858 z" id="path12" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+      <clipPath clipPathUnits="userSpaceOnUse" id="556595606298-clipPath1">
+        <path d="m -513.2388,-149.2683 799.9999,0 0,600.0001 -799.9999,0 0,-600.0001 z" id="path15" ns1:connector-curvature="0" style="stroke:none" />
+      </clipPath>
+    </defs>
+    <g id="g17" style="fill:#ff0000;stroke:none;text-rendering:geometricPrecision">
+      <path d="m 351.5681,89.1399 146.3336,84.4858 c 2.2835,1.3183 5.202,0.5363 6.5204,-1.7471 1.3183,-2.2834 0.5363,-5.202 -1.7471,-6.5203 L 356.3413,80.8725 c -2.2834,-1.3183 -5.202,-0.5363 -6.5203,1.7471 -1.3184,2.2835 -0.5363,5.202 1.7471,6.5203 z" clip-path="url(#556595606870-clipPath1)" id="path19" ns1:connector-curvature="0" style="stroke:none" />
+      <path d="m 351.5681,89.1399 146.3336,84.4858 c 2.2835,1.3183 5.202,0.5363 6.5204,-1.7471 1.3183,-2.2834 0.5363,-5.202 -1.7471,-6.5203 L 356.3413,80.8725 c -2.2834,-1.3183 -5.202,-0.5363 -6.5203,1.7471 -1.3184,2.2835 -0.5363,5.202 1.7471,6.5203 z" clip-path="url(#556595606314-clipPath1)" id="path21" ns1:connector-curvature="0" style="fill:#000000;stroke:none" />
+    </g>
+    <g id="g23" style="text-rendering:geometricPrecision;fill:#000000;stroke:none">
+      <path d="M 181.8967,189.8556 356.3413,89.1399 c 2.2835,-1.3183 3.0655,-4.2369 1.7471,-6.5203 -1.3183,-2.2834 -4.2369,-3.0655 -6.5203,-1.7471 L 177.1235,181.5882 c -2.2835,1.3183 -3.0655,4.2368 -1.7471,6.5203 1.3183,2.2834 4.2368,3.0654 6.5203,1.7471 z" clip-path="url(#556595606870-clipPath1)" id="path25" ns1:connector-curvature="0" style="stroke:none" />
+    </g>
+    <g id="g27" style="fill:#ffffff;stroke:none;text-rendering:geometricPrecision">
+      </g>
+    <g font-size="78px" transform="translate(513.2389,149.2683)" id="g31" style="font-size:78px;font-family:sans-serif;fill:#ff0000;stroke:none;text-rendering:geometricPrecision">
+      <text x="0" xml:space="preserve" y="75" clip-path="url(#556595606298-clipPath1)" id="text33" style="stroke:none">OH</text>
+    </g>
+  </g>
+</svg>

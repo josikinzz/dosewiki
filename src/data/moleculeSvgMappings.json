@@ -1,0 +1,2050 @@
+{
+  "_meta": {
+    "description": "Maps molecule SVG filenames to article entries from src/data/articles.json. One SVG per article.",
+    "generatedAt": "2025-10-22T19:58:31.273Z",
+    "totalSvgFiles": 732,
+    "matchedCount": 288,
+    "unmatchedCount": 437,
+    "notes": "matchedField refers to the field on drug_info or title used for the lookup. deduplicated entries keep a single representative per article."
+  },
+  "mappings": [
+    {
+      "filename": "1,4-Butanediol.svg",
+      "articleId": 284,
+      "articleTitle": "1,4-Butanediol",
+      "matchedField": "title",
+      "matchedValue": "1,4-Butanediol"
+    },
+    {
+      "filename": "1B-LSD.svg",
+      "articleId": 375,
+      "articleTitle": "1B-LSD",
+      "matchedField": "title",
+      "matchedValue": "1B-LSD"
+    },
+    {
+      "filename": "1cP-AL-LAD.svg",
+      "articleId": 548,
+      "articleTitle": "1cP-AL-LAD",
+      "matchedField": "title",
+      "matchedValue": "1cP-AL-LAD"
+    },
+    {
+      "filename": "1cP-LSD.svg",
+      "articleId": 119,
+      "articleTitle": "1cP-LSD",
+      "matchedField": "title",
+      "matchedValue": "1cP-LSD"
+    },
+    {
+      "filename": "1cP-MiPLA.svg",
+      "articleId": 595,
+      "articleTitle": "1cP-MiPLA",
+      "matchedField": "title",
+      "matchedValue": "1cP-MiPLA"
+    },
+    {
+      "filename": "1P-ETH-LAD.svg",
+      "articleId": 120,
+      "articleTitle": "1P-ETH-LAD",
+      "matchedField": "title",
+      "matchedValue": "1P-ETH-LAD"
+    },
+    {
+      "filename": "1P-LSD.svg",
+      "articleId": 118,
+      "articleTitle": "1P-LSD",
+      "matchedField": "title",
+      "matchedValue": "1P-LSD"
+    },
+    {
+      "filename": "1V-LSD.svg",
+      "articleId": 628,
+      "articleTitle": "1V-LSD",
+      "matchedField": "title",
+      "matchedValue": "1V-LSD"
+    },
+    {
+      "filename": "2-AI.svg",
+      "articleId": 149,
+      "articleTitle": "2-AI",
+      "matchedField": "title",
+      "matchedValue": "2-AI"
+    },
+    {
+      "filename": "2-FA.svg",
+      "articleId": 355,
+      "articleTitle": "2-FA",
+      "matchedField": "title",
+      "matchedValue": "2-FA"
+    },
+    {
+      "filename": "2-FDCK.svg",
+      "articleId": 465,
+      "articleTitle": "2-FDCK",
+      "matchedField": "title",
+      "matchedValue": "2-FDCK"
+    },
+    {
+      "filename": "2-FEA.svg",
+      "articleId": 492,
+      "articleTitle": "2-FEA",
+      "matchedField": "title",
+      "matchedValue": "2-FEA"
+    },
+    {
+      "filename": "2-FMA.svg",
+      "articleId": 296,
+      "articleTitle": "2-FMA",
+      "matchedField": "title",
+      "matchedValue": "2-FMA"
+    },
+    {
+      "filename": "2-MAPB.svg",
+      "articleId": 555,
+      "articleTitle": "2-MAPB",
+      "matchedField": "title",
+      "matchedValue": "2-MAPB"
+    },
+    {
+      "filename": "2,5-DMA.svg",
+      "articleId": 650,
+      "articleTitle": "2,5-DMA",
+      "matchedField": "title",
+      "matchedValue": "2,5-DMA"
+    },
+    {
+      "filename": "25B-NBOH.svg",
+      "articleId": 342,
+      "articleTitle": "25B-NBOH",
+      "matchedField": "title",
+      "matchedValue": "25B-NBOH"
+    },
+    {
+      "filename": "25C-NBOH.svg",
+      "articleId": 652,
+      "articleTitle": "25C-NBOH",
+      "matchedField": "title",
+      "matchedValue": "25C-NBOH"
+    },
+    {
+      "filename": "25D-NBOMe.svg",
+      "articleId": 653,
+      "articleTitle": "25D-NBOMe",
+      "matchedField": "title",
+      "matchedValue": "25D-NBOMe"
+    },
+    {
+      "filename": "25I-NBOH.svg",
+      "articleId": 529,
+      "articleTitle": "25I-NBOH",
+      "matchedField": "title",
+      "matchedValue": "25I-NBOH"
+    },
+    {
+      "filename": "25I-NBOMe.svg",
+      "articleId": 82,
+      "articleTitle": "25I-NBOMe",
+      "matchedField": "title",
+      "matchedValue": "25I-NBOMe"
+    },
+    {
+      "filename": "25iP-NBOMe.svg",
+      "articleId": 509,
+      "articleTitle": "25iP-NBOMe",
+      "matchedField": "title",
+      "matchedValue": "25iP-NBOMe"
+    },
+    {
+      "filename": "25N-NBOMe.svg",
+      "articleId": 654,
+      "articleTitle": "25N-NBOMe",
+      "matchedField": "title",
+      "matchedValue": "25N-NBOMe"
+    },
+    {
+      "filename": "2C-B-FLY.svg",
+      "articleId": 117,
+      "articleTitle": "2C-B-FLY",
+      "matchedField": "title",
+      "matchedValue": "2C-B-FLY"
+    },
+    {
+      "filename": "2C-B.svg",
+      "articleId": 111,
+      "articleTitle": "2C-B",
+      "matchedField": "title",
+      "matchedValue": "2C-B"
+    },
+    {
+      "filename": "2C-C.svg",
+      "articleId": 321,
+      "articleTitle": "2C-C",
+      "matchedField": "title",
+      "matchedValue": "2C-C"
+    },
+    {
+      "filename": "2C-D.svg",
+      "articleId": 295,
+      "articleTitle": "2C-D",
+      "matchedField": "title",
+      "matchedValue": "2C-D"
+    },
+    {
+      "filename": "2C-E.svg",
+      "articleId": 122,
+      "articleTitle": "2C-E",
+      "matchedField": "title",
+      "matchedValue": "2C-E"
+    },
+    {
+      "filename": "2C-EF.svg",
+      "articleId": 281,
+      "articleTitle": "2C-EF",
+      "matchedField": "title",
+      "matchedValue": "2C-EF"
+    },
+    {
+      "filename": "2C-I.svg",
+      "articleId": 141,
+      "articleTitle": "2C-I",
+      "matchedField": "title",
+      "matchedValue": "2C-I"
+    },
+    {
+      "filename": "2C-iP.svg",
+      "articleId": 401,
+      "articleTitle": "2C-iP",
+      "matchedField": "title",
+      "matchedValue": "2C-iP"
+    },
+    {
+      "filename": "2C-P.svg",
+      "articleId": 273,
+      "articleTitle": "2C-P",
+      "matchedField": "title",
+      "matchedValue": "2C-P"
+    },
+    {
+      "filename": "2C-T-2.svg",
+      "articleId": 410,
+      "articleTitle": "2C-T-2",
+      "matchedField": "title",
+      "matchedValue": "2C-T-2"
+    },
+    {
+      "filename": "2C-T-21.svg",
+      "articleId": 392,
+      "articleTitle": "2C-T-21",
+      "matchedField": "title",
+      "matchedValue": "2C-T-21"
+    },
+    {
+      "filename": "2C-T-4.svg",
+      "articleId": 541,
+      "articleTitle": "2C-T-4",
+      "matchedField": "title",
+      "matchedValue": "2C-T-4"
+    },
+    {
+      "filename": "2C-T-7.svg",
+      "articleId": 540,
+      "articleTitle": "2C-T-7",
+      "matchedField": "title",
+      "matchedValue": "2C-T-7"
+    },
+    {
+      "filename": "2C-T.svg",
+      "articleId": 649,
+      "articleTitle": "2C-T",
+      "matchedField": "title",
+      "matchedValue": "2C-T"
+    },
+    {
+      "filename": "2C-TFM.svg",
+      "articleId": 468,
+      "articleTitle": "2C-TFM",
+      "matchedField": "title",
+      "matchedValue": "2C-TFM"
+    },
+    {
+      "filename": "3-CEC.svg",
+      "articleId": 503,
+      "articleTitle": "3-CEC",
+      "matchedField": "title",
+      "matchedValue": "3-CEC"
+    },
+    {
+      "filename": "3-CMC.svg",
+      "articleId": 391,
+      "articleTitle": "3-CMC",
+      "matchedField": "title",
+      "matchedValue": "3-CMC"
+    },
+    {
+      "filename": "3-FA.svg",
+      "articleId": 157,
+      "articleTitle": "3-Fluoroamphetamine",
+      "matchedField": "alternative_name",
+      "matchedValue": "3-FA"
+    },
+    {
+      "filename": "3-FEA.svg",
+      "articleId": 363,
+      "articleTitle": "3-FEA",
+      "matchedField": "title",
+      "matchedValue": "3-FEA"
+    },
+    {
+      "filename": "3-FMA.svg",
+      "articleId": 70,
+      "articleTitle": "3-Fluoromethamphetamine",
+      "matchedField": "alternative_name",
+      "matchedValue": "3-FMA"
+    },
+    {
+      "filename": "3-FMC.svg",
+      "articleId": 390,
+      "articleTitle": "3-FMC",
+      "matchedField": "title",
+      "matchedValue": "3-FMC"
+    },
+    {
+      "filename": "3-FPM.svg",
+      "articleId": 230,
+      "articleTitle": "3-Fluorophenmetrazine",
+      "matchedField": "alternative_name",
+      "matchedValue": "3-FPM"
+    },
+    {
+      "filename": "3-HO-PCE.svg",
+      "articleId": 359,
+      "articleTitle": "3-HO-PCE",
+      "matchedField": "title",
+      "matchedValue": "3-HO-PCE"
+    },
+    {
+      "filename": "3-HO-PCP.svg",
+      "articleId": 276,
+      "articleTitle": "3-HO-PCP",
+      "matchedField": "title",
+      "matchedValue": "3-HO-PCP"
+    },
+    {
+      "filename": "3-MeO-PCE.svg",
+      "articleId": 274,
+      "articleTitle": "3-MeO-PCE",
+      "matchedField": "title",
+      "matchedValue": "3-MeO-PCE"
+    },
+    {
+      "filename": "3-MeO-PCMo.svg",
+      "articleId": 389,
+      "articleTitle": "3-MeO-PCMo",
+      "matchedField": "title",
+      "matchedValue": "3-MeO-PCMo"
+    },
+    {
+      "filename": "3-MeO-PCP.svg",
+      "articleId": 33,
+      "articleTitle": "3-MeO-PCP",
+      "matchedField": "title",
+      "matchedValue": "3-MeO-PCP"
+    },
+    {
+      "filename": "3-MMC.svg",
+      "articleId": 50,
+      "articleTitle": "3-MMC",
+      "matchedField": "title",
+      "matchedValue": "3-MMC"
+    },
+    {
+      "filename": "3-Quinuclidinyl benzilate.svg",
+      "articleId": 80,
+      "articleTitle": "3-Quinuclidinyl benzilate",
+      "matchedField": "title",
+      "matchedValue": "3-Quinuclidinyl benzilate"
+    },
+    {
+      "filename": "3,4-CTMP.svg",
+      "articleId": 682,
+      "articleTitle": "3,4-Dichloromethylphenidate",
+      "matchedField": "alternative_name",
+      "matchedValue": "3,4-CTMP"
+    },
+    {
+      "filename": "3C-E.svg",
+      "articleId": 533,
+      "articleTitle": "3C-E",
+      "matchedField": "title",
+      "matchedValue": "3C-E"
+    },
+    {
+      "filename": "3C-P.svg",
+      "articleId": 315,
+      "articleTitle": "3C-P",
+      "matchedField": "title",
+      "matchedValue": "3C-P"
+    },
+    {
+      "filename": "4-AcO-DET.svg",
+      "articleId": 180,
+      "articleTitle": "4-AcO-DET",
+      "matchedField": "title",
+      "matchedValue": "4-AcO-DET"
+    },
+    {
+      "filename": "4-AcO-DiPT.svg",
+      "articleId": 638,
+      "articleTitle": "4-AcO-DiPT",
+      "matchedField": "title",
+      "matchedValue": "4-AcO-DiPT"
+    },
+    {
+      "filename": "4-AcO-DMT.svg",
+      "articleId": 102,
+      "articleTitle": "4-AcO-DMT",
+      "matchedField": "title",
+      "matchedValue": "4-AcO-DMT"
+    },
+    {
+      "filename": "4-AcO-MiPT.svg",
+      "articleId": 639,
+      "articleTitle": "4-AcO-MiPT",
+      "matchedField": "title",
+      "matchedValue": "4-AcO-MiPT"
+    },
+    {
+      "filename": "4-BA.svg",
+      "articleId": 85,
+      "articleTitle": "4-BA",
+      "matchedField": "title",
+      "matchedValue": "4-BA"
+    },
+    {
+      "filename": "4-CA.svg",
+      "articleId": 83,
+      "articleTitle": "4-CA",
+      "matchedField": "title",
+      "matchedValue": "4-CA"
+    },
+    {
+      "filename": "4-CEC.svg",
+      "articleId": 316,
+      "articleTitle": "4-Chloroethcathinone",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-CEC"
+    },
+    {
+      "filename": "4-CMC.svg",
+      "articleId": 227,
+      "articleTitle": "4-Chloromethcathinone",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-CMC"
+    },
+    {
+      "filename": "4-ethylpentedrone.svg",
+      "articleId": 562,
+      "articleTitle": "4-EPD",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-Ethylpentedrone"
+    },
+    {
+      "filename": "4-FA.svg",
+      "articleId": 369,
+      "articleTitle": "4-FA",
+      "matchedField": "title",
+      "matchedValue": "4-FA"
+    },
+    {
+      "filename": "4-FMA.svg",
+      "articleId": 147,
+      "articleTitle": "4-FMA",
+      "matchedField": "title",
+      "matchedValue": "4-FMA"
+    },
+    {
+      "filename": "4-HO-DET.svg",
+      "articleId": 640,
+      "articleTitle": "4-HO-DET",
+      "matchedField": "title",
+      "matchedValue": "4-HO-DET"
+    },
+    {
+      "filename": "4-HO-DiPT.svg",
+      "articleId": 641,
+      "articleTitle": "4-HO-DiPT",
+      "matchedField": "title",
+      "matchedValue": "4-HO-DiPT"
+    },
+    {
+      "filename": "4-HO-EPT.svg",
+      "articleId": 642,
+      "articleTitle": "4-HO-EPT",
+      "matchedField": "title",
+      "matchedValue": "4-HO-EPT"
+    },
+    {
+      "filename": "4-HO-MET.svg",
+      "articleId": 73,
+      "articleTitle": "4-HO-MET",
+      "matchedField": "title",
+      "matchedValue": "4-HO-MET"
+    },
+    {
+      "filename": "4-HO-MPT.svg",
+      "articleId": 643,
+      "articleTitle": "4-HO-MPT",
+      "matchedField": "title",
+      "matchedValue": "4-HO-MPT"
+    },
+    {
+      "filename": "4-MEC.svg",
+      "articleId": 340,
+      "articleTitle": "4-MEC",
+      "matchedField": "title",
+      "matchedValue": "4-MEC"
+    },
+    {
+      "filename": "4-MeO-PCP.svg",
+      "articleId": 656,
+      "articleTitle": "4-MeO-PCP",
+      "matchedField": "title",
+      "matchedValue": "4-MeO-PCP"
+    },
+    {
+      "filename": "4-Methylaminorex.svg",
+      "articleId": 426,
+      "articleTitle": "4-MAR",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-Methylaminorex"
+    },
+    {
+      "filename": "4-Methylmethylphenidate.svg",
+      "articleId": 94,
+      "articleTitle": "4-Me-TMP",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-Methylmethylphenidate"
+    },
+    {
+      "filename": "4-MTA.svg",
+      "articleId": 156,
+      "articleTitle": "4-Methylthioamphetamine",
+      "matchedField": "alternative_name",
+      "matchedValue": "4-MTA"
+    },
+    {
+      "filename": "4F-EPH.svg",
+      "articleId": 683,
+      "articleTitle": "4F-EPH",
+      "matchedField": "title",
+      "matchedValue": "4F-EPH"
+    },
+    {
+      "filename": "4F-MPH.svg",
+      "articleId": 150,
+      "articleTitle": "4-Fluoromethylphenidate",
+      "matchedField": "chemical_name",
+      "matchedValue": "4F-MPH"
+    },
+    {
+      "filename": "5-APB.svg",
+      "articleId": 58,
+      "articleTitle": "5-APB",
+      "matchedField": "title",
+      "matchedValue": "5-APB"
+    },
+    {
+      "filename": "5-DBFPV.svg",
+      "articleId": 411,
+      "articleTitle": "5-DBFPV",
+      "matchedField": "title",
+      "matchedValue": "5-DBFPV"
+    },
+    {
+      "filename": "5-EAPB.svg",
+      "articleId": 385,
+      "articleTitle": "5-EAPB",
+      "matchedField": "title",
+      "matchedValue": "5-EAPB"
+    },
+    {
+      "filename": "5-MAPB.svg",
+      "articleId": 521,
+      "articleTitle": "5-MAPB",
+      "matchedField": "title",
+      "matchedValue": "5-MAPB"
+    },
+    {
+      "filename": "5-MAPDB.svg",
+      "articleId": 606,
+      "articleTitle": "5-MAPDB",
+      "matchedField": "title",
+      "matchedValue": "5-MAPDB"
+    },
+    {
+      "filename": "5-MeO-DALT.svg",
+      "articleId": 370,
+      "articleTitle": "5-MeO-DALT",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-DALT"
+    },
+    {
+      "filename": "5-MeO-DiBF.svg",
+      "articleId": 425,
+      "articleTitle": "5-MeO-DiBF",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-DiBF"
+    },
+    {
+      "filename": "5-MeO-DiPT.svg",
+      "articleId": 644,
+      "articleTitle": "5-MeO-DiPT",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-DiPT"
+    },
+    {
+      "filename": "5-MeO-DMT.svg",
+      "articleId": 60,
+      "articleTitle": "5-MeO-DMT",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-DMT"
+    },
+    {
+      "filename": "5-MeO-DPT.svg",
+      "articleId": 371,
+      "articleTitle": "5-MeO-DPT",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-DPT"
+    },
+    {
+      "filename": "5-MeO-MiPT.svg",
+      "articleId": 372,
+      "articleTitle": "5-MeO-MiPT",
+      "matchedField": "title",
+      "matchedValue": "5-MeO-MiPT"
+    },
+    {
+      "filename": "6-APB.svg",
+      "articleId": 406,
+      "articleTitle": "6-APB",
+      "matchedField": "title",
+      "matchedValue": "6-APB"
+    },
+    {
+      "filename": "6-APDB.svg",
+      "articleId": 697,
+      "articleTitle": "6-APDB",
+      "matchedField": "title",
+      "matchedValue": "6-APDB"
+    },
+    {
+      "filename": "7-Hydroxymitragynine.svg",
+      "articleId": 423,
+      "articleTitle": "7-OH",
+      "matchedField": "chemical_name",
+      "matchedValue": "7-Hydroxymitragynine"
+    },
+    {
+      "filename": "AB-FUBINACA.svg",
+      "articleId": 664,
+      "articleTitle": "AB-FUBINACA",
+      "matchedField": "title",
+      "matchedValue": "AB-FUBINACA"
+    },
+    {
+      "filename": "Aceburic acid.svg",
+      "articleId": 478,
+      "articleTitle": "Aceburic acid",
+      "matchedField": "title",
+      "matchedValue": "Aceburic acid"
+    },
+    {
+      "filename": "Acetylfentanyl.svg",
+      "articleId": 674,
+      "articleTitle": "Acetylfentanyl",
+      "matchedField": "title",
+      "matchedValue": "Acetylfentanyl"
+    },
+    {
+      "filename": "Adrafinil.svg",
+      "articleId": 42,
+      "articleTitle": "Adrafinil",
+      "matchedField": "title",
+      "matchedValue": "Adrafinil"
+    },
+    {
+      "filename": "AL-LAD.svg",
+      "articleId": 412,
+      "articleTitle": "AL-LAD",
+      "matchedField": "title",
+      "matchedValue": "AL-LAD"
+    },
+    {
+      "filename": "ALD-52.svg",
+      "articleId": 629,
+      "articleTitle": "ALD-52",
+      "matchedField": "title",
+      "matchedValue": "ALD-52"
+    },
+    {
+      "filename": "Aleph-2.svg",
+      "articleId": 268,
+      "articleTitle": "ALEPH-2",
+      "matchedField": "title",
+      "matchedValue": "ALEPH-2"
+    },
+    {
+      "filename": "Aleph-6.svg",
+      "articleId": 269,
+      "articleTitle": "ALEPH-6",
+      "matchedField": "title",
+      "matchedValue": "ALEPH-6"
+    },
+    {
+      "filename": "Aleph.svg",
+      "articleId": 49,
+      "articleTitle": "ALEPH",
+      "matchedField": "title",
+      "matchedValue": "ALEPH"
+    },
+    {
+      "filename": "Allylescaline.svg",
+      "articleId": 646,
+      "articleTitle": "Allylescaline",
+      "matchedField": "title",
+      "matchedValue": "Allylescaline"
+    },
+    {
+      "filename": "Alpha-GPC.svg",
+      "articleId": 700,
+      "articleTitle": "Alpha-GPC",
+      "matchedField": "title",
+      "matchedValue": "Alpha-GPC"
+    },
+    {
+      "filename": "Alprazolam.svg",
+      "articleId": 91,
+      "articleTitle": "Alprazolam",
+      "matchedField": "title",
+      "matchedValue": "Alprazolam"
+    },
+    {
+      "filename": "Aminorex.svg",
+      "articleId": 223,
+      "articleTitle": "Aminorex",
+      "matchedField": "title",
+      "matchedValue": "Aminorex"
+    },
+    {
+      "filename": "Amobarbital.svg",
+      "articleId": 615,
+      "articleTitle": "Amobarbital",
+      "matchedField": "title",
+      "matchedValue": "Amobarbital"
+    },
+    {
+      "filename": "Aniracetam.svg",
+      "articleId": 601,
+      "articleTitle": "Aniracetam",
+      "matchedField": "title",
+      "matchedValue": "Aniracetam"
+    },
+    {
+      "filename": "ARIADNE.svg",
+      "articleId": 272,
+      "articleTitle": "4C-D",
+      "matchedField": "chemical_name",
+      "matchedValue": "ARIADNE"
+    },
+    {
+      "filename": "Armodafinil.svg",
+      "articleId": 602,
+      "articleTitle": "Armodafinil",
+      "matchedField": "title",
+      "matchedValue": "Armodafinil"
+    },
+    {
+      "filename": "Atropine.svg",
+      "articleId": 599,
+      "articleTitle": "Atropine",
+      "matchedField": "title",
+      "matchedValue": "Atropine"
+    },
+    {
+      "filename": "Baclofen.svg",
+      "articleId": 46,
+      "articleTitle": "Baclofen",
+      "matchedField": "title",
+      "matchedValue": "Baclofen"
+    },
+    {
+      "filename": "Benzphetamine.svg",
+      "articleId": 190,
+      "articleTitle": "Benzphetamine",
+      "matchedField": "title",
+      "matchedValue": "Benzphetamine"
+    },
+    {
+      "filename": "Benzydamine.svg",
+      "articleId": 659,
+      "articleTitle": "Benzydamine",
+      "matchedField": "title",
+      "matchedValue": "Benzydamine"
+    },
+    {
+      "filename": "Bromantane.svg",
+      "articleId": 294,
+      "articleTitle": "Bromantane",
+      "matchedField": "title",
+      "matchedValue": "Bromantane"
+    },
+    {
+      "filename": "Bromazepam.svg",
+      "articleId": 123,
+      "articleTitle": "Bromazepam",
+      "matchedField": "title",
+      "matchedValue": "Bromazepam"
+    },
+    {
+      "filename": "Bromo-DragonFLY.svg",
+      "articleId": 205,
+      "articleTitle": "Bromo-DragonFLY",
+      "matchedField": "title",
+      "matchedValue": "Bromo-DragonFLY"
+    },
+    {
+      "filename": "Brotizolam.svg",
+      "articleId": 132,
+      "articleTitle": "Brotizolam",
+      "matchedField": "title",
+      "matchedValue": "Brotizolam"
+    },
+    {
+      "filename": "Bufotenin.svg",
+      "articleId": 597,
+      "articleTitle": "Bufotenin",
+      "matchedField": "title",
+      "matchedValue": "Bufotenin"
+    },
+    {
+      "filename": "Buprenorphine.svg",
+      "articleId": 210,
+      "articleTitle": "Buprenorphine",
+      "matchedField": "title",
+      "matchedValue": "Buprenorphine"
+    },
+    {
+      "filename": "Bupropion.svg",
+      "articleId": 202,
+      "articleTitle": "Bupropion",
+      "matchedField": "title",
+      "matchedValue": "Bupropion"
+    },
+    {
+      "filename": "Butylone.svg",
+      "articleId": 249,
+      "articleTitle": "Butylone",
+      "matchedField": "title",
+      "matchedValue": "Butylone"
+    },
+    {
+      "filename": "Caffeine.svg",
+      "articleId": 214,
+      "articleTitle": "Caffeine",
+      "matchedField": "title",
+      "matchedValue": "Caffeine"
+    },
+    {
+      "filename": "Carisoprodol.svg",
+      "articleId": 174,
+      "articleTitle": "Carisoprodol",
+      "matchedField": "title",
+      "matchedValue": "Carisoprodol"
+    },
+    {
+      "filename": "Chloral hydrate.svg",
+      "articleId": 217,
+      "articleTitle": "Chloral Hydrate",
+      "matchedField": "title",
+      "matchedValue": "Chloral Hydrate"
+    },
+    {
+      "filename": "Chlordiazepoxide.svg",
+      "articleId": 135,
+      "articleTitle": "Chlordiazepoxide",
+      "matchedField": "title",
+      "matchedValue": "Chlordiazepoxide"
+    },
+    {
+      "filename": "Choline.svg",
+      "articleId": 699,
+      "articleTitle": "Choline Bitartrate",
+      "matchedField": "alternative_name",
+      "matchedValue": "Choline"
+    },
+    {
+      "filename": "Citicoline.svg",
+      "articleId": 701,
+      "articleTitle": "Citicoline",
+      "matchedField": "title",
+      "matchedValue": "Citicoline"
+    },
+    {
+      "filename": "Clobenzorex.svg",
+      "articleId": 442,
+      "articleTitle": "Clobenzorex",
+      "matchedField": "title",
+      "matchedValue": "Clobenzorex"
+    },
+    {
+      "filename": "Clonazepam.svg",
+      "articleId": 61,
+      "articleTitle": "Clonazepam",
+      "matchedField": "title",
+      "matchedValue": "Clonazepam"
+    },
+    {
+      "filename": "Cocaine.svg",
+      "articleId": 133,
+      "articleTitle": "Cocaine",
+      "matchedField": "title",
+      "matchedValue": "Cocaine"
+    },
+    {
+      "filename": "Codeine.svg",
+      "articleId": 675,
+      "articleTitle": "Codeine",
+      "matchedField": "title",
+      "matchedValue": "Codeine"
+    },
+    {
+      "filename": "Coluracetam.svg",
+      "articleId": 362,
+      "articleTitle": "Coluracetam",
+      "matchedField": "title",
+      "matchedValue": "Coluracetam"
+    },
+    {
+      "filename": "Creatine.svg",
+      "articleId": 703,
+      "articleTitle": "Creatine",
+      "matchedField": "title",
+      "matchedValue": "Creatine"
+    },
+    {
+      "filename": "Cyclazodone.svg",
+      "articleId": 99,
+      "articleTitle": "Cyclazodone",
+      "matchedField": "title",
+      "matchedValue": "Cyclazodone"
+    },
+    {
+      "filename": "DCK.svg",
+      "articleId": 552,
+      "articleTitle": "DCK",
+      "matchedField": "title",
+      "matchedValue": "DCK"
+    },
+    {
+      "filename": "Deschloroetizolam.svg",
+      "articleId": 325,
+      "articleTitle": "Deschloroetizolam",
+      "matchedField": "title",
+      "matchedValue": "Deschloroetizolam"
+    },
+    {
+      "filename": "Desomorphine.svg",
+      "articleId": 245,
+      "articleTitle": "Desomorphine",
+      "matchedField": "title",
+      "matchedValue": "Desomorphine"
+    },
+    {
+      "filename": "Desoxypipradol.svg",
+      "articleId": 173,
+      "articleTitle": "Desoxypipradol",
+      "matchedField": "title",
+      "matchedValue": "Desoxypipradol"
+    },
+    {
+      "filename": "DET.svg",
+      "articleId": 636,
+      "articleTitle": "DET",
+      "matchedField": "title",
+      "matchedValue": "DET"
+    },
+    {
+      "filename": "Dextropropoxyphene.svg",
+      "articleId": 676,
+      "articleTitle": "Dextropropoxyphene",
+      "matchedField": "title",
+      "matchedValue": "Dextropropoxyphene"
+    },
+    {
+      "filename": "Diazepam.svg",
+      "articleId": 124,
+      "articleTitle": "Diazepam",
+      "matchedField": "title",
+      "matchedValue": "Diazepam"
+    },
+    {
+      "filename": "Diclazepam.svg",
+      "articleId": 128,
+      "articleTitle": "Diclazepam",
+      "matchedField": "title",
+      "matchedValue": "Diclazepam"
+    },
+    {
+      "filename": "Dihydrocodeine.svg",
+      "articleId": 304,
+      "articleTitle": "DHC",
+      "matchedField": "chemical_name",
+      "matchedValue": "Dihydrocodeine"
+    },
+    {
+      "filename": "Diphenhydramine.svg",
+      "articleId": 626,
+      "articleTitle": "Diphenhydramine",
+      "matchedField": "title",
+      "matchedValue": "Diphenhydramine",
+      "resolution": "duplicate title resolved by lowest id"
+    },
+    {
+      "filename": "Diphenidine.svg",
+      "articleId": 116,
+      "articleTitle": "Diphenidine",
+      "matchedField": "title",
+      "matchedValue": "Diphenidine"
+    },
+    {
+      "filename": "DiPT.svg",
+      "articleId": 181,
+      "articleTitle": "DiPT",
+      "matchedField": "title",
+      "matchedValue": "DiPT"
+    },
+    {
+      "filename": "DMT.svg",
+      "articleId": 285,
+      "articleTitle": "DMT",
+      "matchedField": "title",
+      "matchedValue": "DMT"
+    },
+    {
+      "filename": "DOB.svg",
+      "articleId": 280,
+      "articleTitle": "DOB",
+      "matchedField": "title",
+      "matchedValue": "DOB"
+    },
+    {
+      "filename": "DOC.svg",
+      "articleId": 263,
+      "articleTitle": "DOC",
+      "matchedField": "title",
+      "matchedValue": "DOC"
+    },
+    {
+      "filename": "DOEF.svg",
+      "articleId": 257,
+      "articleTitle": "DOEF",
+      "matchedField": "title",
+      "matchedValue": "DOEF"
+    },
+    {
+      "filename": "DOET.svg",
+      "articleId": 222,
+      "articleTitle": "DOET",
+      "matchedField": "title",
+      "matchedValue": "DOET"
+    },
+    {
+      "filename": "DOI.svg",
+      "articleId": 651,
+      "articleTitle": "DOI",
+      "matchedField": "title",
+      "matchedValue": "DOI"
+    },
+    {
+      "filename": "DOM.svg",
+      "articleId": 139,
+      "articleTitle": "DOM",
+      "matchedField": "title",
+      "matchedValue": "DOM"
+    },
+    {
+      "filename": "DPT.svg",
+      "articleId": 326,
+      "articleTitle": "DPT",
+      "matchedField": "title",
+      "matchedValue": "DPT"
+    },
+    {
+      "filename": "DXM.svg",
+      "articleId": 44,
+      "articleTitle": "Dextromethorphan",
+      "matchedField": "alternative_name",
+      "matchedValue": "DXM"
+    },
+    {
+      "filename": "EA-3167.svg",
+      "articleId": 79,
+      "articleTitle": "EA-3167",
+      "matchedField": "title",
+      "matchedValue": "EA-3167"
+    },
+    {
+      "filename": "Ephedrine (Racemate).svg",
+      "articleId": 212,
+      "articleTitle": "Ephedrine",
+      "matchedField": "title",
+      "matchedValue": "Ephedrine",
+      "resolution": "deduplicated preferred molecule",
+      "deduplicatedFrom": [
+        "(1R,2S)-Ephedrine.svg",
+        "(1S,2R)-Ephedrine.svg"
+      ]
+    },
+    {
+      "filename": "Ephenidine.svg",
+      "articleId": 353,
+      "articleTitle": "Ephenidine",
+      "matchedField": "title",
+      "matchedValue": "Ephenidine"
+    },
+    {
+      "filename": "EPT.svg",
+      "articleId": 637,
+      "articleTitle": "EPT",
+      "matchedField": "title",
+      "matchedValue": "EPT"
+    },
+    {
+      "filename": "Escaline.svg",
+      "articleId": 647,
+      "articleTitle": "Escaline",
+      "matchedField": "title",
+      "matchedValue": "Escaline"
+    },
+    {
+      "filename": "Eszopiclone.svg",
+      "articleId": 673,
+      "articleTitle": "Eszopiclone",
+      "matchedField": "title",
+      "matchedValue": "Eszopiclone"
+    },
+    {
+      "filename": "ETH-LAD.svg",
+      "articleId": 630,
+      "articleTitle": "ETH-LAD",
+      "matchedField": "title",
+      "matchedValue": "ETH-LAD"
+    },
+    {
+      "filename": "Ethylmorphine.svg",
+      "articleId": 677,
+      "articleTitle": "Ethylmorphine",
+      "matchedField": "title",
+      "matchedValue": "Ethylmorphine"
+    },
+    {
+      "filename": "Ethylone.svg",
+      "articleId": 686,
+      "articleTitle": "Ethylone",
+      "matchedField": "title",
+      "matchedValue": "Ethylone"
+    },
+    {
+      "filename": "Ethylphenidate.svg",
+      "articleId": 160,
+      "articleTitle": "EPH",
+      "matchedField": "chemical_name",
+      "matchedValue": "Ethylphenidate"
+    },
+    {
+      "filename": "Etizolam.svg",
+      "articleId": 126,
+      "articleTitle": "Etizolam",
+      "matchedField": "title",
+      "matchedValue": "Etizolam"
+    },
+    {
+      "filename": "F-Phenibut.svg",
+      "articleId": 98,
+      "articleTitle": "4-Fluorophenibut",
+      "matchedField": "alternative_name",
+      "matchedValue": "F-Phenibut"
+    },
+    {
+      "filename": "Fenfluramine.svg",
+      "articleId": 278,
+      "articleTitle": "Fenfluramine",
+      "matchedField": "title",
+      "matchedValue": "Fenfluramine"
+    },
+    {
+      "filename": "Fenozolone.svg",
+      "articleId": 490,
+      "articleTitle": "Fenozolone",
+      "matchedField": "title",
+      "matchedValue": "Fenozolone"
+    },
+    {
+      "filename": "Fentanyl.svg",
+      "articleId": 97,
+      "articleTitle": "Fentanyl",
+      "matchedField": "title",
+      "matchedValue": "Fentanyl"
+    },
+    {
+      "filename": "Flubromazepam.svg",
+      "articleId": 136,
+      "articleTitle": "Flubromazepam",
+      "matchedField": "title",
+      "matchedValue": "Flubromazepam"
+    },
+    {
+      "filename": "Flubromazolam.svg",
+      "articleId": 53,
+      "articleTitle": "Flubromazolam",
+      "matchedField": "title",
+      "matchedValue": "Flubromazolam"
+    },
+    {
+      "filename": "Fluclotizolam.svg",
+      "articleId": 455,
+      "articleTitle": "Fluclotizolam",
+      "matchedField": "title",
+      "matchedValue": "Fluclotizolam"
+    },
+    {
+      "filename": "Flumazenil.svg",
+      "articleId": 480,
+      "articleTitle": "Flumazenil",
+      "matchedField": "title",
+      "matchedValue": "Flumazenil"
+    },
+    {
+      "filename": "Fluminorex.svg",
+      "articleId": 443,
+      "articleTitle": "Fluminorex",
+      "matchedField": "title",
+      "matchedValue": "Fluminorex"
+    },
+    {
+      "filename": "Flunitrazepam.svg",
+      "articleId": 134,
+      "articleTitle": "Flunitrazepam",
+      "matchedField": "title",
+      "matchedValue": "Flunitrazepam"
+    },
+    {
+      "filename": "Flunitrazolam.svg",
+      "articleId": 162,
+      "articleTitle": "Flunitrazolam",
+      "matchedField": "title",
+      "matchedValue": "Flunitrazolam"
+    },
+    {
+      "filename": "Gabapentin.svg",
+      "articleId": 175,
+      "articleTitle": "Gabapentin",
+      "matchedField": "title",
+      "matchedValue": "Gabapentin"
+    },
+    {
+      "filename": "Galantamine.svg",
+      "articleId": 453,
+      "articleTitle": "Galantamine",
+      "matchedField": "title",
+      "matchedValue": "Galantamine"
+    },
+    {
+      "filename": "GBL.svg",
+      "articleId": 92,
+      "articleTitle": "GBL",
+      "matchedField": "title",
+      "matchedValue": "GBL"
+    },
+    {
+      "filename": "GHB.svg",
+      "articleId": 153,
+      "articleTitle": "Gamma-hydroxybutyric acid",
+      "matchedField": "chemical_name",
+      "matchedValue": "GHB"
+    },
+    {
+      "filename": "GVL.svg",
+      "articleId": 477,
+      "articleTitle": "GVL",
+      "matchedField": "title",
+      "matchedValue": "GVL"
+    },
+    {
+      "filename": "Hexedrone.svg",
+      "articleId": 481,
+      "articleTitle": "Hexedrone",
+      "matchedField": "title",
+      "matchedValue": "Hexedrone"
+    },
+    {
+      "filename": "Hydrocodone.svg",
+      "articleId": 66,
+      "articleTitle": "Hydrocodone",
+      "matchedField": "title",
+      "matchedValue": "Hydrocodone"
+    },
+    {
+      "filename": "Hydromorphone.svg",
+      "articleId": 151,
+      "articleTitle": "Hydromorphone",
+      "matchedField": "title",
+      "matchedValue": "Hydromorphone"
+    },
+    {
+      "filename": "Ibogaine.svg",
+      "articleId": 196,
+      "articleTitle": "Ibogaine",
+      "matchedField": "title",
+      "matchedValue": "Ibogaine"
+    },
+    {
+      "filename": "Ibotenic acid.svg",
+      "articleId": 215,
+      "articleTitle": "Ibotenic acid",
+      "matchedField": "title",
+      "matchedValue": "Ibotenic acid"
+    },
+    {
+      "filename": "Isopropylphenidate.svg",
+      "articleId": 168,
+      "articleTitle": "Isopropylphenidate",
+      "matchedField": "title",
+      "matchedValue": "Isopropylphenidate"
+    },
+    {
+      "filename": "JWH-018.svg",
+      "articleId": 494,
+      "articleTitle": "JWH-018",
+      "matchedField": "title",
+      "matchedValue": "JWH-018"
+    },
+    {
+      "filename": "JWH-073.svg",
+      "articleId": 665,
+      "articleTitle": "JWH-073",
+      "matchedField": "title",
+      "matchedValue": "JWH-073"
+    },
+    {
+      "filename": "Ketamine.svg",
+      "articleId": 95,
+      "articleTitle": "Ketamine",
+      "matchedField": "title",
+      "matchedValue": "Ketamine"
+    },
+    {
+      "filename": "L-Theanine.svg",
+      "articleId": 483,
+      "articleTitle": "L-Theanine",
+      "matchedField": "title",
+      "matchedValue": "L-Theanine"
+    },
+    {
+      "filename": "Lisdexamfetamine.svg",
+      "articleId": 192,
+      "articleTitle": "Lisdexamfetamine",
+      "matchedField": "title",
+      "matchedValue": "Lisdexamfetamine"
+    },
+    {
+      "filename": "Loperamide.svg",
+      "articleId": 484,
+      "articleTitle": "Imodium",
+      "matchedField": "chemical_name",
+      "matchedValue": "Loperamide"
+    },
+    {
+      "filename": "Lorazepam.svg",
+      "articleId": 331,
+      "articleTitle": "Lorazepam",
+      "matchedField": "title",
+      "matchedValue": "Lorazepam"
+    },
+    {
+      "filename": "LSA.svg",
+      "articleId": 631,
+      "articleTitle": "LSA",
+      "matchedField": "title",
+      "matchedValue": "LSA"
+    },
+    {
+      "filename": "LSD.svg",
+      "articleId": 191,
+      "articleTitle": "LSD",
+      "matchedField": "title",
+      "matchedValue": "LSD"
+    },
+    {
+      "filename": "LSM-775.svg",
+      "articleId": 634,
+      "articleTitle": "LSM-775",
+      "matchedField": "title",
+      "matchedValue": "LSM-775"
+    },
+    {
+      "filename": "LSZ.svg",
+      "articleId": 485,
+      "articleTitle": "LSZ",
+      "matchedField": "title",
+      "matchedValue": "LSZ"
+    },
+    {
+      "filename": "MCPP.svg",
+      "articleId": 690,
+      "articleTitle": "mCPP",
+      "matchedField": "title",
+      "matchedValue": "mCPP"
+    },
+    {
+      "filename": "MDA.svg",
+      "articleId": 62,
+      "articleTitle": "MDA",
+      "matchedField": "title",
+      "matchedValue": "MDA"
+    },
+    {
+      "filename": "MDAI.svg",
+      "articleId": 695,
+      "articleTitle": "MDAI",
+      "matchedField": "title",
+      "matchedValue": "MDAI"
+    },
+    {
+      "filename": "MDEA.svg",
+      "articleId": 696,
+      "articleTitle": "MDEA",
+      "matchedField": "title",
+      "matchedValue": "MDEA"
+    },
+    {
+      "filename": "MDMA.svg",
+      "articleId": 291,
+      "articleTitle": "MDMA",
+      "matchedField": "title",
+      "matchedValue": "MDMA"
+    },
+    {
+      "filename": "MDPHP.svg",
+      "articleId": 309,
+      "articleTitle": "MD-PHP",
+      "matchedField": "title",
+      "matchedValue": "MD-PHP"
+    },
+    {
+      "filename": "MDPV.svg",
+      "articleId": 448,
+      "articleTitle": "MDPV",
+      "matchedField": "title",
+      "matchedValue": "MDPV",
+      "resolution": "preferred exact title match"
+    },
+    {
+      "filename": "Melatonin.svg",
+      "articleId": 318,
+      "articleTitle": "Melatonin",
+      "matchedField": "title",
+      "matchedValue": "Melatonin"
+    },
+    {
+      "filename": "MEM.svg",
+      "articleId": 233,
+      "articleTitle": "MEM",
+      "matchedField": "title",
+      "matchedValue": "MEM"
+    },
+    {
+      "filename": "Memantine.svg",
+      "articleId": 333,
+      "articleTitle": "Memantine",
+      "matchedField": "title",
+      "matchedValue": "Memantine"
+    },
+    {
+      "filename": "Mephedrone.svg",
+      "articleId": 69,
+      "articleTitle": "4-MMC",
+      "matchedField": "chemical_name",
+      "matchedValue": "Mephedrone"
+    },
+    {
+      "filename": "Mescaline.svg",
+      "articleId": 59,
+      "articleTitle": "Mescaline",
+      "matchedField": "title",
+      "matchedValue": "Mescaline"
+    },
+    {
+      "filename": "MET.svg",
+      "articleId": 633,
+      "articleTitle": "MET",
+      "matchedField": "title",
+      "matchedValue": "MET"
+    },
+    {
+      "filename": "Methadone.svg",
+      "articleId": 314,
+      "articleTitle": "Methadone",
+      "matchedField": "title",
+      "matchedValue": "Methadone"
+    },
+    {
+      "filename": "Methallylescaline.svg",
+      "articleId": 270,
+      "articleTitle": "MAL",
+      "matchedField": "chemical_name",
+      "matchedValue": "Methallylescaline"
+    },
+    {
+      "filename": "Methaqualone.svg",
+      "articleId": 177,
+      "articleTitle": "Methaqualone",
+      "matchedField": "title",
+      "matchedValue": "Methaqualone"
+    },
+    {
+      "filename": "Methcathinone.svg",
+      "articleId": 34,
+      "articleTitle": "Methcathinone",
+      "matchedField": "title",
+      "matchedValue": "Methcathinone"
+    },
+    {
+      "filename": "Methiopropamine.svg",
+      "articleId": 693,
+      "articleTitle": "Methiopropamine",
+      "matchedField": "title",
+      "matchedValue": "Methiopropamine"
+    },
+    {
+      "filename": "Methylnaphthidate.svg",
+      "articleId": 684,
+      "articleTitle": "Methylnaphthidate",
+      "matchedField": "title",
+      "matchedValue": "Methylnaphthidate"
+    },
+    {
+      "filename": "Methylone.svg",
+      "articleId": 687,
+      "articleTitle": "Methylone",
+      "matchedField": "title",
+      "matchedValue": "Methylone"
+    },
+    {
+      "filename": "Methylphenidate.svg",
+      "articleId": 57,
+      "articleTitle": "Methylphenidate",
+      "matchedField": "title",
+      "matchedValue": "Methylphenidate"
+    },
+    {
+      "filename": "Metizolam.svg",
+      "articleId": 670,
+      "articleTitle": "Metizolam",
+      "matchedField": "title",
+      "matchedValue": "Metizolam"
+    },
+    {
+      "filename": "Mexedrone.svg",
+      "articleId": 688,
+      "articleTitle": "Mexedrone",
+      "matchedField": "title",
+      "matchedValue": "Mexedrone"
+    },
+    {
+      "filename": "Midazolam.svg",
+      "articleId": 125,
+      "articleTitle": "Midazolam",
+      "matchedField": "title",
+      "matchedValue": "Midazolam",
+      "resolution": "duplicate title resolved by lowest id"
+    },
+    {
+      "filename": "Mirtazapine.svg",
+      "articleId": 332,
+      "articleTitle": "Mirtazapine",
+      "matchedField": "title",
+      "matchedValue": "Mirtazapine"
+    },
+    {
+      "filename": "Mitragynine.svg",
+      "articleId": 408,
+      "articleTitle": "Mitragynine",
+      "matchedField": "title",
+      "matchedValue": "Mitragynine"
+    },
+    {
+      "filename": "Modafinil.svg",
+      "articleId": 41,
+      "articleTitle": "Modafinil",
+      "matchedField": "title",
+      "matchedValue": "Modafinil"
+    },
+    {
+      "filename": "Morphine.svg",
+      "articleId": 166,
+      "articleTitle": "Morphine",
+      "matchedField": "title",
+      "matchedValue": "Morphine"
+    },
+    {
+      "filename": "Myristicin.svg",
+      "articleId": 246,
+      "articleTitle": "Nutmeg",
+      "matchedField": "chemical_name",
+      "matchedValue": "Myristicin"
+    },
+    {
+      "filename": "N-Acetylcysteine.svg",
+      "articleId": 706,
+      "articleTitle": "N-Acetylcysteine",
+      "matchedField": "title",
+      "matchedValue": "N-Acetylcysteine"
+    },
+    {
+      "filename": "N-methylcyclazodone.svg",
+      "articleId": 298,
+      "articleTitle": "N-Methyl-Cyclazodone",
+      "matchedField": "title",
+      "matchedValue": "N-Methyl-Cyclazodone"
+    },
+    {
+      "filename": "Nicotine.svg",
+      "articleId": 456,
+      "articleTitle": "Nicotine",
+      "matchedField": "title",
+      "matchedValue": "Nicotine"
+    },
+    {
+      "filename": "Nifoxipam.svg",
+      "articleId": 463,
+      "articleTitle": "Nifoxipam",
+      "matchedField": "title",
+      "matchedValue": "Nifoxipam"
+    },
+    {
+      "filename": "Nitrous Oxide.svg",
+      "articleId": 658,
+      "articleTitle": "Nitrous Oxide",
+      "matchedField": "title",
+      "matchedValue": "Nitrous Oxide"
+    },
+    {
+      "filename": "Noopept.svg",
+      "articleId": 194,
+      "articleTitle": "Noopept",
+      "matchedField": "title",
+      "matchedValue": "Noopept"
+    },
+    {
+      "filename": "O-Desmethyltramadol (Racemate).svg",
+      "articleId": 45,
+      "articleTitle": "O-DSMT",
+      "matchedField": "chemical_name",
+      "matchedValue": "O-Desmethyltramadol",
+      "resolution": "deduplicated preferred molecule",
+      "deduplicatedFrom": [
+        "(1R,2R)-O-Desmethyltramadol.svg",
+        "(1S,2S)-O-Desmethyltramadol.svg"
+      ]
+    },
+    {
+      "filename": "O-PCE.svg",
+      "articleId": 289,
+      "articleTitle": "O-PCE",
+      "matchedField": "title",
+      "matchedValue": "O-PCE"
+    },
+    {
+      "filename": "Olanzapine.svg",
+      "articleId": 430,
+      "articleTitle": "Olanzapine",
+      "matchedField": "title",
+      "matchedValue": "Olanzapine"
+    },
+    {
+      "filename": "Ortetamine.svg",
+      "articleId": 380,
+      "articleTitle": "2-MA",
+      "matchedField": "alternative_name",
+      "matchedValue": "Ortetamine"
+    },
+    {
+      "filename": "Oxazepam.svg",
+      "articleId": 90,
+      "articleTitle": "Oxazepam",
+      "matchedField": "title",
+      "matchedValue": "Oxazepam"
+    },
+    {
+      "filename": "Oxiracetam.svg",
+      "articleId": 88,
+      "articleTitle": "Oxiracetam",
+      "matchedField": "title",
+      "matchedValue": "Oxiracetam"
+    },
+    {
+      "filename": "Oxycodone.svg",
+      "articleId": 56,
+      "articleTitle": "Oxycodone",
+      "matchedField": "title",
+      "matchedValue": "Oxycodone"
+    },
+    {
+      "filename": "Oxymorphone.svg",
+      "articleId": 680,
+      "articleTitle": "Oxymorphone",
+      "matchedField": "title",
+      "matchedValue": "Oxymorphone"
+    },
+    {
+      "filename": "PCE.svg",
+      "articleId": 657,
+      "articleTitle": "PCE",
+      "matchedField": "title",
+      "matchedValue": "PCE"
+    },
+    {
+      "filename": "PCP.svg",
+      "articleId": 182,
+      "articleTitle": "PCP",
+      "matchedField": "title",
+      "matchedValue": "PCP"
+    },
+    {
+      "filename": "Pemoline.svg",
+      "articleId": 187,
+      "articleTitle": "Pemoline",
+      "matchedField": "title",
+      "matchedValue": "Pemoline"
+    },
+    {
+      "filename": "Pentedrone.svg",
+      "articleId": 689,
+      "articleTitle": "Pentedrone",
+      "matchedField": "title",
+      "matchedValue": "Pentedrone"
+    },
+    {
+      "filename": "Pentobarbital.svg",
+      "articleId": 671,
+      "articleTitle": "Pentobarbital",
+      "matchedField": "title",
+      "matchedValue": "Pentobarbital"
+    },
+    {
+      "filename": "Pethidine.svg",
+      "articleId": 679,
+      "articleTitle": "Pethidine",
+      "matchedField": "title",
+      "matchedValue": "Pethidine"
+    },
+    {
+      "filename": "Phenethylamine.svg",
+      "articleId": 211,
+      "articleTitle": "Phenethylamine",
+      "matchedField": "title",
+      "matchedValue": "Phenethylamine"
+    },
+    {
+      "filename": "Phenibut.svg",
+      "articleId": 51,
+      "articleTitle": "Phenibut",
+      "matchedField": "title",
+      "matchedValue": "Phenibut"
+    },
+    {
+      "filename": "Phenobarbital.svg",
+      "articleId": 67,
+      "articleTitle": "Phenobarbital",
+      "matchedField": "title",
+      "matchedValue": "Phenobarbital"
+    },
+    {
+      "filename": "Phenylpiracetam.svg",
+      "articleId": 470,
+      "articleTitle": "Phenylpiracetam",
+      "matchedField": "title",
+      "matchedValue": "Phenylpiracetam"
+    },
+    {
+      "filename": "Piracetam.svg",
+      "articleId": 87,
+      "articleTitle": "Piracetam",
+      "matchedField": "title",
+      "matchedValue": "Piracetam"
+    },
+    {
+      "filename": "PMA.svg",
+      "articleId": 158,
+      "articleTitle": "PMA",
+      "matchedField": "title",
+      "matchedValue": "PMA"
+    },
+    {
+      "filename": "PMMA.svg",
+      "articleId": 698,
+      "articleTitle": "PMMA",
+      "matchedField": "title",
+      "matchedValue": "PMMA"
+    },
+    {
+      "filename": "Pramiracetam.svg",
+      "articleId": 707,
+      "articleTitle": "Pramiracetam",
+      "matchedField": "title",
+      "matchedValue": "Pramiracetam"
+    },
+    {
+      "filename": "Pregabalin.svg",
+      "articleId": 130,
+      "articleTitle": "Pregabalin",
+      "matchedField": "title",
+      "matchedValue": "Pregabalin"
+    },
+    {
+      "filename": "PRO-LAD.svg",
+      "articleId": 635,
+      "articleTitle": "PRO-LAD",
+      "matchedField": "title",
+      "matchedValue": "PRO-LAD"
+    },
+    {
+      "filename": "Prolintane.svg",
+      "articleId": 237,
+      "articleTitle": "Prolintane",
+      "matchedField": "title",
+      "matchedValue": "Prolintane"
+    },
+    {
+      "filename": "Propylhexedrine.svg",
+      "articleId": 694,
+      "articleTitle": "Propylhexedrine",
+      "matchedField": "title",
+      "matchedValue": "Propylhexedrine"
+    },
+    {
+      "filename": "Proscaline.svg",
+      "articleId": 648,
+      "articleTitle": "Proscaline",
+      "matchedField": "title",
+      "matchedValue": "Proscaline"
+    },
+    {
+      "filename": "Psilocin.svg",
+      "articleId": 645,
+      "articleTitle": "Psilocin",
+      "matchedField": "title",
+      "matchedValue": "Psilocin"
+    },
+    {
+      "filename": "Pyrazolam.svg",
+      "articleId": 101,
+      "articleTitle": "Pyrazolam",
+      "matchedField": "title",
+      "matchedValue": "Pyrazolam"
+    },
+    {
+      "filename": "Quetiapine.svg",
+      "articleId": 301,
+      "articleTitle": "Quetiapine",
+      "matchedField": "title",
+      "matchedValue": "Quetiapine"
+    },
+    {
+      "filename": "RTI-111.svg",
+      "articleId": 691,
+      "articleTitle": "Dichloropane",
+      "matchedField": "alternative_name",
+      "matchedValue": "RTI-111"
+    },
+    {
+      "filename": "S-Adenosyl methionine.svg",
+      "articleId": 705,
+      "articleTitle": "SAM-e",
+      "matchedField": "alternative_name",
+      "matchedValue": "S-Adenosyl Methionine"
+    },
+    {
+      "filename": "Salvinorin A.svg",
+      "articleId": 409,
+      "articleTitle": "Salvia divinorum",
+      "matchedField": "alternative_name",
+      "matchedValue": "Salvinorin A"
+    },
+    {
+      "filename": "Scopolamine.svg",
+      "articleId": 460,
+      "articleTitle": "Scopolamine",
+      "matchedField": "title",
+      "matchedValue": "Scopolamine"
+    },
+    {
+      "filename": "Secobarbital.svg",
+      "articleId": 672,
+      "articleTitle": "Secobarbital",
+      "matchedField": "title",
+      "matchedValue": "Secobarbital"
+    },
+    {
+      "filename": "Selegiline.svg",
+      "articleId": 145,
+      "articleTitle": "Selegiline",
+      "matchedField": "title",
+      "matchedValue": "Selegiline"
+    },
+    {
+      "filename": "Sufentanil.svg",
+      "articleId": 678,
+      "articleTitle": "Sufentanil",
+      "matchedField": "title",
+      "matchedValue": "Sufentanil"
+    },
+    {
+      "filename": "Tapentadol.svg",
+      "articleId": 549,
+      "articleTitle": "Tapentadol",
+      "matchedField": "title",
+      "matchedValue": "Tapentadol"
+    },
+    {
+      "filename": "Temazepam.svg",
+      "articleId": 171,
+      "articleTitle": "Temazepam",
+      "matchedField": "title",
+      "matchedValue": "Temazepam"
+    },
+    {
+      "filename": "Theacrine.svg",
+      "articleId": 692,
+      "articleTitle": "Theacrine",
+      "matchedField": "title",
+      "matchedValue": "Theacrine"
+    },
+    {
+      "filename": "THJ-018.svg",
+      "articleId": 666,
+      "articleTitle": "THJ-018",
+      "matchedField": "title",
+      "matchedValue": "THJ-018"
+    },
+    {
+      "filename": "TMA-2.svg",
+      "articleId": 265,
+      "articleTitle": "TMA-2",
+      "matchedField": "title",
+      "matchedValue": "TMA-2"
+    },
+    {
+      "filename": "TMA-6.svg",
+      "articleId": 655,
+      "articleTitle": "TMA-6",
+      "matchedField": "title",
+      "matchedValue": "TMA-6"
+    },
+    {
+      "filename": "Tramadol (Racemate).svg",
+      "articleId": 165,
+      "articleTitle": "Tramadol",
+      "matchedField": "title",
+      "matchedValue": "Tramadol",
+      "resolution": "deduplicated preferred molecule",
+      "deduplicatedFrom": [
+        "(1R,2R)-Tramadol.svg",
+        "(1S,2S)-Tramadol.svg"
+      ]
+    },
+    {
+      "filename": "Trazodone.svg",
+      "articleId": 36,
+      "articleTitle": "Trazodone",
+      "matchedField": "title",
+      "matchedValue": "Trazodone",
+      "resolution": "deduplicated preferred molecule",
+      "deduplicatedFrom": [
+        "Trazodone (mCPP moiety labelled).svg"
+      ]
+    },
+    {
+      "filename": "Triazolam.svg",
+      "articleId": 68,
+      "articleTitle": "Triazolam",
+      "matchedField": "title",
+      "matchedValue": "Triazolam"
+    },
+    {
+      "filename": "Tyrosine.svg",
+      "articleId": 704,
+      "articleTitle": "L-Tyrosine",
+      "matchedField": "alternative_name",
+      "matchedValue": "Tyrosine"
+    },
+    {
+      "filename": "U-47700.svg",
+      "articleId": 681,
+      "articleTitle": "U-47700",
+      "matchedField": "title",
+      "matchedValue": "U-47700"
+    },
+    {
+      "filename": "Vilazodone.svg",
+      "articleId": 186,
+      "articleTitle": "Vilazodone",
+      "matchedField": "title",
+      "matchedValue": "Vilazodone"
+    },
+    {
+      "filename": "Viloxazine.svg",
+      "articleId": 203,
+      "articleTitle": "Viloxazine",
+      "matchedField": "title",
+      "matchedValue": "Viloxazine"
+    },
+    {
+      "filename": "Zaleplon.svg",
+      "articleId": 179,
+      "articleTitle": "Zaleplon",
+      "matchedField": "title",
+      "matchedValue": "Zaleplon"
+    },
+    {
+      "filename": "Zolpidem.svg",
+      "articleId": 183,
+      "articleTitle": "Zolpidem",
+      "matchedField": "title",
+      "matchedValue": "Zolpidem"
+    },
+    {
+      "filename": "Zopiclone.svg",
+      "articleId": 176,
+      "articleTitle": "Zopiclone",
+      "matchedField": "title",
+      "matchedValue": "Zopiclone"
+    },
+    {
+      "filename": "α-PHP.svg",
+      "articleId": 167,
+      "articleTitle": "alpha-PHP",
+      "matchedField": "title",
+      "matchedValue": "alpha-PHP"
+    },
+    {
+      "filename": "α-PVP.svg",
+      "articleId": 113,
+      "articleTitle": "alpha-PVP",
+      "matchedField": "title",
+      "matchedValue": "alpha-PVP"
+    }
+  ]
+}

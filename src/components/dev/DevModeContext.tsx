@@ -4,6 +4,12 @@ import articlesSource from "../../data/articles";
 import psychoactiveIndexManualSource from "../../data/psychoactiveIndexManual.json";
 import chemicalIndexManualSource from "../../data/chemicalIndexManual.json";
 import mechanismIndexManualSource from "../../data/mechanismIndexManual.json";
+import {
+  aboutMarkdown as aboutMarkdownSource,
+  aboutSubtitleMarkdown as aboutSubtitleSource,
+  aboutFounderKeys as aboutFounderKeysSource,
+  normalizeFounderKeys,
+} from "../../data/about";
 import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
 import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
@@ -15,6 +21,9 @@ type DevModeContextValue = {
   psychoactiveIndexManual: ManualPsychoactiveIndexConfig;
   chemicalIndexManual: ManualChemicalIndexConfig;
   mechanismIndexManual: ManualMechanismIndexConfig;
+  aboutMarkdown: string;
+  aboutSubtitle: string;
+  aboutFounderKeys: string[];
   open: () => void;
   close: () => void;
   updateArticleAt: (index: number, nextArticle: ArticleRecord) => void;
@@ -42,6 +51,15 @@ type DevModeContextValue = {
   applyMechanismIndexManualTransform: (
     transform: (previous: ManualMechanismIndexConfig) => ManualMechanismIndexConfig,
   ) => void;
+  replaceAboutMarkdown: (nextMarkdown: string) => void;
+  resetAboutMarkdown: () => void;
+  getOriginalAboutMarkdown: () => string;
+  replaceAboutSubtitle: (nextSubtitle: string) => void;
+  resetAboutSubtitle: () => void;
+  getOriginalAboutSubtitle: () => string;
+  replaceAboutFounderKeys: (nextKeys: string[]) => void;
+  resetAboutFounderKeys: () => void;
+  getOriginalAboutFounderKeys: () => string[];
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -69,6 +87,12 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [mechanismIndexManual, setMechanismIndexManual] = useState<ManualMechanismIndexConfig>(
     () => deepClone(originalMechanismManualRef.current),
   );
+  const originalAboutMarkdownRef = useRef<string>(aboutMarkdownSource);
+  const originalAboutSubtitleRef = useRef<string>(aboutSubtitleSource);
+  const [aboutMarkdown, setAboutMarkdown] = useState<string>(() => aboutMarkdownSource);
+  const [aboutSubtitle, setAboutSubtitle] = useState<string>(() => aboutSubtitleSource);
+  const originalAboutFounderKeysRef = useRef<string[]>([...aboutFounderKeysSource]);
+  const [aboutFounderKeys, setAboutFounderKeys] = useState<string[]>(() => [...aboutFounderKeysSource]);
   const lastVisitedHashRef = useRef<string | null>(null);
 
   const isDevHash = useCallback((value: string | null | undefined) => {
@@ -145,6 +169,9 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
 
   const resetAll = useCallback(() => {
     setArticles(deepClone(originalArticlesRef.current));
+    setAboutMarkdown(originalAboutMarkdownRef.current);
+    setAboutSubtitle(originalAboutSubtitleRef.current);
+    setAboutFounderKeys([...originalAboutFounderKeysRef.current]);
   }, []);
 
   const getOriginalArticle = useCallback((index: number) => {
@@ -238,11 +265,47 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const replaceAboutMarkdown = useCallback((nextMarkdown: string) => {
+    setAboutMarkdown(nextMarkdown);
+  }, []);
+
+  const resetAboutMarkdown = useCallback(() => {
+    setAboutMarkdown(originalAboutMarkdownRef.current);
+  }, []);
+
+  const getOriginalAboutMarkdown = useCallback(() => originalAboutMarkdownRef.current, []);
+
+  const replaceAboutSubtitle = useCallback((nextSubtitle: string) => {
+    setAboutSubtitle(nextSubtitle);
+  }, []);
+
+  const resetAboutSubtitle = useCallback(() => {
+    setAboutSubtitle(originalAboutSubtitleRef.current);
+  }, []);
+
+  const getOriginalAboutSubtitle = useCallback(() => originalAboutSubtitleRef.current, []);
+
+  const replaceAboutFounderKeys = useCallback((nextKeys: string[]) => {
+    setAboutFounderKeys(normalizeFounderKeys(nextKeys));
+  }, []);
+
+  const resetAboutFounderKeys = useCallback(() => {
+    setAboutFounderKeys([...originalAboutFounderKeysRef.current]);
+  }, []);
+
+  const getOriginalAboutFounderKeys = useCallback(
+    () => [...originalAboutFounderKeysRef.current],
+    [],
+  );
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
     psychoactiveIndexManual,
     chemicalIndexManual,
     mechanismIndexManual,
+    aboutMarkdown,
+    aboutSubtitle,
+    aboutFounderKeys,
     open,
     close,
     updateArticleAt,
@@ -264,31 +327,52 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     resetMechanismIndexManual,
     getOriginalMechanismIndexManual,
     applyMechanismIndexManualTransform,
+    replaceAboutMarkdown,
+    resetAboutMarkdown,
+    getOriginalAboutMarkdown,
+    replaceAboutSubtitle,
+    resetAboutSubtitle,
+    getOriginalAboutSubtitle,
+    replaceAboutFounderKeys,
+    resetAboutFounderKeys,
+    getOriginalAboutFounderKeys,
   }), [
+    aboutFounderKeys,
+    aboutMarkdown,
+    aboutSubtitle,
     applyArticlesTransform,
     applyPsychoactiveIndexManualTransform,
     applyChemicalIndexManualTransform,
     applyMechanismIndexManualTransform,
     articles,
     close,
+    getOriginalAboutFounderKeys,
+    getOriginalAboutMarkdown,
+    getOriginalAboutSubtitle,
     getOriginalArticle,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
     open,
+    psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
+    replaceAboutFounderKeys,
+    replaceAboutMarkdown,
+    replaceAboutSubtitle,
     replaceArticles,
     replacePsychoactiveIndexManual,
     replaceChemicalIndexManual,
     replaceMechanismIndexManual,
+    resetAboutFounderKeys,
+    resetAboutMarkdown,
+    resetAboutSubtitle,
     resetAll,
     resetArticleAt,
     resetPsychoactiveIndexManual,
     resetChemicalIndexManual,
     resetMechanismIndexManual,
-    psychoactiveIndexManual,
-    chemicalIndexManual,
-    mechanismIndexManual,
     updateArticleAt,
   ]);
 

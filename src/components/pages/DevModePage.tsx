@@ -7,6 +7,7 @@ import {
   Edit3,
   Eye,
   EyeOff,
+  FileText,
   LayoutDashboard,
   FlaskConical,
   Loader2,
@@ -25,6 +26,7 @@ import {
 import {
   chemicalClassIndexGroups,
   dosageCategoryGroups,
+  effectSummaries,
   mechanismIndexGroups,
   substanceRecords,
 } from "../../data/library";
@@ -50,7 +52,7 @@ import {
   type ChangeLogEntry,
   type ChangeLogArticleSummary,
 } from "../../data/changeLog";
-import { buildArticleChangelog, buildDatasetChangelog } from "../../utils/changelog";
+import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/changelog";
 import { DiffPreview } from "../common/DiffPreview";
 import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
 import {
@@ -61,6 +63,7 @@ import {
   hydrateArticleDraftForm,
 } from "../../utils/articleDraftForm";
 import { IndexLayoutTab } from "../sections/dev-tools/index-layout/IndexLayoutTab";
+import { AboutEditorTab } from "../sections/dev-tools/about/AboutEditorTab";
 import { slugify } from "../../utils/slug";
 import { viewToHash } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
@@ -70,7 +73,7 @@ import { ProfileEditorTab } from "../dev/ProfileEditorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
 import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
-import { getProfileByKey, updateProfileCache } from "../../data/userProfiles";
+import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 
 type ChangeNotice = {
@@ -87,7 +90,7 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile" | "index-layout";
+type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile" | "index-layout" | "about";
 
 type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
 
@@ -99,7 +102,7 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout") {
+  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about") {
     return "edit";
   }
   if (tab === "create") {
@@ -271,6 +274,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const {
     articles,
     psychoactiveIndexManual,
+    aboutMarkdown,
+    aboutSubtitle,
+    aboutFounderKeys,
     close,
     updateArticleAt,
     resetArticleAt,
@@ -278,8 +284,17 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     getOriginalArticle,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
+    getOriginalAboutMarkdown,
+    getOriginalAboutSubtitle,
+    getOriginalAboutFounderKeys,
     replaceArticles,
     applyArticlesTransform,
+    replaceAboutMarkdown,
+    resetAboutMarkdown,
+    replaceAboutSubtitle,
+    resetAboutSubtitle,
+    replaceAboutFounderKeys,
+    resetAboutFounderKeys,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
@@ -425,6 +440,87 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   const changelogMarkdown = changelogResult.markdown;
   const originalArticles = useMemo(() => getOriginalArticles(), [getOriginalArticles]);
 
+  const originalAboutMarkdown = useMemo(
+    () => getOriginalAboutMarkdown(),
+    [getOriginalAboutMarkdown],
+  );
+  const originalAboutSubtitle = useMemo(
+    () => getOriginalAboutSubtitle(),
+    [getOriginalAboutSubtitle],
+  );
+  const originalAboutFounderKeys = useMemo(
+    () => getOriginalAboutFounderKeys(),
+    [getOriginalAboutFounderKeys],
+  );
+
+  const aboutMarkdownChangelog = useMemo(
+    () => buildTextChangelog("About copy", originalAboutMarkdown, aboutMarkdown),
+    [aboutMarkdown, originalAboutMarkdown],
+  );
+  const aboutSubtitleChangelog = useMemo(
+    () => buildTextChangelog("About subtitle", originalAboutSubtitle, aboutSubtitle),
+    [aboutSubtitle, originalAboutSubtitle],
+  );
+
+  const founderLabelByKey = useMemo(() => {
+    const lookup = new Map<string, string>();
+    userProfiles.forEach((profile) => {
+      lookup.set(profile.key, profile.displayName);
+    });
+    return lookup;
+  }, []);
+
+  const aboutFounderChangelog = useMemo(() => {
+    const originalSet = new Set(originalAboutFounderKeys);
+    const currentSet = new Set(aboutFounderKeys);
+    const additions: string[] = [];
+    const removals: string[] = [];
+
+    aboutFounderKeys.forEach((key) => {
+      if (!originalSet.has(key)) {
+        additions.push(key);
+      }
+    });
+
+    originalAboutFounderKeys.forEach((key) => {
+      if (!currentSet.has(key)) {
+        removals.push(key);
+      }
+    });
+
+    if (additions.length === 0 && removals.length === 0) {
+      return {
+        markdown: "# About founders\n\nNo differences detected.\n",
+        hasChanges: false,
+      };
+    }
+
+    const lines: string[] = [];
+
+    additions.forEach((key) => {
+      const label = founderLabelByKey.get(key) ?? key;
+      lines.push(`+ ${label} (@${key.toLowerCase()})`);
+    });
+
+    removals.forEach((key) => {
+      const label = founderLabelByKey.get(key) ?? key;
+      lines.push(`- ${label} (@${key.toLowerCase()})`);
+    });
+
+    return {
+      markdown: `# About founders\n\n${lines.join("\n")}`,
+      hasChanges: true,
+    };
+  }, [aboutFounderKeys, founderLabelByKey, originalAboutFounderKeys]);
+
+  const psychoactiveManualChangelog = useMemo(() => {
+    return buildArticleChangelog(
+      "Psychoactive Index Layout",
+      getOriginalPsychoactiveIndexManual(),
+      psychoactiveIndexManual,
+    );
+  }, [getOriginalPsychoactiveIndexManual, psychoactiveIndexManual]);
+
   const datasetChangelog = useMemo(
     () =>
       buildDatasetChangelog({
@@ -439,7 +535,54 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       }),
     [articles, originalArticles],
   );
-  const hasDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
+  const hasArticleDatasetChanges = datasetChangelog.sections.length > 0 && datasetChangelog.markdown.trim().length > 0;
+  const hasAboutMarkdownChanges = aboutMarkdownChangelog.hasChanges;
+  const hasAboutSubtitleChanges = aboutSubtitleChangelog.hasChanges;
+  const hasAboutFounderChanges = aboutFounderChangelog.hasChanges;
+  const hasManualChanges = psychoactiveManualChangelog.hasChanges;
+  const hasPendingChanges =
+    hasArticleDatasetChanges || hasAboutMarkdownChanges || hasAboutSubtitleChanges || hasAboutFounderChanges || hasManualChanges;
+
+  const combinedChangelogMarkdown = useMemo(() => {
+    const segments: string[] = [];
+
+    if (hasArticleDatasetChanges) {
+      segments.push(datasetChangelog.markdown.trimEnd());
+    }
+    if (hasManualChanges) {
+      segments.push(psychoactiveManualChangelog.markdown.trimEnd());
+    }
+    if (hasAboutMarkdownChanges) {
+      segments.push(aboutMarkdownChangelog.markdown.trimEnd());
+    }
+    if (hasAboutSubtitleChanges) {
+      segments.push(aboutSubtitleChangelog.markdown.trimEnd());
+    }
+    if (hasAboutFounderChanges) {
+      segments.push(aboutFounderChangelog.markdown.trimEnd());
+    }
+
+    if (segments.length === 0) {
+      return "# Changes\n\nNo differences detected.\n";
+    }
+
+    return segments.join("\n\n---\n\n");
+  }, [
+    aboutFounderChangelog.markdown,
+    aboutFounderChangelog.hasChanges,
+    aboutMarkdownChangelog.markdown,
+    aboutMarkdownChangelog.hasChanges,
+    aboutSubtitleChangelog.markdown,
+    aboutSubtitleChangelog.hasChanges,
+    datasetChangelog.markdown,
+    hasAboutFounderChanges,
+    hasAboutMarkdownChanges,
+    hasAboutSubtitleChanges,
+    hasArticleDatasetChanges,
+    hasManualChanges,
+    psychoactiveManualChangelog.markdown,
+  ]);
+
   const trimmedUsername = username.trim();
   const trimmedAdminPassword = adminPassword.trim();
   const canonicalProfileKey =
@@ -483,7 +626,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   }, [canonicalProfileKey, changeLogEntries]);
 
   const hasStoredCredentials = trimmedUsername.length > 0 && trimmedAdminPassword.length > 0;
-  const isCommitDisabled = isSaving || !hasStoredCredentials || hasInvalidJsonDraft;
+  const isCommitDisabled = isSaving || !hasStoredCredentials || hasInvalidJsonDraft || !hasPendingChanges;
   const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
   const [newArticleJsonDraft, setNewArticleJsonDraft] = useState(() =>
     JSON.stringify(newArticlePayload, null, 2),
@@ -1511,6 +1654,12 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       return;
     }
 
+    if (!hasPendingChanges) {
+      setGithubNotice({ type: "error", message: "No changes detected to commit." });
+      window.setTimeout(() => setGithubNotice(null), 5000);
+      return;
+    }
+
     const needsAutoStage = activeTab === "create" && !isNewArticleStaged;
     let articlesForCommit = articles;
     let datasetChangelogForCommit = datasetChangelog;
@@ -1539,29 +1688,32 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
       });
     }
 
-    const manualChangelog = buildArticleChangelog(
-      "Psychoactive Index Layout",
-      getOriginalPsychoactiveIndexManual(),
-      psychoactiveIndexManual,
-    );
+    const manualChangelog = psychoactiveManualChangelog;
 
+    const segments: string[] = [];
     const trimmedDatasetMarkdown = datasetChangelogForCommit.markdown.trim();
-    let combinedMarkdown = "";
 
     if (trimmedDatasetMarkdown.length > 0) {
-      combinedMarkdown = `${trimmedDatasetMarkdown}\n`;
+      segments.push(trimmedDatasetMarkdown);
     }
 
     if (manualChangelog.hasChanges) {
-      const manualMarkdown = manualChangelog.markdown.trimEnd();
-      combinedMarkdown = combinedMarkdown.length > 0
-        ? `${combinedMarkdown.trimEnd()}\n\n${manualMarkdown}`
-        : manualMarkdown;
+      segments.push(manualChangelog.markdown.trim());
     }
 
-    if (combinedMarkdown.length > 0) {
-      combinedMarkdown = `${combinedMarkdown.trimEnd()}\n`;
+    if (aboutMarkdownChangelog.hasChanges) {
+      segments.push(aboutMarkdownChangelog.markdown.trim());
     }
+
+    if (aboutSubtitleChangelog.hasChanges) {
+      segments.push(aboutSubtitleChangelog.markdown.trim());
+    }
+
+    if (aboutFounderChangelog.hasChanges) {
+      segments.push(aboutFounderChangelog.markdown.trim());
+    }
+
+    const combinedMarkdown = segments.length > 0 ? `${segments.join("\n\n---\n\n")}\n` : "";
 
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
@@ -1587,6 +1739,9 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           changelogMarkdown: combinedMarkdown,
           changedArticles: datasetChangelogForCommit.articles,
           psychoactiveIndexManualData: psychoactiveIndexManual,
+          aboutMarkdown,
+          aboutSubtitleMarkdown: aboutSubtitle,
+          aboutConfig: { founderProfileKeys: aboutFounderKeys },
         }),
       });
 
@@ -1634,9 +1789,17 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     datasetChangelog,
     handleStageNewArticle,
     hasInvalidJsonDraft,
+    hasPendingChanges,
     isNewArticleStaged,
     onTabChange,
     psychoactiveIndexManual,
+    psychoactiveManualChangelog,
+    aboutMarkdownChangelog,
+    aboutSubtitleChangelog,
+    aboutFounderChangelog,
+    aboutMarkdown,
+    aboutSubtitle,
+    aboutFounderKeys,
     originalArticles,
     pushChangeLogNotice,
     getOriginalPsychoactiveIndexManual,
@@ -1808,6 +1971,25 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     [handleTabChange],
   );
 
+  const compoundCount = substanceRecords.length;
+  const psychoactiveClassCount = dosageCategoryGroups.length;
+  const chemicalClassCount = chemicalClassIndexGroups.length;
+  const mechanismClassCount = mechanismIndexGroups.length;
+  const effectCount = effectSummaries.length;
+
+  const aboutPlaceholderValues = useMemo(() => {
+    const formatCount = (value: number) => value.toLocaleString();
+    return {
+      compoundCount: formatCount(compoundCount),
+      psychoactiveClassCount: formatCount(psychoactiveClassCount),
+      categoryCount: formatCount(psychoactiveClassCount),
+      chemicalClassCount: formatCount(chemicalClassCount),
+      mechanismClassCount: formatCount(mechanismClassCount),
+      mechanismOfActionClassCount: formatCount(mechanismClassCount),
+      effectCount: formatCount(effectCount),
+    };
+  }, [chemicalClassCount, compoundCount, effectCount, mechanismClassCount, psychoactiveClassCount]);
+
   useEffect(() => {
     if (activeTab === "profile" && !hasStoredCredentials) {
       handleTabChange("edit");
@@ -1968,13 +2150,13 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
   );
 
   const copyDatasetMarkdownForTagEditor = useCallback(async () => {
-    await navigator.clipboard.writeText(datasetChangelog.markdown);
-  }, [datasetChangelog.markdown]);
+    await navigator.clipboard.writeText(combinedChangelogMarkdown);
+  }, [combinedChangelogMarkdown]);
 
   const downloadDatasetMarkdownForTagEditor = useCallback(() => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const fileName = `dataset-changelog-${timestamp}.diff`;
-    const blob = new Blob([datasetChangelog.markdown], { type: "text/plain" });
+    const blob = new Blob([combinedChangelogMarkdown], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -1983,7 +2165,88 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     anchor.click();
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
-  }, [datasetChangelog.markdown]);
+  }, [combinedChangelogMarkdown]);
+
+  const handleAboutMarkdownChange = useCallback((value: string) => {
+    replaceAboutMarkdown(value);
+  }, [replaceAboutMarkdown]);
+
+  const handleAboutMarkdownReset = useCallback(() => {
+    resetAboutMarkdown();
+  }, [resetAboutMarkdown]);
+
+  const handleAboutMarkdownCopy = useCallback(() => {
+    navigator.clipboard.writeText(aboutMarkdown).catch((error) => {
+      console.error('Failed to copy About markdown', error);
+    });
+  }, [aboutMarkdown]);
+
+  const handleAboutSubtitleChange = useCallback((value: string) => {
+    replaceAboutSubtitle(value);
+  }, [replaceAboutSubtitle]);
+
+  const handleAboutSubtitleReset = useCallback(() => {
+    resetAboutSubtitle();
+  }, [resetAboutSubtitle]);
+
+  const handleAboutSubtitleCopy = useCallback(() => {
+    navigator.clipboard.writeText(aboutSubtitle).catch((error) => {
+      console.error('Failed to copy About subtitle', error);
+    });
+  }, [aboutSubtitle]);
+
+  const canonicalizeFounderKeyList = useCallback((keys: readonly string[]) => {
+    const seen = new Set<string>();
+    const next: string[] = [];
+
+    keys.forEach((entry) => {
+      if (typeof entry !== 'string') {
+        return;
+      }
+
+      const trimmed = entry.trim();
+      if (!trimmed) {
+        return;
+      }
+
+      const normalized = trimmed.toLowerCase();
+      if (seen.has(normalized)) {
+        return;
+      }
+
+      seen.add(normalized);
+      next.push(trimmed);
+    });
+
+    return next;
+  }, []);
+
+  const handleAboutFounderToggle = useCallback((rawKey: string) => {
+    if (typeof rawKey !== 'string') {
+      return;
+    }
+
+    const trimmedKey = rawKey.trim();
+    if (!trimmedKey) {
+      return;
+    }
+
+    const normalizedKey = trimmedKey.toLowerCase();
+    const normalizedExisting = aboutFounderKeys.map((entry) => entry.trim().toLowerCase());
+    const hasKey = normalizedExisting.includes(normalizedKey);
+
+    if (hasKey) {
+      const filtered = aboutFounderKeys.filter((entry, index) => normalizedExisting[index] !== normalizedKey);
+      replaceAboutFounderKeys(canonicalizeFounderKeyList(filtered));
+      return;
+    }
+
+    replaceAboutFounderKeys(canonicalizeFounderKeyList([...aboutFounderKeys, trimmedKey]));
+  }, [aboutFounderKeys, canonicalizeFounderKeyList, replaceAboutFounderKeys]);
+
+  const handleAboutFounderReset = useCallback(() => {
+    resetAboutFounderKeys();
+  }, [resetAboutFounderKeys]);
 
   const commitPanel = (
     <DevCommitCard
@@ -2217,6 +2480,17 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
             >
               <Tags className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Tags</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange("about")}
+              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
+                activeTab === "about" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "about"}
+            >
+              <FileText className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>About</span>
             </button>
             <button
               type="button"
@@ -2996,11 +3270,36 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           pillButtonBaseClass={pillButtonBaseClass}
           commitPanel={commitPanel}
         />
+      ) : activeTab === "about" ? (
+        <AboutEditorTab
+          baseInputClass={baseInputClass}
+          pillButtonBaseClass={pillButtonBaseClass}
+          aboutMarkdown={aboutMarkdown}
+          originalAboutMarkdown={originalAboutMarkdown}
+          onMarkdownChange={handleAboutMarkdownChange}
+          onResetMarkdown={handleAboutMarkdownReset}
+          aboutSubtitle={aboutSubtitle}
+          originalAboutSubtitle={originalAboutSubtitle}
+          onSubtitleChange={handleAboutSubtitleChange}
+          onResetSubtitle={handleAboutSubtitleReset}
+          aboutFounderKeys={aboutFounderKeys}
+          originalFounderKeys={originalAboutFounderKeys}
+          onToggleFounderKey={handleAboutFounderToggle}
+          onResetFounderKeys={handleAboutFounderReset}
+          availableProfiles={userProfiles}
+          markdownDiff={aboutMarkdownChangelog.markdown}
+          subtitleDiff={aboutSubtitleChangelog.markdown}
+          subtitleHasChanges={aboutSubtitleChangelog.hasChanges}
+          onCopyMarkdown={handleAboutMarkdownCopy}
+          onCopySubtitle={handleAboutSubtitleCopy}
+          commitPanel={commitPanel}
+          placeholderValues={aboutPlaceholderValues}
+        />
       ) : activeTab === "tag-editor" ? (
         <TagEditorTab
           commitPanel={commitPanel}
-          datasetMarkdown={datasetChangelog.markdown}
-          hasDatasetChanges={hasDatasetChanges}
+          datasetMarkdown={combinedChangelogMarkdown}
+          hasDatasetChanges={hasPendingChanges}
           onCopyDatasetMarkdown={copyDatasetMarkdownForTagEditor}
           onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
         />

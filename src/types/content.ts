@@ -27,6 +27,15 @@ export interface HeroBadge {
   categoryKey?: string;
 }
 
+export interface MoleculeAsset {
+  filename: string;
+  url: string;
+  matchedField: string;
+  matchedValue: string;
+  resolution?: string;
+  deduplicatedFrom?: string[];
+}
+
 export type InteractionMatchType = "substance" | "alias" | "class" | "unknown";
 
 export interface InteractionTarget {
@@ -84,6 +93,7 @@ export interface SubstanceContent {
   subtitle: string;
   aliases: string[];
   moleculePlaceholder: string;
+  moleculeAsset?: MoleculeAsset;
   heroBadges: HeroBadge[];
   categoryKeys?: string[];
   dosageUnitsNote: string;

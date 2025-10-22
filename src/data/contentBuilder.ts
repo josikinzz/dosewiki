@@ -17,11 +17,13 @@ import type {
   InfoSection,
   CitationEntry,
   InfoSectionItemChip,
+  MoleculeAsset,
 } from "../types/content";
 import { slugify } from "../utils/slug";
 import { tokenizeTagString } from "../utils/tagDelimiters";
 import { getCategoryIcon } from "./categoryIcons";
 import { canonicalizeRouteLabel } from "./routeSynonyms";
+import moleculeSvgMappings from "./moleculeSvgMappings.json";
 
 type RawDoseRangePrimitive = string | number | null | undefined;
 
@@ -148,6 +150,43 @@ const DURATION_LABELS: Record<string, string> = {
 
 type DurationStageKey = keyof typeof DURATION_LABELS;
 type StageValueMap = Partial<Record<DurationStageKey, string>>;
+
+interface MoleculeMappingEntry {
+  filename: string;
+  articleId: number;
+  articleTitle: string;
+  matchedField: string;
+  matchedValue: string;
+  resolution?: string;
+  deduplicatedFrom?: string[];
+}
+
+interface MoleculeMappingFile {
+  mappings: MoleculeMappingEntry[];
+}
+
+const moleculeMappingByArticleId: Map<number, MoleculeMappingEntry> = (() => {
+  const raw = moleculeSvgMappings as MoleculeMappingFile;
+  const map = new Map<number, MoleculeMappingEntry>();
+  if (!raw?.mappings) {
+    return map;
+  }
+
+  for (const entry of raw.mappings) {
+    if (!entry || typeof entry.articleId !== "number") {
+      continue;
+    }
+    if (!entry.filename) {
+      continue;
+    }
+
+    if (!map.has(entry.articleId)) {
+      map.set(entry.articleId, entry);
+    }
+  }
+
+  return map;
+})();
 
 function isNonEmpty(value: unknown): value is NonEmptyString {
   return typeof value === "string" && value.trim().length > 0;
@@ -903,6 +942,29 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     infoSections: buildInfoSections(info),
     categories,
   };
+
+  if (id !== null) {
+    const mapping = moleculeMappingByArticleId.get(id);
+    if (mapping) {
+      const encodedFilename = encodeURI(mapping.filename);
+      const moleculeAsset: MoleculeAsset = {
+        filename: mapping.filename,
+        url: `/molecules/${encodedFilename}`,
+        matchedField: mapping.matchedField,
+        matchedValue: mapping.matchedValue,
+      };
+
+      if (mapping.resolution) {
+        moleculeAsset.resolution = mapping.resolution;
+      }
+
+      if (Array.isArray(mapping.deduplicatedFrom) && mapping.deduplicatedFrom.length > 0) {
+        moleculeAsset.deduplicatedFrom = mapping.deduplicatedFrom;
+      }
+
+      content.moleculeAsset = moleculeAsset;
+    }
+  }
 
   return {
     id,
