@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Chemical Index Manual Layout",
+  "type": "object",
+  "required": [
+    "version",
+    "categories"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/category"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "slug": {
+      "type": "string",
+      "minLength": 1
+    },
+    "slugList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/slug"
+      },
+      "default": []
+    },
+    "link": {
+      "type": "object",
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "chemicalClass",
+            "psychoactiveClass",
+            "mechanism"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "section": {
+      "type": "object",
+      "required": [
+        "key",
+        "label",
+        "drugs"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/slug"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        },
+        "link": {
+          "$ref": "#/definitions/link"
+        },
+        "drugs": {
+          "$ref": "#/definitions/slugList"
+        }
+      },
+      "additionalProperties": false
+    },
+    "category": {
+      "type": "object",
+      "required": [
+        "key",
+        "label",
+        "iconKey"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/slug"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "iconKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        },
+        "drugs": {
+          "$ref": "#/definitions/slugList"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/section"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

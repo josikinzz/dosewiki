@@ -23,10 +23,10 @@ import { useDevMode } from "../../../dev/DevModeContext";
 import type {
   ManualCategoryDefinition,
   ManualCategorySection,
-  ManualPsychoactiveIndexConfig,
+  ManualIndexConfig,
   ManualSectionLink,
   ManualSectionLinkType,
-} from "../../../../data/psychoactiveIndexManual";
+} from "../../../../data/manualIndexLoader";
 import {
   allSubstanceRecords,
   allSubstancesBySlug,
@@ -144,8 +144,8 @@ const areCategoriesEqual = (
 };
 
 const areManualsEqual = (
-  first: ManualPsychoactiveIndexConfig,
-  second: ManualPsychoactiveIndexConfig,
+  first: ManualIndexConfig,
+  second: ManualIndexConfig,
 ): boolean => {
   if (first === second) {
     return true;
@@ -259,25 +259,65 @@ const sortSectionsWithCommonPriority = (
       return compareLabels(first.label, second.label);
     });
 
-const organizeManualEntries = (manual: ManualPsychoactiveIndexConfig): ManualPsychoactiveIndexConfig => ({
+const sortSlugsAlphabetically = (slugs: readonly string[]): string[] =>
+  [...slugs]
+    .map((slug) => ({ slug, name: getSlugSortName(slug) }))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }))
+    .map((entry) => entry.slug);
+
+type ManualDatasetKey = "psychoactive" | "chemical" | "mechanism";
+
+const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
+
+const sortSlugsForDataset = (
+  dataset: ManualDatasetKey,
+  slugs: readonly string[],
+): string[] => {
+  if (dataset === "psychoactive") {
+    return sortSlugsWithCommonPriority(slugs);
+  }
+  return sortSlugsAlphabetically(slugs);
+};
+
+const sortSectionsForDataset = (
+  dataset: ManualDatasetKey,
+  sections: readonly ManualCategorySection[],
+): ManualCategorySection[] => {
+  if (dataset === "psychoactive") {
+    return sortSectionsWithCommonPriority(sections);
+  }
+
+  return [...sections]
+    .map((section) => ({
+      ...section,
+      drugs: sortSlugsForDataset(dataset, section.drugs),
+    }))
+    .sort((first, second) => compareLabels(first.label, second.label));
+};
+
+const organizeManualEntries = (
+  dataset: ManualDatasetKey,
+  manual: ManualIndexConfig,
+): ManualIndexConfig => ({
   ...manual,
   categories: manual.categories.map((category) => ({
     ...category,
-    drugs: sortSlugsWithCommonPriority(category.drugs),
-    sections: sortSectionsWithCommonPriority(category.sections),
+    drugs: sortSlugsForDataset(dataset, category.drugs),
+    sections: sortSectionsForDataset(dataset, category.sections),
   })),
 });
 
 const normalizeManualOrdering = (
-  manual: ManualPsychoactiveIndexConfig,
-): ManualPsychoactiveIndexConfig => ({
+  dataset: ManualDatasetKey,
+  manual: ManualIndexConfig,
+): ManualIndexConfig => ({
   ...manual,
   categories: manual.categories.map((category) => ({
     ...category,
-    drugs: sortSlugsWithCommonPriority(category.drugs),
+    drugs: sortSlugsForDataset(dataset, category.drugs),
     sections: category.sections.map((section) => ({
       ...section,
-      drugs: sortSlugsWithCommonPriority(section.drugs),
+      drugs: sortSlugsForDataset(dataset, section.drugs),
     })),
   })),
 });
@@ -1123,36 +1163,194 @@ export function IndexLayoutTab({
 }: IndexLayoutTabProps) {
   const {
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     replacePsychoactiveIndexManual,
+    replaceChemicalIndexManual,
+    replaceMechanismIndexManual,
     resetPsychoactiveIndexManual,
+    resetChemicalIndexManual,
+    resetMechanismIndexManual,
     getOriginalPsychoactiveIndexManual,
+    getOriginalChemicalIndexManual,
+    getOriginalMechanismIndexManual,
   } = useDevMode();
 
-  const [normalizedOriginalManual, setNormalizedOriginalManual] = useState<ManualPsychoactiveIndexConfig>(
-    () => normalizeManualOrdering(deepClone(getOriginalPsychoactiveIndexManual())),
-  );
-  const [normalizedCurrentManual, setNormalizedCurrentManual] = useState<ManualPsychoactiveIndexConfig>(
-    () => normalizeManualOrdering(deepClone(psychoactiveIndexManual)),
+  const datasetOrder = DATASET_ORDER;
+
+  interface DatasetDefinition {
+    key: ManualDatasetKey;
+    label: string;
+    description: string;
+    helperLabel: string;
+    helperDetail: string;
+    manual: ManualIndexConfig;
+    replaceManual: (next: ManualIndexConfig) => void;
+    resetContextManual: () => void;
+    getOriginalManual: () => ManualIndexConfig;
+  }
+
+  const datasetDefinitions = useMemo<Record<ManualDatasetKey, DatasetDefinition>>(
+    () => ({
+      psychoactive: {
+        key: "psychoactive",
+        label: "Psychoactive Classes",
+        description: "Curate the manual layout for psychoactive classifications used on the substance index.",
+        helperLabel: "Psychoactive index manual",
+        helperDetail: "Controls the category, section, and ordering for the public Psychoactive Class tab.",
+        manual: psychoactiveIndexManual,
+        replaceManual: replacePsychoactiveIndexManual,
+        resetContextManual: resetPsychoactiveIndexManual,
+        getOriginalManual: getOriginalPsychoactiveIndexManual,
+      },
+      chemical: {
+        key: "chemical",
+        label: "Chemical Classes",
+        description: "Compose the curated chemical class ordering for the substance index.",
+        helperLabel: "Chemical index manual",
+        helperDetail: "Feeds the Chemical Class tab and Dev Tools previews when editing articles.",
+        manual: chemicalIndexManual,
+        replaceManual: replaceChemicalIndexManual,
+        resetContextManual: resetChemicalIndexManual,
+        getOriginalManual: getOriginalChemicalIndexManual,
+      },
+      mechanism: {
+        key: "mechanism",
+        label: "Mechanisms of Action",
+        description: "Manage the mechanism of action taxonomy used across the index.",
+        helperLabel: "Mechanism index manual",
+        helperDetail: "Controls the Mechanism tab layout plus related detail page ordering.",
+        manual: mechanismIndexManual,
+        replaceManual: replaceMechanismIndexManual,
+        resetContextManual: resetMechanismIndexManual,
+        getOriginalManual: getOriginalMechanismIndexManual,
+      },
+    }), [
+      chemicalIndexManual,
+      getOriginalChemicalIndexManual,
+      getOriginalMechanismIndexManual,
+      getOriginalPsychoactiveIndexManual,
+      mechanismIndexManual,
+      psychoactiveIndexManual,
+      replaceChemicalIndexManual,
+      replaceMechanismIndexManual,
+      replacePsychoactiveIndexManual,
+      resetChemicalIndexManual,
+      resetMechanismIndexManual,
+      resetPsychoactiveIndexManual,
+    ],
   );
 
-  const [draftManual, setDraftManual] = useState<ManualPsychoactiveIndexConfig>(normalizedCurrentManual);
-  const [showJsonEditor, setShowJsonEditor] = useState(false);
-  const [rawJsonDraft, setRawJsonDraft] = useState(() => JSON.stringify(normalizedCurrentManual, null, 2));
-  const [jsonError, setJsonError] = useState<string | null>(null);
+  const createNormalizedManual = (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) =>
+    normalizeManualOrdering(datasetKey, deepClone(manual));
+
+  const createManualMap = (
+    source: (definition: DatasetDefinition) => ManualIndexConfig,
+  ): Record<ManualDatasetKey, ManualIndexConfig> => {
+    const map: Partial<Record<ManualDatasetKey, ManualIndexConfig>> = {};
+    datasetOrder.forEach((datasetKey) => {
+      const definition = datasetDefinitions[datasetKey];
+      map[datasetKey] = createNormalizedManual(datasetKey, source(definition));
+    });
+    return map as Record<ManualDatasetKey, ManualIndexConfig>;
+  };
+
+  const [activeDataset, setActiveDataset] = useState<ManualDatasetKey>("psychoactive");
+  const [normalizedOriginalManuals, setNormalizedOriginalManuals] = useState<
+    Record<ManualDatasetKey, ManualIndexConfig>
+  >(() => createManualMap((definition) => definition.getOriginalManual()));
+  const [normalizedCurrentManuals, setNormalizedCurrentManuals] = useState<
+    Record<ManualDatasetKey, ManualIndexConfig>
+  >(() => createManualMap((definition) => definition.manual));
+  const [draftManuals, setDraftManuals] = useState<Record<ManualDatasetKey, ManualIndexConfig>>(() =>
+    createManualMap((definition) => definition.manual),
+  );
+  const [rawJsonDrafts, setRawJsonDrafts] = useState<Record<ManualDatasetKey, string>>(() => {
+    const jsonMap: Partial<Record<ManualDatasetKey, string>> = {};
+    datasetOrder.forEach((datasetKey) => {
+      const manual = createNormalizedManual(datasetKey, datasetDefinitions[datasetKey].manual);
+      jsonMap[datasetKey] = JSON.stringify(manual, null, 2);
+    });
+    return jsonMap as Record<ManualDatasetKey, string>;
+  });
+  const [jsonErrors, setJsonErrors] = useState<Record<ManualDatasetKey, string | null>>({
+    psychoactive: null,
+    chemical: null,
+    mechanism: null,
+  });
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [showJsonEditor, setShowJsonEditor] = useState(false);
 
   useEffect(() => {
-    setNormalizedOriginalManual(normalizeManualOrdering(deepClone(getOriginalPsychoactiveIndexManual())));
-  }, [getOriginalPsychoactiveIndexManual]);
+    setNormalizedOriginalManuals((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      datasetOrder.forEach((datasetKey) => {
+        const definition = datasetDefinitions[datasetKey];
+        const normalized = createNormalizedManual(datasetKey, definition.getOriginalManual());
+        if (!areManualsEqual(previous[datasetKey], normalized)) {
+          next[datasetKey] = normalized;
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+  }, [datasetDefinitions, datasetOrder]);
 
   useEffect(() => {
-    setNormalizedCurrentManual(normalizeManualOrdering(deepClone(psychoactiveIndexManual)));
-  }, [psychoactiveIndexManual]);
+    setNormalizedCurrentManuals((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      datasetOrder.forEach((datasetKey) => {
+        const definition = datasetDefinitions[datasetKey];
+        const normalized = createNormalizedManual(datasetKey, definition.manual);
+        if (!areManualsEqual(previous[datasetKey], normalized)) {
+          next[datasetKey] = normalized;
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+  }, [datasetDefinitions, datasetOrder]);
 
   useEffect(() => {
-    setDraftManual(normalizedCurrentManual);
-    setRawJsonDraft(JSON.stringify(normalizedCurrentManual, null, 2));
-  }, [normalizedCurrentManual]);
+    setDraftManuals((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      datasetOrder.forEach((datasetKey) => {
+        const normalized = normalizedCurrentManuals[datasetKey];
+        if (!areManualsEqual(previous[datasetKey], normalized)) {
+          next[datasetKey] = normalized;
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+    setRawJsonDrafts((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      datasetOrder.forEach((datasetKey) => {
+        const normalized = normalizedCurrentManuals[datasetKey];
+        const serialized = JSON.stringify(normalized, null, 2);
+        if (previous[datasetKey] !== serialized) {
+          next[datasetKey] = serialized;
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+    setJsonErrors((previous) => {
+      let changed = false;
+      const next = { ...previous };
+      datasetOrder.forEach((datasetKey) => {
+        if (previous[datasetKey]) {
+          next[datasetKey] = null;
+          changed = true;
+        }
+      });
+      return changed ? next : previous;
+    });
+  }, [datasetOrder, normalizedCurrentManuals]);
 
   useEffect(() => {
     if (!saveNotice) {
@@ -1166,9 +1364,69 @@ export function IndexLayoutTab({
     };
   }, [saveNotice]);
 
+  useEffect(() => {
+    setSaveNotice(null);
+  }, [activeDataset]);
+
+  const activeDefinition = datasetDefinitions[activeDataset];
+  const normalizedOriginalManual = normalizedOriginalManuals[activeDataset];
+  const normalizedCurrentManual = normalizedCurrentManuals[activeDataset];
+  const draftManual = draftManuals[activeDataset];
+  const rawJsonDraft = rawJsonDrafts[activeDataset];
+  const jsonError = jsonErrors[activeDataset];
+
   const hasUnsavedChanges = useMemo(
     () => !areManualsEqual(normalizedCurrentManual, draftManual),
     [draftManual, normalizedCurrentManual],
+  );
+
+  const clearJsonErrorForDataset = useCallback((datasetKey: ManualDatasetKey) => {
+    setJsonErrors((previous) => {
+      if (!previous[datasetKey]) {
+        return previous;
+      }
+      return {
+        ...previous,
+        [datasetKey]: null,
+      };
+    });
+  }, []);
+
+  const setRawJsonForDataset = useCallback((datasetKey: ManualDatasetKey, value: string) => {
+    setRawJsonDrafts((previous) => {
+      if (previous[datasetKey] === value) {
+        return previous;
+      }
+      return {
+        ...previous,
+        [datasetKey]: value,
+      };
+    });
+  }, []);
+
+  const updateDraftManualForDataset = useCallback(
+    (datasetKey: ManualDatasetKey, updater: (manual: ManualIndexConfig) => ManualIndexConfig) => {
+      setDraftManuals((previous) => {
+        const current = previous[datasetKey];
+        const next = updater(current);
+        if (next === current) {
+          return previous;
+        }
+        return {
+          ...previous,
+          [datasetKey]: next,
+        };
+      });
+      clearJsonErrorForDataset(datasetKey);
+    },
+    [clearJsonErrorForDataset],
+  );
+
+  const updateDraftManualForActive = useCallback(
+    (updater: (manual: ManualIndexConfig) => ManualIndexConfig) => {
+      updateDraftManualForDataset(activeDataset, updater);
+    },
+    [activeDataset, updateDraftManualForDataset],
   );
 
   const substanceOptions = useMemo<SubstanceOption[]>(
@@ -1186,7 +1444,7 @@ export function IndexLayoutTab({
 
   const updateCategory = useCallback(
     (index: number, updater: (category: ManualCategoryDefinition) => ManualCategoryDefinition) => {
-      setDraftManual((previous) => {
+      updateDraftManualForActive((previous) => {
         if (index < 0 || index >= previous.categories.length) {
           return previous;
         }
@@ -1203,11 +1461,11 @@ export function IndexLayoutTab({
         };
       });
     },
-    [],
+    [updateDraftManualForActive],
   );
 
   const removeCategory = useCallback((index: number) => {
-    setDraftManual((previous) => {
+    updateDraftManualForActive((previous) => {
       if (index < 0 || index >= previous.categories.length || previous.categories.length <= 1) {
         return previous;
       }
@@ -1220,26 +1478,29 @@ export function IndexLayoutTab({
         categories: nextCategories,
       };
     });
-  }, []);
+  }, [updateDraftManualForActive]);
 
-  const moveCategory = useCallback((index: number, direction: "up" | "down") => {
-    setDraftManual((previous) => {
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= previous.categories.length) {
-        return previous;
-      }
-      const nextCategories = previous.categories.slice();
-      const [moved] = nextCategories.splice(index, 1);
-      nextCategories.splice(targetIndex, 0, moved);
-      return {
-        ...previous,
-        categories: nextCategories,
-      };
-    });
-  }, []);
+  const moveCategory = useCallback(
+    (index: number, direction: "up" | "down") => {
+      updateDraftManualForActive((previous) => {
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= previous.categories.length) {
+          return previous;
+        }
+        const nextCategories = previous.categories.slice();
+        const [moved] = nextCategories.splice(index, 1);
+        nextCategories.splice(targetIndex, 0, moved);
+        return {
+          ...previous,
+          categories: nextCategories,
+        };
+      });
+    },
+    [updateDraftManualForActive],
+  );
 
   const addCategory = useCallback(() => {
-    setDraftManual((previous) => {
+    updateDraftManualForActive((previous) => {
       const existingKeys = new Set(previous.categories.map((category) => slugify(category.key)));
       const key = generateUniqueKey("New Category", existingKeys);
       const nextCategory: ManualCategoryDefinition = {
@@ -1255,7 +1516,7 @@ export function IndexLayoutTab({
         categories: [...previous.categories, nextCategory],
       };
     });
-  }, []);
+  }, [updateDraftManualForActive]);
 
   const addSection = useCallback((index: number) => {
     updateCategory(index, (category) => {
@@ -1276,51 +1537,93 @@ export function IndexLayoutTab({
 
   const handleApplyJson = useCallback(() => {
     try {
-      const parsed = JSON.parse(rawJsonDraft) as ManualPsychoactiveIndexConfig;
+      const parsed = JSON.parse(rawJsonDraft) as ManualIndexConfig;
       if (!parsed || typeof parsed !== "object") {
         throw new Error("Invalid manual dataset");
       }
-      const normalized = normalizeManualOrdering(parsed);
-      setDraftManual(normalized);
-      setRawJsonDraft(JSON.stringify(normalized, null, 2));
-      setJsonError(null);
+      const normalized = normalizeManualOrdering(activeDataset, parsed);
+      updateDraftManualForDataset(activeDataset, () => normalized);
+      setRawJsonForDataset(activeDataset, JSON.stringify(normalized, null, 2));
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unable to parse JSON";
-      setJsonError(reason);
+      setJsonErrors((previous) => ({
+        ...previous,
+        [activeDataset]: reason,
+      }));
     }
-  }, [rawJsonDraft]);
+  }, [activeDataset, rawJsonDraft, setRawJsonForDataset, updateDraftManualForDataset]);
 
   const handleSave = useCallback(() => {
-    const normalized = normalizeManualOrdering(draftManual);
-    replacePsychoactiveIndexManual(deepClone(normalized));
-    setDraftManual(normalized);
-    setRawJsonDraft(JSON.stringify(normalized, null, 2));
-    setSaveNotice("Layout updated");
-  }, [draftManual, replacePsychoactiveIndexManual]);
+    const normalized = normalizeManualOrdering(activeDataset, draftManual);
+    activeDefinition.replaceManual(deepClone(normalized));
+    setNormalizedCurrentManuals((previous) => ({
+      ...previous,
+      [activeDataset]: normalized,
+    }));
+    updateDraftManualForDataset(activeDataset, () => normalized);
+    setRawJsonForDataset(activeDataset, JSON.stringify(normalized, null, 2));
+    setSaveNotice(`${activeDefinition.label} layout updated`);
+  }, [
+    activeDataset,
+    activeDefinition,
+    draftManual,
+    setRawJsonForDataset,
+    updateDraftManualForDataset,
+  ]);
 
   const handleResetDraft = useCallback(() => {
-    setDraftManual(normalizedCurrentManual);
-    setRawJsonDraft(JSON.stringify(normalizedCurrentManual, null, 2));
-    setJsonError(null);
-  }, [normalizedCurrentManual]);
+    updateDraftManualForDataset(activeDataset, () => deepClone(normalizedCurrentManual));
+    setRawJsonForDataset(activeDataset, JSON.stringify(normalizedCurrentManual, null, 2));
+  }, [activeDataset, normalizedCurrentManual, setRawJsonForDataset, updateDraftManualForDataset]);
 
   const handleResetToOriginal = useCallback(() => {
-    setDraftManual(normalizedOriginalManual);
-    setRawJsonDraft(JSON.stringify(normalizedOriginalManual, null, 2));
-    setJsonError(null);
-  }, [normalizedOriginalManual]);
+    updateDraftManualForDataset(activeDataset, () => deepClone(normalizedOriginalManual));
+    setRawJsonForDataset(activeDataset, JSON.stringify(normalizedOriginalManual, null, 2));
+  }, [
+    activeDataset,
+    normalizedOriginalManual,
+    setRawJsonForDataset,
+    updateDraftManualForDataset,
+  ]);
 
   const handleOrganizeEntries = useCallback(() => {
-    setDraftManual((previous) => {
-      const organized = organizeManualEntries(previous);
-      setRawJsonDraft(JSON.stringify(organized, null, 2));
-      return organized;
+    let organizedManual: ManualIndexConfig | null = null;
+    updateDraftManualForActive((previous) => {
+      organizedManual = organizeManualEntries(activeDataset, previous);
+      return organizedManual;
     });
-  }, [setRawJsonDraft]);
+    if (organizedManual) {
+      setRawJsonForDataset(activeDataset, JSON.stringify(organizedManual, null, 2));
+    }
+  }, [
+    activeDataset,
+    setRawJsonForDataset,
+    updateDraftManualForActive,
+  ]);
 
   return (
     <div className="space-y-6">
       {commitPanel ? <div>{commitPanel}</div> : null}
+      <div className="flex flex-wrap items-center gap-2">
+        {datasetOrder.map((datasetKey) => {
+          const definition = datasetDefinitions[datasetKey];
+          const isActive = datasetKey === activeDataset;
+          return (
+            <button
+              key={datasetKey}
+              type="button"
+              onClick={() => setActiveDataset(datasetKey)}
+              className={`${pillButtonBaseClass} ${isActive ? "bg-fuchsia-500/20 text-fuchsia-200" : "bg-white/10 text-white/70 hover:bg-white/20"}`}
+              aria-pressed={isActive}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">{definition.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs uppercase tracking-[0.3em] text-white/60">
+        {activeDefinition.helperLabel}
+      </div>
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -1385,7 +1688,7 @@ export function IndexLayoutTab({
       {showJsonEditor ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm font-medium text-white/70">
-            <span>Manual layout JSON</span>
+            <span>{`${activeDefinition.label} JSON layout`}</span>
             <button
               type="button"
               onClick={handleApplyJson}
@@ -1399,8 +1702,8 @@ export function IndexLayoutTab({
           <JsonEditor
             value={rawJsonDraft}
             onChange={(nextValue) => {
-              setRawJsonDraft(nextValue);
-              setJsonError(null);
+              setRawJsonForDataset(activeDataset, nextValue);
+              clearJsonErrorForDataset(activeDataset);
             }}
           />
         </div>
@@ -1410,10 +1713,8 @@ export function IndexLayoutTab({
             <div className="flex items-start gap-3">
               <Info className="mt-1 h-4 w-4 text-white/50" />
               <div className="space-y-2">
-                <p>
-                  Manually compose the psychoactive index by assigning substances to categories and sections.
-                  Hidden or missing substances are flagged inline. Save changes to update the live Dev Tools preview.
-                </p>
+                <p>{activeDefinition.description}</p>
+                <p>{activeDefinition.helperDetail}</p>
                 <p>
                   Category order controls column ordering on the public index. Section order controls their appearance inside each column.
                 </p>

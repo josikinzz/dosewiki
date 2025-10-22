@@ -1,0 +1,2143 @@
+{
+  "$schema": "/schemas/mechanism-index-manual.schema.json",
+  "version": 1,
+  "categories": [
+    {
+      "key": "mechanism-0-9",
+      "label": "0-9",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "5-ht1a-receptor-agonist",
+          "label": "5-HT1A receptor agonist",
+          "drugs": [
+            "5-meo-dipt",
+            "eth-lad",
+            "psilocin",
+            "psilocybin-mushrooms"
+          ]
+        },
+        {
+          "key": "5-ht1a-receptor-full-agonist",
+          "label": "5-HT1A receptor full agonist",
+          "drugs": [
+            "lsm-775"
+          ]
+        },
+        {
+          "key": "5-ht1a-receptor-partial-agonist",
+          "label": "5-HT1A receptor partial agonist",
+          "drugs": [
+            "ald-52"
+          ]
+        },
+        {
+          "key": "5-ht1a-receptor-preferring-agonist",
+          "label": "5-HT1A receptor preferring agonist",
+          "drugs": [
+            "5-meo-amt",
+            "5-meo-dmt"
+          ]
+        },
+        {
+          "key": "5-ht2a-receptor-agonist",
+          "label": "5-HT2A receptor agonist",
+          "drugs": [
+            "1b-lsd",
+            "1cp-al-lad",
+            "1cp-lsd",
+            "1cp-mipla",
+            "1d-lsd",
+            "1p-eth-lad",
+            "1p-lsd",
+            "1s-lsd",
+            "2-me-dmt",
+            "2-meo-dmt",
+            "25b-nboh",
+            "25c-nb3ome",
+            "25c-nboh",
+            "25cn-nboh",
+            "25d-nbome",
+            "25e-nboh",
+            "25h-nbome",
+            "25i-nbf",
+            "25i-nbmd",
+            "25i-nboh",
+            "25i-nbome",
+            "25ip-nbome",
+            "25p-nbome",
+            "25t-2-nbome",
+            "25t-nbome",
+            "2c-b",
+            "2c-b-an",
+            "2c-b-fly",
+            "2c-b-fly-nbome",
+            "2c-bz",
+            "2c-c",
+            "2c-d",
+            "2c-e",
+            "2c-ef",
+            "2c-f",
+            "2c-g",
+            "2c-i",
+            "2c-ip",
+            "2c-n",
+            "2c-p",
+            "2c-t-2",
+            "2c-t-21",
+            "2c-t-4",
+            "2c-t-4-nbome",
+            "2c-t-7",
+            "2c-t-7-nbome",
+            "2c-tfm",
+            "3c-e",
+            "3c-p",
+            "4-aco-det",
+            "4-aco-dipt",
+            "4-aco-dmt",
+            "4-aco-dpt",
+            "4-ho-mcpt",
+            "4-ho-met",
+            "4-ho-pipt",
+            "4-meo-mipt",
+            "4-pro-dmt",
+            "4-pro-met",
+            "4c-d",
+            "5-bromo-dmt",
+            "5-cl-amt",
+            "5-meo-dalt",
+            "5-meo-dibf",
+            "5-meo-dipt",
+            "5-meo-dpt",
+            "5-meo-mipt",
+            "aem",
+            "al-lad",
+            "aleph",
+            "aleph-2",
+            "aleph-6",
+            "amt",
+            "ayahuasca",
+            "boh-2c-b",
+            "bromo-dragonfly",
+            "bufotenin",
+            "c30-nbome",
+            "dipt",
+            "dmt",
+            "dob",
+            "doc",
+            "doef",
+            "doet",
+            "doi",
+            "dom",
+            "dpt",
+            "eth-lad",
+            "lsd",
+            "lsz",
+            "mal",
+            "mda",
+            "mem",
+            "mescaline",
+            "psilocybin-mushrooms",
+            "tma",
+            "tma-2",
+            "yopo"
+          ]
+        },
+        {
+          "key": "5-ht2a-receptor-antagonist",
+          "label": "5-HT2A receptor antagonist",
+          "drugs": [
+            "mcpp"
+          ]
+        },
+        {
+          "key": "5-ht2a-receptor-full-agonist",
+          "label": "5-HT2A receptor full agonist",
+          "drugs": [
+            "25n-nbome",
+            "4-ho-mpt"
+          ]
+        },
+        {
+          "key": "5-ht2a-receptor-partial-agonist",
+          "label": "5-HT2A receptor partial agonist",
+          "drugs": [
+            "1v-lsd",
+            "2-5-dma",
+            "2c-t",
+            "4-aco-mipt",
+            "4-ho-det",
+            "4-ho-dipt",
+            "4-ho-ept",
+            "ald-52",
+            "allylescaline",
+            "det",
+            "ept",
+            "escaline",
+            "lsa",
+            "lsm-775",
+            "met",
+            "mipla",
+            "pro-lad",
+            "proscaline",
+            "psilocin",
+            "tma-6"
+          ]
+        },
+        {
+          "key": "5-ht2b-receptor-agonist",
+          "label": "5-HT2B receptor agonist",
+          "drugs": [
+            "25b-nboh",
+            "25c-nb3ome",
+            "25cn-nboh",
+            "25d-nbome",
+            "25e-nboh",
+            "25h-nbome",
+            "25i-nbf",
+            "25i-nbmd",
+            "25i-nboh",
+            "25i-nbome",
+            "25ip-nbome",
+            "25p-nbome",
+            "25t-2-nbome",
+            "25t-nbome",
+            "2c-b-fly-nbome",
+            "2c-t-4-nbome",
+            "2c-t-7-nbome",
+            "3-4-dichloromethylphenidate",
+            "c30-nbome",
+            "doi",
+            "mda"
+          ]
+        },
+        {
+          "key": "5-ht2b-receptor-partial-agonist",
+          "label": "5-HT2B receptor partial agonist",
+          "drugs": [
+            "25n-nbome",
+            "4-ho-mpt",
+            "lsm-775",
+            "mcpp"
+          ]
+        },
+        {
+          "key": "5-ht2c-partial-agonist",
+          "label": "5-HT2C partial agonist",
+          "drugs": [
+            "2c-b",
+            "2c-i"
+          ]
+        },
+        {
+          "key": "5-ht2c-receptor-agonist",
+          "label": "5-HT2C receptor agonist",
+          "drugs": [
+            "25c-nboh",
+            "25d-nbome",
+            "4-aco-dipt",
+            "doi",
+            "escaline",
+            "eth-lad",
+            "mda",
+            "psilocin",
+            "psilocybin-mushrooms"
+          ]
+        },
+        {
+          "key": "5-ht2c-receptor-full-agonist",
+          "label": "5-HT2C receptor full agonist",
+          "drugs": [
+            "25n-nbome"
+          ]
+        },
+        {
+          "key": "5-ht2c-receptor-partial-agonist",
+          "label": "5-HT2C receptor partial agonist",
+          "drugs": [
+            "4-ho-mpt",
+            "ald-52",
+            "ept",
+            "lsm-775",
+            "mcpp",
+            "proscaline"
+          ]
+        },
+        {
+          "key": "5-ht6-receptor-agonist",
+          "label": "5-HT6 receptor agonist",
+          "drugs": [
+            "dipt"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-a",
+      "label": "A",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "acetylcholine-precursor",
+          "label": "Acetylcholine precursor",
+          "drugs": [
+            "choline-bitartrate"
+          ]
+        },
+        {
+          "key": "acetylcholinesterase-inhibitor",
+          "label": "Acetylcholinesterase inhibitor",
+          "drugs": [
+            "galantamine"
+          ]
+        },
+        {
+          "key": "activates-phospholipase-a2-instead-of-phospholipase-c",
+          "label": "Activates phospholipase A2 instead of phospholipase C",
+          "drugs": [
+            "psilocin"
+          ]
+        },
+        {
+          "key": "active-metabolite-of-tramadol",
+          "label": "active metabolite of tramadol",
+          "drugs": [
+            "o-dsmt"
+          ]
+        },
+        {
+          "key": "acts-as-prodrug-for-lsd-via-deacylation",
+          "label": "acts as prodrug for LSD via deacylation",
+          "drugs": [
+            "1v-lsd"
+          ]
+        },
+        {
+          "key": "adenosine-receptor-antagonist",
+          "label": "Adenosine receptor antagonist",
+          "drugs": [
+            "caffeine",
+            "theacrine"
+          ]
+        },
+        {
+          "key": "adrenergic-alpha-1-receptor-agonist",
+          "label": "adrenergic alpha-1 receptor agonist",
+          "drugs": [
+            "25d-nbome"
+          ]
+        },
+        {
+          "key": "adrenergic-receptor-agonist",
+          "label": "Adrenergic receptor agonist",
+          "drugs": [
+            "phenylephrine"
+          ]
+        },
+        {
+          "key": "affects-dopamine-acetylcholine-and-serotonin-receptors",
+          "label": "affects dopamine, acetylcholine, and serotonin receptors",
+          "drugs": [
+            "theacrine"
+          ]
+        },
+        {
+          "key": "ampa-glutamate-receptor-antagonist",
+          "label": "AMPA glutamate receptor antagonist",
+          "drugs": [
+            "pentobarbital"
+          ]
+        },
+        {
+          "key": "ampa-receptor-modulator",
+          "label": "AMPA receptor modulator",
+          "drugs": [
+            "n-acetylcysteine"
+          ]
+        },
+        {
+          "key": "ampa-receptor-positive-allosteric-modulator",
+          "label": "AMPA receptor positive allosteric modulator",
+          "drugs": [
+            "aniracetam",
+            "coluracetam",
+            "noopept",
+            "oxiracetam",
+            "phenylpiracetam",
+            "piracetam"
+          ]
+        },
+        {
+          "key": "androgen-receptor-agonist",
+          "label": "Androgen receptor agonist",
+          "drugs": [
+            "halodrol-50"
+          ]
+        },
+        {
+          "key": "anti-parkinsonian",
+          "label": "anti-parkinsonian",
+          "drugs": [
+            "4c-d"
+          ]
+        },
+        {
+          "key": "approximately-1-85-times-more-selective-for-norepinephrine-than-dopamine",
+          "label": "approximately 1.85 times more selective for norepinephrine than dopamine",
+          "drugs": [
+            "methiopropamine"
+          ]
+        },
+        {
+          "key": "aromatase-inhibitor",
+          "label": "Aromatase inhibitor",
+          "drugs": [
+            "arimistane"
+          ]
+        },
+        {
+          "key": "at-high-doses-affects-norepinephrine-receptors",
+          "label": "at high doses affects norepinephrine receptors",
+          "drugs": [
+            "theacrine"
+          ]
+        },
+        {
+          "key": "atypical-dopamine-reuptake-inhibitor",
+          "label": "Atypical dopamine reuptake inhibitor",
+          "drugs": [
+            "adrafinil",
+            "armodafinil",
+            "dehydroxyfluorafinil",
+            "flmodafinil",
+            "modafinil"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-b",
+      "label": "B",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "beta-adrenergic-receptor-antagonists",
+          "label": "Beta-adrenergic receptor antagonists",
+          "drugs": [
+            "propranolol"
+          ]
+        },
+        {
+          "key": "blocks-dopamine-transporter",
+          "label": "blocks dopamine transporter",
+          "drugs": [
+            "dichloropane"
+          ]
+        },
+        {
+          "key": "blocks-norepinephrine-transporter",
+          "label": "blocks norepinephrine transporter",
+          "drugs": [
+            "dichloropane"
+          ]
+        },
+        {
+          "key": "blocks-serotonin-transporter",
+          "label": "blocks serotonin transporter",
+          "drugs": [
+            "dichloropane"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-c",
+      "label": "C",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "cb1-and-cb2-receptor-full-agonist",
+          "label": "CB1 and CB2 receptor full agonist",
+          "drugs": [
+            "4f-mdmb-binaca",
+            "adb-inaca",
+            "adb-pinaca",
+            "adb-pinaca-isomer-2",
+            "adbica",
+            "akb-57",
+            "am-1248",
+            "am-2201",
+            "am-2233",
+            "am-694",
+            "amb-chmica",
+            "amb-fubinaca",
+            "cb-13",
+            "jwh-018"
+          ]
+        },
+        {
+          "key": "cb1-and-cb2-receptor-partial-agonist",
+          "label": "CB1 and CB2 receptor partial agonist",
+          "drugs": [
+            "cannabis",
+            "cbl",
+            "cbn"
+          ]
+        },
+        {
+          "key": "cb1-cannabinoid-receptor-full-agonist",
+          "label": "CB1 cannabinoid receptor full agonist",
+          "drugs": [
+            "ab-fubinaca",
+            "thj-018"
+          ]
+        },
+        {
+          "key": "cb1-receptor-full-agonist",
+          "label": "CB1 receptor full agonist",
+          "drugs": [
+            "jwh-073"
+          ]
+        },
+        {
+          "key": "cb2-cannabinoid-receptor-full-agonist",
+          "label": "CB2 cannabinoid receptor full agonist",
+          "drugs": [
+            "thj-018"
+          ]
+        },
+        {
+          "key": "cb2-cannabinoid-receptor-full-agonist-ki-23-2-nm-ec50-3-2-nm-with-selectivity-for-cb2",
+          "label": "CB2 cannabinoid receptor full agonist (Ki 23.2 nM, EC50 3.2 nM) with selectivity for CB2",
+          "drugs": [
+            "ab-fubinaca"
+          ]
+        },
+        {
+          "key": "cb2-receptor-full-agonist",
+          "label": "CB2 receptor full agonist",
+          "drugs": [
+            "jwh-073"
+          ]
+        },
+        {
+          "key": "central-nervous-system-depressant",
+          "label": "Central nervous system depressant",
+          "drugs": [
+            "methocarbamol"
+          ]
+        },
+        {
+          "key": "combination-mechanism",
+          "label": "Combination mechanism",
+          "drugs": [
+            "fen-phen",
+            "fenethylline"
+          ]
+        },
+        {
+          "key": "competitive-antagonist-at-muscarinic-acetylcholine-receptors-m1-and-m2",
+          "label": "Competitive antagonist at muscarinic acetylcholine receptors M1 and M2",
+          "drugs": [
+            "datura"
+          ]
+        },
+        {
+          "key": "converts-nicotinamide-to-n-methyl-nicotinamide",
+          "label": "converts nicotinamide to N-methyl-nicotinamide",
+          "drugs": [
+            "sam-e"
+          ]
+        },
+        {
+          "key": "converts-to-dopamine-norepinephrine-and-epinephrine",
+          "label": "converts to dopamine, norepinephrine, and epinephrine",
+          "drugs": [
+            "l-tyrosine"
+          ]
+        },
+        {
+          "key": "cystine-glutamate-antiporter-substrate",
+          "label": "Cystine-glutamate antiporter substrate",
+          "drugs": [
+            "n-acetylcysteine"
+          ]
+        },
+        {
+          "key": "cytidine-converts-to-uridine-enhancing-phosphatidylcholine-synthesis",
+          "label": "cytidine converts to uridine enhancing phosphatidylcholine synthesis",
+          "drugs": [
+            "citicoline"
+          ]
+        },
+        {
+          "key": "cytochrome-p450-3a4-inhibitor",
+          "label": "Cytochrome P450 3A4 inhibitor",
+          "drugs": [
+            "diflucan",
+            "grapefruit"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-d",
+      "label": "D",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "d2-dopamine-receptor-agonist",
+          "label": "D2 dopamine receptor agonist",
+          "drugs": [
+            "salvia-divinorum"
+          ]
+        },
+        {
+          "key": "d2-receptor-agonist",
+          "label": "D2 receptor agonist",
+          "drugs": [
+            "ald-52"
+          ]
+        },
+        {
+          "key": "deliriant",
+          "label": "Deliriant",
+          "drugs": [
+            "nutmeg"
+          ]
+        },
+        {
+          "key": "delta-opioid-receptor-agonist",
+          "label": "delta-opioid receptor agonist",
+          "drugs": [
+            "oxymorphone"
+          ]
+        },
+        {
+          "key": "dmae-is-converted-to-choline-which-serves-as-a-precursor-for-acetylcholine-synthesis",
+          "label": "DMAE is converted to choline which serves as a precursor for acetylcholine synthesis",
+          "drugs": [
+            "meclofenoxate"
+          ]
+        },
+        {
+          "key": "does-not-bind-to-monoamine-transporters",
+          "label": "does not bind to monoamine transporters",
+          "drugs": [
+            "2-5-dma"
+          ]
+        },
+        {
+          "key": "dopamine-d1-d2-d3-d4-d5-receptor-binding",
+          "label": "dopamine D1, D2, D3, D4, D5 receptor binding",
+          "drugs": [
+            "eth-lad"
+          ]
+        },
+        {
+          "key": "dopamine-receptor-agonist",
+          "label": "Dopamine receptor agonist",
+          "drugs": [
+            "apomorphine"
+          ]
+        },
+        {
+          "key": "dopamine-releaser",
+          "label": "Dopamine releaser",
+          "drugs": [
+            "khat"
+          ]
+        },
+        {
+          "key": "dopamine-releaser-and-reuptake-inhibitor",
+          "label": "dopamine releaser and reuptake inhibitor",
+          "drugs": [
+            "6-apdb"
+          ]
+        },
+        {
+          "key": "dopamine-releasing-agent-and-reuptake-inhibitor",
+          "label": "Dopamine releasing agent and reuptake inhibitor",
+          "drugs": [
+            "mdea"
+          ]
+        },
+        {
+          "key": "dopamine-reuptake-inhibitor",
+          "label": "Dopamine reuptake inhibitor",
+          "drugs": [
+            "3-4-dichloromethylphenidate",
+            "4f-eph",
+            "diphenidine",
+            "fluorolintane",
+            "methylone",
+            "mexedrone",
+            "pethidine"
+          ]
+        },
+        {
+          "key": "dopamine-reuptake-inhibitor-and-releaser",
+          "label": "dopamine reuptake inhibitor and releaser",
+          "drugs": [
+            "ethylone"
+          ]
+        },
+        {
+          "key": "dopamine-synthesis-enhancer",
+          "label": "Dopamine synthesis enhancer",
+          "drugs": [
+            "bromantane"
+          ]
+        },
+        {
+          "key": "dopamine-transporter-phosphorylation",
+          "label": "dopamine transporter phosphorylation",
+          "drugs": [
+            "25n-nbome"
+          ]
+        },
+        {
+          "key": "dopamine-noradrenaline-reuptake-inhibitor",
+          "label": "dopamine-noradrenaline reuptake inhibitor",
+          "drugs": [
+            "pce"
+          ]
+        },
+        {
+          "key": "dopamine-norepinephrine-releasing-agent",
+          "label": "Dopamine-norepinephrine releasing agent",
+          "drugs": [
+            "2-ai",
+            "2-fa",
+            "2-fea",
+            "2-fma",
+            "2-ma",
+            "3-caf",
+            "3-cpm",
+            "3-fea",
+            "3-fluoroamphetamine",
+            "3-fluoromethamphetamine",
+            "3-fluorophenmetrazine",
+            "4-methylephedrine",
+            "4-mpm",
+            "adderall",
+            "adderall-xr",
+            "amfecloral",
+            "amphetamine",
+            "benzphetamine",
+            "bzp",
+            "clobenzorex",
+            "desoxyn",
+            "dextroamphetamine",
+            "diethylpropion",
+            "ephedrine",
+            "lisdexamfetamine",
+            "methamphetamine",
+            "methcathinone",
+            "phendimetrazine"
+          ]
+        },
+        {
+          "key": "dopamine-norepinephrine-reuptake-inhibitor",
+          "label": "Dopamine-norepinephrine reuptake inhibitor",
+          "drugs": [
+            "2-me-pihp",
+            "2-methylethcathinone",
+            "2-mmc",
+            "2-nmc",
+            "3-cec",
+            "3-cmc",
+            "3-fluoro-pihp",
+            "3-fmc",
+            "3-mec",
+            "3-methyl-4-fluoro-pyrrolidinovalerophenone",
+            "3-mmc",
+            "3-4-dmmc",
+            "3-4-trimethylenepentedrone",
+            "4-bromomethcathinone",
+            "4-cbc",
+            "4-chloroethcathinone",
+            "4-chloromethcathinone",
+            "4-cl-ppp",
+            "4-eec",
+            "4-emc",
+            "4-epd",
+            "4-fluoro-alpha-php",
+            "4-fluoromethylphenidate",
+            "4-fluoropentedrone",
+            "4-fmc",
+            "4-me-neb",
+            "4-me-tmp",
+            "4-mec",
+            "4-meppp",
+            "4-mpd",
+            "4f-mabp",
+            "4f-ppp",
+            "5-bpdi",
+            "5-dbfpv",
+            "alpha-d2pv",
+            "alpha-pcyp",
+            "alpha-php",
+            "alpha-pihp",
+            "alpha-pvp",
+            "benzedrone",
+            "brephedrone",
+            "bupropion",
+            "butylone",
+            "cyputylone",
+            "d2pm",
+            "desoxypipradol",
+            "dimethylpentylone",
+            "dipentylone",
+            "dmo-php",
+            "edmc",
+            "eph",
+            "eutylone",
+            "hexedrone",
+            "hexen",
+            "isopropylphenidate",
+            "mazindol",
+            "md-php",
+            "md-pihp",
+            "md-prolintane",
+            "mdpv",
+            "methylenedioxypyrovalerone",
+            "methylphenidate",
+            "nep",
+            "pipradrol",
+            "prolintane",
+            "pyrovalerone",
+            "serdexmethylphenidate",
+            "pyrrolidinopropiophenone"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-e",
+      "label": "E",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "enhanced-high-affinity-choline-uptake-hacu-in-the-hippocampus",
+          "label": "Enhanced high-affinity choline uptake (HACU) in the hippocampus",
+          "drugs": [
+            "pramiracetam"
+          ]
+        },
+        {
+          "key": "enhances-acetylcholine-synthesis-via-cholinergic-pathways",
+          "label": "enhances acetylcholine synthesis via cholinergic pathways",
+          "drugs": [
+            "citicoline"
+          ]
+        },
+        {
+          "key": "enhances-gaba-efficiency-and-effects",
+          "label": "enhances GABA efficiency and effects",
+          "drugs": [
+            "metizolam"
+          ]
+        },
+        {
+          "key": "estrogen-receptor-agonist",
+          "label": "Estrogen receptor agonist",
+          "drugs": [
+            "estradiol"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-f",
+      "label": "F",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "facilitates-trimethylamine-betaine-production-for-osmoregulation-and-sam-e-synthesis",
+          "label": "facilitates trimethylamine (betaine) production for osmoregulation and SAM-e synthesis",
+          "drugs": [
+            "choline-bitartrate"
+          ]
+        },
+        {
+          "key": "full-agonist-at-benzodiazepine-gaba-a-receptor",
+          "label": "Full agonist at benzodiazepine/GABA-A receptor",
+          "drugs": [
+            "metizolam"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-g",
+      "label": "G",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "g-protein-biased-opioid-receptor-agonist",
+          "label": "G-protein-biased μ-opioid receptor agonist",
+          "drugs": [
+            "7-oh",
+            "kratom",
+            "mitragynine",
+            "mitragynine-pseudoindoxyl"
+          ]
+        },
+        {
+          "key": "g-protein-biased-opioid-receptor-agonists",
+          "label": "G-protein-biased μ-opioid receptor agonists",
+          "drugs": [
+            "sr-14968",
+            "sr-17018"
+          ]
+        },
+        {
+          "key": "gaba-a-receptor-positive-allosteric-modulator",
+          "label": "GABA-A receptor positive allosteric modulator",
+          "drugs": [
+            "2m2b",
+            "eszopiclone",
+            "flualprazolam",
+            "midazolam"
+          ]
+        },
+        {
+          "key": "gaba-a-receptor-potentiation",
+          "label": "GABA-A receptor potentiation",
+          "drugs": [
+            "nitrous-oxide"
+          ]
+        },
+        {
+          "key": "gabaa-receptor-positive-allosteric-modulator",
+          "label": "GABAA receptor positive allosteric modulator",
+          "drugs": [
+            "pentobarbital",
+            "secobarbital"
+          ]
+        },
+        {
+          "key": "gamma-aminobutyric-acid-type-a-receptor-agonist",
+          "label": "Gamma-aminobutyric acid type A receptor agonist",
+          "drugs": [
+            "amanita-muscaria",
+            "amobarbital",
+            "carisoprodol",
+            "gabob",
+            "gaboxadol",
+            "phenobarbital",
+            "thiopental"
+          ]
+        },
+        {
+          "key": "gamma-aminobutyric-acid-type-a-receptor-positive-allosteric-modulator",
+          "label": "Gamma-aminobutyric acid type A receptor positive allosteric modulator",
+          "drugs": [
+            "3-hydroxyphenazepam",
+            "adinazolam",
+            "afloqualone",
+            "alprazolam",
+            "amobarbital",
+            "avizafone",
+            "bromazepam",
+            "bromazolam",
+            "bromonordiazepam",
+            "brotizolam",
+            "carisoprodol",
+            "chloral-hydrate",
+            "chlordiazepoxide",
+            "clobazam",
+            "clobromazolam",
+            "clonazepam",
+            "delorazepam",
+            "deschloroetizolam",
+            "desmethylflunitrazepam",
+            "diazepam",
+            "diclazepam",
+            "ethylbromazolam",
+            "etizolam",
+            "flubromazepam",
+            "flubromazolam",
+            "flubrotizolam",
+            "fluclotizolam",
+            "fluetizolam",
+            "flumazenil",
+            "flunitrazepam",
+            "flunitrazolam",
+            "flurazepam",
+            "flutoprazepam",
+            "fosazepam",
+            "gidazepam",
+            "halazepam",
+            "kava",
+            "lorazepam",
+            "medazepam",
+            "methaqualone",
+            "midazolam",
+            "nifoxipam",
+            "nimetazepam",
+            "nitrazepam",
+            "norflurazepam",
+            "oxazepam",
+            "phenazepam",
+            "phenazolam",
+            "phenobarbital",
+            "prazepam",
+            "pyrazolam",
+            "ro5-4864",
+            "sl-164",
+            "temazepam",
+            "thiopental",
+            "triazolam",
+            "zaleplon",
+            "zolpidem",
+            "zopiclone"
+          ]
+        },
+        {
+          "key": "gamma-aminobutyric-acid-type-b-receptor-agonist",
+          "label": "Gamma-aminobutyric acid type B receptor agonist",
+          "drugs": [
+            "1-4-butanediol",
+            "4-fluorophenibut",
+            "aceburic-acid",
+            "baclofen",
+            "gabob",
+            "gamma-hydroxybutyric-acid",
+            "gbl",
+            "gvl",
+            "phenibut"
+          ]
+        },
+        {
+          "key": "gamma-hydroxybutyrate-receptor-agonist",
+          "label": "Gamma-hydroxybutyrate receptor agonist",
+          "drugs": [
+            "1-4-butanediol",
+            "aceburic-acid",
+            "gamma-hydroxybutyric-acid",
+            "gbl"
+          ]
+        },
+        {
+          "key": "glutamate-receptor-modulator",
+          "label": "Glutamate receptor modulator",
+          "drugs": [
+            "l-theanine"
+          ]
+        },
+        {
+          "key": "glutathione-precursor",
+          "label": "Glutathione precursor",
+          "drugs": [
+            "n-acetylcysteine",
+            "sam-e"
+          ]
+        },
+        {
+          "key": "glycine-receptor-potentiation",
+          "label": "glycine receptor potentiation",
+          "drugs": [
+            "nitrous-oxide"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-h",
+      "label": "H",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "h1-histamine-receptor-antagonist",
+          "label": "H1 histamine receptor antagonist",
+          "drugs": [
+            "dimenhydrinate"
+          ]
+        },
+        {
+          "key": "h1-histamine-receptor-antagonist-via-promethazine",
+          "label": "H1 histamine receptor antagonist via promethazine",
+          "drugs": [
+            "lean"
+          ]
+        },
+        {
+          "key": "h1-histamine-receptor-inverse-agonist",
+          "label": "H1 histamine receptor inverse agonist",
+          "drugs": [
+            "diphenhydramine"
+          ]
+        },
+        {
+          "key": "histamine-h1-receptor-antagonist",
+          "label": "Histamine H1 receptor antagonist",
+          "drugs": [
+            "chlorpheniramine"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-i",
+      "label": "I",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "imidazoline-receptor-agonist",
+          "label": "Imidazoline receptor agonist",
+          "drugs": [
+            "agmatine",
+            "agmatine-sulfate"
+          ]
+        },
+        {
+          "key": "increased-acetylcholine-synthesis",
+          "label": "increased acetylcholine synthesis",
+          "drugs": [
+            "pramiracetam"
+          ]
+        },
+        {
+          "key": "increased-nitric-oxide-activity",
+          "label": "increased nitric oxide activity",
+          "drugs": [
+            "pramiracetam"
+          ]
+        },
+        {
+          "key": "increases-acetylcholine-synthesis-and-release-via-enhanced-choline-availability",
+          "label": "increases acetylcholine synthesis and release via enhanced choline availability",
+          "drugs": [
+            "alpha-gpc"
+          ]
+        },
+        {
+          "key": "increases-chloride-channel-opening-frequency-when-gaba-is-present",
+          "label": "increases chloride channel opening frequency when GABA is present",
+          "drugs": [
+            "eszopiclone"
+          ]
+        },
+        {
+          "key": "increases-dopamine-and-norepinephrine-levels-in-cns",
+          "label": "increases dopamine and norepinephrine levels in CNS",
+          "drugs": [
+            "citicoline"
+          ]
+        },
+        {
+          "key": "increases-duration-of-chloride-ion-channel-opening",
+          "label": "increases duration of chloride ion channel opening",
+          "drugs": [
+            "secobarbital"
+          ]
+        },
+        {
+          "key": "increases-serotonin-dopamine-and-norepinephrine-activity",
+          "label": "increases serotonin, dopamine, and norepinephrine activity",
+          "drugs": [
+            "sam-e"
+          ]
+        },
+        {
+          "key": "indirect-adrenergic-agonist",
+          "label": "Indirect adrenergic agonist",
+          "drugs": [
+            "1-4-dmaa",
+            "dmha"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-k",
+      "label": "K",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "kappa-opioid-receptor-agonist",
+          "label": "Kappa-opioid receptor agonist",
+          "drugs": [
+            "ibogaine",
+            "oxymorphone",
+            "pethidine",
+            "salvia-divinorum",
+            "u-47700"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-m",
+      "label": "M",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "may-inhibit-mao-a-and-mao-b",
+          "label": "may inhibit MAO-A and MAO-B",
+          "drugs": [
+            "meclofenoxate"
+          ]
+        },
+        {
+          "key": "mechanism-underlying-hallucinogenic-effects-remains-unstudied",
+          "label": "mechanism underlying hallucinogenic effects remains unstudied",
+          "drugs": [
+            "benzydamine"
+          ]
+        },
+        {
+          "key": "melatonin-receptor-agonist",
+          "label": "Melatonin receptor agonist",
+          "drugs": [
+            "melatonin"
+          ]
+        },
+        {
+          "key": "metabolized-by-cyp2d6-and-cyp3a4",
+          "label": "metabolized by CYP2D6 and CYP3A4",
+          "drugs": [
+            "ethylmorphine"
+          ]
+        },
+        {
+          "key": "metabolizes-into-dmae-and-pcpa",
+          "label": "Metabolizes into DMAE and pCPA",
+          "drugs": [
+            "meclofenoxate"
+          ]
+        },
+        {
+          "key": "metabolizes-to-choline-and-cytidine",
+          "label": "Metabolizes to choline and cytidine",
+          "drugs": [
+            "citicoline"
+          ]
+        },
+        {
+          "key": "metabotropic-glutamate-receptor-agonist",
+          "label": "Metabotropic glutamate receptor agonist",
+          "drugs": [
+            "ibotenic-acid"
+          ]
+        },
+        {
+          "key": "methyl-group-donor-in-neurotransmitter-synthesis",
+          "label": "Methyl group donor in neurotransmitter synthesis",
+          "drugs": [
+            "sam-e"
+          ]
+        },
+        {
+          "key": "mglur2-3-receptor-agonist",
+          "label": "mGluR2/3 receptor agonist",
+          "drugs": [
+            "n-acetylcysteine"
+          ]
+        },
+        {
+          "key": "minimal-serotonin-activity",
+          "label": "minimal serotonin activity",
+          "drugs": [
+            "pentedrone"
+          ]
+        },
+        {
+          "key": "minor-norepinephrine-releasing-agent",
+          "label": "minor norepinephrine releasing agent",
+          "drugs": [
+            "mdai"
+          ]
+        },
+        {
+          "key": "monoamine-oxidase-b-inhibitor",
+          "label": "Monoamine oxidase B inhibitor",
+          "drugs": [
+            "4-fluorodeprenyl",
+            "rasagiline",
+            "selegiline"
+          ]
+        },
+        {
+          "key": "monoamine-oxidase-inhibitor",
+          "label": "Monoamine oxidase inhibitor",
+          "drugs": [
+            "5-cl-amt",
+            "aleph-2",
+            "aleph-6",
+            "amt",
+            "bromo-dragonfly",
+            "moclobemide",
+            "phenelzine",
+            "tranylcypromine"
+          ]
+        },
+        {
+          "key": "monoamine-releasing-agent",
+          "label": "monoamine releasing agent",
+          "drugs": [
+            "amt"
+          ]
+        },
+        {
+          "key": "monoamine-triple-reuptake-inhibitor",
+          "label": "Monoamine triple reuptake inhibitor",
+          "drugs": [
+            "methylnaphthidate"
+          ]
+        },
+        {
+          "key": "mood-stabilizer",
+          "label": "Mood stabilizer",
+          "drugs": [
+            "lithium"
+          ]
+        },
+        {
+          "key": "mu-opioid-receptor-agonist",
+          "label": "Mu-opioid receptor agonist",
+          "drugs": [
+            "acetylfentanyl",
+            "codeine",
+            "dextropropoxyphene",
+            "ethylmorphine",
+            "oxymorphone",
+            "pethidine",
+            "sufentanil",
+            "u-47700"
+          ]
+        },
+        {
+          "key": "mu-opioid-receptor-agonists",
+          "label": "Mu-opioid receptor agonists",
+          "drugs": [
+            "tianeptine"
+          ]
+        },
+        {
+          "key": "multi-target-modulator",
+          "label": "Multi-target modulator",
+          "drugs": [
+            "cannabidiolic-acid",
+            "cbc",
+            "cbdv",
+            "cbdva",
+            "cbg",
+            "cbna"
+          ]
+        },
+        {
+          "key": "multiple-receptor-antagonist",
+          "label": "Multiple receptor antagonist",
+          "drugs": [
+            "cyproheptadine",
+            "flexeril",
+            "olanzapine",
+            "quetiapine",
+            "ziprasidone"
+          ]
+        },
+        {
+          "key": "muscarinic-acetylcholine-receptor-agonist",
+          "label": "Muscarinic acetylcholine receptor agonist",
+          "drugs": [
+            "arecoline"
+          ]
+        },
+        {
+          "key": "muscarinic-acetylcholine-receptor-antagonist",
+          "label": "Muscarinic acetylcholine receptor antagonist",
+          "drugs": [
+            "3-quinuclidinyl-benzilate",
+            "atropine",
+            "diphenhydramine",
+            "ea-3167",
+            "pethidine",
+            "scopolamine"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-n",
+      "label": "N",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "n-methyl-d-aspartate-receptor-agonist",
+          "label": "N-methyl-D-aspartate receptor agonist",
+          "drugs": [
+            "ibotenic-acid"
+          ]
+        },
+        {
+          "key": "nach-receptor-antagonist",
+          "label": "nACh receptor antagonist",
+          "drugs": [
+            "nitrous-oxide"
+          ]
+        },
+        {
+          "key": "nf-kb-inhibitor",
+          "label": "NF-kB inhibitor",
+          "drugs": [
+            "n-acetylcysteine"
+          ]
+        },
+        {
+          "key": "nicotinic-acetylcholine-receptor-agonist",
+          "label": "Nicotinic acetylcholine receptor agonist",
+          "drugs": [
+            "nicotine"
+          ]
+        },
+        {
+          "key": "nmda-receptor-antagonist",
+          "label": "NMDA receptor antagonist",
+          "drugs": [
+            "2-chloroephenidine",
+            "2-fdck",
+            "2-meo-ketamine",
+            "2-tfmxp",
+            "3-cl-pcp",
+            "3-eto-pcp",
+            "3-fluoro-pcp",
+            "3-ho-pce",
+            "3-ho-pcp",
+            "3-me-pcpy",
+            "3-meo-pce",
+            "3-meo-pcmo",
+            "3-meo-pcp",
+            "3-meo-pcpr",
+            "3-meo-pcpy",
+            "3-4-md-pcp",
+            "4-meo-pcp",
+            "4-mxp",
+            "acetorphine",
+            "agmatine",
+            "agmatine-sulfate",
+            "bdck",
+            "canket",
+            "dck",
+            "dextromethorphan",
+            "diphenidine",
+            "dmxe",
+            "dxm-hbr",
+            "dxm-polistirex",
+            "ephenidine",
+            "esketamine",
+            "etoxadrol",
+            "fluorolintane",
+            "fxe",
+            "hxe",
+            "ibogaine",
+            "ketamine",
+            "levomethorphan",
+            "memantine",
+            "methadone",
+            "methoxetamine",
+            "mk-801",
+            "mxipr",
+            "mxm",
+            "mxp",
+            "mxpcp",
+            "nitrous-oxide",
+            "o-pce",
+            "o-pcp",
+            "o-pcpr",
+            "pce",
+            "pcp",
+            "tiletamine",
+            "tilmetamine"
+          ]
+        },
+        {
+          "key": "nmda-receptor-modulator",
+          "label": "NMDA receptor modulator",
+          "drugs": [
+            "n-acetylcysteine"
+          ]
+        },
+        {
+          "key": "nociceptin-receptor-agonist-with-opioid-receptor-affinity",
+          "label": "Nociceptin receptor agonist with μ-opioid receptor affinity",
+          "drugs": [
+            "spirochlorphine"
+          ]
+        },
+        {
+          "key": "nootropic",
+          "label": "Nootropic",
+          "drugs": [
+            "9-me-bc"
+          ]
+        },
+        {
+          "key": "norepinephrine-releaser",
+          "label": "norepinephrine releaser",
+          "drugs": [
+            "khat"
+          ]
+        },
+        {
+          "key": "norepinephrine-releaser-and-reuptake-inhibitor",
+          "label": "norepinephrine releaser and reuptake inhibitor",
+          "drugs": [
+            "6-apdb"
+          ]
+        },
+        {
+          "key": "norepinephrine-releasing-agent",
+          "label": "Norepinephrine releasing agent",
+          "drugs": [
+            "nm-2-ai"
+          ]
+        },
+        {
+          "key": "norepinephrine-releasing-agent-and-reuptake-inhibitor",
+          "label": "Norepinephrine releasing agent and reuptake inhibitor",
+          "drugs": [
+            "mdea"
+          ]
+        },
+        {
+          "key": "norepinephrine-reuptake-inhibitor",
+          "label": "Norepinephrine reuptake inhibitor",
+          "drugs": [
+            "3-4-dichloromethylphenidate",
+            "4f-eph",
+            "methylone",
+            "mexedrone",
+            "pethidine",
+            "tapentadol",
+            "viloxazine"
+          ]
+        },
+        {
+          "key": "norepinephrine-reuptake-inhibitor-and-releaser",
+          "label": "norepinephrine reuptake inhibitor and releaser",
+          "drugs": [
+            "ethylone"
+          ]
+        },
+        {
+          "key": "norepinephrine-dopamine-reuptake-inhibitor",
+          "label": "Norepinephrine-dopamine reuptake inhibitor",
+          "drugs": [
+            "methiopropamine",
+            "pentedrone"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-p",
+      "label": "P",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "possible-5-ht2a-receptor-agonist",
+          "label": "possible 5-HT2A receptor agonist",
+          "drugs": [
+            "benzydamine"
+          ]
+        },
+        {
+          "key": "possible-cb1-cannabinoid-receptor-agonist",
+          "label": "Possible CB1 cannabinoid receptor agonist",
+          "drugs": [
+            "benzydamine"
+          ]
+        },
+        {
+          "key": "possible-monoamine-oxidase-inhibition",
+          "label": "possible monoamine oxidase inhibition",
+          "drugs": [
+            "5-meo-dipt"
+          ]
+        },
+        {
+          "key": "potassium-channel-opener",
+          "label": "Potassium channel opener",
+          "drugs": [
+            "flupirtine"
+          ]
+        },
+        {
+          "key": "potent-mao-a-inhibitor",
+          "label": "potent MAO-A inhibitor",
+          "drugs": [
+            "tma-6"
+          ]
+        },
+        {
+          "key": "potent-nicotinic-acetylcholine-antagonist",
+          "label": "potent nicotinic acetylcholine antagonist",
+          "drugs": [
+            "dextropropoxyphene"
+          ]
+        },
+        {
+          "key": "potent-reversible-mao-a-inhibitor",
+          "label": "potent reversible MAO-A inhibitor",
+          "drugs": [
+            "pmma"
+          ]
+        },
+        {
+          "key": "potential-maoi-properties",
+          "label": "potential MAOI properties",
+          "drugs": [
+            "2c-t"
+          ]
+        },
+        {
+          "key": "precursor-to-choline-and-glycerophosphate-in-the-brain",
+          "label": "Precursor to choline and glycerophosphate in the brain",
+          "drugs": [
+            "alpha-gpc"
+          ]
+        },
+        {
+          "key": "precursor-to-l-dopa",
+          "label": "Precursor to L-DOPA",
+          "drugs": [
+            "l-tyrosine"
+          ]
+        },
+        {
+          "key": "prodrug-metabolized-by-cyp2d6-to-morphine",
+          "label": "prodrug metabolized by CYP2D6 to morphine",
+          "drugs": [
+            "codeine"
+          ]
+        },
+        {
+          "key": "prodrug-of-6-monoacetylmorphine",
+          "label": "prodrug of 6-monoacetylmorphine",
+          "drugs": [
+            "heroin"
+          ]
+        },
+        {
+          "key": "prodrug-of-dihydromorphine",
+          "label": "prodrug of dihydromorphine",
+          "drugs": [
+            "acetyldihydrocodeine"
+          ]
+        },
+        {
+          "key": "prodrug-of-levorphanol",
+          "label": "prodrug of levorphanol",
+          "drugs": [
+            "levomethorphan"
+          ]
+        },
+        {
+          "key": "prodrug-of-lsd",
+          "label": "prodrug of LSD",
+          "drugs": [
+            "1b-lsd",
+            "1cp-al-lad",
+            "1cp-lsd",
+            "1cp-mipla",
+            "1d-lsd",
+            "1p-eth-lad",
+            "1p-lsd",
+            "1s-lsd"
+          ]
+        },
+        {
+          "key": "prodrug-of-morphine",
+          "label": "prodrug of morphine",
+          "drugs": [
+            "6-mam",
+            "heroin"
+          ]
+        },
+        {
+          "key": "prodrug-of-morphine-via-codiene",
+          "label": "prodrug of morphine via codiene",
+          "drugs": [
+            "lean"
+          ]
+        },
+        {
+          "key": "prodrug-of-o-desmethyltramadol",
+          "label": "prodrug of O-desmethyltramadol",
+          "drugs": [
+            "tramadol"
+          ]
+        },
+        {
+          "key": "prodrug-of-psilocin",
+          "label": "prodrug of psilocin",
+          "drugs": [
+            "4-aco-dmt"
+          ]
+        },
+        {
+          "key": "prodrug-of-r-4618",
+          "label": "prodrug of R-4618",
+          "drugs": [
+            "bezitramide"
+          ]
+        },
+        {
+          "key": "prodrug-to-muscimol",
+          "label": "Prodrug to muscimol",
+          "drugs": [
+            "ibotenic-acid"
+          ]
+        },
+        {
+          "key": "prostaglandin-synthetase-inhibitor",
+          "label": "prostaglandin synthetase inhibitor",
+          "drugs": [
+            "benzydamine"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-r",
+      "label": "R",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "releases-phosphate-to-regenerate-atp-during-periods-of-stress-or-high-intensity-exercise",
+          "label": "releases phosphate to regenerate ATP during periods of stress or high-intensity exercise",
+          "drugs": [
+            "creatine"
+          ]
+        },
+        {
+          "key": "reversible-monoamine-oxidase-a-inhibitor",
+          "label": "reversible monoamine oxidase-A inhibitor",
+          "drugs": [
+            "ayahuasca"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-s",
+      "label": "S",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "selective-serotonin-releasing-agent",
+          "label": "Selective serotonin releasing agent",
+          "drugs": [
+            "mdai"
+          ]
+        },
+        {
+          "key": "selective-serotonin-reuptake-inhibitor",
+          "label": "selective serotonin reuptake inhibitor",
+          "drugs": [
+            "mdai"
+          ]
+        },
+        {
+          "key": "serotonin-5-ht3-receptor-antagonist",
+          "label": "Serotonin 5-HT3 receptor antagonist",
+          "drugs": [
+            "ondansetron"
+          ]
+        },
+        {
+          "key": "serotonin-receptor-agonist",
+          "label": "Serotonin receptor agonist",
+          "drugs": [
+            "4-fluorophenylpiperazine",
+            "4-fpp",
+            "mefloquine"
+          ]
+        },
+        {
+          "key": "serotonin-releaser",
+          "label": "serotonin releaser",
+          "drugs": [
+            "khat"
+          ]
+        },
+        {
+          "key": "serotonin-releaser-and-reuptake-inhibitor",
+          "label": "Serotonin releaser and reuptake inhibitor",
+          "drugs": [
+            "6-apdb"
+          ]
+        },
+        {
+          "key": "serotonin-releasing-agent",
+          "label": "Serotonin releasing agent",
+          "drugs": [
+            "4-ba",
+            "4-fa",
+            "4-fea",
+            "4-fma",
+            "4-fmc",
+            "4-methylthioamphetamine",
+            "5-adpi",
+            "butylone",
+            "cyputylone",
+            "dimethylpentylone",
+            "dipentylone",
+            "dmt",
+            "edmc",
+            "eutylone",
+            "fenfluramine",
+            "mcpp",
+            "met",
+            "mexedrone"
+          ]
+        },
+        {
+          "key": "serotonin-releasing-agent-and-reuptake-inhibitor",
+          "label": "Serotonin releasing agent and reuptake inhibitor",
+          "drugs": [
+            "mdea"
+          ]
+        },
+        {
+          "key": "serotonin-reuptake-and-receptor-modulators",
+          "label": "Serotonin reuptake and receptor modulators",
+          "drugs": [
+            "mirtazapine",
+            "trazodone",
+            "vilazodone"
+          ]
+        },
+        {
+          "key": "serotonin-reuptake-inhibitor",
+          "label": "serotonin reuptake inhibitor",
+          "drugs": [
+            "3-meo-pce",
+            "3-meo-pcp",
+            "4-ho-dipt",
+            "dextromethorphan",
+            "dxm-hbr",
+            "dxm-polistirex",
+            "ibogaine",
+            "mcpp",
+            "mefloquine",
+            "methoxetamine",
+            "methylone",
+            "mexedrone",
+            "pce"
+          ]
+        },
+        {
+          "key": "serotonin-reuptake-inhibitor-and-releaser",
+          "label": "Serotonin reuptake inhibitor and releaser",
+          "drugs": [
+            "ethylone"
+          ]
+        },
+        {
+          "key": "serotonin-dopamine-norepinephrine-releasing-agent",
+          "label": "Serotonin-dopamine-norepinephrine releasing agent",
+          "drugs": [
+            "2-bromo-4-5-mdma",
+            "2-mapb",
+            "3-mar",
+            "4-ca",
+            "4-cl-mar",
+            "4-cma",
+            "4-mar",
+            "4-mmc",
+            "4-4-dimethylaminorex",
+            "4-fluoro-4-methylaminorex",
+            "4b-mar",
+            "5-apb",
+            "5-eapb",
+            "5-iai",
+            "5-mapb",
+            "5-mapdb",
+            "6-apb",
+            "aminorex",
+            "fenozolone",
+            "fluminorex",
+            "mda",
+            "mdma",
+            "methylenedioxyphenmetrazine",
+            "pma"
+          ]
+        },
+        {
+          "key": "serotonin-dopamine-norepinephrine-reuptake-inhibitor",
+          "label": "Serotonin-dopamine-norepinephrine reuptake inhibitor",
+          "drugs": [
+            "3-3-dpcb",
+            "cocaethylene",
+            "cocaine",
+            "naphyrone",
+            "sibutramine",
+            "tesofensine"
+          ]
+        },
+        {
+          "key": "serotonin-norepinephrine-releasing-agent",
+          "label": "Serotonin-norepinephrine releasing agent",
+          "drugs": [
+            "pmma"
+          ]
+        },
+        {
+          "key": "serotonin-norepinephrine-reuptake-inhibitor",
+          "label": "serotonin-norepinephrine reuptake inhibitor",
+          "drugs": [
+            "levomethorphan",
+            "methadone",
+            "tramadol"
+          ]
+        },
+        {
+          "key": "serotonin-norepinephrine-dopamine-releasing-agent",
+          "label": "Serotonin-norepinephrine-dopamine releasing agent",
+          "drugs": [
+            "methylone",
+            "propylhexedrine"
+          ]
+        },
+        {
+          "key": "serotonin-norepinephrine-dopamine-reuptake-inhibitor",
+          "label": "Serotonin-norepinephrine-dopamine reuptake inhibitor",
+          "drugs": [
+            "dichloropane"
+          ]
+        },
+        {
+          "key": "sigma-receptor-agonist",
+          "label": "sigma receptor agonist",
+          "drugs": [
+            "ibogaine"
+          ]
+        },
+        {
+          "key": "sigma-1-receptor-agonist",
+          "label": "Sigma-1 receptor agonist",
+          "drugs": [
+            "pre-084"
+          ]
+        },
+        {
+          "key": "sodium-channel-blockade",
+          "label": "sodium channel blockade",
+          "drugs": [
+            "diphenhydramine"
+          ]
+        },
+        {
+          "key": "sodium-channel-blockers",
+          "label": "Sodium channel blockers",
+          "drugs": [
+            "lamotrigine"
+          ]
+        },
+        {
+          "key": "stimulant",
+          "label": "Stimulant",
+          "drugs": [
+            "1-2-3-4-trimethoxybenzyl-piperazine",
+            "2-mppp",
+            "2-pa",
+            "2-pta",
+            "3-4-cfpp",
+            "4-benzylpiperidine",
+            "5-aedb",
+            "cyclazodone",
+            "dmnpc",
+            "mdmpea",
+            "methyl-k",
+            "monotropa-uniflora",
+            "n-methyl-cyclazodone",
+            "pemoline"
+          ]
+        },
+        {
+          "key": "stimulates-glutathione-synthesis",
+          "label": "stimulates glutathione synthesis",
+          "drugs": [
+            "citicoline"
+          ]
+        },
+        {
+          "key": "stores-high-energy-phosphate-groups-as-phosphocreatine",
+          "label": "Stores high-energy phosphate groups as phosphocreatine",
+          "drugs": [
+            "creatine"
+          ]
+        },
+        {
+          "key": "supports-catecholamine-neurotransmitter-synthesis",
+          "label": "supports catecholamine neurotransmitter synthesis",
+          "drugs": [
+            "l-tyrosine"
+          ]
+        },
+        {
+          "key": "supports-phospholipid-biosynthesis-and-cell-membrane-integrity",
+          "label": "supports phospholipid biosynthesis and cell membrane integrity",
+          "drugs": [
+            "alpha-gpc"
+          ]
+        },
+        {
+          "key": "supports-phospholipid-synthesis-for-cell-membrane-structure",
+          "label": "supports phospholipid synthesis for cell membrane structure",
+          "drugs": [
+            "choline-bitartrate"
+          ]
+        },
+        {
+          "key": "suspected-mu-opioid-receptor-affinity",
+          "label": "suspected mu-opioid receptor affinity",
+          "drugs": [
+            "pce"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-t",
+      "label": "T",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "taar1-agonist",
+          "label": "TAAR1 agonist",
+          "drugs": [
+            "propylhexedrine"
+          ]
+        },
+        {
+          "key": "to-a-lesser-extent-affects-epinephrine-glutamate-and-cortisol",
+          "label": "to a lesser extent affects epinephrine, glutamate, and cortisol",
+          "drugs": [
+            "theacrine"
+          ]
+        },
+        {
+          "key": "trace-amine-receptor-agonist",
+          "label": "Trace amine receptor agonist",
+          "drugs": [
+            "phenethylamine",
+            "phenylpropylaminopentane"
+          ]
+        },
+        {
+          "key": "two-pore-domain-k-channel-activation",
+          "label": "two-pore-domain K+ channel activation",
+          "drugs": [
+            "nitrous-oxide"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-u",
+      "label": "U",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "uncertain-mechanism",
+          "label": "Uncertain mechanism",
+          "drugs": [
+            "acetildenafil"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-v",
+      "label": "V",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "vmat2-inhibitor",
+          "label": "VMAT2 inhibitor",
+          "drugs": [
+            "propylhexedrine"
+          ]
+        },
+        {
+          "key": "voltage-gated-calcium-channel-alpha-2-delta-subunit-ligand",
+          "label": "Voltage-gated calcium channel alpha-2-delta subunit ligand",
+          "drugs": [
+            "gabapentin",
+            "mirogabalin",
+            "phenibut",
+            "pregabalin"
+          ]
+        },
+        {
+          "key": "voltage-gated-potassium-channel-blockade",
+          "label": "voltage-gated potassium channel blockade",
+          "drugs": [
+            "diphenhydramine"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "mechanism-w",
+      "label": "W",
+      "iconKey": "mechanism",
+      "drugs": [],
+      "sections": [
+        {
+          "key": "weak-dopamine-releaser",
+          "label": "weak dopamine releaser",
+          "drugs": [
+            "pmma"
+          ]
+        },
+        {
+          "key": "weak-monoamine-oxidase-inhibitor",
+          "label": "weak monoamine oxidase inhibitor",
+          "drugs": [
+            "khat"
+          ]
+        },
+        {
+          "key": "weak-serotonin-reuptake-inhibition",
+          "label": "weak serotonin reuptake inhibition",
+          "drugs": [
+            "diphenhydramine"
+          ]
+        },
+        {
+          "key": "weak-serotonin-reuptake-inhibitor",
+          "label": "weak serotonin reuptake inhibitor",
+          "drugs": [
+            "5-meo-dipt",
+            "dextropropoxyphene"
+          ]
+        }
+      ]
+    }
+  ]
+}
