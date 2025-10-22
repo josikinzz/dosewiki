@@ -2,13 +2,19 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState, type
 
 import articlesSource from "../../data/articles";
 import psychoactiveIndexManualSource from "../../data/psychoactiveIndexManual.json";
+import chemicalIndexManualSource from "../../data/chemicalIndexManual.json";
+import mechanismIndexManualSource from "../../data/mechanismIndexManual.json";
 import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
+import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
+import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
 
 type ArticleRecord = (typeof articlesSource)[number];
 
 type DevModeContextValue = {
   articles: ArticleRecord[];
   psychoactiveIndexManual: ManualPsychoactiveIndexConfig;
+  chemicalIndexManual: ManualChemicalIndexConfig;
+  mechanismIndexManual: ManualMechanismIndexConfig;
   open: () => void;
   close: () => void;
   updateArticleAt: (index: number, nextArticle: ArticleRecord) => void;
@@ -24,6 +30,18 @@ type DevModeContextValue = {
   applyPsychoactiveIndexManualTransform: (
     transform: (previous: ManualPsychoactiveIndexConfig) => ManualPsychoactiveIndexConfig,
   ) => void;
+  replaceChemicalIndexManual: (nextConfig: ManualChemicalIndexConfig) => void;
+  resetChemicalIndexManual: () => void;
+  getOriginalChemicalIndexManual: () => ManualChemicalIndexConfig;
+  applyChemicalIndexManualTransform: (
+    transform: (previous: ManualChemicalIndexConfig) => ManualChemicalIndexConfig,
+  ) => void;
+  replaceMechanismIndexManual: (nextConfig: ManualMechanismIndexConfig) => void;
+  resetMechanismIndexManual: () => void;
+  getOriginalMechanismIndexManual: () => ManualMechanismIndexConfig;
+  applyMechanismIndexManualTransform: (
+    transform: (previous: ManualMechanismIndexConfig) => ManualMechanismIndexConfig,
+  ) => void;
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -38,6 +56,18 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   );
   const [psychoactiveIndexManual, setPsychoactiveIndexManual] = useState<ManualPsychoactiveIndexConfig>(
     () => deepClone(originalManualIndexRef.current),
+  );
+  const originalChemicalManualRef = useRef<ManualChemicalIndexConfig>(
+    deepClone(chemicalIndexManualSource as ManualChemicalIndexConfig),
+  );
+  const [chemicalIndexManual, setChemicalIndexManual] = useState<ManualChemicalIndexConfig>(
+    () => deepClone(originalChemicalManualRef.current),
+  );
+  const originalMechanismManualRef = useRef<ManualMechanismIndexConfig>(
+    deepClone(mechanismIndexManualSource as ManualMechanismIndexConfig),
+  );
+  const [mechanismIndexManual, setMechanismIndexManual] = useState<ManualMechanismIndexConfig>(
+    () => deepClone(originalMechanismManualRef.current),
   );
   const lastVisitedHashRef = useRef<string | null>(null);
 
@@ -162,9 +192,57 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const replaceChemicalIndexManual = useCallback((nextConfig: ManualChemicalIndexConfig) => {
+    setChemicalIndexManual(deepClone(nextConfig));
+  }, []);
+
+  const resetChemicalIndexManual = useCallback(() => {
+    setChemicalIndexManual(deepClone(originalChemicalManualRef.current));
+  }, []);
+
+  const getOriginalChemicalIndexManual = useCallback(
+    () => deepClone(originalChemicalManualRef.current),
+    [],
+  );
+
+  const applyChemicalIndexManualTransform = useCallback(
+    (transform: (previous: ManualChemicalIndexConfig) => ManualChemicalIndexConfig) => {
+      setChemicalIndexManual((previous) => {
+        const next = transform(previous);
+        return deepClone(next);
+      });
+    },
+    [],
+  );
+
+  const replaceMechanismIndexManual = useCallback((nextConfig: ManualMechanismIndexConfig) => {
+    setMechanismIndexManual(deepClone(nextConfig));
+  }, []);
+
+  const resetMechanismIndexManual = useCallback(() => {
+    setMechanismIndexManual(deepClone(originalMechanismManualRef.current));
+  }, []);
+
+  const getOriginalMechanismIndexManual = useCallback(
+    () => deepClone(originalMechanismManualRef.current),
+    [],
+  );
+
+  const applyMechanismIndexManualTransform = useCallback(
+    (transform: (previous: ManualMechanismIndexConfig) => ManualMechanismIndexConfig) => {
+      setMechanismIndexManual((previous) => {
+        const next = transform(previous);
+        return deepClone(next);
+      });
+    },
+    [],
+  );
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     open,
     close,
     updateArticleAt,
@@ -178,21 +256,39 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     resetPsychoactiveIndexManual,
     getOriginalPsychoactiveIndexManual,
     applyPsychoactiveIndexManualTransform,
+    replaceChemicalIndexManual,
+    resetChemicalIndexManual,
+    getOriginalChemicalIndexManual,
+    applyChemicalIndexManualTransform,
+    replaceMechanismIndexManual,
+    resetMechanismIndexManual,
+    getOriginalMechanismIndexManual,
+    applyMechanismIndexManualTransform,
   }), [
     applyArticlesTransform,
     applyPsychoactiveIndexManualTransform,
+    applyChemicalIndexManualTransform,
+    applyMechanismIndexManualTransform,
     articles,
     close,
     getOriginalArticle,
     getOriginalArticles,
     getOriginalPsychoactiveIndexManual,
+    getOriginalChemicalIndexManual,
+    getOriginalMechanismIndexManual,
     open,
     replaceArticles,
     replacePsychoactiveIndexManual,
+    replaceChemicalIndexManual,
+    replaceMechanismIndexManual,
     resetAll,
     resetArticleAt,
     resetPsychoactiveIndexManual,
+    resetChemicalIndexManual,
+    resetMechanismIndexManual,
     psychoactiveIndexManual,
+    chemicalIndexManual,
+    mechanismIndexManual,
     updateArticleAt,
   ]);
 

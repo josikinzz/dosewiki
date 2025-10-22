@@ -22,6 +22,8 @@ import {
   Repeat2,
   SwatchBook,
   Shell,
+  Cog,
+  Hexagon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -83,6 +85,8 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   "habit-forming": Repeat2,
   "habit forming": Repeat2,
   common: SwatchBook,
+  chemical: Hexagon,
+  mechanism: Cog,
 };
 
 export function getCategoryIcon(key: string): LucideIcon {

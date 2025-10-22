@@ -5,11 +5,14 @@ import articles from "./articles";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../utils/slug";
 import { getCategoryIcon } from "./categoryIcons";
-import {
-  psychoactiveIndexManualConfig,
-  type NormalizedManualCategoryDefinition,
-  type NormalizedManualCategorySection,
-} from "./psychoactiveIndexManual";
+import { psychoactiveIndexManualConfig } from "./psychoactiveIndexManual";
+import { chemicalIndexManualConfig } from "./chemicalIndexManual";
+import { mechanismIndexManualConfig } from "./mechanismIndexManual";
+import type {
+  NormalizedManualCategoryDefinition,
+  NormalizedManualCategorySection,
+  NormalizedManualIndexConfig,
+} from "./manualIndexLoader";
 import { INTERACTION_CLASSES, type InteractionClassDefinition } from "./interactionClasses";
 import type { InteractionGroup, InteractionMatchType, InteractionTarget } from "../types/content";
 
@@ -473,6 +476,52 @@ function buildManualCategoryPresentation(
   };
 }
 
+function createManualIndexGroups(config: NormalizedManualIndexConfig): DosageCategoryGroup[] {
+  return config.categories
+    .map((category) => {
+      const normalizedKey = normalizeKey(category.key);
+      const definition: CategoryDefinition = {
+        key: category.key,
+        name: category.label,
+        icon: getCategoryIcon(category.iconKey),
+        fallback: normalizedKey === "miscellaneous",
+      };
+
+      const presentation = buildManualCategoryPresentation(category, definition);
+      if (presentation.total === 0 && !definition.fallback) {
+        return null;
+      }
+
+      const combinedSections = presentation.sections && presentation.sections.length > 0
+        ? [
+            ...(presentation.topLevel.length > 0
+              ? [
+                  {
+                    name: "General",
+                    drugs: presentation.topLevel,
+                  } satisfies CategoryDetailGroup,
+                ]
+              : []),
+            ...presentation.sections,
+          ]
+        : undefined;
+
+      const flattened = combinedSections
+        ? combinedSections.flatMap((section) => section.drugs)
+        : [...presentation.topLevel];
+
+      return {
+        key: definition.key,
+        name: definition.name,
+        icon: definition.icon,
+        total: flattened.length,
+        drugs: flattened,
+        sections: combinedSections,
+      } satisfies DosageCategoryGroup;
+    })
+    .filter((group): group is DosageCategoryGroup => group !== null);
+}
+
 psychoactiveIndexManualConfig.categories.forEach((category) => {
   const normalizedKey = normalizeKey(category.key);
   const icon = getCategoryIcon(category.iconKey);
@@ -542,45 +591,9 @@ export function findCategoryByKey(input: string): CategoryDefinition | undefined
 const sortRecordsAlphabetically = (records: SubstanceRecord[]): SubstanceRecord[] =>
   records.slice().sort((a, b) => a.name.localeCompare(b.name));
 
-const manualDosageCategoryGroups: DosageCategoryGroup[] = psychoactiveIndexManualConfig.categories
-  .map((category) => {
-    const normalizedKey = normalizeKey(category.key);
-    const presentation = MANUAL_CATEGORY_PRESENTATIONS.get(normalizedKey);
-    if (!presentation) {
-      return null;
-    }
-    if (presentation.total === 0 && !presentation.definition.fallback) {
-      return null;
-    }
-
-    const combinedSections = presentation.sections && presentation.sections.length > 0
-      ? [
-          ...(presentation.topLevel.length > 0
-            ? [
-                {
-                  name: "General",
-                  drugs: presentation.topLevel,
-                } satisfies CategoryDetailGroup,
-              ]
-            : []),
-          ...presentation.sections,
-        ]
-      : undefined;
-
-    const flattened = combinedSections
-      ? combinedSections.flatMap((section) => section.drugs)
-      : [...presentation.topLevel];
-
-    return {
-      key: presentation.definition.key,
-      name: presentation.definition.name,
-      icon: presentation.definition.icon,
-      total: flattened.length,
-      drugs: flattened,
-      sections: combinedSections,
-    } satisfies DosageCategoryGroup;
-  })
-  .filter((group): group is DosageCategoryGroup => group !== null);
+const manualDosageCategoryGroups: DosageCategoryGroup[] = createManualIndexGroups(
+  psychoactiveIndexManualConfig,
+);
 
 export const dosageCategoryGroups = manualDosageCategoryGroups;
 
@@ -712,7 +725,9 @@ export function buildCategoryGroupsForRecords(records: SubstanceRecord[]): Dosag
 const DEFAULT_CHEMICAL_CLASS_ICON: LucideIcon = Hexagon;
 const DEFAULT_MECHANISM_ICON: LucideIcon = Cog;
 
-function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCategoryGroup[] {
+export function buildAutoChemicalClassIndexGroups(
+  records: SubstanceRecord[],
+): DosageCategoryGroup[] {
   const bucketMap = new Map<
     string,
     {
@@ -768,7 +783,11 @@ function buildChemicalClassIndexGroups(records: SubstanceRecord[]): DosageCatego
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export const chemicalClassIndexGroups = buildChemicalClassIndexGroups(substanceRecords);
+const manualChemicalIndexGroups = createManualIndexGroups(chemicalIndexManualConfig);
+
+export const chemicalClassIndexGroups = manualChemicalIndexGroups.length > 0
+  ? manualChemicalIndexGroups
+  : buildAutoChemicalClassIndexGroups(substanceRecords);
 
 export function getCategoryDetail(categoryKey: string): CategoryDetail | null {
   const definition = findCategoryByKey(categoryKey);
@@ -940,7 +959,7 @@ export const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-function buildMechanismIndexGroups(): DosageCategoryGroup[] {
+export function buildAutoMechanismIndexGroups(): DosageCategoryGroup[] {
   return Array.from(mechanismMap.entries())
     .map(([key, entry]) => {
       const drugs = Array.from(entry.records)
@@ -967,7 +986,13 @@ export const mechanismSummaries: MechanismSummary[] = Array.from(mechanismMap.en
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-export const mechanismIndexGroups = buildMechanismIndexGroups();
+const autoMechanismIndexGroups = buildAutoMechanismIndexGroups();
+
+const manualMechanismIndexGroups = createManualIndexGroups(mechanismIndexManualConfig);
+
+export const mechanismIndexGroups = manualMechanismIndexGroups.length > 0
+  ? manualMechanismIndexGroups
+  : autoMechanismIndexGroups;
 
 export function getEffectDetail(effectSlug: string): EffectDetail | null {
   const slug = normalizeEffectSlug(effectSlug);
@@ -1068,9 +1093,3 @@ export function getMechanismSummary(mechanismSlug: string): MechanismSummary | u
     total: entry.records.size,
   };
 }
-
-
-
-
-
-
