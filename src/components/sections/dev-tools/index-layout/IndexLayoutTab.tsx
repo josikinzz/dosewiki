@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import {
   AlertCircle,
   ArrowDown,
@@ -6,7 +6,10 @@ import {
   ArrowLeftRight,
   ArrowUp,
   Braces,
+  BrainCircuit,
   Check,
+  Cog,
+  Hexagon,
   Info,
   ListFilter,
   PlusCircle,
@@ -15,6 +18,7 @@ import {
   SlidersHorizontal,
   Trash2,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import { IconBadge } from "../../../common/IconBadge";
@@ -234,30 +238,13 @@ const sortSlugsWithCommonPriority = (slugs: readonly string[]): string[] =>
     })
     .map((entry) => entry.slug);
 
-const isCommonLabel = (value: string): boolean => normalizeTag(value) === COMMON_TAG;
-
-const compareLabels = (first: string, second: string): number =>
-  first.localeCompare(second, undefined, {
-    sensitivity: "base",
-    numeric: true,
-  });
-
 const sortSectionsWithCommonPriority = (
   sections: readonly ManualCategorySection[],
 ): ManualCategorySection[] =>
-  [...sections]
-    .map((section) => ({
-      ...section,
-      drugs: sortSlugsWithCommonPriority(section.drugs),
-    }))
-    .sort((first, second) => {
-      const firstIsCommon = isCommonLabel(first.label);
-      const secondIsCommon = isCommonLabel(second.label);
-      if (firstIsCommon !== secondIsCommon) {
-        return firstIsCommon ? -1 : 1;
-      }
-      return compareLabels(first.label, second.label);
-    });
+  sections.map((section) => ({
+    ...section,
+    drugs: sortSlugsWithCommonPriority(section.drugs),
+  }));
 
 const sortSlugsAlphabetically = (slugs: readonly string[]): string[] =>
   [...slugs]
@@ -268,6 +255,15 @@ const sortSlugsAlphabetically = (slugs: readonly string[]): string[] =>
 type ManualDatasetKey = "psychoactive" | "chemical" | "mechanism";
 
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
+
+const DATASET_TOGGLE_ACTIVE_CLASS =
+  "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 px-5 py-2.5 text-sm font-medium text-white shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-fuchsia-300/60 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+const DATASET_TOGGLE_INACTIVE_CLASS =
+  "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 px-5 py-2.5 text-sm font-medium text-white/75 ring-1 ring-white/15 transition hover:text-white hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
+const DATASET_TOGGLE_ICON_ACTIVE_CLASS = "h-5 w-5 text-fuchsia-100 drop-shadow";
+const DATASET_TOGGLE_ICON_INACTIVE_CLASS = "h-5 w-5 text-fuchsia-200/70";
+const DATASET_TOGGLE_LABEL_ACTIVE_CLASS = "tracking-wide text-white";
+const DATASET_TOGGLE_LABEL_INACTIVE_CLASS = "tracking-wide text-white/80";
 
 const sortSlugsForDataset = (
   dataset: ManualDatasetKey,
@@ -287,12 +283,10 @@ const sortSectionsForDataset = (
     return sortSectionsWithCommonPriority(sections);
   }
 
-  return [...sections]
-    .map((section) => ({
-      ...section,
-      drugs: sortSlugsForDataset(dataset, section.drugs),
-    }))
-    .sort((first, second) => compareLabels(first.label, second.label));
+  return sections.map((section) => ({
+    ...section,
+    drugs: sortSlugsForDataset(dataset, section.drugs),
+  }));
 };
 
 const organizeManualEntries = (
@@ -383,6 +377,8 @@ const generateUniqueKey = (base: string, existing: Set<string>): string => {
 
 const ensureString = (value: string): string => value.trim();
 
+type AddSlugFilterMode = "all" | "missing-section" | "missing-category" | "missing-index";
+
 interface SubstanceListItemProps {
   status: SlugStatus;
   onRemove: () => void;
@@ -400,7 +396,9 @@ function SubstanceListItem({ status, onRemove }: SubstanceListItemProps) {
           {status.issues.map((issue) => (
             <span
               key={issue}
-              className={`rounded-full border border-current px-2 py-0.5 text-[10px] uppercase tracking-wide ${slugIssueColors[issue]}`}
+              className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${
+                issue === "duplicate" ? "" : "border border-current"
+              } ${slugIssueColors[issue]}`}
             >
               {slugIssueLabels[issue]}
             </span>
@@ -425,7 +423,13 @@ interface AddSlugControlProps {
   onAdd: (slug: string) => void;
   options: SubstanceOption[];
   baseInputClass: string;
+  baseSelectClass: string;
   pillButtonBaseClass: string;
+  filterContext: {
+    sectionSlugs: ReadonlySet<string>;
+    categorySlugs: ReadonlySet<string>;
+    datasetSlugs: ReadonlySet<string>;
+  };
 }
 
 function AddSlugControl({
@@ -434,13 +438,44 @@ function AddSlugControl({
   onAdd,
   options,
   baseInputClass,
+  baseSelectClass,
   pillButtonBaseClass,
+  filterContext,
 }: AddSlugControlProps) {
+  const filterSelectId = useId();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [filterMode, setFilterMode] = useState<AddSlugFilterMode>("all");
 
   const existingSet = useMemo(() => new Set(existingSlugs.map((slug) => slugify(slug))), [existingSlugs]);
+
+  const filteredOptions = useMemo(() => {
+    if (filterMode === "all") {
+      return options;
+    }
+
+    const scope =
+      filterMode === "missing-section"
+        ? filterContext.sectionSlugs
+        : filterMode === "missing-category"
+          ? filterContext.categorySlugs
+          : filterContext.datasetSlugs;
+
+    return options.filter((option) => {
+      const normalized = slugify(option.slug);
+      if (!normalized) {
+        return false;
+      }
+      return !scope.has(normalized);
+    });
+  }, [filterContext.categorySlugs, filterContext.datasetSlugs, filterContext.sectionSlugs, filterMode, options]);
+
+  useEffect(() => {
+    if (!showPicker) {
+      setFilterMode("all");
+    }
+  }, [showPicker]);
 
   const handleSubmit = useCallback(() => {
     const normalized = slugify(value);
@@ -516,32 +551,52 @@ function AddSlugControl({
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
       {showPicker && (
         <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-lg">
-          <div className="flex items-center justify-between pb-2 text-xs uppercase tracking-wide text-white/60">
-            <span>Select a substance</span>
-            <button
-              type="button"
-              onClick={() => setShowPicker(false)}
-              className="rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white"
-              aria-label="Close substance picker"
-            >
-              <X className="h-3.5 w-3.5" />
-              <span className="sr-only">Close substance picker</span>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Select a substance</span>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-[0.3em] text-white/40" htmlFor={filterSelectId}>
+                Filter
+              </label>
+              <select
+                className={`${baseSelectClass} w-auto min-w-[11rem] bg-slate-950/80 text-xs`}
+                id={filterSelectId}
+                value={filterMode}
+                onChange={(event) => setFilterMode(event.target.value as AddSlugFilterMode)}
+              >
+                <option value="all">All drugs</option>
+                <option value="missing-section">Missing from section</option>
+                <option value="missing-category">Missing from category</option>
+                <option value="missing-index">Missing from index</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => setShowPicker(false)}
+                className="rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white"
+                aria-label="Close substance picker"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span className="sr-only">Close substance picker</span>
+              </button>
+            </div>
           </div>
           <div className="max-h-64 overflow-y-auto">
-            <ul className="space-y-1 text-sm text-white/80">
-              {options.map((option) => (
-                <li key={option.slug}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(option.slug)}
-                    className="w-full rounded-md px-2 py-1 text-left transition hover:bg-white/10 hover:text-fuchsia-200"
-                  >
-                    {formatSubstanceLabel(option)}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {filteredOptions.length > 0 ? (
+              <ul className="space-y-1 text-sm text-white/80">
+                {filteredOptions.map((option) => (
+                  <li key={option.slug}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(option.slug)}
+                      className="w-full rounded-md px-2 py-1 text-left transition hover:bg-white/10 hover:text-fuchsia-200"
+                    >
+                      {formatSubstanceLabel(option)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-2 py-4 text-sm text-white/60">No substances match this filter.</p>
+            )}
           </div>
         </div>
       )}
@@ -562,6 +617,8 @@ interface SectionEditorProps {
   pillButtonBaseClass: string;
   substanceOptions: SubstanceOption[];
   slugStatuses: Map<string, SlugStatus>;
+  categorySlugSet: ReadonlySet<string>;
+  datasetSlugSet: ReadonlySet<string>;
 }
 
 const SectionEditor = memo(
@@ -578,6 +635,8 @@ const SectionEditor = memo(
     pillButtonBaseClass,
     substanceOptions,
     slugStatuses,
+    categorySlugSet,
+    datasetSlugSet,
   }: SectionEditorProps) => {
     const handleSlugAdd = useCallback(
       (slug: string) => {
@@ -652,6 +711,8 @@ const SectionEditor = memo(
     const sectionWrapperClass = showTopDivider
       ? "relative space-y-4 pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.12)_20%,rgba(255,255,255,0.12)_80%,rgba(255,255,255,0)_100%)] before:content-['']"
       : "space-y-4";
+
+    const sectionSlugSet = useMemo(() => new Set(section.drugs.map((slug) => slugify(slug))), [section.drugs]);
 
     return (
       <div className={sectionWrapperClass}>
@@ -781,7 +842,13 @@ const SectionEditor = memo(
             onAdd={handleSlugAdd}
             options={substanceOptions}
             baseInputClass={baseInputClass}
+            baseSelectClass={baseSelectClass}
             pillButtonBaseClass={pillButtonBaseClass}
+            filterContext={{
+              sectionSlugs: sectionSlugSet,
+              categorySlugs: categorySlugSet,
+              datasetSlugs: datasetSlugSet,
+            }}
           />
         </div>
       </div>
@@ -797,6 +864,8 @@ const SectionEditor = memo(
     && previous.pillButtonBaseClass === next.pillButtonBaseClass
     && previous.substanceOptions === next.substanceOptions
     && previous.slugStatuses === next.slugStatuses
+    && previous.categorySlugSet === next.categorySlugSet
+    && previous.datasetSlugSet === next.datasetSlugSet
     && previous.onMove === next.onMove
     && previous.onRemove === next.onRemove
     && previous.onUpdate === next.onUpdate,
@@ -817,6 +886,7 @@ interface CategoryEditorProps {
   baseSelectClass: string;
   pillButtonBaseClass: string;
   substanceOptions: SubstanceOption[];
+  datasetSlugSet: ReadonlySet<string>;
 }
 
 const CategoryEditor = memo(
@@ -832,6 +902,7 @@ const CategoryEditor = memo(
     baseSelectClass,
     pillButtonBaseClass,
     substanceOptions,
+    datasetSlugSet,
   }: CategoryEditorProps) => {
     const slugCounts = useMemo(() => computeSlugCounts(category), [category]);
     const slugStatuses = useMemo(() => {
@@ -972,6 +1043,16 @@ const CategoryEditor = memo(
     const totalPrimary = category.drugs.length;
     const sectionCount = category.sections.length;
 
+    const topLevelSlugSet = useMemo(() => new Set(category.drugs.map((slug) => slugify(slug))), [category.drugs]);
+    const categorySlugSet = useMemo(() => {
+      const set = new Set<string>();
+      category.drugs.forEach((slug) => set.add(slugify(slug)));
+      category.sections.forEach((section) => {
+        section.drugs.forEach((slug) => set.add(slugify(slug)));
+      });
+      return set;
+    }, [category]);
+
     const detailsPanel = detailsOpen ? (
       <div className="mt-2 w-full max-w-[420px] rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
         <div className="grid gap-3 md:grid-cols-2">
@@ -1009,27 +1090,18 @@ const CategoryEditor = memo(
     return (
       <article className="mb-6 w-full break-inside-avoid break-inside-avoid-column">
         <div className="group relative overflow-hidden rounded-2xl bg-white/5 p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe">
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <header className="flex items-start gap-4 text-white/90">
               <div className="mt-1">
                 <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
               </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <input
                   className={`${baseInputClass} w-full text-lg font-semibold`}
                   value={category.label}
                   onChange={(event) => handleLabelChange(event.target.value)}
                   placeholder="Category label"
                 />
-                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-white/45">
-                  <span>
-                    {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
-                  </span>
-                  <span className="text-white/30">•</span>
-                  <span>
-                    {sectionCount} section{sectionCount === 1 ? "" : "s"}
-                  </span>
-                </div>
               </div>
               <div className="ml-auto mt-1 flex items-center gap-1 text-white/70">
                 <button
@@ -1083,6 +1155,16 @@ const CategoryEditor = memo(
               </div>
             </header>
 
+            <div className="flex items-center gap-2 whitespace-nowrap text-[11px] uppercase tracking-[0.3em] text-white/45">
+              <span>
+                {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
+              </span>
+              <span className="text-white/30">•</span>
+              <span>
+                {sectionCount} section{sectionCount === 1 ? "" : "s"}
+              </span>
+            </div>
+
             {detailsPanel}
 
             <div className="space-y-[30px] text-sm text-white/80">
@@ -1095,7 +1177,13 @@ const CategoryEditor = memo(
                 onAdd={handleTopLevelAdd}
                 options={substanceOptions}
                 baseInputClass={baseInputClass}
+                baseSelectClass={baseSelectClass}
                 pillButtonBaseClass={pillButtonBaseClass}
+                filterContext={{
+                  sectionSlugs: topLevelSlugSet,
+                  categorySlugs: categorySlugSet,
+                  datasetSlugs: datasetSlugSet,
+                }}
               />
 
               {totalPrimary > 0 ? (
@@ -1126,6 +1214,8 @@ const CategoryEditor = memo(
                       pillButtonBaseClass={pillButtonBaseClass}
                       substanceOptions={substanceOptions}
                       slugStatuses={slugStatuses}
+                      categorySlugSet={categorySlugSet}
+                      datasetSlugSet={datasetSlugSet}
                     />
                   ))
                 : null}
@@ -1149,6 +1239,7 @@ const CategoryEditor = memo(
     && previous.baseSelectClass === next.baseSelectClass
     && previous.pillButtonBaseClass === next.pillButtonBaseClass
     && previous.substanceOptions === next.substanceOptions
+    && previous.datasetSlugSet === next.datasetSlugSet
     && previous.onAddSection === next.onAddSection
     && previous.onMoveCategory === next.onMoveCategory
     && previous.onRemoveCategory === next.onRemoveCategory
@@ -1181,6 +1272,7 @@ export function IndexLayoutTab({
   interface DatasetDefinition {
     key: ManualDatasetKey;
     label: string;
+    icon: LucideIcon;
     description: string;
     helperLabel: string;
     helperDetail: string;
@@ -1194,10 +1286,11 @@ export function IndexLayoutTab({
     () => ({
       psychoactive: {
         key: "psychoactive",
-        label: "Psychoactive Classes",
+        label: "Psychoactive class",
+        icon: BrainCircuit,
         description: "Curate the manual layout for psychoactive classifications used on the substance index.",
-        helperLabel: "Psychoactive index manual",
-        helperDetail: "Controls the category, section, and ordering for the public Psychoactive Class tab.",
+        helperLabel: "Psychoactive class manual",
+        helperDetail: "Controls the category, section, and ordering for the public Psychoactive class tab.",
         manual: psychoactiveIndexManual,
         replaceManual: replacePsychoactiveIndexManual,
         resetContextManual: resetPsychoactiveIndexManual,
@@ -1205,10 +1298,11 @@ export function IndexLayoutTab({
       },
       chemical: {
         key: "chemical",
-        label: "Chemical Classes",
+        label: "Chemical class",
+        icon: Hexagon,
         description: "Compose the curated chemical class ordering for the substance index.",
-        helperLabel: "Chemical index manual",
-        helperDetail: "Feeds the Chemical Class tab and Dev Tools previews when editing articles.",
+        helperLabel: "Chemical class manual",
+        helperDetail: "Feeds the Chemical class tab and Dev Tools previews when editing articles.",
         manual: chemicalIndexManual,
         replaceManual: replaceChemicalIndexManual,
         resetContextManual: resetChemicalIndexManual,
@@ -1216,10 +1310,11 @@ export function IndexLayoutTab({
       },
       mechanism: {
         key: "mechanism",
-        label: "Mechanisms of Action",
+        label: "Mechanism of action",
+        icon: Cog,
         description: "Manage the mechanism of action taxonomy used across the index.",
-        helperLabel: "Mechanism index manual",
-        helperDetail: "Controls the Mechanism tab layout plus related detail page ordering.",
+        helperLabel: "Mechanism manual",
+        helperDetail: "Controls the Mechanism of action tab layout plus related detail page ordering.",
         manual: mechanismIndexManual,
         replaceManual: replaceMechanismIndexManual,
         resetContextManual: resetMechanismIndexManual,
@@ -1442,6 +1537,17 @@ export function IndexLayoutTab({
     [],
   );
 
+  const datasetSlugSet = useMemo<ReadonlySet<string>>(() => {
+    const set = new Set<string>();
+    draftManual.categories.forEach((category) => {
+      category.drugs.forEach((slug) => set.add(slugify(slug)));
+      category.sections.forEach((section) => {
+        section.drugs.forEach((slug) => set.add(slugify(slug)));
+      });
+    });
+    return set;
+  }, [draftManual]);
+
   const updateCategory = useCallback(
     (index: number, updater: (category: ManualCategoryDefinition) => ManualCategoryDefinition) => {
       updateDraftManualForActive((previous) => {
@@ -1604,25 +1710,30 @@ export function IndexLayoutTab({
   return (
     <div className="space-y-6">
       {commitPanel ? <div>{commitPanel}</div> : null}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         {datasetOrder.map((datasetKey) => {
           const definition = datasetDefinitions[datasetKey];
           const isActive = datasetKey === activeDataset;
+          const Icon = definition.icon;
           return (
             <button
               key={datasetKey}
               type="button"
               onClick={() => setActiveDataset(datasetKey)}
-              className={`${pillButtonBaseClass} ${isActive ? "bg-fuchsia-500/20 text-fuchsia-200" : "bg-white/10 text-white/70 hover:bg-white/20"}`}
+              className={isActive ? DATASET_TOGGLE_ACTIVE_CLASS : DATASET_TOGGLE_INACTIVE_CLASS}
               aria-pressed={isActive}
             >
-              <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">{definition.label}</span>
+              <Icon
+                className={isActive ? DATASET_TOGGLE_ICON_ACTIVE_CLASS : DATASET_TOGGLE_ICON_INACTIVE_CLASS}
+                aria-hidden="true"
+                focusable="false"
+              />
+              <span className={isActive ? DATASET_TOGGLE_LABEL_ACTIVE_CLASS : DATASET_TOGGLE_LABEL_INACTIVE_CLASS}>
+                {definition.label}
+              </span>
             </button>
           );
         })}
-      </div>
-      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs uppercase tracking-[0.3em] text-white/60">
-        {activeDefinition.helperLabel}
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button
@@ -1709,19 +1820,6 @@ export function IndexLayoutTab({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-white/70">
-            <div className="flex items-start gap-3">
-              <Info className="mt-1 h-4 w-4 text-white/50" />
-              <div className="space-y-2">
-                <p>{activeDefinition.description}</p>
-                <p>{activeDefinition.helperDetail}</p>
-                <p>
-                  Category order controls column ordering on the public index. Section order controls their appearance inside each column.
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="[column-gap:1.5rem] columns-1 sm:columns-2 xl:columns-3">
             {draftManual.categories.map((category, index) => (
               <CategoryEditor
@@ -1737,6 +1835,7 @@ export function IndexLayoutTab({
                 baseSelectClass={baseSelectClass}
                 pillButtonBaseClass={pillButtonBaseClass}
                 substanceOptions={substanceOptions}
+                datasetSlugSet={datasetSlugSet}
               />
             ))}
             <div className="mb-6 break-inside-avoid break-inside-avoid-column">
