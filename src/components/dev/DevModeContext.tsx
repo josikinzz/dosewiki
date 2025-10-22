@@ -1,11 +1,14 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
 import articlesSource from "../../data/articles";
+import psychoactiveIndexManualSource from "../../data/psychoactiveIndexManual.json";
+import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
 
 type ArticleRecord = (typeof articlesSource)[number];
 
 type DevModeContextValue = {
   articles: ArticleRecord[];
+  psychoactiveIndexManual: ManualPsychoactiveIndexConfig;
   open: () => void;
   close: () => void;
   updateArticleAt: (index: number, nextArticle: ArticleRecord) => void;
@@ -15,6 +18,12 @@ type DevModeContextValue = {
   getOriginalArticles: () => ArticleRecord[];
   replaceArticles: (nextArticles: ArticleRecord[]) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
+  replacePsychoactiveIndexManual: (nextConfig: ManualPsychoactiveIndexConfig) => void;
+  resetPsychoactiveIndexManual: () => void;
+  getOriginalPsychoactiveIndexManual: () => ManualPsychoactiveIndexConfig;
+  applyPsychoactiveIndexManualTransform: (
+    transform: (previous: ManualPsychoactiveIndexConfig) => ManualPsychoactiveIndexConfig,
+  ) => void;
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -24,6 +33,12 @@ const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 export function DevModeProvider({ children }: { children: ReactNode }) {
   const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
   const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(originalArticlesRef.current));
+  const originalManualIndexRef = useRef<ManualPsychoactiveIndexConfig>(
+    deepClone(psychoactiveIndexManualSource as ManualPsychoactiveIndexConfig),
+  );
+  const [psychoactiveIndexManual, setPsychoactiveIndexManual] = useState<ManualPsychoactiveIndexConfig>(
+    () => deepClone(originalManualIndexRef.current),
+  );
   const lastVisitedHashRef = useRef<string | null>(null);
 
   const isDevHash = useCallback((value: string | null | undefined) => {
@@ -124,8 +139,32 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const replacePsychoactiveIndexManual = useCallback((nextConfig: ManualPsychoactiveIndexConfig) => {
+    setPsychoactiveIndexManual(deepClone(nextConfig));
+  }, []);
+
+  const resetPsychoactiveIndexManual = useCallback(() => {
+    setPsychoactiveIndexManual(deepClone(originalManualIndexRef.current));
+  }, []);
+
+  const getOriginalPsychoactiveIndexManual = useCallback(
+    () => deepClone(originalManualIndexRef.current),
+    [],
+  );
+
+  const applyPsychoactiveIndexManualTransform = useCallback(
+    (transform: (previous: ManualPsychoactiveIndexConfig) => ManualPsychoactiveIndexConfig) => {
+      setPsychoactiveIndexManual((previous) => {
+        const next = transform(previous);
+        return deepClone(next);
+      });
+    },
+    [],
+  );
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
+    psychoactiveIndexManual,
     open,
     close,
     updateArticleAt,
@@ -135,16 +174,25 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     getOriginalArticles,
     replaceArticles,
     applyArticlesTransform,
+    replacePsychoactiveIndexManual,
+    resetPsychoactiveIndexManual,
+    getOriginalPsychoactiveIndexManual,
+    applyPsychoactiveIndexManualTransform,
   }), [
     applyArticlesTransform,
+    applyPsychoactiveIndexManualTransform,
     articles,
     close,
     getOriginalArticle,
     getOriginalArticles,
+    getOriginalPsychoactiveIndexManual,
     open,
     replaceArticles,
+    replacePsychoactiveIndexManual,
     resetAll,
     resetArticleAt,
+    resetPsychoactiveIndexManual,
+    psychoactiveIndexManual,
     updateArticleAt,
   ]);
 

@@ -15,6 +15,7 @@ import {
 
 const ARTICLES_PATH = "src/data/articles.json";
 const CHANGE_LOG_PATH = "src/data/devChangeLog.json";
+const PSYCHOACTIVE_INDEX_PATH = "src/data/psychoactiveIndexManual.json";
 const CHANGE_LOG_LIMIT = 250;
 
 const normalizeChangedArticles = (rawArticles) => {
@@ -116,6 +117,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "articlesData payload is required." });
   }
 
+  const manualData = body.psychoactiveIndexManualData;
+  let serializedManual = null;
+  if (manualData !== undefined) {
+    if (typeof manualData !== "object" || manualData === null) {
+      return res.status(400).json({ error: "psychoactiveIndexManualData must be an object when provided." });
+    }
+    try {
+      serializedManual = JSON.stringify(manualData, null, 2);
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ error: `Unable to serialize psychoactiveIndexManualData: ${error instanceof Error ? error.message : String(error)}` });
+    }
+  }
+
   const rawChangelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
   const changelogMarkdown =
     rawChangelogMarkdown.length > 0 ? rawChangelogMarkdown : "No diff details were provided for this commit.";
@@ -168,6 +184,17 @@ export default async function handler(req, res) {
         sha: changeLogBlobSha,
       },
     ];
+
+    let manualBlobSha = null;
+    if (serializedManual !== null) {
+      manualBlobSha = await createBlob(githubToken, serializedManual);
+      treeEntries.push({
+        path: PSYCHOACTIVE_INDEX_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: manualBlobSha,
+      });
+    }
 
     const treeSha = await createTree(githubToken, baseTreeSha, treeEntries);
     const commitSha = await createCommit(githubToken, commitMessage, treeSha, parentSha, isoTimestamp);
