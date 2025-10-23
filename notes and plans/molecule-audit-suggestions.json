@@ -1,0 +1,96 @@
+{
+  "generatedAt": "2025-10-23T08:23:15.970Z",
+  "suggestions": [
+    {
+      "articleId": 499,
+      "title": "4'-Fluoro-4-methylaminorex",
+      "matchName": "4'-Fluoro-4-methylaminorex",
+      "svgCandidate": "4,7-Fluoro-4-methylaminorex",
+      "score": 0.957
+    },
+    {
+      "articleId": 397,
+      "title": "4-Me-NEB",
+      "matchName": "4-methyl NEB",
+      "svgCandidate": "4-methyl-NEP",
+      "score": 0.9
+    },
+    {
+      "articleId": 534,
+      "title": "25C-NB3OMe",
+      "matchName": "25C-NB3OMe",
+      "svgCandidate": "25C-NBOMe",
+      "score": 0.889
+    },
+    {
+      "articleId": 74,
+      "title": "Methamphetamine",
+      "matchName": "Methamphetamine",
+      "svgCandidate": "β-methylamphetamine",
+      "score": 0.882
+    },
+    {
+      "articleId": 531,
+      "title": "25H-NBOMe",
+      "matchName": "25H-NBOMe",
+      "svgCandidate": "25B-NBOMe",
+      "score": 0.875
+    },
+    {
+      "articleId": 507,
+      "title": "25P-NBOMe",
+      "matchName": "25P-NBOMe",
+      "svgCandidate": "25B-NBOMe",
+      "score": 0.875
+    },
+    {
+      "articleId": 605,
+      "title": "25T-NBOMe",
+      "matchName": "25T-NBOMe",
+      "svgCandidate": "25B-NBOMe",
+      "score": 0.875
+    },
+    {
+      "articleId": 399,
+      "title": "4-Cl-MAR",
+      "matchName": "4′-Chloro-4-methylaminorex",
+      "svgCandidate": "4,7-Fluoro-4-methylaminorex",
+      "score": 0.87
+    },
+    {
+      "articleId": 433,
+      "title": "3-MAR",
+      "matchName": "3-Methylaminorex",
+      "svgCandidate": "4-Ethylaminorex",
+      "score": 0.867
+    },
+    {
+      "articleId": 279,
+      "title": "Phendimetrazine",
+      "matchName": "Phendimetrazine",
+      "svgCandidate": "Phenmetrazine",
+      "score": 0.867
+    },
+    {
+      "articleId": 472,
+      "title": "25E-NBOH",
+      "matchName": "25E-NBOH",
+      "svgCandidate": "25D-NBOH",
+      "score": 0.857
+    },
+    {
+      "articleId": 338,
+      "title": "4-HO-McPT",
+      "matchName": "4-HO-McPT",
+      "svgCandidate": "4-HO-MiPT",
+      "score": 0.857
+    },
+    {
+      "articleId": 329,
+      "title": "4-HO-PiPT",
+      "matchName": "4-HO-PiPT",
+      "svgCandidate": "4-HO-MiPT",
+      "score": 0.857
+    }
+  ]
+}

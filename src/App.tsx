@@ -394,6 +394,7 @@ export default function App() {
             aliases={content.aliases}
             placeholder={content.moleculePlaceholder}
             moleculeAsset={content.moleculeAsset}
+            moleculeAssets={content.moleculeAssets}
             badges={content.heroBadges}
             badgeVariant="compact"
             onCategorySelect={selectCategory}
