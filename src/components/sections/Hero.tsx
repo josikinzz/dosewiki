@@ -49,8 +49,13 @@ export function Hero({
     ? `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`
     : `${baseBadgeClasses} transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400`;
 
-  const heroImageGroupClasses =
-    "relative flex w-full flex-wrap items-center justify-center gap-6 md:gap-8";
+  const isSingleMolecule = displayedAssets.length === 1;
+  const heroImageGroupClasses = isSingleMolecule
+    ? "relative flex w-[60vw] items-center justify-center md:w-[300px] md:max-w-[300px]"
+    : "relative flex w-full flex-wrap items-center justify-center gap-6 md:gap-8";
+  const heroGlowClasses = isSingleMolecule
+    ? "pointer-events-none absolute inset-0 mx-auto my-auto h-full w-full max-w-[88%] rounded-full bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.2),rgba(15,10,31,0)_70%)] blur-[70px]"
+    : "pointer-events-none absolute inset-0 mx-auto my-auto h-full max-h-[280px] w-full max-w-[720px] rounded-full bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.18),rgba(15,10,31,0)_72%)] blur-[85px]";
 
   const heroSectionClasses = hasMolecule
     ? "mx-auto max-w-6xl px-4 pb-6 pt-14 text-center"
@@ -61,18 +66,23 @@ export function Hero({
       <div className="flex flex-col items-center gap-6">
         {hasMolecule && (
           <div className={heroImageGroupClasses}>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 mx-auto my-auto h-full max-h-[280px] w-full max-w-[720px] rounded-full bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.18),rgba(15,10,31,0)_72%)] blur-[85px]"
-            />
-            {displayedAssets.map((asset, index) => (
+            <div aria-hidden="true" className={heroGlowClasses} />
+            {isSingleMolecule ? (
               <img
-                key={`${asset.filename}-${asset.matchedValue}-${index}`}
-                src={asset.url}
-                alt={`${asset.matchedValue || title} molecule diagram`}
-                className="relative z-[1] pointer-events-none h-auto w-[62vw] max-w-[220px] object-contain drop-shadow-[0_26px_50px_rgba(8,4,24,0.75)]"
+                src={displayedAssets[0].url}
+                alt={`${displayedAssets[0].matchedValue || title} molecule diagram`}
+                className="relative z-[1] pointer-events-none h-auto w-full object-contain drop-shadow-[0_32px_60px_rgba(8,4,24,0.8)]"
               />
-            ))}
+            ) : (
+              displayedAssets.map((asset, index) => (
+                <img
+                  key={`${asset.filename}-${asset.matchedValue}-${index}`}
+                  src={asset.url}
+                  alt={`${asset.matchedValue || title} molecule diagram`}
+                  className="relative z-[1] pointer-events-none h-auto w-[62vw] max-w-[220px] object-contain drop-shadow-[0_26px_50px_rgba(8,4,24,0.75)]"
+                />
+              ))
+            )}
           </div>
         )}
         <h1 className="text-4xl font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-6xl">
