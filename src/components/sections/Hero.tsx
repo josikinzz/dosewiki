@@ -56,7 +56,7 @@ export function Hero({
     : ({ role: "img", "aria-label": "Molecule placeholder image" } as const);
 
   const heroImageWrapperClasses = hasMolecule
-    ? "relative flex w-full max-w-[22rem] items-center justify-center md:max-w-[26rem]"
+    ? "relative flex w-[75vw] items-center justify-center md:w-[350px] md:max-w-[350px]"
     : "relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#030112] via-[#07031a] to-[#110a24] text-4xl font-semibold tracking-[0.65em] text-white/35 shadow-[0_28px_65px_-36px_rgba(0,0,0,0.95)]";
 
   return (
@@ -67,7 +67,7 @@ export function Hero({
             <img
               src={moleculeAsset!.url}
               alt={moleculeAlt}
-              className="pointer-events-none w-full max-h-[22rem] object-contain drop-shadow-[0_18px_32px_rgba(32,5,65,0.45)] md:max-h-[26rem]"
+              className="pointer-events-none h-auto w-full object-contain drop-shadow-[0_18px_32px_rgba(32,5,65,0.45)]"
             />
           ) : (
             <>
