@@ -99,7 +99,7 @@
     <g id="g106" style="text-rendering:geometricPrecision;fill:#f0abfc;stroke:none">
       <path d="m 312.7888,467.7239 107.5639,-23.5108 c 1.1623,-0.254 1.8983,-1.4018 1.6442,-2.5641 -0.254,-1.1624 -1.4017,-1.8984 -2.5641,-1.6443 l -107.5639,23.5108 c -1.1624,0.254 -1.8983,1.4018 -1.6443,2.5641 0.2541,1.1624 1.4018,1.8984 2.5642,1.6443 z" clip-path="url(#1291460036835-clipPath1)" id="path108" ns1:connector-curvature="0" style="stroke:none" />
     </g>
-    <g id="g110" style="fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g id="g110" style="fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <path d="m 374.1764,400.9601 2.1539,0 11.3082,-74.6362 -13.4621,0 -13.4621,0 11.3082,74.6362 z" clip-path="url(#1291460036835-clipPath1)" id="path112" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 374.1764,400.9601 2.1539,0 11.3082,-74.6362 -13.4621,0 -13.4621,0 11.3082,74.6362 z" clip-path="url(#1291460036850-clipPath1)" id="path114" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
@@ -121,7 +121,7 @@
     </g>
     <g id="g140" style="fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
       </g>
-    <g font-size="35px" transform="translate(361.3014,280.4485)" id="g144" style="font-size:35px;font-family:sans-serif;fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g font-size="35px" transform="translate(361.3014,280.4485)" id="g144" style="font-size:35px;font-family:sans-serif;fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <text x="0" xml:space="preserve" y="34" clip-path="url(#1291460036207-clipPath1)" id="text146" style="stroke:none">H</text>
     </g>
     <g font-size="35px" id="g148" style="font-size:35px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">

@@ -138,7 +138,7 @@
       <path d="m 120.7434,143.2758 -47.598,-27.4794 c -0.8025,-0.4633 -1.8282,-0.1884 -2.2915,0.6141 -0.4633,0.8025 -0.1885,1.8281 0.614,2.2914 l 47.5981,27.4795 c 0.8025,0.4632 1.8282,0.1884 2.2915,-0.6141 0.4633,-0.8025 0.1884,-1.8282 -0.6141,-2.2915 z" clip-path="url(#1689278244534-clipPath1)" id="path157" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 120.7434,143.2758 -47.598,-27.4794 c -0.8025,-0.4633 -1.8282,-0.1884 -2.2915,0.6141 -0.4633,0.8025 -0.1885,1.8281 0.614,2.2914 l 47.5981,27.4795 c 0.8025,0.4632 1.8282,0.1884 2.2915,-0.6141 0.4633,-0.8025 0.1884,-1.8282 -0.6141,-2.2915 z" clip-path="url(#1689278244504-clipPath1)" id="path159" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
-    <g id="g161" style="fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g id="g161" style="fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <path d="m 254.1359,377.2399 1.6775,0 8.8069,-58.1442 -10.4844,0 -10.4844,0 8.8069,58.1442 z" clip-path="url(#1689278244534-clipPath1)" id="path163" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 254.1359,377.2399 1.6775,0 8.8069,-58.1442 -10.4844,0 -10.4844,0 8.8069,58.1442 z" clip-path="url(#1689278244287-clipPath1)" id="path165" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
@@ -152,7 +152,7 @@
       <text x="0" xml:space="preserve" y="26" clip-path="url(#1689278244347-clipPath1)" id="text179" style="stroke:none">N</text>
     </g>
     <g font-size="27px" id="g181" style="font-size:27px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
-      <text x="0" y="26" transform="translate(243.9484,283.7393)" clip-path="url(#1689278244713-clipPath1)" xml:space="preserve" id="text185" style="fill:#ffffff99;stroke:none">H</text>
+      <text x="0" y="26" transform="translate(243.9484,283.7393)" clip-path="url(#1689278244713-clipPath1)" xml:space="preserve" id="text185" style="fill:#f0abfc;stroke:none">H</text>
     </g>
     <g font-size="27px" id="g187" style="font-size:27px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
       <text x="0" y="26" transform="translate(77.9214,277.039)" clip-path="url(#168927824460-clipPath1)" xml:space="preserve" id="text191" style="fill:#fda4af;stroke:none">O</text>

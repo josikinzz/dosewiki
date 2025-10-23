@@ -34,8 +34,8 @@ const mappings = [
     patterns: [/#009900/gi]
   },
   {
-    target: '#ffffff99',
-    patterns: [/#333333/gi]
+    target: '#f0abfc',
+    patterns: [/#333333/gi, /#ffffff99/gi]
   },
   {
     target: '#e879f9',

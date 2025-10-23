@@ -106,7 +106,7 @@
     <g id="g115" style="text-rendering:geometricPrecision;fill:#f0abfc;stroke:none">
       <path d="m 529.1545,338.9985 -89.8082,41.7333 c -1.0263,0.4769 -1.4715,1.695 -0.9945,2.7213 0.4769,1.0263 1.6949,1.4715 2.7212,0.9945 l 89.8082,-41.7333 c 1.0263,-0.477 1.4715,-1.695 0.9946,-2.7213 -0.4769,-1.0263 -1.695,-1.4715 -2.7213,-0.9945 z" clip-path="url(#167191919526-clipPath1)" id="path117" ns1:connector-curvature="0" style="stroke:none" />
     </g>
-    <g id="g119" style="fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g id="g119" style="fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <path d="m 530.0179,340.8564 0.3587,2.017 76.74,-2.7245 -2.2423,-12.6067 -2.2422,-12.6066 -72.973,23.9037 z" clip-path="url(#167191919526-clipPath1)" id="path121" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 530.0179,340.8564 0.3587,2.017 76.74,-2.7245 -2.2423,-12.6067 -2.2422,-12.6066 -72.973,23.9037 z" clip-path="url(#1671919195596-clipPath1)" id="path123" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
@@ -124,7 +124,7 @@
     <g font-size="26px" transform="translate(239.1954,313.3285)" id="g145" style="font-size:26px;font-family:sans-serif;text-rendering:geometricPrecision;fill:#f0abfc;stroke:none" />
     <g font-size="33px" transform="translate(253.0235,295.8726)" id="g149" style="font-size:33px;font-family:sans-serif;text-rendering:geometricPrecision;fill:#f0abfc;stroke:none" />
     <g font-size="33px" id="g153" style="font-size:33px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
-      <text x="0" y="32" transform="translate(611.378,304.7817)" clip-path="url(#1671919195764-clipPath1)" xml:space="preserve" id="text157" style="fill:#ffffff99;stroke:none">H</text>
+      <text x="0" y="32" transform="translate(611.378,304.7817)" clip-path="url(#1671919195764-clipPath1)" xml:space="preserve" id="text157" style="fill:#f0abfc;stroke:none">H</text>
     </g>
     <g font-size="33px" id="g159" style="font-size:33px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
       <text x="0" y="32" transform="translate(425.5582,457.6843)" clip-path="url(#1671919195627-clipPath1)" xml:space="preserve" id="text163" style="fill:#c4b5fd;stroke:none">NH</text>

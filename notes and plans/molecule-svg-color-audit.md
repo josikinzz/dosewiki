@@ -32,14 +32,13 @@ After running `scripts/recolorMolecules.mjs`, every molecule in `molecule svg da
 
 | Color | Attribute hits | SVGs | Applied role | Example molecules |
 | --- | --- | --- | --- | --- |
-| #f0abfc | 15,360 | 732 | Primary bond strokes, labels, and defaults (matches card header pink). | (1R,2R)-Tramadol, 1P-LSD, Pemoline |
+| #f0abfc | 15,598 | 732 | Primary bond strokes, labels, and defaults (matches card header pink). | (1R,2R)-Tramadol, 1P-LSD, Pemoline |
 | #c4b5fd | 3,893 | 659 | Heteroatom-linked bonds and emphasis glyphs (violet gradient stop). | 1P-LSD, 2C-B, Pemoline |
 | #fda4af | 3,038 | 605 | Oxygen/charge highlights with softer danger tonality. | 1P-LSD, 2C-B, Pemoline |
 | #eef2ff | 2,045 | 545 | Background halos and masked circles with muted bloom. | (1R,2R)-Tramadol, 2C-T-7, 4-AcO-DMT |
 | #fbbf24 | 334 | 84 | Warm amber halogen annotations. | 2-FA, 2-FMA, 2-TFMDCK |
 | #bef264 | 285 | 84 | Sulfur/halogen ring shading in luminous lime. | 2C-T-10, 2C-T-14, 2C-T-21 |
 | #6ee7b7 | 238 | 86 | Amino side chains in the shared success green. | 25C-NBOH, 2C-C, 3,4-CTMP |
-| #ffffff99 | 238 | 66 | Secondary outlines and captions in semi-transparent white. | 1B-LSD, 1F-LSD, 1H-LSD |
 | #e879f9 | 155 | 23 | Iodine-rich phenethylamine accents. | 25I-NBOH, 25x-NBOMe, 2C-I |
 | #fb7185 | 61 | 29 | Brominated derivatives and mCPP labels with rose warmth. | 25B-NBOH, 2C-B-FLY, Trazodone (mCPP) |
 | #fcd34dcc | 32 | 8 | Chemical agent schematics in translucent brass. | Adamsite, Arsine, Diphenylcyanoarsine |
@@ -50,6 +49,7 @@ After running `scripts/recolorMolecules.mjs`, every molecule in `molecule svg da
 - The applied palette keeps four dominant hues (#f0abfc, #c4b5fd, #fda4af, #eef2ff) while replacing the remaining accents with brand-consistent greens and ambers.
 - Both source (`molecule svg dataset/`) and served (`public/molecules/`) assets are updated, so running `scripts/syncMoleculeAssets.mjs` no longer overrides the new scheme.
 - No legacy `black`/`red` keyword declarations remain; future SVGO passes retain the rewritten hex forms.
+- Secondary outlines that previously used muted charcoal now share the same fuchsia tone, keeping typography consistent with card headers.
 
 ## Applied Palette Mapping
 To keep the molecules legible against the dark cosmic canvas (#0f0a1f) and harmonise them with the brand accents described in `dosewiki-visual-style-guide.md`, the table below documents the replacements baked into `scripts/recolorMolecules.mjs`.
