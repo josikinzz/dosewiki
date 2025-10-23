@@ -54,13 +54,13 @@
       <path d="M 394.0516,312.79 531.39,373.937 c 2.2175,0.9873 4.8143,-0.01 5.8016,-2.227 0.9873,-2.2175 -0.01,-4.8143 -2.227,-5.8016 l -137.3385,-61.147 c -2.2174,-0.9873 -4.8142,0.01 -5.8015,2.227 -0.9873,2.2175 0.01,4.8143 2.227,5.8016 z" clip-path="url(#758163693847-clipPath1)" id="path49" ns1:connector-curvature="0" style="stroke:none" />
       <path d="M 394.0516,312.79 531.39,373.937 c 2.2175,0.9873 4.8143,-0.01 5.8016,-2.227 0.9873,-2.2175 -0.01,-4.8143 -2.227,-5.8016 l -137.3385,-61.147 c -2.2174,-0.9873 -4.8142,0.01 -5.8015,2.227 -0.9873,2.2175 0.01,4.8143 2.227,5.8016 z" clip-path="url(#758163693316-clipPath1)" id="path51" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
-    <g id="g53" style="fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g id="g53" style="fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <path d="m 400.233,308.7757 0,-152.4675 c 0,-2.4273 -1.9668,-4.3942 -4.3941,-4.3942 -2.4273,0 -4.3942,1.9669 -4.3942,4.3942 l 0,152.4675 c 0,2.4273 1.9669,4.3942 4.3942,4.3942 2.4273,0 4.3941,-1.9669 4.3941,-4.3942 z" clip-path="url(#758163693847-clipPath1)" id="path55" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 400.233,308.7757 0,-152.4675 c 0,-2.4273 -1.9668,-4.3942 -4.3941,-4.3942 -2.4273,0 -4.3942,1.9669 -4.3942,4.3942 l 0,152.4675 c 0,2.4273 1.9669,4.3942 4.3942,4.3942 2.4273,0 4.3941,-1.9669 4.3941,-4.3942 z" clip-path="url(#758163693959-clipPath1)" id="path57" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
     <g id="g59" style="fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
       </g>
-    <g font-size="72px" transform="translate(369.3076,63.2628)" id="g63" style="font-size:72px;font-family:sans-serif;fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g font-size="72px" transform="translate(369.3076,63.2628)" id="g63" style="font-size:72px;font-family:sans-serif;fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <text x="0" xml:space="preserve" y="69" clip-path="url(#758163693941-clipPath1)" id="text65" style="stroke:none">H</text>
     </g>
     <g font-size="72px" id="g67" style="font-size:72px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">

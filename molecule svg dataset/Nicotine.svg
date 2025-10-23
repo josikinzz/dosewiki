@@ -89,7 +89,7 @@
       <path d="m 584.7385,245.911 15.2376,71.6755 c 0.2729,1.284 1.5346,2.1033 2.8187,1.8303 1.2841,-0.273 2.1033,-1.5347 1.8303,-2.8187 l -15.2375,-71.6755 c -0.273,-1.284 -1.5347,-2.1033 -2.8188,-1.8303 -1.284,0.2729 -2.1033,1.5346 -1.8303,2.8187 z" clip-path="url(#260746372391-clipPath1)" id="path96" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 584.7385,245.911 15.2376,71.6755 c 0.2729,1.284 1.5346,2.1033 2.8187,1.8303 1.2841,-0.273 2.1033,-1.5347 1.8303,-2.8187 l -15.2375,-71.6755 c -0.273,-1.284 -1.5347,-2.1033 -2.8188,-1.8303 -1.284,0.2729 -2.1033,1.5346 -1.8303,2.8187 z" clip-path="url(#260746372334-clipPath1)" id="path98" ns1:connector-curvature="0" style="fill:#c4b5fd;stroke:none" />
     </g>
-    <g id="g100" style="fill:#ffffff99;stroke:none;text-rendering:geometricPrecision">
+    <g id="g100" style="fill:#f0abfc;stroke:none;text-rendering:geometricPrecision">
       <path d="m 481.1372,174.3477 1.5902,-1.7661 -54.8151,-66.1448 -9.9387,11.0381 -9.9387,11.038 71.5122,47.6009 z" clip-path="url(#260746372391-clipPath1)" id="path102" ns1:connector-curvature="0" style="stroke:none" />
       <path d="m 481.1372,174.3477 1.5902,-1.7661 -54.8151,-66.1448 -9.9387,11.0381 -9.9387,11.038 71.5122,47.6009 z" clip-path="url(#260746372172-clipPath1)" id="path104" ns1:connector-curvature="0" style="fill:#f0abfc;stroke:none" />
     </g>
@@ -102,7 +102,7 @@
       <text x="0" y="38" transform="translate(567.1805,195.4956)" clip-path="url(#260746372615-clipPath1)" xml:space="preserve" id="text118" style="fill:#c4b5fd;stroke:none">N</text>
     </g>
     <g font-size="39px" id="g120" style="font-size:39px;font-family:sans-serif;fill:#eef2ff;stroke:none;text-rendering:geometricPrecision">
-      <text x="0" y="38" transform="translate(384.8407,77.3806)" clip-path="url(#26074637262-clipPath1)" xml:space="preserve" id="text124" style="fill:#ffffff99;stroke:none">H</text>
+      <text x="0" y="38" transform="translate(384.8407,77.3806)" clip-path="url(#26074637262-clipPath1)" xml:space="preserve" id="text124" style="fill:#f0abfc;stroke:none">H</text>
     </g>
   </g>
 </svg>
