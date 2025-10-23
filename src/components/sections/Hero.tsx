@@ -64,11 +64,17 @@ export function Hero({
       <div className="flex flex-col items-center gap-6">
         <div className={heroImageWrapperClasses} {...heroImageProps}>
           {hasMolecule ? (
-            <img
-              src={moleculeAsset!.url}
-              alt={moleculeAlt}
-              className="pointer-events-none h-auto w-full object-contain drop-shadow-[0_32px_60px_rgba(8,4,24,0.8)]"
-            />
+            <>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 mx-auto my-auto h-full w-full max-w-[88%] rounded-full bg-[radial-gradient(circle_at_center,rgba(147,51,234,0.2),rgba(15,10,31,0)_70%)] blur-[70px]"
+              />
+              <img
+                src={moleculeAsset!.url}
+                alt={moleculeAlt}
+                className="pointer-events-none h-auto w-full object-contain drop-shadow-[0_32px_60px_rgba(8,4,24,0.8)]"
+              />
+            </>
           ) : (
             <>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff14,transparent_75%)]" aria-hidden="true" />
