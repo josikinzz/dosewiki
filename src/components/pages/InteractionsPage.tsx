@@ -420,7 +420,7 @@ export function InteractionsPage({
       <SectionCard className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4 gap-fallback-wrap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Interactions comparison</h1>
+            <h1 className="text-2xl font-semibold text-fuchsia-300">Interactions comparison</h1>
             <p className="mt-1 text-sm text-white/70">
               Select two substances to review overlapping risks, unique warnings, and direct cross references.
             </p>

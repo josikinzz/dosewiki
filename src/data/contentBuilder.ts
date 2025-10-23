@@ -165,9 +165,9 @@ interface MoleculeMappingFile {
   mappings: MoleculeMappingEntry[];
 }
 
-const moleculeMappingByArticleId: Map<number, MoleculeMappingEntry> = (() => {
+const moleculeMappingByArticleId: Map<number, MoleculeMappingEntry[]> = (() => {
   const raw = moleculeSvgMappings as MoleculeMappingFile;
-  const map = new Map<number, MoleculeMappingEntry>();
+  const map = new Map<number, MoleculeMappingEntry[]>();
   if (!raw?.mappings) {
     return map;
   }
@@ -180,9 +180,13 @@ const moleculeMappingByArticleId: Map<number, MoleculeMappingEntry> = (() => {
       continue;
     }
 
-    if (!map.has(entry.articleId)) {
-      map.set(entry.articleId, entry);
+    const existing = map.get(entry.articleId);
+    if (existing) {
+      existing.push(entry);
+      continue;
     }
+
+    map.set(entry.articleId, [entry]);
   }
 
   return map;
@@ -944,25 +948,32 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   };
 
   if (id !== null) {
-    const mapping = moleculeMappingByArticleId.get(id);
-    if (mapping) {
-      const encodedFilename = encodeURI(mapping.filename);
-      const moleculeAsset: MoleculeAsset = {
-        filename: mapping.filename,
-        url: `/molecules/${encodedFilename}`,
-        matchedField: mapping.matchedField,
-        matchedValue: mapping.matchedValue,
-      };
+    const mappings = moleculeMappingByArticleId.get(id);
+    if (mappings && mappings.length > 0) {
+      const assets: MoleculeAsset[] = mappings.map((mapping) => {
+        const encodedFilename = encodeURI(mapping.filename);
+        const moleculeAsset: MoleculeAsset = {
+          filename: mapping.filename,
+          url: `/molecules/${encodedFilename}`,
+          matchedField: mapping.matchedField,
+          matchedValue: mapping.matchedValue,
+        };
 
-      if (mapping.resolution) {
-        moleculeAsset.resolution = mapping.resolution;
+        if (mapping.resolution) {
+          moleculeAsset.resolution = mapping.resolution;
+        }
+
+        if (Array.isArray(mapping.deduplicatedFrom) && mapping.deduplicatedFrom.length > 0) {
+          moleculeAsset.deduplicatedFrom = mapping.deduplicatedFrom;
+        }
+
+        return moleculeAsset;
+      });
+
+      if (assets.length > 0) {
+        [content.moleculeAsset] = assets;
+        content.moleculeAssets = assets;
       }
-
-      if (Array.isArray(mapping.deduplicatedFrom) && mapping.deduplicatedFrom.length > 0) {
-        moleculeAsset.deduplicatedFrom = mapping.deduplicatedFrom;
-      }
-
-      content.moleculeAsset = moleculeAsset;
     }
   }
 

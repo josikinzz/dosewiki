@@ -1,10 +1,10 @@
 {
   "_meta": {
     "description": "Maps molecule SVG filenames to article entries from src/data/articles.json. One SVG per article.",
-    "generatedAt": "2025-10-22T19:58:31.273Z",
+    "generatedAt": "2025-10-23T08:21:42.859Z",
     "totalSvgFiles": 732,
-    "matchedCount": 288,
-    "unmatchedCount": 437,
+    "matchedCount": 306,
+    "unmatchedCount": 434,
     "notes": "matchedField refers to the field on drug_info or title used for the lookup. deduplicated entries keep a single representative per article."
   },
   "mappings": [
@@ -105,6 +105,13 @@
       "articleTitle": "2-MAPB",
       "matchedField": "title",
       "matchedValue": "2-MAPB"
+    },
+    {
+      "filename": "2-Methyl-2-butanol.svg",
+      "articleId": 667,
+      "articleTitle": "2M2B",
+      "matchedField": "chemical_name",
+      "matchedValue": "2-methylbutan-2-ol"
     },
     {
       "filename": "2,5-DMA.svg",
@@ -611,6 +618,13 @@
       "matchedValue": "5-MeO-DMT"
     },
     {
+      "filename": "5-MeO-DMT.svg",
+      "articleId": 199,
+      "articleTitle": "Yopo",
+      "matchedField": "trace_constituent",
+      "matchedValue": "5-MeO-DMT"
+    },
+    {
       "filename": "5-MeO-DPT.svg",
       "articleId": 371,
       "articleTitle": "5-MeO-DPT",
@@ -643,6 +657,13 @@
       "articleId": 423,
       "articleTitle": "7-OH",
       "matchedField": "chemical_name",
+      "matchedValue": "7-Hydroxymitragynine"
+    },
+    {
+      "filename": "7-Hydroxymitragynine.svg",
+      "articleId": 206,
+      "articleTitle": "Kratom",
+      "matchedField": "active_constituent",
       "matchedValue": "7-Hydroxymitragynine"
     },
     {
@@ -828,6 +849,13 @@
       "matchedValue": "Bufotenin"
     },
     {
+      "filename": "Bufotenin.svg",
+      "articleId": 199,
+      "articleTitle": "Yopo",
+      "matchedField": "active_constituent",
+      "matchedValue": "Bufotenin"
+    },
+    {
       "filename": "Buprenorphine.svg",
       "articleId": 210,
       "articleTitle": "Buprenorphine",
@@ -861,6 +889,20 @@
       "articleTitle": "Carisoprodol",
       "matchedField": "title",
       "matchedValue": "Carisoprodol"
+    },
+    {
+      "filename": "Cathinone.svg",
+      "articleId": 685,
+      "articleTitle": "Khat",
+      "matchedField": "chemical_name (component)",
+      "matchedValue": "Cathinone"
+    },
+    {
+      "filename": "CBD.svg",
+      "articleId": 311,
+      "articleTitle": "Cannabis",
+      "matchedField": "active_constituent",
+      "matchedValue": "Cannabidiol (CBD)"
     },
     {
       "filename": "Chloral hydrate.svg",
@@ -1003,6 +1045,13 @@
       "matchedValue": "Dihydrocodeine"
     },
     {
+      "filename": "Dihydrokavain.svg",
+      "articleId": 208,
+      "articleTitle": "Kava",
+      "matchedField": "active_constituent",
+      "matchedValue": "Dihydrokavain"
+    },
+    {
       "filename": "Diphenhydramine.svg",
       "articleId": 626,
       "articleTitle": "Diphenhydramine",
@@ -1023,6 +1072,13 @@
       "articleTitle": "DiPT",
       "matchedField": "title",
       "matchedValue": "DiPT"
+    },
+    {
+      "filename": "DMT.svg",
+      "articleId": 661,
+      "articleTitle": "Ayahuasca",
+      "matchedField": "active_constituent",
+      "matchedValue": "N,N-Dimethyltryptamine"
     },
     {
       "filename": "DMT.svg",
@@ -1282,6 +1338,13 @@
       "matchedValue": "GVL"
     },
     {
+      "filename": "Harmine.svg",
+      "articleId": 661,
+      "articleTitle": "Ayahuasca",
+      "matchedField": "active_constituent",
+      "matchedValue": "Harmine"
+    },
+    {
       "filename": "Hexedrone.svg",
       "articleId": 481,
       "articleTitle": "Hexedrone",
@@ -1303,11 +1366,32 @@
       "matchedValue": "Hydromorphone"
     },
     {
+      "filename": "Hyoscyamine.svg",
+      "articleId": 662,
+      "articleTitle": "Datura",
+      "matchedField": "chemical_name (component)",
+      "matchedValue": "Hyoscyamine"
+    },
+    {
+      "filename": "Hyoscyamine.svg",
+      "articleId": 663,
+      "articleTitle": "Datura",
+      "matchedField": "chemical_name (component)",
+      "matchedValue": "Hyoscyamine"
+    },
+    {
       "filename": "Ibogaine.svg",
       "articleId": 196,
       "articleTitle": "Ibogaine",
       "matchedField": "title",
       "matchedValue": "Ibogaine"
+    },
+    {
+      "filename": "Ibotenic acid.svg",
+      "articleId": 201,
+      "articleTitle": "Amanita Muscaria",
+      "matchedField": "precursor_constituent",
+      "matchedValue": "Ibotenic acid"
     },
     {
       "filename": "Ibotenic acid.svg",
@@ -1336,6 +1420,13 @@
       "articleTitle": "JWH-073",
       "matchedField": "title",
       "matchedValue": "JWH-073"
+    },
+    {
+      "filename": "Kavain.svg",
+      "articleId": 208,
+      "articleTitle": "Kava",
+      "matchedField": "active_constituent",
+      "matchedValue": "Kavain"
     },
     {
       "filename": "Ketamine.svg",
@@ -1579,6 +1670,13 @@
     },
     {
       "filename": "Mitragynine.svg",
+      "articleId": 206,
+      "articleTitle": "Kratom",
+      "matchedField": "active_constituent",
+      "matchedValue": "Mitragynine"
+    },
+    {
+      "filename": "Mitragynine.svg",
       "articleId": 408,
       "articleTitle": "Mitragynine",
       "matchedField": "title",
@@ -1597,6 +1695,13 @@
       "articleTitle": "Morphine",
       "matchedField": "title",
       "matchedValue": "Morphine"
+    },
+    {
+      "filename": "Muscimol.svg",
+      "articleId": 201,
+      "articleTitle": "Amanita Muscaria",
+      "matchedField": "active_constituent",
+      "matchedValue": "Muscimol"
     },
     {
       "filename": "Myristicin.svg",
@@ -1849,6 +1954,20 @@
       "matchedValue": "Psilocin"
     },
     {
+      "filename": "Psilocin.svg",
+      "articleId": 200,
+      "articleTitle": "Psilocybin Mushrooms",
+      "matchedField": "active_metabolite",
+      "matchedValue": "Psilocin"
+    },
+    {
+      "filename": "Psilocybin.svg",
+      "articleId": 200,
+      "articleTitle": "Psilocybin Mushrooms",
+      "matchedField": "chemical_name",
+      "matchedValue": "4-Phosphoryloxy-N,N-dimethyltryptamine"
+    },
+    {
       "filename": "Pyrazolam.svg",
       "articleId": 101,
       "articleTitle": "Pyrazolam",
@@ -1924,6 +2043,13 @@
       "articleTitle": "Temazepam",
       "matchedField": "title",
       "matchedValue": "Temazepam"
+    },
+    {
+      "filename": "THC.svg",
+      "articleId": 311,
+      "articleTitle": "Cannabis",
+      "matchedField": "active_constituent",
+      "matchedValue": "Delta-9-tetrahydrocannabinol (THC)"
     },
     {
       "filename": "Theacrine.svg",

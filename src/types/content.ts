@@ -94,6 +94,7 @@ export interface SubstanceContent {
   aliases: string[];
   moleculePlaceholder: string;
   moleculeAsset?: MoleculeAsset;
+  moleculeAssets?: MoleculeAsset[];
   heroBadges: HeroBadge[];
   categoryKeys?: string[];
   dosageUnitsNote: string;
