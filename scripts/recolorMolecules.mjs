@@ -6,8 +6,8 @@ const directories = ['molecule svg dataset', 'public/molecules'];
 
 const mappings = [
   {
-    target: '#f5d0fe',
-    patterns: [/#000000/gi, /\bblack\b/gi]
+    target: '#f0abfc',
+    patterns: [/#000000/gi, /\bblack\b/gi, /#f5d0fe/gi]
   },
   {
     target: '#c4b5fd',

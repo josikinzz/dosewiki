@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:ns2="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns4="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="737.4231" stroke-miterlimit="10" font-weight="normal" height="86.971901" font-style="normal" font-size="12px" id="svg2" version="1.1" ns1:version="0.91 r13725" ns2:docname="Nitrous Oxide.svg" style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#f5d0fe;fill-opacity:1;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns1="http://www.inkscape.org/namespaces/inkscape" xmlns:ns2="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns4="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="737.4231" stroke-miterlimit="10" font-weight="normal" height="86.971901" font-style="normal" font-size="12px" id="svg2" version="1.1" ns1:version="0.91 r13725" ns2:docname="Nitrous Oxide.svg" style="font-style:normal;font-weight:normal;font-size:12px;font-family:Dialog;color-interpolation:auto;fill:#f0abfc;fill-opacity:1;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;stroke:none;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto">
   <metadata id="metadata107">
     <rdf:RDF>
       <ns4:Work rdf:about="">
@@ -12,7 +12,7 @@
   <ns2:namedview pagecolor="#eef2ff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" ns1:pageopacity="0" ns1:pageshadow="2" ns1:window-width="1060" ns1:window-height="480" id="namedview105" showgrid="false" fit-margin-top="10" fit-margin-left="10" fit-margin-right="10" fit-margin-bottom="10" ns1:zoom="0.36375" ns1:cx="368.7018" ns1:cy="46.2345" ns1:window-x="0" ns1:window-y="0" ns1:window-maximized="0" ns1:current-layer="svg2" />
   
   <defs id="genericDefs" />
-  <g id="g5" transform="translate(-31.2982,-259.2626)" style="fill:#f5d0fe;stroke:none">
+  <g id="g5" transform="translate(-31.2982,-259.2626)" style="fill:#f0abfc;stroke:none">
     <defs id="1146387539366-defs1">
       <clipPath clipPathUnits="userSpaceOnUse" id="1146387539504-clipPath1">
         <path d="M 0,0 800,0 800,600 0,600 0,0 Z" id="path9" ns1:connector-curvature="0" style="stroke:none" />
@@ -84,7 +84,7 @@
       <path d="m 740.7047,283.5255 c -5.3691,0 -9.7217,4.3525 -9.7217,9.7217 l 0,19.4433 c 0,5.3692 4.3526,9.7217 9.7217,9.7217 l 8.2754,0 c 5.3691,0 9.7217,-4.3525 9.7217,-9.7217 l 0,-19.4433 c 0,-5.3692 -4.3526,-9.7217 -9.7217,-9.7217 z" clip-path="url(#1146387539504-clipPath1)" id="path97" ns1:connector-curvature="0" style="fill:#eef2ff;stroke:none" />
       <text x="0" y="38" transform="translate(729.483,279.1017)" clip-path="url(#1146387539551-clipPath1)" xml:space="preserve" id="text99" style="fill:#fda4af;stroke:none">O</text>
     </g>
-    <g id="g101" style="text-rendering:geometricPrecision;fill:#f5d0fe;stroke:none">
+    <g id="g101" style="text-rendering:geometricPrecision;fill:#f0abfc;stroke:none">
       <path d="m 449.218,293.3929 -106.6024,0.1461 0.006,4.6458 119.7428,-0.1641 -33.4892,-28.7581 0.006,4.6458 z m -93.4366,18.7113 106.6024,-0.1461 -0.006,-4.6458 -119.7427,0.1641 33.4892,28.7581 -0.006,-4.6458 z" clip-path="url(#1146387539504-clipPath1)" id="path103" ns1:connector-curvature="0" style="stroke:none" />
     </g>
   </g>
