@@ -32,7 +32,7 @@ After running `scripts/recolorMolecules.mjs`, every molecule in `molecule svg da
 
 | Color | Attribute hits | SVGs | Applied role | Example molecules |
 | --- | --- | --- | --- | --- |
-| #f5d0fe | 15,360 | 732 | Primary bond strokes, labels, and defaults (matches inline link pink). | (1R,2R)-Tramadol, 1P-LSD, Pemoline |
+| #f0abfc | 15,360 | 732 | Primary bond strokes, labels, and defaults (matches card header pink). | (1R,2R)-Tramadol, 1P-LSD, Pemoline |
 | #c4b5fd | 3,893 | 659 | Heteroatom-linked bonds and emphasis glyphs (violet gradient stop). | 1P-LSD, 2C-B, Pemoline |
 | #fda4af | 3,038 | 605 | Oxygen/charge highlights with softer danger tonality. | 1P-LSD, 2C-B, Pemoline |
 | #eef2ff | 2,045 | 545 | Background halos and masked circles with muted bloom. | (1R,2R)-Tramadol, 2C-T-7, 4-AcO-DMT |
@@ -47,7 +47,7 @@ After running `scripts/recolorMolecules.mjs`, every molecule in `molecule svg da
 | #a5b4fc | 2 | 1 | Sodium thiopental accent aligned to indigo shadows. | Sodium thiopental |
 
 ### Post-recolor Notes
-- The applied palette keeps four dominant hues (#f5d0fe, #c4b5fd, #fda4af, #eef2ff) while replacing the remaining accents with brand-consistent greens and ambers.
+- The applied palette keeps four dominant hues (#f0abfc, #c4b5fd, #fda4af, #eef2ff) while replacing the remaining accents with brand-consistent greens and ambers.
 - Both source (`molecule svg dataset/`) and served (`public/molecules/`) assets are updated, so running `scripts/syncMoleculeAssets.mjs` no longer overrides the new scheme.
 - No legacy `black`/`red` keyword declarations remain; future SVGO passes retain the rewritten hex forms.
 
@@ -56,7 +56,7 @@ To keep the molecules legible against the dark cosmic canvas (#0f0a1f) and harmo
 
 | Current color | Common usage | Dark mode issue | Applied token | Hex | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| #000000 | Primary bond strokes, atom text | Drops to near-invisible against dark canvas | `text-fuchsia-200` | #f5d0fe | Matches inline link color, keeps bonds readable without overpowering panels. |
+| #000000 | Primary bond strokes, atom text | Drops to near-invisible against dark canvas | `text-fuchsia-300` | #f0abfc | Matches SectionCard titles, keeping bonds readable while echoing dosage card headers. |
 | #333399 | Heteroatom-linked bonds, emphasis glyphs | Feels colder than site palette and blends into violet gradients | `text-violet-300` | #c4b5fd | Moves the accent toward the fuchsia→violet gradient already used on cards. |
 | #ff0000 | Oxygen/charged site callouts | Pure red is harsh on dark cards and clashes with risk badges | `text-rose-300` | #fda4af | Softer rose keeps the warning feel while aligning with existing danger tokens (`bg-red-500/10`, `text-red-300`). |
 | #ffffff | Background halos, masked circles | Pure white halos bloom on the dark canvas | `bg-indigo-50` / `white/90` | #eef2ff | Slightly muted white keeps contrast yet matches translucent overlays used on SectionCards. |
@@ -73,6 +73,6 @@ To keep the molecules legible against the dark cosmic canvas (#0f0a1f) and harmo
 
 ### Implementation Notes
 - When converting strokes/fills, bump stroke-width by 0.25–0.5px if the lighter palette appears thinner than the legacy black lines.
-- Bias toward transparency (e.g. `stroke="rgba(245,208,254,0.88)"`) where SVGs rely on layering; this keeps bonds luminous without overwhelming adjacent text.
+- Bias toward transparency (e.g. `stroke="rgba(240,171,252,0.88)"`) where SVGs rely on layering; this keeps bonds luminous without overwhelming adjacent text.
 - Test both the default dark canvas and the Dev Tools light preview to ensure the new palette maintains >4.5:1 contrast for primary strokes and >3:1 for secondary annotations.
 - Re-run `node scripts/recolorMolecules.mjs` after adding new molecule artwork so the palette stays aligned across source and published assets.
