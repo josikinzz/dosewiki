@@ -5,10 +5,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const ARTICLES_PATH = resolve(ROOT, "src/data/articles.json");
-const MOLECULE_MAP_PATH = resolve(ROOT, "src/data/moleculeSvgMappings.json");
 const SHARE_OUTPUT_DIR = resolve(ROOT, "public/share");
-const FALLBACK_IMAGE_PATH = "/dosewiki-logo.svg";
-const MOLECULE_BASE_PATH = "/molecules";
+const SHARE_IMAGE_PATH = "/embed-logo.webp";
+const SHARE_IMAGE_ALT = "dose.wiki logo";
 const BASE_URL = (process.env.DOSEWIKI_BASE_URL || "https://dose.wiki").replace(/\/$/, "");
 
 const DOSAGE_KEY_ORDER = [
@@ -324,33 +323,8 @@ const buildShareHtml = ({
 `;
 };
 
-const loadMoleculeMapping = async () => {
-  try {
-    const raw = await readJson(MOLECULE_MAP_PATH);
-    const map = new Map();
-    const entries = Array.isArray(raw?.mappings) ? raw.mappings : [];
-    for (const entry of entries) {
-      if (!entry || typeof entry.articleId !== "number") {
-        continue;
-      }
-      if (map.has(entry.articleId)) {
-        continue;
-      }
-      if (typeof entry.filename !== "string" || !entry.filename.trim()) {
-        continue;
-      }
-      map.set(entry.articleId, entry.filename.trim());
-    }
-    return map;
-  } catch (error) {
-    console.warn("Unable to load molecule mapping:", error.message);
-    return new Map();
-  }
-};
-
 const buildShareEntries = async () => {
   const articles = await readJson(ARTICLES_PATH);
-  const moleculeMap = await loadMoleculeMapping();
   const entries = [];
 
   for (const article of articles) {
@@ -399,13 +373,8 @@ const buildShareEntries = async () => {
     const redirectPath = `/#/substance/${slug}`;
     const appUrl = `${BASE_URL}/${redirectPath.replace(/^\//, "")}`;
 
-    const articleId = typeof article?.id === "number" ? article.id : null;
-    const moleculeFilename = articleId !== null ? moleculeMap.get(articleId) : undefined;
-    const imagePath = moleculeFilename
-      ? `${MOLECULE_BASE_PATH}/${encodeURI(moleculeFilename)}`
-      : FALLBACK_IMAGE_PATH;
-    const imageUrl = `${BASE_URL}${imagePath}`;
-    const imageAlt = moleculeFilename ? `${baseName} molecule diagram` : "dose.wiki logo";
+    const imageUrl = `${BASE_URL}${SHARE_IMAGE_PATH}`;
+    const imageAlt = SHARE_IMAGE_ALT;
 
     entries.push({
       slug,
