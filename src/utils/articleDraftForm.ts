@@ -34,6 +34,7 @@ export type CitationEntryForm = {
 export type DurationForm = {
   totalDuration: string;
   onset: string;
+  comeUp: string;
   peak: string;
   offset: string;
   afterEffects: string;
@@ -42,6 +43,7 @@ export type DurationForm = {
 export type DurationStagePayload = {
   total_duration?: string;
   onset?: string;
+  come_up?: string;
   peak?: string;
   offset?: string;
   after_effects?: string;
@@ -50,6 +52,7 @@ export type DurationStagePayload = {
 const DURATION_STAGE_KEYS: Array<keyof DurationStagePayload> = [
   "total_duration",
   "onset",
+  "come_up",
   "peak",
   "offset",
   "after_effects",
@@ -78,7 +81,9 @@ export type ArticleDraftForm = {
   indexCategory: string;
   indexCategoryTags: string[];
   drugName: string;
-  chemicalName: string;
+  substitutiveName: string;
+  iupacName: string;
+  botanicalName: string;
   alternativeName: string;
   chemicalClass: string;
   chemicalClasses: string[];
@@ -108,7 +113,9 @@ export type ArticleDraftStringField =
   | "title"
   | "indexCategory"
   | "drugName"
-  | "chemicalName"
+  | "substitutiveName"
+  | "iupacName"
+  | "botanicalName"
   | "alternativeName"
   | "chemicalClass"
   | "psychoactiveClass"
@@ -129,7 +136,9 @@ export type ArticleDraftPayload = {
   "index-category": string;
   drug_info: {
     drug_name: string;
-    chemical_name: string;
+    substitutive_name: string;
+    IUPAC_name: string;
+    botanical_name: string;
     alternative_name: string;
     chemical_class: string;
     psychoactive_class: string;
@@ -196,7 +205,9 @@ export const createEmptyArticleDraftForm = (): ArticleDraftForm => ({
   indexCategory: "",
   indexCategoryTags: [],
   drugName: "",
-  chemicalName: "",
+  substitutiveName: "",
+  iupacName: "",
+  botanicalName: "",
   alternativeName: "",
   chemicalClass: "",
   chemicalClasses: [],
@@ -217,6 +228,7 @@ export const createEmptyArticleDraftForm = (): ArticleDraftForm => ({
   duration: {
     totalDuration: "",
     onset: "",
+    comeUp: "",
     peak: "",
     offset: "",
     afterEffects: "",
@@ -239,6 +251,7 @@ export const createEmptyDurationRouteEntry = (route: string = ""): DurationRoute
 const createEmptyDurationStagePayload = (): DurationStagePayload => ({
   total_duration: "",
   onset: "",
+  come_up: "",
   peak: "",
   offset: "",
   after_effects: "",
@@ -253,6 +266,7 @@ const sanitizeDurationStagePayload = (value: unknown): DurationStagePayload => {
   return {
     total_duration: toTrimmedString(record.total_duration),
     onset: toTrimmedString(record.onset),
+    come_up: toTrimmedString(record.come_up ?? record.comeup),
     peak: toTrimmedString(record.peak),
     offset: toTrimmedString(record.offset),
     after_effects: toTrimmedString(record.after_effects),
@@ -412,7 +426,9 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     ["index-category"]?: unknown;
     drug_info?: {
       drug_name?: unknown;
-      chemical_name?: unknown;
+      substitutive_name?: unknown;
+      IUPAC_name?: unknown;
+      botanical_name?: unknown;
       alternative_name?: unknown;
       chemical_class?: unknown;
       psychoactive_class?: unknown;
@@ -431,6 +447,8 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
       duration?: {
         total_duration?: unknown;
         onset?: unknown;
+        come_up?: unknown;
+        comeup?: unknown;
         peak?: unknown;
         offset?: unknown;
         after_effects?: unknown;
@@ -520,7 +538,9 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     indexCategory: indexCategoryValue,
     indexCategoryTags,
     drugName: toTrimmedString(drugInfo.drug_name),
-    chemicalName: toTrimmedString(drugInfo.chemical_name),
+    substitutiveName: toTrimmedString(drugInfo.substitutive_name),
+    iupacName: toTrimmedString(drugInfo.IUPAC_name),
+    botanicalName: toTrimmedString(drugInfo.botanical_name),
     alternativeName: toTrimmedString(drugInfo.alternative_name),
     chemicalClass: chemicalClassString,
     chemicalClasses,
@@ -541,6 +561,7 @@ export const hydrateArticleDraftForm = (record: unknown): ArticleDraftForm => {
     duration: {
       totalDuration: fallbackDurationPayload.total_duration,
       onset: fallbackDurationPayload.onset,
+      comeUp: fallbackDurationPayload.come_up,
       peak: fallbackDurationPayload.peak,
       offset: fallbackDurationPayload.offset,
       afterEffects: fallbackDurationPayload.after_effects,
@@ -573,6 +594,7 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
   const generalDuration: DurationStagePayload = {
     total_duration: form.duration.totalDuration.trim(),
     onset: form.duration.onset.trim(),
+    come_up: form.duration.comeUp.trim(),
     peak: form.duration.peak.trim(),
     offset: form.duration.offset.trim(),
     after_effects: form.duration.afterEffects.trim(),
@@ -710,7 +732,9 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
 
   const drugInfo = {
     drug_name: form.drugName.trim(),
-    chemical_name: form.chemicalName.trim(),
+    substitutive_name: form.substitutiveName.trim(),
+    IUPAC_name: form.iupacName.trim(),
+    botanical_name: form.botanicalName.trim(),
     alternative_name: form.alternativeName.trim(),
     chemical_class: chemicalClassValue,
     psychoactive_class: psychoactiveClassValue,

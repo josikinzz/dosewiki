@@ -59,9 +59,11 @@ const main = async () => {
 
     const drugName = cleanString(info.drug_name);
     const titleName = cleanString(article.title);
-    const chemicalName = cleanString(info.chemical_name);
+    const substitutiveName = cleanString(info.substitutive_name);
+    const iupacName = cleanString(info.IUPAC_name);
+    const botanicalName = cleanString(info.botanical_name);
 
-    const candidateNames = [drugName, titleName, chemicalName].filter(Boolean);
+    const candidateNames = [drugName, titleName, substitutiveName, iupacName, botanicalName].filter(Boolean);
     if (candidateNames.length === 0) {
       continue;
     }

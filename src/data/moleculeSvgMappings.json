@@ -110,7 +110,7 @@
       "filename": "2-Methyl-2-butanol.svg",
       "articleId": 667,
       "articleTitle": "2M2B",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "2-methylbutan-2-ol"
     },
     {
@@ -439,21 +439,21 @@
       "filename": "4-CEC.svg",
       "articleId": 316,
       "articleTitle": "4-Chloroethcathinone",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-CEC"
     },
     {
       "filename": "4-CMC.svg",
       "articleId": 227,
       "articleTitle": "4-Chloromethcathinone",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-CMC"
     },
     {
       "filename": "4-ethylpentedrone.svg",
       "articleId": 562,
       "articleTitle": "4-EPD",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-Ethylpentedrone"
     },
     {
@@ -523,14 +523,14 @@
       "filename": "4-Methylaminorex.svg",
       "articleId": 426,
       "articleTitle": "4-MAR",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-Methylaminorex"
     },
     {
       "filename": "4-Methylmethylphenidate.svg",
       "articleId": 94,
       "articleTitle": "4-Me-TMP",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-Methylmethylphenidate"
     },
     {
@@ -551,7 +551,7 @@
       "filename": "4F-MPH.svg",
       "articleId": 150,
       "articleTitle": "4-Fluoromethylphenidate",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4F-MPH"
     },
     {
@@ -656,7 +656,7 @@
       "filename": "7-Hydroxymitragynine.svg",
       "articleId": 423,
       "articleTitle": "7-OH",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "7-Hydroxymitragynine"
     },
     {
@@ -775,7 +775,7 @@
       "filename": "ARIADNE.svg",
       "articleId": 272,
       "articleTitle": "4C-D",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "ARIADNE"
     },
     {
@@ -894,7 +894,7 @@
       "filename": "Cathinone.svg",
       "articleId": 685,
       "articleTitle": "Khat",
-      "matchedField": "chemical_name (component)",
+      "matchedField": "substitutive_name (component)",
       "matchedValue": "Cathinone"
     },
     {
@@ -1041,7 +1041,7 @@
       "filename": "Dihydrocodeine.svg",
       "articleId": 304,
       "articleTitle": "DHC",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Dihydrocodeine"
     },
     {
@@ -1215,7 +1215,7 @@
       "filename": "Ethylphenidate.svg",
       "articleId": 160,
       "articleTitle": "EPH",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Ethylphenidate"
     },
     {
@@ -1327,7 +1327,7 @@
       "filename": "GHB.svg",
       "articleId": 153,
       "articleTitle": "Gamma-hydroxybutyric acid",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "GHB"
     },
     {
@@ -1369,14 +1369,14 @@
       "filename": "Hyoscyamine.svg",
       "articleId": 662,
       "articleTitle": "Datura",
-      "matchedField": "chemical_name (component)",
+      "matchedField": "substitutive_name (component)",
       "matchedValue": "Hyoscyamine"
     },
     {
       "filename": "Hyoscyamine.svg",
       "articleId": 663,
       "articleTitle": "Datura",
-      "matchedField": "chemical_name (component)",
+      "matchedField": "substitutive_name (component)",
       "matchedValue": "Hyoscyamine"
     },
     {
@@ -1453,7 +1453,7 @@
       "filename": "Loperamide.svg",
       "articleId": 484,
       "articleTitle": "Imodium",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Loperamide"
     },
     {
@@ -1566,7 +1566,7 @@
       "filename": "Mephedrone.svg",
       "articleId": 69,
       "articleTitle": "4-MMC",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Mephedrone"
     },
     {
@@ -1594,7 +1594,7 @@
       "filename": "Methallylescaline.svg",
       "articleId": 270,
       "articleTitle": "MAL",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Methallylescaline"
     },
     {
@@ -1707,7 +1707,7 @@
       "filename": "Myristicin.svg",
       "articleId": 246,
       "articleTitle": "Nutmeg",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "Myristicin"
     },
     {
@@ -1756,7 +1756,7 @@
       "filename": "O-Desmethyltramadol (Racemate).svg",
       "articleId": 45,
       "articleTitle": "O-DSMT",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "O-Desmethyltramadol",
       "resolution": "deduplicated preferred molecule",
       "deduplicatedFrom": [
@@ -1964,7 +1964,7 @@
       "filename": "Psilocybin.svg",
       "articleId": 200,
       "articleTitle": "Psilocybin Mushrooms",
-      "matchedField": "chemical_name",
+      "matchedField": "substitutive_name",
       "matchedValue": "4-Phosphoryloxy-N,N-dimethyltryptamine"
     },
     {

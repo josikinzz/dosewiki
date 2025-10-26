@@ -141,9 +141,13 @@ const deriveArticleSlug = (article: ArticleRecord): string | undefined => {
 
   const drugName = info ? parseTitle(info.drug_name) : undefined;
   const title = parseTitle((article as { title?: unknown }).title);
-  const chemicalName = info ? parseTitle(info.chemical_name) : undefined;
+  const substitutiveName = info ? parseTitle(info.substitutive_name) : undefined;
+  const iupacName = info ? parseTitle(info.IUPAC_name) : undefined;
+  const botanicalName = info ? parseTitle(info.botanical_name) : undefined;
 
-  const candidates = [drugName, title, chemicalName].filter((value): value is string => Boolean(value));
+  const candidates = [drugName, title, substitutiveName, iupacName, botanicalName].filter(
+    (value): value is string => Boolean(value),
+  );
   const baseName = candidates.find((value) => !value.includes("(")) ?? candidates[0];
 
   const fallbackId = parseId((article as { id?: unknown }).id);

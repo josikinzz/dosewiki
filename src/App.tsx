@@ -40,6 +40,7 @@ import { parseHash, viewToHash } from "./utils/routing";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
+import { SocialPreviewPage } from "./components/pages/SocialPreviewPage";
 
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
@@ -138,6 +139,10 @@ export default function App() {
   const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : DEFAULT_SLUG;
   const activeRecord = substanceBySlug.get(activeSlug) ?? DEFAULT_RECORD;
   const content = activeRecord.content;
+  const shareSlug = view.type === "share" ? view.slug : undefined;
+  const shareRecord = shareSlug ? substanceBySlug.get(shareSlug) : undefined;
+  const sharePreviewHref = viewToHash({ type: "share", slug: activeRecord.slug });
+  const heroSharePreviewHref = view.type === "substance" ? sharePreviewHref : undefined;
 
   const handleInteractionSelectionChange = useCallback(
     (primarySlug: string, secondarySlug: string) => {
@@ -231,6 +236,8 @@ export default function App() {
     return undefined;
   }, [route, defaultRoute, content]);
 
+  const hideChrome = view.type === "share";
+
   return (
     <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -238,7 +245,9 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={effectiveView} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
+      {!hideChrome && (
+        <Header currentView={effectiveView} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
+      )}
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
@@ -381,6 +390,10 @@ export default function App() {
             />
           );
         })()
+      ) : view.type === "share" ? (
+        <main>
+          <SocialPreviewPage slug={view.slug} record={shareRecord} />
+        </main>
       ) : (
         <>
           {!isBannerDismissed && (
@@ -398,6 +411,7 @@ export default function App() {
             badges={content.heroBadges}
             badgeVariant="compact"
             onCategorySelect={selectCategory}
+            sharePreviewHref={heroSharePreviewHref}
           />
 
           <main className="mx-auto max-w-3xl px-4 pb-20 md:max-w-4xl">
@@ -433,7 +447,7 @@ export default function App() {
         </>
         )}
 
-        <Footer />
+        {!hideChrome && <Footer />}
       </div>
     </div>
   );

@@ -8,7 +8,9 @@ const articlesPath = resolve(__dirname, "../src/data/articles.json");
 
 const desiredInfoOrder = [
   "drug_name",
-  "chemical_name",
+  "substitutive_name",
+  "IUPAC_name",
+  "botanical_name",
   "alternative_name",
   "chemical_class",
   "mechanism_of_action",

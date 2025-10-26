@@ -32,6 +32,7 @@ const doseRangeLabels: Array<[keyof DoseRangeForm, string]> = [
 const durationLabels: Array<[keyof DurationForm, string, string]> = [
   ["totalDuration", "Total duration", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
+  ["comeUp", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
   ["afterEffects", "After effects", "e.g., Residual stimulation"],
@@ -40,6 +41,7 @@ const durationLabels: Array<[keyof DurationForm, string, string]> = [
 const routeDurationLabels: Array<[keyof DurationStagePayload, string, string]> = [
   ["total_duration", "Total duration", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
+  ["come_up", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
   ["after_effects", "After effects", "e.g., Residual stimulation"],
@@ -243,33 +245,57 @@ const OverviewFields = ({
           />
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-chemical-name`}>
-            Chemical name
+          <label className={labelClass} htmlFor={`${idPrefix}-substitutive-name`}>
+            Substitutive name
           </label>
           <input
-            id={`${idPrefix}-chemical-name`}
+            id={`${idPrefix}-substitutive-name`}
             className={baseInputClass}
-            value={form.chemicalName}
-            onChange={handleFieldChange("chemicalName")}
+            value={form.substitutiveName}
+            onChange={handleFieldChange("substitutiveName")}
             placeholder="Systematic or ISO name"
           />
         </div>
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-alternative-name`}>
-          Alternative name
-        </label>
-        <input
-          id={`${idPrefix}-alternative-name`}
-          className={baseInputClass}
-          value={form.alternativeName}
-          onChange={handleFieldChange("alternativeName")}
-          placeholder="Common alias (optional)"
-        />
-        <p className={helperTextClass}>Use semicolons for multiple aliases to keep the hero rail tidy.</p>
+        <div>
+          <label className={labelClass} htmlFor={`${idPrefix}-iupac-name`}>
+            IUPAC name
+          </label>
+          <input
+            id={`${idPrefix}-iupac-name`}
+            className={baseInputClass}
+            value={form.iupacName}
+            onChange={handleFieldChange("iupacName")}
+            placeholder="Add full IUPAC naming (optional)"
+          />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor={`${idPrefix}-botanical-name`}>
+            Botanical name
+          </label>
+          <input
+            id={`${idPrefix}-botanical-name`}
+            className={baseInputClass}
+            value={form.botanicalName}
+            onChange={handleFieldChange("botanicalName")}
+            placeholder="Latin binomial (optional)"
+          />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor={`${idPrefix}-alternative-name`}>
+            Alternative name
+          </label>
+          <input
+            id={`${idPrefix}-alternative-name`}
+            className={baseInputClass}
+            value={form.alternativeName}
+            onChange={handleFieldChange("alternativeName")}
+            placeholder="Common alias (optional)"
+          />
+          <p className={helperTextClass}>Use semicolons for multiple aliases to keep the hero rail tidy.</p>
+        </div>
       </div>
-    </div>
     <div>
       <TagMultiSelect
         label="Categories"

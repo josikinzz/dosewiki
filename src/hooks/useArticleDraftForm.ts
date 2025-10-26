@@ -95,6 +95,7 @@ const syncDurationRoutes = (
     const stages: DurationStagePayload = {
       total_duration: existing.stages?.total_duration ?? "",
       onset: existing.stages?.onset ?? "",
+      come_up: existing.stages?.come_up ?? existing.stages?.comeup ?? "",
       peak: existing.stages?.peak ?? "",
       offset: existing.stages?.offset ?? "",
       after_effects: existing.stages?.after_effects ?? "",
@@ -334,6 +335,7 @@ export const useArticleDraftForm = ({
         const stageDefaults: DurationStagePayload = {
           total_duration: defaults.totalDuration.trim(),
           onset: defaults.onset.trim(),
+          come_up: defaults.comeUp.trim(),
           peak: defaults.peak.trim(),
           offset: defaults.offset.trim(),
           after_effects: defaults.afterEffects.trim(),

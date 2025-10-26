@@ -43,6 +43,10 @@ export function viewToHash(view: AppView): string {
       const tab = view.tab;
       return `#/dev/${tab}`;
     }
+    case "share": {
+      const slug = view.slug.trim();
+      return slug.length > 0 ? `#/share/${slug}` : "#/share";
+    }
     default:
       return "#/substances";
   }
@@ -150,6 +154,12 @@ export function parseHash(
           tab = "edit";
         }
         return { type: "dev", tab };
+      }
+      case "share": {
+        if (slug) {
+          return { type: "share", slug };
+        }
+        return { type: "share", slug: defaultSlug };
       }
       default:
         return resolveDefault();
