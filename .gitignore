@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 dist/
 dist-inline/
+public/share/
 
 # Logs & env
 npm-debug.log*

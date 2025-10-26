@@ -9,5 +9,4 @@ export type AppView =
   | { type: "about" }
   | { type: "search"; query: string }
   | { type: "dev"; tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" }
-  | { type: "contributor"; profileKey: string }
-  | { type: "share"; slug: string };
+  | { type: "contributor"; profileKey: string };
