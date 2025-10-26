@@ -4,11 +4,11 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "predev": "node scripts/buildCompressedArticles.mjs",
+        "predev": "node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
         "dev": "vite",
-        "prebuild": "node scripts/buildCompressedArticles.mjs",
+        "prebuild": "node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
         "build": "vite build",
-        "prebuild:inline": "node scripts/buildCompressedArticles.mjs",
+        "prebuild:inline": "node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
         "build:inline": "vite build --mode inline --outDir dist-inline",
         "preview": "vite preview"
     },

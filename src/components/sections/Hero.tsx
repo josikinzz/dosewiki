@@ -1,4 +1,3 @@
-import { Share2 } from "lucide-react";
 import type { HeroBadge, MoleculeAsset } from "../../types/content";
 
 interface HeroProps {
@@ -11,7 +10,6 @@ interface HeroProps {
   badges?: HeroBadge[];
   badgeVariant?: "default" | "compact";
   onCategorySelect?: (categoryKey: string) => void;
-  sharePreviewHref?: string;
 }
 
 export function Hero({
@@ -24,7 +22,6 @@ export function Hero({
   badges = [],
   badgeVariant = "default",
   onCategorySelect,
-  sharePreviewHref,
 }: HeroProps) {
   const isCompactBadges = badgeVariant === "compact";
   const displayedAssets = (moleculeAssets?.length ? moleculeAssets : moleculeAsset ? [moleculeAsset] : []).slice(0, 3);
@@ -127,19 +124,6 @@ export function Hero({
                 </span>
               );
             })}
-          </div>
-        )}
-        {sharePreviewHref && (
-          <div className="mt-6">
-            <a
-              href={sharePreviewHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/60 bg-fuchsia-500/15 px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(168,85,247,0.35)] transition hover:bg-fuchsia-500/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-            >
-              <Share2 className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Open social preview</span>
-            </a>
           </div>
         )}
       </div>
