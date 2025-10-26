@@ -16,3 +16,7 @@ npm-dev.err.log
 # Editor directories
 .idea/
 .vscode/
+
+# Local knowledge + assets
+notes\ and\ plans/
+molecule\ svg\ dataset/
