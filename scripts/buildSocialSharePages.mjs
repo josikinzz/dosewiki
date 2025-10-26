@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const ARTICLES_PATH = resolve(ROOT, "src/data/articles.json");
 const SHARE_OUTPUT_DIR = resolve(ROOT, "public/share");
-const SHARE_IMAGE_PATH = "/embed-logo.webp";
+const SHARE_IMAGE_PATH = "/dosewiki-logo.png";
 const SHARE_IMAGE_ALT = "dose.wiki logo";
 const BASE_URL = (process.env.DOSEWIKI_BASE_URL || "https://dose.wiki").replace(/\/$/, "");
 
@@ -282,7 +282,9 @@ const buildShareHtml = ({
   appUrl,
   redirectPath,
 }) => {
-  const escapedTitle = escapeHtml(title);
+  const pageTitle = `${title} • dose.wiki`;
+  const escapedTitle = escapeHtml(pageTitle);
+  const escapedBaseTitle = escapeHtml(title);
   const escapedDescription = escapeHtml(description);
   const escapedImage = escapeHtml(imageUrl);
   const escapedAppUrl = escapeHtml(appUrl);
@@ -305,19 +307,21 @@ const buildShareHtml = ({
     <meta property="og:description" content="${escapedDescription}" />
     <meta property="og:url" content="${escapedAppUrl}" />
     <meta property="og:image" content="${escapedImage}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:alt" content="${escapedImageAlt}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapedTitle}" />
     <meta name="twitter:description" content="${escapedDescription}" />
     <meta name="twitter:image" content="${escapedImage}" />
-    <meta http-equiv="refresh" content="0; url=${escapedRedirect}" />
+    <meta name="theme-color" content="#6b46c1" />
+    <script>window.location.replace('${escapedRedirect}');</script>
   </head>
   <body style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; background:#0f0a1f; color:#fafafa; display:flex; align-items:center; justify-content:center; min-height:100vh;">
     <p style="font-size:16px; line-height:1.5; text-align:center; max-width:480px; padding:24px;">
-      Redirecting to dose.wiki… If you are not redirected automatically,
-      <a href="${escapedRedirect}" style="color:#f472d0;">open the substance page</a>.
+      Redirecting to <a href="${escapedRedirect}" style="color:#f472d0;">${escapedBaseTitle} information page</a>…
     </p>
-    <script>window.location.replace('${escapedRedirect}');</script>
   </body>
 </html>
 `;
@@ -379,7 +383,7 @@ const buildShareEntries = async () => {
     entries.push({
       slug,
       html: buildShareHtml({
-        title: `${baseName} • dose.wiki`,
+        title: baseName,
         description,
         imageUrl,
         imageAlt,
