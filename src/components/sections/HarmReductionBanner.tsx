@@ -97,7 +97,7 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
               <span className="flex-grow text-red-100/90">
                 <span className="mr-1 font-semibold uppercase tracking-[0.25em] text-red-200/90">Disclaimer:</span>
                 This webpage provides information on the basis of harm reduction and educational purposes. We are not
-                responsible for your actions and implore you to consult with resources beyond this page...
+                responsible for your actions and implore you to consult with resources beyond this page.
               </span>
               {links.length > 0 && (
                 <span className="flex flex-wrap gap-1">

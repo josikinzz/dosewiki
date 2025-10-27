@@ -27,6 +27,11 @@ export function viewToHash(view: AppView): string {
       return view.qualifierSlug
         ? `#/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
         : `#/mechanism/${view.mechanismSlug}`;
+    case "classification": {
+      const base = view.classification === "chemical" ? "chemical" : "psychoactive";
+      const slug = view.slug.trim();
+      return slug.length > 0 ? `#/${base}/${slug}` : `#/${base}`;
+    }
     case "search": {
       const query = view.query.trim();
       return query.length > 0 ? `#/search/${encodeURIComponent(query)}` : "#/search";
@@ -106,6 +111,16 @@ export function parseHash(
           return { type: "mechanism", mechanismSlug: slug };
         }
         return { type: "substances" };
+      case "chemical":
+        if (slug) {
+          return { type: "classification", classification: "chemical", slug };
+        }
+        return resolveDefault();
+      case "psychoactive":
+        if (slug) {
+          return { type: "classification", classification: "psychoactive", slug };
+        }
+        return resolveDefault();
       case "search": {
         const querySegment = segments.slice(1).join("/");
         let query = "";

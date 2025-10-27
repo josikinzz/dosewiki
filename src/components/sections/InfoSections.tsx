@@ -1,14 +1,36 @@
 ﻿import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import { BADGE_BASE_CLASSES, BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
 import type { InfoSection } from "../../types/content";
+
+type BulletEntry = {
+  key: string;
+  label: string;
+  onClick?: () => void;
+};
+
+type ClassificationKind = "chemical" | "psychoactive";
+
+const BULLET_LIST_LABELS = new Set([
+  "chemical class",
+  "mechanism of action",
+  "psychoactive class",
+  "half-life",
+  "half life",
+]);
+
+const splitSemicolonEntries = (value: string) =>
+  value
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 
 interface InfoSectionsProps {
   sections: InfoSection[];
   onMechanismSelect?: (mechanismSlug: string, qualifierSlug?: string) => void;
+  onClassificationSelect?: (classification: ClassificationKind, label: string) => void;
 }
 
-export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps) {
+export function InfoSections({ sections, onMechanismSelect, onClassificationSelect }: InfoSectionsProps) {
   if (!sections || sections.length === 0) {
     return null;
   }
@@ -52,41 +74,75 @@ export function InfoSections({ sections, onMechanismSelect }: InfoSectionsProps)
             const normalizedLabel = label.toLowerCase().trim();
             const isMechanism = normalizedLabel === "mechanism of action";
             const mechanismBadges = isMechanism ? chips ?? [] : [];
+            const shouldRenderBullets = BULLET_LIST_LABELS.has(normalizedLabel);
+            const classificationType: ClassificationKind | undefined = normalizedLabel === "chemical class"
+              ? "chemical"
+              : normalizedLabel === "psychoactive class"
+                ? "psychoactive"
+                : undefined;
             const linkClasses = "text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline";
             const textClasses = "text-sm leading-snug text-white/85";
-            const valueNode = mechanismBadges.length > 0 ? (
-              <div className="flex flex-wrap gap-2.5">
-                {mechanismBadges.map((badge) => {
-                  const isInteractive = Boolean(onMechanismSelect && badge.slug);
+            const bulletEntries: BulletEntry[] = [];
+
+            if (shouldRenderBullets) {
+              if (mechanismBadges.length > 0) {
+                mechanismBadges.forEach((badge) => {
                   const key = `${badge.slug}-${badge.qualifierSlug ?? ""}-${badge.label}`;
+                  const onClick =
+                    onMechanismSelect && badge.slug
+                      ? () => onMechanismSelect(badge.slug, badge.qualifierSlug)
+                      : undefined;
 
-                  if (!isInteractive) {
-                    return (
-                      <span key={key} className={BADGE_BASE_CLASSES}>
-                        {badge.label}
-                      </span>
-                    );
-                  }
+                  bulletEntries.push({
+                    key,
+                    label: badge.label,
+                    onClick,
+                  });
+                });
+              } else {
+                const entries = splitSemicolonEntries(value);
+                entries.forEach((entry, index) => {
+                  const onClick = classificationType && onClassificationSelect
+                    ? () => onClassificationSelect(classificationType, entry)
+                    : undefined;
+                  bulletEntries.push({
+                    key: `${label}-${entry}-${index}`,
+                    label: entry,
+                    onClick,
+                  });
+                });
+              }
+            }
 
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => onMechanismSelect?.(badge.slug, badge.qualifierSlug)}
-                      className={BADGE_INTERACTIVE_CLASSES}
-                    >
-                      {badge.label}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : href ? (
+            const bulletListNode =
+              bulletEntries.length > 0 ? (
+                <ul className="space-y-2 text-sm leading-snug text-white/85">
+                  {bulletEntries.map((entry) => (
+                    <li key={entry.key} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+                      {entry.onClick ? (
+                        <button
+                          type="button"
+                          onClick={entry.onClick}
+                          className="text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                        >
+                          {entry.label}
+                        </button>
+                      ) : (
+                        <span className="text-white/85">{entry.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null;
+
+            const valueNode = bulletListNode ?? (href ? (
               <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
                 {value}
               </a>
             ) : (
               <span className={textClasses}>{value}</span>
-            );
+            ));
 
             return (
               <article
