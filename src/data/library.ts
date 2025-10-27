@@ -81,6 +81,16 @@ export interface MechanismQualifierDetail {
   groups: DosageCategoryGroup[];
 }
 
+export type ClassificationType = "chemical" | "psychoactive";
+
+export interface ClassificationDetail {
+  type: ClassificationType;
+  label: string;
+  slug: string;
+  total: number;
+  drugs: DrugListEntry[];
+}
+
 export const UNQUALIFIED_MECHANISM_QUALIFIER_KEY = "unqualified";
 
 interface InteractionClassMatcher {
@@ -590,6 +600,98 @@ export function findCategoryByKey(input: string): CategoryDefinition | undefined
 
 const sortRecordsAlphabetically = (records: SubstanceRecord[]): SubstanceRecord[] =>
   records.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+interface ClassificationAccumulator {
+  label: string;
+  slug: string;
+  records: Set<SubstanceRecord>;
+}
+
+const registerClassificationValue = (
+  map: Map<string, ClassificationAccumulator>,
+  rawLabel: string,
+  record: SubstanceRecord,
+) => {
+  if (!rawLabel) {
+    return;
+  }
+
+  const label = rawLabel.trim();
+  if (!label) {
+    return;
+  }
+
+  const slug = normalizeKey(label);
+  if (!slug) {
+    return;
+  }
+
+  const accumulator = map.get(slug);
+  if (accumulator) {
+    accumulator.records.add(record);
+    return;
+  }
+
+  map.set(slug, {
+    label,
+    slug,
+    records: new Set([record]),
+  });
+};
+
+const buildClassificationDetail = (
+  accumulator: ClassificationAccumulator,
+  type: ClassificationType,
+): ClassificationDetail => {
+  const sortedRecords = sortRecordsAlphabetically(Array.from(accumulator.records));
+
+  return {
+    type,
+    label: accumulator.label,
+    slug: accumulator.slug,
+    total: sortedRecords.length,
+    drugs: sortedRecords.map((record) => createDrugEntry(record)),
+  };
+};
+
+const chemicalClassLookup = new Map<string, ClassificationAccumulator>();
+const psychoactiveClassLookup = new Map<string, ClassificationAccumulator>();
+
+substanceRecords.forEach((record) => {
+  if (record.chemicalClasses && record.chemicalClasses.length > 0) {
+    record.chemicalClasses.forEach((entry) => registerClassificationValue(chemicalClassLookup, entry, record));
+  }
+
+  if (record.psychoactiveClasses && record.psychoactiveClasses.length > 0) {
+    record.psychoactiveClasses.forEach((entry) =>
+      registerClassificationValue(psychoactiveClassLookup, entry, record),
+    );
+  }
+});
+
+const resolveClassificationDetail = (
+  identifier: string,
+  map: Map<string, ClassificationAccumulator>,
+  type: ClassificationType,
+): ClassificationDetail | null => {
+  const key = normalizeKey(identifier);
+  if (!key) {
+    return null;
+  }
+
+  const accumulator = map.get(key);
+  if (!accumulator) {
+    return null;
+  }
+
+  return buildClassificationDetail(accumulator, type);
+};
+
+export const getChemicalClassDetail = (identifier: string): ClassificationDetail | null =>
+  resolveClassificationDetail(identifier, chemicalClassLookup, "chemical");
+
+export const getPsychoactiveClassDetail = (identifier: string): ClassificationDetail | null =>
+  resolveClassificationDetail(identifier, psychoactiveClassLookup, "psychoactive");
 
 const manualDosageCategoryGroups: DosageCategoryGroup[] = createManualIndexGroups(
   psychoactiveIndexManualConfig,

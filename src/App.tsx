@@ -16,6 +16,7 @@ import { CategoryPage } from "./components/pages/CategoryPage";
 import { EffectsPage } from "./components/pages/EffectsPage";
 import { EffectDetailPage } from "./components/pages/EffectDetailPage";
 import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
+import { ClassificationDetailPage } from "./components/pages/ClassificationDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import { DevModePage } from "./components/pages/DevModePage";
 import { AboutPage } from "./components/pages/AboutPage";
@@ -31,6 +32,8 @@ import {
   getEffectSummary,
   getMechanismDetail,
   getMechanismSummary,
+  getChemicalClassDetail,
+  getPsychoactiveClassDetail,
 } from "./data/library";
 import { lsdMetadata } from "./data/lsd";
 import { querySearch } from "./data/search";
@@ -131,6 +134,21 @@ export default function App() {
       }
 
       navigate({ type: "mechanism", mechanismSlug: summary.slug });
+    },
+    [navigate],
+  );
+
+  const selectClassification = useCallback(
+    (classification: "chemical" | "psychoactive", label: string) => {
+      const detail = classification === "chemical"
+        ? getChemicalClassDetail(label)
+        : getPsychoactiveClassDetail(label);
+
+      if (!detail) {
+        return;
+      }
+
+      navigate({ type: "classification", classification, slug: detail.slug });
     },
     [navigate],
   );
@@ -339,6 +357,31 @@ export default function App() {
             </main>
           );
         })()
+      ) : view.type === "classification" ? (
+        (() => {
+          const detail =
+            view.classification === "chemical"
+              ? getChemicalClassDetail(view.slug)
+              : getPsychoactiveClassDetail(view.slug);
+
+          if (!detail) {
+            const descriptor = view.classification === "chemical" ? "Chemical class" : "Psychoactive class";
+            return (
+              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                  <p className="text-lg font-semibold text-white">{descriptor} not found.</p>
+                  <p className="mt-2 text-sm text-white/70">Select a class tag from a substance profile to view related entries.</p>
+                </div>
+              </main>
+            );
+          }
+
+          return (
+            <main>
+              <ClassificationDetailPage detail={detail} onSelectDrug={selectSubstance} />
+            </main>
+          );
+        })()
       ) : view.type === "interactions" ? (
         <main>
           <InteractionsPage
@@ -416,6 +459,7 @@ export default function App() {
                 <InfoSections
                   sections={content.infoSections}
                   onMechanismSelect={selectMechanism}
+                  onClassificationSelect={selectClassification}
                 />
               )}
 
