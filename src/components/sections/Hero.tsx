@@ -1,9 +1,12 @@
-import type { HeroBadge, MoleculeAsset } from "../../types/content";
+import { Leaf, MessageSquarePlus } from "lucide-react";
+
+import type { HeroBadge, MoleculeAsset, NameVariant } from "../../types/content";
 
 interface HeroProps {
   title: string;
   subtitle?: string;
   aliases?: string[];
+  nameVariants?: NameVariant[];
   placeholder: string;
   moleculeAsset?: MoleculeAsset;
   moleculeAssets?: MoleculeAsset[];
@@ -16,6 +19,7 @@ export function Hero({
   title,
   subtitle,
   aliases = [],
+  nameVariants = [],
   placeholder: _placeholder,
   moleculeAsset,
   moleculeAssets,
@@ -26,12 +30,38 @@ export function Hero({
   const isCompactBadges = badgeVariant === "compact";
   const displayedAssets = (moleculeAssets?.length ? moleculeAssets : moleculeAsset ? [moleculeAsset] : []).slice(0, 3);
   const hasMolecule = displayedAssets.length > 0;
+  const heroVariants = nameVariants.filter(
+    (variant) => variant.kind === "botanical" || variant.kind === "alternative",
+  );
+  const heroVariantLines = heroVariants
+    .map((variant) => {
+      const Icon = variant.kind === "botanical" ? Leaf : MessageSquarePlus;
+      const values = variant.values
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0);
+      if (values.length === 0) {
+        return null;
+      }
+
+      return {
+        key: variant.kind,
+        Icon,
+        values,
+      };
+    })
+    .filter((entry): entry is { key: string; Icon: typeof Leaf; values: string[] } => Boolean(entry));
+  const hasHeroVariantLines = heroVariantLines.length > 0;
 
   const handleBadgeClick = (badge: HeroBadge) => {
     if (badge.categoryKey && onCategorySelect) {
       onCategorySelect(badge.categoryKey);
     }
   };
+
+  const defaultLineClasses = "max-w-2xl text-center text-base text-white/80 md:text-lg";
+  const variantLineClasses = "flex flex-wrap items-center justify-center gap-2 text-center text-sm text-white/80 md:text-base";
+  const hasAliases = aliases.length > 0;
+  const shouldShowSubtitle = Boolean(subtitle) && !hasHeroVariantLines && !hasAliases;
 
   const badgeWrapperClasses = isCompactBadges
     ? "mt-4 flex flex-wrap justify-center gap-3 gap-fallback-wrap-3"
@@ -88,11 +118,29 @@ export function Hero({
         <h1 className="text-4xl font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-6xl">
           {title}
         </h1>
-        {aliases.length > 0 && (
-          <p className="max-w-2xl text-center text-base text-white/80 md:text-lg">
-            {aliases.join(" · ")}
-          </p>
-        )}
+        {hasHeroVariantLines ? (
+          <div className="flex flex-col items-center gap-2">
+            {heroVariantLines.map((line) => (
+              <p key={line.key} className={variantLineClasses}>
+                <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+                <span className="flex flex-wrap items-center justify-center gap-2 text-white/80">
+                  {line.values.map((value, index) => (
+                    <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
+                      <span className="italic">{value}</span>
+                      {index < line.values.length - 1 ? (
+                        <span className="text-white/65">·</span>
+                      ) : null}
+                    </span>
+                  ))}
+                </span>
+              </p>
+            ))}
+          </div>
+        ) : hasAliases ? (
+          <p className={defaultLineClasses}>{aliases.join(" · ")}</p>
+        ) : shouldShowSubtitle ? (
+          <p className={defaultLineClasses}>{subtitle}</p>
+        ) : null}
         {badges.length > 0 && (
           <div className={badgeWrapperClasses}>
             {badges.map((badge) => {

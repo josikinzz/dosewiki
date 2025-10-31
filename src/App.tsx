@@ -433,8 +433,9 @@ export default function App() {
           )}
           <Hero
             title={content.name}
-            subtitle={content.aliases.length > 0 ? undefined : content.subtitle}
+            subtitle={content.subtitle}
             aliases={content.aliases}
+            nameVariants={content.nameVariants}
             placeholder={content.moleculePlaceholder}
             moleculeAsset={content.moleculeAsset}
             moleculeAssets={content.moleculeAssets}

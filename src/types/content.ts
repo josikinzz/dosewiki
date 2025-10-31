@@ -36,6 +36,14 @@ export interface MoleculeAsset {
   deduplicatedFrom?: string[];
 }
 
+export type NameVariantKind = "substitutive" | "iupac" | "botanical" | "alternative";
+
+export interface NameVariant {
+  kind: NameVariantKind;
+  label: string;
+  values: string[];
+}
+
 export type InteractionMatchType = "substance" | "alias" | "class" | "unknown";
 
 export interface InteractionTarget {
@@ -92,6 +100,7 @@ export interface SubstanceContent {
   name: string;
   subtitle: string;
   aliases: string[];
+  nameVariants: NameVariant[];
   moleculePlaceholder: string;
   moleculeAsset?: MoleculeAsset;
   moleculeAssets?: MoleculeAsset[];

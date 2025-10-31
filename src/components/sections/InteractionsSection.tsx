@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AlertCircle, AlertOctagon, AlertTriangle, ShieldAlert } from "lucide-react";
+import { AlertCircle, AlertTriangle, ShieldAlert, Skull } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { InteractionGroup } from "../../types/content";
@@ -12,7 +12,7 @@ const severityStyles: Record<InteractionGroup["severity"], { border: string; bg:
   danger: {
     border: "border-rose-500/40",
     bg: "bg-rose-500/10",
-    Icon: AlertOctagon,
+    Icon: Skull,
     iconClass: "text-rose-200",
     label: "High risk interaction",
   },
@@ -39,13 +39,13 @@ export function InteractionsSection({ interactions }: InteractionsSectionProps) 
         <IconBadge icon={ShieldAlert} label="Interactions" />
         Interactions
       </h2>
-      <div className="space-y-4 md:columns-3 md:gap-4 md:space-y-0">
+      <div className="[column-gap:1.5rem] columns-1 md:columns-3">
         {interactions.map((group) => {
           const { border, bg, Icon, iconClass, label } = severityStyles[group.severity];
           return (
             <div
               key={group.label}
-              className={`break-inside-avoid rounded-xl p-4 ring-1 ring-white/10 ${border} ${bg} transition hover:border-white/20 hover:bg-white/12 md:mb-4`}
+              className={`mb-4 break-inside-avoid break-inside-avoid-column rounded-xl p-4 ring-1 ring-white/10 ${border} ${bg} transition hover:border-white/20 hover:bg-white/12 last:mb-0`}
             >
               <h3 className="flex items-center gap-2 font-semibold">
                 <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" focusable="false" />
