@@ -1,39 +1,42 @@
 {
-    "name": "dose-wiki",
-    "version": "0.1.0",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "predev": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
-        "dev": "vite",
-        "prebuild": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
-        "build": "vite build",
-        "prebuild:inline": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
-        "build:inline": "vite build --mode inline --outDir dist-inline",
-        "preview": "vite preview"
-    },
-    "dependencies": {
-        "diff": "^8.0.2",
-        "framer-motion": "^11.0.0",
-        "lucide-react": "^0.544.0",
-        "prismjs": "^1.30.0",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
-        "react-markdown": "^10.1.0",
-        "react-simple-code-editor": "^0.14.1",
-        "remark-breaks": "^4.0.0",
-        "remark-gfm": "^4.0.1"
-    },
-    "devDependencies": {
-        "@resvg/resvg-js": "^2.6.2",
-        "@types/react": "^18.3.3",
-        "@types/react-dom": "^18.3.0",
-        "@vitejs/plugin-react": "^4.2.0",
-        "autoprefixer": "^10.4.19",
-        "postcss": "^8.4.39",
-        "sharp": "^0.34.4",
-        "tailwindcss": "^3.4.7",
-        "typescript": "^5.4.0",
-        "vite": "^5.2.0"
-    }
+  "name": "dose-wiki",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "build": "vite build",
+    "prebuild:inline": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "build:inline": "vite build --mode inline --outDir dist-inline",
+    "preview": "vite preview",
+    "export:dose-table": "node scripts/exportDoseSpreadsheet.mjs",
+    "merge:articles": "node scripts/merge-articles-json.mjs"
+  },
+  "dependencies": {
+    "diff": "^8.0.2",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.544.0",
+    "prismjs": "^1.30.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-simple-code-editor": "^0.14.1",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "sharp": "^0.34.4",
+    "tailwindcss": "^3.4.7",
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0",
+    "xlsx": "^0.18.5"
+  }
 }
