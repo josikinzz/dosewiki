@@ -4,7 +4,7 @@
  * `dosages.routes_of_administration`, and `subjective_effects` that we
  * restructure into `SubstanceContent` for components.
  */
-import { BrainCircuit, BrainCog, Cog, Hexagon, Timer, TrendingDown } from "lucide-react";
+import { Atom, BrainCircuit, BrainCog, Cog, FlaskRound, Hexagon, Timer, TrendingDown } from "lucide-react";
 
 import type {
   SubstanceContent,
@@ -19,6 +19,7 @@ import type {
   CitationEntry,
   InfoSectionItemChip,
   MoleculeAsset,
+  NameVariant,
 } from "../types/content";
 import { slugify } from "../utils/slug";
 import { tokenizeTagString } from "../utils/tagDelimiters";
@@ -867,6 +868,16 @@ function buildToleranceEntries(tolerance?: RawTolerance): ToleranceEntry[] {
 function buildInfoSections(info: RawDrugInfo): InfoSection[] {
   const items: InfoSection["items"] = [];
 
+  const substitutiveName = cleanString(info.substitutive_name);
+  if (substitutiveName) {
+    items.push({ label: "Substitutive name", value: substitutiveName, icon: Atom });
+  }
+
+  const iupacName = cleanString(info.IUPAC_name);
+  if (iupacName) {
+    items.push({ label: "IUPAC name", value: iupacName, icon: FlaskRound });
+  }
+
   const chemicalClass = cleanString(info.chemical_class);
   if (chemicalClass) {
     items.push({ label: "Chemical class", value: chemicalClass, icon: Hexagon });
@@ -1026,51 +1037,70 @@ function splitAlternativeValues(value: string): string[] {
   return expanded;
 }
 
-function extractAlternativeNames(info: RawDrugInfo, baseName: string): string[] {
-  const names: string[] = [];
+function buildNameVariants(info: RawDrugInfo, baseName: string): NameVariant[] {
+  const variants: NameVariant[] = [];
   const seen = new Set<string>();
 
-  const addName = (raw?: string | null) => {
-    const cleaned = cleanString(raw);
+  const baseKey = baseName.trim().toLocaleLowerCase("en-US");
+  if (baseKey) {
+    seen.add(baseKey);
+  }
+
+  const normalize = (value: string) => value.trim();
+
+  const addVariant = (
+    kind: NameVariant["kind"],
+    label: string,
+    rawValue?: string | null,
+    options?: { splitDelimited?: boolean },
+  ) => {
+    const cleaned = cleanString(rawValue);
     if (!cleaned) {
       return;
     }
 
-    if (cleaned.localeCompare(baseName, undefined, { sensitivity: "accent" }) === 0) {
-      return;
-    }
+    const shouldSplit = options?.splitDelimited ?? false;
+    const candidateValues = shouldSplit ? splitAlternativeValues(cleaned) : [cleaned];
+    const values: string[] = [];
 
-    const key = cleaned.toLocaleLowerCase("en-US");
-    if (seen.has(key)) {
-      return;
-    }
+    candidateValues.forEach((entry) => {
+      const normalizedEntry = normalize(entry);
+      if (!normalizedEntry) {
+        return;
+      }
 
-    seen.add(key);
-    names.push(cleaned);
+      if (normalizedEntry.localeCompare(baseName, undefined, { sensitivity: "accent" }) === 0) {
+        return;
+      }
+
+      const key = normalizedEntry.toLocaleLowerCase("en-US");
+      if (seen.has(key)) {
+        return;
+      }
+
+      seen.add(key);
+      values.push(normalizedEntry);
+    });
+
+    if (values.length > 0) {
+      variants.push({
+        kind,
+        label,
+        values,
+      });
+    }
   };
 
-  const handleDelimitedField = (value?: string | null) => {
-    const cleaned = cleanString(value);
-    if (!cleaned) {
-      return;
-    }
+  addVariant("substitutive", "Substitutive name", info.substitutive_name);
+  addVariant("iupac", "IUPAC name", info.IUPAC_name);
+  addVariant("botanical", "Botanical name", info.botanical_name, { splitDelimited: true });
+  addVariant("alternative", "Alternative names", info.alternative_name, { splitDelimited: true });
 
-    const parts = splitAlternativeValues(cleaned);
-    if (parts.length > 0) {
-      parts.forEach((part) => addName(part));
-      return;
-    }
+  return variants;
+}
 
-    addName(cleaned);
-  };
-
-  handleDelimitedField(info.alternative_name);
-  handleDelimitedField(info.botanical_name);
-
-  addName(info.substitutive_name);
-  addName(info.IUPAC_name);
-
-  return names;
+function extractAlternativeNames(info: RawDrugInfo, baseName: string): string[] {
+  return buildNameVariants(info, baseName).flatMap((variant) => variant.values);
 }
 
 export function slugifyDrugName(name: string, fallback: string): string {
@@ -1116,7 +1146,8 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   const isHidden = normalizedIndexCategories.includes("hidden");
   const chemicalClasses = splitToList(info.chemical_class);
   const psychoactiveClasses = splitToList(info.psychoactive_class);
-  const aliases = extractAlternativeNames(info, baseName);
+  const nameVariants = buildNameVariants(info, baseName);
+  const aliases = nameVariants.flatMap((variant) => variant.values);
   const referenceName = substitutiveName ?? iupacName ?? botanicalName ?? null;
   const displayAliases = referenceName
     ? aliases.filter(
@@ -1131,6 +1162,7 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     name: baseName,
     subtitle: "",
     aliases: displayAliases,
+    nameVariants,
     moleculePlaceholder: buildPlaceholder(baseName),
     heroBadges: buildHeroBadges(info, categories, normalizedCategories),
     categoryKeys: normalizedCategories,
