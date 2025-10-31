@@ -14,7 +14,12 @@ import type {
   NormalizedManualIndexConfig,
 } from "./manualIndexLoader";
 import { INTERACTION_CLASSES, type InteractionClassDefinition } from "./interactionClasses";
-import type { InteractionGroup, InteractionMatchType, InteractionTarget } from "../types/content";
+import type {
+  InteractionGroup,
+  InteractionMatchType,
+  InteractionTarget,
+  NameVariantKind,
+} from "../types/content";
 
 export interface DrugListEntry {
   name: string;
@@ -146,14 +151,29 @@ export const getInteractionsForSubstance = (
 
 const normalizeKey = (value: string): string => slugify(value);
 
+const preferredAliasKinds: NameVariantKind[] = ["botanical", "alternative", "substitutive"];
+
 const formatAlias = (record: SubstanceRecord): string | undefined => {
-  const aliases = record.aliases ?? [];
-  if (aliases.length === 0) {
-    return undefined;
+  const variants = record.content?.nameVariants ?? [];
+
+  for (const kind of preferredAliasKinds) {
+    const variant = variants.find((entry) => entry.kind === kind);
+    if (!variant) {
+      continue;
+    }
+
+    const firstValue = variant.values.find((value) => value.trim().length > 0);
+    if (!firstValue) {
+      continue;
+    }
+
+    const trimmed = firstValue.trim();
+    if (trimmed) {
+      return trimmed;
+    }
   }
 
-  const firstAlias = aliases[0]?.trim();
-  return firstAlias ? firstAlias : undefined;
+  return undefined;
 };
 
 const createDrugEntry = (record: SubstanceRecord): DrugListEntry => ({
