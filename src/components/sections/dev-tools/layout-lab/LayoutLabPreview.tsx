@@ -1,9 +1,9 @@
-import { Beaker, Leaf, MessageSquarePlus, Share2 } from "lucide-react";
+import { Leaf, MessageSquarePlus, Share2 } from "lucide-react";
 
 import { IconBadge } from "../../../common/IconBadge";
 import { SectionCard } from "../../../common/SectionCard";
 import type { SubstanceRecord } from "../../../../data/contentBuilder";
-import type { InfoSection, InfoSectionItem, RouteKey } from "../../../../types/content";
+import type { RouteKey } from "../../../../types/content";
 import { DosageDurationCard } from "../../DosageDurationCard";
 import { SubjectiveEffectsSection } from "../../SubjectiveEffectsSection";
 import { AddictionCard } from "../../AddictionCard";
@@ -12,6 +12,10 @@ import { ToleranceSection } from "../../ToleranceSection";
 import { NotesSection } from "../../NotesSection";
 import { CitationsSection } from "../../CitationsSection";
 import { InfoSectionItemCard, InfoSections } from "../../InfoSections";
+import {
+  extractInfoSectionBuckets,
+  buildHeroVariantLines,
+} from "../../../../utils/substanceLayout";
 
 interface LayoutLabPreviewProps {
   record: SubstanceRecord;
@@ -35,89 +39,11 @@ export function LayoutLabPreview({
     ? activeRouteKey
     : activeRouteFallback;
   const shareHref = `https://www.dose.wiki/#/substance/${record.slug}`;
-  const infoSections = content.infoSections ?? [];
-  const moleculeIdentityLabels = new Set(["substitutive name", "iupac name"]);
-  const moleculeCardLabels = new Set([
-    "chemical class",
-    "psychoactive class",
-    "mechanism of action",
-    "half-life",
-    "half life",
-  ]);
-  const extractedIdentityItems: InfoSectionItem[] = [];
-  const extractedCardItems: InfoSectionItem[] = [];
-
-  const filteredInfoSections: InfoSection[] = infoSections
-    .map<InfoSection | null>((section) => {
-      const items = (section.items ?? []).filter((item) => {
-        const normalizedLabel = item.label.toLowerCase().trim();
-        if (moleculeIdentityLabels.has(normalizedLabel)) {
-          extractedIdentityItems.push(item);
-          return false;
-        }
-
-        if (moleculeCardLabels.has(normalizedLabel)) {
-          extractedCardItems.push(item);
-          return false;
-        }
-
-        return true;
-      });
-
-      if (items.length === 0) {
-        return null;
-      }
-
-      if (items.length === section.items?.length) {
-        return section;
-      }
-
-      return { ...section, items };
-    })
-    .filter((section): section is InfoSection => Boolean(section));
-
-  const moleculeInfoOrder = ["substitutive name", "iupac name"];
-  const moleculeInfoEntries = extractedIdentityItems
-    .slice()
-    .sort((a, b) => {
-      const aIndex = moleculeInfoOrder.indexOf(a.label.toLowerCase().trim());
-      const bIndex = moleculeInfoOrder.indexOf(b.label.toLowerCase().trim());
-      return (aIndex === -1 ? moleculeInfoOrder.length : aIndex) - (bIndex === -1 ? moleculeInfoOrder.length : bIndex);
-    });
-
-  const moleculeCardOrder = [
-    "psychoactive class",
-    "mechanism of action",
-    "chemical class",
-    "half-life",
-    "half life",
-  ];
-  const moleculeCardEntries = extractedCardItems
-    .slice()
-    .sort((a, b) => {
-      const aLabel = a.label.toLowerCase().trim();
-      const bLabel = b.label.toLowerCase().trim();
-      const aIndex = moleculeCardOrder.indexOf(aLabel);
-      const bIndex = moleculeCardOrder.indexOf(bLabel);
-      return (aIndex === -1 ? moleculeCardOrder.length : aIndex) - (bIndex === -1 ? moleculeCardOrder.length : bIndex);
-    });
-
-  const heroVariantLines = (content.nameVariants ?? [])
-    .filter((variant) => variant.kind === "botanical" || variant.kind === "alternative")
-    .map((variant) => {
-      const Icon = variant.kind === "botanical" ? Leaf : MessageSquarePlus;
-      const values = variant.values.map((entry) => entry.trim()).filter((entry) => entry.length > 0);
-      if (values.length === 0) {
-        return null;
-      }
-
-      return {
-        key: variant.kind,
-        Icon,
-        values,
-      };
-    })
-    .filter((entry): entry is { key: string; Icon: typeof Leaf; values: string[] } => Boolean(entry));
+  const { filteredInfoSections, moleculeIdentityEntries, moleculeCardEntries } = extractInfoSectionBuckets(content.infoSections);
+  const heroVariantLines = buildHeroVariantLines(content.nameVariants).map((line) => ({
+    ...line,
+    Icon: line.kind === "botanical" ? Leaf : MessageSquarePlus,
+  }));
   const hasHeroVariantLines = heroVariantLines.length > 0;
   const variantLineClasses = "flex flex-wrap items-center gap-2 text-sm text-white/80 md:text-base";
 
@@ -131,9 +57,9 @@ export function LayoutLabPreview({
             </h2>
             {hasHeroVariantLines ? (
               <div className="mt-4 flex flex-col gap-2">
-                {heroVariantLines.map((line) => (
-                  <p key={line.key} className={variantLineClasses}>
-                    <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            {heroVariantLines.map((line) => (
+              <p key={line.key} className={variantLineClasses}>
+                <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
                     <span className="flex flex-wrap items-center gap-2 text-white/80">
                       {line.values.map((value, index) => (
                         <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
@@ -190,9 +116,9 @@ export function LayoutLabPreview({
                   {FALLBACK_MOLECULE_LABEL}
                 </div>
               )}
-              {moleculeInfoEntries.length > 0 ? (
+              {moleculeIdentityEntries.length > 0 ? (
                 <dl className="mt-6 space-y-4">
-                  {moleculeInfoEntries.map((item) => {
+                  {moleculeIdentityEntries.map((item) => {
                     const normalizedLabel = item.label.toLowerCase().trim();
                     const key = `${normalizedLabel}-${item.value}`;
                     const valueNode = item.href ? (
