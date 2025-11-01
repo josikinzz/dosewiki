@@ -357,11 +357,11 @@ export const AboutEditorTab = memo(function AboutEditorTab({
               draggable={false}
             />
             <div className="mt-6 flex flex-col gap-3 text-center">
-              <div className="flex items-center justify-center gap-3 font-display text-2xl font-semibold tracking-tight text-fuchsia-300 md:text-3xl">
+              <div className="flex items-center justify-center gap-3 text-2xl font-semibold tracking-tight text-fuchsia-300 md:text-3xl">
                 <Info className="h-7 w-7" aria-hidden="true" focusable="false" />
                 <span>About dose.wiki</span>
               </div>
-              <p className="font-display text-base text-white/70 md:text-lg">
+              <p className="text-base text-white/70 md:text-lg">
                 {resolvedSubtitle.length > 0 ? resolvedSubtitle : DEFAULT_SUBTITLE}
               </p>
             </div>

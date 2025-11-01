@@ -145,7 +145,7 @@ type CitationsFieldsProps = {
 const SectionHeader = ({ title, description }: SectionHeaderProps) => (
   <div className="space-y-1">
     <h2 className="text-lg font-semibold text-fuchsia-200">{title}</h2>
-    {description ? <p className="font-display text-sm text-white/60">{description}</p> : null}
+    {description ? <p className="text-sm text-white/60">{description}</p> : null}
   </div>
 );
 

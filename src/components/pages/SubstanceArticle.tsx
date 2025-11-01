@@ -283,7 +283,7 @@ export function SubstanceArticle({
                       {hasHeroVariantLines ? (
                         <div className="mt-4 flex flex-col gap-2">
                           {decoratedHeroVariantLines.map((line) => (
-                            <p key={line.key} className="flex flex-wrap items-center gap-2 font-display text-sm text-white/80 md:text-base">
+                            <p key={line.key} className="flex flex-wrap items-center gap-2 text-sm text-white/80 md:text-base">
                               <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
                               <span className="flex flex-wrap items-center gap-2 text-white/80">
                                 {line.values.map((value, index) => (
@@ -297,9 +297,9 @@ export function SubstanceArticle({
                           ))}
                         </div>
                       ) : hasAliases ? (
-                        <p className="mt-4 font-display text-base text-white/80">{content.aliases.join(" · ")}</p>
+                        <p className="mt-4 text-base text-white/80">{content.aliases.join(" · ")}</p>
                       ) : shouldShowSubtitle ? (
-                        <p className="mt-4 font-display text-base text-white/80">{content.subtitle}</p>
+                        <p className="mt-4 text-base text-white/80">{content.subtitle}</p>
                       ) : null}
                     </div>
 
