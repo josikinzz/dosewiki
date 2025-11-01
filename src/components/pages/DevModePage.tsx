@@ -9,6 +9,7 @@ import {
   EyeOff,
   FileText,
   LayoutDashboard,
+  LayoutGrid,
   FlaskConical,
   Loader2,
   LogOut,
@@ -64,6 +65,7 @@ import {
 } from "../../utils/articleDraftForm";
 import { IndexLayoutTab } from "../sections/dev-tools/index-layout/IndexLayoutTab";
 import { AboutEditorTab } from "../sections/dev-tools/about/AboutEditorTab";
+import { LayoutLabTab } from "../sections/dev-tools/layout-lab/LayoutLabTab";
 import { slugify } from "../../utils/slug";
 import { viewToHash } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
@@ -90,7 +92,15 @@ type ChangeLogFilters = {
   searchQuery: string;
 };
 
-type DevModeTab = "edit" | "create" | "change-log" | "tag-editor" | "profile" | "index-layout" | "about";
+type DevModeTab =
+  | "edit"
+  | "create"
+  | "change-log"
+  | "tag-editor"
+  | "profile"
+  | "index-layout"
+  | "about"
+  | "layout-lab";
 
 type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
 
@@ -102,7 +112,7 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about") {
+  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "layout-lab") {
     return "edit";
   }
   if (tab === "create") {
@@ -2505,6 +2515,19 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
               <LayoutDashboard className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Index layout</span>
             </button>
+            <button
+              type="button"
+              onClick={() => handleTabChange("layout-lab")}
+              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
+                activeTab === "layout-lab"
+                  ? "bg-fuchsia-500/20 text-white"
+                  : "text-white/70 hover:text-white"
+              }`}
+              aria-pressed={activeTab === "layout-lab"}
+            >
+              <LayoutGrid className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Layout lab</span>
+            </button>
           </div>
         )}
 
@@ -3262,6 +3285,14 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
           verifyCredentials={verifyDevCredentials}
           onProfileUpdated={handleProfileUpdated}
           hasStoredCredentials={hasStoredCredentials}
+        />
+      ) : activeTab === "layout-lab" ? (
+        <LayoutLabTab
+          articles={articles}
+          baseInputClass={baseInputClass}
+          defaultSlug={selectedArticleSlug}
+          onSelectArticleIndex={setSelectedIndex}
+          onOpenEditor={() => handleTabChange("edit")}
         />
       ) : activeTab === "index-layout" ? (
         <IndexLayoutTab
