@@ -4,9 +4,9 @@
 
 @layer base {
   @font-face {
-    font-family: "EleganTech";
-    src: url("/fonts/EleganTech.ttf") format("truetype");
-    font-weight: 400;
+    font-family: "Blinker";
+    src: url("/fonts/Blinker-Light.ttf") format("truetype");
+    font-weight: 300;
     font-style: normal;
     font-display: swap;
   }
