@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  @font-face {
+    font-family: "Techfont";
+    src: url("/fonts/Techfont.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root {
     color-scheme: dark;
   }
@@ -23,6 +31,15 @@
     margin: 0;
     font-family: theme('fontFamily.sans');
     background-color: #0f0a1f;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
   }
 
   ::selection {
