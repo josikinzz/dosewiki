@@ -58,8 +58,8 @@ export function Hero({
     }
   };
 
-  const defaultLineClasses = "max-w-2xl text-center font-display text-base text-white/80 md:text-lg";
-  const variantLineClasses = "flex flex-wrap items-center justify-center gap-2 text-center font-display text-sm text-white/80 md:text-base";
+  const defaultLineClasses = "max-w-2xl text-center text-base text-white/80 md:text-lg";
+  const variantLineClasses = "flex flex-wrap items-center justify-center gap-2 text-center text-sm text-white/80 md:text-base";
   const hasAliases = aliases.length > 0;
   const shouldShowSubtitle = Boolean(subtitle) && !hasHeroVariantLines && !hasAliases;
 

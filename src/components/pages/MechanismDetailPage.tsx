@@ -120,7 +120,7 @@ export function MechanismDetailPage({
                   <h2 className="text-lg font-semibold text-white">
                     {title}
                   </h2>
-                  <p className="font-display text-sm text-white/60">{subtitle}</p>
+                  <p className="text-sm text-white/60">{subtitle}</p>
                 </div>
               </div>
 

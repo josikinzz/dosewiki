@@ -14,7 +14,7 @@ export const PageHeader = memo(function PageHeader({ title, description, icon: I
         {Icon ? <Icon className="h-8 w-8 text-current" aria-hidden="true" focusable="false" /> : null}
         <span>{title}</span>
       </h1>
-      {description && <p className="font-display text-base text-white/70 sm:text-lg">{description}</p>}
+      {description && <p className="text-base text-white/70 sm:text-lg">{description}</p>}
     </header>
   );
 });
