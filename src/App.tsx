@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
-import { Hero } from "./components/sections/Hero";
-import { DosageDurationCard } from "./components/sections/DosageDurationCard";
-import { InfoSections } from "./components/sections/InfoSections";
-import { AddictionCard } from "./components/sections/AddictionCard";
-import { SubjectiveEffectsSection } from "./components/sections/SubjectiveEffectsSection";
-import { InteractionsSection } from "./components/sections/InteractionsSection";
-import { ToleranceSection } from "./components/sections/ToleranceSection";
-import { NotesSection } from "./components/sections/NotesSection";
-import { CitationsSection } from "./components/sections/CitationsSection";
 import { HarmReductionBanner } from "./components/sections/HarmReductionBanner";
 import { DosagesPage } from "./components/pages/DosagesPage";
 import { CategoryPage } from "./components/pages/CategoryPage";
@@ -43,6 +34,7 @@ import { parseHash, viewToHash } from "./utils/routing";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
+import { SubstanceArticle } from "./components/pages/SubstanceArticle";
 
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
@@ -425,57 +417,29 @@ export default function App() {
           );
         })()
       ) : (
-        <>
-          {!isBannerDismissed && (
-            <div className="mx-auto max-w-3xl px-4 pb-6 pt-6 md:max-w-4xl">
-              <HarmReductionBanner citations={content.citations} onDismiss={dismissHarmReductionBanner} />
-            </div>
-          )}
-          <Hero
-            title={content.name}
-            subtitle={content.subtitle}
-            aliases={content.aliases}
-            nameVariants={content.nameVariants}
-            placeholder={content.moleculePlaceholder}
-            moleculeAsset={content.moleculeAsset}
-            moleculeAssets={content.moleculeAssets}
-            badges={content.heroBadges}
-            badgeVariant="compact"
-            onCategorySelect={selectCategory}
-          />
-
-          <main className="mx-auto max-w-3xl px-4 pb-20 md:max-w-4xl">
-            <div className="space-y-10 md:space-y-12">
-              {activeRouteKey && (
-                <DosageDurationCard
-                  route={activeRouteKey}
-                  onRouteChange={handleRouteChange}
-                  routes={content.routes}
-                  routeOrder={content.routeOrder}
-                  note={content.dosageUnitsNote}
-                />
-              )}
-
-              {content.infoSections && content.infoSections.length > 0 && (
-                <InfoSections
-                  sections={content.infoSections}
-                  onMechanismSelect={selectMechanism}
-                  onClassificationSelect={selectClassification}
-                />
-              )}
-
-              <SubjectiveEffectsSection
-                effects={content.subjectiveEffects}
-                onEffectSelect={selectEffect}
+        (() => {
+          const harmReductionBannerNode = isBannerDismissed
+            ? null
+            : (
+              <HarmReductionBanner
+                citations={content.citations}
+                onDismiss={dismissHarmReductionBanner}
               />
-              <AddictionCard summary={content.addictionSummary} />
-              <InteractionsSection interactions={content.interactions} />
-              <ToleranceSection tolerance={content.tolerance} />
-              <NotesSection notes={content.notes} />
-              <CitationsSection citations={content.citations} />
-            </div>
-          </main>
-        </>
+            );
+
+          return (
+            <SubstanceArticle
+              record={activeRecord}
+              activeRouteKey={activeRouteKey}
+              onRouteChange={handleRouteChange}
+              onSelectCategory={selectCategory}
+              onSelectEffect={selectEffect}
+              onSelectMechanism={selectMechanism}
+              onSelectClassification={selectClassification}
+              harmReductionBanner={harmReductionBannerNode}
+            />
+          );
+        })()
         )}
 
         <Footer />
