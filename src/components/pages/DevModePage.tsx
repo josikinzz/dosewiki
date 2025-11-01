@@ -73,6 +73,7 @@ import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/TagEditorTab";
 import { ProfileEditorTab } from "../dev/ProfileEditorTab";
 import { JsonEditor } from "../common/JsonEditor";
+import { UiJsonToggle } from "../common/UiJsonToggle";
 import { SectionCard } from "../common/SectionCard";
 import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
 import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
@@ -2750,28 +2751,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
                 <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
               </div>
-              <div className="mx-auto flex w-fit flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 text-xs shadow-inner shadow-black/20 sm:flex-nowrap sm:gap-1">
-                <button
-                  type="button"
-                  onClick={switchToUiMode}
-                  aria-pressed={draftMode === "ui"}
-                  className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
-                    draftMode === "ui" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  UI view
-                </button>
-                <button
-                  type="button"
-                  onClick={switchToJsonMode}
-                  aria-pressed={draftMode === "json"}
-                  className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
-                    draftMode === "json" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-                  }`}
-                >
-                  JSON view
-                </button>
-              </div>
+              <UiJsonToggle mode={draftMode} onUiClick={switchToUiMode} onJsonClick={switchToJsonMode} />
               {draftMode === "ui" ? (
                 <div className="space-y-8">
                   <ArticleDraftFormFields idPrefix="edit-article" controller={editArticleController} />
@@ -2956,28 +2936,11 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
                 Required: title, drug name, and one administration route with units.
               </p>
             )}
-            <div className="mx-auto flex w-fit flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 text-xs shadow-inner shadow-black/20 sm:flex-nowrap sm:gap-1">
-              <button
-                type="button"
-                onClick={switchToCreateUiMode}
-                aria-pressed={createDraftMode === "ui"}
-                className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
-                  createDraftMode === "ui" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-                }`}
-              >
-                UI view
-              </button>
-              <button
-                type="button"
-                onClick={switchToCreateJsonMode}
-                aria-pressed={createDraftMode === "json"}
-                className={`inline-flex items-center justify-center rounded-full px-4 py-1.5 font-semibold transition ${
-                  createDraftMode === "json" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-                }`}
-              >
-                JSON view
-              </button>
-            </div>
+            <UiJsonToggle
+              mode={createDraftMode}
+              onUiClick={switchToCreateUiMode}
+              onJsonClick={switchToCreateJsonMode}
+            />
             {createDraftMode === "ui" ? (
               <div className="space-y-8">
                 <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
