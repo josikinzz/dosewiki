@@ -119,9 +119,6 @@ export function LayoutLabPreview({
     })
     .filter((entry): entry is { key: string; Icon: typeof Leaf; values: string[] } => Boolean(entry));
   const hasHeroVariantLines = heroVariantLines.length > 0;
-  const hasAliases = content.aliases.length > 0;
-  const shouldShowSubtitle = Boolean(content.subtitle) && !hasHeroVariantLines && !hasAliases;
-  const defaultLineClasses = "max-w-xl text-sm text-white/70 md:text-base";
   const variantLineClasses = "flex flex-wrap items-center gap-2 text-sm text-white/80 md:text-base";
 
   return (
@@ -129,10 +126,7 @@ export function LayoutLabPreview({
       <div className="grid gap-8 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]">
         <div className="space-y-8">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/50">
-              dose.wiki preview
-            </p>
-            <h2 className="mt-3 text-4xl font-semibold text-fuchsia-200 xl:text-5xl">
+            <h2 className="text-4xl font-semibold text-fuchsia-200 xl:text-5xl">
               {content.name}
             </h2>
             {hasHeroVariantLines ? (
@@ -153,10 +147,6 @@ export function LayoutLabPreview({
                   </p>
                 ))}
               </div>
-            ) : hasAliases ? (
-              <p className={`${defaultLineClasses} mt-4`}>{content.aliases.join(" · ")}</p>
-            ) : shouldShowSubtitle ? (
-              <p className={`${defaultLineClasses} mt-4`}>{content.subtitle}</p>
             ) : null}
           </div>
           <DosageDurationCard
@@ -192,10 +182,10 @@ export function LayoutLabPreview({
               <img
                 src={content.moleculeAsset.url}
                 alt={`Molecule depiction for ${content.name}`}
-                className="mt-4 h-56 w-full rounded-2xl bg-white/5 object-contain p-4"
+                className="mt-4 h-56 w-full rounded-2xl bg-[#0f0a1f] p-4 object-contain"
               />
             ) : (
-              <div className="mt-4 flex h-56 w-full items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/5 p-4 text-sm text-white/50">
+              <div className="mt-4 flex h-56 w-full items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#0f0a1f] p-4 text-sm text-white/50">
                 {FALLBACK_MOLECULE_LABEL}
               </div>
             )}

@@ -150,7 +150,7 @@ const INTERACTION_LABELS: Record<InteractionSeverity, string> = {
 };
 
 const DURATION_LABELS: Record<string, string> = {
-  total_duration: "Total duration",
+  total_duration: "Total",
   onset: "Onset",
   come_up: "Come-up",
   peak: "Peak",

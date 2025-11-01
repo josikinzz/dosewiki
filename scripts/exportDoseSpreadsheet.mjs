@@ -50,7 +50,7 @@ const DURATION_STAGE_ALIASES = {
 };
 
 const DURATION_LABELS = {
-  total_duration: 'Total duration',
+  total_duration: 'Total',
   onset: 'Onset',
   come_up: 'Come-up',
   peak: 'Peak',
@@ -68,7 +68,7 @@ const COLUMN_DEFINITIONS = [
   { key: 'units', label: 'Units' },
   { key: 'threshold', label: 'Threshold' },
   { key: 'light', label: 'Light' },
-  { key: 'common', label: 'Moderate' },
+  { key: 'moderate', label: 'Moderate' },
   { key: 'strong', label: 'Strong' },
   { key: 'heavy', label: 'Heavy' },
   { key: 'dosageNote', label: 'Dosage Note' },
@@ -78,12 +78,12 @@ const COLUMN_DEFINITIONS = [
 const MATRIX_ROW_DEFINITIONS = [
   { key: 'threshold', label: 'Threshold', getter: (route) => route.doses.threshold },
   { key: 'light', label: 'Light', getter: (route) => route.doses.light },
-  { key: 'common', label: 'Moderate', getter: (route) => route.doses.common },
+  { key: 'moderate', label: 'Moderate', getter: (route) => route.doses.moderate },
   { key: 'strong', label: 'Strong', getter: (route) => route.doses.strong },
   { key: 'heavy', label: 'Heavy', getter: (route) => route.doses.heavy },
 ];
 
-const DOSE_KEYS = ['threshold', 'light', 'common', 'strong', 'heavy'];
+const DOSE_KEYS = ['threshold', 'light', 'moderate', 'strong', 'heavy'];
 
 const ROUTE_CANONICAL_MERGE_MAP = new Map([
   ['intranasal', 'insufflated'],
@@ -536,7 +536,7 @@ function createFlatRows(substances, routeOrderIndex) {
         units: '',
         threshold: '',
         light: '',
-        common: '',
+        moderate: '',
         strong: '',
         heavy: '',
         dosageNote: substance.dosageNote,
@@ -555,7 +555,7 @@ function createFlatRows(substances, routeOrderIndex) {
         units: route.units,
         threshold: route.doses.threshold,
         light: route.doses.light,
-        common: route.doses.common,
+        moderate: route.doses.moderate,
         strong: route.doses.strong,
         heavy: route.doses.heavy,
         dosageNote: substance.dosageNote,
@@ -661,7 +661,7 @@ async function main() {
         doses: {
           threshold: nonEmpty(doseRanges.threshold),
           light: nonEmpty(doseRanges.light),
-          common: nonEmpty(doseRanges.common),
+          moderate: nonEmpty(doseRanges.moderate),
           strong: nonEmpty(doseRanges.strong),
           heavy: nonEmpty(doseRanges.heavy),
         },
