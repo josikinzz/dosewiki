@@ -35,12 +35,14 @@ interface InfoSectionItemCardProps {
   item: InfoSectionItem;
   onMechanismSelect?: (mechanismSlug: string, qualifierSlug?: string) => void;
   onClassificationSelect?: (classification: ClassificationKind, label: string) => void;
+  headingClassName?: string;
 }
 
 export function InfoSectionItemCard({
   item,
   onMechanismSelect,
   onClassificationSelect,
+  headingClassName,
 }: InfoSectionItemCardProps) {
   const { label, value, href, icon: ItemIcon, chips } = item;
   const normalizedLabel = label.toLowerCase().trim();
@@ -116,9 +118,11 @@ export function InfoSectionItemCard({
     <span className={textClasses}>{value}</span>
   ));
 
+  const mergedHeadingClasses = headingClassName ?? "flex items-center gap-2 text-base font-semibold leading-tight text-white";
+
   return (
     <article className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20">
-      <h3 className="flex items-center gap-2 text-base font-semibold leading-tight text-white">
+      <h3 className={mergedHeadingClasses}>
         {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" /> : null}
         <span>{label}</span>
       </h3>

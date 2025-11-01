@@ -126,7 +126,7 @@ export function LayoutLabPreview({
       <div className="grid gap-8 xl:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)]">
         <div className="space-y-8">
           <div>
-            <h2 className="text-4xl font-semibold text-fuchsia-200 xl:text-5xl">
+            <h2 className="text-4xl font-semibold text-fuchsia-300 xl:text-5xl">
               {content.name}
             </h2>
             {hasHeroVariantLines ? (
@@ -223,7 +223,11 @@ export function LayoutLabPreview({
             {moleculeCardEntries.length > 0 ? (
               <div className="mt-6 space-y-4">
                 {moleculeCardEntries.map((item) => (
-                  <InfoSectionItemCard key={`${item.label}-${item.value}`} item={item} />
+                  <InfoSectionItemCard
+                    key={`${item.label}-${item.value}`}
+                    item={item}
+                    headingClassName="flex items-center gap-2 text-base font-semibold leading-tight text-fuchsia-300"
+                  />
                 ))}
               </div>
             ) : null}
