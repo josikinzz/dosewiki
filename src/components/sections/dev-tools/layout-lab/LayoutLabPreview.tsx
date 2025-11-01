@@ -86,9 +86,9 @@ export function LayoutLabPreview({
     });
 
   const moleculeCardOrder = [
-    "chemical class",
     "psychoactive class",
     "mechanism of action",
+    "chemical class",
     "half-life",
     "half life",
   ];
@@ -157,7 +157,7 @@ export function LayoutLabPreview({
             note={content.dosageUnitsNote}
           />
           <SubjectiveEffectsSection effects={content.subjectiveEffects} />
-          <InteractionsSection interactions={content.interactions} />
+          <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
           <ToleranceSection tolerance={content.tolerance} />
           <AddictionCard summary={content.addictionSummary} />
           <NotesSection notes={content.notes} />
@@ -178,48 +178,50 @@ export function LayoutLabPreview({
 
         <div className="space-y-8">
           <div className="w-full max-w-[22rem] rounded-[28px] border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-600/15 via-violet-500/12 to-indigo-500/12 p-6 ring-1 ring-white/10">
-            {content.moleculeAsset ? (
-              <img
-                src={content.moleculeAsset.url}
-                alt={`Molecule depiction for ${content.name}`}
-                className="mt-4 h-56 w-full rounded-2xl bg-[#0f0a1f] p-4 object-contain"
-              />
-            ) : (
-              <div className="mt-4 flex h-56 w-full items-center justify-center rounded-2xl border border-dashed border-white/15 bg-[#0f0a1f] p-4 text-sm text-white/50">
-                {FALLBACK_MOLECULE_LABEL}
-              </div>
-            )}
-            {moleculeInfoEntries.length > 0 ? (
-              <dl className="mt-6 space-y-4 border-t border-white/15 pt-6">
-                {moleculeInfoEntries.map((item) => {
-                  const normalizedLabel = item.label.toLowerCase().trim();
-                  const key = `${normalizedLabel}-${item.value}`;
-                  const valueNode = item.href ? (
-                    <a
-                      href={item.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
-                    >
-                      {item.value}
-                    </a>
-                  ) : (
-                    <span className="text-sm leading-snug text-white/85">{item.value}</span>
-                  );
+            <div className="rounded-2xl border border-white/10 bg-[#0f0a1f] p-4">
+              {content.moleculeAsset ? (
+                <img
+                  src={content.moleculeAsset.url}
+                  alt={`Molecule depiction for ${content.name}`}
+                  className="h-56 w-full object-contain"
+                />
+              ) : (
+                <div className="flex h-56 w-full items-center justify-center rounded-xl border border-dashed border-white/15 bg-[#120d27] text-sm text-white/55">
+                  {FALLBACK_MOLECULE_LABEL}
+                </div>
+              )}
+              {moleculeInfoEntries.length > 0 ? (
+                <dl className="mt-6 space-y-4">
+                  {moleculeInfoEntries.map((item) => {
+                    const normalizedLabel = item.label.toLowerCase().trim();
+                    const key = `${normalizedLabel}-${item.value}`;
+                    const valueNode = item.href ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
+                      >
+                        {item.value}
+                      </a>
+                    ) : (
+                      <span className="text-xs leading-snug text-white/85">{item.value}</span>
+                    );
 
-                  return (
-                    <div key={key} className="space-y-1">
-                      <dt className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/55">
-                        {item.label}
-                      </dt>
-                      <dd>{valueNode}</dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            ) : null}
+                    return (
+                      <div key={key} className="space-y-1 text-left">
+                        <dt className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/55">
+                          {item.label}
+                        </dt>
+                        <dd>{valueNode}</dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              ) : null}
+            </div>
             {moleculeCardEntries.length > 0 ? (
-              <div className="mt-6 space-y-4 border-t border-white/15 pt-6">
+              <div className="mt-6 space-y-4">
                 {moleculeCardEntries.map((item) => (
                   <InfoSectionItemCard key={`${item.label}-${item.value}`} item={item} />
                 ))}
