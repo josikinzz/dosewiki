@@ -107,7 +107,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
               draggable={false}
             />
           </span>
-          <span className="inline-flex items-center text-xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+          <span className="inline-flex items-center text-2xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
             dose.wiki
           </span>
         </button>
