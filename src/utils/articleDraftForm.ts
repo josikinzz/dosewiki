@@ -15,7 +15,7 @@ export { ensureNormalizedTagList, joinNormalizedValues } from "./tagDelimiters";
 export type DoseRangeForm = {
   threshold: string;
   light: string;
-  common: string;
+  moderate: string;
   strong: string;
   heavy: string;
 };
@@ -162,7 +162,7 @@ export type ArticleDraftPayload = {
         dose_ranges: {
           threshold: string;
           light: string;
-          common: string;
+          moderate: string;
           strong: string;
           heavy: string;
         };
@@ -183,7 +183,7 @@ export type ArticleDraftPayload = {
 export const createEmptyDoseRanges = (): DoseRangeForm => ({
   threshold: "",
   light: "",
-  common: "",
+  moderate: "",
   strong: "",
   heavy: "",
 });
@@ -381,7 +381,7 @@ const hydrateRouteEntry = (value: unknown): RouteEntryForm => {
     dose_ranges?: {
       threshold?: unknown;
       light?: unknown;
-      common?: unknown;
+      moderate?: unknown;
       strong?: unknown;
       heavy?: unknown;
     };
@@ -395,7 +395,7 @@ const hydrateRouteEntry = (value: unknown): RouteEntryForm => {
     doseRanges: {
       threshold: toTrimmedString(ranges.threshold),
       light: toTrimmedString(ranges.light),
-      common: toTrimmedString(ranges.common),
+      moderate: toTrimmedString(ranges.moderate),
       strong: toTrimmedString(ranges.strong),
       heavy: toTrimmedString(ranges.heavy),
     },
@@ -609,7 +609,7 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     dose_ranges: {
       threshold: string;
       light: string;
-      common: string;
+      moderate: string;
       strong: string;
       heavy: string;
     };
@@ -619,7 +619,7 @@ export const buildArticleFromDraft = (form: ArticleDraftForm): ArticleDraftPaylo
     const trimmedDoseRanges = {
       threshold: route.doseRanges.threshold.trim(),
       light: route.doseRanges.light.trim(),
-      common: route.doseRanges.common.trim(),
+      moderate: route.doseRanges.moderate.trim(),
       strong: route.doseRanges.strong.trim(),
       heavy: route.doseRanges.heavy.trim(),
     };

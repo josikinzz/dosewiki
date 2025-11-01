@@ -28,7 +28,7 @@ const drugInfoOrder = [
   'citations'
 ];
 const dosageRouteOrder = ['route', 'units', 'dose_ranges'];
-const doseRangeOrder = ['threshold', 'light', 'common', 'strong', 'heavy'];
+const doseRangeOrder = ['threshold', 'light', 'moderate', 'strong', 'heavy'];
 const durationRouteOrder = ['route', 'canonical_routes', 'stages'];
 const durationStageOrder = [
   'total_duration',

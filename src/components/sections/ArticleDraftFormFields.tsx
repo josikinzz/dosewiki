@@ -24,13 +24,13 @@ const helperTextClass = "text-[11px] text-white/45";
 const doseRangeLabels: Array<[keyof DoseRangeForm, string]> = [
   ["threshold", "Threshold"],
   ["light", "Light"],
-  ["common", "Common"],
+  ["moderate", "Moderate"],
   ["strong", "Strong"],
   ["heavy", "Heavy"],
 ];
 
 const durationLabels: Array<[keyof DurationForm, string, string]> = [
-  ["totalDuration", "Total duration", "e.g., 6-8 hours"],
+  ["totalDuration", "Total", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
   ["comeUp", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
@@ -39,7 +39,7 @@ const durationLabels: Array<[keyof DurationForm, string, string]> = [
 ];
 
 const routeDurationLabels: Array<[keyof DurationStagePayload, string, string]> = [
-  ["total_duration", "Total duration", "e.g., 6-8 hours"],
+  ["total_duration", "Total", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
   ["come_up", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],

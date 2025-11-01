@@ -15,7 +15,7 @@ const DOSAGE_KEY_ORDER = [
   "microdose",
   "threshold",
   "light",
-  "common",
+  "moderate",
   "strong",
   "heavy",
   "heroic",
@@ -38,7 +38,7 @@ const DURATION_LABELS = {
   offset: "Offset",
   comedown: "Come-down",
   after_effects: "After effects",
-  total_duration: "Total duration",
+  total_duration: "Total",
 };
 
 const cleanString = (value) => {
