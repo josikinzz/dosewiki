@@ -211,4 +211,9 @@
   .json-editor .token.operator {
     color: rgba(248, 250, 252, 0.75);
   }
+
+  .safari-svg-gpu {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
 }
