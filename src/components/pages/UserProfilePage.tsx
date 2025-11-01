@@ -84,7 +84,7 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
         {renderAvatar(profile)}
         <div className="flex flex-col items-center gap-4">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-fuchsia-300 sm:text-4xl">
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-fuchsia-300 sm:text-4xl">
               {profile.displayName}
             </h1>
           </div>
