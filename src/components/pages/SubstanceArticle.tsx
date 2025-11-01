@@ -329,32 +329,6 @@ export function SubstanceArticle({
               </div>
 
               <div className="space-y-8">
-                {content.heroBadges && content.heroBadges.length > 0 ? (
-                  <div className="w-full max-w-[22rem]">{renderHeroBadgesDesktop()}</div>
-                ) : null}
-
-                <SectionCard className="w-full max-w-[22rem] space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-200">
-                      <Wrench className="h-5 w-5" aria-hidden="true" focusable="false" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-white">Dev Tools</h3>
-                      <p className="text-xs text-white/65">Toggle JSON mode without leaving the article.</p>
-                    </div>
-                  </div>
-                  <UiJsonToggle
-                    mode={desktopViewMode}
-                    onUiClick={switchToDesktopUi}
-                    onJsonClick={switchToDesktopJson}
-                    className="mx-0"
-                  />
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Current mode</span>
-                    <span className="font-semibold text-fuchsia-200">{desktopViewMode === "ui" ? "UI" : "JSON"}</span>
-                  </div>
-                </SectionCard>
-
                 <div className="w-full max-w-[22rem] rounded-[28px] border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-600/15 via-violet-500/12 to-indigo-500/12 p-6 ring-1 ring-white/10">
                   <div className="rounded-2xl border border-white/10 bg-[#0f0a1f] p-4">
                     {content.moleculeAsset ? (
@@ -410,6 +384,32 @@ export function SubstanceArticle({
                     </div>
                   ) : null}
                 </div>
+
+                <SectionCard className="w-full max-w-[22rem] space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-200">
+                      <Wrench className="h-5 w-5" aria-hidden="true" focusable="false" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-white">Dev Tools</h3>
+                      <p className="text-xs text-white/65">Toggle JSON mode without leaving the article.</p>
+                    </div>
+                  </div>
+                  <UiJsonToggle
+                    mode={desktopViewMode}
+                    onUiClick={switchToDesktopUi}
+                    onJsonClick={switchToDesktopJson}
+                    className="mx-0"
+                  />
+                  <div className="flex items-center justify-between text-xs text-white/60">
+                    <span>Current mode</span>
+                    <span className="font-semibold text-fuchsia-200">{desktopViewMode === "ui" ? "UI" : "JSON"}</span>
+                  </div>
+                </SectionCard>
+
+                {content.heroBadges && content.heroBadges.length > 0 ? (
+                  <div className="w-full max-w-[22rem]">{renderHeroBadgesDesktop()}</div>
+                ) : null}
 
                 {filteredInfoSections.length > 0 ? (
                   <InfoSections
