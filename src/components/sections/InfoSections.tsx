@@ -1,6 +1,6 @@
 ﻿import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import type { InfoSection } from "../../types/content";
+import type { InfoSection, InfoSectionItem } from "../../types/content";
 
 type BulletEntry = {
   key: string;
@@ -28,9 +28,111 @@ interface InfoSectionsProps {
   sections: InfoSection[];
   onMechanismSelect?: (mechanismSlug: string, qualifierSlug?: string) => void;
   onClassificationSelect?: (classification: ClassificationKind, label: string) => void;
+  layoutVariant?: "two-column" | "single-column";
 }
 
-export function InfoSections({ sections, onMechanismSelect, onClassificationSelect }: InfoSectionsProps) {
+interface InfoSectionItemCardProps {
+  item: InfoSectionItem;
+  onMechanismSelect?: (mechanismSlug: string, qualifierSlug?: string) => void;
+  onClassificationSelect?: (classification: ClassificationKind, label: string) => void;
+}
+
+export function InfoSectionItemCard({
+  item,
+  onMechanismSelect,
+  onClassificationSelect,
+}: InfoSectionItemCardProps) {
+  const { label, value, href, icon: ItemIcon, chips } = item;
+  const normalizedLabel = label.toLowerCase().trim();
+  const isMechanism = normalizedLabel === "mechanism of action";
+  const mechanismBadges = isMechanism ? chips ?? [] : [];
+  const shouldRenderBullets = BULLET_LIST_LABELS.has(normalizedLabel);
+  const classificationType: ClassificationKind | undefined = normalizedLabel === "chemical class"
+    ? "chemical"
+    : normalizedLabel === "psychoactive class"
+      ? "psychoactive"
+      : undefined;
+  const linkClasses = "text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline";
+  const textClasses = "text-sm leading-snug text-white/85";
+  const bulletEntries: BulletEntry[] = [];
+
+  if (shouldRenderBullets) {
+    if (mechanismBadges.length > 0) {
+      mechanismBadges.forEach((badge) => {
+        const key = `${badge.slug}-${badge.qualifierSlug ?? ""}-${badge.label}`;
+        const onClick =
+          onMechanismSelect && badge.slug
+            ? () => onMechanismSelect(badge.slug, badge.qualifierSlug)
+            : undefined;
+
+        bulletEntries.push({
+          key,
+          label: badge.label,
+          onClick,
+        });
+      });
+    } else {
+      const entries = splitSemicolonEntries(value);
+      entries.forEach((entry, index) => {
+        const onClick = classificationType && onClassificationSelect
+          ? () => onClassificationSelect(classificationType, entry)
+          : undefined;
+        bulletEntries.push({
+          key: `${label}-${entry}-${index}`,
+          label: entry,
+          onClick,
+        });
+      });
+    }
+  }
+
+  const bulletListNode =
+    bulletEntries.length > 0 ? (
+      <ul className="space-y-2 text-sm leading-snug text-white/85">
+        {bulletEntries.map((entry) => (
+          <li key={entry.key} className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+            {entry.onClick ? (
+              <button
+                type="button"
+                onClick={entry.onClick}
+                className="text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              >
+                {entry.label}
+              </button>
+            ) : (
+              <span className="text-white/85">{entry.label}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    ) : null;
+
+  const valueNode = bulletListNode ?? (href ? (
+    <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
+      {value}
+    </a>
+  ) : (
+    <span className={textClasses}>{value}</span>
+  ));
+
+  return (
+    <article className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20">
+      <h3 className="flex items-center gap-2 text-base font-semibold leading-tight text-white">
+        {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" /> : null}
+        <span>{label}</span>
+      </h3>
+      <div>{valueNode}</div>
+    </article>
+  );
+}
+
+export function InfoSections({
+  sections,
+  onMechanismSelect,
+  onClassificationSelect,
+  layoutVariant = "two-column",
+}: InfoSectionsProps) {
   if (!sections || sections.length === 0) {
     return null;
   }
@@ -56,95 +158,6 @@ export function InfoSections({ sections, onMechanismSelect, onClassificationSele
     ...prioritizedCards,
     ...filteredCards.filter((item) => !prioritizedSet.has(item)),
   ];
-
-  const renderCard = (item: typeof orderedCards[number]) => {
-    const { label, value, href, icon: ItemIcon, chips } = item;
-    const normalizedLabel = label.toLowerCase().trim();
-    const isMechanism = normalizedLabel === "mechanism of action";
-    const mechanismBadges = isMechanism ? chips ?? [] : [];
-    const shouldRenderBullets = BULLET_LIST_LABELS.has(normalizedLabel);
-    const classificationType: ClassificationKind | undefined = normalizedLabel === "chemical class"
-      ? "chemical"
-      : normalizedLabel === "psychoactive class"
-        ? "psychoactive"
-        : undefined;
-    const linkClasses = "text-sm leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline";
-    const textClasses = "text-sm leading-snug text-white/85";
-    const bulletEntries: BulletEntry[] = [];
-
-    if (shouldRenderBullets) {
-      if (mechanismBadges.length > 0) {
-        mechanismBadges.forEach((badge) => {
-          const key = `${badge.slug}-${badge.qualifierSlug ?? ""}-${badge.label}`;
-          const onClick =
-            onMechanismSelect && badge.slug
-              ? () => onMechanismSelect(badge.slug, badge.qualifierSlug)
-              : undefined;
-
-          bulletEntries.push({
-            key,
-            label: badge.label,
-            onClick,
-          });
-        });
-      } else {
-        const entries = splitSemicolonEntries(value);
-        entries.forEach((entry, index) => {
-          const onClick = classificationType && onClassificationSelect
-            ? () => onClassificationSelect(classificationType, entry)
-            : undefined;
-          bulletEntries.push({
-            key: `${label}-${entry}-${index}`,
-            label: entry,
-            onClick,
-          });
-        });
-      }
-    }
-
-    const bulletListNode =
-      bulletEntries.length > 0 ? (
-        <ul className="space-y-2 text-sm leading-snug text-white/85">
-          {bulletEntries.map((entry) => (
-            <li key={entry.key} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
-              {entry.onClick ? (
-                <button
-                  type="button"
-                  onClick={entry.onClick}
-                  className="text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                >
-                  {entry.label}
-                </button>
-              ) : (
-                <span className="text-white/85">{entry.label}</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : null;
-
-    const valueNode = bulletListNode ?? (href ? (
-      <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
-        {value}
-      </a>
-    ) : (
-      <span className={textClasses}>{value}</span>
-    ));
-
-    return (
-      <article
-        key={`${label}-${value}`}
-        className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20"
-      >
-        <h3 className="flex items-center gap-2 text-base font-semibold leading-tight text-white">
-          {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" /> : null}
-          <span>{label}</span>
-        </h3>
-        <div>{valueNode}</div>
-      </article>
-    );
-  };
 
   const leftColumnLabels = new Set(["chemical class", "substitutive name", "iupac name"]);
   const rightColumnLabels = new Set(["psychoactive class", "mechanism of action", "half-life", "half life"]);
@@ -178,6 +191,59 @@ export function InfoSections({ sections, onMechanismSelect, onClassificationSele
 
   const headingIcon = sections[0]?.icon;
 
+  const renderColumns = () => {
+    if (layoutVariant === "single-column") {
+      const combinedItems = [...leftColumnItems, ...rightColumnItems];
+      if (combinedItems.length === 0) {
+        return null;
+      }
+
+      return (
+        <div className="space-y-4">
+          {combinedItems.map((item) => (
+            <InfoSectionItemCard
+              key={`${item.label}-${item.value}`}
+              item={item}
+              onMechanismSelect={onMechanismSelect}
+              onClassificationSelect={onClassificationSelect}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+        <div className="space-y-4">
+          {leftColumnItems.map((item) => (
+            <InfoSectionItemCard
+              key={`${item.label}-${item.value}`}
+              item={item}
+              onMechanismSelect={onMechanismSelect}
+              onClassificationSelect={onClassificationSelect}
+            />
+          ))}
+        </div>
+        <div className="space-y-4">
+          {rightColumnItems.map((item) => (
+            <InfoSectionItemCard
+              key={`${item.label}-${item.value}`}
+              item={item}
+              onMechanismSelect={onMechanismSelect}
+              onClassificationSelect={onClassificationSelect}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const content = renderColumns();
+
+  if (!content) {
+    return null;
+  }
+
   return (
     <SectionCard delay={0.08}>
       <div className="flex flex-col gap-6">
@@ -187,14 +253,7 @@ export function InfoSections({ sections, onMechanismSelect, onClassificationSele
           ) : null}
           Chemistry & Pharmacology
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <div className="space-y-4">
-            {leftColumnItems.map((item) => renderCard(item))}
-          </div>
-          <div className="space-y-4">
-            {rightColumnItems.map((item) => renderCard(item))}
-          </div>
-        </div>
+        {content}
       </div>
     </SectionCard>
   );
