@@ -2298,7 +2298,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     <main className={mainClassName}>
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
+          <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
             <Wrench className="h-8 w-8 text-current" aria-hidden="true" focusable="false" />
             <span>Dev Tools</span>
           </h1>

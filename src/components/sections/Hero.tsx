@@ -115,7 +115,7 @@ export function Hero({
             )}
           </div>
         )}
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-6xl">
+        <h1 className="font-display text-[2.7rem] font-extrabold tracking-tight text-fuchsia-300 drop-shadow-[0_1px_0_rgba(255,255,255,0.1)] md:text-[4.5rem]">
           {title}
         </h1>
         {hasHeroVariantLines ? (

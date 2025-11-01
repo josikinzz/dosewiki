@@ -279,7 +279,7 @@ export function SubstanceArticle({
                 {desktopViewMode === "ui" ? (
                   <>
                     <div>
-                      <h1 className="font-display text-4xl font-semibold text-fuchsia-300 xl:text-5xl">{content.name}</h1>
+                      <h1 className="font-display text-[2.7rem] font-semibold text-fuchsia-300 xl:text-[3.6rem]">{content.name}</h1>
                       {hasHeroVariantLines ? (
                         <div className="mt-4 flex flex-col gap-2">
                           {decoratedHeroVariantLines.map((line) => (
