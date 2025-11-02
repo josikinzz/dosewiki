@@ -20,7 +20,6 @@
             "2c-d",
             "2c-e",
             "2c-ef",
-            "2c-f",
             "2c-g",
             "2c-i",
             "2c-ip",
@@ -30,8 +29,7 @@
             "2c-t-2",
             "2c-t-21",
             "2c-t-4",
-            "2c-t-7",
-            "2c-tfm"
+            "2c-t-7"
           ]
         },
         {
@@ -46,12 +44,9 @@
             "3-caf",
             "3-fea",
             "3-fluoroamphetamine",
-            "3-fluoromethamphetamine",
-            "4-ba",
             "4-fa",
             "4-fea",
             "4-fma",
-            "4-methylephedrine",
             "4-methylthioamphetamine",
             "5-adpi",
             "6-apdb",
@@ -59,8 +54,6 @@
             "adderall-xr",
             "amfecloral",
             "amphetamine",
-            "benzphetamine",
-            "clobenzorex",
             "desoxyn",
             "dextroamphetamine",
             "ephedrine",
@@ -68,8 +61,6 @@
             "lisdexamfetamine",
             "mdea",
             "methamphetamine",
-            "methyl-k",
-            "phenylephrine",
             "pmma"
           ]
         },
@@ -79,19 +70,15 @@
           "drugs": [
             "3c-e",
             "3c-p",
-            "4c-d",
             "aleph",
             "aleph-2",
-            "aleph-6",
             "bromo-dragonfly",
             "dob",
             "doc",
-            "doef",
             "doet",
             "doi",
             "dom",
             "mem",
-            "tma",
             "tma-2",
             "tma-6"
           ]
@@ -100,9 +87,7 @@
           "key": "amphetamine-substituted",
           "label": "Amphetamine (substituted)",
           "drugs": [
-            "4-ca",
             "4-cma",
-            "fen-phen",
             "pmma"
           ]
         },
@@ -119,7 +104,6 @@
             "2c-d",
             "2c-e",
             "2c-ef",
-            "2c-f",
             "2c-g",
             "2c-i",
             "2c-ip",
@@ -130,10 +114,8 @@
             "2c-t-21",
             "2c-t-4",
             "2c-t-7",
-            "2c-tfm",
             "khat",
             "l-tyrosine",
-            "mdmpea",
             "mescaline",
             "phenethylamine"
           ]
@@ -143,9 +125,7 @@
           "label": "Phenethylamine (N-benzylated)",
           "drugs": [
             "25b-nboh",
-            "25c-nb3ome",
             "25c-nboh",
-            "25cn-nboh",
             "25d-nbome",
             "25e-nboh",
             "25h-nbome",
@@ -157,29 +137,23 @@
             "25n-nbome",
             "25p-nbome",
             "25t-2-nbome",
-            "25t-nbome",
             "2c-b-fly-nbome",
-            "2c-t-4-nbome",
             "2c-t-7-nbome",
             "c30-nbome"
           ]
         },
         {
           "key": "phenethylamine-substituted-hydroxy-2c-series",
-          "label": "Phenethylamine (substituted, \u03b2-hydroxy 2C series)",
-          "drugs": [
-            "boh-2c-b"
-          ]
+          "label": "Phenethylamine (substituted, β-hydroxy 2C series)",
+          "drugs": []
         },
         {
           "key": "phenethylamine-substituted",
           "label": "Phenethylamine (substituted)",
           "drugs": [
             "4f-eph",
-            "fenfluramine",
             "methylone",
-            "pma",
-            "tranylcypromine"
+            "pma"
           ]
         },
         {
@@ -189,37 +163,25 @@
             "2-methylethcathinone",
             "2-mmc",
             "2-nmc",
-            "3-cec",
             "3-cmc",
             "3-fmc",
             "3-mec",
             "3-mmc",
-            "3-4-dmmc",
             "3-4-trimethylenepentedrone",
-            "4-bromomethcathinone",
             "4-cbc",
             "4-chloroethcathinone",
             "4-chloromethcathinone",
-            "4-eec",
             "4-emc",
             "4-epd",
             "4-fluoropentedrone",
             "4-fmc",
-            "4-me-neb",
             "4-mec",
             "4-mmc",
             "4-mpd",
-            "4f-mabp",
             "5-bpdi",
-            "benzedrone",
             "brephedrone",
             "bupropion",
             "butylone",
-            "cyputylone",
-            "diethylpropion",
-            "dimethylpentylone",
-            "dipentylone",
-            "edmc",
             "ethylone",
             "eutylone",
             "hexedrone",
@@ -245,18 +207,15 @@
           "key": "mdxx",
           "label": "MDxx",
           "drugs": [
-            "2-bromo-4-5-mdma",
             "mda",
             "mdea",
-            "mdma",
-            "methylenedioxyphenmetrazine"
+            "mdma"
           ]
         },
         {
           "key": "scaline",
           "label": "Scaline",
           "drugs": [
-            "aem",
             "allylescaline",
             "escaline",
             "mal",
@@ -267,17 +226,12 @@
         {
           "key": "alkyl-amine",
           "label": "Alkyl amine",
-          "drugs": [
-            "1-4-dmaa",
-            "dmha"
-          ]
+          "drugs": []
         },
         {
           "key": "alkylamine-derivative-first-generation-antihistamine",
           "label": "Alkylamine derivative (first-generation antihistamine)",
-          "drugs": [
-            "chlorpheniramine"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -304,12 +258,8 @@
             "4-ho-mcpt",
             "4-ho-met",
             "4-ho-mpt",
-            "4-ho-pipt",
             "4-meo-mipt",
-            "4-pro-dmt",
-            "4-pro-met",
             "5-bromo-dmt",
-            "5-cl-amt",
             "5-meo-amt",
             "5-meo-dalt",
             "5-meo-dibf",
@@ -347,9 +297,8 @@
         },
         {
           "key": "carboline",
-          "label": "\u03b2-carboline",
+          "label": "β-carboline",
           "drugs": [
-            "9-me-bc",
             "ayahuasca"
           ]
         }
@@ -398,9 +347,7 @@
           "label": "Arylcyclohexylamine",
           "drugs": [
             "2-fdck",
-            "2-meo-ketamine",
             "3-cl-pcp",
-            "3-eto-pcp",
             "3-fluoro-pcp",
             "3-ho-pce",
             "3-ho-pcp",
@@ -412,8 +359,6 @@
             "3-meo-pcpy",
             "3-4-md-pcp",
             "4-meo-pcp",
-            "bdck",
-            "canket",
             "dck",
             "dmxe",
             "esketamine",
@@ -445,8 +390,6 @@
           "label": "Diarylethylamine (substituted)",
           "drugs": [
             "2-chloroephenidine",
-            "2-tfmxp",
-            "4-mxp",
             "diphenidine",
             "ephenidine",
             "fluorolintane",
@@ -456,9 +399,7 @@
         {
           "key": "dioxolane-piperidine-dissociative",
           "label": "Dioxolane (piperidine) dissociative",
-          "drugs": [
-            "etoxadrol"
-          ]
+          "drugs": []
         },
         {
           "key": "adamantane-derivative",
@@ -480,7 +421,6 @@
           "key": "benzodiazepine",
           "label": "Benzodiazepine",
           "drugs": [
-            "3-hydroxyphenazepam",
             "bromazepam",
             "bromazolam",
             "bromonordiazepam",
@@ -525,7 +465,6 @@
           "label": "Benzodiazepine (prodrug)",
           "drugs": [
             "avizafone",
-            "fosazepam",
             "gidazepam",
             "halazepam",
             "medazepam"
@@ -545,7 +484,6 @@
           "key": "imidazobenzodiazepine",
           "label": "Imidazobenzodiazepine",
           "drugs": [
-            "flumazenil",
             "midazolam"
           ]
         },
@@ -595,20 +533,14 @@
           "label": "Morphinan",
           "drugs": [
             "6-mam",
-            "acetorphine",
-            "acetyldihydrocodeine",
             "buprenorphine",
-            "butorphanol",
             "codeine",
             "desomorphine",
             "dextromethorphan",
             "dhc",
-            "dxm-hbr",
-            "dxm-polistirex",
             "heroin",
             "hydrocodone",
             "hydromorphone",
-            "levomethorphan",
             "morphine",
             "oxycodone",
             "oxymorphone"
@@ -624,9 +556,7 @@
         {
           "key": "morphine-derivative-non-ergoline",
           "label": "Morphine derivative (non-ergoline)",
-          "drugs": [
-            "apomorphine"
-          ]
+          "drugs": []
         },
         {
           "key": "diphenylheptane",
@@ -647,7 +577,6 @@
           "key": "phenylpiperidine",
           "label": "Phenylpiperidine",
           "drugs": [
-            "beta-meprodine",
             "imodium",
             "pethidine"
           ]
@@ -664,14 +593,9 @@
           "key": "anilinopiperidine",
           "label": "Anilinopiperidine",
           "drugs": [
-            "4-methoxybutyrfentanyl",
-            "4cl-ibf",
             "acrylfentanyl",
-            "alfentanil",
             "fentanyl",
-            "furanylfentanyl",
-            "lofentanil",
-            "remifentanil"
+            "furanylfentanyl"
           ]
         },
         {
@@ -685,16 +609,11 @@
           "key": "benzimidazole",
           "label": "Benzimidazole",
           "drugs": [
-            "bezitramide",
-            "cychlorphine",
             "etonitazene",
             "isotonitazene",
             "isotonitazepyne",
             "metonitazene",
-            "ndp",
             "pronitazene",
-            "spirochlorphine",
-            "sr-14968",
             "sr-17018"
           ]
         },
@@ -734,7 +653,6 @@
           "label": "GABA analogue (gabapentinoid)",
           "drugs": [
             "gabapentin",
-            "mirogabalin",
             "pregabalin"
           ]
         },
@@ -748,9 +666,7 @@
         {
           "key": "gaba-analogue-ghb-prodrug",
           "label": "GABA analogue (GHB prodrug)",
-          "drugs": [
-            "aceburic-acid"
-          ]
+          "drugs": []
         },
         {
           "key": "gaba-analogue-phenibut-analogue",
@@ -764,8 +680,7 @@
           "label": "GABA analogue (prodrug)",
           "drugs": [
             "1-4-butanediol",
-            "gbl",
-            "gvl"
+            "gbl"
           ]
         },
         {
@@ -812,7 +727,6 @@
           "key": "z-drug",
           "label": "Z-drug",
           "drugs": [
-            "zaleplon",
             "zolpidem",
             "zopiclone"
           ]
@@ -836,40 +750,21 @@
           "key": "cannabinoid",
           "label": "Cannabinoid",
           "drugs": [
-            "cannabidiolic-acid",
-            "cbc",
-            "cbdv",
-            "cbdva",
-            "cbg",
-            "cbna"
+            "cannabidiolic-acid"
           ]
         },
         {
           "key": "cannabinoid-phytocannabinoid",
           "label": "Cannabinoid (phytocannabinoid)",
           "drugs": [
-            "cannabis",
-            "cbl",
-            "cbn"
+            "cannabis"
           ]
         },
         {
           "key": "cannabinoid-synthetic",
           "label": "Cannabinoid (synthetic)",
           "drugs": [
-            "4f-mdmb-binaca",
-            "adb-inaca",
-            "adb-pinaca",
-            "adb-pinaca-isomer-2",
-            "adbica",
-            "akb-57",
-            "am-1248",
             "am-2201",
-            "am-2233",
-            "am-694",
-            "amb-chmica",
-            "amb-fubinaca",
-            "cb-13",
             "jwh-018"
           ]
         },
@@ -906,9 +801,7 @@
           "key": "phenidate",
           "label": "Phenidate",
           "drugs": [
-            "3-4-dichloromethylphenidate",
             "4-fluoromethylphenidate",
-            "4-me-tmp",
             "4f-eph",
             "eph",
             "isopropylphenidate",
@@ -921,9 +814,7 @@
           "key": "phenmetrazine",
           "label": "Phenmetrazine",
           "drugs": [
-            "3-cpm",
-            "3-fluorophenmetrazine",
-            "phendimetrazine"
+            "3-fluorophenmetrazine"
           ]
         },
         {
@@ -938,34 +829,24 @@
           "label": "Pipradrol (homologue)",
           "drugs": [
             "d2pm",
-            "desoxypipradol",
-            "pipradrol"
+            "desoxypipradol"
           ]
         },
         {
           "key": "pyrrolidine-substituted",
           "label": "Pyrrolidine (substituted)",
           "drugs": [
-            "2-me-pihp",
             "3-fluoro-pihp",
             "3-methyl-4-fluoro-pyrrolidinovalerophenone",
-            "4-cl-ppp",
             "4-fluoro-alpha-php",
-            "4-meppp",
-            "4f-ppp",
             "5-dbfpv",
-            "alpha-d2pv",
-            "alpha-pcyp",
             "alpha-php",
             "alpha-pihp",
             "alpha-pvp",
-            "dmo-php",
             "md-php",
             "md-pihp",
-            "md-prolintane",
             "mdpv",
             "prolintane",
-            "pyrovalerone",
             "pyrrolidinopropiophenone"
           ]
         },
@@ -973,15 +854,9 @@
           "key": "aminorex",
           "label": "Aminorex",
           "drugs": [
-            "3-mar",
-            "4-cl-mar",
-            "4-mar",
             "4-4-dimethylaminorex",
             "4-fluoro-4-methylaminorex",
-            "4b-mar",
             "aminorex",
-            "fenozolone",
-            "fluminorex",
             "pemoline"
           ]
         },
@@ -989,8 +864,7 @@
           "key": "oxazolinone",
           "label": "Oxazolinone",
           "drugs": [
-            "cyclazodone",
-            "n-methyl-cyclazodone"
+            "cyclazodone"
           ]
         }
       ]
@@ -1011,9 +885,7 @@
         {
           "key": "alkaloid-areca",
           "label": "Alkaloid (areca)",
-          "drugs": [
-            "arecoline"
-          ]
+          "drugs": []
         },
         {
           "key": "alkaloid-indole",
@@ -1021,24 +893,19 @@
           "drugs": [
             "7-oh",
             "kratom",
-            "mgm-15",
-            "mitragynine",
-            "mitragynine-pseudoindoxyl"
+            "mitragynine"
           ]
         },
         {
           "key": "alkaloid-tropane-anticholinergic",
           "label": "Alkaloid (tropane, anticholinergic)",
-          "drugs": [
-            "3-quinuclidinyl-benzilate"
-          ]
+          "drugs": []
         },
         {
           "key": "alkaloid-tropane",
           "label": "Alkaloid (tropane)",
           "drugs": [
             "atropine",
-            "cocaethylene",
             "cocaine",
             "datura",
             "scopolamine"
@@ -1047,9 +914,7 @@
         {
           "key": "quinuclidinyl-glycolate-ester-tropane-related",
           "label": "Quinuclidinyl glycolate ester (tropane-related)",
-          "drugs": [
-            "ea-3167"
-          ]
+          "drugs": []
         },
         {
           "key": "diterpenoid",
@@ -1079,12 +944,10 @@
           "drugs": [
             "1-2-3-4-trimethoxybenzyl-piperazine",
             "1-2-5-dimethoxybenzyl-piperazine",
-            "3-4-cfpp",
             "4-benzylpiperidine",
             "4-fluorophenylpiperazine",
             "4-fpp",
-            "bzp",
-            "dmnpc"
+            "bzp"
           ]
         },
         {
@@ -1097,9 +960,7 @@
         {
           "key": "benzisothiazolyl-piperazine",
           "label": "Benzisothiazolyl piperazine",
-          "drugs": [
-            "ziprasidone"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1113,8 +974,6 @@
           "key": "benzofuran",
           "label": "Benzofuran",
           "drugs": [
-            "2-mapb",
-            "5-aedb",
             "5-apb",
             "5-eapb",
             "5-mapb",
@@ -1162,9 +1021,7 @@
         {
           "key": "tricyclic-benzocycloheptene-first-generation-antihistamine",
           "label": "Tricyclic benzocycloheptene (first-generation antihistamine)",
-          "drugs": [
-            "cyproheptadine"
-          ]
+          "drugs": []
         },
         {
           "key": "diarycycloheptene",
@@ -1207,37 +1064,28 @@
           "label": "Quinazolinone",
           "drugs": [
             "afloqualone",
-            "methaqualone",
-            "sl-164"
+            "methaqualone"
           ]
         },
         {
           "key": "quinoline-methanol-derivative",
           "label": "Quinoline methanol derivative",
-          "drugs": [
-            "mefloquine"
-          ]
+          "drugs": []
         },
         {
           "key": "aminopyridine",
           "label": "Aminopyridine",
-          "drugs": [
-            "flupirtine"
-          ]
+          "drugs": []
         },
         {
           "key": "phenyl-triazine-anticonvulsant",
           "label": "Phenyl-triazine anticonvulsant",
-          "drugs": [
-            "lamotrigine"
-          ]
+          "drugs": []
         },
         {
           "key": "triazole-antifungal",
           "label": "Triazole antifungal",
-          "drugs": [
-            "diflucan"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1250,9 +1098,7 @@
         {
           "key": "indole-derivative-serotonergic-antidepressant",
           "label": "Indole derivative (serotonergic antidepressant)",
-          "drugs": [
-            "vilazodone"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1308,10 +1154,8 @@
       "sections": [
         {
           "key": "hydrazine-derivative-phenylethylhydrazine",
-          "label": "Hydrazine derivative (\u03b2-phenylethylhydrazine)",
-          "drugs": [
-            "phenelzine"
-          ]
+          "label": "Hydrazine derivative (β-phenylethylhydrazine)",
+          "drugs": []
         }
       ]
     },
@@ -1325,8 +1169,6 @@
           "key": "propargylamine",
           "label": "Propargylamine",
           "drugs": [
-            "4-fluorodeprenyl",
-            "rasagiline",
             "selegiline"
           ]
         }
@@ -1342,8 +1184,7 @@
           "key": "carbamate",
           "label": "Carbamate",
           "drugs": [
-            "carisoprodol",
-            "methocarbamol"
+            "carisoprodol"
           ]
         }
       ]
@@ -1417,7 +1258,6 @@
           "key": "amino-acid-derivative",
           "label": "Amino acid (derivative)",
           "drugs": [
-            "gabob",
             "l-theanine",
             "phenibut"
           ]
@@ -1516,10 +1356,7 @@
         {
           "key": "polyamine",
           "label": "Polyamine",
-          "drugs": [
-            "agmatine",
-            "agmatine-sulfate"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1550,31 +1387,23 @@
       "sections": [
         {
           "key": "17-alkylated-anabolic-androgenic-steroid",
-          "label": "17\u03b1-alkylated anabolic-androgenic steroid",
-          "drugs": [
-            "halodrol-50"
-          ]
+          "label": "17α-alkylated anabolic-androgenic steroid",
+          "drugs": []
         },
         {
           "key": "testosterone-derivative",
           "label": "Testosterone derivative",
-          "drugs": [
-            "halodrol-50"
-          ]
+          "drugs": []
         },
         {
           "key": "steroidal-aromatase-inhibitor-7-keto-dhea-metabolite",
           "label": "Steroidal aromatase inhibitor (7-keto-DHEA metabolite)",
-          "drugs": [
-            "arimistane"
-          ]
+          "drugs": []
         },
         {
           "key": "estrogenic-steroid",
           "label": "Estrogenic steroid",
-          "drugs": [
-            "estradiol"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1602,9 +1431,7 @@
         {
           "key": "phenyltropane",
           "label": "Phenyltropane",
-          "drugs": [
-            "dichloropane"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1662,16 +1489,12 @@
         {
           "key": "fruit-juice",
           "label": "Fruit juice",
-          "drugs": [
-            "grapefruit"
-          ]
+          "drugs": []
         },
         {
           "key": "furanocoumarin-containing-natural-product",
           "label": "Furanocoumarin-containing natural product",
-          "drugs": [
-            "grapefruit"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1684,9 +1507,7 @@
         {
           "key": "phenolic-glycoside-rich-parasitic-herb-family-ericaceae",
           "label": "Phenolic-glycoside-rich parasitic herb (family Ericaceae)",
-          "drugs": [
-            "monotropa-uniflora"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1705,7 +1526,7 @@
         },
         {
           "key": "alkali-metal-monovalent-cation-li-administered-as-carbonate-or-citrate-salts",
-          "label": "Alkali-metal monovalent cation (Li\u207a) administered as carbonate or citrate salts",
+          "label": "Alkali-metal monovalent cation (Li⁺) administered as carbonate or citrate salts",
           "drugs": [
             "lithium"
           ]
@@ -1764,12 +1585,8 @@
           "drugs": [
             "2-pa",
             "2-pta",
-            "3-3-dpcb",
-            "mazindol",
             "nicotine",
-            "phenylpropylaminopentane",
-            "sibutramine",
-            "tesofensine"
+            "phenylpropylaminopentane"
           ]
         }
       ]
@@ -1790,9 +1607,7 @@
         {
           "key": "second-generation-atypical-antipsychotic",
           "label": "Second-generation (atypical) antipsychotic",
-          "drugs": [
-            "ziprasidone"
-          ]
+          "drugs": []
         }
       ]
     }

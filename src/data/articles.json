@@ -1310,7 +1310,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 44,
@@ -4670,7 +4670,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 71,
@@ -4824,7 +4824,7 @@
         }
       ]
     },
-    "index-category": "depressant; habit-forming; research-chemical"
+    "index-category": "depressant;habit-forming;research-chemical;obscure"
   },
   {
     "id": 73,
@@ -5473,7 +5473,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 78,
@@ -5619,7 +5619,7 @@
         }
       ]
     },
-    "index-category": "pharmaceutical;dopaminergic"
+    "index-category": "pharmaceutical;dopaminergic;obscure"
   },
   {
     "id": 79,
@@ -5784,7 +5784,7 @@
         }
       ]
     },
-    "index-category": "deliriant;research-chemical"
+    "index-category": "deliriant;research-chemical;obscure"
   },
   {
     "id": 80,
@@ -5974,7 +5974,7 @@
         }
       ]
     },
-    "index-category": "deliriant;anticholinergic"
+    "index-category": "deliriant;anticholinergic;obscure"
   },
   {
     "id": 81,
@@ -6141,7 +6141,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 82,
@@ -6497,7 +6497,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 85,
@@ -6615,7 +6615,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical;entactogen"
+    "index-category": "stimulant;research-chemical;entactogen;obscure"
   },
   {
     "id": 86,
@@ -6757,7 +6757,7 @@
         }
       ]
     },
-    "index-category": "antidepressant"
+    "index-category": "antidepressant;obscure"
   },
   {
     "id": 87,
@@ -7796,7 +7796,7 @@
         }
       ]
     },
-    "index-category": "dissociative;hallucinogen"
+    "index-category": "dissociative;hallucinogen;obscure"
   },
   {
     "id": 94,
@@ -7970,7 +7970,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 95,
@@ -9696,7 +9696,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 107,
@@ -15640,7 +15640,7 @@
         }
       ]
     },
-    "index-category": "antidepressant"
+    "index-category": "antidepressant;obscure"
   },
   {
     "id": 145,
@@ -16023,7 +16023,7 @@
         }
       ]
     },
-    "index-category": "stimulant;nootropic"
+    "index-category": "stimulant;nootropic;obscure"
   },
   {
     "id": 147,
@@ -18732,7 +18732,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 165,
@@ -20002,7 +20002,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 173,
@@ -20867,7 +20867,7 @@
         }
       ]
     },
-    "index-category": "antimalarial;pharmaceutical"
+    "index-category": "antimalarial;pharmaceutical;obscure"
   },
   {
     "id": 179,
@@ -21012,7 +21012,7 @@
         }
       ]
     },
-    "index-category": "depressant;sedative;gabaergic"
+    "index-category": "depressant;sedative;gabaergic;obscure"
   },
   {
     "id": 180,
@@ -21949,7 +21949,7 @@
         }
       ]
     },
-    "index-category": "hormone"
+    "index-category": "hormone;obscure"
   },
   {
     "id": 185,
@@ -22092,7 +22092,7 @@
         }
       ]
     },
-    "index-category": "pharmaceutical"
+    "index-category": "pharmaceutical;obscure"
   },
   {
     "id": 186,
@@ -22236,7 +22236,7 @@
         }
       ]
     },
-    "index-category": "antidepressant"
+    "index-category": "antidepressant;obscure"
   },
   {
     "id": 187,
@@ -22485,7 +22485,7 @@
         }
       ]
     },
-    "index-category": "dissociative;otc"
+    "index-category": "dissociative;otc;obscure"
   },
   {
     "id": 190,
@@ -22626,7 +22626,7 @@
         }
       ]
     },
-    "index-category": "stimulant;pharmaceutical;habit-forming"
+    "index-category": "stimulant;pharmaceutical;habit-forming;obscure"
   },
   {
     "id": 191,
@@ -27034,7 +27034,7 @@
         }
       ]
     },
-    "index-category": "stimulant;pharmaceutical"
+    "index-category": "stimulant;pharmaceutical;obscure"
   },
   {
     "id": 226,
@@ -27178,7 +27178,7 @@
         }
       ]
     },
-    "index-category": "stimulant;pharmaceutical"
+    "index-category": "stimulant;pharmaceutical;obscure"
   },
   {
     "id": 227,
@@ -27690,7 +27690,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 230,
@@ -28596,7 +28596,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 237,
@@ -29469,7 +29469,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen"
+    "index-category": "stimulant;entactogen;obscure"
   },
   {
     "id": 245,
@@ -30521,7 +30521,7 @@
         }
       ]
     },
-    "index-category": "depressant;benzodiazepine;research-chemical"
+    "index-category": "depressant;benzodiazepine;research-chemical;obscure"
   },
   {
     "id": 253,
@@ -30672,7 +30672,7 @@
         }
       ]
     },
-    "index-category": "depressant;benzodiazepine"
+    "index-category": "depressant;benzodiazepine;obscure"
   },
   {
     "id": 254,
@@ -31281,7 +31281,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical;substituted-amphetamine"
+    "index-category": "psychedelic;research-chemical;substituted-amphetamine;obscure"
   },
   {
     "id": 258,
@@ -31503,7 +31503,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 259,
@@ -32193,7 +32193,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 265,
@@ -32497,7 +32497,7 @@
         }
       ]
     },
-    "index-category": "psychedelic"
+    "index-category": "psychedelic;obscure"
   },
   {
     "id": 268,
@@ -32785,7 +32785,7 @@
         }
       ]
     },
-    "index-category": "psychedelic"
+    "index-category": "psychedelic;obscure"
   },
   {
     "id": 270,
@@ -33049,7 +33049,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 272,
@@ -33186,7 +33186,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical;phenethylamine"
+    "index-category": "psychedelic;research-chemical;phenethylamine;obscure"
   },
   {
     "id": 273,
@@ -34036,7 +34036,7 @@
         }
       ]
     },
-    "index-category": "depressant"
+    "index-category": "depressant;obscure"
   },
   {
     "id": 279,
@@ -34188,7 +34188,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 280,
@@ -36308,7 +36308,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 293,
@@ -37347,7 +37347,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 298,
@@ -37557,7 +37557,7 @@
         }
       ]
     },
-    "index-category": "stimulant;nootropic;research-chemical"
+    "index-category": "stimulant;nootropic;research-chemical;obscure"
   },
   {
     "id": 301,
@@ -39019,7 +39019,7 @@
         }
       ]
     },
-    "index-category": "depressant;sedative"
+    "index-category": "depressant;sedative;obscure"
   },
   {
     "id": 309,
@@ -40632,7 +40632,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 318,
@@ -41229,7 +41229,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 321,
@@ -41660,7 +41660,7 @@
         }
       ]
     },
-    "index-category": "depressant;sedative;research-chemical"
+    "index-category": "depressant;sedative;research-chemical;obscure"
   },
   {
     "id": 324,
@@ -41880,7 +41880,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 325,
@@ -42533,7 +42533,7 @@
         }
       ]
     },
-    "index-category": "psychedelic"
+    "index-category": "psychedelic;obscure"
   },
   {
     "id": 331,
@@ -43921,7 +43921,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 344,
@@ -44336,7 +44336,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 346,
@@ -46493,7 +46493,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 359,
@@ -46833,7 +46833,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;habit-forming"
+    "index-category": "opioid;depressant;habit-forming;obscure"
   },
   {
     "id": 362,
@@ -47334,7 +47334,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 365,
@@ -47526,7 +47526,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 366,
@@ -47691,7 +47691,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 367,
@@ -49636,7 +49636,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 379,
@@ -51877,7 +51877,7 @@
         }
       ]
     },
-    "index-category": "nootropic"
+    "index-category": "nootropic;obscure"
   },
   {
     "id": 395,
@@ -52001,7 +52001,7 @@
         }
       ]
     },
-    "index-category": "research-chemical"
+    "index-category": "research-chemical;obscure"
   },
   {
     "id": 396,
@@ -52342,7 +52342,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 399,
@@ -52526,7 +52526,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 400,
@@ -52731,7 +52731,7 @@
         }
       ]
     },
-    "index-category": "stimulant;depressant;withdrawn"
+    "index-category": "stimulant;depressant;withdrawn;obscure"
   },
   {
     "id": 401,
@@ -53054,7 +53054,7 @@
         }
       ]
     },
-    "index-category": ""
+    "index-category": "obscure"
   },
   {
     "id": 403,
@@ -53237,7 +53237,7 @@
         }
       ]
     },
-    "index-category": "supplement;potentiator"
+    "index-category": "supplement;potentiator;obscure"
   },
   {
     "id": 404,
@@ -53346,7 +53346,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 406,
@@ -55141,7 +55141,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 416,
@@ -55958,7 +55958,7 @@
         }
       ]
     },
-    "index-category": "opioid; research-chemical; depressant"
+    "index-category": "opioid;research-chemical;depressant;obscure"
   },
   {
     "id": 422,
@@ -56200,7 +56200,7 @@
         }
       ]
     },
-    "index-category": "stimulant;nootropic"
+    "index-category": "stimulant;nootropic;obscure"
   },
   {
     "id": 423,
@@ -56964,7 +56964,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 429,
@@ -57754,7 +57754,7 @@
         }
       ]
     },
-    "index-category": "research-chemical;steroid"
+    "index-category": "research-chemical;steroid;obscure"
   },
   {
     "id": 433,
@@ -57948,7 +57948,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 434,
@@ -58156,7 +58156,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 437,
@@ -58366,7 +58366,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;tryptamine"
+    "index-category": "psychedelic;tryptamine;obscure"
   },
   {
     "id": 438,
@@ -58576,7 +58576,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 439,
@@ -59314,7 +59314,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen"
+    "index-category": "stimulant;entactogen;obscure"
   },
   {
     "id": 442,
@@ -59532,7 +59532,7 @@
         }
       ]
     },
-    "index-category": "stimulant;amphetamine"
+    "index-category": "stimulant;amphetamine;obscure"
   },
   {
     "id": 443,
@@ -59717,7 +59717,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 444,
@@ -59910,7 +59910,7 @@
         }
       ]
     },
-    "index-category": "antipsychotic;depressant"
+    "index-category": "antipsychotic;depressant;obscure"
   },
   {
     "id": 446,
@@ -60281,7 +60281,7 @@
         }
       ]
     },
-    "index-category": "research-chemical"
+    "index-category": "research-chemical;obscure"
   },
   {
     "id": 448,
@@ -61017,7 +61017,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 451,
@@ -62154,7 +62154,7 @@
         }
       ]
     },
-    "index-category": "depressant;antihistamine"
+    "index-category": "depressant;antihistamine;obscure"
   },
   {
     "id": 459,
@@ -62284,7 +62284,7 @@
         }
       ]
     },
-    "index-category": "depressant;pharmaceutical"
+    "index-category": "depressant;pharmaceutical;obscure"
   },
   {
     "id": 460,
@@ -63313,7 +63313,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 465,
@@ -63947,7 +63947,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 468,
@@ -64112,7 +64112,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;classic"
+    "index-category": "psychedelic;classic;obscure"
   },
   {
     "id": 469,
@@ -64752,7 +64752,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 472,
@@ -65185,7 +65185,7 @@
         }
       ]
     },
-    "index-category": "stimulant;cathinone;research-chemical"
+    "index-category": "stimulant;cathinone;research-chemical;obscure"
   },
   {
     "id": 474,
@@ -65527,7 +65527,7 @@
         }
       ]
     },
-    "index-category": "nootropic"
+    "index-category": "nootropic;obscure"
   },
   {
     "id": 477,
@@ -65681,7 +65681,7 @@
         }
       ]
     },
-    "index-category": "depressant;gabaergic"
+    "index-category": "depressant;gabaergic;obscure"
   },
   {
     "id": 478,
@@ -65891,7 +65891,7 @@
         }
       ]
     },
-    "index-category": "depressant;research-chemical"
+    "index-category": "depressant;research-chemical;obscure"
   },
   {
     "id": 479,
@@ -66090,7 +66090,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 480,
@@ -66290,7 +66290,7 @@
         }
       ]
     },
-    "index-category": "pharmaceutical;antidote"
+    "index-category": "pharmaceutical;antidote;obscure"
   },
   {
     "id": 481,
@@ -67131,7 +67131,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 487,
@@ -67300,7 +67300,7 @@
         }
       ]
     },
-    "index-category": "depressant;sedative"
+    "index-category": "depressant;sedative;obscure"
   },
   {
     "id": 488,
@@ -67477,7 +67477,7 @@
         }
       ]
     },
-    "index-category": "pharmaceutical; nootropic"
+    "index-category": "pharmaceutical;nootropic;obscure"
   },
   {
     "id": 489,
@@ -67867,7 +67867,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 491,
@@ -68475,7 +68475,7 @@
         }
       ]
     },
-    "index-category": "gabaergic; depressant; anticonvulsant"
+    "index-category": "gabaergic;depressant;anticonvulsant;obscure"
   },
   {
     "id": 494,
@@ -69667,7 +69667,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 503,
@@ -69827,7 +69827,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 504,
@@ -71346,7 +71346,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 513,
@@ -71538,7 +71538,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 514,
@@ -72074,7 +72074,7 @@
         }
       ]
     },
-    "index-category": "nootropic"
+    "index-category": "nootropic;obscure"
   },
   {
     "id": 517,
@@ -72234,7 +72234,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen"
+    "index-category": "stimulant;entactogen;obscure"
   },
   {
     "id": 518,
@@ -72470,7 +72470,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 519,
@@ -72868,7 +72868,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 521,
@@ -75246,7 +75246,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 535,
@@ -75409,7 +75409,7 @@
         }
       ]
     },
-    "index-category": "entactogen;stimulant;research-chemical"
+    "index-category": "entactogen;stimulant;research-chemical;obscure"
   },
   {
     "id": 536,
@@ -76028,7 +76028,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 539,
@@ -77371,7 +77371,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 547,
@@ -77573,7 +77573,7 @@
         }
       ]
     },
-    "index-category": "sedative;botanical"
+    "index-category": "sedative;botanical;obscure"
   },
   {
     "id": 548,
@@ -78099,7 +78099,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 551,
@@ -79027,7 +79027,7 @@
         }
       ]
     },
-    "index-category": "entactogen;stimulant"
+    "index-category": "entactogen;stimulant;obscure"
   },
   {
     "id": 556,
@@ -79663,7 +79663,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 562,
@@ -80029,7 +80029,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;nootropic"
+    "index-category": "cannabinoid;nootropic;obscure"
   },
   {
     "id": 564,
@@ -80180,7 +80180,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid"
+    "index-category": "cannabinoid;obscure"
   },
   {
     "id": 565,
@@ -80536,7 +80536,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid"
+    "index-category": "cannabinoid;obscure"
   },
   {
     "id": 567,
@@ -80907,7 +80907,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 569,
@@ -81067,7 +81067,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 570,
@@ -81238,7 +81238,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;research-chemical;habit-forming"
+    "index-category": "cannabinoid;research-chemical;habit-forming;obscure"
   },
   {
     "id": 572,
@@ -81405,7 +81405,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;synthetic"
+    "index-category": "cannabinoid;synthetic;obscure"
   },
   {
     "id": 573,
@@ -81786,7 +81786,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical;cathinone"
+    "index-category": "stimulant;research-chemical;cathinone;obscure"
   },
   {
     "id": 575,
@@ -81945,7 +81945,7 @@
         }
       ]
     },
-    "index-category": "stimulant;cathinone"
+    "index-category": "stimulant;cathinone;obscure"
   },
   {
     "id": 576,
@@ -82109,7 +82109,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 577,
@@ -82310,7 +82310,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid"
+    "index-category": "cannabinoid;obscure"
   },
   {
     "id": 578,
@@ -82525,7 +82525,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;depressant"
+    "index-category": "cannabinoid;depressant;obscure"
   },
   {
     "id": 580,
@@ -82852,7 +82852,7 @@
         }
       ]
     },
-    "index-category": "stimulant"
+    "index-category": "stimulant;obscure"
   },
   {
     "id": 583,
@@ -83016,7 +83016,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;synthetic;research-chemical"
+    "index-category": "cannabinoid;synthetic;research-chemical;obscure"
   },
   {
     "id": 584,
@@ -83168,7 +83168,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;synthetic"
+    "index-category": "cannabinoid;synthetic;obscure"
   },
   {
     "id": 585,
@@ -83883,7 +83883,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;research-chemical"
+    "index-category": "cannabinoid;research-chemical;obscure"
   },
   {
     "id": 589,
@@ -84087,7 +84087,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;research-chemical"
+    "index-category": "cannabinoid;research-chemical;obscure"
   },
   {
     "id": 590,
@@ -84262,7 +84262,7 @@
         }
       ]
     },
-    "index-category": ""
+    "index-category": "obscure"
   },
   {
     "id": 591,
@@ -84416,7 +84416,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical;hallucinogen"
+    "index-category": "dissociative;research-chemical;hallucinogen;obscure"
   },
   {
     "id": 592,
@@ -84575,7 +84575,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;depressant;research-chemical"
+    "index-category": "cannabinoid;depressant;research-chemical;obscure"
   },
   {
     "id": 593,
@@ -84741,7 +84741,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid"
+    "index-category": "cannabinoid;obscure"
   },
   {
     "id": 594,
@@ -84894,7 +84894,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;supplement"
+    "index-category": "cannabinoid;supplement;obscure"
   },
   {
     "id": 595,
@@ -85669,7 +85669,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 599,
@@ -86004,7 +86004,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;hallucinogen;research-chemical"
+    "index-category": "cannabinoid;hallucinogen;research-chemical;obscure"
   },
   {
     "id": 601,
@@ -86566,7 +86566,7 @@
         }
       ]
     },
-    "index-category": "opioid; depressant"
+    "index-category": "opioid;depressant;obscure"
   },
   {
     "id": 604,
@@ -86921,7 +86921,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;research-chemical"
+    "index-category": "psychedelic;research-chemical;obscure"
   },
   {
     "id": 606,
@@ -87298,7 +87298,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;synthetic;research-chemical"
+    "index-category": "cannabinoid;synthetic;research-chemical;obscure"
   },
   {
     "id": 608,
@@ -87513,7 +87513,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;synthetic;research-chemical"
+    "index-category": "cannabinoid;synthetic;research-chemical;obscure"
   },
   {
     "id": 609,
@@ -88065,7 +88065,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 612,
@@ -88236,7 +88236,7 @@
         }
       ]
     },
-    "index-category": "opioid;depressant;research-chemical"
+    "index-category": "opioid;depressant;research-chemical;obscure"
   },
   {
     "id": 613,
@@ -88415,7 +88415,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen"
+    "index-category": "stimulant;entactogen;obscure"
   },
   {
     "id": 615,
@@ -88779,7 +88779,7 @@
         }
       ]
     },
-    "index-category": "cannabinoid;research-chemical;depressant"
+    "index-category": "cannabinoid;research-chemical;depressant;obscure"
   },
   {
     "id": 617,
@@ -89163,7 +89163,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 619,
@@ -89712,7 +89712,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 622,
@@ -89903,7 +89903,7 @@
         }
       ]
     },
-    "index-category": "dissociative;research-chemical"
+    "index-category": "dissociative;research-chemical;obscure"
   },
   {
     "id": 623,
@@ -90035,7 +90035,7 @@
         }
       ]
     },
-    "index-category": "stimulant;entactogen;research-chemical"
+    "index-category": "stimulant;entactogen;research-chemical;obscure"
   },
   {
     "id": 625,
@@ -90181,7 +90181,7 @@
         }
       ]
     },
-    "index-category": "psychedelic;entactogen;stimulant;research-chemical"
+    "index-category": "psychedelic;entactogen;stimulant;research-chemical;obscure"
   },
   {
     "id": 626,
@@ -99157,7 +99157,7 @@
         }
       ]
     },
-    "index-category": "stimulant;phenidate"
+    "index-category": "stimulant;phenidate;obscure"
   },
   {
     "id": 683,
@@ -100584,7 +100584,7 @@
         }
       ]
     },
-    "index-category": "stimulant;research-chemical"
+    "index-category": "stimulant;research-chemical;obscure"
   },
   {
     "id": 692,
