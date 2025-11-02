@@ -151,6 +151,11 @@ export const getInteractionsForSubstance = (
 
 const normalizeKey = (value: string): string => slugify(value);
 
+const OBSCURE_INDEX_KEY = "obscure";
+
+const isObscureRecord = (record: SubstanceRecord): boolean =>
+  record.indexCategories.some((category) => normalizeKey(category) === OBSCURE_INDEX_KEY);
+
 const preferredAliasKinds: NameVariantKind[] = ["botanical", "alternative", "substitutive"];
 
 const formatAlias = (record: SubstanceRecord): string | undefined => {
@@ -426,6 +431,9 @@ function resolveVisibleDrugEntry(slug: string, seenVisible: Set<string>): DrugLi
   if (!record) {
     return null;
   }
+  if (isObscureRecord(record)) {
+    return null;
+  }
   if (seenVisible.has(record.slug)) {
     return null;
   }
@@ -678,6 +686,9 @@ const chemicalClassLookup = new Map<string, ClassificationAccumulator>();
 const psychoactiveClassLookup = new Map<string, ClassificationAccumulator>();
 
 substanceRecords.forEach((record) => {
+  if (isObscureRecord(record)) {
+    return;
+  }
   if (record.chemicalClasses && record.chemicalClasses.length > 0) {
     record.chemicalClasses.forEach((entry) => registerClassificationValue(chemicalClassLookup, entry, record));
   }
@@ -957,8 +968,6 @@ export function getCategoryDetail(categoryKey: string): CategoryDetail | null {
   };
 }
 
-const normalizeEffectSlug = (value: string): string => normalizeKey(value);
-
 const normalizeMechanismSlug = (value: string): string => normalizeKey(value);
 
 interface MechanismQualifierAccumulator {
@@ -997,6 +1006,9 @@ function parseMechanismEntryLabel(entry: string): { base: string; qualifier?: st
 }
 
 substanceRecords.forEach((record) => {
+  if (isObscureRecord(record)) {
+    return;
+  }
   const mechanismValue = resolveMechanismOfAction(record);
   if (!mechanismValue) {
     return;
@@ -1052,34 +1064,106 @@ substanceRecords.forEach((record) => {
   });
 });
 
-const effectMap = new Map<string, { name: string; records: SubstanceRecord[] }>();
+interface EffectAccumulator {
+  name: string;
+  records: Set<SubstanceRecord>;
+}
+
+function parseEffectEntryLabel(entry: string): { base: string; qualifier?: string } {
+  const trimmed = entry.trim();
+  if (trimmed.length === 0) {
+    return { base: trimmed };
+  }
+
+  const match = trimmed.match(/^(.*?)(?:\s*\(([^()]+)\))$/);
+  if (match) {
+    const base = match[1]?.trim() ?? "";
+    const qualifier = match[2]?.trim();
+    if (base.length > 0) {
+      return {
+        base,
+        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
+      };
+    }
+  }
+
+  return { base: trimmed };
+}
+
+const effectMap = new Map<string, EffectAccumulator>();
+const effectSlugAliasMap = new Map<string, string>();
 
 substanceRecords.forEach((record) => {
   const effects = record.content.subjectiveEffects ?? [];
+  const seenSlugs = new Set<string>();
+
   effects.forEach((effect) => {
-    const slug = normalizeEffectSlug(effect);
+    const trimmed = effect.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+
+    const { base } = parseEffectEntryLabel(trimmed);
+    const baseName = base.length > 0 ? base : trimmed;
+    const slug = normalizeKey(baseName);
     if (!slug) {
       return;
     }
 
+    const variantSlug = normalizeKey(trimmed);
+    if (variantSlug) {
+      if (!effectSlugAliasMap.has(variantSlug)) {
+        effectSlugAliasMap.set(variantSlug, slug);
+      }
+    }
+
+    if (!effectSlugAliasMap.has(slug)) {
+      effectSlugAliasMap.set(slug, slug);
+    }
+
     if (!effectMap.has(slug)) {
-      effectMap.set(slug, { name: effect, records: [] });
+      effectMap.set(slug, {
+        name: baseName,
+        records: new Set(),
+      });
     }
 
     const entry = effectMap.get(slug);
-    if (entry) {
-      entry.records.push(record);
+    if (!entry) {
+      return;
     }
+
+    if (trimmed === baseName && entry.name !== trimmed) {
+      entry.name = trimmed;
+    }
+
+    if (seenSlugs.has(slug)) {
+      return;
+    }
+
+    entry.records.add(record);
+    seenSlugs.add(slug);
   });
 });
+
+const resolveEffectSlug = (value: string): string => {
+  const normalized = normalizeKey(value);
+  return effectSlugAliasMap.get(normalized) ?? normalized;
+};
 
 export const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
   .map(([slug, entry]) => ({
     name: entry.name,
     slug,
-    total: entry.records.length,
+    total: entry.records.size,
   }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+  .sort((a, b) => {
+    if (a.total !== b.total) {
+      return b.total - a.total;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
 
 export function buildAutoMechanismIndexGroups(): DosageCategoryGroup[] {
   return Array.from(mechanismMap.entries())
@@ -1117,26 +1201,27 @@ export const mechanismIndexGroups = manualMechanismIndexGroups.length > 0
   : autoMechanismIndexGroups;
 
 export function getEffectDetail(effectSlug: string): EffectDetail | null {
-  const slug = normalizeEffectSlug(effectSlug);
+  const slug = resolveEffectSlug(effectSlug);
   const entry = effectMap.get(slug);
   if (!entry) {
     return null;
   }
 
-  const groups = buildCategoryGroupsForRecords(entry.records);
+  const records = Array.from(entry.records);
+  const groups = buildCategoryGroupsForRecords(records);
 
   return {
     definition: {
       name: entry.name,
       slug,
-      total: entry.records.length,
+      total: records.length,
     },
     groups,
   };
 }
 
 export function getEffectSummary(effectSlug: string): EffectSummary | undefined {
-  const slug = normalizeEffectSlug(effectSlug);
+  const slug = resolveEffectSlug(effectSlug);
   const entry = effectMap.get(slug);
   if (!entry) {
     return undefined;
@@ -1144,7 +1229,7 @@ export function getEffectSummary(effectSlug: string): EffectSummary | undefined 
   return {
     name: entry.name,
     slug,
-    total: entry.records.length,
+    total: entry.records.size,
   };
 }
 

@@ -55,9 +55,7 @@
             "2-me-dmt",
             "2-meo-dmt",
             "25b-nboh",
-            "25c-nb3ome",
             "25c-nboh",
-            "25cn-nboh",
             "25d-nbome",
             "25e-nboh",
             "25h-nbome",
@@ -68,7 +66,6 @@
             "25ip-nbome",
             "25p-nbome",
             "25t-2-nbome",
-            "25t-nbome",
             "2c-b",
             "2c-b-an",
             "2c-b-fly",
@@ -78,7 +75,6 @@
             "2c-d",
             "2c-e",
             "2c-ef",
-            "2c-f",
             "2c-g",
             "2c-i",
             "2c-ip",
@@ -87,10 +83,8 @@
             "2c-t-2",
             "2c-t-21",
             "2c-t-4",
-            "2c-t-4-nbome",
             "2c-t-7",
             "2c-t-7-nbome",
-            "2c-tfm",
             "3c-e",
             "3c-p",
             "4-aco-det",
@@ -99,26 +93,18 @@
             "4-aco-dpt",
             "4-ho-mcpt",
             "4-ho-met",
-            "4-ho-pipt",
             "4-meo-mipt",
-            "4-pro-dmt",
-            "4-pro-met",
-            "4c-d",
             "5-bromo-dmt",
-            "5-cl-amt",
             "5-meo-dalt",
             "5-meo-dibf",
             "5-meo-dipt",
             "5-meo-dpt",
             "5-meo-mipt",
-            "aem",
             "al-lad",
             "aleph",
             "aleph-2",
-            "aleph-6",
             "amt",
             "ayahuasca",
-            "boh-2c-b",
             "bromo-dragonfly",
             "bufotenin",
             "c30-nbome",
@@ -126,7 +112,6 @@
             "dmt",
             "dob",
             "doc",
-            "doef",
             "doet",
             "doi",
             "dom",
@@ -138,7 +123,6 @@
             "mem",
             "mescaline",
             "psilocybin-mushrooms",
-            "tma",
             "tma-2",
             "yopo"
           ]
@@ -189,8 +173,6 @@
           "label": "5-HT2B receptor agonist",
           "drugs": [
             "25b-nboh",
-            "25c-nb3ome",
-            "25cn-nboh",
             "25d-nbome",
             "25e-nboh",
             "25h-nbome",
@@ -201,11 +183,8 @@
             "25ip-nbome",
             "25p-nbome",
             "25t-2-nbome",
-            "25t-nbome",
             "2c-b-fly-nbome",
-            "2c-t-4-nbome",
             "2c-t-7-nbome",
-            "3-4-dichloromethylphenidate",
             "c30-nbome",
             "doi"
           ]
@@ -329,9 +308,7 @@
         {
           "key": "adrenergic-receptor-agonist",
           "label": "Adrenergic receptor agonist",
-          "drugs": [
-            "phenylephrine"
-          ]
+          "drugs": []
         },
         {
           "key": "affects-dopamine-acetylcholine-and-serotonin-receptors",
@@ -369,16 +346,12 @@
         {
           "key": "androgen-receptor-agonist",
           "label": "Androgen receptor agonist",
-          "drugs": [
-            "halodrol-50"
-          ]
+          "drugs": []
         },
         {
           "key": "anti-parkinsonian",
           "label": "anti-parkinsonian",
-          "drugs": [
-            "4c-d"
-          ]
+          "drugs": []
         },
         {
           "key": "approximately-1-85-times-more-selective-for-norepinephrine-than-dopamine",
@@ -390,9 +363,7 @@
         {
           "key": "aromatase-inhibitor",
           "label": "Aromatase inhibitor",
-          "drugs": [
-            "arimistane"
-          ]
+          "drugs": []
         },
         {
           "key": "at-high-doses-affects-norepinephrine-receptors",
@@ -430,23 +401,17 @@
         {
           "key": "blocks-dopamine-transporter",
           "label": "blocks dopamine transporter",
-          "drugs": [
-            "dichloropane"
-          ]
+          "drugs": []
         },
         {
           "key": "blocks-norepinephrine-transporter",
           "label": "blocks norepinephrine transporter",
-          "drugs": [
-            "dichloropane"
-          ]
+          "drugs": []
         },
         {
           "key": "blocks-serotonin-transporter",
           "label": "blocks serotonin transporter",
-          "drugs": [
-            "dichloropane"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -460,19 +425,7 @@
           "key": "cb1-and-cb2-receptor-full-agonist",
           "label": "CB1 and CB2 receptor full agonist",
           "drugs": [
-            "4f-mdmb-binaca",
-            "adb-inaca",
-            "adb-pinaca",
-            "adb-pinaca-isomer-2",
-            "adbica",
-            "akb-57",
-            "am-1248",
             "am-2201",
-            "am-2233",
-            "am-694",
-            "amb-chmica",
-            "amb-fubinaca",
-            "cb-13",
             "jwh-018"
           ]
         },
@@ -480,9 +433,7 @@
           "key": "cb1-and-cb2-receptor-partial-agonist",
           "label": "CB1 and CB2 receptor partial agonist",
           "drugs": [
-            "cannabis",
-            "cbl",
-            "cbn"
+            "cannabis"
           ]
         },
         {
@@ -524,15 +475,12 @@
         {
           "key": "central-nervous-system-depressant",
           "label": "Central nervous system depressant",
-          "drugs": [
-            "methocarbamol"
-          ]
+          "drugs": []
         },
         {
           "key": "combination-mechanism",
           "label": "Combination mechanism",
           "drugs": [
-            "fen-phen",
             "fenethylline"
           ]
         },
@@ -574,10 +522,7 @@
         {
           "key": "cytochrome-p450-3a4-inhibitor",
           "label": "Cytochrome P450 3A4 inhibitor",
-          "drugs": [
-            "diflucan",
-            "grapefruit"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -639,9 +584,7 @@
         {
           "key": "dopamine-receptor-agonist",
           "label": "Dopamine receptor agonist",
-          "drugs": [
-            "apomorphine"
-          ]
+          "drugs": []
         },
         {
           "key": "dopamine-releaser",
@@ -668,7 +611,6 @@
           "key": "dopamine-reuptake-inhibitor",
           "label": "Dopamine reuptake inhibitor",
           "drugs": [
-            "3-4-dichloromethylphenidate",
             "4f-eph",
             "diphenidine",
             "fluorolintane",
@@ -715,100 +657,70 @@
             "2-fma",
             "2-ma",
             "3-caf",
-            "3-cpm",
             "3-fea",
             "3-fluoroamphetamine",
-            "3-fluoromethamphetamine",
             "3-fluorophenmetrazine",
-            "4-methylephedrine",
             "4-mpm",
             "adderall",
             "adderall-xr",
             "amfecloral",
             "amphetamine",
-            "benzphetamine",
             "bzp",
-            "clobenzorex",
             "desoxyn",
             "dextroamphetamine",
-            "diethylpropion",
             "ephedrine",
             "lisdexamfetamine",
             "methamphetamine",
-            "methcathinone",
-            "phendimetrazine"
+            "methcathinone"
           ]
         },
         {
           "key": "dopamine-norepinephrine-reuptake-inhibitor",
           "label": "Dopamine-norepinephrine reuptake inhibitor",
           "drugs": [
-            "2-me-pihp",
             "2-methylethcathinone",
             "2-mmc",
             "2-nmc",
-            "3-cec",
             "3-cmc",
             "3-fluoro-pihp",
             "3-fmc",
             "3-mec",
             "3-methyl-4-fluoro-pyrrolidinovalerophenone",
             "3-mmc",
-            "3-4-dmmc",
             "3-4-trimethylenepentedrone",
-            "4-bromomethcathinone",
             "4-cbc",
             "4-chloroethcathinone",
             "4-chloromethcathinone",
-            "4-cl-ppp",
-            "4-eec",
             "4-emc",
             "4-epd",
             "4-fluoro-alpha-php",
             "4-fluoromethylphenidate",
             "4-fluoropentedrone",
             "4-fmc",
-            "4-me-neb",
-            "4-me-tmp",
             "4-mec",
-            "4-meppp",
             "4-mpd",
-            "4f-mabp",
-            "4f-ppp",
             "5-bpdi",
             "5-dbfpv",
-            "alpha-d2pv",
-            "alpha-pcyp",
             "alpha-php",
             "alpha-pihp",
             "alpha-pvp",
-            "benzedrone",
             "brephedrone",
             "bupropion",
             "butylone",
-            "cyputylone",
             "d2pm",
             "desoxypipradrol",
-            "dimethylpentylone",
-            "dipentylone",
-            "dmo-php",
-            "edmc",
             "eph",
             "eutylone",
             "hexedrone",
             "hexen",
             "isopropylphenidate",
-            "mazindol",
             "md-php",
             "md-pihp",
-            "md-prolintane",
             "mdpv",
             "methylenedioxypyrovalerone",
             "methylphenidate",
             "nep",
-            "pipradrol",
             "prolintane",
-            "pyrovalerone",
             "serdexmethylphenidate",
             "pyrrolidinopropiophenone"
           ]
@@ -845,9 +757,7 @@
         {
           "key": "estrogen-receptor-agonist",
           "label": "Estrogen receptor agonist",
-          "drugs": [
-            "estradiol"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -881,19 +791,17 @@
       "sections": [
         {
           "key": "g-protein-biased-opioid-receptor-agonist",
-          "label": "G-protein-biased \u03bc-opioid receptor agonist",
+          "label": "G-protein-biased μ-opioid receptor agonist",
           "drugs": [
             "7-oh",
             "kratom",
-            "mitragynine",
-            "mitragynine-pseudoindoxyl"
+            "mitragynine"
           ]
         },
         {
           "key": "g-protein-biased-opioid-receptor-agonists",
-          "label": "G-protein-biased \u03bc-opioid receptor agonists",
+          "label": "G-protein-biased μ-opioid receptor agonists",
           "drugs": [
-            "sr-14968",
             "sr-17018"
           ]
         },
@@ -929,7 +837,6 @@
             "amanita-muscaria",
             "amobarbital",
             "carisoprodol",
-            "gabob",
             "gaboxadol",
             "phenobarbital",
             "thiopental"
@@ -939,7 +846,6 @@
           "key": "gamma-aminobutyric-acid-type-a-receptor-positive-allosteric-modulator",
           "label": "Gamma-aminobutyric acid type A receptor positive allosteric modulator",
           "drugs": [
-            "3-hydroxyphenazepam",
             "adinazolam",
             "afloqualone",
             "alprazolam",
@@ -967,12 +873,10 @@
             "flubrotizolam",
             "fluclotizolam",
             "fluetizolam",
-            "flumazenil",
             "flunitrazepam",
             "flunitrazolam",
             "flurazepam",
             "flutoprazepam",
-            "fosazepam",
             "gidazepam",
             "halazepam",
             "kava",
@@ -991,11 +895,9 @@
             "prazepam",
             "pyrazolam",
             "ro5-4864",
-            "sl-164",
             "temazepam",
             "thiopental",
             "triazolam",
-            "zaleplon",
             "zolpidem",
             "zopiclone"
           ]
@@ -1006,12 +908,9 @@
           "drugs": [
             "1-4-butanediol",
             "4-fluorophenibut",
-            "aceburic-acid",
             "baclofen",
-            "gabob",
             "gamma-hydroxybutyric-acid",
             "gbl",
-            "gvl",
             "phenibut"
           ]
         },
@@ -1020,7 +919,6 @@
           "label": "Gamma-hydroxybutyrate receptor agonist",
           "drugs": [
             "1-4-butanediol",
-            "aceburic-acid",
             "gamma-hydroxybutyric-acid",
             "gbl"
           ]
@@ -1079,9 +977,7 @@
         {
           "key": "histamine-h1-receptor-antagonist",
           "label": "Histamine H1 receptor antagonist",
-          "drugs": [
-            "chlorpheniramine"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1094,10 +990,7 @@
         {
           "key": "imidazoline-receptor-agonist",
           "label": "Imidazoline receptor agonist",
-          "drugs": [
-            "agmatine",
-            "agmatine-sulfate"
-          ]
+          "drugs": []
         },
         {
           "key": "increased-acetylcholine-synthesis",
@@ -1151,10 +1044,7 @@
         {
           "key": "indirect-adrenergic-agonist",
           "label": "Indirect adrenergic agonist",
-          "drugs": [
-            "1-4-dmaa",
-            "dmha"
-          ]
+          "drugs": []
         }
       ]
     },
@@ -1177,14 +1067,12 @@
         },
         {
           "key": "kappa-opioid-receptor-antagonist",
-          "label": "\u03ba-opioid receptor antagonist",
+          "label": "κ-opioid receptor antagonist",
           "drugs": [
             "7-oh",
             "buprenorphine",
-            "butorphanol",
             "kratom",
-            "mitragynine",
-            "mitragynine-pseudoindoxyl"
+            "mitragynine"
           ]
         }
       ]
@@ -1276,8 +1164,6 @@
           "key": "monoamine-oxidase-b-inhibitor",
           "label": "Monoamine oxidase B inhibitor",
           "drugs": [
-            "4-fluorodeprenyl",
-            "rasagiline",
             "selegiline"
           ]
         },
@@ -1285,14 +1171,10 @@
           "key": "monoamine-oxidase-inhibitor",
           "label": "Monoamine oxidase inhibitor",
           "drugs": [
-            "5-cl-amt",
             "aleph-2",
-            "aleph-6",
             "amt",
             "bromo-dragonfly",
-            "moclobemide",
-            "phenelzine",
-            "tranylcypromine"
+            "moclobemide"
           ]
         },
         {
@@ -1338,21 +1220,13 @@
           ]
         },
         {
-          "key": "\u03bc-opioid-receptor-agonist",
-          "label": "\u03bc-Opioid receptor agonist",
+          "key": "μ-opioid-receptor-agonist",
+          "label": "μ-Opioid receptor agonist",
           "drugs": [
             "3-ho-pcp",
-            "4-methoxybutyrfentanyl",
-            "4cl-ibf",
             "6-mam",
-            "acetyldihydrocodeine",
             "acrylfentanyl",
-            "alfentanil",
-            "beta-meprodine",
-            "bezitramide",
             "buprenorphine",
-            "butorphanol",
-            "cychlorphine",
             "desomorphine",
             "dhc",
             "dpp-26",
@@ -1367,16 +1241,12 @@
             "isotonitazene",
             "isotonitazepyne",
             "lean",
-            "levomethorphan",
-            "lofentanil",
             "methadone",
             "metonitazene",
             "morphine",
-            "ndp",
             "o-dsmt",
             "oxycodone",
             "pronitazene",
-            "remifentanil",
             "tapentadol",
             "tramadol"
           ]
@@ -1385,40 +1255,29 @@
           "key": "multi-target-modulator",
           "label": "Multi-target modulator",
           "drugs": [
-            "cannabidiolic-acid",
-            "cbc",
-            "cbdv",
-            "cbdva",
-            "cbg",
-            "cbna"
+            "cannabidiolic-acid"
           ]
         },
         {
           "key": "multiple-receptor-antagonist",
           "label": "Multiple receptor antagonist",
           "drugs": [
-            "cyproheptadine",
             "flexeril",
             "olanzapine",
-            "quetiapine",
-            "ziprasidone"
+            "quetiapine"
           ]
         },
         {
           "key": "muscarinic-acetylcholine-receptor-agonist",
           "label": "Muscarinic acetylcholine receptor agonist",
-          "drugs": [
-            "arecoline"
-          ]
+          "drugs": []
         },
         {
           "key": "muscarinic-acetylcholine-receptor-antagonist",
           "label": "Muscarinic acetylcholine receptor antagonist",
           "drugs": [
-            "3-quinuclidinyl-benzilate",
             "atropine",
             "diphenhydramine",
-            "ea-3167",
             "pethidine",
             "scopolamine"
           ]
@@ -1465,10 +1324,7 @@
           "drugs": [
             "2-chloroephenidine",
             "2-fdck",
-            "2-meo-ketamine",
-            "2-tfmxp",
             "3-cl-pcp",
-            "3-eto-pcp",
             "3-fluoro-pcp",
             "3-ho-pce",
             "3-ho-pcp",
@@ -1480,27 +1336,17 @@
             "3-meo-pcpy",
             "3-4-md-pcp",
             "4-meo-pcp",
-            "4-mxp",
-            "acetorphine",
-            "agmatine",
-            "agmatine-sulfate",
-            "bdck",
-            "canket",
             "dck",
             "dextromethorphan",
             "diphenidine",
             "dmxe",
-            "dxm-hbr",
-            "dxm-polistirex",
             "ephenidine",
             "esketamine",
-            "etoxadrol",
             "fluorolintane",
             "fxe",
             "hxe",
             "ibogaine",
             "ketamine",
-            "levomethorphan",
             "memantine",
             "methadone",
             "methoxetamine",
@@ -1528,17 +1374,13 @@
         },
         {
           "key": "nociceptin-receptor-agonist-with-opioid-receptor-affinity",
-          "label": "Nociceptin receptor agonist with \u03bc-opioid receptor affinity",
-          "drugs": [
-            "spirochlorphine"
-          ]
+          "label": "Nociceptin receptor agonist with μ-opioid receptor affinity",
+          "drugs": []
         },
         {
           "key": "nootropic",
           "label": "Nootropic",
-          "drugs": [
-            "9-me-bc"
-          ]
+          "drugs": []
         },
         {
           "key": "norepinephrine-releaser",
@@ -1572,7 +1414,6 @@
           "key": "norepinephrine-reuptake-inhibitor",
           "label": "Norepinephrine reuptake inhibitor",
           "drugs": [
-            "3-4-dichloromethylphenidate",
             "4f-eph",
             "methylone",
             "mexedrone",
@@ -1628,9 +1469,7 @@
         {
           "key": "potassium-channel-opener",
           "label": "Potassium channel opener",
-          "drugs": [
-            "flupirtine"
-          ]
+          "drugs": []
         },
         {
           "key": "potent-mao-a-inhibitor",
@@ -1691,16 +1530,12 @@
         {
           "key": "prodrug-of-dihydromorphine",
           "label": "prodrug of dihydromorphine",
-          "drugs": [
-            "acetyldihydrocodeine"
-          ]
+          "drugs": []
         },
         {
           "key": "prodrug-of-levorphanol",
           "label": "prodrug of levorphanol",
-          "drugs": [
-            "levomethorphan"
-          ]
+          "drugs": []
         },
         {
           "key": "prodrug-of-lsd",
@@ -1748,9 +1583,7 @@
         {
           "key": "prodrug-of-r-4618",
           "label": "prodrug of R-4618",
-          "drugs": [
-            "bezitramide"
-          ]
+          "drugs": []
         },
         {
           "key": "prodrug-to-muscimol",
@@ -1822,8 +1655,7 @@
           "label": "Serotonin receptor agonist",
           "drugs": [
             "4-fluorophenylpiperazine",
-            "4-fpp",
-            "mefloquine"
+            "4-fpp"
           ]
         },
         {
@@ -1844,7 +1676,6 @@
           "key": "serotonin-releasing-agent",
           "label": "Serotonin releasing agent",
           "drugs": [
-            "4-ba",
             "4-fa",
             "4-fea",
             "4-fma",
@@ -1852,13 +1683,8 @@
             "4-methylthioamphetamine",
             "5-adpi",
             "butylone",
-            "cyputylone",
-            "dimethylpentylone",
-            "dipentylone",
             "dmt",
-            "edmc",
             "eutylone",
-            "fenfluramine",
             "mcpp",
             "met",
             "mexedrone"
@@ -1876,8 +1702,7 @@
           "label": "Serotonin reuptake and receptor modulators",
           "drugs": [
             "mirtazapine",
-            "trazodone",
-            "vilazodone"
+            "trazodone"
           ]
         },
         {
@@ -1888,11 +1713,8 @@
             "3-meo-pcp",
             "4-ho-dipt",
             "dextromethorphan",
-            "dxm-hbr",
-            "dxm-polistirex",
             "ibogaine",
             "mcpp",
-            "mefloquine",
             "methoxetamine",
             "methylone",
             "mexedrone",
@@ -1910,17 +1732,10 @@
           "key": "serotonin-dopamine-norepinephrine-releasing-agent",
           "label": "Serotonin-dopamine-norepinephrine releasing agent",
           "drugs": [
-            "2-bromo-4-5-mdma",
-            "2-mapb",
-            "3-mar",
-            "4-ca",
-            "4-cl-mar",
             "4-cma",
-            "4-mar",
             "4-mmc",
             "4-4-dimethylaminorex",
             "4-fluoro-4-methylaminorex",
-            "4b-mar",
             "5-apb",
             "5-eapb",
             "5-iai",
@@ -1928,11 +1743,8 @@
             "5-mapdb",
             "6-apb",
             "aminorex",
-            "fenozolone",
-            "fluminorex",
             "mda",
             "mdma",
-            "methylenedioxyphenmetrazine",
             "pma"
           ]
         },
@@ -1940,12 +1752,8 @@
           "key": "serotonin-dopamine-norepinephrine-reuptake-inhibitor",
           "label": "Serotonin-dopamine-norepinephrine reuptake inhibitor",
           "drugs": [
-            "3-3-dpcb",
-            "cocaethylene",
             "cocaine",
-            "naphyrone",
-            "sibutramine",
-            "tesofensine"
+            "naphyrone"
           ]
         },
         {
@@ -1959,7 +1767,6 @@
           "key": "serotonin-norepinephrine-reuptake-inhibitor",
           "label": "serotonin-norepinephrine reuptake inhibitor",
           "drugs": [
-            "levomethorphan",
             "methadone",
             "tramadol"
           ]
@@ -1975,9 +1782,7 @@
         {
           "key": "serotonin-norepinephrine-dopamine-reuptake-inhibitor",
           "label": "Serotonin-norepinephrine-dopamine reuptake inhibitor",
-          "drugs": [
-            "dichloropane"
-          ]
+          "drugs": []
         },
         {
           "key": "sigma-receptor-agonist",
@@ -2003,9 +1808,7 @@
         {
           "key": "sodium-channel-blockers",
           "label": "Sodium channel blockers",
-          "drugs": [
-            "lamotrigine"
-          ]
+          "drugs": []
         },
         {
           "key": "stimulant",
@@ -2016,15 +1819,8 @@
             "2-mppp",
             "2-pa",
             "2-pta",
-            "3-4-cfpp",
             "4-benzylpiperidine",
-            "5-aedb",
             "cyclazodone",
-            "dmnpc",
-            "mdmpea",
-            "methyl-k",
-            "monotropa-uniflora",
-            "n-methyl-cyclazodone",
             "pemoline"
           ]
         },
@@ -2142,7 +1938,6 @@
           "label": "Voltage-gated calcium channel alpha-2-delta subunit ligand",
           "drugs": [
             "gabapentin",
-            "mirogabalin",
             "phenibut",
             "pregabalin"
           ]
