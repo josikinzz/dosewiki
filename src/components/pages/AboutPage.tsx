@@ -96,7 +96,7 @@ export const AboutPage = memo(function AboutPage() {
       <img
         src={logoDataUri}
         alt="dose.wiki logo"
-        className="mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
+        className="logo mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
         draggable={false}
       />
       <PageHeader
