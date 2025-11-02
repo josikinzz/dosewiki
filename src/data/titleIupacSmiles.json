@@ -1,0 +1,2930 @@
+{
+  "__comment": "Array of drug entries with title, IUPAC_name, and resolved SMILES (string or components object).",
+  "drugs": [
+    {
+      "title": "3-MeO-PCP",
+      "iupac": "1-[1-(3-Methoxyphenyl)cyclohexyl]piperidine",
+      "smiles": "COC=1C=C(C=CC1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "Methcathinone",
+      "iupac": "(RS)-2-(methylamino)-1-phenyl-propan-1-one",
+      "smiles": "CNC(C(=O)C1=CC=CC=C1)C"
+    },
+    {
+      "title": "Trazodone",
+      "iupac": "2-{3-[4-(3-chlorophenyl)piperazin-1-yl]propyl}-2H,3H-[1,2,4]triazolo[4,3-a]pyridin-3-one",
+      "smiles": "ClC=1C=C(C=CC1)N1CCN(CC1)CCCN1N=C2N(C=CC=C2)C1=O"
+    },
+    {
+      "title": "Lithium",
+      "iupac": "Lithium",
+      "smiles": "[Li]"
+    },
+    {
+      "title": "Bromazolam",
+      "iupac": "8-bromo-6-phenyl-1-methyl-4H-benzo[f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=CC=CC=C3)C1"
+    },
+    {
+      "title": "Modafinil",
+      "iupac": "2-[(Diphenylmethyl)sulfinyl]acetamide",
+      "smiles": "C1(=CC=CC=C1)C(S(=O)CC(=O)N)C1=CC=CC=C1"
+    },
+    {
+      "title": "Adrafinil",
+      "iupac": "2-benzhydrylsulfinyl-N-hydroxyacetamide",
+      "smiles": "C(C1=CC=CC=C1)(C1=CC=CC=C1)S(=O)CC(=O)NO"
+    },
+    {
+      "title": "Cocaethylene",
+      "iupac": "Ethyl (1R,2R,3S,5S)-3-(benzoyloxy)-8-methyl-8-azabicyclo[3.2.1]octane-2-carboxylate",
+      "smiles": "C(C1=CC=CC=C1)(=O)O[C@@H]1[C@@H]([C@H]2CC[C@@H](C1)N2C)C(=O)OCC"
+    },
+    {
+      "title": "Dextromethorphan",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "O-DSMT",
+      "iupac": "3-(2-((dimethylamino)methyl)-1-hydroxycyclohexyl)phenol",
+      "smiles": "CN(C)CC1C(CCCC1)(O)C=1C=C(C=CC1)O"
+    },
+    {
+      "title": "Baclofen",
+      "iupac": "4-amino-3-(4-chlorophenyl)butanoic acid",
+      "smiles": "NCC(CC(=O)O)C1=CC=C(C=C1)Cl"
+    },
+    {
+      "title": "ALEPH",
+      "iupac": "1-[2,5-dimethoxy-4-(methylsulfanyl)phenyl]propan-2-amine",
+      "smiles": "COC1=C(C=C(C(=C1)SC)OC)CC(C)N"
+    },
+    {
+      "title": "3-MMC",
+      "iupac": "2-(methylamino)-1-(3-methylphenyl)propan-1-one",
+      "smiles": "CNC(C(=O)C1=CC(=CC=C1)C)C"
+    },
+    {
+      "title": "Phenibut",
+      "iupac": "4-amino-3-phenylbutanoic acid",
+      "smiles": "NCC(CC(=O)O)C1=CC=CC=C1"
+    },
+    {
+      "title": "Flubromazolam",
+      "iupac": "8-bromo-6-(2-fluorophenyl)-1-methyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=C(C=CC=C3)F)C1"
+    },
+    {
+      "title": "Oxycodone",
+      "iupac": "(5R,9R,13S,14S)-4,5-epoxy-14-hydroxy-3-methoxy-17-methylmorphinan-6-one",
+      "smiles": "O[C@@]12CCC([C@H]3[C@]14C=1C(=C(C=CC1C[C@H]2N(CC4)C)OC)O3)=O"
+    },
+    {
+      "title": "Methylphenidate",
+      "iupac": "Methyl phenyl(piperidin-2-yl)acetate",
+      "smiles": "C1(=CC=CC=C1)C(C(=O)OC)C1NCCCC1"
+    },
+    {
+      "title": "5-APB",
+      "iupac": "1-(1-benzofuran-5-yl)propan-2-amine",
+      "smiles": "O1C=CC2=C1C=CC(=C2)CC(C)N"
+    },
+    {
+      "title": "Mescaline",
+      "iupac": "2-(3,4,5-Trimethoxyphenyl)ethanamine",
+      "smiles": "COC=1C=C(C=C(C1OC)OC)CCN"
+    },
+    {
+      "title": "5-MeO-DMT",
+      "iupac": "2-(5-methoxy-1H-indol-3-yl)-N,N-dimethylethanamine",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C)C"
+    },
+    {
+      "title": "Clonazepam",
+      "iupac": "5-(2-chlorophenyl)-7-nitro-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC1=C(C=CC=C1)C1=NCC(NC2=C1C=C(C=C2)[N+](=O)[O-])=O"
+    },
+    {
+      "title": "MDA",
+      "iupac": "1-(1,3-benzodioxol-5-yl)propan-2-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(C)N"
+    },
+    {
+      "title": "Hydrocodone",
+      "iupac": "4,5α-epoxy-3-methoxy-17-methylmorphinan-6-one",
+      "smiles": "COC=1C=CC=2C[C@@H]3[C@@H]4CCC([C@H]5[C@@]4(C2C1O5)CCN3C)=O"
+    },
+    {
+      "title": "Phenobarbital",
+      "iupac": "5-ethyl-5-phenyl-2,4,6(1H,3H,5H)-pyrimidinetrione",
+      "smiles": "C(C)C1(C(NC(NC1=O)=O)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "Triazolam",
+      "iupac": "8-chloro-6-(2-chlorophenyl)-1-methyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=C(C=CC=C3)Cl)C1"
+    },
+    {
+      "title": "4-MMC",
+      "iupac": "2-(methylamino)-1-(4-methylphenyl)propan-1-one",
+      "smiles": "CNC(C(=O)C1=CC=C(C=C1)C)C"
+    },
+    {
+      "title": "3-Fluoromethamphetamine",
+      "iupac": "1-(3-Fluorophenyl)-N-methylpropan-2-amine",
+      "smiles": "FC=1C=C(C=CC1)CC(C)NC"
+    },
+    {
+      "title": "Mirogabalin",
+      "iupac": "(1R,5S,6S)-6-(aminomethyl)-3-ethyl-bicyclo(3.2.0)hept-3-ene-6-acetic acid",
+      "smiles": "NC[C@]1([C@@H]2C=C(C[C@@H]2C1)CC)CC(=O)O"
+    },
+    {
+      "title": "4-HO-MET",
+      "iupac": "3-{2-[Ethyl(methyl)amino]ethyl}-1H-indol-4-ol",
+      "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)C"
+    },
+    {
+      "title": "Methamphetamine",
+      "iupac": "N-Methyl-1-phenylpropan-2-amine",
+      "smiles": "CNC(CC1=CC=CC=C1)C"
+    },
+    {
+      "title": "Serdexmethylphenidate",
+      "iupac": "3-{[(1S)-1-carboxy-2-hydroxyethyl]carbamoyl}-1-{[(2R)-2-[(1R)-2-methoxy-2-oxo-1-phenylethyl]piperidine-1-carbonyloxy]methyl}pyridin-1-ium",
+      "smiles": "C(=O)(O)[C@H](CO)NC(=O)C=1C=[N+](C=CC1)COC(=O)N1[C@H](CCCC1)[C@H](C(=O)OC)C1=CC=CC=C1"
+    },
+    {
+      "title": "Acetorphine",
+      "iupac": "(1R,2R,6S,14R,15R,19R)-19-[(2R)-2-hydroxypentan-2-yl]-15-methoxy-3-methyl-13-oxa-3-azahexacyclo[13.2.2.12,8.01,6.06,14.07,12]icosa-7,9,11,16-tetraen-11-yl acetate",
+      "smiles": "C(C)(=O)OC=1C=CC2=C3[C@]45CCN([C@@H]([C@]46C=C[C@]([C@@H]5OC13)([C@H](C6)[C@@](C)(CCC)O)OC)C2)C"
+    },
+    {
+      "title": "Apomorphine",
+      "iupac": "(6aR)-6-Methyl-5,6,6a,7-tetrahydro-4H-dibenzo[de,g]quinoline-10,11-diol",
+      "smiles": "CN1CCC=2C3=C(C4=C(C[C@@H]13)C=CC(=C4O)O)C=CC2"
+    },
+    {
+      "title": "EA-3167",
+      "iupac": "1-Azabicyclo[2.2.2]oct-3-yl cyclopentyl(hydroxy)phenylacetate",
+      "smiles": "C1(CCCC1)C(C(=O)OC1CN2CCC1CC2)(C2=CC=CC=C2)O"
+    },
+    {
+      "title": "3-Quinuclidinyl benzilate",
+      "iupac": "1-azabicyclo[2.2.2]octan-3-yl hydroxy(diphenyl)acetate",
+      "smiles": "OC(C(=O)OC1CN2CCC1CC2)(C2=CC=CC=C2)C2=CC=CC=C2"
+    },
+    {
+      "title": "Remifentanil",
+      "iupac": "methyl 1-(3-methoxy-3-oxopropyl)-4-[phenyl(propionyl)amino]piperidine-4-carboxylate",
+      "smiles": "COC(CCN1CCC(CC1)(C(=O)OC)N(C(CC)=O)C1=CC=CC=C1)=O"
+    },
+    {
+      "title": "25I-NBOMe",
+      "iupac": "2-(4-Iodo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+      "smiles": "IC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC"
+    },
+    {
+      "title": "4-CA",
+      "iupac": "1-(4-chlorophenyl)propan-2-amine",
+      "smiles": "ClC1=CC=C(C=C1)CC(C)N"
+    },
+    {
+      "title": "4-BA",
+      "iupac": "1-(4-bromophenyl)propan-2-amine",
+      "smiles": "BrC1=CC=C(C=C1)CC(C)N"
+    },
+    {
+      "title": "Tranylcypromine",
+      "iupac": "trans-2-phenylcyclopropanamine",
+      "smiles": "C1(=CC=CC=C1)[C@H]1[C@@H](C1)N"
+    },
+    {
+      "title": "Piracetam",
+      "iupac": "2-(2-Oxopyrrolidin-1-yl)acetamide",
+      "smiles": "O=C1N(CCC1)CC(=O)N"
+    },
+    {
+      "title": "Oxiracetam",
+      "iupac": "2-(4-hydroxy-2-oxopyrrolidin-1-yl)acetamide",
+      "smiles": "OC1CC(N(C1)CC(=O)N)=O"
+    },
+    {
+      "title": "Heroin",
+      "iupac": "(5α,6α)-7,8-Didehydro-4,5-epoxy-17-methylmorphinan-3,6-diol diacetate",
+      "smiles": "C(C)(=O)OC=1C=CC=2C[C@@H]3[C@@H]4C=C[C@@H]([C@H]5[C@@]4(C2C1O5)CCN3C)OC(C)=O"
+    },
+    {
+      "title": "Oxazepam",
+      "iupac": "7-chloro-3-hydroxy-5-phenyl-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NC(C(N2)=O)O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Alprazolam",
+      "iupac": "8-Chloro-1-methyl-6-phenyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=CC=CC=C3)C1"
+    },
+    {
+      "title": "GBL",
+      "iupac": "oxolan-2-one",
+      "smiles": "O1C(CCC1)=O"
+    },
+    {
+      "title": "DXM HBr",
+      "iupac": "(4bS,8aR,9S)-3-Methoxy-11-methyl-6,7,8,8a,9,10-hexahydro-5H-9,4b-(epiminoethano)phenanthrene",
+      "smiles": "COC=1C=CC=2C[C@H]3[C@@H]4CCCC[C@]4(C2C1)CCN3C"
+    },
+    {
+      "title": "4-Me-TMP",
+      "iupac": "Methyl (2R)-(4-methylphenyl)[(2R)-2-piperidinyl]acetate",
+      "smiles": "CC1=CC=C(C=C1)[C@@H](C(=O)OC)[C@@H]1NCCCC1"
+    },
+    {
+      "title": "Ketamine",
+      "iupac": "2-(2-chlorophenyl)-2-(methylamino)cyclohexan-1-one",
+      "smiles": "ClC1=C(C=CC=C1)C1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "Fentanyl",
+      "iupac": "N-phenyl-N-[1-(2-phenylethyl)piperidin-4-yl]propanamide",
+      "smiles": "C1(=CC=CC=C1)N(C(CC)=O)C1CCN(CC1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "4-Fluorophenibut",
+      "iupac": "4-Amino-3-(4-fluorophenyl)butanoic acid",
+      "smiles": "NCC(CC(=O)O)C1=CC=C(C=C1)F"
+    },
+    {
+      "title": "Cyclazodone",
+      "iupac": "2-(Cyclopropylamino)-5-phenyl-1,3-oxazol-4(5H)-one",
+      "smiles": "C1(CC1)NC=1OC(C(N1)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "Pyrazolam",
+      "iupac": "8-bromo-1-methyl-6-(pyridin-2-yl)-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=NC=CC=C3)C1"
+    },
+    {
+      "title": "4-AcO-DMT",
+      "iupac": "3-[2-(Dimethylamino)ethyl]-1H-indol-4-yl acetate",
+      "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C)C"
+    },
+    {
+      "title": "Clobromazolam",
+      "iupac": "8-bromo-6-(2-chlorophenyl)-1-methyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=C(C=CC=C3)Cl)C1"
+    },
+    {
+      "title": "alpha-PiHP",
+      "iupac": "4-methyl-1-phenyl-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "CC(CC(C(=O)C1=CC=CC=C1)N1CCCC1)C"
+    },
+    {
+      "title": "Canket",
+      "iupac": "2-(2-fluorophenyl)-2-(ethylamino)cyclohexan-1-one",
+      "smiles": "FC1=C(C=CC=C1)C1(C(CCCC1)=O)NCC"
+    },
+    {
+      "title": "FXE",
+      "iupac": "2-(ethylamino)-2-(3-fluorophenyl)cyclohexan-1-one",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC(=CC=C1)F"
+    },
+    {
+      "title": "Tiletamine",
+      "iupac": "2-(ethylamino)-2-thiophen-2-ylcyclohexan-1-one",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C=1SC=CC1"
+    },
+    {
+      "title": "2C-B",
+      "iupac": "2-(4-Bromo-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "BrC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "alpha-PVP",
+      "iupac": "1-phenyl-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "C1(=CC=CC=C1)C(C(CCC)N1CCCC1)=O"
+    },
+    {
+      "title": "BZP",
+      "iupac": "1-benzylpiperazine",
+      "smiles": "C(C1=CC=CC=C1)N1CCNCC1"
+    },
+    {
+      "title": "MK-801",
+      "iupac": "5-methyl-10,11-dihydro-5H-dibenzo[a,d]cyclohepten-5,10-imine",
+      "smiles": "CC12C3=CC=CC=C3CC(N1)C4=CC=CC=C24"
+    },
+    {
+      "title": "Diphenidine",
+      "iupac": "1-(1,2-diphenylethyl)piperidine",
+      "smiles": "C1(=CC=CC=C1)C(CC1=CC=CC=C1)N1CCCCC1"
+    },
+    {
+      "title": "2C-B-FLY",
+      "iupac": "2-(8-bromo-2,3,6,7-tetrahydrofuro[2,3-f][1]benzofuran-4-yl)ethanamine",
+      "smiles": "BrC1=C2C(=C(C3=C1CCO3)CCN)CCO2"
+    },
+    {
+      "title": "1P-LSD",
+      "iupac": "(6aR,9R)-N,N-diethyl-7-methyl-4-propanoyl-6,6a,8,9-tetrahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4N(C3)C(CC)=O)C)CC"
+    },
+    {
+      "title": "1cP-LSD",
+      "iupac": "(6aR,9R)-4-cyclopropionyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "CCN(CC)C(=O)[C@H]1CN(C)[C@@H]2Cc3cn(C(=O)C4CC4)c5cccc(C2=C1)c35"
+    },
+    {
+      "title": "1P-ETH-LAD",
+      "iupac": "(6aR,9R)-4-Propionyl-N,N-diethyl-7-ethyl-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(CC)(=O)N1C=C2C3=C(C4=C[C@H](CN([C@@H]4C2)CC)C(=O)N(CC)CC)C=CC=C13"
+    },
+    {
+      "title": "2C-B-AN",
+      "iupac": "2-{[2-(4-bromo-2,5-dimethoxyphenyl)ethyl]amino}-2-phenylacetonitrile",
+      "smiles": "BrC1=CC(=C(C=C1OC)CCNC(C#N)C1=CC=CC=C1)OC"
+    },
+    {
+      "title": "2C-E",
+      "iupac": "2-(4-ethyl-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "C(C)C1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "Bromazepam",
+      "iupac": "7-bromo-5-pyridin-2-yl-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=NC=CC=C2)C1"
+    },
+    {
+      "title": "Diazepam",
+      "iupac": "7-chloro-1-methyl-5-phenyl-3H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2C)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Midazolam",
+      "iupac": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-imidazo[1,5-a][1,4]benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NC3)C)C3=C(C=CC=C3)F)C1"
+    },
+    {
+      "title": "Etizolam",
+      "iupac": "4-(2-Chlorophenyl)-2-ethyl-9-methyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "ClC1=C(C=CC=C1)C1=NCC=2N(C3=C1C=C(S3)CC)C(=NN2)C"
+    },
+    {
+      "title": "Prazepam",
+      "iupac": "7-chloro-1-(cyclopropylmethyl)-5-phenyl-2,3-dihydro-1H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2CC2CC2)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Diclazepam",
+      "iupac": "7-chloro-5-(2-chlorophenyl)-1-methyl-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2C)=O)C2=C(C=CC=C2)Cl)C1"
+    },
+    {
+      "title": "Phenazepam",
+      "iupac": "7-Bromo-5-(2-chlorophenyl)-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1"
+    },
+    {
+      "title": "Pregabalin",
+      "iupac": "(S)-3-(aminomethyl)-5-methylhexanoic acid",
+      "smiles": "NC[C@H](CC(=O)O)CC(C)C"
+    },
+    {
+      "title": "Clobazam",
+      "iupac": "7-Chloro-1-methyl-5-phenyl-1H-1,5-benzodiazepine-2,4(3H,5H)-dione",
+      "smiles": "ClC1=CC2=C(N(C(CC(N2C2=CC=CC=C2)=O)=O)C)C=C1"
+    },
+    {
+      "title": "Brotizolam",
+      "iupac": "2-Bromo-4-(2-chlorophenyl)-9-methyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "BrC1=CC=2C(=NCC=3N(C2S1)C(=NN3)C)C3=C(C=CC=C3)Cl"
+    },
+    {
+      "title": "Cocaine",
+      "iupac": "Methyl (1R,2R,3S,5S)-3-(benzoyloxy)-8-methyl-8-azabicyclo[3.2.1]octane-2-carboxylate",
+      "smiles": "C(C1=CC=CC=C1)(=O)O[C@@H]1[C@@H]([C@H]2CC[C@@H](C1)N2C)C(=O)OC"
+    },
+    {
+      "title": "Flunitrazepam",
+      "iupac": "5-(2-fluorophenyl)-1-methyl-7-nitro-3H-1,4-benzodiazepin-2-one",
+      "smiles": "FC1=C(C=CC=C1)C1=NCC(N(C2=C1C=C(C=C2)[N+](=O)[O-])C)=O"
+    },
+    {
+      "title": "Chlordiazepoxide",
+      "iupac": "7-Chloro-N-methyl-5-phenyl-3H-1,4-benzodiazepin-2-amine 4-oxide",
+      "smiles": "ClC=1C=CC2=C(C(=[N+](CC(=N2)NC)[O-])C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Flubromazepam",
+      "iupac": "7-Bromo-5-(2-fluorophenyl)-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)F)C1"
+    },
+    {
+      "title": "Amphetamine",
+      "iupac": "1-Phenylpropan-2-amine",
+      "smiles": "C1(=CC=CC=C1)CC(C)N"
+    },
+    {
+      "title": "AMT",
+      "iupac": "1-(1H-indol-3-yl)propan-2-amine",
+      "smiles": "N1C=C(C2=CC=CC=C12)CC(C)N"
+    },
+    {
+      "title": "DOM",
+      "iupac": "1-(2,5-Dimethoxy-4-methylphenyl)-2-aminopropane",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CC(C)N"
+    },
+    {
+      "title": "2C-I",
+      "iupac": "2-(4-Iodo-2,5-dimethoxyphenyl)ethan-1-amine",
+      "smiles": "IC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "Flutoprazepam",
+      "iupac": "7-chloro-1-(cyclopropylmethyl)-5-(2-fluorophenyl)-3H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2CC2CC2)=O)C2=C(C=CC=C2)F)C1"
+    },
+    {
+      "title": "Phenelzine",
+      "iupac": "(2-phenylethyl)hydrazine",
+      "smiles": "C1(=CC=CC=C1)CCNN"
+    },
+    {
+      "title": "Selegiline",
+      "iupac": "(2R)-N-methyl-1-phenyl-N-prop-2-ynylpropan-2-amine",
+      "smiles": "CN([C@@H](CC1=CC=CC=C1)C)CC#C"
+    },
+    {
+      "title": "4-Fluorodeprenyl",
+      "iupac": "N-(1-(4-fluorophenyl)propan-2-yl)-N-methylprop-2-yn-1-amine",
+      "smiles": "FC1=CC=C(C=C1)CC(C)N(CC#C)C"
+    },
+    {
+      "title": "4-FMA",
+      "iupac": "1-(4-Fluorophenyl)-N-methylpropan-2-amine",
+      "smiles": "FC1=CC=C(C=C1)CC(C)NC"
+    },
+    {
+      "title": "2-AI",
+      "iupac": "2,3-dihydro-1H-inden-2-amine",
+      "smiles": "C1C(CC2=CC=CC=C12)N"
+    },
+    {
+      "title": "4-Fluoromethylphenidate",
+      "iupac": "Methyl 2-(4-fluorophenyl)-2-(piperidin-2-yl)acetate",
+      "smiles": "FC1=CC=C(C=C1)C(C(=O)OC)C1NCCCC1"
+    },
+    {
+      "title": "Hydromorphone",
+      "iupac": "4,5α-epoxy-3-hydroxy-17-methylmorphinan-6-one",
+      "smiles": "OC=1C=CC=2C[C@@H]3[C@@H]4CCC([C@H]5[C@@]4(C2C1O5)CCN3C)=O"
+    },
+    {
+      "title": "Dimenhydrinate",
+      "iupac": "8-chloro-1,3-dimethyl-3,7-dihydro-1H-purine-2,6-dione - 2-(diphenylmethoxy)-N,N-dimethylethanamine (1:1)",
+      "smiles": "C1(=CC=CC=C1)C(OCCN(C)C)C1=CC=CC=C1.ClC1=NC=2N(C(N(C(C2N1)=O)C)=O)C"
+    },
+    {
+      "title": "Gamma-hydroxybutyric acid",
+      "iupac": "4-Hydroxybutanoic acid",
+      "smiles": "OCCCC(=O)O"
+    },
+    {
+      "title": "Dextroamphetamine",
+      "iupac": "(2S)-1-phenylpropan-2-amine",
+      "smiles": "C1(=CC=CC=C1)C[C@H](C)N"
+    },
+    {
+      "title": "Desoxyn",
+      "iupac": "N-Methyl-1-phenylpropan-2-amine",
+      "smiles": "CNC(CC1=CC=CC=C1)C"
+    },
+    {
+      "title": "4-MTA",
+      "iupac": "1-(4-methylsulfanylphenyl)propan-2-amine",
+      "smiles": "CSC1=CC=C(C=C1)CC(C)N"
+    },
+    {
+      "title": "3-FA",
+      "iupac": "1-(3-Fluorophenyl)-2-propanamine",
+      "smiles": "FC=1C=C(C=CC1)CC(C)N"
+    },
+    {
+      "title": "PMA",
+      "iupac": "1-(4-methoxyphenyl)propan-2-amine",
+      "smiles": "COC1=CC=C(C=C1)CC(C)N"
+    },
+    {
+      "title": "4-FEA",
+      "iupac": "N-ethyl-4-fluoro-alpha-methyl-benzeneethanamine",
+      "smiles": "C(C)NC(CC1=CC=C(C=C1)F)C"
+    },
+    {
+      "title": "EPH",
+      "iupac": "Ethyl 2-phenyl-2-(piperidin-2-yl)acetate",
+      "smiles": "C1(=CC=CC=C1)C(C(=O)OCC)C1NCCCC1"
+    },
+    {
+      "title": "Hexen",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Flunitrazolam",
+      "iupac": "6-(2-fluorophenyl)-1-methyl-8-nitro-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "FC1=C(C=CC=C1)C1=NCC=2N(C3=C1C=C(C=C3)[N+](=O)[O-])C(=NN2)C"
+    },
+    {
+      "title": "Mitragynine Pseudoindoxyl",
+      "iupac": "methyl (E)-2-[(1S,6S,7S,8aS)-6-ethyl-4'-methoxy-3'-oxo-spiro[3,5,6,7,8,8a-hexahydro-2H-indolizine-1,2'-indoline]-7-yl]-3-methoxy-prop-2-enoate",
+      "smiles": "C(C)[C@@H]1CN2CC[C@]3(NC4=CC=CC(=C4C3=O)OC)[C@@H]2C[C@@H]1/C(/C(=O)OC)=C\\OC"
+    },
+    {
+      "title": "Tramadol",
+      "iupac": "2-[(dimethylamino)methyl]-1-(3-methoxyphenyl)cyclohexan-1-ol",
+      "smiles": "CN(C)CC1C(CCCC1)(O)C1=CC(=CC=C1)OC"
+    },
+    {
+      "title": "Morphine",
+      "iupac": "(5α,6α)-7,8-didehydro-4,5-epoxy-17-methylmorphinan-3,6-diol",
+      "smiles": "CN1[C@H]2[C@@H]3C=C[C@@H]([C@H]4[C@@]3(C=3C(=C(C=CC3C2)O)O4)CC1)O"
+    },
+    {
+      "title": "alpha-PHP",
+      "iupac": "1-Phenyl-2-(pyrrolidin-1-yl)hexan-1-one",
+      "smiles": "C1(=CC=CC=C1)C(C(CCCC)N1CCCC1)=O"
+    },
+    {
+      "title": "IPPH",
+      "iupac": "Propan-2-yl 2-phenyl-2-(piperidin-2-yl)acetate",
+      "smiles": "C1(=CC=CC=C1)C(C(=O)OC(C)C)C1NCCCC1"
+    },
+    {
+      "title": "Nitrazepam",
+      "iupac": "7-Nitro-5-phenyl-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "[N+](=O)([O-])C=1C=CC2=C(C(=NCC(N2)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Nimetazepam",
+      "iupac": "1-methyl-7-nitro-5-phenyl-3H-1,4-benzodiazepin-2-one",
+      "smiles": "CN1C(CN=C(C2=C1C=CC(=C2)[N+](=O)[O-])C2=CC=CC=C2)=O"
+    },
+    {
+      "title": "Temazepam",
+      "iupac": "7-chloro-1,3-dihydro-3-hydroxy-1-methyl-5-phenyl-2H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NC(C(N2C)=O)O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Pipradrol",
+      "iupac": "Diphenyl(piperidin-2-yl)methanol",
+      "smiles": "C1(=CC=CC=C1)C(O)(C1NCCCC1)C1=CC=CC=C1"
+    },
+    {
+      "title": "Desoxypipradrol",
+      "iupac": "2-benzhydrylpiperidine",
+      "smiles": "C(C1=CC=CC=C1)(C1=CC=CC=C1)C1NCCCC1"
+    },
+    {
+      "title": "Carisoprodol",
+      "iupac": "[2-(Carbamoyloxymethyl)-2-methylpentyl] N-propan-2-ylcarbamate",
+      "smiles": "CC(C)NC(OCC(CCC)(C)COC(N)=O)=O"
+    },
+    {
+      "title": "Gabapentin",
+      "iupac": "2-[1-(aminomethyl)cyclohexyl]acetic acid",
+      "smiles": "NCC1(CCCCC1)CC(=O)O"
+    },
+    {
+      "title": "Zopiclone",
+      "iupac": "(RS)-6-(5-Chloropyridin-2-yl)-7-oxo-6,7-dihydro-5H-pyrrolo[3,4-b]pyrazin-5-yl 4-methylpiperazine-1-carboxylate",
+      "smiles": "CN1CCN(CC1)C(=O)OC1N(C(C2=NC=CN=C21)=O)C2=NC=C(C=C2)Cl"
+    },
+    {
+      "title": "Methaqualone",
+      "iupac": "2-methyl-3-(2-methylphenyl)-4(3H)-quinazolinone",
+      "smiles": "CC1=NC2=CC=CC=C2C(N1C1=C(C=CC=C1)C)=O"
+    },
+    {
+      "title": "Mefloquine",
+      "iupac": "(S)-[2,8-bis(trifluoromethyl)quinolin-4-yl]-[(2R)-piperidin-2-yl]methanol",
+      "smiles": "FC(C1=NC2=C(C=CC=C2C(=C1)[C@H](O)[C@@H]1NCCCC1)C(F)(F)F)(F)F"
+    },
+    {
+      "title": "Zaleplon",
+      "iupac": "N-[3-(3-cyanopyrazolo[1,5-a]pyrimidin-7-yl)phenyl]-N-ethylacetamide",
+      "smiles": "C(#N)C=1C=NN2C1N=CC=C2C=2C=C(C=CC2)N(C(C)=O)CC"
+    },
+    {
+      "title": "4-AcO-DET",
+      "iupac": "3-(2-(Diethylamino)ethyl)-1H-indol-4-yl acetate",
+      "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(CC)CC"
+    },
+    {
+      "title": "DiPT",
+      "iupac": "3-[2-(Diisopropylamino)ethyl]indole",
+      "smiles": "C(C)(C)N(CCC1=CNC2=CC=CC=C12)C(C)C"
+    },
+    {
+      "title": "PCP",
+      "iupac": "1-(1-phenylcyclohexyl)piperidine",
+      "smiles": "C1(=CC=CC=C1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "Zolpidem",
+      "iupac": "N,N-Dimethyl-2-[6-methyl-2-(4-methylphenyl)imidazo[1,2-a]pyridin-3-yl]acetamide",
+      "smiles": "CN(C(CC1=C(N=C2N1C=C(C=C2)C)C2=CC=C(C=C2)C)=O)C"
+    },
+    {
+      "title": "Estradiol",
+      "iupac": "(17β)-Estra-1,3,5(10)-triene-3,17-diol",
+      "smiles": "C[C@@]12[C@H](CC[C@H]1[C@@H]1CCC=3C=C(C=CC3[C@H]1CC2)O)O"
+    },
+    {
+      "title": "Diflucan",
+      "iupac": "2-(2,4-difluorophenyl)-1,3-bis(1H-1,2,4-triazol-1-yl)propan-2-ol",
+      "smiles": "FC1=C(C=CC(=C1)F)C(CN1N=CN=C1)(CN1N=CN=C1)O"
+    },
+    {
+      "title": "Vilazodone",
+      "iupac": "5-{4-[4-(5-cyano-1H-indol-3-yl)butyl]piperazin-1-yl}-1-benzofuran-2-carboxamide",
+      "smiles": "C(#N)C=1C=C2C(=CNC2=CC1)CCCCN1CCN(CC1)C=1C=CC2=C(C=C(O2)C(=O)N)C1"
+    },
+    {
+      "title": "Pemoline",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "DXM Polistirex",
+      "iupac": "(+)-3-methoxy-17-methyl-9alpha,13alpha,14alpha-morphinan",
+      "smiles": "CN1CC[C@@]23CCCC[C@@H]2[C@@H]1CC4=C3C=C(C=C4)OC"
+    },
+    {
+      "title": "Benzphetamine",
+      "iupac": "N-Benzyl-N-methyl-1-phenyl-2-propanamine",
+      "smiles": "C(C1=CC=CC=C1)N(C(CC1=CC=CC=C1)C)C"
+    },
+    {
+      "title": "LSD",
+      "iupac": "(6aR,9R)-N,N-Diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)C)CC"
+    },
+    {
+      "title": "Lisdexamfetamine",
+      "iupac": "(2S)-2,6-diamino-N-[(2S)-1-phenylpropan-2-yl]hexanamide",
+      "smiles": "N[C@H](C(=O)N[C@H](CC1=CC=CC=C1)C)CCCCN"
+    },
+    {
+      "title": "Esketamine",
+      "iupac": "(2S)-2-(2-chlorophenyl)-2-(methylamino)cyclohexan-1-one",
+      "smiles": "ClC1=C(C=CC=C1)[C@@]1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "Noopept",
+      "iupac": "Ethyl 2-[[(2S)-1-(2-phenylacetyl)pyrrolidine-2-carbonyl]amino]acetate",
+      "smiles": "C1(=CC=CC=C1)CC(=O)N1[C@@H](CCC1)C(=O)NCC(=O)OCC"
+    },
+    {
+      "title": "Ibogaine",
+      "iupac": "12-Methoxyibogamine",
+      "smiles": "CCC1CC2CC3C1N(C2)CCC4=C3NC5=C4C=C(C=C5)OC"
+    },
+    {
+      "title": "Yopo",
+      "iupac": "3-[2-(Dimethylamino)ethyl]-1H-indol-5-ol",
+      "smiles": "CN(CCC1=CNC2=CC=C(C=C12)O)C"
+    },
+    {
+      "title": "Psilocybin Mushrooms",
+      "iupac": "3-[2-(Dimethylamino)ethyl]-1H-indol-4-yl dihydrogen phosphate",
+      "smiles": "P(=O)(OC1=C2C(=CNC2=CC=C1)CCN(C)C)(O)O"
+    },
+    {
+      "title": "Amanita Muscaria",
+      "iupac": "5-(aminomethyl)isoxazol-3(2H)-one (muscimol); (S)-2-amino-2-(3-hydroxyisoxazol-5-yl)acetic acid (ibotenic acid)",
+      "smiles": {
+        "components": {
+          "Muscimol": "NCC1=CC(=O)NO1",
+          "Ibotenic acid": "NC(C(O)=O)C1=CC(=O)NO1"
+        }
+      }
+    },
+    {
+      "title": "Bupropion",
+      "iupac": "(±)-2-(tert-Butylamino)-1-(3-chlorophenyl)propan-1-one",
+      "smiles": "C(C)(C)(C)NC(C(=O)C1=CC(=CC=C1)Cl)C"
+    },
+    {
+      "title": "Viloxazine",
+      "iupac": "2-[(2-Ethoxyphenoxy)methyl]morpholine",
+      "smiles": "C(C)OC1=C(OCC2CNCCO2)C=CC=C1"
+    },
+    {
+      "title": "Bromo-DragonFLY",
+      "iupac": "1-(8-Bromofuro[2,3-f][1]benzofuran-4-yl)-2-propanamine",
+      "smiles": "BrC1=C2C(=C(C3=C1C=CO3)CC(C)N)C=CO2"
+    },
+    {
+      "title": "Kratom",
+      "iupac": "Methyl 2-(3-ethyl-8-methoxy-1,2,3,4,6,7,12,12b-octahydroindolo[2,3-a]quinolizin-2-yl)-3-methoxyprop-2-enoate (mitragynine)",
+      "smiles": "CC[C@@H]1CN2CCC3=C([C@@H]2C[C@@H]1/C(=C\\OC)/C(=O)OC)NC4=C3C(=CC=C4)OC"
+    },
+    {
+      "title": "NEP",
+      "iupac": "2-(Ethylamino)-1-phenylpentan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=CC=CC=C1)CCC"
+    },
+    {
+      "title": "Kava",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Buprenorphine",
+      "iupac": "(2S)-2-[(5R,6R,7R,14S)-3-hydroxy-6-methoxy-4,5-epoxy-17-(cyclopropylmethyl)-6,14-ethenomorphinan-7-yl]-3,3-dimethylbutan-2-ol",
+      "smiles": "OC=1C=CC=2C[C@@H]3[C@]45C[C@@H]([C@@]([C@H]6[C@@]4(C2C1O6)CCN3CC3CC3)(C=C5)OC)[C@@](C)(C(C)(C)C)O"
+    },
+    {
+      "title": "Phenethylamine",
+      "iupac": "2-phenylethan-1-amine",
+      "smiles": "C1(=CC=CC=C1)CCN"
+    },
+    {
+      "title": "Ephedrine",
+      "iupac": "(1R,2S)-2-(methylamino)-1-phenylpropan-1-ol",
+      "smiles": "CN[C@H]([C@H](O)C1=CC=CC=C1)C"
+    },
+    {
+      "title": "Caffeine",
+      "iupac": "1,3,7-trimethylpurine-2,6-dione",
+      "smiles": "CN1C(N(C=2N=CN(C2C1=O)C)C)=O"
+    },
+    {
+      "title": "Ibotenic acid",
+      "iupac": "(S)-2-amino-2-(3-hydroxyisoxazol-5-yl)acetic acid",
+      "smiles": "N[C@H](C(=O)O)C1=CC(=NO1)O"
+    },
+    {
+      "title": "Chloral Hydrate",
+      "iupac": "2,2,2-trichloroethane-1,1-diol",
+      "smiles": "ClC(C(O)O)(Cl)Cl"
+    },
+    {
+      "title": "Metonitazene",
+      "iupac": "N,N-diethyl-2-{2-[(4-methoxyphenyl)methyl]-5-nitro-1H-benzimidazol-1-yl}ethan-1-amine",
+      "smiles": "C(C)N(CCN1C(=NC2=C1C=CC(=C2)[N+](=O)[O-])CC2=CC=C(C=C2)OC)CC"
+    },
+    {
+      "title": "Etonitazene",
+      "iupac": "(2-{2-[(4-ethoxyphenyl)methyl]-5-nitro-1H-1,3-benzodiazol-1-yl}ethyl)diethylamine",
+      "smiles": "C(C)OC1=CC=C(C=C1)CC1=NC2=C(N1CCN(CC)CC)C=CC(=C2)[N+](=O)[O-]"
+    },
+    {
+      "title": "Flurazepam",
+      "iupac": "7-Chloro-1-[2-(diethylamino)ethyl]-5-(2-fluorophenyl)-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2CCN(CC)CC)=O)C2=C(C=CC=C2)F)C1"
+    },
+    {
+      "title": "DOET",
+      "iupac": "1-(2,5-dimethoxy-4-ethylphenyl)propan-2-amine",
+      "smiles": "COC1=C(C=C(C(=C1)CC)OC)CC(C)N"
+    },
+    {
+      "title": "Aminorex",
+      "iupac": "5-phenyl-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "C1(=CC=CC=C1)C1CN=C(O1)N"
+    },
+    {
+      "title": "Mazindol",
+      "iupac": "5-(4-Chlorophenyl)-2,5-dihydro-3H-imidazo[2,1-a]isoindol-5-ol",
+      "smiles": "ClC1=CC=C(C=C1)C1(N2C(C3=CC=CC=C13)=NCC2)O"
+    },
+    {
+      "title": "Sibutramine",
+      "iupac": "1-[1-(4-Chlorophenyl)cyclobutyl]-N,N,3-trimethyl-1-butanamine",
+      "smiles": "ClC1=CC=C(C=C1)C1(CCC1)C(CC(C)C)N(C)C"
+    },
+    {
+      "title": "4-CMC",
+      "iupac": "1-(4-Chlorophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C(C)NC)=O"
+    },
+    {
+      "title": "Dehydroxyfluorafinil",
+      "iupac": "2-{[Bis(4-fluorophenyl)methyl]sulfinyl}-N-methylacetamide",
+      "smiles": "FC1=CC=C(C=C1)C(S(=O)CC(=O)NC)C1=CC=C(C=C1)F"
+    },
+    {
+      "title": "Methylenedioxyphenmetrazine",
+      "iupac": "2-(1,3-benzodioxol-5-yl)-3-methylmorpholine",
+      "smiles": "O1COC2=C1C=CC(=C2)C2C(NCCO2)C"
+    },
+    {
+      "title": "3-FPM",
+      "iupac": "2-(3-Fluorophenyl)-3-methylmorpholine",
+      "smiles": "FC=1C=C(C=CC1)C1C(NCCO1)C"
+    },
+    {
+      "title": "4F-PHP",
+      "iupac": "1-(4-fluorophenyl)-2-pyrrolidin-1-yl-hexan-1-one",
+      "smiles": "FC1=CC=C(C=C1)C(C(CCCC)N1CCCC1)=O"
+    },
+    {
+      "title": "3F-PiHP",
+      "iupac": "1-(3-fluorophenyl)-4-methyl-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "FC=1C=C(C=CC1)C(C(CC(C)C)N1CCCC1)=O"
+    },
+    {
+      "title": "MEM",
+      "iupac": "1-[(4-ethoxy-2,5-dimethoxy)phenyl]propan-2-amine",
+      "smiles": "COC1=CC(=C(C=C1OC)OCC)CC(C)N"
+    },
+    {
+      "title": "alpha-PCYP",
+      "iupac": "2-cyclohexyl-1-phenyl-2-(pyrrolidin-1-yl)ethanone",
+      "smiles": "C1(CCCCC1)C(C(=O)C1=CC=CC=C1)N1CCCC1"
+    },
+    {
+      "title": "Prolintane",
+      "iupac": "1-(1-phenylpentan-2-yl)pyrrolidine",
+      "smiles": "C1(=CC=CC=C1)CC(CCC)N1CCCC1"
+    },
+    {
+      "title": "MDPV",
+      "iupac": "1-(1,3-Benzodioxol-5-yl)-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CCC)N2CCCC2)=O"
+    },
+    {
+      "title": "2C-N",
+      "iupac": "2-(2,5-Dimethoxy-4-nitrophenyl)ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)[N+](=O)[O-])OC)CCN"
+    },
+    {
+      "title": "Gaboxadol",
+      "iupac": "4,5,6,7-tetrahydroisoxazolo(5,4-c)pyridin-3-ol",
+      "smiles": "O1N=C(C2=C1CNCC2)O"
+    },
+    {
+      "title": "Dimethylpentylone",
+      "iupac": "1-(1,3-Benzodioxol-5-yl)-2-(dimethylamino)-1-pentanone",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CCC)N(C)C)=O"
+    },
+    {
+      "title": "Desomorphine",
+      "iupac": "4,5α-Epoxy-17-methylmorphinan-3-ol",
+      "smiles": "CN1[C@H]2[C@@H]3CCC[C@H]4[C@@]3(C=3C(=C(C=CC3C2)O)O4)CC1"
+    },
+    {
+      "title": "Nutmeg",
+      "iupac": "4-Methoxy-6-(2-propenyl)-1,3-benzodioxole",
+      "smiles": "COC1=CC(=CC=2OCOC21)CC=C"
+    },
+    {
+      "title": "Eutylone",
+      "iupac": "(±)-1-(1,3-benzodioxol-5-yl)-2-(ethylamino)butan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CC)NCC)=O"
+    },
+    {
+      "title": "Butylone",
+      "iupac": "1-(1,3-benzodioxol-5-yl)-2-(methylamino)butan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CC)NC)=O"
+    },
+    {
+      "title": "Norflurazepam",
+      "iupac": "7-Chloro-5-(2-fluorophenyl)-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)F)C1"
+    },
+    {
+      "title": "3-Hydroxyphenazepam",
+      "iupac": "7-Bromo-5-(2-chlorophenyl)-3-hydroxy-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "BrC=1C=CC2=C(C(=NC(C(N2)=O)O)C2=C(C=CC=C2)Cl)C1"
+    },
+    {
+      "title": "Fosazepam",
+      "iupac": "7-Chloro-1-(dimethylphosphorylmethyl)-5-phenyl-3H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2CP(=O)(C)C)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Gidazepam",
+      "iupac": "2-(9-Bromo-3-oxo-6-phenyl-2,5-diazabicyclo[5.4.0]undeca-5,8,10,12-tetraen-2-yl)acetohydrazide",
+      "smiles": "C1C(=O)N(C2=C(C=C(C=C2)Br)C(=N1)C3=CC=CC=C3)CC(=O)NN"
+    },
+    {
+      "title": "Halazepam",
+      "iupac": "7-chloro-5-phenyl-1-(2,2,2-trifluoroethyl)-3H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2CC(F)(F)F)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Medazepam",
+      "iupac": "7-chloro-1-methyl-5-phenyl-2,3-dihydro-1H-1,4-benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCCN2C)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "DOEF",
+      "iupac": "1-[4-(2-fluoroethyl)-2,5-dimethoxyphenyl]propan-2-amine",
+      "smiles": "FCCC1=CC(=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "Phenylephrine",
+      "iupac": "3-[(1R)-1-Hydroxy-2-(methylamino)ethyl]phenol",
+      "smiles": "O[C@@H](CNC)C=1C=C(C=CC1)O"
+    },
+    {
+      "title": "2C-G",
+      "iupac": "2-(2,5-Dimethoxy-3,4-dimethylphenyl)ethan-1-amine",
+      "smiles": "COC1=C(C=C(C(=C1C)C)OC)CCN"
+    },
+    {
+      "title": "3F-PCP",
+      "iupac": "1-[1-(3-fluorophenyl)cyclohexyl]piperidine",
+      "smiles": "FC=1C=C(C=CC1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "DOC",
+      "iupac": "1-(4-Chloro-2,5-dimethoxyphenyl)propan-2-amine",
+      "smiles": "ClC1=CC(=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "2C-F",
+      "iupac": "2-(4-Fluoro-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "FC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "TMA-2",
+      "iupac": "1-(2,4,5-Trimethoxyphenyl)propan-2-amine",
+      "smiles": "COC1=C(C=C(C(=C1)OC)OC)CC(C)N"
+    },
+    {
+      "title": "TMA",
+      "iupac": "1-(3,4,5-Trimethoxyphenyl)-2-propanamine",
+      "smiles": "COC=1C=C(C=C(C1OC)OC)CC(C)N"
+    },
+    {
+      "title": "ALEPH-2",
+      "iupac": "1-[4-(Ethylsulfanyl)-2,5-dimethoxyphenyl]propan-2-amine",
+      "smiles": "C(C)SC1=CC(=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "ALEPH-6",
+      "iupac": "1-(2,5-Dimethoxy-4-phenylsulfanylphenyl)propan-2-amine",
+      "smiles": "COC1=C(C=C(C(=C1)SC1=CC=CC=C1)OC)CC(C)N"
+    },
+    {
+      "title": "MAL",
+      "iupac": "2-(3,5-dimethoxy-4-[(2-methylprop-2-en-1-yl)oxy]phenyl)ethanamine",
+      "smiles": "COC=1C=C(C=C(C1OCC(=C)C)OC)CCN"
+    },
+    {
+      "title": "AEM",
+      "iupac": "1-(3,4,5-Trimethoxyphenyl)butan-2-amine",
+      "smiles": "COC=1C=C(C=C(C1OC)OC)CC(CC)N"
+    },
+    {
+      "title": "4C-D",
+      "iupac": "1-(2,5-Dimethoxy-4-methylphenyl)butan-2-amine",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CC(CC)N"
+    },
+    {
+      "title": "2C-P",
+      "iupac": "2-(2,5-dimethoxy-4-propylphenyl)ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)CCC)OC)CCN"
+    },
+    {
+      "title": "3-MeO-PCE",
+      "iupac": "N-Ethyl-1-(3-methoxyphenyl)cyclohexan-1-amine",
+      "smiles": "C(C)NC1(CCCCC1)C1=CC(=CC=C1)OC"
+    },
+    {
+      "title": "3-MeO-PCPr",
+      "iupac": "1-(3-Methoxyphenyl)-N-propylcyclohexan-1-amine",
+      "smiles": "COC=1C=C(C=CC1)C1(CCCCC1)NCCC"
+    },
+    {
+      "title": "3-HO-PCP",
+      "iupac": "3-[1-(Piperidin-1-yl)cyclohexyl]phenol",
+      "smiles": "N1(CCCCC1)C1(CCCCC1)C=1C=C(C=CC1)O"
+    },
+    {
+      "title": "Fenfluramine",
+      "iupac": "N-ethyl-α-methyl-3-(trifluoromethyl)phenethylamine",
+      "smiles": "C(C)NC(CC1=CC(=CC=C1)C(F)(F)F)C"
+    },
+    {
+      "title": "Phendimetrazine",
+      "iupac": "(2S,3S)-3,4-dimethyl-2-phenylmorpholine",
+      "smiles": "C[C@@H]1N(CCO[C@H]1C1=CC=CC=C1)C"
+    },
+    {
+      "title": "DOB",
+      "iupac": "1-(4-Bromo-2,5-dimethoxyphenyl)-2-aminopropane",
+      "smiles": "BrC1=CC(=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "2C-EF",
+      "iupac": "2-[4-(2-Fluoroethyl)-2,5-dimethoxyphenyl]ethan-1-amine",
+      "smiles": "FCCC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "MD-PiHP",
+      "iupac": "1-(1,3-benzodioxol-5-yl)-4-methyl-2-(1-pyrrolidinyl)-1-pentanone",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CC(C)C)N2CCCC2)=O"
+    },
+    {
+      "title": "1,4-Butanediol",
+      "iupac": "Butane-1,4-diol",
+      "smiles": "C(CCCO)O"
+    },
+    {
+      "title": "DMT",
+      "iupac": "2-(1H-Indol-3-yl)-N,N-dimethylethanamine",
+      "smiles": "N1C=C(C2=CC=CC=C12)CCN(C)C"
+    },
+    {
+      "title": "MXiPr",
+      "iupac": "2-(3-Methoxyphenyl)-2-[(propan-2-yl)amino]cyclohexan-1-one",
+      "smiles": "COC=1C=C(C=CC1)C1(C(CCCC1)=O)NC(C)C"
+    },
+    {
+      "title": "O-PCE",
+      "iupac": "2-(Ethylamino)-2-phenylcyclohexan-1-one",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "DMXE",
+      "iupac": "2-(ethylamino)-2-(3-methylphenyl)cyclohexan-1-one",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC(=CC=C1)C"
+    },
+    {
+      "title": "MDMA",
+      "iupac": "(RS)-1-(1,3-Benzodioxol-5-yl)-N-methylpropan-2-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(C)NC"
+    },
+    {
+      "title": "25CN-NBOH",
+      "iupac": "4-{2-[(2-Hydroxybenzyl)amino]ethyl}-2,5-dimethoxybenzonitrile",
+      "smiles": "OC1=C(CNCCC2=CC(=C(C#N)C=C2OC)OC)C=CC=C1"
+    },
+    {
+      "title": "HXE",
+      "iupac": "2-(ethylamino)-2-(3-hydroxyphenyl)cyclohexan-1-one",
+      "smiles": "C(C)NC1(C(CCCC1)=O)C1=CC(=CC=C1)O"
+    },
+    {
+      "title": "Bromantane",
+      "iupac": "N-(4-bromophenyl)adamantan-2-amine",
+      "smiles": "BrC1=CC=C(C=C1)NC1C2CC3CC(CC1C3)C2"
+    },
+    {
+      "title": "2C-D",
+      "iupac": "2-(2,5-Dimethoxy-4-methylphenyl)ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CCN"
+    },
+    {
+      "title": "2-FMA",
+      "iupac": "1-(2-Fluorophenyl)-N-methylpropan-2-amine",
+      "smiles": "FC1=C(C=CC=C1)CC(C)NC"
+    },
+    {
+      "title": "3-CPM",
+      "iupac": "3-methyl-2-(3-chlorophenyl)morpholine",
+      "smiles": "CC1NCCOC1C1=CC(=CC=C1)Cl"
+    },
+    {
+      "title": "N-Methyl-Cyclazodone",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Quetiapine",
+      "iupac": "2-[2-(4-dibenzo[b,f][1,4]thiazepin-11-ylpiperazin-1-yl)ethoxy]ethanol",
+      "smiles": "C1=CC=CC2=C1C(=NC1=C(S2)C=CC=C1)N1CCN(CC1)CCOCCO"
+    },
+    {
+      "title": "Moclobemide",
+      "iupac": "4-chloro-N-(2-morpholin-4-ylethyl)benzamide",
+      "smiles": "ClC1=CC=C(C(=O)NCCN2CCOCC2)C=C1"
+    },
+    {
+      "title": "Ondansetron",
+      "iupac": "9-methyl-3-[(2-methyl-1H-imidazol-1-yl)methyl]-1,2,3,9-tetrahydro-4H-carbazol-4-one",
+      "smiles": "CN1C2=CC=CC=C2C=2C(C(CCC12)CN1C(=NC=C1)C)=O"
+    },
+    {
+      "title": "Dihydrocodeine",
+      "iupac": "4,5-alpha-epoxy-3-methoxy-17-methylmorphinan-6-ol",
+      "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC)O[C@H]3[C@H](CC4)O"
+    },
+    {
+      "title": "Thiopental",
+      "iupac": "5-Ethyl-5-(pentan-2-yl)-2-thioxodihydropyrimidine-4,6(1H,5H)-dione",
+      "smiles": "C(C)C1(C(NC(NC1=O)=S)=O)C(C)CCC"
+    },
+    {
+      "title": "O-PCPr",
+      "iupac": "2-phenyl-2-(propylamino)cyclohexan-1-one",
+      "smiles": "C1(=CC=CC=C1)C1(C(CCCC1)=O)NCCC"
+    },
+    {
+      "title": "Tianeptine",
+      "iupac": "7-[(3-Chloro-6-methyl-5,5-dioxo-11H-benzo[c][2,1]benzothiazepin-11-yl)amino]heptanoic acid",
+      "smiles": "ClC=1C=CC2=C(S(N(C3=C(C2NCCCCCCC(=O)O)C=CC=C3)C)(=O)=O)C1"
+    },
+    {
+      "title": "Cyproheptadine",
+      "iupac": "4-(5H-Dibenzo[a,d]cyclohepten-5-ylidene)-1-methylpiperidine",
+      "smiles": "C1=CC=CC=2C(C3=C(C=CC21)C=CC=C3)=C3CCN(CC3)C"
+    },
+    {
+      "title": "MD-PHP",
+      "iupac": "1-(2H-1,3-benzodioxol-5-yl)-2-(pyrrolidin-1-yl)hexan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CCCC)N2CCCC2)=O"
+    },
+    {
+      "title": "Cannabis",
+      "iupac": "(6aR,10aR)-6,6,9-Trimethyl-3-pentyl-6a,7,8,10a-tetrahydro-6H-benzo[c]chromen-1-ol",
+      "smiles": "CC1(OC=2C=C(C=C(C2[C@H]2[C@H]1CCC(=C2)C)O)CCCCC)C"
+    },
+    {
+      "title": "Fenethylline",
+      "iupac": "1,3-dimethyl-7-{2-[(1-phenylpropan-2-yl)amino]ethyl}-2,3,6,7-tetrahydro-1H-purine-2,6-dione",
+      "smiles": "CN1C(N(C=2N=CN(C2C1=O)CCNC(CC1=CC=CC=C1)C)C)=O"
+    },
+    {
+      "title": "6-MAM",
+      "iupac": "(1S,5R,13R,14S,17R)-10-hydroxy-4-methyl-12-oxa-4-azapentacyclo[9.6.1.0^{1,13}.0^{5,17}.0^{7,18}]octadeca-7(18),8,10,15-tetraen-14-yl acetate",
+      "smiles": "C(C)(=O)O[C@@H]1[C@@H]2OC3=C(C=CC=4C[C@H]5N(CC[C@]2([C@H]5C=C1)C43)C)O"
+    },
+    {
+      "title": "Methadone",
+      "iupac": "6-(dimethylamino)-4,4-diphenylheptan-3-one",
+      "smiles": "CN(C(CC(C(CC)=O)(C1=CC=CC=C1)C1=CC=CC=C1)C)C"
+    },
+    {
+      "title": "3C-P",
+      "iupac": "1-(3,5-Dimethoxy-4-propoxyphenyl)propan-2-amine",
+      "smiles": "COC=1C=C(C=C(C1OCCC)OC)CC(C)N"
+    },
+    {
+      "title": "4-CEC",
+      "iupac": "1-(4-Chlorophenyl)-2-(ethylamino)propan-1-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C(C)NCC)=O"
+    },
+    {
+      "title": "BOH-2C-B",
+      "iupac": "2-Amino-1-(4-bromo-2,5-dimethoxyphenyl)ethan-1-ol",
+      "smiles": "NCC(O)C1=C(C=C(C(=C1)OC)Br)OC"
+    },
+    {
+      "title": "Melatonin",
+      "iupac": "N-[2-(5-Methoxy-1H-indol-3-yl)ethyl]acetamide",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCNC(C)=O"
+    },
+    {
+      "title": "Pronitazene",
+      "iupac": "N,N-diethyl-2-[5-nitro-2-[(4-propoxyphenyl)methyl]benzimidazol-1-yl]ethanamine",
+      "smiles": "C(C)N(CCN1C(=NC2=C1C=CC(=C2)[N+](=O)[O-])CC2=CC=C(C=C2)OCCC)CC"
+    },
+    {
+      "title": "Dipentylone",
+      "iupac": "1-(2H-1,3-benzodioxol-5-yl)-2-(dimethylamino)pentan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CCC)N(C)C)=O"
+    },
+    {
+      "title": "2C-C",
+      "iupac": "2-(4-Chloro-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "ClC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "SL-164",
+      "iupac": "5-Chloro-3-(4-chloro-2-methylphenyl)-2-methylquinazolin-4(3H)-one",
+      "smiles": "ClC1=C2C(N(C(=NC2=CC=C1)C)C1=C(C=C(C=C1)Cl)C)=O"
+    },
+    {
+      "title": "Cychlorphine",
+      "iupac": "3-[3-[1-[1-(4-chlorophenyl)ethyl]-4-piperidyl]-2-oxo-benzimidazol-1-yl]propanenitrile",
+      "smiles": "ClC1=CC=C(C=C1)C(C)N1CCC(CC1)N1C(N(C2=C1C=CC=C2)CCC#N)=O"
+    },
+    {
+      "title": "Deschloroetizolam",
+      "iupac": "2-ethyl-9-methyl-4-phenyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "C(C)C1=CC=2C(=NCC=3N(C2S1)C(=NN3)C)C3=CC=CC=C3"
+    },
+    {
+      "title": "DPT",
+      "iupac": "N-[2-(1H-Indol-3-yl)ethyl]-N-propylpropan-1-amine",
+      "smiles": "N1C=C(C2=CC=CC=C12)CCN(CCC)CCC"
+    },
+    {
+      "title": "4-MPM",
+      "iupac": "3-Methyl-2-(4-methylphenyl)morpholine",
+      "smiles": "CC1NCCOC1C1=CC=C(C=C1)C"
+    },
+    {
+      "title": "4-HO-PiPT",
+      "iupac": "3-{2-[(propan-2-yl)(propyl)amino]ethyl}-1H-indol-4-ol",
+      "smiles": "CC(C)N(CCC1=CNC=2C=CC=C(C12)O)CCC"
+    },
+    {
+      "title": "Lorazepam",
+      "iupac": "7-Chloro-5-(2-chlorophenyl)-3-hydroxy-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NC(C(N2)=O)O)C2=C(C=CC=C2)Cl)C1"
+    },
+    {
+      "title": "Mirtazapine",
+      "iupac": "(±)-2-Methyl-1,2,3,4,10,14b-hexahydropyrazino[2,1-a]pyrido[2,3-c][2]benzazepine",
+      "smiles": "CN1CCN2C(C1)C3=CC=CC=C3CC4=C2N=CC=C4"
+    },
+    {
+      "title": "Memantine",
+      "iupac": "3,5-dimethyladamantan-1-amine",
+      "smiles": "CC12CC3(CC(CC(C1)(C3)C)C2)N"
+    },
+    {
+      "title": "Naphyrone",
+      "iupac": "1-naphthalen-2-yl-2-pyrrolidin-1-ylpentan-1-one",
+      "smiles": "C1=C(C=CC2=CC=CC=C12)C(C(CCC)N1CCCC1)=O"
+    },
+    {
+      "title": "4-HO-McPT",
+      "iupac": "3-{2-[cyclopropyl(methyl)amino]ethyl}-1H-indol-4-ol",
+      "smiles": "C1(CC1)N(CCC1=CNC=2C=CC=C(C12)O)C"
+    },
+    {
+      "title": "4-MEC",
+      "iupac": "2-Ethylamino-1-(4-methylphenyl)propan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=CC=C(C=C1)C)C"
+    },
+    {
+      "title": "25B-NBOH",
+      "iupac": "2-({[2-(4-bromo-2,5-dimethoxyphenyl)ethyl]amino}methyl)phenol",
+      "smiles": "BrC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)O)OC"
+    },
+    {
+      "title": "DMHA",
+      "iupac": "6-Methylheptan-2-amine",
+      "smiles": "CC(CCCC(C)N)C"
+    },
+    {
+      "title": "SR-17018",
+      "iupac": "5,6-dichloro-1-(1-(4-chlorobenzyl)piperidin-4-yl)-1,3-dihydro-2H-benzo[d]imidazol-2-one",
+      "smiles": "ClC1=CC2=C(N(C(N2)=O)C2CCN(CC2)CC2=CC=C(C=C2)Cl)C=C1Cl"
+    },
+    {
+      "title": "Levomethorphan",
+      "iupac": "(1R,9R,10R)-4-Methoxy-17-methyl-17-azatetracyclo[7.5.3.01,10.02,7]heptadeca-2(7),3,5-triene",
+      "smiles": "COC1=CC=2[C@]34[C@H]([C@@H](CC2C=C1)N(CC4)C)CCCC3"
+    },
+    {
+      "title": "Tilmetamine",
+      "iupac": "2-(methylamino)-2-(thiophen-2-yl)cyclohexan-1-one",
+      "smiles": "CNC1(C(CCCC1)=O)C=1SC=CC1"
+    },
+    {
+      "title": "DPP-26",
+      "iupac": "1-(4-ethylsulfonyl-4,4-diphenylbutan-2-yl)piperidine",
+      "smiles": "C(C)S(=O)(=O)C(CC(C)N1CCCCC1)(C1=CC=CC=C1)C1=CC=CC=C1"
+    },
+    {
+      "title": "Furanylfentanyl",
+      "iupac": "N-Phenyl-N-[1-(2-phenylethyl)-4-piperidinyl]-2-furancarboxamide",
+      "smiles": "C1(=CC=CC=C1)N(C(=O)C=1OC=CC1)C1CCN(CC1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "NM-2-AI",
+      "iupac": "N-methyl-2,3-dihydro-1H-inden-2-amine",
+      "smiles": "CNC1CC2=CC=CC=C2C1"
+    },
+    {
+      "title": "4-CMA",
+      "iupac": "1-(4-Chlorophenyl)-N-methylpropan-2-amine",
+      "smiles": "ClC1=CC=C(C=C1)CC(C)NC"
+    },
+    {
+      "title": "2-Chloroephenidine",
+      "iupac": "2-(2-Chlorophenyl)-N-ethyl-1-phenylethan-1-amine",
+      "smiles": "ClC1=C(C=CC=C1)CC(NCC)C1=CC=CC=C1"
+    },
+    {
+      "title": "MXP",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Ephenidine",
+      "iupac": "N-Ethyl-1,2-diphenylethanamine",
+      "smiles": "C(C)NC(CC1=CC=CC=C1)C1=CC=CC=C1"
+    },
+    {
+      "title": "4,4'-DMAR",
+      "iupac": "4-methyl-5-(4-methylphenyl)-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "CC1N=C(OC1C1=CC=C(C=C1)C)N"
+    },
+    {
+      "title": "2-FA",
+      "iupac": "1-(2-Fluorophenyl)propan-2-amine",
+      "smiles": "FC1=C(C=CC=C1)CC(C)N"
+    },
+    {
+      "title": "Isotonitazepyne",
+      "iupac": "5-nitro-2-[(4-propan-2-yloxyphenyl)methyl]-1-(2-pyrrolidin-1-ylethyl)benzimidazole",
+      "smiles": "[N+](=O)([O-])C1=CC2=C(N(C(=N2)CC2=CC=C(C=C2)OC(C)C)CCN2CCCC2)C=C1"
+    },
+    {
+      "title": "NDP",
+      "iupac": "N-ethyl-2-(5-nitro-2-(4-propoxybenzyl)-1H-benzo[d]imidazol-1-yl)ethan-1-amine",
+      "smiles": "C(C)NCCN1C(=NC2=C1C=CC(=C2)[N+](=O)[O-])CC2=CC=C(C=C2)OCCC"
+    },
+    {
+      "title": "3-HO-PCE",
+      "iupac": "3-[1-(ethylamino)cyclohexyl]phenol",
+      "smiles": "C(C)NC1(CCCCC1)C=1C=C(C=CC1)O"
+    },
+    {
+      "title": "Bezitramide",
+      "iupac": "4-[4-(2-Oxo-3-propanoyl-2,3-dihydro-1H-benzimidazol-1-yl)piperidin-1-yl]-2,2-diphenylbutanenitrile",
+      "smiles": "O=C1N(C2=C(N1C1CCN(CC1)CCC(C#N)(C1=CC=CC=C1)C1=CC=CC=C1)C=CC=C2)C(CC)=O"
+    },
+    {
+      "title": "Coluracetam",
+      "iupac": "N-(2,3-dimethyl-5,6,7,8-tetrahydrofuro[2,3-b]quinolin-4-yl)-2-(2-oxopyrrolidin-1-yl)acetamide",
+      "smiles": "CC1=C(C=2C(=NC=3CCCCC3C2NC(CN2C(CCC2)=O)=O)O1)C"
+    },
+    {
+      "title": "3-FEA",
+      "iupac": "N-Ethyl-1-(3-fluorophenyl)propan-2-amine",
+      "smiles": "C(C)NC(CC1=CC(=CC=C1)F)C"
+    },
+    {
+      "title": "Spirochlorphine",
+      "iupac": "8-[1-(4-chlorophenyl)ethyl]-1-phenyl-1,3,8-triazaspiro[4.5]decan-4-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C)N1CCC2(C(NCN2C2=CC=CC=C2)=O)CC1"
+    },
+    {
+      "title": "Lofentanil",
+      "iupac": "methyl (3S,4R)-3-methyl-1-(2-phenylethyl)-4-[phenyl(propionyl)amino]piperidine-4-carboxylate",
+      "smiles": "C[C@H]1CN(CC[C@@]1(C(=O)OC)N(C(CC)=O)C1=CC=CC=C1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "SR-14968",
+      "iupac": "3-[1-[1-(4-bromophenyl)ethyl]piperidin-4-yl]-5,6-dichloro-1H-benzimidazol-2-one",
+      "smiles": "BrC1=CC=C(C=C1)C(C)N1CCC(CC1)N1C(NC2=C1C=C(C(=C2)Cl)Cl)=O"
+    },
+    {
+      "title": "PRE-084",
+      "iupac": "2-morpholin-4-ylethyl 1-phenylcyclohexane-1-carboxylate",
+      "smiles": "C1(=CC=CC=C1)C1(CCCCC1)C(=O)OCCN1CCOCC1"
+    },
+    {
+      "title": "3,4-MD-PCP",
+      "iupac": "1-[1-(2H-1,3-Benzodioxol-5-yl)cyclohexyl]piperidine",
+      "smiles": "O1COC2=C1C=CC(=C2)C2(CCCCC2)N2CCCCC2"
+    },
+    {
+      "title": "4-FA",
+      "iupac": "1-(4-fluorophenyl)propan-2-amine",
+      "smiles": "FC1=CC=C(C=C1)CC(C)N"
+    },
+    {
+      "title": "5-MeO-DALT",
+      "iupac": "N-Allyl-N-[2-(5-methoxy-1H-indol-3-yl)ethyl]prop-2-en-1-amine",
+      "smiles": "C(C=C)N(CC=C)CCC1=CNC2=CC=C(C=C12)OC"
+    },
+    {
+      "title": "5-MeO-DPT",
+      "iupac": "N-[2-(5-Methoxy-1H-indol-3-yl)ethyl]-N-propylpropan-1-amine",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(CCC)CCC"
+    },
+    {
+      "title": "5-MeO-MiPT",
+      "iupac": "N-[2-(5-Methoxy-1H-indol-3-yl)ethyl]-N-methylpropan-2-amine",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C"
+    },
+    {
+      "title": "Adderall",
+      "iupac": "(RS)-1-phenylpropan-2-amine",
+      "smiles": "C1(=CC=CC=C1)CC(C)N"
+    },
+    {
+      "title": "Lean",
+      "iupac": "Codeine: (5α,6α)-7,8-Didehydro-4,5-epoxy-3-methoxy-17-methylmorphinan-6-ol; Promethazine: N,N-Dimethyl-1-(10H-phenothiazin-10-yl)propan-2-amine",
+      "smiles": {
+        "components": {
+          "Codeine": "[H][C@]12C=C[C@H](O)[C@@H]3OC4=C5C(C[C@H]1N(C)CC[C@@]235)=CC=C4OC",
+          "Promethazine": "CC(CN1C2=CC=CC=C2SC2=CC=CC=C12)N(C)C"
+        }
+      }
+    },
+    {
+      "title": "1B-LSD",
+      "iupac": "(6aR,9R)-4-butanoyl-N,N-diethyl-7-methyl-6,6a,8,9-tetrahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(CCC)(=O)N1C=C2C3=C(C4=C[C@H](CN([C@@H]4C2)C)C(=O)N(CC)CC)C=CC=C13"
+    },
+    {
+      "title": "Alfentanil",
+      "iupac": "N-{1-[2-(4-ethyl-5-oxo-4,5-dihydro-1H-1,2,3,4-tetrazol-1-yl)ethyl]-4-(methoxymethyl)piperidin-4-yl}-N-phenylpropanamide",
+      "smiles": "C(C)N1N=NN(C1=O)CCN1CCC(CC1)(COC)N(C(CC)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "2-MEC",
+      "iupac": "2-(Ethylamino)-1-(2-methylphenyl)propan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=C(C=CC=C1)C)C"
+    },
+    {
+      "title": "2-MA",
+      "iupac": "1-(2-Methylphenyl)propan-2-amine",
+      "smiles": "CC1=C(C=CC=C1)CC(C)N"
+    },
+    {
+      "title": "2-PA",
+      "iupac": "1-Phenyl-2-aminopropan-1-one",
+      "smiles": "C1(=CC=CC=C1)C(C(C)N)=O"
+    },
+    {
+      "title": "5-IAI",
+      "iupac": "2,3-dihydro-5-iodo-1H-inden-2-amine",
+      "smiles": "IC=1C=C2CC(CC2=CC1)N"
+    },
+    {
+      "title": "5-EAPB",
+      "iupac": "1-(benzofuran-5-yl)-N-ethylpropan-2-amine",
+      "smiles": "O1C=CC2=C1C=CC(=C2)CC(C)NCC"
+    },
+    {
+      "title": "5-Bromo-DMT",
+      "iupac": "2-(5-Bromo-1H-indol-3-yl)-N,N-dimethylethan-1-amine",
+      "smiles": "BrC=1C=C2C(=CNC2=CC1)CCN(C)C"
+    },
+    {
+      "title": "5-BPDi",
+      "iupac": "1-(2,3-dihydro-1H-inden-5-yl)-2-pyrrolidin-1-ylhexan-1-one",
+      "smiles": "C1CCC2=CC(=CC=C12)C(C(CCCC)N1CCCC1)=O"
+    },
+    {
+      "title": "5-APDI",
+      "iupac": "1-(2,3-Dihydro-1H-inden-5-yl)propan-2-amine",
+      "smiles": "C1CCC2=CC(=CC=C12)CC(C)N"
+    },
+    {
+      "title": "3-MeO-PCMo",
+      "iupac": "4-[1-(3-Methoxyphenyl)cyclohexyl]morpholine",
+      "smiles": "COC=1C=C(C=CC1)C1(CCCCC1)N1CCOCC1"
+    },
+    {
+      "title": "3-FMC",
+      "iupac": "1-(3-Fluorophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "FC=1C=C(C=CC1)C(C(C)NC)=O"
+    },
+    {
+      "title": "3-CMC",
+      "iupac": "1-(3-Chlorophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "ClC=1C=C(C=CC1)C(C(C)NC)=O"
+    },
+    {
+      "title": "2C-T-21",
+      "iupac": "2-{4-[(2-Fluoroethyl)sulfanyl]-2,5-dimethoxyphenyl}ethan-1-amine",
+      "smiles": "FCCSC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "Agmatine",
+      "iupac": "N-(4-aminobutyl)guanidine",
+      "smiles": "NCCCCNC(=N)N"
+    },
+    {
+      "title": "4F-PPP",
+      "iupac": "1-(4-Fluorophenyl)-2-(1-pyrrolidinyl)-1-propanone",
+      "smiles": "FC1=CC=C(C=C1)C(C(C)N1CCCC1)=O"
+    },
+    {
+      "title": "Propranolol",
+      "iupac": "1-[(1-Methylethyl)amino]-3-(1-naphthalenyloxy)-2-propanol",
+      "smiles": "CC(C)NCC(COC1=CC=CC2=CC=CC=C12)O"
+    },
+    {
+      "title": "4-Me-NEB",
+      "iupac": "2-(Ethylamino)-1-(4-methylphenyl)butan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=CC=C(C=C1)C)CC"
+    },
+    {
+      "title": "4-Cl-MAR",
+      "iupac": "4-Methyl-5-(4-chlorophenyl)-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "CC1N=C(OC1C1=CC=C(C=C1)Cl)N"
+    },
+    {
+      "title": "Fen-Phen",
+      "iupac": "2-methyl-1-phenylpropan-2-amine + N-ethyl-1-[3-(trifluoromethyl)phenyl]propan-2-amine",
+      "smiles": {
+        "components": {
+          "2-methyl-1-phenylpropan-2-amine": "CC(C)(CC1=CC=CC=C1)N",
+          "N-ethyl-1-[3-(trifluoromethyl)phenyl]propan-2-amine": "CCNC(C)CC1=CC(=CC=C1)C(F)(F)F"
+        }
+      }
+    },
+    {
+      "title": "2C-iP",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Lamotrigine",
+      "iupac": "6-(2,3-dichlorophenyl)-1,2,4-triazine-3,5-diamine",
+      "smiles": "ClC1=C(C=CC=C1Cl)C1=C(N=C(N=N1)N)N"
+    },
+    {
+      "title": "Grapefruit",
+      "iupac": "4-[(2E)-3,7-dimethylocta-2,6-dienoxy]furo[3,2-g]chromen-7-one (bergamottin)",
+      "smiles": "CC(=CCC/C(=C/COC1=C2C=CC(=O)OC2=CC3=C1C=CO3)/C)C"
+    },
+    {
+      "title": "3,3-DPCB",
+      "iupac": "3,3-diphenylcyclobutan-1-amine",
+      "smiles": "C1(=CC=CC=C1)C1(CC(C1)N)C1=CC=CC=C1"
+    },
+    {
+      "title": "6-APB",
+      "iupac": "1-(1-Benzofuran-6-yl)propan-2-amine",
+      "smiles": "O1C=CC2=C1C=C(C=C2)CC(C)N"
+    },
+    {
+      "title": "Flexeril",
+      "iupac": "3-(5H-dibenzo[a,d]cyclohepten-5-ylidene)-N,N-dimethylpropan-1-amine",
+      "smiles": "C1=CC=CC=2C(C3=C(C=CC21)C=CC=C3)=CCCN(C)C"
+    },
+    {
+      "title": "Mitragynine",
+      "iupac": "Methyl 2-(3-ethyl-8-methoxy-1,2,3,4,6,7,12,12b-octahydroindolo[2,3-a]quinolizin-2-yl)-3-methoxyprop-2-enoate",
+      "smiles": "C(C)C1CN2CCC3=C(C2CC1C(C(=O)OC)=COC)NC1=CC=CC(=C13)OC"
+    },
+    {
+      "title": "Salvia divinorum",
+      "iupac": "methyl (2S,4aR,6aR,7R,9S,10aS,10bR)-9-(acetyloxy)-2-(furan-3-yl)-6a,10b-dimethyl-4,10-dioxo-dodecahydro-2H-benzo[f]isochromene-7-carboxylate",
+      "smiles": "C(C)(=O)O[C@H]1C[C@H]([C@]2([C@@H]([C@]3(C[C@H](OC([C@@H]3CC2)=O)C2=COC=C2)C)C1=O)C)C(=O)OC"
+    },
+    {
+      "title": "2C-T-2",
+      "iupac": "2-[4-(Ethylsulfanyl)-2,5-dimethoxyphenyl]ethanamine",
+      "smiles": "C(C)SC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "5-DBFPV",
+      "iupac": "1-(2,3-Dihydrobenzofuran-5-yl)-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "O1CCC2=C1C=CC(=C2)C(C(CCC)N2CCCC2)=O"
+    },
+    {
+      "title": "AL-LAD",
+      "iupac": "(6aR,9R)-N,N-diethyl-7-prop-2-enyl-6,6a,8,9-tetrahydro-4H-indolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC=C)CC"
+    },
+    {
+      "title": "3-Me-PCPy",
+      "iupac": "1-[1-(3-methylphenyl)cyclohexyl]pyrrolidine",
+      "smiles": "CC=1C=C(C=CC1)C1(CCCCC1)N1CCCC1"
+    },
+    {
+      "title": "MDMPEA",
+      "iupac": "2-(1,3-Benzodioxol-5-yl)-N-methylethan-1-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CCNC"
+    },
+    {
+      "title": "IC-26",
+      "iupac": "4-ethylsulfonyl-N,N-dimethyl-4,4-diphenylbutan-2-amine",
+      "smiles": "C(C)S(=O)(=O)C(CC(C)N(C)C)(C1=CC=CC=C1)C1=CC=CC=C1"
+    },
+    {
+      "title": "Avizafone",
+      "iupac": "(2S)-2,6-diamino-N-{[(2-benzoyl-4-chlorophenyl)methylcarbamoyl]methyl}hexanamide",
+      "smiles": "N[C@H](C(=O)NCC(NCC1=C(C=C(C=C1)Cl)C(C1=CC=CC=C1)=O)=O)CCCCN"
+    },
+    {
+      "title": "Isotonitazene",
+      "iupac": "N,N-diethyl-2-[2-[(4-isopropoxyphenyl)methyl]-5-nitro-benzimidazol-1-yl]ethanamine",
+      "smiles": "C(C)N(CCN1C(=NC2=C1C=CC(=C2)[N+](=O)[O-])CC2=CC=C(C=C2)OC(C)C)CC"
+    },
+    {
+      "title": "MGM-15",
+      "iupac": "methyl (E)-2-[(2S,6'S,7'S,8'aS)-6'-ethyl-4-methoxy-3-oxospiro[1H-indole-2,1'-3,5,6,7,8,8a-hexahydro-2H-indolizine]-7'-yl]-3-methoxyprop-2-enoate",
+      "smiles": "CC[C@@H]1CN2CC[C@]3(NC4=C(C3=O)C(OC)=CC=C4)[C@@H]2C[C@@H]1\\C(=C/OC)C(=O)OC"
+    },
+    {
+      "title": "Arecoline",
+      "iupac": "Methyl 1-methyl-1,2,5,6-tetrahydropyridine-3-carboxylate",
+      "smiles": "CN1CC(=CCC1)C(=O)OC"
+    },
+    {
+      "title": "7-OH",
+      "iupac": "methyl (E)-2-((2S,3S,7aS,12bS)-3-ethyl-7a-hydroxy-8-methoxy-1,2,3,4,6,7,7a,12b-octahydroindolo[2,3-a]quinolizin-2-yl)-3-methoxyacrylate",
+      "smiles": "C(C)[C@@H]1CN2CC[C@]3(C([C@@H]2C[C@@H]1/C(/C(=O)OC)=C\\OC)=NC1=CC=CC(=C13)OC)O"
+    },
+    {
+      "title": "2-Me-DMT",
+      "iupac": "N,N-Dimethyl-2-(2-methyl-1H-indol-3-yl)ethanamine",
+      "smiles": "CN(CCC1=C(NC2=CC=CC=C12)C)C"
+    },
+    {
+      "title": "5-MeO-DiBF",
+      "iupac": "N-[2-(5-Methoxy-1-benzofuran-3-yl)ethyl]-N-(propan-2-yl)propan-2-amine",
+      "smiles": "COC=1C=CC2=C(C(=CO2)CCN(C(C)C)C(C)C)C1"
+    },
+    {
+      "title": "4-MAR",
+      "iupac": "4-methyl-5-phenyl-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "CC1N=C(OC1C1=CC=CC=C1)N"
+    },
+    {
+      "title": "O-PCP",
+      "iupac": "2-Phenyl-2-(piperidin-1-yl)cyclohexan-1-one",
+      "smiles": "C1(=CC=CC=C1)C1(C(CCCC1)=O)N1CCCCC1"
+    },
+    {
+      "title": "Olanzapine",
+      "iupac": "2-Methyl-4-(4-methylpiperazin-1-yl)-10H-thieno[2,3-b][1,5]benzodiazepine",
+      "smiles": "CC1=CC2=C(NC3=C(N=C2N2CCN(CC2)C)C=CC=C3)S1"
+    },
+    {
+      "title": "Phenazolam",
+      "iupac": "8-bromo-6-(2-chlorophenyl)-1-methyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=C(C=CC=C3)Cl)C1"
+    },
+    {
+      "title": "Arimistane",
+      "iupac": "(8R,9S,10R,13S,14S)-10,13-dimethyl-2,8,9,11,12,14,15,16-octahydro-1H-cyclopenta[a]phenanthrene-7,17-dione",
+      "smiles": "C[C@]12[C@H]3CC[C@@]4(C(CC[C@H]4[C@@H]3C(C=C2C=CCC1)=O)=O)C"
+    },
+    {
+      "title": "3-MAR",
+      "iupac": "3-Methyl-5-phenyl-1,3-oxazolidin-2-imine",
+      "smiles": "CN1C(OC(C1)C1=CC=CC=C1)=N"
+    },
+    {
+      "title": "Cyputylone",
+      "iupac": "1-(1,3-benzodioxol-5-yl)-2-(cyclohexylamino)propan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(C)NC2CCCCC2)=O"
+    },
+    {
+      "title": "4-PrO-DMT",
+      "iupac": "[3-[2-(dimethylamino)ethyl]-1H-indol-4-yl] propanoate",
+      "smiles": "C(CC)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C)C"
+    },
+    {
+      "title": "3-EtO-PCP",
+      "iupac": "1-[1-(3-Ethoxyphenyl)cyclohexyl]piperidine",
+      "smiles": "C(C)OC=1C=C(C=CC1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "PPAP",
+      "iupac": "1-Phenyl-N-propyl-2-pentanamine",
+      "smiles": "C1(=CC=CC=C1)CC(CCC)NCCC"
+    },
+    {
+      "title": "Methoxetamine",
+      "iupac": "(RS)-2-(3-methoxyphenyl)-2-(ethylamino)cyclohexanone",
+      "smiles": "COC=1C=C(C=CC1)C1(C(CCCC1)=O)NCC"
+    },
+    {
+      "title": "EDMC",
+      "iupac": "1-(2,3-dihydro-1,4-benzodioxin-6-yl)-2-(methylamino)propan-1-one",
+      "smiles": "O1CCOC2=C1C=CC(=C2)C(C(C)NC)=O"
+    },
+    {
+      "title": "Clobenzorex",
+      "iupac": "N-[(2-chlorophenyl)methyl]-1-phenylpropan-2-amine",
+      "smiles": "ClC1=C(C=CC=C1)CNC(CC1=CC=CC=C1)C"
+    },
+    {
+      "title": "Fluminorex",
+      "iupac": "(RS)-5-[4-(trifluoromethyl)phenyl]-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "FC(C1=CC=C(C=C1)C1CN=C(O1)N)(F)F"
+    },
+    {
+      "title": "Ziprasidone",
+      "iupac": "5-[2-[4-(1,2-benzisothiazol-3-yl)piperazin-1-yl]ethyl]-6-chloro-1,3-dihydro-2H-indol-2-one",
+      "smiles": "S1N=C(C2=C1C=CC=C2)N2CCN(CC2)CCC=2C=C1CC(NC1=CC2Cl)=O"
+    },
+    {
+      "title": "α-PPP",
+      "iupac": "1-Phenyl-2-pyrrolidin-1-ylpropan-1-one",
+      "smiles": "C1(=CC=CC=C1)C(C(C)N1CCCC1)=O"
+    },
+    {
+      "title": "Halodrol-50",
+      "iupac": "4-chloro-17α-methylandrost-1,4-diene-3β,17β-diol",
+      "smiles": "C[C@]1(O)CC[C@H]2[C@@H]3CCC4=C(Cl)[C@@H](O)C=C[C@]4(C)[C@H]3CC[C@]12C"
+    },
+    {
+      "title": "MDPV",
+      "iupac": "1-(1,3-Benzodioxol-5-yl)-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(CCC)N2CCCC2)=O"
+    },
+    {
+      "title": "MFPVP",
+      "iupac": "1-(4-fluoro-3-methylphenyl)-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "FC1=C(C=C(C=C1)C(C(CCC)N1CCCC1)=O)C"
+    },
+    {
+      "title": "Pyrovalerone",
+      "iupac": "1-(4-Methylphenyl)-2-(1-pyrrolidinyl)-1-pentanone",
+      "smiles": "CC1=CC=C(C=C1)C(C(CCC)N1CCCC1)=O"
+    },
+    {
+      "title": "Flmodafinil",
+      "iupac": "2-[[Bis(4-fluorophenyl)methyl]sulfinyl]acetamide",
+      "smiles": "FC1=CC=C(C=C1)C(S(=O)CC(=O)N)C1=CC=C(C=C1)F"
+    },
+    {
+      "title": "Galantamine",
+      "iupac": "(4aS,6R,8aS)-3-methoxy-11-methyl-5,6,9,10,11,12-hexahydro-4aH-[1]benzofuro[3a,3,2-ef][2]benzazepin-6-ol",
+      "smiles": "COC=1C=CC2=C3[C@@]4(CCN(C2)C)[C@@H](OC13)C[C@H](C=C4)O"
+    },
+    {
+      "title": "Flubrotizolam",
+      "iupac": "2-bromo-4-(2-fluorophenyl)-9-methyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "BrC1=CC=2C(=NCC=3N(C2S1)C(=NN3)C)C3=C(C=CC=C3)F"
+    },
+    {
+      "title": "Fluclotizolam",
+      "iupac": "2-chloro-4-(2-fluorophenyl)-9-methyl-4H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "ClC1=CC=2C(N=CC=3N(C2S1)C(=NN3)C)C3=C(C=CC=C3)F"
+    },
+    {
+      "title": "Nicotine",
+      "iupac": "3-(1-Methylpyrrolidin-2-yl)pyridine",
+      "smiles": "CN1C(CCC1)C=1C=NC=CC1"
+    },
+    {
+      "title": "Fluetizolam",
+      "iupac": "2-ethyl-4-(2-fluorophenyl)-9-methyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "C(C)C1=CC=2C(=NCC=3N(C2S1)C(=NN3)C)C3=C(C=CC=C3)F"
+    },
+    {
+      "title": "Chlorpheniramine",
+      "iupac": "3-(4-Chlorophenyl)-N,N-dimethyl-3-(pyridin-2-yl)propan-1-amine",
+      "smiles": "ClC1=CC=C(C=C1)C(CCN(C)C)C1=NC=CC=C1"
+    },
+    {
+      "title": "Flupirtine",
+      "iupac": "Ethyl N-[2-amino-6-[(4-fluorophenyl)methyl]amino]pyridin-3-yl]carbamate",
+      "smiles": "CCOC(=O)NC1=C(N)N=C(NCC2=CC=C(F)C=C2)C=C1"
+    },
+    {
+      "title": "Scopolamine",
+      "iupac": "(1R,2R,4S,5S,7s)-9-Methyl-3-oxa-9-azatricyclo[3.3.1.02,4]non-7-yl (2S)-3-hydroxy-2-phenylpropanoate",
+      "smiles": "CN1[C@H]2C[C@@H](C[C@@H]1[C@H]1O[C@@H]21)OC(=O)[C@H](CO)C1=CC=CC=C1"
+    },
+    {
+      "title": "4-Benzylpiperidine",
+      "iupac": "4-(Phenylmethyl)piperidine",
+      "smiles": "C1(=CC=CC=C1)CC1CCNCC1"
+    },
+    {
+      "title": "Ethylbromazolam",
+      "iupac": "8-bromo-1-ethyl-6-phenyl-4H-benzo[f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "BrC=1C=CC2=C(C(=NCC=3N2C(=NN3)CC)C3=CC=CC=C3)C1"
+    },
+    {
+      "title": "Nifoxipam",
+      "iupac": "5-(2-Fluorophenyl)-3-hydroxy-7-nitro-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "FC1=C(C=CC=C1)C1=NC(C(NC2=C1C=C(C=C2)[N+](=O)[O-])=O)O"
+    },
+    {
+      "title": "DMNPC",
+      "iupac": "methyl (3S,4S)-1-methyl-4-(2-naphthyl)piperidine-3-carboxylate",
+      "smiles": "CN1C[C@H]([C@H](CC1)C1=CC2=CC=CC=C2C=C1)C(=O)OC"
+    },
+    {
+      "title": "2-FDCK",
+      "iupac": "2-(2-fluorophenyl)-2-(methylamino)cyclohexan-1-one",
+      "smiles": "FC1=C(C=CC=C1)C1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "Fluorolintane",
+      "iupac": "1-(1-(2-fluorophenyl)-2-phenylethyl)pyrrolidine",
+      "smiles": "FC1=C(C=CC=C1)C(CC1=CC=CC=C1)N1CCCC1"
+    },
+    {
+      "title": "4-Bromomethcathinone",
+      "iupac": "1-(4-bromophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "BrC1=CC=C(C=C1)C(C(C)NC)=O"
+    },
+    {
+      "title": "2C-TFM",
+      "iupac": "2-[2,5-Dimethoxy-4-(trifluoromethyl)phenyl]ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)C(F)(F)F)OC)CCN"
+    },
+    {
+      "title": "Adderall XR",
+      "iupac": "1-Phenylpropan-2-amine",
+      "smiles": "C1(=CC=CC=C1)CC(C)N"
+    },
+    {
+      "title": "Phenylpiracetam",
+      "iupac": "2-(2-Oxo-4-phenyl-1-pyrrolidinyl)acetamide",
+      "smiles": "O=C1N(CC(C1)C1=CC=CC=C1)CC(=O)N"
+    },
+    {
+      "title": "Tesofensine",
+      "iupac": "(1R,2R,3S,5S)-3-(3,4-dichlorophenyl)-2-(ethoxymethyl)-8-methyl-8-azabicyclo[3.2.1]octane",
+      "smiles": "ClC=1C=C(C=CC1Cl)[C@@H]1[C@H]([C@H]2CC[C@@H](C1)N2C)COCC"
+    },
+    {
+      "title": "25E-NBOH",
+      "iupac": "2-({[2-(4-Ethyl-2,5-dimethoxyphenyl)ethyl]amino}methyl)phenol",
+      "smiles": "C(C)C1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)O)OC"
+    },
+    {
+      "title": "2-Me-PiHP",
+      "iupac": "4-Methyl-1-(2-methylphenyl)-2-(pyrrolidin-1-yl)pentan-1-one",
+      "smiles": "CC(CC(C(=O)C1=C(C=CC=C1)C)N1CCCC1)C"
+    },
+    {
+      "title": "Bromonordiazepam",
+      "iupac": "7-bromo-5-phenyl-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "BrC=1C=CC2=C(C(=NCC(N2)=O)C2=CC=CC=C2)C1"
+    },
+    {
+      "title": "Agmatine Sulfate",
+      "iupac": "N-(4-aminobutyl)guanidine",
+      "smiles": "NCCCCNC(=N)N"
+    },
+    {
+      "title": "GVL",
+      "iupac": "5-Methyldihydro-2(3H)-furanone",
+      "smiles": "CC1CCC(O1)=O"
+    },
+    {
+      "title": "Aceburic acid",
+      "iupac": "4-(Acetyloxy)butanoic acid",
+      "smiles": "C(C)(=O)OCCCC(=O)O"
+    },
+    {
+      "title": "Methyl-K",
+      "iupac": "1-(2H-1,3-Benzodioxol-5-yl)-N-methylpentan-2-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(CCC)NC"
+    },
+    {
+      "title": "Flumazenil",
+      "iupac": "Ethyl 8-fluoro-5-methyl-6-oxo-5,6-dihydro-4H-imidazo[1,5-a][1,4]benzodiazepine-3-carboxylate",
+      "smiles": "FC=1C=CC2=C(C(N(CC=3N2C=NC3C(=O)OCC)C)=O)C1"
+    },
+    {
+      "title": "Hexedrone",
+      "iupac": "2-(Methylamino)-1-phenylhexan-1-one",
+      "smiles": "CNC(C(=O)C1=CC=CC=C1)CCCC"
+    },
+    {
+      "title": "L-Theanine",
+      "iupac": "(2S)-2-amino-4-(ethylcarbamoyl)butanoic acid",
+      "smiles": "N[C@H](C(=O)O)CCC(NCC)=O"
+    },
+    {
+      "title": "Imodium",
+      "iupac": "4-[4-(4-Chlorophenyl)-4-hydroxy-1-piperidinyl]-N,N-dimethyl-2,2-diphenylbutanamide",
+      "smiles": "ClC1=CC=C(C=C1)C1(CCN(CC1)CCC(C(=O)N(C)C)(C1=CC=CC=C1)C1=CC=CC=C1)O"
+    },
+    {
+      "title": "LSZ",
+      "iupac": "(8β)-8-{[(2S,4S)-2,4-Dimethylazetidin-1-yl]carbonyl}-6-methyl-9,10-didehydroergoline",
+      "smiles": "C[C@@H]1N([C@H](C1)C)C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(C2=C1)=C34)C"
+    },
+    {
+      "title": "MD-prolintane",
+      "iupac": "1-(1-(benzo[d][1,3]dioxol-5-yl)pentan-2-yl)pyrrolidine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(CCC)N2CCCC2"
+    },
+    {
+      "title": "Methocarbamol",
+      "iupac": "(RS)-2-hydroxy-3-(2-methoxyphenoxy)propyl carbamate",
+      "smiles": "C(N)(OCC(COC1=C(C=CC=C1)OC)O)=O"
+    },
+    {
+      "title": "Rasagiline",
+      "iupac": "(1R)-N-(prop-2-yn-1-yl)-2,3-dihydro-1H-inden-1-amine",
+      "smiles": "C(C#C)N[C@@H]1CCC2=CC=CC=C12"
+    },
+    {
+      "title": "D2PM",
+      "iupac": "Diphenyl(pyrrolidin-2-yl)methanol",
+      "smiles": "C1(=CC=CC=C1)C(O)(C1NCCC1)C1=CC=CC=C1"
+    },
+    {
+      "title": "Fenozolone",
+      "iupac": "(RS)-2-(ethylamino)-5-phenyl-1,3-oxazol-4-one",
+      "smiles": "C(C)NC=1OC(C(N1)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "1D-LSD",
+      "iupac": "(8β)-1-(1,2-Dimethylcyclobutane-1-carbonyl)-N,N-diethyl-6-methyl-9,10-didehydroergoline-8-carboxamide",
+      "smiles": "CC1(C(CC1)C)C(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C"
+    },
+    {
+      "title": "2-FEA",
+      "iupac": "N-Ethyl-1-(2-fluorophenyl)propan-2-amine",
+      "smiles": "C(C)NC(CC1=C(C=CC=C1)F)C"
+    },
+    {
+      "title": "GABOB",
+      "iupac": "4-amino-3-hydroxybutanoic acid",
+      "smiles": "NCC(CC(=O)O)O"
+    },
+    {
+      "title": "JWH-018",
+      "iupac": "naphthalen-1-yl(1-pentyl-1H-indol-3-yl)methanone",
+      "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=CN(C2=CC=CC=C12)CCCCC"
+    },
+    {
+      "title": "2-MPPP",
+      "iupac": "2-methyl-1-phenyl-3-(piperidin-1-yl)propan-1-one",
+      "smiles": "CC(C(=O)C1=CC=CC=C1)CN1CCCCC1"
+    },
+    {
+      "title": "MXPCP",
+      "iupac": "2-(3-methoxyphenyl)-2-(piperidin-1-yl)cyclohexan-1-one",
+      "smiles": "COC=1C=C(C=CC1)C1(C(CCCC1)=O)N1CCCCC1"
+    },
+    {
+      "title": "MXM",
+      "iupac": "2-(3-Methoxyphenyl)-2-(methylamino)cyclohexanone",
+      "smiles": "COC=1C=C(C=CC1)C1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "4F-4-MAR",
+      "iupac": "4-methyl-5-(4-fluorophenyl)-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "CC1N=C(OC1C1=CC=C(C=C1)F)N"
+    },
+    {
+      "title": "4B-MAR",
+      "iupac": "4-methyl-5-(4-bromophenyl)-4,5-dihydro-1,3-oxazol-2-amine",
+      "smiles": "CC1N=C(OC1C1=CC=C(C=C1)Br)N"
+    },
+    {
+      "title": "3-CEC",
+      "iupac": "1-(3-Chlorophenyl)-2-(ethylamino)propan-1-one",
+      "smiles": "ClC=1C=C(C=CC1)C(C(C)NCC)=O"
+    },
+    {
+      "title": "5-MeO-AMT",
+      "iupac": "1-(5-methoxy-1H-indol-3-yl)propan-2-amine",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CC(C)N"
+    },
+    {
+      "title": "4-MPD",
+      "iupac": "1-(4-methylphenyl)-2-(methylamino)pentan-1-one",
+      "smiles": "CC1=CC=C(C=C1)C(C(CCC)NC)=O"
+    },
+    {
+      "title": "25P-NBOMe",
+      "iupac": "2-(4-propyl-2,5-dimethoxyphenyl)-N-(2-methoxybenzyl)ethanamine",
+      "smiles": "C(CC)C1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC"
+    },
+    {
+      "title": "4-MeO-MiPT",
+      "iupac": "N-[2-(4-Methoxy-1H-indol-3-yl)ethyl]-N-methylpropan-2-amine",
+      "smiles": "COC1=C2C(=CNC2=CC=C1)CCN(C(C)C)C"
+    },
+    {
+      "title": "25iP-NBOMe",
+      "iupac": "2-(2,5-Dimethoxy-4-propan-2-ylphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)C(C)C)OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "3-Cl-PCP",
+      "iupac": "1-[1-(3-chlorophenyl)cyclohexyl]piperidine",
+      "smiles": "ClC=1C=C(C=CC1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "3-CAF",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "1,4-DMAA",
+      "iupac": "5-methylhexan-2-amine",
+      "smiles": "CC(CCC(C)N)C"
+    },
+    {
+      "title": "DMO-PHP",
+      "iupac": "1-(3,4-Dimethoxyphenyl)-2-(pyrrolidin-1-yl)hexan-1-one",
+      "smiles": "COC=1C=C(C=CC1OC)C(C(CCCC)N1CCCC1)=O"
+    },
+    {
+      "title": "2C-BZ",
+      "iupac": "2-(4-Benzyloxy-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "C(C1=CC=CC=C1)OC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "25T-2-NBOMe",
+      "iupac": "2-[4-(Ethylsulfanyl)-2,5-dimethoxyphenyl]-N-[(2-methoxyphenyl)methyl]ethan-1-amine",
+      "smiles": "C(C)SC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC"
+    },
+    {
+      "title": "9-Me-BC",
+      "iupac": "9-methylpyrido[3,4-b]indole",
+      "smiles": "CN1C2=C(C3=CC=CC=C13)C=CN=C2"
+    },
+    {
+      "title": "3,4-CFPP",
+      "iupac": "1-(3-chloro-4-fluorophenyl)piperazine",
+      "smiles": "ClC=1C=C(C=CC1F)N1CCNCC1"
+    },
+    {
+      "title": "2C-T-4-NBOMe",
+      "iupac": "2-[4-(Isopropylthio)-2,5-dimethoxyphenyl]-N-(2-methoxybenzyl)ethanamine",
+      "smiles": "C(C)(C)SC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)OC)OC"
+    },
+    {
+      "title": "2C-T-7-NBOMe",
+      "iupac": "2-(2,5-dimethoxy-4-propylsulfanylphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)SCCC)OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "4-Methoxybutyrfentanyl",
+      "iupac": "N-(4-Methoxyphenyl)-N-[1-(2-phenylethyl)piperidin-4-yl]butanamide",
+      "smiles": "COC1=CC=C(C=C1)N(C(CCC)=O)C1CCN(CC1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "5-MAPB",
+      "iupac": "1-(benzofuran-5-yl)-N-methylpropan-2-amine",
+      "smiles": "O1C=CC2=C1C=CC(=C2)CC(C)NC"
+    },
+    {
+      "title": "4-FPP",
+      "iupac": "1-(4-fluorophenyl)piperazine",
+      "smiles": "FC1=CC=C(C=C1)N1CCNCC1"
+    },
+    {
+      "title": "4-Fluoropentedrone",
+      "iupac": "1-(4-Fluorophenyl)-2-(methylamino)pentan-1-one",
+      "smiles": "FC1=CC=C(C=C1)C(C(CCC)NC)=O"
+    },
+    {
+      "title": "25I-NBMD",
+      "iupac": "N-(1,3-Benzodioxol-4-ylmethyl)-2-(4-iodo-2,5-dimethoxyphenyl)ethanamine",
+      "smiles": "O1COC2=C1C=CC=C2CNCCC2=C(C=C(C(=C2)OC)I)OC"
+    },
+    {
+      "title": "4-EMC",
+      "iupac": "1-(4-ethylphenyl)-2-(methylamino)propan-1-one",
+      "smiles": "C(C)C1=CC=C(C=C1)C(C(C)NC)=O"
+    },
+    {
+      "title": "25I-NBF",
+      "iupac": "2-(4-Iodo-2,5-dimethoxyphenyl)-N-[(2-fluorophenyl)methyl]ethan-1-amine",
+      "smiles": "IC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)F)OC"
+    },
+    {
+      "title": "25I-NBOH",
+      "iupac": "2-(4-Iodo-2,5-dimethoxyphenyl)-N-[(2-hydroxyphenyl)methyl]ethanamine",
+      "smiles": "IC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)O)OC"
+    },
+    {
+      "title": "Ro5-4864",
+      "iupac": "7-Chloro-5-(4-chlorophenyl)-1-methyl-3H-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2C)=O)C2=CC=C(C=C2)Cl)C1"
+    },
+    {
+      "title": "25H-NBOMe",
+      "iupac": "2,5-Dimethoxy-N-[(2-methoxyphenyl)methyl]benzeneethanamine",
+      "smiles": "COC1=C(C=C(C=C1)OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "4-AcO-DPT",
+      "iupac": "3-[2-(Dipropylamino)ethyl]-1H-indol-4-yl acetate",
+      "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(CCC)CCC"
+    },
+    {
+      "title": "3C-E",
+      "iupac": "1-(4-Ethoxy-3,5-dimethoxyphenyl)propan-2-amine",
+      "smiles": "C(C)OC1=C(C=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "25C-NB3OMe",
+      "iupac": "2-(4-Chloro-2,5-dimethoxyphenyl)-N-[(3-methoxyphenyl)methyl]ethanamine",
+      "smiles": "ClC1=CC(=C(C=C1OC)CCNCC1=CC(=CC=C1)OC)OC"
+    },
+    {
+      "title": "2-Bromo-4,5-MDMA",
+      "iupac": "1-(6-Bromo-1,3-benzodioxol-5-yl)-N-methylpropan-2-amine",
+      "smiles": "BrC=1C(=CC2=C(OCO2)C1)CC(C)NC"
+    },
+    {
+      "title": "3-Me-PCPy",
+      "iupac": "1-[1-(3-methylphenyl)cyclohexyl]pyrrolidine",
+      "smiles": "CC=1C=C(C=CC1)C1(CCCCC1)N1CCCC1"
+    },
+    {
+      "title": "3-MEC",
+      "iupac": "2-(ethylamino)-1-(3-methylphenyl)propan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=CC(=CC=C1)C)C"
+    },
+    {
+      "title": "2-MeO-Ketamine",
+      "iupac": "2-(2-Methoxyphenyl)-2-(methylamino)cyclohexanone",
+      "smiles": "COC1=C(C=CC=C1)C1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "2-MeO-DMT",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "2C-T-7",
+      "iupac": "2-[2,5-Dimethoxy-4-(propylsulfanyl)phenyl]ethan-1-amine",
+      "smiles": "COC1=C(C=C(C(=C1)SCCC)OC)CCN"
+    },
+    {
+      "title": "2C-T-4",
+      "iupac": "2-(2,5-dimethoxy-4-propan-2-ylsulfanylphenyl)ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)SC(C)C)OC)CCN"
+    },
+    {
+      "title": "2C-B-FLY-NBOMe",
+      "iupac": "2-(8-bromo-2,3,6,7-tetrahydrobenzo[1,2-b:4,5-b']difuran-4-yl)-N-[(2-methoxybenzyl)]ethan-1-amine",
+      "smiles": "BrC1=C2OCCC2=C(C=2OCCC21)CCNCC2=C(C=CC=C2)OC"
+    },
+    {
+      "title": "2-NMC",
+      "iupac": "2-(methylamino)-1-(naphthalen-2-yl)propan-1-one",
+      "smiles": "CNC(C(=O)C1=CC2=CC=CC=C2C=C1)C"
+    },
+    {
+      "title": "1S-LSD",
+      "iupac": "(8β)-1-(3-(Trimethylsilyl)propionyl)-N,N-diethyl-6-methyl-9,10-didehydroergoline-8-carboxamide",
+      "smiles": "C[Si](CCC(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C)(C)C"
+    },
+    {
+      "title": "alpha-D2PV",
+      "iupac": "1,2-diphenyl-2-(1-pyrrolidinyl)ethanone",
+      "smiles": "C1(=CC=CC=C1)C(C(N1CCCC1)C1=CC=CC=C1)=O"
+    },
+    {
+      "title": "Monotropa uniflora",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "1cP-AL-LAD",
+      "iupac": "(6aR,9R)-1-Cyclopropionyl-N,N-diethyl-7-(prop-2-en-1-yl)-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "CCN(CC)C(=O)[C@H]1CN(CC=C)[C@@H]2CC3=CN(C(=O)C4CC4)C5=C3C(=CC=C5)C2=C1"
+    },
+    {
+      "title": "Tapentadol",
+      "iupac": "3-[(2R,3R)-1-(dimethylamino)-2-methylpentan-3-yl]phenol",
+      "smiles": "CN(C[C@@H]([C@@H](CC)C=1C=C(C=CC1)O)C)C"
+    },
+    {
+      "title": "4-Pro-MET",
+      "iupac": "3-{2-[Ethyl(methyl)amino]ethyl}-1H-indol-4-yl propanoate",
+      "smiles": "C(CC)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C)CC"
+    },
+    {
+      "title": "Desmethylflunitrazepam",
+      "iupac": "5-(2-fluorophenyl)-7-nitro-1,3-dihydro-2H-1,4-benzodiazepin-2-one",
+      "smiles": "FC1=C(C=CC=C1)C1=NCC(NC2=C1C=C(C=C2)[N+](=O)[O-])=O"
+    },
+    {
+      "title": "DCK",
+      "iupac": "2-(Methylamino)-2-phenylcyclohexanone",
+      "smiles": "CNC1(C(CCCC1)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "Delorazepam",
+      "iupac": "7-chloro-5-(2-chlorophenyl)-1,3-dihydro-1,4-benzodiazepin-2-one",
+      "smiles": "ClC=1C=CC2=C(C(=NCC(N2)=O)C2=C(C=CC=C2)Cl)C1"
+    },
+    {
+      "title": "4-FMC",
+      "iupac": "1-(4-Fluorophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "FC1=CC=C(C=C1)C(C(C)NC)=O"
+    },
+    {
+      "title": "2-MAPB",
+      "iupac": "1-(1-Benzofuran-2-yl)-N-methylpropan-2-amine",
+      "smiles": "O1C(=CC2=C1C=CC=C2)CC(C)NC"
+    },
+    {
+      "title": "1-(2,3,4-Trimethoxybenzyl)piperazine",
+      "iupac": "1-[(2,3,4-trimethoxyphenyl)methyl]piperazine",
+      "smiles": "COC1=C(C=CC(=C1OC)OC)CN1CCNCC1"
+    },
+    {
+      "title": "1-(2,5-Dimethoxybenzyl) piperazine",
+      "iupac": "1-[(2,5-Dimethoxyphenyl)methyl]piperazine",
+      "smiles": "COC1=C(C=C(C=C1)OC)CN1CCNCC1"
+    },
+    {
+      "title": "2-PTA",
+      "iupac": "2-Phenyl-2-propanamine",
+      "smiles": "C1(=CC=CC=C1)C(C)(C)N"
+    },
+    {
+      "title": "2-TFMXP",
+      "iupac": "1-[1-(2-Methoxy-5-trifluoromethylphenyl)-2-phenylethyl]piperidine",
+      "smiles": "COC1=C(C=C(C=C1)C(F)(F)F)C(CC1=CC=CC=C1)N1CCCCC1"
+    },
+    {
+      "title": "4-EPD",
+      "iupac": "2-(Methylamino)-1-(4-ethylphenyl)pentan-1-one",
+      "smiles": "CNC(C(=O)C1=CC=C(C=C1)CC)CCC"
+    },
+    {
+      "title": "CBC",
+      "iupac": "2-methyl-2-(4-methylpent-3-en-1-yl)-7-pentyl-2H-chromen-5-ol",
+      "smiles": "CC1(OC=2C=C(C=C(C2C=C1)O)CCCCC)CCC=C(C)C"
+    },
+    {
+      "title": "CBL",
+      "iupac": "1,1,3a-Trimethyl-6-pentyl-1a,2,3,3a,8b,8c-hexahydro-1H-4-oxabenzo[f]cyclobuta[cd]inden-8-ol",
+      "smiles": "CC1(C2CCC3(OC4=C(C1C23)C(=CC(=C4)CCCCC)O)C)C"
+    },
+    {
+      "title": "CBDA",
+      "iupac": "2,4-Dihydroxy-3-[(1R,6R)-6-isopropenyl-3-methyl-2-cyclohexen-1-yl]-6-pentylbenzoic acid",
+      "smiles": "OC1=C(C(=O)O)C(=CC(=C1[C@@H]1C=C(CC[C@H]1C(=C)C)C)O)CCCCC"
+    },
+    {
+      "title": "CBG",
+      "iupac": "2-[(2E)-3,7-Dimethylocta-2,6-dienyl]-5-pentyl-benzene-1,3-diol",
+      "smiles": "C\\C(=C/CC1=C(C=C(C=C1O)CCCCC)O)\\CCC=C(C)C"
+    },
+    {
+      "title": "3,4-TMPD",
+      "iupac": "1-(2,3-dihydro-1,4-benzodioxin-6-yl)-2-(methylamino)pentan-1-one",
+      "smiles": "O1CCOC2=C1C=CC(=C2)C(C(CCC)NC)=O"
+    },
+    {
+      "title": "4Cl-iBF",
+      "iupac": "N-(4-chlorophenyl)-2-methyl-N-[1-(2-phenylethyl)piperidin-4-yl]propanamide",
+      "smiles": "ClC1=CC=C(C=C1)N(C(C(C)C)=O)C1CCN(CC1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "4F-MABP",
+      "iupac": "1-(4-fluorophenyl)-2-(methylamino)butan-1-one",
+      "smiles": "FC1=CC=C(C=C1)C(C(CC)NC)=O"
+    },
+    {
+      "title": "4F-MDMB-BINACA",
+      "iupac": "Methyl (S)-2-(1-(4-fluorobutyl)-1H-indazole-3-carboxamido)-3,3-dimethylbutanoate",
+      "smiles": "FCCCCN1N=C(C2=CC=CC=C12)C(=O)N[C@H](C(=O)OC)C(C)(C)C"
+    },
+    {
+      "title": "ADB-INACA",
+      "iupac": "N-(1-carbamoyl-2,2-dimethyl-propyl)-1H-indazole-3-carboxamide",
+      "smiles": "C(N)(=O)C(C(C)(C)C)NC(=O)C1=NNC2=CC=CC=C12"
+    },
+    {
+      "title": "4-CBC",
+      "iupac": "1-(4-chlorophenyl)-2-(methylamino)butan-1-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C(CC)NC)=O"
+    },
+    {
+      "title": "4-EEC",
+      "iupac": "2-(Ethylamino)-1-(4-ethylphenyl)propan-1-one",
+      "smiles": "C(C)NC(C(=O)C1=CC=C(C=C1)CC)C"
+    },
+    {
+      "title": "Benzedrone",
+      "iupac": "2-(Benzylamino)-1-(4-methylphenyl)propan-1-one",
+      "smiles": "C(C1=CC=CC=C1)NC(C(=O)C1=CC=C(C=C1)C)C"
+    },
+    {
+      "title": "4-Methylephedrine",
+      "iupac": "1-(4-methylphenyl)-2-(methylamino)propan-1-ol",
+      "smiles": "CC1=CC=C(C=C1)C(C(C)NC)O"
+    },
+    {
+      "title": "CBDVA",
+      "iupac": "2,4-dihydroxy-3-[(1R,6R)-3-methyl-6-prop-1-en-2-ylcyclohex-2-en-1-yl]-6-propylbenzoic acid",
+      "smiles": "OC1=C(C(=O)O)C(=CC(=C1[C@@H]1C=C(CC[C@H]1C(=C)C)C)O)CCC"
+    },
+    {
+      "title": "CBN",
+      "iupac": "6,6,9-Trimethyl-3-pentyl-6H-benzo[c]chromen-1-ol",
+      "smiles": "CC1(OC=2C=C(C=C(C2C2=C1C=CC(=C2)C)O)CCCCC)C"
+    },
+    {
+      "title": "Amfecloral",
+      "iupac": "2,2,2-trichloro-N-(1-phenylpropan-2-yl)ethanimine",
+      "smiles": "ClC(C=NC(CC1=CC=CC=C1)C)(Cl)Cl"
+    },
+    {
+      "title": "Diethylpropion",
+      "iupac": "2-(diethylamino)-1-phenyl-1-propanone",
+      "smiles": "C(C)N(C(C(=O)C1=CC=CC=C1)C)CC"
+    },
+    {
+      "title": "AM-694",
+      "iupac": "1-[(5-Fluoropentyl)-1H-indol-3-yl]-(2-iodophenyl)methanone",
+      "smiles": "FCCCCCN1C=C(C2=CC=CC=C12)C(=O)C1=C(C=CC=C1)I"
+    },
+    {
+      "title": "ADBICA",
+      "iupac": "N-(1-amino-3,3-dimethyl-1-oxobutan-2-yl)-1-pentyl-1H-indole-3-carboxamide",
+      "smiles": "NC(C(C(C)(C)C)NC(=O)C1=CN(C2=CC=CC=C12)CCCCC)=O"
+    },
+    {
+      "title": "Afloqualone",
+      "iupac": "6-Amino-2-(fluoromethyl)-3-(2-methylphenyl)quinazolin-4-one",
+      "smiles": "NC=1C=C2C(N(C(=NC2=CC1)CF)C1=C(C=CC=C1)C)=O"
+    },
+    {
+      "title": "Acrylfentanyl",
+      "iupac": "N-phenyl-N-[1-(2-phenethyl)piperidin-4-yl]prop-2-enamide",
+      "smiles": "C=CC(=O)N(C1CCN(CC1)CCC2=CC=CC=C2)C3=CC=CC=C3"
+    },
+    {
+      "title": "Adinazolam",
+      "iupac": "1-(8-Chloro-6-phenyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepin-1-yl)-N,N-dimethylmethanamine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NN3)CN(C)C)C3=CC=CC=C3)C1"
+    },
+    {
+      "title": "AM-2233",
+      "iupac": "(2-Iodophenyl)[1-[(1-methyl-2-piperidinyl)methyl]-1H-indol-3-yl]methanone",
+      "smiles": "IC1=C(C=CC=C1)C(=O)C1=CN(C2=CC=CC=C12)CC1N(CCCC1)C"
+    },
+    {
+      "title": "AMB-CHMICA",
+      "iupac": "Methyl N-{[1-(cyclohexylmethyl)-1H-indol-3-yl]carbonyl}-L-valinate",
+      "smiles": "C1(CCCCC1)CN1C=C(C2=CC=CC=C12)C(=O)N[C@@H](C(C)C)C(=O)OC"
+    },
+    {
+      "title": "AMB-FUBINACA",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Etoxadrol",
+      "iupac": "(2S)-2-[(2S,4S)-2-ethyl-2-phenyl-1,3-dioxolan-4-yl]piperidine",
+      "smiles": "C(C)[C@@]1(OC[C@@H](O1)[C@H]1NCCCC1)C1=CC=CC=C1"
+    },
+    {
+      "title": "CB-13",
+      "iupac": "Naphthalen-1-yl-(4-pentyloxynaphthalen-1-yl)methanone",
+      "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=CC=C(C2=CC=CC=C12)OCCCCC"
+    },
+    {
+      "title": "CBDV",
+      "iupac": "2-[(1R,6R)-3-methyl-6-prop-1-en-2-ylcyclohex-2-en-1-yl]-5-propylbenzene-1,3-diol",
+      "smiles": "CC1=C[C@H]([C@@H](CC1)C(=C)C)C1=C(C=C(C=C1O)CCC)O"
+    },
+    {
+      "title": "CBNA",
+      "iupac": "1-hydroxy-6,6,9-trimethyl-3-pentylbenzo[c]chromene-2-carboxylic acid",
+      "smiles": "OC1=C2C3=C(C(OC2=CC(=C1C(=O)O)CCCCC)(C)C)C=CC(=C3)C"
+    },
+    {
+      "title": "1cP-MiPLA",
+      "iupac": "(6aR,9R)-4-(Cyclopropanecarbonyl)-N,7-dimethyl-N-(propan-2-yl)-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C1(CC1)C(=O)N1C=C2C3=C(C4=C[C@H](CN([C@@H]4C2)C)C(=O)N(C(C)C)C)C=CC=C13"
+    },
+    {
+      "title": "C30-NBOMe",
+      "iupac": "2-(4-Chloro-2,5-dimethoxyphenyl)-N-[(3,4,5-trimethoxyphenyl)methyl]ethan-1-amine",
+      "smiles": "ClC1=CC(=C(C=C1OC)CCNCC1=CC(=C(C(=C1)OC)OC)OC)OC"
+    },
+    {
+      "title": "Bufotenin",
+      "iupac": "3-[2-(Dimethylamino)ethyl]-1H-indol-5-ol",
+      "smiles": "CN(CCC1=CNC2=CC=C(C=C12)O)C"
+    },
+    {
+      "title": "Butorphanol",
+      "iupac": "(1S,9R,10S)-17-(Cyclobutylmethyl)-17-azatetracyclo[7.5.3.01,10.02,7]heptadeca-2(7),3,5-triene-4,10-diol",
+      "smiles": "C1(CCC1)CN1CC[C@@]23C=4C=C(C=CC4C[C@@H]1[C@@]2(CCCC3)O)O"
+    },
+    {
+      "title": "Atropine",
+      "iupac": "(3-endo)-8-Methyl-8-azabicyclo[3.2.1]oct-3-yl 3-hydroxy-2-phenylpropanoate",
+      "smiles": "CN1[C@H]2CC[C@@H]1C[C@@H](C2)OC(=O)C(CO)C1=CC=CC=C1"
+    },
+    {
+      "title": "AM-1248",
+      "iupac": "1-[(N-methylpiperidin-2-yl)methyl]-3-(adamant-1-oyl)indole",
+      "smiles": "CN1C(CCCC1)CN1C=C(C2=CC=CC=C12)C(=O)C12CC3CC(CC(C1)C3)C2"
+    },
+    {
+      "title": "Aniracetam",
+      "iupac": "1-(4-Methoxybenzoyl)-2-pyrrolidinone",
+      "smiles": "COC1=CC=C(C(=O)N2C(CCC2)=O)C=C1"
+    },
+    {
+      "title": "Armodafinil",
+      "iupac": "2-[(R)-(diphenylmethyl)sulfinyl]acetamide",
+      "smiles": "C1(=CC=CC=C1)C([S@](=O)CC(=O)N)C1=CC=CC=C1"
+    },
+    {
+      "title": "Acetyldihydrocodeine",
+      "iupac": "[(4R,4aR,7S,7aR,12bS)-9-methoxy-3-methyl-2,4,4a,5,6,7,7a,13-octahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinoline-7-yl] acetate",
+      "smiles": "[H][C@@]12OC3=C(OC)C=CC4=C3[C@@]11CCN(C)[C@]([H])(C4)[C@]1([H])CC[C@@H]2OC(C)=O"
+    },
+    {
+      "title": "Acetildenafil",
+      "iupac": "5-[2-Ethoxy-5-[2-(4-ethylpiperazin-1-yl)acetyl]phenyl]-1-methyl-3-propyl-4H-pyrazolo[4,3-d]pyrimidin-7-one",
+      "smiles": "C(C)OC1=C(C=C(C=C1)C(CN1CCN(CC1)CC)=O)C1=NC(C2=C(N1)C(=NN2C)CCC)=O"
+    },
+    {
+      "title": "25T-NBOMe",
+      "iupac": "2-[2,5-dimethoxy-4-(methylsulfanyl)phenyl]-N-[(2-methoxyphenyl)methyl]ethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)SC)OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "5-MAPDB",
+      "iupac": "1-(2,3-dihydrobenzofuran-5-yl)-N-methylpropan-2-amine",
+      "smiles": "O1CCC2=C1C=CC(=C2)CC(C)NC"
+    },
+    {
+      "title": "ADB-PINACA",
+      "iupac": "N-(1-Amino-3,3-dimethyl-1-oxo-2-butanyl)-1-pentyl-1H-indazole-3-carboxamide",
+      "smiles": "NC(C(C(C)(C)C)NC(=O)C1=NN(C2=CC=CC=C12)CCCCC)=O"
+    },
+    {
+      "title": "ADB-PINACA isomer 2",
+      "iupac": "N-((2S,3S)-1-amino-3-methyl-1-oxopentan-2-yl)-1-pentyl-1H-indazole-3-carboxamide",
+      "smiles": "NC([C@H]([C@H](CC)C)NC(=O)C1=NN(C2=CC=CC=C12)CCCCC)=O"
+    },
+    {
+      "title": "AM-2201",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Brephedrone",
+      "iupac": "1-(4-bromophenyl)-2-(methylamino)propan-1-one",
+      "smiles": "BrC1=CC=C(C=C1)C(C(C)NC)=O"
+    },
+    {
+      "title": "BDCK",
+      "iupac": "2-(2-Bromophenyl)-2-(methylamino)cyclohexan-1-one",
+      "smiles": "BrC1=C(C=CC=C1)C1(C(CCCC1)=O)NC"
+    },
+    {
+      "title": "Beta-meprodine",
+      "iupac": "(3S,4R)-3-ethyl-1-methyl-4-phenylpiperidin-4-yl propionate",
+      "smiles": "C(CC)(=O)O[C@]1([C@H](CN(CC1)C)CC)C1=CC=CC=C1"
+    },
+    {
+      "title": "3,4-DMMC",
+      "iupac": "1-(3,4-Dimethylphenyl)-2-(methylamino)propan-1-one",
+      "smiles": "CC=1C=C(C=CC1C)C(C(C)NC)=O"
+    },
+    {
+      "title": "Amobarbital",
+      "iupac": "5-Ethyl-5-(3-methylbutyl)-2,4,6(1H,3H,5H)-pyrimidinetrione",
+      "smiles": "C(C)C1(C(NC(NC1=O)=O)=O)CCC(C)C"
+    },
+    {
+      "title": "AKB-57",
+      "iupac": "adamantan-1-yl 1-pentyl-1H-indazole-3-carboxylate",
+      "smiles": "C(CCCC)N1N=C(C2=CC=CC=C12)C(=O)OC12CC3CC(CC(C1)C3)C2"
+    },
+    {
+      "title": "2-MMC",
+      "iupac": "2-(methylamino)-1-phenylpropan-1-one",
+      "smiles": "CNC(C(=O)C1=CC=CC=C1)C"
+    },
+    {
+      "title": "4-Cl-PPP",
+      "iupac": "1-(4-chlorophenyl)-2-(pyrrolidin-1-yl)propan-1-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C(C)N1CCCC1)=O"
+    },
+    {
+      "title": "4-CBC",
+      "iupac": "1-(4-Chlorophenyl)-2-(methylamino)butan-1-one",
+      "smiles": "ClC1=CC=C(C=C1)C(C(CC)NC)=O"
+    },
+    {
+      "title": "4-FPP",
+      "iupac": "1-(4-fluorophenyl)piperazine",
+      "smiles": "FC1=CC=C(C=C1)N1CCNCC1"
+    },
+    {
+      "title": "4-MEPPP",
+      "iupac": "1-(4-methylphenyl)-2-(pyrrolidin-1-yl)propan-1-one",
+      "smiles": "CC1=CC=C(C=C1)C(C(C)N1CCCC1)=O"
+    },
+    {
+      "title": "4-MXP",
+      "iupac": "1-[1-(2-Methoxyphenyl)-2-phenylethyl]piperidine",
+      "smiles": "COC1=C(C=CC=C1)C(CC1=CC=CC=C1)N1CCCCC1"
+    },
+    {
+      "title": "5-AEDB",
+      "iupac": "2-(2,3-dihydro-1-benzofuran-5-yl)ethanamine",
+      "smiles": "O1CCC2=C1C=CC(=C2)CCN"
+    },
+    {
+      "title": "5-Cl-AMT",
+      "iupac": "1-(5-Chloro-1H-indol-3-yl)propan-2-amine",
+      "smiles": "ClC=1C=C2C(=CNC2=CC1)CC(C)N"
+    },
+    {
+      "title": "Diphenhydramine",
+      "iupac": "2-[(Diphenylmethyl)oxy]-N,N-dimethylethanamine",
+      "smiles": "C1(=CC=CC=C1)C(OCCN(C)C)C1=CC=CC=C1"
+    },
+    {
+      "title": "Diphenhydramine",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "1V-LSD",
+      "iupac": "(8β)-1-pentanoyl-N,N-diethyl-6-methyl-9,10-didehydroergoline-8-carboxamide",
+      "smiles": "C(CCCC)(=O)N1C=C2C[C@H]3N(C[C@@H](C=C3C=3C=CC=C1C32)C(=O)N(CC)CC)C"
+    },
+    {
+      "title": "ALD-52",
+      "iupac": "(6aR,9R)-4-Acetyl-N,N-diethyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(C)(=O)N1C=C2C3=C(C4=C[C@H](CN([C@@H]4C2)C)C(=O)N(CC)CC)C=CC=C13"
+    },
+    {
+      "title": "ETH-LAD",
+      "iupac": "(6aR,9R)-N,N,7-Triethyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)CC)CC"
+    },
+    {
+      "title": "LSA",
+      "iupac": "(8β)-9,10-Didehydro-6-methyl-ergoline-8-carboxamide",
+      "smiles": "CN1C[C@@H](C=C2C=3C=CC=C4NC=C(C[C@@H]12)C34)C(=O)N"
+    },
+    {
+      "title": "MiPLA",
+      "iupac": "(6aR,9R)-N-methyl-N-isopropyl-7-methyl-4,6,6a,7,8,9-hexahydroindolo-[4,3-fg]quinoline-9-carboxamide",
+      "smiles": "CN(C(=O)[C@H]1CN([C@@H]2CC=3C4=C(C2=C1)C=CC=C4NC3)C)C(C)C"
+    },
+    {
+      "title": "MET",
+      "iupac": "N-Ethyl-2-(1H-indol-3-yl)-N-methylethanamine",
+      "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)C"
+    },
+    {
+      "title": "LSM-775",
+      "iupac": "[(8β)-6-Methyl-9,10-didehydroergolin-8-yl](morpholin-4-yl)methanone",
+      "smiles": "CN1C[C@@H](C=C2C=3C=CC=C4NC=C(C[C@@H]12)C34)C(=O)N3CCOCC3"
+    },
+    {
+      "title": "PRO-LAD",
+      "iupac": "(8β)-N,N-Diethyl-6-propyl-9,10-didehydroergoline-8-carboxamide",
+      "smiles": "C(C)N(C(=O)[C@H]1CN([C@@H]2CC3=CNC4=CC=CC(C2=C1)=C34)CCC)CC"
+    },
+    {
+      "title": "DET",
+      "iupac": "N,N-diethyl-2-(1H-indol-3-yl)ethanamine",
+      "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)CC"
+    },
+    {
+      "title": "EPT",
+      "iupac": "3-[2-(Ethyl(propyl)amino)ethyl]-1H-indole",
+      "smiles": "C(C)N(CCC1=CNC2=CC=CC=C12)CCC"
+    },
+    {
+      "title": "4-AcO-DiPT",
+      "iupac": "3-{2-[Di(propan-2-yl)amino]ethyl}-1H-indol-4-yl acetate",
+      "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C(C)C)C(C)C"
+    },
+    {
+      "title": "4-AcO-MiPT",
+      "iupac": "3-{2-[Methyl(propan-2-yl)amino]ethyl}-1H-indol-4-yl acetate",
+      "smiles": "C(C)(=O)OC1=C2C(=CNC2=CC=C1)CCN(C(C)C)C"
+    },
+    {
+      "title": "4-HO-DET",
+      "iupac": "3-(2-diethylaminoethyl)-1H-indol-4-ol",
+      "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)CC"
+    },
+    {
+      "title": "4-HO-DiPT",
+      "iupac": "3-[2-[bis(propan-2-yl)amino]ethyl]-1H-indol-4-ol",
+      "smiles": "CC(C)N(CCC1=CNC=2C=CC=C(C12)O)C(C)C"
+    },
+    {
+      "title": "4-HO-EPT",
+      "iupac": "3-[2-[ethyl(propyl)amino]ethyl]-1H-indol-4-ol",
+      "smiles": "C(C)N(CCC1=CNC=2C=CC=C(C12)O)CCC"
+    },
+    {
+      "title": "4-HO-MPT",
+      "iupac": "3-{2-[Methyl(propyl)amino]ethyl}-1H-indol-4-ol",
+      "smiles": "CN(CCC1=CNC=2C=CC=C(C12)O)CCC"
+    },
+    {
+      "title": "5-MeO-DiPT",
+      "iupac": "N-[2-(5-Methoxy-1H-indol-3-yl)ethyl]-N-(propan-2-yl)propan-2-amine",
+      "smiles": "COC=1C=C2C(=CNC2=CC1)CCN(C(C)C)C(C)C"
+    },
+    {
+      "title": "Psilocin",
+      "iupac": "3-[2-(Dimethylamino)ethyl]-1H-indol-4-ol",
+      "smiles": "CN(CCC1=CNC=2C=CC=C(C12)O)C"
+    },
+    {
+      "title": "Allylescaline",
+      "iupac": "2-[4-(Allyloxy)-3,5-dimethoxyphenyl]ethanamine",
+      "smiles": "C(C=C)OC1=C(C=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "Escaline",
+      "iupac": "2-(4-Ethoxy-3,5-dimethoxyphenyl)ethan-1-amine",
+      "smiles": "C(C)OC1=C(C=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "Proscaline",
+      "iupac": "2-(3,5-Dimethoxy-4-propoxyphenyl)ethan-1-amine",
+      "smiles": "COC=1C=C(C=C(C1OCCC)OC)CCN"
+    },
+    {
+      "title": "2C-T",
+      "iupac": "2-[4-(Methylthio)-2,5-dimethoxyphenyl]ethanamine",
+      "smiles": "CSC1=CC(=C(C=C1OC)CCN)OC"
+    },
+    {
+      "title": "2,5-DMA",
+      "iupac": "Benzeneethanamine, 2,5-dimethoxy-α-methyl-",
+      "smiles": "COC1=C(C=C(C=C1)OC)CC(N)C"
+    },
+    {
+      "title": "DOI",
+      "iupac": "1-(4-Iodo-2,5-dimethoxyphenyl)-2-propanamine",
+      "smiles": "IC1=CC(=C(C=C1OC)CC(C)N)OC"
+    },
+    {
+      "title": "25C-NBOH",
+      "iupac": "2-({[2-(4-Chloro-2,5-dimethoxyphenyl)ethyl]amino}methyl)phenol",
+      "smiles": "ClC1=CC(=C(C=C1OC)CCNCC1=C(C=CC=C1)O)OC"
+    },
+    {
+      "title": "25D-NBOMe",
+      "iupac": "2,5-dimethoxy-N-[(2-methoxyphenyl)methyl]-4-methyl-benzeneethanamine",
+      "smiles": "COC1=C(C=C(C(=C1)C)OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "25N-NBOMe",
+      "iupac": "2-(2,5-Dimethoxy-4-nitrophenyl)-N-[(2-methoxyphenyl)methyl]ethan-1-amine",
+      "smiles": "COC1=C(C=C(C(=C1)[N+](=O)[O-])OC)CCNCC1=C(C=CC=C1)OC"
+    },
+    {
+      "title": "TMA-6",
+      "iupac": "1-(2,4,6-trimethoxyphenyl)propan-2-amine",
+      "smiles": "COC1=C(C(=CC(=C1)OC)OC)CC(C)N"
+    },
+    {
+      "title": "4-MeO-PCP",
+      "iupac": "1-[1-(4-methoxyphenyl)cyclohexyl]piperidine",
+      "smiles": "COC1=CC=C(C=C1)C1(CCCCC1)N1CCCCC1"
+    },
+    {
+      "title": "PCE",
+      "iupac": "N-ethyl-1-phenylcyclohexan-1-amine",
+      "smiles": "C(C)NC1(CCCCC1)C1=CC=CC=C1"
+    },
+    {
+      "title": "Nitrous Oxide",
+      "iupac": "Oxidonitrogen(•N)",
+      "smiles": "[N]=O"
+    },
+    {
+      "title": "Benzydamine",
+      "iupac": "3-[(1-benzyl-1H-indazol-3-yl)oxy]-N,N-dimethylpropan-1-amine",
+      "smiles": "C(C1=CC=CC=C1)N1N=C(C2=CC=CC=C12)OCCCN(C)C"
+    },
+    {
+      "title": "Ayahuasca",
+      "iupac": "2-(1H-Indol-3-yl)-N,N-dimethylethanamine (DMT component); 7-methoxy-1-methyl-9H-pyrido[3,4-b]indole (harmine component)",
+      "smiles": {
+        "components": {
+          "N,N-Dimethyltryptamine": "CN(C)CCC1=CNC2=CC=CC=C12",
+          "Harmine": "COC1=CC2=C(C=C1)C1=C(N2)C(C)=NC=C1"
+        }
+      }
+    },
+    {
+      "title": "Datura",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Datura",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "AB-FUBINACA",
+      "iupac": "N-[(2S)-1-Amino-3-methyl-1-oxobutan-2-yl]-1-[(4-fluorophenyl)methyl]indazole-3-carboxamide",
+      "smiles": "NC([C@H](C(C)C)NC(=O)C1=NN(C2=CC=CC=C12)CC1=CC=C(C=C1)F)=O"
+    },
+    {
+      "title": "JWH-073",
+      "iupac": "(1-Butyl-1H-indol-3-yl)(naphthalen-1-yl)methanone",
+      "smiles": "C(CCC)N1C=C(C2=CC=CC=C12)C(=O)C1=CC=CC2=CC=CC=C12"
+    },
+    {
+      "title": "THJ-018",
+      "iupac": "naphthalen-1-yl-(1-pentylindazol-3-yl)methanone",
+      "smiles": "C1(=CC=CC2=CC=CC=C12)C(=O)C1=NN(C2=CC=CC=C12)CCCCC"
+    },
+    {
+      "title": "2M2B",
+      "iupac": "2-Methylbutan-2-ol",
+      "smiles": "CC(C)(CC)O"
+    },
+    {
+      "title": "Flualprazolam",
+      "iupac": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-[1,2,4]triazolo[4,3-a][1,4]benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NN3)C)C3=C(C=CC=C3)F)C1"
+    },
+    {
+      "title": "Midazolam",
+      "iupac": "8-Chloro-6-(2-fluorophenyl)-1-methyl-4H-imidazo[1,5-a][1,4]benzodiazepine",
+      "smiles": "ClC=1C=CC2=C(C(=NCC=3N2C(=NC3)C)C3=C(C=CC=C3)F)C1"
+    },
+    {
+      "title": "Metizolam",
+      "iupac": "4-(2-Chlorophenyl)-2-ethyl-6H-thieno[3,2-f][1,2,4]triazolo[4,3-a][1,4]diazepine",
+      "smiles": "ClC1=C(C=CC=C1)C1=NCC=2N(C3=C1C=C(S3)CC)C=NN2"
+    },
+    {
+      "title": "Pentobarbital",
+      "iupac": "5-Ethyl-5-(pentan-2-yl)pyrimidine-2,4,6(1H,3H,5H)-trione",
+      "smiles": "C(C)C1(C(NC(NC1=O)=O)=O)C(C)CCC"
+    },
+    {
+      "title": "Secobarbital",
+      "iupac": "5-(1-Methylbutyl)-5-(2-propen-1-yl)-2,4,6(1H,3H,5H)-pyrimidinetrione",
+      "smiles": "CC(CCC)C1(C(NC(NC1=O)=O)=O)CC=C"
+    },
+    {
+      "title": "Eszopiclone",
+      "iupac": "(5S)-6-(5-Chloro-2-pyridinyl)-7-oxo-6,7-dihydro-5H-pyrrolo[3,4-b]pyrazin-5-yl 4-methylpiperazine-1-carboxylate",
+      "smiles": "CN1CCN(CC1)C(=O)O[C@@H]1N(C(C2=NC=CN=C21)=O)C2=NC=C(C=C2)Cl"
+    },
+    {
+      "title": "Acetylfentanyl",
+      "iupac": "N-Phenyl-N-[1-(2-phenylethyl)piperidin-4-yl]acetamide",
+      "smiles": "C1(=CC=CC=C1)N(C(C)=O)C1CCN(CC1)CCC1=CC=CC=C1"
+    },
+    {
+      "title": "Codeine",
+      "iupac": "(5α,6α)-7,8-Didehydro-4,5-epoxy-3-methoxy-17-methylmorphinan-6-ol",
+      "smiles": "COC=1C=CC=2C[C@@H]3[C@@H]4C=C[C@@H]([C@H]5[C@@]4(C2C1O5)CCN3C)O"
+    },
+    {
+      "title": "Dextropropoxyphene",
+      "iupac": "(2S,3R)-4-(dimethylamino)-3-methyl-1,2-diphenylbutan-2-yl propanoate",
+      "smiles": "C(CC)(=O)O[C@@](CC1=CC=CC=C1)([C@@H](CN(C)C)C)C1=CC=CC=C1"
+    },
+    {
+      "title": "Ethylmorphine",
+      "iupac": "(1S,5R,13R,14S,17R)-10-ethoxy-4-methyl-12-oxa-4-azapentacyclo[9.6.1.01,13.05,17.07,18]octadeca-7(18),8,10,15-tetraen-14-ol",
+      "smiles": "C(C)OC=1C=CC=2C[C@H]3N(CC[C@]45[C@@H](OC1C52)[C@H](C=C[C@@H]34)O)C"
+    },
+    {
+      "title": "Sufentanil",
+      "iupac": "N-[4-(methoxymethyl)-1-[2-(thiophen-2-yl)ethyl]piperidin-4-yl]-N-phenylpropanamide",
+      "smiles": "COCC1(CCN(CC1)CCC=1SC=CC1)N(C(CC)=O)C1=CC=CC=C1"
+    },
+    {
+      "title": "Pethidine",
+      "iupac": "4-Piperidinecarboxylic acid, 1-methyl-4-phenyl-, ethyl ester",
+      "smiles": "CN1CCC(CC1)(C(=O)OCC)C1=CC=CC=C1"
+    },
+    {
+      "title": "Oxymorphone",
+      "iupac": "(5α)-3,14-Dihydroxy-17-methyl-4,5-epoxymorphinan-6-one",
+      "smiles": "OC=1C=CC=2C[C@@H]3[C@@]4(CCC([C@H]5[C@@]4(C2C1O5)CCN3C)=O)O"
+    },
+    {
+      "title": "U-47700",
+      "iupac": "3,4-dichloro-N-[(1R,2R)-2-(dimethylamino)cyclohexyl]-N-methylbenzamide",
+      "smiles": "ClC=1C=C(C(=O)N(C)[C@H]2[C@@H](CCCC2)N(C)C)C=CC1Cl"
+    },
+    {
+      "title": "3,4-Dichloromethylphenidate",
+      "iupac": "Methyl 2-(3,4-dichlorophenyl)-2-(piperidin-2-yl)acetate",
+      "smiles": "ClC=1C=C(C=CC1Cl)C(C(=O)OC)C1NCCCC1"
+    },
+    {
+      "title": "4F-EPH",
+      "iupac": "ethyl 2-(4-fluorophenyl)-2-(2-piperidyl)acetate",
+      "smiles": "FC1=CC=C(C=C1)C(C(=O)OCC)C1NCCCC1"
+    },
+    {
+      "title": "Methylnaphthidate",
+      "iupac": "Methyl 2-naphthalen-2-yl-2-piperidin-2-ylacetate",
+      "smiles": "C1=C(C=CC2=CC=CC=C12)C(C(=O)OC)C1NCCCC1"
+    },
+    {
+      "title": "Khat",
+      "iupac": "(2S)-2-amino-1-phenylpropan-1-one",
+      "smiles": "N[C@H](C(=O)C1=CC=CC=C1)C"
+    },
+    {
+      "title": "Ethylone",
+      "iupac": "(RS)-1-(1,3-benzodioxol-5-yl)-2-(ethylamino)propan-1-one",
+      "smiles": "O1COC2=C1C=CC(=C2)C(C(C)NCC)=O"
+    },
+    {
+      "title": "Methylone",
+      "iupac": "(RS)-1-(Benzo[d][1,3]dioxol-5-yl)-N-methylpropan-2-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(C)NC"
+    },
+    {
+      "title": "Mexedrone",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Pentedrone",
+      "iupac": "2-(Methylamino)-1-phenyl-1-pentanone",
+      "smiles": "CNC(C(=O)C1=CC=CC=C1)CCC"
+    },
+    {
+      "title": "mCPP",
+      "iupac": "1-(3-chlorophenyl)piperazine",
+      "smiles": "ClC=1C=C(C=CC1)N1CCNCC1"
+    },
+    {
+      "title": "Dichloropane",
+      "iupac": "Methyl (1R,2S,3S,5S)-3-(3,4-dichlorophenyl)-8-azabicyclo[3.2.1]octane-2-carboxylate",
+      "smiles": "ClC=1C=C(C=CC1Cl)[C@@H]1[C@@H]([C@H]2CC[C@@H](C1)N2)C(=O)OC"
+    },
+    {
+      "title": "Theacrine",
+      "iupac": "1,3,7,9-Tetramethylpurine-2,6,8-trione",
+      "smiles": "CN1C(N(C=2N(C(N(C2C1=O)C)=O)C)C)=O"
+    },
+    {
+      "title": "Methiopropamine",
+      "iupac": "N-methyl-1-(thiophen-2-yl)propan-2-amine",
+      "smiles": "CNC(CC=1SC=CC1)C"
+    },
+    {
+      "title": "Propylhexedrine",
+      "iupac": "N-methyl-1-cyclohexylpropan-2-amine",
+      "smiles": "CNC(CC1CCCCC1)C"
+    },
+    {
+      "title": "MDAI",
+      "iupac": "6,7-Dihydro-5H-cyclopenta[f][1,3]benzodioxol-6-amine",
+      "smiles": "O1COC2=C1C=C1C(=C2)CC(C1)N"
+    },
+    {
+      "title": "MDEA",
+      "iupac": "1-(1,3-benzodioxol-5-yl)-N-ethylpropan-2-amine",
+      "smiles": "O1COC2=C1C=CC(=C2)CC(C)NCC"
+    },
+    {
+      "title": "6-APDB",
+      "iupac": "1-(2,3-dihydrobenzofuran-6-yl)propan-2-amine",
+      "smiles": "O1CCC2=C1C=C(C=C2)CC(C)N"
+    },
+    {
+      "title": "PMMA",
+      "iupac": "1-(4-Methoxyphenyl)-N-methylpropan-2-amine",
+      "smiles": "COC1=CC=C(C=C1)CC(C)NC"
+    },
+    {
+      "title": "Choline Bitartrate",
+      "iupac": "(2-hydroxyethyl)trimethylazanium",
+      "smiles": "OCC[N+](C)(C)C"
+    },
+    {
+      "title": "Alpha-GPC",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "Citicoline",
+      "iupac": "(2R,3S,4R,5R)-5-(4-amino-2-oxopyrimidin-1-yl)-3,4-dihydroxyoxolan-2-ylmethoxy-hydroxyphosphoryl 2-(trimethylazaniumyl)ethyl phosphate",
+      "smiles": "P(=O)(OP(=O)(O)OC[C@H]1O[C@H]([C@@H]([C@@H]1O)O)N1C(N=C(C=C1)N)=O)(OCC[N+](C)(C)C)[O-]"
+    },
+    {
+      "title": "Meclofenoxate",
+      "iupac": "2-(dimethylamino)ethyl 2-(4-chlorophenoxy)acetate",
+      "smiles": "ClC1=CC=C(OCC(=O)OCCN(C)C)C=C1"
+    },
+    {
+      "title": "Creatine",
+      "iupac": "2-[Carbamimidoyl(methyl)amino]acetic acid",
+      "smiles": "C(N)(=N)N(CC(=O)O)C"
+    },
+    {
+      "title": "L-Tyrosine",
+      "iupac": null,
+      "smiles": null
+    },
+    {
+      "title": "SAM-e",
+      "iupac": "(2S)-2-amino-4-({[(2S,3S,4R,5R)-5-(6-amino-9H-purin-9-yl)-3,4-dihydroxyoxolan-2-yl]methyl}(methyl)sulfaniumyl)butanoate",
+      "smiles": "N[C@H](C(=O)[O-])CC[S+](C)C[C@H]1O[C@H]([C@@H]([C@@H]1O)O)N1C2=NC=NC(=C2N=C1)N"
+    },
+    {
+      "title": "N-Acetylcysteine",
+      "iupac": "N-Acetyl-L-cysteine",
+      "smiles": "C(C)(=O)N[C@@H](CS)C(=O)O"
+    },
+    {
+      "title": "Pramiracetam",
+      "iupac": "N-[2-(dipropan-2-ylamino)ethyl]-2-(2-oxopyrrolidin-1-yl)acetamide",
+      "smiles": "CC(C)N(CCNC(CN1C(CCC1)=O)=O)C(C)C"
+    }
+  ]
+}

@@ -12,6 +12,7 @@
     "build:inline": "vite build --mode inline --outDir dist-inline",
     "preview": "vite preview",
     "export:dose-table": "node scripts/exportDoseSpreadsheet.mjs",
+    "generate:smiles": "node scripts/generateSmilesMap.mjs",
     "merge:articles": "node scripts/merge-articles-json.mjs"
   },
   "dependencies": {
