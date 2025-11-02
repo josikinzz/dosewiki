@@ -123,6 +123,10 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   const normalizedSubtitleOriginal = normalizeWhitespace(originalAboutSubtitle);
   const isSubtitleDirty = normalizedSubtitleDraft !== normalizedSubtitleOriginal;
   const subtitleLength = normalizedSubtitleDraft.length;
+  const isSafari =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("is-safari");
+  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   const currentFounderSet = useMemo(() => new Set(aboutFounderKeys), [aboutFounderKeys]);
   const originalFounderSet = useMemo(() => new Set(originalFounderKeys), [originalFounderKeys]);
@@ -351,9 +355,9 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         <div className="space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="flex flex-col items-center text-center">
             <img
-              src={logoDataUri}
+              src={logoSrc}
               alt="dose.wiki logo"
-              className="logo h-20 w-20 animate-[spin_30s_linear_infinite] md:h-24 md:w-24"
+              className="h-20 w-20 animate-[spin_30s_linear_infinite] md:h-24 md:w-24"
               draggable={false}
             />
             <div className="mt-6 flex flex-col gap-3 text-center">

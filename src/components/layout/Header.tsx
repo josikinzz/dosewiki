@@ -91,6 +91,11 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
     setIsMenuOpen(false);
   };
 
+  const isSafari =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("is-safari");
+  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
+
   return (
     <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur backdrop-safe">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
@@ -101,9 +106,9 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <img
-              src={logoDataUri}
+              src={logoSrc}
               alt="dose.wiki logo"
-              className="logo safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
+              className="safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
               draggable={false}
             />
           </span>

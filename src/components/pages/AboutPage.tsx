@@ -91,12 +91,17 @@ export const AboutPage = memo(function AboutPage() {
     return profiles.sort((a, b) => a.displayName.localeCompare(b.displayName));
   }, []);
 
+  const isSafari =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("is-safari");
+  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-12 md:max-w-4xl">
       <img
-        src={logoDataUri}
+        src={logoSrc}
         alt="dose.wiki logo"
-        className="logo mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
+        className="mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
         draggable={false}
       />
       <PageHeader

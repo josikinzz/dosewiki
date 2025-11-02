@@ -217,8 +217,9 @@
     transform: translate3d(0, 0, 0);
   }
 
-  .logo {
-    filter: drop-shadow(0 2px 4px rgba(12, 7, 26, 0.75))
-      drop-shadow(0 6px 16px rgba(12, 7, 26, 0.6));
+  .is-safari .safari-svg-gpu {
+    -webkit-transform: none;
+    transform: none;
+    animation: none !important;
   }
 }
