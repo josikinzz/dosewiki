@@ -218,7 +218,7 @@
   }
 
   .logo {
-    filter: drop-shadow(0 0 2px rgba(217, 70, 239, 0.45))
-      drop-shadow(0 0 8px rgba(124, 58, 237, 0.28));
+    filter: drop-shadow(0 2px 4px rgba(12, 7, 26, 0.75))
+      drop-shadow(0 6px 16px rgba(12, 7, 26, 0.6));
   }
 }
