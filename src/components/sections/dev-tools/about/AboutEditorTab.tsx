@@ -353,7 +353,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             <img
               src={logoDataUri}
               alt="dose.wiki logo"
-              className="h-20 w-20 animate-[spin_30s_linear_infinite] md:h-24 md:w-24"
+              className="logo h-20 w-20 animate-[spin_30s_linear_infinite] md:h-24 md:w-24"
               draggable={false}
             />
             <div className="mt-6 flex flex-col gap-3 text-center">

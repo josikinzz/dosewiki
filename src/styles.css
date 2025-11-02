@@ -216,4 +216,9 @@
     -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
   }
+
+  .logo {
+    filter: drop-shadow(0 0 2px rgba(217, 70, 239, 0.45))
+      drop-shadow(0 0 8px rgba(124, 58, 237, 0.28));
+  }
 }

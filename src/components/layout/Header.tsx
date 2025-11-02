@@ -103,7 +103,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
             <img
               src={logoDataUri}
               alt="dose.wiki logo"
-              className="safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
+              className="logo safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
               draggable={false}
             />
           </span>
