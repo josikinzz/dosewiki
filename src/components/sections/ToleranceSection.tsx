@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDownWideNarrow,
-  ArrowLeftRight,
   ArrowUpWideNarrow,
+  CircleSlash2,
   Merge,
   TrendingUp,
 } from "lucide-react";
@@ -16,7 +16,7 @@ interface ToleranceSectionProps {
 
 const toleranceIconMap: Record<string, LucideIcon> = {
   "Full tolerance": ArrowUpWideNarrow,
-  "Half tolerance": ArrowLeftRight,
+  "Half tolerance": CircleSlash2,
   "Baseline reset": ArrowDownWideNarrow,
   "Cross tolerance": Merge,
 };

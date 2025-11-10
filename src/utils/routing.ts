@@ -1,4 +1,4 @@
-import { AppView } from "../types/navigation";
+import { AppView, DevTab } from "../types/navigation";
 
 export function viewToHash(view: AppView): string {
   switch (view.type) {
@@ -46,6 +46,10 @@ export function viewToHash(view: AppView): string {
     }
     case "dev": {
       const tab = view.tab;
+      const slug = view.slug?.trim();
+      if (slug) {
+        return `#/dev/${tab}/${slug}`;
+      }
       return `#/dev/${tab}`;
     }
     default:
@@ -152,7 +156,8 @@ export function parseHash(
       }
       case "dev": {
         const candidate = slug ?? "edit";
-        let tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" = "edit";
+        const slugSegment = segments[2];
+        let tab: DevTab = "edit";
         if (candidate === "create") {
           tab = "create";
         } else if (candidate === "change-log" || candidate === "changelog") {
@@ -161,9 +166,20 @@ export function parseHash(
           tab = "tag-editor";
         } else if (candidate === "profile" || candidate === "profiles") {
           tab = "profile";
-        } else if (candidate === "edit") {
+        } else if (candidate === "index-layout" || candidate === "index") {
+          tab = "index-layout";
+        } else if (candidate === "about") {
+          tab = "about";
+        } else if (candidate === "layout-lab" || candidate === "layout") {
+          tab = "layout-lab";
+        } else {
           tab = "edit";
         }
+
+        if (slugSegment) {
+          return { type: "dev", tab, slug: slugSegment };
+        }
+
         return { type: "dev", tab };
       }
       default:

@@ -102800,5 +102800,195 @@
       ]
     },
     "index-category": "nootropic; racetam"
+  },
+  {
+    "title": "Hydroxyzine",
+    "index-category": "anxiolytic; antihistamine; first-generation",
+    "drug_info": {
+      "drug_name": "Hydroxyzine",
+      "substitutive_name": "2-[2-[4-(4-Chlorobenzhydryl)piperazin-1-yl]ethoxy]ethanol",
+      "IUPAC_name": "2-(2-{4-[(4-chlorophenyl)(phenyl)methyl]piperazin-1-yl}ethoxy)ethan-1-ol",
+      "botanical_name": "",
+      "alternative_name": "Atarax; Vistaril; Hyzine; Rezine; Vistaject; Ataraxoid",
+      "chemical_class": "Piperazine; Dephenylmethane",
+      "psychoactive_class": "Anxiolytic; Depressant (mild); Sedative (mild)",
+      "mechanism_of_action": "H1 receptor antagonist (histamine antagonist); Anticholinergic (weak); CNS depressant; Antiemetic; Analgesic (mild)",
+      "dosages": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "10-15 mg",
+              "light": "15-25 mg",
+              "moderate": "",
+              "strong": "50-100 mg",
+              "heavy": "100+ mg"
+            }
+          },
+          {
+            "route": "intramuscular",
+            "units": "mg",
+            "dose_ranges": {
+              "threshold": "25 mg",
+              "light": "25-50 mg",
+              "moderate": "",
+              "strong": "100+ mg",
+              "heavy": ""
+            }
+          }
+        ]
+      },
+      "duration": {
+        "routes_of_administration": [
+          {
+            "route": "oral",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "15-30 minutes",
+              "come_up": "30-45 minutes",
+              "peak": "2 hours",
+              "offset": "2-3 hours",
+              "after_effects": "Residual drowsiness; longer antihistaminic action (12-24 hours)"
+            },
+            "canonical_routes": [
+              "oral"
+            ]
+          },
+          {
+            "route": "intramuscular",
+            "stages": {
+              "total_duration": "4-6 hours",
+              "onset": "15-30 minutes",
+              "come_up": "15-30 minutes",
+              "peak": "1-2 hours",
+              "offset": "2-3 hours",
+              "after_effects": "Residual sedation possible"
+            },
+            "canonical_routes": [
+              "intramuscular"
+            ]
+          }
+        ]
+      },
+      "addiction_potential": "Not considered addictive or habit-forming. No controlled substance scheduling by DEA. Low abuse potential and minimal risk of physical dependence. However, psychological dependence is possible with prolonged use as sole coping mechanism for anxiety. Tolerance to CNS effects develops rapidly (within 3-7 days) which naturally limits recreational appeal.",
+      "interactions": {
+        "dangerous": [
+          "Opioids at therapeutic doses (additive respiratory depression risk; hydroxyzine potentiates effects; not reversible with naloxone)",
+          "Barbiturates (hydroxyzine potentiates CNS depressant effects; reduce barbiturate dose by 50% when combining)",
+          "Alcohol in significant amounts (additive CNS depression, impaired cognition, increased sedation risk)"
+        ],
+        "unsafe": [
+          "Benzodiazepines (additive CNS depression through different mechanisms; increased sedation and fall risk; generally not recommended without medical supervision)",
+          "Other CNS depressants at therapeutic doses (muscle relaxants, sedative-hypnotics, anticonvulsants like gabapentin)",
+          "Methadone (additive CNS and respiratory depression)",
+          "Drugs prolonging QT interval (additive cardiac risk; avoid with certain antiarrhythmics and antipsychotics)"
+        ],
+        "caution": [
+          "Anticholinergic drugs (enhanced anticholinergic effects; urinary retention, constipation)",
+          "Cannabis (increased sedation and CNS depression)",
+          "Other first-generation antihistamines (additive sedation and anticholinergic effects)",
+          "Grapefruit juice (may inhibit CYP3A4/5 metabolism, increasing hydroxyzine levels)",
+          "SSRIs and SNRIs (theoretical additive sedation; use with caution)",
+          "Antipsychotics (additive QT prolongation risk and CNS depression)"
+        ]
+      },
+      "notes": "Hydroxyzine is an FDA-approved first-generation antihistamine commonly used short-term for anxiety, pruritus, and premedication. At normal therapeutic oral doses (25-50 mg), hydroxyzine has no significant respiratory depressant effects on its own. Tolerance to CNS effects develops rapidly (3-7 days), limiting long-term anxiolytic efficacy; maximum recommended duration is 4 months for anxiety. QT prolongation is a rare but serious concern—avoid in patients with baseline QT risk or family history. Alcohol should be strictly avoided, especially in significant amounts. Never administer by subcutaneous, intra-arterial, or IV routes due to risk of tissue necrosis, thrombosis, and gangrene. Elderly patients should use lower doses; not recommended for those 65+ unless no alternatives exist. Contraindicated in early pregnancy and breastfeeding. Anticholinergic effects (dry mouth, urinary retention, constipation) are common and may persist.",
+      "subjective_effects": [
+        "Drowsiness",
+        "Sedation",
+        "Anxiety reduction",
+        "Relaxation",
+        "Muscle relaxation",
+        "Antipruritic effect (itch relief)",
+        "Dry mouth",
+        "Mental cloudiness",
+        "Dizziness",
+        "Time distortion (at higher doses)"
+      ],
+      "tolerance": {
+        "full_tolerance": "After 3-7 days of continuous use (CNS effects)",
+        "half_tolerance": "2-3 days",
+        "zero_tolerance": "7-14 days",
+        "cross_tolerances": [
+          "Other H1 antagonists (first-generation antihistamines like diphenhydramine)",
+          "CNS depressants (partial cross-tolerance)"
+        ]
+      },
+      "half_life": "14-25 hours (average 20 hours in adults; ~7 hours in children; ~29 hours in elderly)",
+      "citations": [
+        {
+          "name": "Drugs.com: Hydroxyzine",
+          "reference": "https://www.drugs.com/hydroxyzine.html"
+        },
+        {
+          "name": "Drugs.com: Hydroxyzine-Oxycodone Interaction",
+          "reference": "https://www.drugs.com/drug-interactions/hydroxyzine-with-oxycodone-1303-0-1770-0.html"
+        },
+        {
+          "name": "Drugs.com: Hydroxyzine-Xanax Interaction",
+          "reference": "https://www.drugs.com/drug-interactions/hydroxyzine-with-xanax-1303-0-133-54.html"
+        },
+        {
+          "name": "DrugBank: Hydroxyzine",
+          "reference": "https://go.drugbank.com/drugs/DB00557"
+        },
+        {
+          "name": "FDA: Vistaril (hydroxyzine pamoate) Label",
+          "reference": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2016/011459s051_011795s028lbl.pdf"
+        },
+        {
+          "name": "GoodRx: Hydroxyzine Side Effects",
+          "reference": "https://www.goodrx.com/hydroxyzine-pamoate/common-side-effects"
+        },
+        {
+          "name": "Mayo Clinic: Hydroxyzine (Oral Route)",
+          "reference": "https://www.mayoclinic.org/drugs-supplements/hydroxyzine-oral-route/description/drg-20311434"
+        },
+        {
+          "name": "Medical News Today: Hydroxyzine Interactions",
+          "reference": "https://www.medicalnewstoday.com/articles/drugs-hydroxyzine-tablet-interactions"
+        },
+        {
+          "name": "NCBI: Co-Administration of Subeffective Doses of Diazepam and Hydroxyzine",
+          "reference": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3149113/"
+        },
+        {
+          "name": "NCBI LiverTox: Hydroxyzine",
+          "reference": "https://www.ncbi.nlm.nih.gov/books/NBK548128/"
+        },
+        {
+          "name": "PubMed: Potentiation of Pain Relief with Hydroxyzine",
+          "reference": "https://pubmed.ncbi.nlm.nih.gov/2188436/"
+        },
+        {
+          "name": "Real Life Pharmacology: Hydroxyzine Pharmacology",
+          "reference": "https://www.reallifepharmacology.com/hydroxyzine-pharmacology/"
+        },
+        {
+          "name": "ScienceDirect: Hydroxyzine Overview",
+          "reference": "https://www.sciencedirect.com/topics/biochemistry-genetics-and-molecular-biology/hydroxyzine"
+        },
+        {
+          "name": "Talkiatry: Hydroxyzine vs Xanax",
+          "reference": "https://www.talkiatry.com/blog/hydroxyzine-vs-xanax"
+        },
+        {
+          "name": "WebMD: Hydroxyzine (Atarax, Vistaril)",
+          "reference": "https://www.webmd.com/drugs/2/drug-7681/hydroxyzine-hcl-oral/details"
+        },
+        {
+          "name": "Wikipedia: Hydroxyzine",
+          "reference": "https://en.wikipedia.org/wiki/Hydroxyzine"
+        }
+      ],
+      "categories": [
+        "Antihistamine",
+        "First-generation",
+        "Anxiolytic",
+        "Sedative"
+      ]
+    },
+    "id": 708
   }
 ]
