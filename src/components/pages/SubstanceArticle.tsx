@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Leaf, MessageSquarePlus, Wrench } from "lucide-react";
+import { Edit3, Leaf, MessageSquarePlus, Wrench } from "lucide-react";
 
 import type { SubstanceRecord } from "../../data/contentBuilder";
 import type { RouteKey } from "../../types/content";
@@ -21,6 +21,7 @@ import {
   extractInfoSectionBuckets,
   buildHeroVariantLines,
 } from "../../utils/substanceLayout";
+import { useDevMode } from "../dev/DevModeContext";
 
 interface SubstanceArticleProps {
   record: SubstanceRecord;
@@ -82,6 +83,7 @@ export function SubstanceArticle({
     () => extractInfoSectionBuckets(content.infoSections),
     [content.infoSections],
   );
+  const { open: openDevMode } = useDevMode();
 
   const heroVariantLines = useMemo(() => buildHeroVariantLines(content.nameVariants), [content.nameVariants]);
   const decoratedHeroVariantLines = useMemo(
@@ -214,6 +216,10 @@ export function SubstanceArticle({
       return JSON.stringify({ message: "Failed to serialize article JSON", slug: record.slug }, null, 2);
     }
   }, [rawArticle, record.slug]);
+
+  const handleOpenDevEditor = useCallback(() => {
+    openDevMode({ tab: "edit", slug: record.slug });
+  }, [openDevMode, record.slug]);
 
   const switchToDesktopUi = useCallback(() => {
     setDesktopViewMode((previous) => (previous === "ui" ? previous : "ui"));
@@ -401,10 +407,14 @@ export function SubstanceArticle({
                     onJsonClick={switchToDesktopJson}
                     className="mx-0"
                   />
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Current mode</span>
-                    <span className="font-semibold text-fuchsia-200">{desktopViewMode === "ui" ? "UI" : "JSON"}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleOpenDevEditor}
+                    className="inline-flex items-center gap-2 self-start rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  >
+                    <Edit3 aria-hidden className="h-4 w-4" focusable="false" />
+                    Open editor
+                  </button>
                 </SectionCard>
 
                 {content.heroBadges && content.heroBadges.length > 0 ? (

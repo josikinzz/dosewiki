@@ -13,8 +13,14 @@ import {
 import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
 import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
+import type { DevTab } from "../../types/navigation";
 
 type ArticleRecord = (typeof articlesSource)[number];
+
+type DevModeOpenOptions = {
+  tab?: DevTab;
+  slug?: string;
+};
 
 type DevModeContextValue = {
   articles: ArticleRecord[];
@@ -24,7 +30,7 @@ type DevModeContextValue = {
   aboutMarkdown: string;
   aboutSubtitle: string;
   aboutFounderKeys: string[];
-  open: () => void;
+  open: (options?: DevModeOpenOptions) => void;
   close: () => void;
   updateArticleAt: (index: number, nextArticle: ArticleRecord) => void;
   resetArticleAt: (index: number) => void;
@@ -102,7 +108,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     return value.startsWith("#/dev");
   }, []);
 
-  const open = useCallback(() => {
+  const open = useCallback((options?: DevModeOpenOptions) => {
     if (typeof window === "undefined") {
       return;
     }
@@ -112,9 +118,21 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
       lastVisitedHashRef.current = currentHash;
     }
 
-    if (!isDevHash(window.location.hash)) {
-      window.location.hash = "#/dev/edit";
+    const requestedTab = options?.tab ?? "edit";
+    const slug = options?.slug?.trim();
+    const nextHash = slug && slug.length > 0 ? `#/dev/${requestedTab}/${slug}` : `#/dev/${requestedTab}`;
+
+    if (window.location.hash !== nextHash) {
+      window.location.hash = nextHash;
+      return;
     }
+
+    if (!isDevHash(window.location.hash)) {
+      window.location.hash = nextHash;
+      return;
+    }
+
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
   }, [isDevHash]);
 
   const close = useCallback(() => {

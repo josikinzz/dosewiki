@@ -252,8 +252,12 @@ export default function App() {
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
-        <DevModePage activeTab={view.tab} onTabChange={(tab) => navigate({ type: "dev", tab })} />
-      ) : view.type === "substances" ? (
+          <DevModePage
+            activeTab={view.tab}
+            initialArticleSlug={view.slug}
+            onTabChange={(tab) => navigate({ type: "dev", tab })}
+          />
+        ) : view.type === "substances" ? (
         <main>
           <DosagesPage
             groups={dosageCategoryGroups}

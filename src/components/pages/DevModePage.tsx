@@ -127,6 +127,7 @@ const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
 
 type DevModePageProps = {
   activeTab: DevModeTab;
+  initialArticleSlug?: string;
   onTabChange: (tab: DevModeTab) => void;
 };
 
@@ -281,7 +282,7 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
   };
 };
 
-export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
+export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevModePageProps) {
   const {
     articles,
     psychoactiveIndexManual,
@@ -308,6 +309,7 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     resetAboutFounderKeys,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const initialSlugAppliedRef = useRef<string | null>(null);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
   const [editorValue, setEditorValue] = useState("{}");
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
@@ -1271,6 +1273,30 @@ export function DevModePage({ activeTab, onTabChange }: DevModePageProps) {
     });
     return map;
   }, [articleIndexById, titleToIndex]);
+
+  useEffect(() => {
+    if (!initialArticleSlug || activeTab !== "edit") {
+      return;
+    }
+
+    const trimmedSlug = initialArticleSlug.trim();
+    if (trimmedSlug.length === 0) {
+      return;
+    }
+
+    const index = slugToArticleIndex.get(trimmedSlug);
+    if (index === undefined) {
+      return;
+    }
+
+    if (initialSlugAppliedRef.current === trimmedSlug && selectedIndex === index) {
+      return;
+    }
+
+    initialSlugAppliedRef.current = trimmedSlug;
+    setArticleDeleteNotice(null);
+    setSelectedIndex(index);
+  }, [initialArticleSlug, activeTab, slugToArticleIndex, selectedIndex]);
 
   const categoryDropdowns = useMemo(() => {
     const groups =

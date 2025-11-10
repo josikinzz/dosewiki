@@ -1,3 +1,13 @@
+export type DevTab =
+  | "edit"
+  | "create"
+  | "change-log"
+  | "tag-editor"
+  | "profile"
+  | "index-layout"
+  | "about"
+  | "layout-lab";
+
 export type AppView =
   | { type: "substances" }
   | { type: "substance"; slug: string }
@@ -9,5 +19,5 @@ export type AppView =
   | { type: "interactions"; primarySlug?: string; secondarySlug?: string }
   | { type: "about" }
   | { type: "search"; query: string }
-  | { type: "dev"; tab: "edit" | "create" | "change-log" | "tag-editor" | "profile" }
+  | { type: "dev"; tab: DevTab; slug?: string }
   | { type: "contributor"; profileKey: string };
