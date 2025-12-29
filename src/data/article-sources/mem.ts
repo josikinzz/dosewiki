@@ -1,0 +1,324 @@
+// Auto-generated - do not edit
+export const substanceName = "MEM";
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MEM.md","displayName":"Isomer Design","size":10584},{"id":"protestkit","fileName":"PROTESTKIT - MEM.json","displayName":"Protest Kit","size":3989},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MEM.md","displayName":"TripSit Factsheets","size":1029},{"id":"wikipedia","fileName":"WIKIPEDIA - MEM.md","displayName":"Wikipedia","size":1234}];
+export const contents: Record<string, string> = {
+  "isomerdesign": `# MEM
+*Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=122*
+
+*PiHKAL Entry #122*
+
+
+## SYNTHESIS
+A well stirred solution of 125.4 g 3-ethoxy-4-methoxybenzaldehyde in 445 mL acetic acid was treated with 158 g 40% peracetic acid (in acetic acid) at a rate at which, with ice cooling, the internal temperature did not exceed 27 Â°C. The addition required about 45 min. The reaction mixture was then quenched in some 3 L H2O. There was the generation of some crystals which were removed by filtration. The mother liquor was saved. The solid material weighed, while still wet, 70 g and was crude formate ester. A small quantity was recrystallized from cyclohexane twice, to provide a reference sample of 3-ethoxy-4-methoxyphenyl formate with a mp of 63â64 Â°C. The bulk of this crude formate ester was dissolved in 200 mL concentrated HCl which gave a deep purple solution. This was quenched with water which precipitated a fluffy tan solid, which was hydrated phenolic product that weighed about 35 g, and melted in the 80â90 Â°C. range. The mother liquors of the above filtration were neutralized with Na2CO3, then extracted with 3Ã100 mL Et2O. Removal of the solvent gave a residue of about 80 g that was impure formate (containing some unoxidized aldehyde). To this there was added 500 mL 10% NaOH, and the dark mixture heated on the steam bath for several h. After cooling, the strongly basic solution was washed with CH2Cl2, and then treated with 200 mL Et2O, which knocked out a heavy semi-solid mass that was substantially insoluble in either phase. This was, again, the crude hydrated phenol. The Et2O phase, on evaporation, gave a third crop of solids. These could actually be recrystallized from MeOH/H2O, but the mp always remained broad. When subjected to distillation conditions, the H2O was finally driven out of the hydrate, and the product 3-ethoxy-4-methoxyphenol distilled as a clear oil at 180â190 Â°C at 0.8 mm/Hg. This product, 45.1 g, gave a fine NMR spectrum, and in dilute CCl4 showed a single OH band at 3620 cm-1, supporting the freedom of the OH group on the aromatic ring from adjacent oxygen. Efforts to obtain an NMR spectrum in D2O immediately formed an insoluble hydrate. This phenol can serve as the starting material for either MEM (see below) or EEM (see separate recipe).
+
+To a solution of 12.3 g 3-ethoxy-4-methoxyphenol in 20 mL MeOH, there was added a solution of 4.8 g flaked KOH in 100 mL heated MeOH. To this clear solution there was then added 10.7 g methyl iodide, and the mixture held at reflux on the steam bath for 2 h. This was then quenched in 3 volumes H2O, made strongly basic with 10% NaOH, and extracted with 3Ã100 mL CH2Cl2. Removal of the solvent from the pooled extracts under vacuum gave 9.4 g of an amber oil which spontaneously crystallized. The mp of 1,4-dimethoxy-2-ethoxybenzene was 42â43.5 Â°C, and was used, with no further purification, in the following step.
+
+A mixture of 17.3 g N-methylformanilide and 19.6 g POCl3 was allowed to stand for 0.5 h, producing a deep claret color. To this there was added 9.2 g 1,4-dimethoxy-2-ethoxybenzene, and the mixture was held on the steam bath for 2 h. It was then poured into chipped ice and, with mechanical stirring, the dark oily phase slowly became increasingly crystalline. This was finally removed by filtration, providing a brown solid mat which showed a mp of 103.5â106.5 Â°C. All was dissolved in 75 mL boiling MeOH which, on cooling, deposited fine crystals of 2,5-dimethoxy-4-ethoxybenzaldehyde that were colored a light tan and which, after air drying to constant weight, weighed 8.5 g and had a mp of 108â109.5 Â°C. Search was made by gas chromatography for evidence of the other two theoretically possible positional isomers, but none could be found. The NMR spectrum showed the two para-protons as clean singlets, with no noise suggesting other isomers. There was a single peak by GC (for the recrystallized product) but the mother liquors showed a contamination that proved to be N-methylformanilide. A 0.3 g sample, along with 0.3 g malononitrile, was dissolved in 10 mL warm absolute EtOH, and treated with a drop of triethylamine. There was the immediate formation of a yellow color followed, in 1 min, by the deposition of fine yellow needles. Filtering and air drying gave 0.25 g of 2,5-dimethoxy-4-ethoxybenzalmalononitrile, with a mp of 171â172 Â°C.
+
+A solution of 7.3 g 2,5-dimethoxy-4-ethoxybenzaldehyde in 25 g glacial acetic acid was treated with 3.6 g nitroethane and 2.25 g anhydrous ammonium acetate, and heated on the steam bath. After two h, the clear solution was diluted with an equal volume of H2O, and cooled in an ice bucket. There was the formation of a heavy crop of orange crystals which were removed by filtration. The dry weight of 1-(2,5-dimethoxy-4-ethoxyphenyl)-2-nitropropene was 4.8 g and the mp was 120â124 Â°C. Recrystallization of an analytical sample from MeOH gave a mp of 128â129 Â°C. Anal. (C13H17NO5) C,H.
+
+To a gently refluxing suspension of 3.3 g LAH in 400 mL anhydrous Et2O under a He atmosphere, there was added 4.3 g 1-(2,5-dimethoxy-4-ethoxy)-2-nitropropene by allowing the condensing Et2O to drip into a shunted Soxhlet thimble apparatus containing the nitrostyrene, thus effectively adding a warm saturated ether solution of it to the hydride mixture. The addition took 2 h. Refluxing was maintained for 5 h, and then the reaction mixture was cooled to 0 Â°C with an external ice bath. The excess hydride was destroyed by the cautious addition of 300 mL of 1.5 N H2SO4. When the aqueous and Et2O layers were finally clear, they were separated, and 100 g of potassium sodium tartrate was dissolved in the aqueous fraction. Aqueous NaOH was then added until the pH was >9, and this was then extracted with 3Ã100 mL CH2Cl2. Evaporation of the solvent from the pooled extracts produced an almost white oil that was dissolved in 100 mL anhydrous Et2O and saturated with anhydrous HCl gas. There was deposited a white crystalline solid of 2,5-dimethoxy-4-ethoxyamphetamine hydrochloride (MEM) which weighed 3.1 g and had a mp of 171â172.5 Â°C. Anal. (C13H22ClNO3) C,H,N.
+
+
+## DOSAGE
+
+## DURATION
+
+## QUALITATIVE COMMENTS
+(with 20 mg, at 1.5 h following 120 mg MDMA) âThe transition was very smooth, with no obvious loss of the MDMA experience. I felt less of a need to talk, but the intimate closeness with the others was maintained. The experience continues to grow more profound and euphoric and I prayed, in the latter part of the afternoon, that it wouldnât stop. It continued until midnight with marvelous feelings, good energy, and much hilarity. And it abated very little over the next several days leaving me with the feeling of lasting change with important insights still coming to mind one week later.â
+
+(with 25 mg, at 2 h following 120 mg MDMA) âI found that sounds in general were distracting. No, they were out-and-out annoying. I may have been in an introspective mood, but I really wanted to be alone. No body problems at all. Felt good. I developed some color changes and some pattern movement. Not much, but then I didnât explore it much. The wine party afterwards was certainly most pleasant. The soup was a great pleasure. And that hard bread was good. The material was clearly not anorexic, or at least I overcame whatever anorexia there might have been.â
+
+(with 30 mg) âI was aware of this in thirty minutes and it slowly developed from there to an almost +++ in the following hour. There were visual phenomena, with some color enhancement and especially a considerable enhancement of brights and darks. The first signs of decline were at about six hours, but there was something still working there after another six hours had passed. A slow decline, certainly.â
+
+(with 50 mg) âI came into the experience knowing that yesterday had been a very fatiguing and tense day. I felt this material within the first ten minutes which is the fastest that I have ever felt anything. The ascent was rapid and for the first hour I tended to an inward fantasying with a distinct sensual tinge. There was a persistent queasiness that never left me, and it contrasted oddly with a good feeling of outward articulation and lucidity which succeeded in coming to the fore after the introverted first hour. Sleep was difficult, but the next day was calm and clear.â
+
+(with 50 mg) âLots of energy, best directed into activity. Clear imaging, thinking. Intense yet serene. Good feeling of pleasantness and some euphoria. I felt the need to keep moving. Hard to stay still.â
+
+(with 70 mg, in two parts) âThe effects of the 40 milligrams were muted by another drug experiment yesterday morning, and I never got much over a plus 1. There is an erotic nature, tactile sensitivity perhaps not as delicate as with 2C-B, but it is there. At the 2 hour point, an additional 30 milligrams increased the body impact (a distinct tremor and sensitivity) but somehow not a lot more mental. I have been compromised by yesterday.â
+
+
+## EXTENSIONS AND COMMENTARY
+Why put such emphasis on potency, I am frequently asked? Why should it matter how much of a compound you take, as long as the effective level is much lower than its toxic level? Well, in a sense, that is the very reason. There are no guides as to what the toxic levels of any of these many compounds might really be in man. There is simply no way of determining this. Only a few have been explored in animals in the pursuit of an LD50 level. Most of them are similar to one-another, in that they are, in mice, of relatively low toxicity and, in rat, of relatively high toxicity. But this toxicity appears not to be related to potency in man. So, if one might extrapolate that they are of more or less the same risk to man (from the toxic point of view) then the lower the dosage, the greater the safety. Maybe. In the absence of anything factual, it makes a reasonable operating hypothesis.
+
+Many of the reports of MEM effects have been with experiments in which an effective dose of MDMA had been taken shortly earlier. There has developed a concept, embraced by a number of researchers, that the ease and quietness usually seen with the development of the MDMA experience can mitigate some of the physically disturbing symptoms sometimes seen with other psychedelics. This may be partly due to a familiar entry into a altered place, and partly due to a lessening of dosage usually required for full effects. MEM seems to have had more trials using this combination than many of the other psychedelic drugs.
+
+`,
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/mem",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MEM.shtml",
+  "name": "MEM",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A rare stimulant, psychedelic and amphetamine discovered by Alexander Shulgin. Related to the DOx class of drugs, little is known about this obscure compound's pharmacology, however it is likely to be potent and have a long duration.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15mg"
+        },
+        {
+          "name": "Light",
+          "value": "15-25mg"
+        },
+        {
+          "name": "Common",
+          "value": "25-35mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35-45mg+."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "8.0 - 16.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}`,
+  "tripsit-factsheets": `# MEM
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+A rare psychedelic amphetamine discovered by Alexander Shulgin. Related to the DOx class of drugs, there is little known about the obscure compounds pharmacology. However, it is suspected to have a high potency and to have a long duration.
+
+## Classification
+- **Categories:** psychedelic, research-chemical, tentative
+
+## Dosage
+
+### Oral
+- **Common:** 25-35mg
+- **Light:** 15-25mg
+- **Strong:** 35-45mg+.
+- **Threshold:** 15mg
+
+## Duration
+- **Duration:** 8-16 hours
+- **After Effects:** 1-12 hours
+
+## Effects
+- Euphoria
+- empathy
+- insight
+- brightened colour
+- Closed/Open eye visuals
+- enhanced tactile sensation
+- mental/physical stimulation
+- decreased appetite
+- pupil dilation
+- restlessness
+- change in perception
+- ego softening
+- sweating/chills
+- muscle tension
+- confusion
+- insomnia
+
+## External Links
+- [experiences](https://www.erowid.org/experiences/subs/exp_MEM.shtml)
+- [pihkal](https://www.erowid.org/library/books_online/pihkal/pihkal122.shtml)
+`,
+  "wikipedia": `# Mem (disambiguation)
+*Source: https://en.wikipedia.org/wiki/Mem_(disambiguation)*
+
+Mem is a Semitic letter. 
+Mem or MEM may also refer to:
+
+## Business and organizations
+
+Ministry of Emergency Management, the Chinese government ministry
+Missouri Employers Mutual, a workers' compensation insurance company
+Mondpaca Esperantista Movado, an Esperanto association
+The Main Event Mafia, an American professional wrestling stable
+
+## People
+
+Mem (given name), including a list of people with the name or nickname
+
+## Places
+
+Mem Castle, in Sweden
+Memphis International Airport, in U.S., IATA airport code MEM
+
+## Science and technology
+
+2,5-Dimethoxy-4-ethoxyamphetamine (MEM), a psychedelic drug
+2-Methoxyethoxymethyl (MEM), an alcohol protecting group
+Mars Excursion Module, a 1960s proposed spacecraft
+Eagle's minimal essential medium, a synthetic cell culture medium
+Monocular estimate method, a form of dynamic retinoscopy
+Mem (computing), a measurement unit for the number of memory accesses
+Mem (command), a DOS command
+
+## Other uses
+
+Master of Engineering Management, an academic degree
+Master of Environmental Management, an academic degree
+Memphis Grizzlies, a National Basketball Association team based in Memphis, Tennessee
+`,
+};

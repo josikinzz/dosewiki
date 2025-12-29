@@ -1,0 +1,268 @@
+// Auto-generated - do not edit
+export const substanceName = "Pseudoephrine";
+export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Pseudoephrine.json","displayName":"Protest Kit","size":3396},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pseudoephrine.md","displayName":"TripSit Factsheets","size":691},{"id":"wikipedia","fileName":"WIKIPEDIA - Pseudoephrine.md","displayName":"Wikipedia","size":14188}];
+export const contents: Record<string, string> = {
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/pseudoephedrine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Pseudoephedrine.shtml",
+  "name": "Pseudoephrine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Widely sold as a decongestant, and one isomer of Ephedrine. It is not generally considered to have any recreational value. Is also used in the synthesis of Methcathinone and Methamphetamine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "30-60mg."
+        },
+        {
+          "name": "Common",
+          "value": "60-90mg."
+        },
+        {
+          "name": "Strong",
+          "value": "90-120mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}`,
+  "tripsit-factsheets": `# Pseudoephrine
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+The drug is widely sold as a decongestant and is one isomer of ephedrine. The drug reportedly lacks in recreational effects. It is used in the synthesis of methcathinone and methamphetamine.
+
+## Classification
+- **Categories:** stimulant, common
+
+## Dosage
+
+### Oral
+- **Common:** 60-90mg.
+- **Light:** 30-60mg.
+- **Strong:** 90-120mg.
+
+## Duration
+- **Onset:** 10-90 minutes
+- **Duration:** 2-12 hours
+
+## Additional Information
+- **Avoid:** If one is prone to or has a pre-exisiting condition relating to the heart.
+
+## External Links
+- [experiences](https://www.erowid.org/experiences/subs/exp_Pseudoephedrine.shtml)
+`,
+  "wikipedia": `# Pseudoephedrine
+*Source: https://en.wikipedia.org/wiki/Pseudoephedrine*
+
+## Summary
+Pseudoephedrine, sold under the brand name Sudafed among others, is a sympathomimetic medication which is used as a decongestant to treat nasal congestion. It has also been used off-label for certain other indications, like treatment of low blood pressure. At higher doses, it may produce various additional effects including stimulant, appetite suppressant, and performance-enhancing effects. In relation to this, non-medical use of pseudoephedrine has been encountered. The medication is taken by mouth.
+Side effects of pseudoephedrine include insomnia, elevated heart rate, increased blood pressure, restlessness, dizziness, anxiety, and dry mouth, among others. Rarely, pseudoephedrine has been associated with serious cardiovascular complications like heart attack and hemorrhagic stroke. Some people may be more sensitive to its cardiovascular effects. Pseudoephedrine acts as a norepinephrine releasing agent, thereby indirectly activating adrenergic receptors. As such, it is an indirectly acting sympathomimetic. Pseudoephedrine significantly crosses into the brain, but has some peripheral selectivity due to its hydrophilicity. Chemically, pseudoephedrine is a substituted amphetamine and is closely related to ephedrine, phenylpropanolamine, and amphetamine. It is the (1S,2S)-enantiomer of β-hydroxy-N-methylamphetamine.
+Along with ephedrine, pseudoephedrine occurs naturally in ephedra, which has been used for thousands of years in traditional Chinese medicine. It was first isolated from ephedra in 1889. Subsequent to its synthesis in the 1920s, pseudoephedrine was introduced for medical use as a decongestant. Pseudoephedrine is widely available over-the-counter (OTC) in both single-drug and combination preparations. Availability of pseudoephedrine has been restricted starting in 2005 as it can be used to synthesize methamphetamine. Phenylephrine has replaced pseudoephedrine in many over-the-counter oral decongestant products. However, oral phenylephrine appears to be ineffective as a decongestant. In 2023, pseudoephedrine was the 292nd most commonly prescribed medication in the United States, with more than 400,000 prescriptions. In 2023, the combination with brompheniramine and dextromethorphan was the 281st most commonly prescribed medication in the United States, with more than 700,000 prescriptions. In 2023, the combination with loratadine was the 300th most commonly prescribed medication in the United States, with more than 400,000 prescriptions.
+
+## Medical uses
+
+
+## Contraindications
+Pseudoephedrine is contraindicated in patients with diabetes mellitus, cardiovascular disease, severe or uncontrolled hypertension, severe coronary artery disease, prostatic hypertrophy, hyperthyroidism, closed-angle glaucoma, or by pregnant women. The safety and effectiveness of nasal decongestant use in children is unclear.
+
+## Side effects
+Common side effects with pseudoephedrine therapy may include central nervous system (CNS) stimulation, insomnia, restlessness, excitability, dizziness, and anxiety. Infrequent side effects include tachycardia or palpitations. Rarely, pseudoephedrine therapy may be associated with mydriasis (dilated pupils), hallucinations, arrhythmias, hypertension, seizures, and ischemic colitis; as well as severe skin reactions known as recurrent pseudo-scarlatina, systemic contact dermatitis, and non-pigmenting fixed drug eruption. Pseudoephedrine, particularly when combined with other drugs including narcotics, may also play a role in the precipitation of episodes of psychosis. It has also been reported that pseudoephedrine, among other sympathomimetic agents, may be associated with the occurrence of hemorrhagic stroke and other cardiovascular complications.
+Due to its sympathomimetic effects, pseudoephedrine is a vasoconstrictor and pressor agent (increases blood pressure), a positive chronotrope (increases heart rate), and a positive inotrope (increases force of heart contractions). The influence of pseudoephedrine on blood pressure at clinical doses is controversial. A closely related sympathomimetic and decongestant, phenylpropanolamine, was withdrawn due to associations with markedly increased blood pressure and incidence of hemorrhagic stroke. There has been concern that pseudoephedrine may likewise dangerously increase blood pressure and thereby increase the risk of stroke, whereas others have contended that the risks are exaggerated. Besides hemorrhagic stroke, myocardial infarction, coronary vasospasm, and sudden death have also rarely been reported with sympathomimetic ephedra compounds like pseudoephedrine and ephedrine.
+A 2005 meta-analysis found that pseudoephedrine at recommended doses had no meaningful effect on systolic or diastolic blood pressure in healthy individuals or people with controlled hypertension. Systolic blood pressure was found to slightly increase by 0.99 mm Hg on average and heart rate was found to slightly increase by 2.83 bpm on average. Conversely, there was no significant influence on diastolic blood pressure, which increased by 0.63 mg Hg. In people with controlled hypertension, systolic hypertension increased by a similar degree of 1.20 mm Hg. Immediate-release preparations, higher doses, being male, and shorter duration of use were all associated with greater cardiovascular effects. A small subset of individuals with autonomic instability, perhaps in turn resulting in greater adrenergic receptor sensitivity, may be substantially more sensitive to the cardiovascular effects of sympathomimetics. Subsequent to the 2005 meta-analysis, a 2015 systematic review and a 2018 meta-analysis found that pseudoephedrine at high doses (>170 mg) could increase heart rate and physical performance with larger effect sizes than lower doses.
+A 2007 Cochrane review assessed the side effects of short-term use of pseudoephedrine at recommended doses as a nasal decongestant. It found that pseudoephedrine had a small risk of insomnia and this was the only side effect that occurred at rates significantly different from placebo. Insomnia occurred at a rate of 5% and had an odds ratio (OR) of 6.18. Other side effects, including headache and hypertension, occurred at rates of less than 4% and were not different from placebo.
+Tachyphylaxis is known to develop with prolonged use of pseudoephedrine, especially when it is re-administered at short intervals.
+There is a case report of temporary depressive symptoms upon discontinuation and withdrawal from pseudoephedrine. The withdrawal symptoms included worsened mood and sadness, profoundly decreased energy, a worsened view of oneself, decreased concentration, psychomotor retardation, increased appetite, and increased need for sleep.
+Pseudoephedrine has psychostimulant effects at high doses and is a positive reinforcer with amphetamine-like effects in animals including rats and monkeys. However, it is substantially less potent than methamphetamine or cocaine.
+
+## Overdose
+The maximum total daily dose of pseudoephedrine is 240 mg. Symptoms of overdose may include sedation, apnea, impaired concentration, cyanosis, coma, circulatory collapse, insomnia, hallucinations, tremors, convulsions, headache, dizziness, anxiety, euphoria, tinnitus, blurred vision, ataxia, chest pain, tachycardia, palpitations, increased blood pressure, decreased blood pressure, thirstiness, sweating, difficulty with urination, nausea, and vomiting. In children, symptoms have more often included dry mouth, pupil dilation, hot flashes, fever, and gastrointestinal dysfunction. Pseudoephedrine may produce toxic effects both with use of supratherapeutic doses but also in people who are more sensitive to the effects of sympathomimetics. Misuse of the drug has been reported in one case at massive doses of 3,000 to 4,500 mg (100–150 × 30-mg tablets) per day, with the doses gradually increased over time by this individual. No fatalities due to pseudoephedrine misuse have been reported as of 2021. However, death with pseudoephedrine has been reported generally.
+
+## Interactions
+Concomitant or recent (previous 14 days) monoamine oxidase inhibitor (MAOI) use can lead to hypertensive reactions, including hypertensive crisis, and should be avoided. Clinical studies have found minimal or no influence of certain MAOIs like the weak non-selective MAOI linezolid and the potent selective MAO-B inhibitor selegiline (as a transdermal patch) on the pharmacokinetics of pseudoephedrine. This is in accordance with the fact that pseudoephedrine is not metabolized by monoamine oxidase (MAO). However, pseudoephedrine induces the release of norepinephrine, which MAOIs inhibit the metabolism of, and as such, MAOIs can still potentiate the effects of pseudoephedrine. No significant pharmacodynamic interactions have been found with selegiline, but linezolid potentiated blood pressure increases with pseudoephedrine. However, this was deemed to be without clinical significance in the case of linezolid, though it was noted that some individuals may be more sensitive to the sympathomimetic effects of pseudoephedrine and related agents. Pseudoephedrine is contraindicated with MAOIs like phenelzine, tranylcypromine, isocarboxazid, and moclobemide due to the potential for synergistic sympathomimetic effects and hypertensive crisis. It is also considered to be contraindicated with linezolid and selegiline as some individuals may react more sensitively to coadministration.
+Concomitant use of pseudoephedrine with other vasoconstrictors, including ergot alkaloids like ergotamine and dihydroergotamine, linezolid, oxytocin, ephedrine, phenylephrine, and bromocriptine, among others, is not recommended due to the possibility of greater increases in blood pressure and risk of hemorrhagic stroke. Sympathomimetic effects and cardiovascular risks of pseudoephedrine may also be increased with digitalis glycosides, tricyclic antidepressants, appetite suppressants, and inhalational anesthetics. Likewise, greater sympathomimetic effects of pseudoephedrine may occur when it is combined with other sympathomimetic agents. Rare but serious cardiovascular complications have been reported with the combination of pseudoephedrine and bupropion. Increase of ectopic pacemaker activity can occur when pseudoephedrine is used concomitantly with digitalis. The antihypertensive effects of methyldopa, guanethidine, mecamylamine, reserpine, and veratrum alkaloids may be reduced by sympathomimetics like pseudoepehdrine. Beta blockers like labetalol may reduce the effects of pseudoephedrine.
+Urinary acidifying agents like ascorbic acid and ammonium chloride can increase the excretion of and thereby reduce exposure to amphetamines including pseudoephedrine, whereas urinary alkalinizing agents including antacids like sodium bicarbonate as well as acetazolamide can reduce the excretion of these agents and thereby increase exposure to them.
+
+## Pharmacology
+
+
+## Chemistry
+Pseudoephedrine, also known structurally as (1S,2S)-α,N-dimethyl-β-hydroxyphenethylamine or as (1S,2S)-N-methyl-β-hydroxyamphetamine, is a substituted phenethylamine, amphetamine, and β-hydroxyamphetamine derivative. It is a diastereomer of ephedrine.
+Pseudoephedrine is a small-molecule compound with the molecular formula C10H15NO and a molecular weight of 165.23 g/mol. It has an experimental log P of 0.89, while its predicted log P values range from 0.9 to 1.32. The compound is relatively lipophilic, but is also more hydrophilic than other amphetamines. The lipophilicity of amphetamines is closely related to their brain permeability. For comparison to pseudoephedrine, the experimental log P of methamphetamine is 2.1, of amphetamine is 1.8, of ephedrine is 1.1, of phenylpropanolamine is 0.7, of phenylephrine is -0.3, and of norepinephrine is -1.2. Methamphetamine has high brain permeability, whereas phenylephrine and norepinephrine are peripherally selective drugs. The optimal log P for brain permeation and central activity is about 2.1 (range 1.5–2.7).
+Pseudoephedrine is readily reduced into methamphetamine or oxidized into methcathinone.
+
+## Manufacturing
+Although pseudoephedrine occurs naturally as an alkaloid in certain plant species (for example, as a constituent of extracts from the Ephedra species, also known as ma huang, in which it occurs together with other isomers of ephedrine), the majority of pseudoephedrine produced for commercial use is derived from yeast fermentation of dextrose in the presence of benzaldehyde. In this process, specialized strains of yeast (typically a variety of Candida utilis or Saccharomyces cerevisiae) are added to large vats containing water, dextrose and the enzyme pyruvate decarboxylase (such as found in beets and other plants). After the yeast has begun fermenting the dextrose, the benzaldehyde is added to the vats, and in this environment, the yeast converts the ingredients to the precursor l-phenylacetylcarbinol (L-PAC). L-PAC is then chemically converted to pseudoephedrine via reductive amination.
+The bulk of pseudoephedrine is produced by commercial pharmaceutical manufacturers in India and China, where economic and industrial conditions favor its mass production for export.
+
+## History
+Pseudoephedrine, along with ephedrine, occurs naturally in ephedra. This herb has been used for thousands of years in traditional Chinese medicine. Pseudoephedrine was first isolated and characterized in 1889 by the German chemists Ladenburg and Oelschlägel, who used a sample that had been isolated from Ephedra vulgaris by the Merck pharmaceutical corporation of Darmstadt, Germany. It was first synthesized in the 1920s in Japan. Subsequently, pseudoephedrine was introduced for medical use as a decongestant.
+
+## Society and culture
+
+
+## Research
+Pseudoephedrine has been studied in the treatment of snoring. However, data are inadequate to support this use.
+A study has found that pseudoephedrine can reduce milk production in breastfeeding women. This might have been due to suppression of prolactin secretion. Pseudoephedrine might be useful for lactation suppression.
+
+
+== References ==
+
+`,
+};

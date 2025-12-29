@@ -1,0 +1,213 @@
+// Auto-generated - do not edit
+export const substanceName = "Dimemebfe";
+export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Dimemebfe.json","displayName":"Protest Kit","size":3329},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dimemebfe.md","displayName":"TripSit Factsheets","size":506},{"id":"wikipedia","fileName":"WIKIPEDIA - Dimemebfe.md","displayName":"Wikipedia","size":656}];
+export const contents: Record<string, string> = {
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/dimemebfe",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Dimemebfe",
+  "name": "Dimemebfe",
+  "aliases": [
+    "5-meo-bfe"
+  ],
+  "aliasesStr": "5-meo-bfe",
+  "summary": "Related in structure to 5-MeO-DMT, yet much less potent. Described as feeling somewhat similar to mushrooms, with some empathogenic effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "25-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-75mg"
+        },
+        {
+          "name": "Strong",
+          "value": "75-125mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.67 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}`,
+  "tripsit-factsheets": `# Dimemebfe
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+Related in structure to 5-MeO-DMT, yet much less potent. Described as feeling somewhat similar to psilocybin mushrooms, with some additional empathogenic effects.
+
+## Classification
+- **Categories:** research-chemical, psychedelic, empathogen, tentative
+- **Also known as:** 5-meo-bfe
+
+## Dosage
+
+### Oral
+- **Common:** 50-75mg
+- **Light:** 25-50mg
+- **Strong:** 75-125mg.
+
+## Duration
+- **Onset:** 10-40 minutes
+- **Duration:** 4-6 hours
+`,
+  "wikipedia": `# Dimemebfe
+*Source: https://en.wikipedia.org/wiki/Dimemebfe*
+
+Dimemebfe (5-MeO-BFE) is a recreational drug and research chemical.  It acts as an agonist for the 5-HT1A and 5-HT2 family of serotonin receptors. It is related in structure to the psychedelic tryptamine derivative 5-MeO-DMT, but with the indole nitrogen replaced by oxygen, making dimemebfe a benzofuran derivative. It is several times less potent as a serotonin agonist than 5-MeO-DMT and with relatively more activity at 5-HT1A, but still shows strongest effects at the 5-HT2 family of receptors.
+
+## Legal status
+
+Dimemebfe is a Schedule I controlled substance in the US state of Alabama.
+`,
+};

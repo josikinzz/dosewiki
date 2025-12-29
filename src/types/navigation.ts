@@ -20,4 +20,5 @@ export type AppView =
   | { type: "about" }
   | { type: "search"; query: string }
   | { type: "dev"; tab: DevTab; slug?: string }
-  | { type: "contributor"; profileKey: string };
+  | { type: "contributor"; profileKey: string }
+  | { type: "generator" };

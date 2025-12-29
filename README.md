@@ -208,7 +208,7 @@ Extend these when evolving the schema to keep TypeScript contracts accurate.
 ## Further Reading
 - `notes and plans/dosewiki-visual-style-guide.md`: Canonical styling guidance.
 - `notes and plans/dosewiki-site-readme.md`: Deep-dive internal architecture doc.
-- `AGENTS.md`: Workflow expectations for AI/code agents working in this repo.
+- `CLAUDE.md`: Comprehensive development guidelines for Claude Code and AI agents.
 
 ---
 Questions or improvements? Open an issue or update the `notes and plans/` docs to keep future contributors in the loop.

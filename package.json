@@ -4,16 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "predev": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "prebuild": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
     "build": "vite build",
-    "prebuild:inline": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs",
+    "prebuild:inline": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
     "build:inline": "vite build --mode inline --outDir dist-inline",
     "preview": "vite preview",
     "export:dose-table": "node scripts/exportDoseSpreadsheet.mjs",
     "generate:smiles": "node scripts/generateSmilesMap.mjs",
-    "merge:articles": "node scripts/merge-articles-json.mjs"
+    "merge:articles": "node scripts/merge-articles-json.mjs",
+    "generate:manifest": "node scripts/generateArticleManifest.mjs"
   },
   "dependencies": {
     "diff": "^8.0.2",

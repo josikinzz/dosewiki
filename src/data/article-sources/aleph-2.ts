@@ -1,0 +1,168 @@
+// Auto-generated - do not edit
+export const substanceName = "ALEPH-2";
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - ALEPH-2.md","displayName":"Isomer Design","size":8089},{"id":"protestkit","fileName":"PROTESTKIT - ALEPH-2.json","displayName":"Protest Kit","size":1598},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ALEPH-2.md","displayName":"TripSit Factsheets","size":832},{"id":"wikipedia","fileName":"WIKIPEDIA - ALEPH-2.md","displayName":"Wikipedia","size":1988}];
+export const contents: Record<string, string> = {
+  "isomerdesign": `# ALEPH-2
+*Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=4*
+
+*PiHKAL Entry #4*
+
+
+## SYNTHESIS
+A suspension of 1.2 g LAH in 75 mL anhydrous THF was put under an inert atmosphere and, with good stirring, brought up to a gentle reflux. A solution of 1.5 g 1-(2,5-dimethoxy-4-ethylthiophenyl)-2-nitropropene in 20 mL anhydrous THF was added dropwise. Heating and stirring were maintained for an additional 24 h, and then the reaction mixture was allowed to come back to room temperature with stirring. There was added 1.4 mL H2O (dissolved in a little THF), followed by 1.4 mL 15% NaOH and finally another 4.2 mL H2O. Stirring was continued until all the curdy solids had turned white. The reaction mixture was filtered, and the filter cake washed with THF. The filtrate and the washings were combined, and the solvent removed under vacuum. The residue was 1.1 g of a pale amber oil. This was dissolved in 6 mL IPA, neutralized with concentrated HCl (about 8 drops were required) and then diluted with 150 mL anhydrous Et2O. The slightly cloudy solution was stirred for a couple of min, then there was the formation of a heavy white crystalline mass. This was removed by filtration, washed with Et2O, and air dried to provide 1.1 g 2,5-dimethoxy-4-ethylthioamphetamine hydrochloride (ALEPH-2) with a mp of 128â130 Â°C with decomposition.
+
+
+## DOSAGE
+
+## DURATION
+
+## QUALITATIVE COMMENTS
+(with 5 mg) âThis turned out to be a day of extraordinary visuals and interpretations. About two hours into it, I felt that the effects were still climbing, but there was a marvelous onset of visual distortions and illusions, right at the edge of hallucination. The logs in the fireplace were in continuous motion. The notepaper I was writing on seemed to scrunch and deform under the pressure of the pen. Nothing would stay still; everything was always moving. There was a phase of unabated inflation. The intensity was noticeably dropping at the five hour point and I observed considerable residual shakes and a muscular tremor. Even towards midnight there was some tooth-rubbiness, but I was able to get a somewhat fretful though adequate sleep.â
+
+(with 5 mg) âI was exposed to a number of new environments and it was difficult to completely separate the experience into what was seen differently and what was seen for the first time. The Santa Cruz Mystery Spot should have been bizarre but it was simply hokey. And yet the boardwalk that should have been depressing was totally magical. The day was unworldly and I ended up with considerable muscular weakness. All in all, I handled it well, but I probably wonât do it again.â
+
+(with 7 mg) âAn amazing unification of visual hallucination seen only in the very fine detail of something, and what must be considered retinal hallucination. There is no one-to-one correspondence between the many retinal cells of the high-resolution part of the eye. Thus, the mind can pick and choose, sometimes from the right eye, and sometimes from the left. And so a small curve or bump can become whatever you wish. For a moment. And then it chooses again, but differently. Is all of our perceived world as subjective as this?â
+
+(with 8 mg) âExtreme intoxication, but almost no visual phenomena. Even well into the evening, I know I absolutely could not drive. Why? I donât know, since this experiment, at least, seemed to be quite free of strange colors and wiggly lines and streaks of light. Itâs that I donât trust that the reality I see is the same reality that the other driver might see. I am very much the center of the world about me, and I donât think I could trust anyone else to fully respect my reality.â
+
+
+## EXTENSIONS AND COMMENTARY
+ALEPH-3 was intended to be the methallylthio compound, 2,5-dimethoxy-4-(Î²-methallylthio)amphetamine. The thioether (2,5-dimethoxyphenyl beta-methallyl sulfide) was easily made from 2,5-dimethoxythiophenol (see 2C-T-2 for its preparation) with 3.4 g dissolved in a solution of 1.7 g KOH in 25 mL boiling EtOH, and 2.72 g methallyl chloride, heated 1 h on the steam bath, poured into 250 mL H2O, extracted with 3Ã100 mL CH2Cl2, and solvent removal yielding 4.4 g of the sulfide as an amber oil. An effort to convert this to 2,5-dimethoxy-4-(Î²-methallylthio)benzaldehyde (7.2 g POCl3, 6.7 g N-methylformanilide, 4.2 g of the crude sulfide from above, 15 min heating on the steam bath, H2O hydrolysis, hexane extraction of the residues from a CH2Cl2 extraction) produced 3.1 g of a peppermint-smelling oil that distilled at 140â160 Â°C at 0.3 mm/Hg and which did indeed have an aldehyde group present (by proton NMR) but the rest of the spectrum was a mess, and the project was abandoned.
+
+Several years later, this entire project was reinitiated, and the aldehyde was obtained as a yellow crystal, but again it was not pursued. At that time, the earlier try had been totally forgotten, and a brand new ALEPH- (or 2C-T-) number had been assigned; i.e., 20. Thus, the corresponding phenethylamine (2,5-dimethoxy-4-(Î²-methallylthio)phenethylamine), had it ever been made, which it was not, would have been called either 2C-T-3 or 2C-T-20, and the amphetamine homologue would probably have been ALEPH-20.
+
+A closely related 2C-T-X compound was also started quite a while laterâthis was the allylthio homologue of the methallyl material 2C-T-3 or 2C-T-20. Its place in the flow of things is evident from its numbering, 2C-T-16. A mixture of 2,5-dimethoxythiophenol and KOH and allyl chloride in MeOH gave 2,5-dimethoxyphenyl allyl sulfide as a white oil which boiled at 110â125 Â°C at 0.25 mm/Hg. This, with POCl3 and N-methylformanilide provided 2,5-dimethoxy-4-(allylthio)benzaldehyde which distilled at 140â160 Â°C at 0.4 mm/Hg and could be recrystallized from MeOH as a pale yellow solid. Reaction of this aldehyde in nitroethane in the presence of ammonium acetate (steam bath for 2.5 h) provided 2,5-dimethoxy-4-allylthio-Î²-nitrostyrene as red crystals from acetonitrile. Its mp was 114â115 Â°C. Anal. (C13H15NO4S) C,H. This has not yet been reduced to the final amine, 2,5-dimethoxy-4-allylthiophenethylamine, 2C-T-16. The corresponding amphetamine would be, of course, ALEPH-16.
+
+ALEPH-5 was to be the cyclohexylthio analogue (2,5-dimethoxy-4-cyclohexylthioamphetamine). The thioether (2,5-dimethoxyphenyl cyclohexyl sulfide) was successfully made from 1.7 g 85% KOH pellets in 25 mL hot EtOH, 3.4 g 2,5-dimethoxythiophenol (again, see under 2C-T-2 for its preparation), and 4.9 g cyclohexyl bromide, 3 h on the steam bath, into 500 mL H2O, extraction with 3Ã100 mL CH2Cl2, washing the extracts with 5% NaOH, and evaporation to yield 5.2 g of an amber oil. The aldehyde, (made from 6.1 g POCl3 and 5.4 g N-methylformanilide, heated until claret colored, then treated with 5.0 g of the above crude thioether, heating for 20 min on the steam bath, into 300 mL H2O, and over-night stirring) was obtained as 3.1 g of a flesh-colored solid that was clearly neither pure nor completely correct. Repeated partitioning with organic solvents and cooling and scratching the residues finally provided a pale orange crystal (1.3 g, mp 88â93 Â°C) which, after twice recrystallizing from MeOH, gave 0.4 g of pale yellow crystals with a mp 95â96 Â°C and a textbook perfect NMR in CDCl3 (CHO, 1H (s) 10.41; ArH 2H (s) 6.93, 7.31; OCH3, 6H, (2s) at 3.88 and 3.92; CH, 1H br. at 3.34; and (CH2)5 10H br. at 1.20â2.34). The nitrostyrene was prepared from 200 mg of the above aldehyde in 1.2 mL nitroethane and 0.1 g ammonium acetate overnight on the steam bath, the solvent removed to give an orange oil that spontaneously crystallized after a few monthsâ standing. This was never characterized, but sits there on the shelf to be reduced to ALEPH-5 some inspired day. The two-carbon homologue of this (2,5-dimethoxy-4-cyclohexylthiophenethylamine) will someday be called 2C-T-5 (if it is ever made).
+
+The remaining members of this family, ALEPH-4, ALEPH-6, and ALEPH-7 have actually been prepared and they have all been entered here in Book II, under their own names.
+
+`,
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/aleph-2",
+  "experiencesUrl": "https://www.reddit.com/search/?q=ALEPH-2",
+  "name": "ALEPH-2",
+  "aliases": [
+    "aleph2",
+    "dot-2",
+    "dot2"
+  ],
+  "aliasesStr": "aleph2,dot-2,dot2",
+  "summary": "A very rare Phenethylamine, also known as DOT-2, it is the DOx analogue of 2C-T-2. Very little human use recorded. Described as being quite long and highly visual. Likely to be potent, with a reported threshold dose of 3mg.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}`,
+  "tripsit-factsheets": `# ALEPH-2
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+A very rare Phenethylamine, also known as DOT-2, it is the DOx analogue of 2C-T-2. There is very little human use reported. Described as being quite long and highly visual. The drug is suspected to be potent, with a reported threshold dose of 3mg.
+
+## Classification
+- **Categories:** psychedelic, research-chemical, tentative
+- **Also known as:** dot-2, dot2, aleph2
+
+## Duration
+- **Onset:** 40-120 minutes
+- **Duration:** 6-18 hours
+- **After Effects:** 12-24 hours
+
+## Effects
+- Euphoria
+- empathy
+- insight
+- brightened colour
+- Closed/Open eye visuals
+- enhanced tactile sensation
+- mental/physical stimulation
+- decreased appetite
+- pupil dilation
+- restlessness
+- change in perception
+- ego softening
+- sweating/chills
+- muscle tension
+- confusion
+- insomnia
+`,
+  "wikipedia": `# Aleph-2
+*Source: https://en.wikipedia.org/wiki/Aleph-2*
+
+Aleph-2, or ALEPH-2, also known as 4-ethylthio-2,5-dimethoxyamphetamine, is a psychedelic drug of the phenethylamine, amphetamine, and DOx families. It is one of the Aleph series of compounds.
+
+## Use and effects
+
+In his book PiHKAL (Phenethylamines I Have Known and Loved), Alexander Shulgin lists Aleph-2's dose as 4 to 8 mg orally and its duration as 8 to 16 hours. The effects of Aleph-2 have been reported to include "almost no visual phenomena" to "extraordinary visuals and interpretations", visual distortion and movement, enhanced auditory and tactile perception, and a sensation of physical warmth, and residual shakiness and muscle tremors, among others. There is an unpredictability with the dosing and effects of Aleph-2, such that one person who took 4 mg had strong effects including ending up in a fetal position, in relative hibernation for several hours, and with substantial amnesia, whereas another person who took 8 mg experienced only a bare threshold including slight lightheadedness.
+
+## Interactions
+
+## Pharmacology
+
+### Pharmacodynamics
+
+Aleph-2 acts as a serotonin 5-HT2 receptor agonist. The drug is also a weak monoamine oxidase inhibitor (MAOI), with IC50Tooltip half-maximal inhibitory concentration values of 3,200 nM for monoamine oxidase A (MAO-A) and >100,000 nM for monoamine oxidase B (MAO-B). Aleph-2 produces anxiolytic effects in rodents.
+
+## Chemistry
+
+### Synthesis
+
+The chemical synthesis of Aleph-2 has been described.
+
+### Analogues
+
+Analogues of Aleph-2 include Aleph, Aleph-4, Aleph-6, Aleph-7, and 2C-T-2, among others.
+
+## History
+
+Aleph-2 was first described in the scientific literature by Alexander Shulgin in 1978. Subsequently, it was described in greater detail by Shulgin in his 1991 book PiHKAL (Phenethylamines I Have Known and Loved).
+
+## Society and culture
+
+### Legal status
+
+#### United States
+
+Aleph-2 is not a controlled substance in the United States as of 2011.
+`,
+};
