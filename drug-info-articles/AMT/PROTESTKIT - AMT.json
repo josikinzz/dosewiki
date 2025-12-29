@@ -1,0 +1,214 @@
+{
+  "url": "https://psychonautwiki.org/wiki/%CE%91MT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_AMT.shtml",
+  "name": "ΑMT",
+  "aliases": [
+    "alpha-methyltryptamine",
+    "alphamethyltryptamine",
+    "amt",
+    "indopan",
+    "monase"
+  ],
+  "aliasesStr": "alpha-methyltryptamine,alphamethyltryptamine,amt,indopan,monase",
+  "summary": "A long-acting psychedelic-empathogen with a broad method of action in the brain. Not suitable for combination with many other substances. Used as an anti-depressant in the Soviet Union, but later found popularity in the RC scene, mainly in the UK.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic",
+      "Entactogen"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "moderately habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "14 days",
+    "zero": "1 month"
+  },
+  "crossTolerances": [
+    "psychedelics"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 - 80 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "13.0 - 15.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

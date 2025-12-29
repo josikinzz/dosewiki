@@ -1,0 +1,35 @@
+# 4-HO-MiPT
+*Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=22*
+
+*TiHKAL Entry #22*
+
+
+## SYNTHESIS
+To 10 mL of a stirred solution of LAH (1 M in THF under N2), there was added dropwise a solution of 600 mg 4-acetoxyindol-3-yl-N-isopropyl-N-methylglyoxylamide 4-acetoxy-N-methyl-N-isopropylindole-3-glyoxylamide in 10 mL anhydrous THF. When the addition was complete, the reaction mixture was brought to a reflux on the steam bath for 15 min. After cooling to 40 Â°C, sufficient water was added to decompose both the reaction complex and the excess hydride. After filtration through Celite (under an N2 atmosphere), the solvent was removed under vacuum, and the solid residue recrystallized from EtOAc/hexane. There was thus obtained 340 mg .34 g (74%) of 4-hydroxy-N-methyl-N-isopropyltryptamine (4-HO-MIPT) with a mp of 123â124 Â°C. 4-HO-MIPT discolors quickly if it is not kept in an inert atmosphere and in a freezer. Anal: C,H,N.
+
+
+## DOSAGE
+
+## DURATION
+
+## QUALITATIVE COMMENTS
+(with 12 mg, orally) âIt was just an hour ago that I swallowed the capsule, and everything is happening. I was completely developed at 45 minutes. The imagery with my eyes closed is vivid. The music is exceptionally sensual. I notice a tendency to twitch but it doesnât bother me. Everything is rollingâhow can they allow an erotic piece like the Saint SaÃ«ns second piano concerto to ever appear in public, let alone over the radio? A very rapid decline between the third and fourth hour. A rich day for love, insights, fantasy and for retreating into oneâs mind. A rich day for discovery.â
+
+(with 12 mg, orally) âI suspended the solids in water, and a drop of HCl put it into solution immediately. The first awareness was unmistakable at twenty minutes, and from there it was a rapid and noisy development ending at about an hour. But this lasted for only another 40 minutes, and then dropped off quite rapidly. The erotic was excellent, but there were few visuals and I had difficulty connecting fantasy to music. Good appetite afterwards, and I had no trouble getting to sleep.â
+
+(with 15 mg acetate ester, orally) âAn interesting mixture of intoxication and sedation, progressing to a very relaxed state with some motor incoordination. Just a little bit like alcohol or GHB. There was no drifting of thoughts nor any gut disturbance at any time, although I wasnât very hungry. Conversation was easy.â
+
+(with 20 mg, orally) âEarly signs (muscle sensations) were noticed in 10 minutes. In another 10 minutes a rapid heightening of all senses ensued, reaching a plateau in 40 minutes and beginning to decline in 3 hours with a return to near normal in 5â6 hours. The intensity of the experience is marked. At the plateau, communication (verbal) is difficult with intense alteration in the sense of time and distance. Multiple and overlapping wave forms occur with an extremely intense color alteration. Drifting in and out of the body is common with an increased sense of body processes, i.e., blood flow in vessels. Muscular sense is increased and a feeling of soaring in bodiless flight is experienced. A mild vertigo was felt with attempted walking but is not associated with nausea. Some anxiety was experienced initially, but could be interpreted as a reaction to the extremely powerful onset. A curious, probably idiosyncratic effect, was of possessing the essence of sexual power associated with being a large jungle cat. The idea was prominent for some time. Conservatively, this compound is at least twice as active as psilocin at comparable doses, in terms of plateau or peak effect. External stimuli, especially light, were distracting to the point of annoyance. Sounds can be seen, words explode into showers of bright points with eyes closed. Other eyes-closed imagery is prominent with patterns (in color); at times soaring clouds dominate the eyes-closed scenery. I cannot overemphasize the intensity of the experience. I would not want to go much higher than 20 milligrams (50 milligrams of psilocin is not as intense).â
+
+(with 30 mg acetate ester, orally) âIt was as if I had downed a few martinis in a hurryâexcept that there were eye-closed visuals in a lot of different colors, especially metallic greens. I had jaw clenching and a body tremor, reminding me of ecstasy except is was not in any way stimulated. I listened to music in front of a fireplace in a darkened room and I saw bright colorful unstructured patterns. Seven hours and I fell into an easy sleep and was fine the next day.â
+
+
+## EXTENSIONS AND COMMENTARY
+Here, as with the 4-HO-DMT (psilocin) and the 4-HO-DET entries, some care must be made with the use of the term âacetateâ or âphosphate.â As these materials are both bases (tertiary amines) and acids (hydroxy indoles), they are in effect internal salts. For stability, they are usually converted into salts (at the amine end) or esters (at the phenolic end), or both. In this context, the term âacetateâ can mean either modification, a salt or an ester involving acetic acid. And, of course, a phosphate can be either a salt or an ester. I will try to append the additional term âsaltâ or âesterâ whenever this ambiguity is possible. In all of these studies, the acetate is the ester, and some of these are free bases, some are the hydrochloride salts and some are the fumarate salts.
+
+A large number of related homologues of psilocin have been synthesized and described, and some of them tasted to varying degrees, but none of them to a degree of definition to justify a recipe devoted just to them. With the 4-hydroxyl group assuring some measure of oral activity, all of these could serve as a structural structurae activity relationship gestalt to selectively, and specifically, evaluate the geometric nature of the nitrogen substituents.
+
+If one were to be a complete perfectionist in these areas of chemistry, one should actually make the phosphate ester of 4-HO-MIPT, as this would be the exact homologue of psilocybin. But that would be a great amount of additional work, just to have the body chop off the ester group as soon as it had the chance. The current thinking is that there would be the same activity with either compound, making allowances for the change in molecular weight. But at least it might be a lot more stable for storage. What about the sulfate ester? It should be a very stable salt, and the body has sulfatases just as it has phosphatases. Maybe the ubiquitous non-specific esterases would work as well. A number of studies have been made with the acetate ester (some mentioned here) and it should whap off immediately once itâs inside you.
+
+A careful clinical comparison of the acetate ester of psilocin with the phosphate ester and the free phenol might help resolve this question. The ideal way of resolving this would be to run pharmacokinetic studies on blood levels of these three materials, in parallel with the psychopharmacological responses. I feel that this is not likely to be done in the foreseeable future.
+

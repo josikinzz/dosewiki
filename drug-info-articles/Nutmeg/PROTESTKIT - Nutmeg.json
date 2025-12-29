@@ -1,0 +1,164 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Myristicin",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Myristicin",
+  "name": "Myristicin",
+  "aliases": [
+    "nutmeg"
+  ],
+  "aliasesStr": "nutmeg",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Phenylpropenes"
+    ],
+    "psychoactive": [
+      "Deliriant"
+    ]
+  },
+  "toxicity": [
+    "is neurotoxic",
+    "can be fatal in extremely high doses"
+  ],
+  "addictionPotential": "is not known to be addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "200 - 500 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "500 - 800 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "800 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "3.0 - 8.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "9.0 - 12.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "12.0 - 48.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "12.0 - 72.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "24.0 - 72.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Pattern recognition suppression, Empathy, affection and sociability enhancement, Motivation enhancement, Double vision, Tracers, Dehydration, Photophobia, Nausea, Difficulty urinating, Frequent urination, Dizziness, Stomach cramp, Constipation, Spontaneous bodily sensations, Tactile hallucination, Physical euphoria, Vasodilation, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Scenarios and plots, Cognitive euphoria, Anxiety, Paranoia, Laughter fits, Thought deceleration, Thought disorganization, Stimulation, Perception of bodily heaviness, Tactile suppression, Sedation, Motor control loss, Appetite suppression, Drifting, Color enhancement, Decreased blood pressure, Muscle relaxation, Peripheral information misinterpretation, Anxiety suppression, Increased music appreciation, After images, Environmental patterning, Feelings of impending doom, Confusion, Bodily pressures, Stomach bloating, Depersonalization, Dry mouth, Cognitive fatigue, Derealization, Increased bodily temperature, Amnesia, Emotion intensification, Visual acuity suppression, Psychosis, Physical fatigue, Sleepiness, Focus suppression, Perspective hallucination, Darker urine, Focus intensification, Immersion intensification, Suggestibility intensification, Auditory acuity enhancement, Tactile intensification, Gustatory intensification, Appetite intensification, Visual processing deceleration, Analysis depression, Language depression, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Difficulty urinating",
+      "Frequent urination",
+      "Dizziness",
+      "Stomach cramp",
+      "Constipation",
+      "Physical euphoria",
+      "Vasodilation",
+      "Stimulation",
+      "Sedation",
+      "Motor control loss",
+      "Appetite suppression",
+      "Decreased blood pressure",
+      "Muscle relaxation",
+      "Bodily pressures",
+      "Stomach bloating",
+      "Dry mouth",
+      "Increased bodily temperature",
+      "Physical fatigue",
+      "Sleepiness",
+      "Darker urine",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Internal hallucination",
+      "Time distortion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Laughter fits",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Peripheral information misinterpretation",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Feelings of impending doom",
+      "Confusion",
+      "Depersonalization",
+      "Cognitive fatigue",
+      "Derealization",
+      "Amnesia",
+      "Emotion intensification",
+      "Psychosis",
+      "Focus suppression",
+      "Focus intensification",
+      "Immersion intensification",
+      "Suggestibility intensification",
+      "Analysis depression",
+      "Language depression",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Double vision",
+      "Tracers",
+      "Photophobia",
+      "Spontaneous bodily sensations",
+      "Tactile hallucination",
+      "External hallucination",
+      "Perception of bodily heaviness",
+      "Tactile suppression",
+      "Color enhancement",
+      "After images",
+      "Visual acuity suppression",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification",
+      "Gustatory intensification",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting",
+      "Environmental patterning"
+    ]
+  }
+}

@@ -65,6 +65,12 @@ export default defineConfig(({ mode }) => {
     esbuild: {
       target: 'es2017',
     },
+    server: {
+      fs: {
+        allow: ['..'],
+      },
+    },
+    publicDir: 'public',
   };
 
   config.build = {

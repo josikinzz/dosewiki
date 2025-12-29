@@ -1,0 +1,293 @@
+{
+  "url": "https://psychonautwiki.org/wiki/ETH-LAD",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_ETHLAD.shtml",
+  "name": "ETH-LAD",
+  "aliases": [
+    "ethlad"
+  ],
+  "aliasesStr": "ethlad",
+  "summary": "A psychedelic drug and slightly more potent analogue of LSD, first synthesised by Alexander Shulgin - sometimes described as being less 'abrasive' than LSD. Less common than the associated AL-LAD, though has seen some popularity since its release on the Internet research chemical scene in 2015.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "5-7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 µg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 60 µg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 150 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 225 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "225 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "8.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition enhancement, Thought connectivity, Synaesthesia, Machinescapes, Diffraction, Depth perception distortions, Tracers, Recursion, Symmetrical texture repetition, Scenery slicing, Dehydration, Nausea, Headache, Vasoconstriction, Muscle cramp, Difficulty urinating, Frequent urination, Spontaneous bodily sensations, Physical euphoria, Watery eyes, Pupil dilation, Excessive yawning, Thought acceleration, Multiple thought streams, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Scenarios and plots, Thought loop, Unity and interconnectedness, Cognitive euphoria, Anxiety, Paranoia, Personal bias suppression, Memory suppression, Bodily control enhancement, Stimulation, Wakefulness, Temperature regulation suppression, Mouth numbing, Appetite suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Muscle contractions, Increased perspiration, Increased music appreciation, Olfactory hallucination, Seizure, After images, Environmental patterning, Thought organization, Confusion, Bodily pressures, Teeth grinding, Increased bodily temperature, Amnesia, Color shifting, Gustatory hallucination, 8A Geometry - Perceived exposure to semantic concept network, Perspective hallucination, Muscle twitching, Immersion intensification, Auditory acuity enhancement, Stamina intensification, Language depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Vasoconstriction",
+      "Muscle cramp",
+      "Difficulty urinating",
+      "Frequent urination",
+      "Physical euphoria",
+      "Watery eyes",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Temperature regulation suppression",
+      "Mouth numbing",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle contractions",
+      "Increased perspiration",
+      "Seizure",
+      "Bodily pressures",
+      "Teeth grinding",
+      "Increased bodily temperature",
+      "Muscle twitching",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Machinescapes",
+      "Depth perception distortions",
+      "Thought acceleration",
+      "Multiple thought streams",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Thought loop",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Thought organization",
+      "Confusion",
+      "Amnesia",
+      "8A Geometry - Perceived exposure to semantic concept network",
+      "Immersion intensification",
+      "Language depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Spontaneous bodily sensations",
+      "External hallucination",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Olfactory hallucination",
+      "After images",
+      "Color shifting",
+      "Gustatory hallucination",
+      "Perspective hallucination",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Recursion",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting",
+      "Environmental patterning"
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "url": "https://drugs.tripsit.me/aet",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_AET.shtml",
+  "name": "αET",
+  "aliases": [
+    "a-et",
+    "a-ethyltryptamine",
+    "alpha-ethyl-tryptamine"
+  ],
+  "aliasesStr": "a-et,a-ethyltryptamine,alpha-ethyl-tryptamine",
+  "summary": "A quite rare substance of the tryptamine class, was first made by Upjohn as an antidepressant. Please use extreme caution if you get the pleasure of trying this drug.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "80-100mg"
+        },
+        {
+          "name": "Common",
+          "value": "100-125mg"
+        },
+        {
+          "name": "Strong",
+          "value": "125-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

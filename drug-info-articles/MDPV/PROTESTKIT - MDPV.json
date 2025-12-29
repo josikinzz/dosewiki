@@ -1,0 +1,284 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MDPV",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MDPV.shtml",
+  "name": "MDPV",
+  "aliases": [
+    "bath salts",
+    "bath_salts",
+    "nrg-1"
+  ],
+  "aliasesStr": "bath salts,bath_salts,nrg-1",
+  "summary": "MDPV is a potent, and extremely compulsive synthetic euphoric stimulant, which shares some empathogenic effects with MDMA. Has a reputation for causing psychosis. MDPV has been found in products sold as \"bath salts\", \"plant food/fertilizer\", and in some \"ecstasy.\"",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "MDxx",
+      "Substituted cathinones",
+      "Substituted pyrrolidines"
+    ],
+    "psychoactive": [
+      "Entactogen",
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 14 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "14 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1-3mg"
+        },
+        {
+          "name": "Light",
+          "value": "2-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-11mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10-20mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1-5mg"
+        },
+        {
+          "name": "Light",
+          "value": "3-8mg"
+        },
+        {
+          "name": "Common",
+          "value": "6-12mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10-25mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "After effects",
+          "value": "2.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOI",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "stimulation (mental and physical), euphoria, increased mental clarity, elevated heart rate, headache, confusion, paranoia, loss of apetite, muscle tension",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "stimulation (mental and physical)",
+      "elevated heart rate",
+      "headache",
+      "loss of apetite",
+      "muscle tension"
+    ],
+    "Mental effects": [
+      "euphoria",
+      "increased mental clarity",
+      "confusion",
+      "paranoia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

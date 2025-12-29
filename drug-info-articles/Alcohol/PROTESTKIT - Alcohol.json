@@ -1,0 +1,182 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Alcohol",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Alcohol.shtml",
+  "name": "Alcohol",
+  "aliases": [
+    "beer",
+    "bevvy",
+    "booze",
+    "ethanol",
+    "etoh",
+    "hooch",
+    "juice",
+    "liquor",
+    "moonshine",
+    "sauce"
+  ],
+  "aliasesStr": "beer,bevvy,booze,ethanol,etoh,hooch,juice,liquor,moonshine,sauce",
+  "summary": "Alcohol is a CNS depressant that acts through the GABAₐ receptor, and is one of the most common strong psychoactives used by humans. It has a long history of use and its intoxicating effects are well-studied and documented. It remains legal in most parts of the world.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Alcohol"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "Death from ethanol consumption is possible when blood alcohol levels reach 0.4%"
+  ],
+  "addictionPotential": "extremely addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "GABA",
+    "depressants"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": null
+        },
+        {
+          "name": "Light",
+          "value": null
+        },
+        {
+          "name": "Common",
+          "value": null
+        },
+        {
+          "name": "Strong",
+          "value": null
+        },
+        {
+          "name": "Heavy",
+          "value": null
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.08 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.75 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.5 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "note": "Both these classes of compound can interact unpredictably. Caution should be exercised.",
+      "status": "Low Risk & Decrease",
+      "name": "2C-T-x"
+    },
+    {
+      "status": "Low Risk & Decrease",
+      "name": "2C-x"
+    },
+    {
+      "status": "Low Risk & Decrease",
+      "name": "5-MeO-xxT"
+    },
+    {
+      "note": "Drinking on stimulants is risky because the sedative effects of the alcohol are reduced, and these are what the body uses to gauge drunkenness. This typically leads to excessive drinking with greatly reduced inhibitions, high risk of liver damage and increased dehydration. They will also allow you to drink past a point where you might normally pass out, increasing the risk. If you do decide to do this then you should set a limit of how much you will drink each hour and stick to it, bearing in mind that you will feel the alcohol and the stimulant less. Extended release formulations may severely impede sleep, further worsening the hangover.",
+      "status": "Caution",
+      "name": "Amphetamines"
+    },
+    {
+      "note": "aMT has a broad mechanism of action in the brain and so does alcohol so the combination can be unpredictable",
+      "status": "Caution",
+      "name": "aMT"
+    },
+    {
+      "note": "Ethanol ingestion may potentiate the CNS effects of many benzodiazepines. The two substances potentiate each other strongly and unpredictably, very rapidly leading to unconsciousness. While unconscious, vomit aspiration is a risk if not placed in the recovery position. Blacking out and memory loss is almost certain.",
+      "status": "Dangerous",
+      "name": "Benzodiazepines"
+    },
+    {
+      "status": "Low Risk & No Synergy",
+      "name": "Caffeine"
+    },
+    {
+      "note": "In excess, this combination can cause nausea.",
+      "status": "Low Risk & Synergy",
+      "name": "Cannabis"
+    },
+    {
+      "note": "Cocaine can decrease some of the intoxicating effects of alcohol, causing some people to drink more than they otherwise would, which leads to greater behavioral and physical health risks. There is also some debate about cocaethylene, a metabolite produced when combining alcohol and cocaine, with some researchers positing that it is more cardiotoxic than cocaine on its own. Use moderation when combining these substances.",
+      "sources": [
+        {
+          "author": "McCance-Katz, E. F., Kosten, T. R., & Jatlow, P. ",
+          "title": "Concurrent use of cocaine and alcohol is more potent and potentially more toxic than use of either alone—A multiple-dose study.",
+          "url": "https://doi.org/10.1016/S0006-3223(97)00426-5"
+        },
+        {
+          "author": "Pergolizzi, J., Breve, F., Magnusson, P., LeQuang, J. A. K., & Varrassi, G.",
+          "title": "Cocaethylene: When cocaine and alcohol are taken together.  (2022)",
+          "url": "https://doi.org/10.7759/cureus.22498"
+        },
+        {
+          "author": "Shastry, S., Manoochehri, O., Richardson, L. D., & Manini, A. F. ",
+          "title": "Cocaethylene cardiotoxicity in emergency department patients with acute drug overdose.",
+          "url": "https://doi.org/10.1111/acem.14584"
+        },
+        {
+          "author": "Wiener, S. E., Sutijono, D., Moon, C. H., Subramanian, R. A., Calaycay, J., Rushbrook, J. I., & Zehtabchi, S.",
+          "title": "Patients with detectable cocaethylene are more likely to require intensive care unit admission after trauma. ",
+          "url": "https://doi.org/10.1016/j.ajem.2009.06.014"
+        }
+      ],
+      "status": "Unsafe",
+      "name": "Cocaine"
+    }
+  ],
+  "effects": "relaxation, mood lift, happiness, sociability, lowered inhibitions, analgesia, slurred speech, flushed skin, drowsiness, tolerance, euphoria, amnesia",
+  "categorized_effects": {
+    "Physical effects": [
+      "relaxation",
+      "analgesia",
+      "slurred speech",
+      "flushed skin",
+      "drowsiness"
+    ],
+    "Mental effects": [
+      "mood lift",
+      "happiness",
+      "sociability",
+      "lowered inhibitions",
+      "euphoria",
+      "amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "tolerance"
+    ]
+  }
+}

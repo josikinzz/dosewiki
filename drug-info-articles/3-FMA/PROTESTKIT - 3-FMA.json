@@ -1,0 +1,237 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-FMA",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3-FMA",
+  "name": "3-FMA",
+  "aliases": [
+    "3fma"
+  ],
+  "aliasesStr": "3fma",
+  "summary": "Stimulant drug in the amphetamine family",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Entactogen",
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 10 days"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "serotonin|serotonergic",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "decreased need for sleep",
+      "decreased appetite",
+      "weight loss",
+      "sweating",
+      "bruxism",
+      "itchiness"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "increased sociability",
+      "mood lift",
+      "excessive talking",
+      "disturbed sleep patterns",
+      "aggressiveness"
+    ],
+    "Sensory effects": [
+      "increased sexuality",
+      "visual and auditory hallucinations"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

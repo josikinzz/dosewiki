@@ -1,0 +1,235 @@
+{
+  "url": "https://psychonautwiki.org/wiki/JWH-018",
+  "experiencesUrl": "https://www.reddit.com/search/?q=JWH-018",
+  "name": "JWH-018",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cannabinoid"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "cannabinoids"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 3 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "5 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 1.5 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Low Risk & Synergy"
+    }
+  ],
+  "effects": "Geometry, Thought connectivity, Dehydration, Spontaneous bodily sensations, Changes in felt gravity, Vasodilation, Conceptual thinking, Cognitive euphoria, Anxiety, Paranoia, Thought deceleration, Memory suppression, Dream suppression, Perception of bodily heaviness, Sedation, Motor control loss, Pain relief, Color enhancement, Increased heart rate, Increased music appreciation, Seizure, Depersonalization, Derealization, Emotion intensification, Visual acuity suppression, Psychosis, Convulsions, Immersion intensification, Auditory acuity enhancement, Appetite intensification, Analysis depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Vasodilation",
+      "Sedation",
+      "Motor control loss",
+      "Pain relief",
+      "Increased heart rate",
+      "Seizure",
+      "Convulsions",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Thought deceleration",
+      "Memory suppression",
+      "Dream suppression",
+      "Increased music appreciation",
+      "Depersonalization",
+      "Derealization",
+      "Emotion intensification",
+      "Psychosis",
+      "Immersion intensification",
+      "Analysis depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Perception of bodily heaviness",
+      "Color enhancement",
+      "Visual acuity suppression",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Geometry"
+    ]
+  }
+}

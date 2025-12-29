@@ -1,0 +1,215 @@
+{
+  "url": "https://psychonautwiki.org/wiki/25C-NBOMe",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_25CNBOMe.shtml",
+  "name": "25C-NBOMe",
+  "aliases": [
+    "25c",
+    "2c-c-nbome",
+    "2c-nbome",
+    "cimbi-82",
+    "nbome-2c-c"
+  ],
+  "aliasesStr": "25c,2c-c-nbome,2c-nbome,cimbi-82,nbome-2c-c",
+  "summary": "A relatively new and popular research chemical. A short acting psychedelic related to 2C-C with similar effects to LSD, though more visual with less of a 'head-trip.' Frequently mis-sold as LSD. Causes an uncomfortable body load and has caused several deaths even within regular dose ranges.",
+  "reagents": "Marquis: Slow Purple. | Mecke: Brown. | Mandelin: No colour change.  | Froehde: Yellow. | Liebermann: Yellow > Black. | Ehrlich's Reagent: No colour change.",
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "fatal at heavy dosages"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 µg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 300 µg"
+        },
+        {
+          "name": "Common",
+          "value": "300 - 700 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "700 - 1000 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "25C-NBOMe can be fatal at heavy doses."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Mild OEV's, strong CEV's, A sense of well being and contentedness.",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [
+      "Mild OEV's",
+      "strong CEV's"
+    ],
+    "Uncategorized effects": [
+      "A sense of well being and contentedness."
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/chloroform",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Chloroform.shtml",
+  "name": "Chloroform",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A naturally occurring organic compound once used as an anaesthetic. Has practically disappeared in this usage due to numerous harmful effects including danger of sudden death through cardiac arrhythmia. Has been implicated in numerous murders. Highly unsafe.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

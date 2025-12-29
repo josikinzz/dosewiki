@@ -1,0 +1,93 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Salvinorin_A",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Salvia",
+  "name": "Salvia",
+  "aliases": [
+    "diviner's sage",
+    "sally",
+    "salvia divinorum",
+    "salvinorin a",
+    "seer's sage",
+    "ska maría pastora"
+  ],
+  "aliasesStr": "diviner's sage,sally,salvia divinorum,salvinorin a,seer's sage,ska maría pastora",
+  "summary": "A plant which, when smoked, causes short but very intense psychedelic experiences. It is considered physically safe, though users of high dosages often experience bizarre other-worldly scenarios which may be confusing or terrifying.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Salvinorin",
+      "Terpenoid"
+    ],
+    "psychoactive": [
+      "Hallucinogens"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": null,
+  "crossTolerances": [
+    "hallucinogen"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": null,
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "15.0 - 90.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "dosage": null,
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "10.0 - 20.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "30.0 - 90.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "30.0 - 120.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "radical shift in perspective and perception, creative dreamlike experience, increase in sensual and aesthetic appreciation, introspective insight, powerful closed/open eye visuals, general change in consciousness, dissociation, panic, perspiration, inability to control muscles",
+  "categorized_effects": {
+    "Physical effects": [
+      "inability to control muscles"
+    ],
+    "Mental effects": [
+      "radical shift in perspective and perception",
+      "creative dreamlike experience",
+      "introspective insight",
+      "general change in consciousness",
+      "dissociation",
+      "panic"
+    ],
+    "Sensory effects": [
+      "increase in sensual and aesthetic appreciation",
+      "powerful closed/open eye visuals"
+    ],
+    "Uncategorized effects": [
+      "perspiration"
+    ]
+  }
+}

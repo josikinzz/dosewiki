@@ -1,0 +1,274 @@
+{
+  "url": "https://psychonautwiki.org/wiki/25N-NBOMe",
+  "experiencesUrl": "https://www.reddit.com/search/?q=25N-NBOMe",
+  "name": "25N-NBOMe",
+  "aliases": [
+    "2-c-n-nbome",
+    "25n"
+  ],
+  "aliasesStr": "2-c-n-nbome,25n",
+  "summary": "A rare, highly potent and yellow psychedelic phenethylamine and derivative of 2C-N. Effects are similar to other NBOMe compounds, with hallucinations, intense body load, stimulation and vasoconstriction. At high doses vasoconstriction can be dangerous, exercise caution.",
+  "reagents": "Marquis: Red > Brown. | Mecke: Blue > Black. | Mandelin: Blue > Black. | Froehde: Brown. | Liebermann: Brown. | Simon's: Red > Brown. | Ehrlich: No colour change.",
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "potentially fatal at heavy dosages"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 100 µg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 300 µg"
+        },
+        {
+          "name": "Common",
+          "value": "300 - 800 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "800 - 1300 μg"
+        },
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "The NBOMe series can be fatal at heavy doses.[1][2]"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "5.0 - 10.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "The NBOMe series can be fatal when insufflated.[1][2][3] It is strongly discouraged."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Buccal",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "100-300ug"
+        },
+        {
+          "name": "Common",
+          "value": "300-800ug"
+        },
+        {
+          "name": "Strong",
+          "value": "800-1300ug+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

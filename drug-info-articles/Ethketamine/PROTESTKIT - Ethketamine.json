@@ -1,0 +1,204 @@
+{
+  "url": "https://drugs.tripsit.me/ethketamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Ethketamine",
+  "name": "Ethketamine",
+  "aliases": [
+    "n-ethyl-norketamine",
+    "n-ethylnorketamine",
+    "nek"
+  ],
+  "aliasesStr": "n-ethyl-norketamine,n-ethylnorketamine,nek",
+  "summary": "Ethketamine is a research chemical with properties similar to ketamine. While ketamine is a dissociative anesthetic producing hallucinogenic and sedative effects, recreational users have reported euphoria and dissociation when using NENK.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15-40mg"
+        },
+        {
+          "name": "Common",
+          "value": "40-90mg"
+        },
+        {
+          "name": "Strong",
+          "value": "90-160mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Caution"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

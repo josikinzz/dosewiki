@@ -1,0 +1,134 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Benzydamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Benzydamine",
+  "name": "Benzydamine",
+  "aliases": [
+    "tantum",
+    "tantum verde"
+  ],
+  "aliasesStr": "tantum,tantum verde",
+  "summary": "NSAID with local anesthetic and analgesic properties, similar to ibuprofen or naproxen. Sometimes abused in overdose with reported delirant and stimulant effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Indazole"
+    ],
+    "psychoactive": [
+      "Deliriant",
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "150 mg"
+        },
+        {
+          "name": "Light",
+          "value": "300 - 500 mg"
+        },
+        {
+          "name": "Common",
+          "value": "500 - 1000 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1000 - 2000 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2000 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 8.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "24.0 - 72.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Vibrating vision, Visual haze, Object alteration, Dehydration, Frequent urination, Dizziness, Thought acceleration, External hallucination, Autonomous entity, Settings, sceneries, and landscapes, Shadow people, Time distortion, Scenarios and plots, Delusion, Cognitive euphoria, Depression, Anxiety, Paranoia, Stimulation, Wakefulness, Tactile suppression, Motor control loss, Drifting, Increased heart rate, Peripheral information misinterpretation, After images, Feelings of impending doom, Abnormal heartbeat, Delirium, Unspeakable horrors, Gustatory hallucination, Visual acuity suppression, Psychosis, Object activation, Perspective hallucination",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Frequent urination",
+      "Dizziness",
+      "Stimulation",
+      "Motor control loss",
+      "Abnormal heartbeat",
+      "Delirium"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Thought acceleration",
+      "Shadow people",
+      "Time distortion",
+      "Delusion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Wakefulness",
+      "Peripheral information misinterpretation",
+      "Feelings of impending doom",
+      "Psychosis"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Vibrating vision",
+      "Visual haze",
+      "External hallucination",
+      "Tactile suppression",
+      "After images",
+      "Gustatory hallucination",
+      "Visual acuity suppression",
+      "Perspective hallucination"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Object alteration",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Depression",
+      "Drifting",
+      "Unspeakable horrors",
+      "Object activation"
+    ]
+  }
+}

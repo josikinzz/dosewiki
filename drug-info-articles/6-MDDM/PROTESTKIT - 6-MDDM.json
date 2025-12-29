@@ -1,0 +1,189 @@
+{
+  "url": "https://drugs.tripsit.me/6-mddm",
+  "experiencesUrl": "https://www.reddit.com/search/?q=6-MDDM",
+  "name": "6-MDDM",
+  "aliases": [
+    "6-methylenedihydrodesoxymorphine"
+  ],
+  "aliasesStr": "6-methylenedihydrodesoxymorphine",
+  "summary": "Semisynthetic opioid that is a derivative of Hydromorphone with little history of human use. Roughly around ~80x the potency of Morphine. Structurally related to Desomorphine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "125ug"
+        },
+        {
+          "name": "Common",
+          "value": "187-250ug"
+        },
+        {
+          "name": "Strong",
+          "value": "375ug+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

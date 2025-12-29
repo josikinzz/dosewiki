@@ -1,0 +1,97 @@
+{
+  "url": "https://drugs.tripsit.me/4f-neb",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4F-NEB",
+  "name": "4F-NEB",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "The 4-Fluoro analogue of N-Ethylbuphedrone (NEB) is a part of the cathinone class.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-75"
+        },
+        {
+          "name": "Common",
+          "value": "75-150mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150-250mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "0.83 - 1.67 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "75-100mg"
+        },
+        {
+          "name": "Common",
+          "value": "100-150mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150-300mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

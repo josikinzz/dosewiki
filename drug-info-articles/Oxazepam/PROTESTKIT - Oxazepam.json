@@ -1,0 +1,189 @@
+{
+  "url": "https://drugs.tripsit.me/oxazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Oxazepam",
+  "name": "Oxazepam",
+  "aliases": [
+    "serax"
+  ],
+  "aliasesStr": "serax",
+  "summary": "A prescription benzodiazepine with intermediate duration and half life. A sedative and hypnotic which may cause lowered inhibitions and amnesia in higher doses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-30mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30-45mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Typical benzodiazepine effects. Amnesic, anxiolytic, anticonvulsant, hypnotic, sedative.",
+  "categorized_effects": {
+    "Physical effects": [
+      "anticonvulsant",
+      "hypnotic",
+      "sedative."
+    ],
+    "Mental effects": [
+      "anxiolytic"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Typical benzodiazepine effects. Amnesic"
+    ]
+  }
+}

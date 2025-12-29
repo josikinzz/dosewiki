@@ -1,0 +1,166 @@
+{
+  "url": "https://drugs.tripsit.me/cyclopropylmescaline",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Cyclopropylmescaline",
+  "name": "Cyclopropylmescaline",
+  "aliases": [
+    "4-cyclopropylmethoxy-3",
+    "cpm"
+  ],
+  "aliasesStr": "4-cyclopropylmethoxy-3,cpm",
+  "summary": "Cyclopropylmescaline, AKA CPM, is a psychedelic/hallucinogenic that was produced by Alexander Shulgin. It causes visual and auditory hallucinations and lasts quite a long time. Little is known about it so caution must be used when trying out this substance.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-60mg"
+        },
+        {
+          "name": "Common",
+          "value": "60-70mg"
+        },
+        {
+          "name": "Strong",
+          "value": "70-80mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "12.0 - 18.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

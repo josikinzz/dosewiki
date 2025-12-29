@@ -1,0 +1,19 @@
+# Methylphenidate
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+Taking methylphenidate increases the concentration of the nerve messengers dopamine, noradrenaline and serotonin in the brain. When prescribed for ADHD, the drug is supposed to act as a filter for incoming stimuli and alleviate symptoms such as distractibility, attention deficit disorder, disorganisation and impulsivity.
+However, due to its stimulating, energising and drive-enhancing properties, methylphenidate is also used as a party drug or to increase performance. Due to the increased release of dopamine, similar effects occur as with the use of cocaine.
+
+## Risks
+
+### Short-term Risks
+If prescribed by a doctor or used as directed, sleep disturbances and irritability can often occur. Eating disorders, stomach complaints, nausea and vomiting are also known side effects.
+Abusive use and higher doses can lead to seizures, cardiac arrhythmias as well as headaches and confusion.
+Tolerance develops relatively quickly, which is why higher and higher doses have to be consumed. In overdose, Ritalin can trigger hallucinations.
+
+### Long-term Risks
+It is assumed that no dependence develops with therapeutic use of Ritalin. When abusing higher doses over a longer period of time, psychological dependence may develop. With abrupt discontinuation, withdrawal symptoms such as lethargy, apathy, depression and paranoia may occur.
+
+## Safer Use
+- If possible, do not consume methylphenidate intravenously. Due to the substances contained in the tablets, embolism (blockage of lung or brain vessels) can occur.

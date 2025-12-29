@@ -1,0 +1,216 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Methylphenidate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Methylphenidate",
+  "name": "Methylphenidate",
+  "aliases": [
+    "biphentin",
+    "concerta",
+    "equasym xl",
+    "methylin",
+    "mph",
+    "ritalin"
+  ],
+  "aliasesStr": "biphentin,concerta,equasym xl,methylin,mph,ritalin",
+  "summary": "A psychostimulant commonly used in the treatment of ADHD, narcolepsy and obesity, particularly in the EU instead of Adderall. Methylphenidate is also a 5HT1A receptor agonist. Sometimes prescribed off-label to help the withdrawals from cocaine and other stimulants.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ],
+      "bioavailability": "11-52%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated_IR",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated_XR",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral_ER",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral_IR",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Increased alertness, Euphoria, Increased motivation, Reduced appetite, Flushing of the face, Increased body temperature, Tachycardia (Increased heart rate) Paranoia, Insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Reduced appetite",
+      "Flushing of the face",
+      "Increased body temperature",
+      "Tachycardia (Increased heart rate) Paranoia",
+      "Insomnia."
+    ],
+    "Mental effects": [
+      "Increased alertness",
+      "Euphoria",
+      "Increased motivation"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

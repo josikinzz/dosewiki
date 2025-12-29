@@ -1,0 +1,120 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Adrafinil",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Adrafinil.shtml",
+  "name": "Adrafinil",
+  "aliases": [
+    "olmifon"
+  ],
+  "aliasesStr": "olmifon",
+  "summary": "A prodrug to modafinil, this compound is often used to increase wakefulness and alertness. Due to hepatic metabolism it has a slower onset than modafinil and may cause liver damage in excess. Some users have reported acne as an adverse effect. Unregulated in the US.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzhydryl"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Nootropic",
+      "Eugeroics"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "not addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "benzhydryl",
+    "nootropic|nootropics"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "100 mg"
+        },
+        {
+          "name": "Light",
+          "value": "150 - 250 mg"
+        },
+        {
+          "name": "Common",
+          "value": "250 - 400 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "400 - 600 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "600 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.5 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ],
+      "bioavailability": "75-80%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Stimulation, Dehydration, Headaches, Photophobia, Appetite suppression, Increased heart rate, Dizziness, Nausea, Body odor alteration, Wakefulness, Irritability, Focus enhancement, Thought acceleration, Memory enhancement, Motivation enhancement, Emotion enhancement, Anxiety, Time distortion, Increased music appreciation",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Stimulation",
+      "Dehydration",
+      "Headaches",
+      "Appetite suppression",
+      "Dizziness",
+      "Nausea",
+      "Body odor alteration"
+    ],
+    "Mental effects": [
+      "Wakefulness",
+      "Irritability",
+      "Focus enhancement",
+      "Thought acceleration",
+      "Memory enhancement",
+      "Motivation enhancement",
+      "Emotion enhancement",
+      "Anxiety",
+      "Time distortion",
+      "Increased music appreciation"
+    ],
+    "Sensory effects": [
+      "Photophobia"
+    ],
+    "Uncategorized effects": []
+  }
+}

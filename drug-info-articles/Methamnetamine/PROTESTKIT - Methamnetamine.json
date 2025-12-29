@@ -1,0 +1,66 @@
+{
+  "url": "https://drugs.tripsit.me/methamnetamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Methamnetamine",
+  "name": "Methamnetamine",
+  "aliases": [
+    "methylnaphetamine",
+    "mnt",
+    "n-methyl-pal-287"
+  ],
+  "aliasesStr": "methylnaphetamine,mnt,n-methyl-pal-287",
+  "summary": "A selective serotonin releaser, which also shows some light psychedelic activity. Almost always taken with a stimulant, to cause euphoric effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "60-80mg"
+        },
+        {
+          "name": "Common",
+          "value": "80-120mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120-150mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

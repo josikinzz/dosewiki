@@ -1,0 +1,86 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Melatonin",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Melatonin.shtml",
+  "name": "Melatonin",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A naturally occurring hormone produced in the body, which promotes sleep at certain times in the day based on the circadian rhythm. It is also commonly available as a drug to treat insomnia and promote a proper sleep cycle. It can be used to promote sleepfulness at the tail-end of drug experiences, though it is not particularly hypnotic.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Oneirogen"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "after prolonged and repeated usage",
+    "half": "7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 1 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1 - 3 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "3 - 6 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "6 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 10.0 hours"
+        }
+      ],
+      "bioavailability": "15% - 15%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Headache, Physical euphoria, Dream potentiation, Irritability, Sedation, Muscle relaxation, Depersonalization, Sleepiness, Decreased libido, Anxiety Suppression or Anxiety",
+  "categorized_effects": {
+    "Physical effects": [
+      "Headache",
+      "Physical euphoria",
+      "Sedation",
+      "Muscle relaxation",
+      "Sleepiness"
+    ],
+    "Mental effects": [
+      "Dream potentiation",
+      "Irritability",
+      "Depersonalization",
+      "Anxiety Suppression or Anxiety"
+    ],
+    "Sensory effects": [
+      "Decreased libido"
+    ],
+    "Uncategorized effects": []
+  }
+}

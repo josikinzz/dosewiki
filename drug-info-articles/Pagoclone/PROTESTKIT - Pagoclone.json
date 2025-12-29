@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/pagoclone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Pagoclone",
+  "name": "Pagoclone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An anxiolytic drug related to zopiclone with no sedative or hypnotic qualities. Has been investigated as a possible alcohol replacement. Related in structure and effect to Zopiclone and Zolpidem.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

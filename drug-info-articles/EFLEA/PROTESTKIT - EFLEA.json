@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/eflea",
+  "experiencesUrl": "https://www.reddit.com/search/?q=EFLEA",
+  "name": "EFLEA",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Prodrug for EDMA. May be inactive.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

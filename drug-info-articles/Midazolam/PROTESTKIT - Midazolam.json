@@ -1,0 +1,339 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Midazolam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Midazolam",
+  "name": "Midazolam",
+  "aliases": [
+    "versed"
+  ],
+  "aliasesStr": "versed",
+  "summary": "A common hypnotic, sedative and anxiolytic benzodiazepine. High doses may cause amnesia and loss of inhibitions. Unusually, it is water soluble, and commonly used as a premedication for sedation as the solubility makes it better for IV use than other benzodiazepines.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2.5 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        }
+      ],
+      "bioavailability": "40%"
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "5 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.08 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "3-7mg"
+        },
+        {
+          "name": "Common",
+          "value": "7-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-25mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.08 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "55%"
+    },
+    {
+      "name": "Intramuscular",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "3-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-12mg"
+        },
+        {
+          "name": "Strong",
+          "value": "12-25mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "90%"
+    },
+    {
+      "name": "Rectal",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "3-7mg"
+        },
+        {
+          "name": "Common",
+          "value": "7-15mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.42 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "url": "https://psychonautwiki.org/wiki/5-MeO-MiPT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_5MeOMIPT.shtml",
+  "name": "5-MeO-MiPT",
+  "aliases": [
+    "5meo-mipt",
+    "5meomipt",
+    "moxy"
+  ],
+  "aliasesStr": "5meo-mipt,5meomipt,moxy",
+  "summary": "A potent, stimulating psychedelic tryptamine, sometimes compared to 5-MeO-DiPT.  Has an unusually strong body component and weak visual effects. Often said to be very empathogenic.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 7 mg"
+        },
+        {
+          "name": "Common",
+          "value": "7 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

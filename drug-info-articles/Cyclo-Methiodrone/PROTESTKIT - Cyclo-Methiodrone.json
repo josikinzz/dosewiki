@@ -1,0 +1,58 @@
+{
+  "url": "https://drugs.tripsit.me/cyclo-methiodrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Cyclo-Methiodrone",
+  "name": "Cyclo-Methiodrone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Empathogen with strong stimulant effects, very loosely related to benzylpiperidine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "30-45mg"
+        },
+        {
+          "name": "Common",
+          "value": "45-65mg"
+        },
+        {
+          "name": "Strong",
+          "value": "65-90mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "90+mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.42 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

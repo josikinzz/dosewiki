@@ -1,0 +1,193 @@
+{
+  "url": "https://drugs.tripsit.me/prazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Prazepam",
+  "name": "Prazepam",
+  "aliases": [
+    "centrac",
+    "centrax",
+    "demetrin",
+    "lysanxia",
+    "pozapam",
+    "prasepine",
+    "prazene",
+    "reapam",
+    "trepidan"
+  ],
+  "aliasesStr": "centrac,centrax,demetrin,lysanxia,pozapam,prasepine,prazene,reapam,trepidan",
+  "summary": "Benzodiazepine dervative. Has all the normal benzodiazepine-like quality (Anxiolytic/anticonvulsant/sedative/Skeletal muscle relaxant) It is also a prodrug for Desmethyldiazepam which is responsible for most if not all of the effects of Prazepam.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "SSRI"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20-40mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 20.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "8.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Anticonvulsant, Sedative, Skeletal Muscle Relaxant",
+  "categorized_effects": {
+    "Physical effects": [
+      "Anticonvulsant",
+      "Sedative",
+      "Skeletal Muscle Relaxant"
+    ],
+    "Mental effects": [
+      "Anxiolytic"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

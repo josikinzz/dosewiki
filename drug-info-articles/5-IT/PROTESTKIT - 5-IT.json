@@ -1,0 +1,79 @@
+{
+  "url": "https://drugs.tripsit.me/5-it",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_5IT.shtml",
+  "name": "5-IT",
+  "aliases": [
+    "5-api"
+  ],
+  "aliasesStr": "5-api",
+  "summary": "An empathogenic stimulant with a very long duration, prone to cause overheating and potentially quite dangerous. Related to αMT, though described as being less psychedelic and with much stronger stimulating effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

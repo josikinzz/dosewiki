@@ -1,0 +1,193 @@
+{
+  "url": "https://drugs.tripsit.me/bromazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Bromazepam",
+  "name": "Bromazepam",
+  "aliases": [
+    "brazepam",
+    "lectopam",
+    "lexilium",
+    "lexotan",
+    "lexotanil"
+  ],
+  "aliasesStr": "brazepam,lectopam,lexilium,lexotan,lexotanil",
+  "summary": "A benzodiazepine drug with a medium-long duration, developed by Roche in the 1960s. Has primarily anxiolytic properties. May cause lowered inhibitions and amnesia in high doses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2.5-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "10-15mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ],
+      "bioavailability": "84%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia."
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

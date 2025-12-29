@@ -1,0 +1,79 @@
+{
+  "url": "https://drugs.tripsit.me/buphedrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Buphedrone",
+  "name": "Buphedrone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A cathinone stimulant first discovered in 1928, has gained some modest popularity as a mephedrone replacement. Said to be to be around 2-3x more potent than methcathinone.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-50mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50-80mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "url": "https://drugs.tripsit.me/2-mppp",
+  "experiencesUrl": "https://www.reddit.com/search/?q=2-MPPP",
+  "name": "2-MPPP",
+  "aliases": [
+    "n-piperidinecathinone"
+  ],
+  "aliasesStr": "n-piperidinecathinone",
+  "summary": "A novel stimulant that is similar to methcathinone.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-110mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "110mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "25-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100-150mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150mg+."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "decreased need for sleep",
+      "decreased appetite",
+      "weight loss",
+      "sweating",
+      "bruxism",
+      "itchiness"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "increased sociability",
+      "mood lift",
+      "excessive talking",
+      "disturbed sleep patterns",
+      "aggressiveness"
+    ],
+    "Sensory effects": [
+      "increased sexuality",
+      "visual and auditory hallucinations"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

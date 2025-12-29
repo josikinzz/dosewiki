@@ -1,0 +1,52 @@
+{
+  "url": "https://drugs.tripsit.me/khat",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Khat",
+  "name": "Khat",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A shrub whose leaves contain Cathinone and Cathine, they are mostly chewed for the stimulant effect they provide. Very long history of human use.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

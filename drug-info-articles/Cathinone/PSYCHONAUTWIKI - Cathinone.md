@@ -1,0 +1,7 @@
+# Cathinone
+*Source: https://psychonautwiki.org/wiki/Cathinone*
+
+**Cathinone** is the naturally occuring stimulating psychoactive substance, active constituent of [khat](https://psychonautwiki.org/wiki/Khat) (Catha edullis), a plant whose leaves are chewed on for stimulant effect. Cathinone is closely related in structure to amphetamine, differing solely by a ketone group on the beta carbon. Based on cathinone, a group of chemical psychoactive substances called [substituted cathinones](https://psychonautwiki.org/wiki/Substituted_cathinone) was created. Cathinone is a basic [substituted cathinone](https://psychonautwiki.org/wiki/Substituted_cathinone) , on the basis of which other chemical substances from this group are created (cathinone skeleton). Due to its similar structure to amphetamine, it has similar effects. Cathinones are modeled on amphetamines.
+
+H,H,H,H,H,H,H
+NewPP limit report Cached time: 20251218075245 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.004 seconds CPU time usage: 0.012 seconds Real time usage: 0.015 seconds Preprocessor visited node count: 1/1000000 Post‐expand include size: 0/2097152 bytes Template argument size: 0/2097152 bytes Highest expansion depth: 1/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 0/5000000 bytes ExtLoops count: 0Transclusion expansion time report (%,ms,calls,template) 100.00% 0.000 1 -total

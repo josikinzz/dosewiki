@@ -1,0 +1,29 @@
+{
+  "url": "https://drugs.tripsit.me/sertraline",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Sertraline",
+  "name": "Sertraline",
+  "aliases": [
+    "lustral",
+    "zoloft"
+  ],
+  "aliasesStr": "lustral,zoloft",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

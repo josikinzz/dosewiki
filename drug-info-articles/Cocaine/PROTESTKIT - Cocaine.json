@@ -1,0 +1,255 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Cocaine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Cocaine.shtml",
+  "name": "Cocaine",
+  "aliases": [
+    "blow",
+    "chari",
+    "coca",
+    "coke",
+    "crack",
+    "girl",
+    "nose candy",
+    "snow",
+    "white"
+  ],
+  "aliasesStr": "blow,chari,coca,coke,crack,girl,nose candy,snow,white",
+  "summary": "A highly popular, short acting CNS stimulant that works by blocking the reuptake of dopamine, serotonin, and norepinephrine. It is known to increase euphoria, confidence, sex-drive, focus, body temperature, and heart rate. Cocaine can cause severe vasoconstriction and is known to be cardiotoxic and have a high potential for compulsive redosing and addiction.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tropanes"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "individuals have died from as little as 30 mg applied to mucous membranes, whereas addicts may tolerate up to 5 grams daily"
+  ],
+  "addictionPotential": "highly addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": null,
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.08 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 10.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 5.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 15.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 30 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60 - 90 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "90 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 10.0 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "5.0 - 15.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "15.0 - 30.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "10.0 - 30.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "10.0 - 90.0 minutes"
+        }
+      ],
+      "bioavailability": "60-80%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Elevated mood. Increase in irritability, hyper-inflated ego, euphoria, stimulation, raised heartrate, numbing effects depending on ROA, nausea (particularly at high doses)",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "stimulation",
+      "raised heartrate",
+      "numbing effects depending on ROA",
+      "nausea (particularly at high doses)"
+    ],
+    "Mental effects": [
+      "Elevated mood. Increase in irritability",
+      "hyper-inflated ego",
+      "euphoria"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

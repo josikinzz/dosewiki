@@ -1,0 +1,179 @@
+{
+  "url": "https://drugs.tripsit.me/loprazolam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Loprazolam",
+  "name": "Loprazolam",
+  "aliases": [
+    "dormonoct"
+  ],
+  "aliasesStr": "dormonoct",
+  "summary": "Is an Imidazolobenzidazepine derivative that has all the classic benzodiazepine effects. Is usually only prescribed for a short amount of time for insomnia.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.25-0.5mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.5-1.5mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1.5-3mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.83 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

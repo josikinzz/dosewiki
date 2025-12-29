@@ -1,0 +1,244 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Prolintane",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Prolintane",
+  "name": "Prolintane",
+  "aliases": [
+    "catovit",
+    "promotil",
+    "villescon"
+  ],
+  "aliasesStr": "catovit,promotil,villescon",
+  "summary": "A stimulant drug which is a dopamine reuptake inhibitor, related to MDPV and Pyrovalerone. It was first developed in the 1950s, and has seen some light usage in rave culture, though it remains relatively uncommon. Believed to have a relatively forgiving safety profile.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines",
+      "Substituted pyrrolidines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 45 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "45 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Motivation enhancement, Nausea, Headache, Restless legs, Thought acceleration, Increased libido, Ego inflation, Time distortion, Delusion, Cognitive euphoria, Depression, Anxiety, Paranoia, Irritability, Thought deceleration, Thought disorganization, Stimulation, Wakefulness, Appetite suppression, Increased heart rate, Muscle contractions, Creativity enhancement, Thought organization, Abnormal heartbeat, Diarrhea, Compulsive redosing, Cognitive fatigue, Psychosis, Muscle twitching, Focus intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Nausea",
+      "Headache",
+      "Restless legs",
+      "Stimulation",
+      "Appetite suppression",
+      "Muscle contractions",
+      "Abnormal heartbeat",
+      "Diarrhea",
+      "Muscle twitching",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Delusion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Irritability",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Wakefulness",
+      "Creativity enhancement",
+      "Thought organization",
+      "Cognitive fatigue",
+      "Psychosis",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Increased libido"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

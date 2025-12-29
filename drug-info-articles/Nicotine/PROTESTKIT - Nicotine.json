@@ -1,0 +1,347 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Nicotine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Nicotine.shtml",
+  "name": "Nicotine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A chemical found in tobacco, aubergines and tomatoes which is considered one of the most addictive drugs in existence. It is a mild stimulant, with stress relieving effects. It is widely used in the form of cigarettes, the use of which carries a high risk of causing cancer or heart issues over time. Increasingly, it is 'vaped' as a purportedly safer alternative to smoking.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Pyridine",
+      "Substituted pyrrolidines"
+    ],
+    "psychoactive": [
+      "Depressant",
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "estimated oral LD50 of 6.5 - 13 mg/kg in humans"
+  ],
+  "addictionPotential": "extremely addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "rapidly develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.3 - 0.8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.8 - 1.5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1.5 - 3.5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "3.5 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.01 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.0 - 0.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.03 - 0.08 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 3 mg"
+        },
+        {
+          "name": "Common",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "5 - 7 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "7 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.5 - 3.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Buccal",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 6 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "6 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.05 - 0.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOI",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Empathy, affection and sociability enhancement, Motivation enhancement, Memory enhancement, Nausea, Vasoconstriction, Dizziness, Physical euphoria, Pupil constriction, Thought acceleration, Increased libido, Dream potentiation, Cognitive euphoria, Anxiety, Stimulation, Wakefulness, Sedation, Appetite suppression, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Increased salivation, Abnormal heartbeat, Dry mouth, Compulsive redosing, Focus intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Pupil constriction",
+      "Stimulation",
+      "Sedation",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Increased salivation",
+      "Abnormal heartbeat",
+      "Dry mouth"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Thought acceleration",
+      "Dream potentiation",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Increased libido"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

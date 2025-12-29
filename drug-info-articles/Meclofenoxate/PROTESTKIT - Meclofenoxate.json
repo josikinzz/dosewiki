@@ -1,0 +1,90 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Meclofenoxate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Meclofenoxate",
+  "name": "Meclofenoxate",
+  "aliases": [
+    "centrophenoxine",
+    "lucidril"
+  ],
+  "aliasesStr": "centrophenoxine,lucidril",
+  "summary": "Cholinergic compound with a DMAE compotent. Is thought to help in reversing some signs of aging. Naturally found substance, most notably in fish.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cholinergic"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity"
+  ],
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "400 - 800 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "800 - 1000 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "600 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Memory enhancement, Nausea, Headache, Dizziness, Dream potentiation, Mindfulness, Depression, Bodily control enhancement, Stimulation, Wakefulness, Visual acuity enhancement, Anxiety suppression, Teeth grinding, Muscle tension, Body odor alteration, Focus intensification, Olfactory intensification, Stamina intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Headache",
+      "Dizziness",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Teeth grinding",
+      "Muscle tension",
+      "Body odor alteration",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Mindfulness",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Visual acuity enhancement",
+      "Olfactory intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression"
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "url": "https://drugs.tripsit.me/am-2201",
+  "experiencesUrl": "https://www.reddit.com/search/?q=AM-2201",
+  "name": "AM-2201",
+  "aliases": [
+    "am2201"
+  ],
+  "aliasesStr": "am2201",
+  "summary": "A synthetic cannabanoid that is very potent. Active doses start at around 250ug's. Please be cautious with this substance. It has also been noted that it can cause convulsions.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "250-500ug"
+        },
+        {
+          "name": "Common",
+          "value": "500-1000ug"
+        },
+        {
+          "name": "Strong",
+          "value": "1000-2000ug"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 3.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "30.0 - 90.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "15.0 - 30.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "60.0 - 180.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

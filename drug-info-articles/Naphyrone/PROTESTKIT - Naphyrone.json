@@ -1,0 +1,46 @@
+{
+  "url": "https://drugs.tripsit.me/naphyrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Naphyrone",
+  "name": "Naphyrone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A drug derived from pyrovalerone which acts as a TRI, producing stimulating effects. Had been sold in a blend called \"NRG-1\" Little information exists about the safety profile of this drug.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "20-35mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35-50mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "6.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

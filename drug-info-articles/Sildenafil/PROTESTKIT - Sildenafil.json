@@ -1,0 +1,26 @@
+{
+  "url": "https://en.wikipedia.org/wiki/Sildenafil_(Viagra)",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Sildenafil+(Viagra)",
+  "name": "Sildenafil (Viagra)",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": [],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "url": "https://drugs.tripsit.me/ronlax",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Ronlax",
+  "name": "Ronlax",
+  "aliases": [
+    "ethyl-loflazepate",
+    "meilax",
+    "victan"
+  ],
+  "aliasesStr": "ethyl-loflazepate,meilax,victan",
+  "summary": "A benzodiazepine derivative that posses the standard benzodiazepine effects. It has a very long half life (51-103 hours) it metabolizes into an active compound. (Descarboxyloflazepate) Is sold in Mexico.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.5-1mg"
+        },
+        {
+          "name": "Common",
+          "value": "1-2mg"
+        },
+        {
+          "name": "Strong",
+          "value": "2-4mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 16.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

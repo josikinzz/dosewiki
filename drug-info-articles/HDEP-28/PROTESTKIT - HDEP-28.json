@@ -1,0 +1,91 @@
+{
+  "url": "https://drugs.tripsit.me/hdep-28",
+  "experiencesUrl": "https://www.reddit.com/search/?q=HDEP-28",
+  "name": "HDEP-28",
+  "aliases": [
+    "ethylnaphthidate"
+  ],
+  "aliasesStr": "ethylnaphthidate",
+  "summary": "Most likely a TRI, such as HDMP-28, short history of human use.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-15mg"
+        },
+        {
+          "name": "Common",
+          "value": "15-35mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35-60mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50-100mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

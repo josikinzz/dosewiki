@@ -1,0 +1,233 @@
+{
+  "url": "https://psychonautwiki.org/wiki/6-APDB",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_6APDB.shtml",
+  "name": "6-APDB",
+  "aliases": [
+    "4-desoxy-mda"
+  ],
+  "aliasesStr": "4-desoxy-mda",
+  "summary": "A stimulant and entactogen related to MDMA and an analogue of MDA. Reported as being fairly psychedlic at higher doses. It is a triple monoamine reuptake inhibitor. Potent full agonist of serotonin 2B receptors.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines",
+      "Substituted phenethylamines",
+      "Substituted benzofurans"
+    ],
+    "psychoactive": [
+      "Entactogen",
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "21-30 days",
+    "zero": "2-3 months"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 70 mg"
+        },
+        {
+          "name": "Common",
+          "value": "70 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 130 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "130 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

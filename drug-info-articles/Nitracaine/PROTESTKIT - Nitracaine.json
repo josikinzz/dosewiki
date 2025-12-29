@@ -1,0 +1,89 @@
+{
+  "url": "https://drugs.tripsit.me/nitracaine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Nitracaine",
+  "name": "Nitracaine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An analogue of dimethocaine with local anaesthetic and stimulant properties, marketed in the RC scene as a Cocaine replacement. Has not seen widespread popularity.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "20-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-40mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "100mg"
+        },
+        {
+          "name": "Common",
+          "value": "100-150mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150-175mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

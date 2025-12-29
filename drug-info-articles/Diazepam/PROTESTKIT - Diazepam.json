@@ -1,0 +1,225 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Diazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Diazepam",
+  "name": "Diazepam",
+  "aliases": [
+    "apaurin",
+    "diastat",
+    "mother's little helper",
+    "valium"
+  ],
+  "aliasesStr": "apaurin,diastat,mother's little helper,valium",
+  "summary": "A very common and widely prescribed benzodiazepine with hypnotic and sedative qualities. The metre by which other benzodiazepines are compared. May cause amnesia and lowered inhibitions in excess. Has a relatively long half-life in comparison with other benzodiazepines.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7-14 days"
+  },
+  "crossTolerances": [
+    "benzodiazepines"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2.5 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 36.0 hours"
+        }
+      ],
+      "bioavailability": "85-100%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Memory loss, Blackout potential, Motor skill impairment, Dizziness, Depression, Irritability, Aggression, Rage, Personality changes, Drowsiness, Appetite fluctuation, Euphoria, Relaxation, Anxiety suppression, Muscle relaxation, Emotional and social dissociation or de-realization (normally seen with long term use).",
+  "categorized_effects": {
+    "Physical effects": [
+      "Blackout potential",
+      "Motor skill impairment",
+      "Dizziness",
+      "Drowsiness",
+      "Appetite fluctuation",
+      "Relaxation",
+      "Muscle relaxation"
+    ],
+    "Mental effects": [
+      "Memory loss",
+      "Irritability",
+      "Aggression",
+      "Rage",
+      "Personality changes",
+      "Euphoria",
+      "Anxiety suppression"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Depression",
+      "Emotional and social dissociation or de-realization (normally seen with long term use)."
+    ]
+  }
+}

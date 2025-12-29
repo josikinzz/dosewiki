@@ -1,0 +1,237 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-FA",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4Fluoroamphetamine.shtml",
+  "name": "4-FA",
+  "aliases": [
+    "4-fluoroamphetamine",
+    "4-fmp",
+    "4fa",
+    "flux",
+    "pal-303"
+  ],
+  "aliasesStr": "4-fluoroamphetamine,4-fmp,4fa,flux,pal-303",
+  "summary": "An empathogen commonly used in place of MDMA, having a similar duration of empathogenic effects. This drug, however, has a longer stimulant \"tail,\" during which effects are more like those of amphetamines. Not to be confused with 4-FMA, which has a similar potency, but is not particularly empathogenic.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulants"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "40 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 130 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "130 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.5 - 3.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "decreased need for sleep",
+      "decreased appetite",
+      "weight loss",
+      "sweating",
+      "bruxism",
+      "itchiness"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "increased sociability",
+      "mood lift",
+      "excessive talking",
+      "disturbed sleep patterns",
+      "aggressiveness"
+    ],
+    "Sensory effects": [
+      "increased sexuality",
+      "visual and auditory hallucinations"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

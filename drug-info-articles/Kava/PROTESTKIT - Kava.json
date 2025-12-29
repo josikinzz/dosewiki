@@ -1,0 +1,62 @@
+{
+  "url": "https://drugs.tripsit.me/kava",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Kava.shtml",
+  "name": "Kava",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Tropical evergreen shrub with large heart-shaped leaves and woody stems. Its thick roots are mashed or ground and made into a cold and bitter-tasting beverage used similarly to alcohol. It has a long history of ritual and recreational use in Pacific Polynesia and is now a common herbal product, used widely by those in certain societies as part of a 'Kava Culture.'",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-70mg"
+        },
+        {
+          "name": "Common",
+          "value": "70-150mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150-200mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "9.0 - 18.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

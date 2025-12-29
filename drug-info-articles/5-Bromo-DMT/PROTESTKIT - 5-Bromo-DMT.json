@@ -1,0 +1,175 @@
+{
+  "url": "https://drugs.tripsit.me/5-br-dmt",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5-Bromo-DMT",
+  "name": "5-Bromo-DMT",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Psychedelic drug of the Trypyamine class, and is also found in two marine invertebrates. Animal studies have shown that this could be useful for sedative and/or antidepressant use.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-25mg."
+        },
+        {
+          "name": "Common",
+          "value": "25-35mg."
+        },
+        {
+          "name": "Strong",
+          "value": "35-65mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "15.0 - 90.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

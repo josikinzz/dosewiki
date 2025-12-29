@@ -1,0 +1,255 @@
+{
+  "url": "https://psychonautwiki.org/wiki/2C-T",
+  "experiencesUrl": "https://www.reddit.com/search/?q=2C-T",
+  "name": "2C-T",
+  "aliases": [
+    "2ct",
+    "tesseract"
+  ],
+  "aliasesStr": "2ct,tesseract",
+  "summary": "A very rare psychedelic phenylethylamine, that is quite lovely.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "no negative health effects attributed to trying this drug"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 120 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "125 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.92 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Tracers, Symmetrical texture repetition, Scenery slicing, Nausea, Vasoconstriction, Spontaneous bodily sensations, Pupil dilation, Thought acceleration, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Conceptual thinking, Scenarios and plots, Thought loop, Perception of interdependent opposites, Delusion, Unity and interconnectedness, Personal bias suppression, Memory suppression, Bodily control enhancement, Wakefulness, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased music appreciation, Increased sense of humor, Existential self-realization, After images, Color shifting, Emotion intensification, Perspective hallucination, Immersion intensification, Auditory acuity enhancement, Tactile intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Vasoconstriction",
+      "Pupil dilation",
+      "Bodily control enhancement",
+      "Increased heart rate"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Conceptual thinking",
+      "Thought loop",
+      "Perception of interdependent opposites",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Emotion intensification",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Spontaneous bodily sensations",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

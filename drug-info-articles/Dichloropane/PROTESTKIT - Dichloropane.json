@@ -1,0 +1,171 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Dichloropane",
+  "experiencesUrl": "https://www.reddit.com/search/?q=RTI-111",
+  "name": "RTI-111",
+  "aliases": [
+    "dichloropane"
+  ],
+  "aliasesStr": "dichloropane",
+  "summary": "Stimulant of the Phenyltropane class that acts as a SNDRI. Presumably it will have a slightly slower onset and bit longer duration than its parent compound Cocaine. Yet being the Tropane analogue of 3,4-CTMP.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tropanes"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "2 - 4 days",
+    "zero": "1 - 1.5 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2.5 - 7.5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "7.5 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 1.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "15.0 - 30.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "20.0 - 40.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "40.0 - 75.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Common",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30-50mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

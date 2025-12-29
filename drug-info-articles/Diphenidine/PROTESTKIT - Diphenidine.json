@@ -1,0 +1,225 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Diphenidine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Diphenidine.shtml",
+  "name": "Diphenidine",
+  "aliases": [
+    "dpd"
+  ],
+  "aliasesStr": "dpd",
+  "summary": "A dissociative anaesthetic related to ephenidine with similar qualities to PCP and ketamine. Has seen some popularity as a recreational RC. Dosage curve has been reported as particularly steep, so care should be taken.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "?? mg",
+          "note": "\"??\" is not a number."
+        },
+        {
+          "name": "Light",
+          "value": "?? - 20 mg",
+          "note": "\"??\" is not a number."
+        },
+        {
+          "name": "Common",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 55 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "> 55 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.01 - 0.03 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 5.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 65 mg"
+        },
+        {
+          "name": "Common",
+          "value": "65 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 130 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "> 130 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 24.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 80 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "80 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Changes in felt bodily form, Physical autonomy, Physical euphoria, Increased libido, Ego inflation, Dream potentiation, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Increased heart rate, Anxiety suppression, Increased music appreciation, Increased salivation, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Spatial disorientation, Gait alteration, Orgasm enhancement, Perspective hallucination, Auditory acuity enhancement, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Orgasm depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Stimulation",
+      "Motor control loss",
+      "Increased heart rate",
+      "Increased salivation",
+      "Gait alteration"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Ego inflation",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt bodily form",
+      "Increased libido",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Orgasm enhancement",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

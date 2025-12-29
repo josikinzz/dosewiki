@@ -1,0 +1,65 @@
+{
+  "url": "https://drugs.tripsit.me/tuinal",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tuinal",
+  "name": "Tuinal",
+  "aliases": [
+    "beans",
+    "chirstmas-trees",
+    "jeebs",
+    "nawls",
+    "rainbows",
+    "tuinol"
+  ],
+  "aliasesStr": "beans,chirstmas-trees,jeebs,nawls,rainbows,tuinol",
+  "summary": "Brand name of a combination drug of two barbiturate salts (Secobarbital/Amobarbital) in equal amounts. It was introduced in the late 1940's.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "25-75mg"
+        },
+        {
+          "name": "Common",
+          "value": "75-150mg."
+        },
+        {
+          "name": "Strong",
+          "value": "150-300mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "url": "https://psychonautwiki.org/wiki/PCE",
+  "experiencesUrl": "https://www.reddit.com/search/?q=PCE",
+  "name": "PCE",
+  "aliases": [
+    "eticyclidine"
+  ],
+  "aliasesStr": "eticyclidine",
+  "summary": "Eticyclidine (PCE) is a Dissociative anesthetic that has hallucinogenic effects. Slightly more potent than Phencyclidine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "highly addictive with a high potential for adverse side effects such as psychosis",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 12 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "12 mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.33 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.67 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Thought acceleration, External hallucination, Internal hallucination, Time distortion, Déjà vu, Conceptual thinking, Delusion, Cognitive euphoria, Visual disconnection, Thought disorganization, Memory suppression, Disinhibition, Tactile suppression, Perception of bodily lightness, Motor control loss, Anxiety suppression, Creativity enhancement, Feelings of impending doom, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Psychosis, Optical sliding, Immersion intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Motor control loss"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought disorganization",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Creativity enhancement",
+      "Feelings of impending doom",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Psychosis",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "External hallucination",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Compulsive redosing"
+    ]
+  }
+}

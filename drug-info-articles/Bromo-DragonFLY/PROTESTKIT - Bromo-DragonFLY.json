@@ -1,0 +1,240 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Bromo-DragonFLY",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_BromoDragonfly.shtml",
+  "name": "Bromo-DragonFLY",
+  "aliases": [
+    "b-dfly",
+    "bdfly",
+    "bromo-d-fly",
+    "bromo-dragon-fly",
+    "dob-dragonfly",
+    "dragonfly"
+  ],
+  "aliasesStr": "b-dfly,bdfly,bromo-d-fly,bromo-dragon-fly,dob-dragonfly,dragonfly",
+  "summary": "A psychedelic phenethylamine and benzofuran that is very potent and has a long duration. Was briefly sold as \"2C-B-FLY\" in 2005/6 and has lead to multiple deaths.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "extreme vasoconstrictive effects",
+    "one can easily overdose if this substance is not measured correctly",
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "6 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "75 µg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 300 µg"
+        },
+        {
+          "name": "Common",
+          "value": "300 - 500 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "500 - 750 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "750 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.29 days"
+        },
+        {
+          "name": "Come up",
+          "value": "0.12 - 0.25 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.25 - 0.5 days"
+        },
+        {
+          "name": "Offset",
+          "value": "0.12 - 0.33 days"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 4.0 days"
+        },
+        {
+          "name": "After effects",
+          "value": "0.5 - 1.5 days"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

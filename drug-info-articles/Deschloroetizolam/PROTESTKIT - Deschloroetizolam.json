@@ -1,0 +1,220 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Deschloroetizolam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Deschloroetizolam",
+  "name": "Deschloroetizolam",
+  "aliases": [
+    "etizolam-2"
+  ],
+  "aliasesStr": "etizolam-2",
+  "summary": "A Thienodiazepine which is close to its parent compound, Etizolam, whilst being significantly weaker and longer lasting.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "benzodiazepine",
+    "thienodiazepine"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 6 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6 - 12 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "12 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

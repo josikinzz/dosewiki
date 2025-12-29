@@ -1,0 +1,221 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Tramadol",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tramadol",
+  "name": "Tramadol",
+  "aliases": [
+    "tadol",
+    "tram",
+    "tramacur",
+    "tramal",
+    "tramundin"
+  ],
+  "aliasesStr": "tadol,tram,tramacur,tramal,tramundin",
+  "summary": "A synthetic opioid analgesic, tramadol is used to treat moderate pain and can be considered a medium-strength opioid. Tramadol also has the unusual effect of being a serotonin releasing agent and a serotonin reuptake inhibitor, and as a consequence should not be taken in excess due to the risk of serotonin syndrome. Risk of seizures above 300mg doses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or benzodiazepines"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "25 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 250 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "250 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 10.0 hours"
+        }
+      ],
+      "bioavailability": "70 - 90%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "euphoria, elevated mood, overall feeling of contentedness, itching, drowsiness, vomiting, urinary retention, nausea, constipation, risk of seizure above 300mg",
+  "categorized_effects": {
+    "Physical effects": [
+      "elevated mood",
+      "itching",
+      "drowsiness",
+      "vomiting",
+      "urinary retention",
+      "nausea",
+      "constipation",
+      "risk of seizure above 300mg"
+    ],
+    "Mental effects": [
+      "euphoria",
+      "overall feeling of contentedness"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

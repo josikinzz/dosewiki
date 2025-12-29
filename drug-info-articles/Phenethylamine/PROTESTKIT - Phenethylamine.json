@@ -1,0 +1,52 @@
+{
+  "url": "https://drugs.tripsit.me/phenethylamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Phenethylamine",
+  "name": "Phenethylamine",
+  "aliases": [
+    "pea"
+  ],
+  "aliasesStr": "pea",
+  "summary": "Organic compound, which is a name of a class of chemicals that are quite well known for psychoactive and/or stimulant effects. Normally not used as a supplement as it is rapidly broken down into inactive compounds. Is found in many foods.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "300-500mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "0.17 - 1.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "url": "https://psychonautwiki.org/wiki/1B-LSD",
+  "experiencesUrl": "https://www.reddit.com/search/?q=1B-LSD",
+  "name": "1B-LSD",
+  "aliases": [
+    "1b"
+  ],
+  "aliasesStr": "1b",
+  "summary": "1B-LSD (1-butanoyl-lysergic acid diethylamide) is an LSD analogue which appears to be about as potent as 1P-LSD (slightly more potent than LSD) and has a slightly shorter duration than that of LSD, again thought to be about the same as 1P-LSD. Released in late 2018, and marketed agressively as a replacement for 1P-LSD. 1B-LSD does not yet have a clearly established safety profile,",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity relative to dose"
+  ],
+  "addictionPotential": "non-addictive with a low abuse potential",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "5-7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 µg"
+        },
+        {
+          "name": "Light",
+          "value": "25 - 75 µg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 150 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 300 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Synaesthesia, Machinescapes, Depth perception distortions, Tracers, Recursion, Symmetrical texture repetition, Scenery slicing, Perspective distortion, Nausea, Vasoconstriction, Difficulty urinating, Spontaneous bodily sensations, Physical euphoria, Pupil dilation, Excessive yawning, Thought acceleration, Multiple thought streams, Increased libido, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Personality regression, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Cognitive euphoria, Anxiety, Paranoia, Laughter fits, Thought disorganization, Personal bias suppression, Memory suppression, Bodily control enhancement, Stimulation, Wakefulness, Appetite suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Muscle contractions, Increased perspiration, Increased music appreciation, Increased sense of humor, Existential self-realization, Increased salivation, Seizure, After images, Creativity enhancement, Ego replacement, Color shifting, Emotion intensification, Color tinting, 8A Geometry - Perceived exposure to semantic concept network, 8B Geometry - Perceived exposure to inner mechanics of consciousness, Perspective hallucination, Muscle twitching, Focus intensification, Immersion intensification, Personal meaning intensification, Suggestibility intensification, Spirituality intensification, Auditory acuity enhancement, Tactile intensification, Stamina intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Vasoconstriction",
+      "Difficulty urinating",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle contractions",
+      "Increased perspiration",
+      "Increased salivation",
+      "Seizure",
+      "Muscle twitching",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Machinescapes",
+      "Depth perception distortions",
+      "Thought acceleration",
+      "Multiple thought streams",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Personality regression",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Laughter fits",
+      "Thought disorganization",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Ego replacement",
+      "Emotion intensification",
+      "8A Geometry - Perceived exposure to semantic concept network",
+      "8B Geometry - Perceived exposure to inner mechanics of consciousness",
+      "Focus intensification",
+      "Immersion intensification",
+      "Personal meaning intensification",
+      "Suggestibility intensification",
+      "Spirituality intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "External hallucination",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Color shifting",
+      "Color tinting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Recursion",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

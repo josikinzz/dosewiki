@@ -1,0 +1,297 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Oxymorphone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Oxymorphone",
+  "name": "Oxymorphone",
+  "aliases": [
+    "opana",
+    "stopsigns"
+  ],
+  "aliasesStr": "opana,stopsigns",
+  "summary": "A powerful semisynthetic opioid analgesic also known as opana. A derivative of morphine it is approximately ten times as potent. Has a low oral bioavailability, and as such it is usually insufflated or taken rectally.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.75 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        }
+      ],
+      "bioavailability": "10-20%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2-4mg"
+        },
+        {
+          "name": "Common",
+          "value": "4-6mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "6-10mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.08 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral_ER",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 14.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral_IR",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "10%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

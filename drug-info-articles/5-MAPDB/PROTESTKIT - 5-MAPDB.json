@@ -1,0 +1,79 @@
+{
+  "url": "https://drugs.tripsit.me/5-mapdb",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5-MAPDB",
+  "name": "5-MAPDB",
+  "aliases": [
+    "5mapdb"
+  ],
+  "aliasesStr": "5mapdb",
+  "summary": "An entactogenic drug with similar effects to MDMA, it is related to 5-MAPB. Likely to release serotonin and show neurotoxicity in the same way as MDMA",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-75mg"
+        },
+        {
+          "name": "Common",
+          "value": "75-120mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

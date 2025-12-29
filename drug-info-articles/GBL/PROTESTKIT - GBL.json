@@ -1,0 +1,221 @@
+{
+  "url": "https://psychonautwiki.org/wiki/GBL",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_GBL.shtml",
+  "name": "GBL",
+  "aliases": [
+    "gamma-butyrolactone"
+  ],
+  "aliasesStr": "gamma-butyrolactone",
+  "summary": "A pro-drug to GHB whose rapid absorption leads it to have a faster onset and shorter duration. Used in a similar manner to GHB, as a less-toxic alternative to alcohol. Consume slowly instead of as a \"shot\" to hugely improve safety and reduce overdose risk.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lactone"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "highly physically and moderately to highly psychologically addictive",
+  "tolerance": {
+    "full": "within several days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.3 mL"
+        },
+        {
+          "name": "Light",
+          "value": "0.3 - 0.9 mL"
+        },
+        {
+          "name": "Common",
+          "value": "0.9 - 1.5 mL"
+        },
+        {
+          "name": "Strong",
+          "value": "1.5 - 3 mL",
+          "note": "Warning: Doses over 2 mL can induce heavy sleep."
+        },
+        {
+          "name": "Heavy",
+          "value": "3+ mL"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.17 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "relaxation, mood lift, happiness, sociability, increased sex drive, lowered inhibitions, analgesia, dystaxia, drowsiness, sleep, amnesia",
+  "categorized_effects": {
+    "Physical effects": [
+      "relaxation",
+      "analgesia",
+      "dystaxia",
+      "drowsiness"
+    ],
+    "Mental effects": [
+      "mood lift",
+      "happiness",
+      "sociability",
+      "lowered inhibitions",
+      "amnesia"
+    ],
+    "Sensory effects": [
+      "increased sex drive"
+    ],
+    "Uncategorized effects": [
+      "sleep"
+    ]
+  }
+}

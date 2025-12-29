@@ -1,0 +1,108 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-HO-DiPT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HODiPT.shtml",
+  "name": "4-HO-DiPT",
+  "aliases": [
+    "iprocin"
+  ],
+  "aliasesStr": "iprocin",
+  "summary": "A psychedelic tryptamine also known as iprocin. A homologue of psilocin, this drug likely has similar effects to psychedelic mushrooms. Said to have a rapid onset and relatively short duration for a drug of its class.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

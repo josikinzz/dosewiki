@@ -1,0 +1,44 @@
+{
+  "url": "https://drugs.tripsit.me/thiopental",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Thiopental",
+  "name": "Thiopental",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Barbiturate that kicks in very quickly, that is used to Anesthesia, Medical induced comas among other things.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Intravenous",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.03 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

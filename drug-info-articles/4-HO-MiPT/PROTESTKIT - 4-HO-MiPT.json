@@ -1,0 +1,106 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-HO-MiPT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HOMiPT.shtml",
+  "name": "4-HO-MiPT",
+  "aliases": [
+    "4-ho",
+    "4homipt",
+    "ho-mipt",
+    "homipt",
+    "miprocin"
+  ],
+  "aliasesStr": "4-ho,4homipt,ho-mipt,homipt,miprocin",
+  "summary": "A reasonably popular tryptamine deriviative and Psilocin analogue, first synthesised by Alexander Shulgin. It has been reported as having comparable effects to psychedelic mushrooms, though with a shorter duration.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 35 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "35 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Brightened colors, visual distortions, altered perception, a sense of conectedness with the world around you, heightend emotions, paranoia, unwanted thoughts.",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [
+      "a sense of conectedness with the world around you",
+      "heightend emotions",
+      "paranoia"
+    ],
+    "Sensory effects": [
+      "Brightened colors",
+      "visual distortions",
+      "altered perception"
+    ],
+    "Uncategorized effects": [
+      "unwanted thoughts."
+    ]
+  }
+}

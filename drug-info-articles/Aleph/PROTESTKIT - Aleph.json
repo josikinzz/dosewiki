@@ -1,0 +1,61 @@
+{
+  "url": "https://drugs.tripsit.me/aleph",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Aleph",
+  "name": "Aleph",
+  "aliases": [
+    "dot",
+    "para-dot"
+  ],
+  "aliasesStr": "dot,para-dot",
+  "summary": "The first sulphur-containing Phenethylamine to have been evaluated for CNS activity for Stimulant or Psychedelic purposes.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2-4mg"
+        },
+        {
+          "name": "Common",
+          "value": "4-6mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6-12mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

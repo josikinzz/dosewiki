@@ -1,0 +1,76 @@
+{
+  "url": "https://drugs.tripsit.me/4-ho-mpmi",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4-HO-MPMI",
+  "name": "4-HO-MPMI",
+  "aliases": [
+    "lucigenol"
+  ],
+  "aliasesStr": "lucigenol",
+  "summary": "A rare tryptamine derivative first synthesised by David Nichols. This drug, also known as lucigenol, has rarely been documented outside the lab. It is known to be a psychedelic similar to other psychoactive tryptamines, with a potency similar to DOI, but little else is known.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "500-750ug."
+        },
+        {
+          "name": "Light",
+          "value": "750ug-1mg"
+        },
+        {
+          "name": "Common",
+          "value": "1-2mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

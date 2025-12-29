@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/methylmorphenate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Methylmorphenate",
+  "name": "Methylmorphenate",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Stimulant of the phenylmorpholine class, an analogue of Methylphenidate where the piperidine ring has been replaced by a morpholine one, with ~1/10 potency.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

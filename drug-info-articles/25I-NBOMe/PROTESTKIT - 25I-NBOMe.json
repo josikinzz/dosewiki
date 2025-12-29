@@ -1,0 +1,285 @@
+{
+  "url": "https://psychonautwiki.org/wiki/25I-NBOMe",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_25INBOMe.shtml",
+  "name": "25I-NBOMe",
+  "aliases": [
+    "2-c-i-nbome",
+    "25-i",
+    "25i",
+    "cimbi-5"
+  ],
+  "aliasesStr": "2-c-i-nbome,25-i,25i,cimbi-5",
+  "summary": "A relatively new and popular research chemical with psychedelic properties. Users report an uncomfortable body load with very strong visuals, though with less of a mental aspect than most psychedelics. Commonly mis-sold as LSD, since it is much cheaper to produce. Is considered quite unsafe, and has caused several deaths at 'regular' doses.",
+  "reagents": "Marquis: Orange > Black. | Mecke: Brown > Black. | Mandelin: Brown > Black. | Froehde: Yellow | Ehrlich: No colour change.",
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "potentially fatal at heavy dosages"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "1 week",
+    "zero": "2 weeks"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 µg"
+        },
+        {
+          "name": "Light",
+          "value": "200 - 500 µg"
+        },
+        {
+          "name": "Common",
+          "value": "500 - 700 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "700 - 1000 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "25I-NBOMe can be fatal at heavy doses."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.01 - 0.08 days"
+        },
+        {
+          "name": "Come up",
+          "value": "0.02 - 0.08 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.08 - 0.17 days"
+        },
+        {
+          "name": "Offset",
+          "value": "0.04 - 0.17 days"
+        },
+        {
+          "name": "Total",
+          "value": "0.25 - 0.42 days"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 6.0 days"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 µg"
+        },
+        {
+          "name": "Light",
+          "value": "200 - 500 µg"
+        },
+        {
+          "name": "Common",
+          "value": "500 - 700 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "700+ µg"
+        },
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "25I-NBOMe can be fatal at heavy doses."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.01 days"
+        },
+        {
+          "name": "Come up",
+          "value": "0.01 - 0.02 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.04 - 0.08 days"
+        },
+        {
+          "name": "Offset",
+          "value": "0.08 - 0.12 days"
+        },
+        {
+          "name": "Total",
+          "value": "0.17 - 0.25 days"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 7.0 days"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

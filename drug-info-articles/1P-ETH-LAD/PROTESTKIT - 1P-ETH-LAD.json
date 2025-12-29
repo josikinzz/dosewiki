@@ -1,0 +1,259 @@
+{
+  "url": "https://psychonautwiki.org/wiki/1P-ETH-LAD",
+  "experiencesUrl": "https://www.reddit.com/search/?q=1P-ETH-LAD",
+  "name": "1P-ETH-LAD",
+  "aliases": [
+    "1pethlad"
+  ],
+  "aliasesStr": "1pethlad",
+  "summary": "A new psychedelic lysergamide which is suspected to be a prodrug of ETH-LAD, which could explain why the doses are very similar. Or it could be active on its own. Scientific studies would need to be written to understand, yet there are none.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 µg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 60 µg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 100 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 200 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "200 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition enhancement, Motivation enhancement, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Scenery slicing, Nausea, Spontaneous bodily sensations, Pupil dilation, Thought acceleration, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Laughter fits, Personal bias suppression, Memory suppression, Bodily control enhancement, Stimulation, Wakefulness, Temperature regulation suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased music appreciation, Existential self-realization, After images, Teeth grinding, Color shifting, Emotion intensification, 8B Geometry - Perceived exposure to inner mechanics of consciousness, Perspective hallucination, Immersion intensification, Auditory acuity enhancement, Tactile intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Pupil dilation",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Temperature regulation suppression",
+      "Increased heart rate",
+      "Teeth grinding"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Motivation enhancement",
+      "Depth perception distortions",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Laughter fits",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Emotion intensification",
+      "8B Geometry - Perceived exposure to inner mechanics of consciousness",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Spontaneous bodily sensations",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

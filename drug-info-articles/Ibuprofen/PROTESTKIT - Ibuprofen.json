@@ -1,0 +1,46 @@
+{
+  "url": "https://drugs.tripsit.me/ibuprofen",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Ibuprofen",
+  "name": "Ibuprofen",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A ubiquitously available pain reliever/fever reducer. Ibuprofen is a nonsteroidal anti-inflammatory drug, available in many forms. It is sometimes used to reduce the body-load caused by certain drugs, such as stimulants.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "400-800mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

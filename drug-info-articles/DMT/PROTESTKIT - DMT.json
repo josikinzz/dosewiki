@@ -1,0 +1,371 @@
+{
+  "url": "https://psychonautwiki.org/wiki/DMT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DMT.shtml",
+  "name": "DMT",
+  "aliases": [
+    "dimethyltryptamine",
+    "dmitry",
+    "n,n-dmt",
+    "the glory",
+    "the spirit molecule"
+  ],
+  "aliasesStr": "dimethyltryptamine,dmitry,n,n-dmt,the glory,the spirit molecule",
+  "summary": "A popular and powerful psychedelic, typically used in two ways; either it is vapourised for a short 'breakthrough' experience, or it is taken in combination with an enzyme inhibitor for a long, intense trip (this is also known as ayahuasca or pharmahuasca).",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity"
+  ],
+  "addictionPotential": "non-addictive with a low abuse potential",
+  "tolerance": {
+    "full": "does not appear to occur",
+    "half": null,
+    "zero": null
+  },
+  "crossTolerances": [
+    "psychedelics"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60+ mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 3.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 8.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 6.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 20.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "10.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "4 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.17 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "1.17 - 1.67 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 5.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "10.0 - 20.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "15.0 - 30.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-25mg"
+        },
+        {
+          "name": "Common",
+          "value": "25-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50-125mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "3.0 - 5.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "45.0 - 60.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Light",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Common",
+          "value": "15-25mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25-35mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "35mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 2.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 10.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "20.0 - 45.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral_MAOI",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "180.0 - 420.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "immersive experience, open eye visuals, radical perspective shifting, profound life-changing spiritual experiences, powerful rushing of sensation, change in perception of time, auditory hallucinations, color shifting, hard on lungs when smoking, stomach discomfort, difficulty integrating experiences, overwhelming fear",
+  "categorized_effects": {
+    "Physical effects": [
+      "hard on lungs when smoking",
+      "stomach discomfort"
+    ],
+    "Mental effects": [
+      "immersive experience",
+      "radical perspective shifting",
+      "profound life-changing spiritual experiences",
+      "change in perception of time",
+      "difficulty integrating experiences",
+      "overwhelming fear"
+    ],
+    "Sensory effects": [
+      "open eye visuals",
+      "powerful rushing of sensation",
+      "auditory hallucinations",
+      "color shifting"
+    ],
+    "Uncategorized effects": []
+  }
+}

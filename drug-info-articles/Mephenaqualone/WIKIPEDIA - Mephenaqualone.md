@@ -1,0 +1,4 @@
+# Mecloqualone
+*Source: https://en.wikipedia.org/wiki/Mecloqualone*
+
+Mecloqualone (Nubarene, Casfen) is a quinazolinone-class GABAergic and is an analogue of methaqualone that was first made in 1960 and marketed mainly in France and some other European countries. It has sedative, hypnotic, and anxiolytic properties caused by its agonist activity at the β subtype of the GABAa receptor, and was used for the treatment of insomnia.  Mecloqualone is faster-acting but shorter-lasting than methaqualone and so was used only as a sleeping pill, in contrast to methaqualone, which was used as a general-purpose anxiolytic as well. Mecloqualone was never as widely used as methaqualone and is no longer prescribed because of concerns about its potential for abuse and overdose. In the United States it is a Schedule I non-narcotic (depressant) controlled substance with an ACSCN of 2572 and 30 grams annual aggregate manufacturing quota.

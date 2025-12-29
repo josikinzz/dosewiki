@@ -1,0 +1,206 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Hydrocodone",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Hydrocodone.shtml",
+  "name": "Hydrocodone",
+  "aliases": [
+    "hydro",
+    "norco",
+    "vicodin",
+    "vicodin (with paracetamol)",
+    "zohydro er (extended-release)"
+  ],
+  "aliasesStr": "hydro,norco,vicodin,vicodin (with paracetamol),zohydro er (extended-release)",
+  "summary": "A codeine-derived opioid generally unheard of outside the United States. Generally mild in effects, used as an analgesic and cough-supressant. Sometimes used recreationally.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "potentially fatal at heavy dosages"
+  ],
+  "addictionPotential": "moderately addictive",
+  "tolerance": {
+    "full": "with prolonged use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 40 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "40 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        }
+      ],
+      "bioavailability": "70-85%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-MeO-PCP",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4MeOPCP.shtml",
+  "name": "4-MeO-PCP",
+  "aliases": [
+    "4meopcp",
+    "methoxydine"
+  ],
+  "aliasesStr": "4meopcp,methoxydine",
+  "summary": "An arylcyclohexamine dissociative anaesthetic related to PCP. First discovered in the 1960s by Parke-Davis, it was introduced to the RC market in 2008. Reported to be less potent than PCP. It is not commonly seen, but has seen some increase in popularity with the inavailability of other dissociatives.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "75 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 170 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "170 - 250 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "250 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 2.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 7.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "12.0 - 20.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6+ hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 75 mg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "12.0 - 18.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Dream potentiation, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Tactile suppression, Perception of bodily lightness, Motor control loss, Anxiety suppression, Increased music appreciation, Existential self-realization, Creativity enhancement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Spatial disorientation, Optical sliding, Mania, Perspective hallucination, Immersion intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Motor control loss"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Mania",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Perspective hallucination",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

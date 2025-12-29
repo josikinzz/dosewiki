@@ -1,0 +1,139 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Diphenhydramine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Diphenhydramine.shtml",
+  "name": "Diphenhydramine",
+  "aliases": [
+    "benadryl",
+    "dph",
+    "nytol",
+    "sominex",
+    "unisom sleepmelts",
+    "zzzquil"
+  ],
+  "aliasesStr": "benadryl,dph,nytol,sominex,unisom sleepmelts,zzzquil",
+  "summary": "An antihistamine which, when taken in smaller doses relieves allergies and insomnia. In larger doses works as a deliriant and can actually keep the user awake. Generally the 'high' of this drug is reported as dysphoric, potentially causing hallucinations indistinguishable from reality.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Ethanolamine#1#"
+    ],
+    "psychoactive": [
+      "Deliriant"
+    ]
+  },
+  "toxicity": [
+    "fatal at amounts close to or exceeding 2 grams"
+  ],
+  "addictionPotential": "produces dependence with chronic use",
+  "tolerance": {
+    "full": "with repeated use",
+    "half": null,
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "deliriant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "200 - 400 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "400 - 700 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "700 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "up to 24 hours"
+        }
+      ],
+      "bioavailability": "40-60%"
+    }
+  ],
+  "interactions": [
+    {
+      "note": "Both substances are CNS depressants, potentiating each other strongly and unpredictably, raising the chances of memory loss, severe ataxia, and unconsciousness. The interaction will cause greater inhibition and risk of injury. If the user falls unconscious it is strongly recommended to put them into the recovery position and monitor breathing.",
+      "sources": [
+        {
+          "author": "William J Tharion, Donna J. McMenemy, Terry M. Rauch",
+          "title": "Antihistamine Effects on the Central Nervous System, Cognitive Performance and Subjective States. ",
+          "url": "https://doi.org/10.1159/000119069"
+        },
+        {
+          "author": "Sicari V, Zabbo CP. Diphenhydramine.",
+          "title": "Diphenhydramine",
+          "url": "https://www.ncbi.nlm.nih.gov/books/NBK526010/"
+        },
+        {
+          "author": "Couper FJ, Marinetti LJ.",
+          "title": "γ-Hydroxybutyrate (GHB) - Effects on Human Performance and Behavior ",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/26256488/"
+        },
+        {
+          "author": "Busardò FP, Jones AW.",
+          "title": "GHB Pharmacology and Toxicology: Acute Intoxication, Concentrations in Blood and Urine in Forensic Cases and Treatment of the Withdrawal Syndrome",
+          "url": "https://doi.org/10.2174%2F1570159X13666141210215423"
+        }
+      ],
+      "status": "Dangerous",
+      "name": "GHB/GBL"
+    }
+  ],
+  "effects": "Delirium, dream-like experiences, paranoia, visual and audio distortions, dry mouth, muscle cramps, nausea, dysphoria, tremors. Often described as a pretty negative experience.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Delirium",
+      "dry mouth",
+      "muscle cramps",
+      "nausea",
+      "tremors. Often described as a pretty negative experience."
+    ],
+    "Mental effects": [
+      "dream-like experiences",
+      "paranoia"
+    ],
+    "Sensory effects": [
+      "visual and audio distortions"
+    ],
+    "Uncategorized effects": [
+      "dysphoria"
+    ]
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "url": "https://psychonautwiki.org/wiki/DiPT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DiPT.shtml",
+  "name": "DiPT",
+  "aliases": [
+    "diisopropyltryptamine"
+  ],
+  "aliasesStr": "diisopropyltryptamine",
+  "summary": "A rare tryptamine psychedelic closely related to DMT, with the interesting property of having little visual hallucinations, but strong auditory effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "5.0 - 15.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 75 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "75 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

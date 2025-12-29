@@ -1,0 +1,161 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Omberacetam",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Noopept_.shtml",
+  "name": "Noopept",
+  "aliases": [
+    "gvs-111",
+    "omberacetam",
+    "ноопепт"
+  ],
+  "aliasesStr": "gvs-111,omberacetam,ноопепт",
+  "summary": "A common nootropic often attributed with temporarily increasing intelligence, concentration, focus and memory recall. Daily use can lead to dependency with withdrawals which make the user feel 'stupid.' Often taken daily in a 'stack' with other nootropics.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Peptide"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "non-addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops over several weeks of prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "racetam",
+    "nootropic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "40 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.08 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 5.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "url": "https://psychonautwiki.org/wiki/U-47700",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_U47700.shtml",
+  "name": "U-47700",
+  "aliases": [
+    "u47700"
+  ],
+  "aliasesStr": "u47700",
+  "summary": "A µ-opioid receptor agonist that is related to AH-7921. Having a very short duration.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "high toxicity relative to its dose due to its extreme potency",
+    "potentially lethal when mixed with depressants like alcohol or benzodiazepines"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 6 mg"
+        },
+        {
+          "name": "Common",
+          "value": "6 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 10 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "10 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.33 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-7.5mg"
+        },
+        {
+          "name": "Common",
+          "value": "7.5-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-25mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

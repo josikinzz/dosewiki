@@ -1,0 +1,179 @@
+{
+  "url": "https://psychonautwiki.org/wiki/O-PCE",
+  "experiencesUrl": "https://www.reddit.com/search/?q=O-PCE",
+  "name": "O-PCE",
+  "aliases": [
+    "2'-oxo-pce",
+    "2-oxo-pce",
+    "eticyclidone",
+    "opce"
+  ],
+  "aliasesStr": "2'-oxo-pce,2-oxo-pce,eticyclidone,opce",
+  "summary": "Dissociative of the Arylcyclohexylamine class. Structurally related to Deschloroketamine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 6 mg"
+        },
+        {
+          "name": "Common",
+          "value": "6 - 12 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "12 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.08 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Internal hallucination, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Unity and interconnectedness, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Pain relief, Increased heart rate, Anxiety suppression, Increased music appreciation, Existential self-realization, Creativity enhancement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Mania, Perspective hallucination, Immersion intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Orgasm depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Stimulation",
+      "Motor control loss",
+      "Pain relief",
+      "Increased heart rate"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Mania",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Perspective hallucination",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

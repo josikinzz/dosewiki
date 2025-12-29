@@ -1,0 +1,88 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Prochlorperazine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Prochlorperazine",
+  "name": "Prochlorperazine",
+  "aliases": [
+    "buccastem",
+    "compazine",
+    "phenotil",
+    "stemetil",
+    "stemzine"
+  ],
+  "aliasesStr": "buccastem,compazine,phenotil,stemetil,stemzine",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Phenothiazine"
+    ],
+    "psychoactive": [
+      "Antipsychotic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2.5 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 40 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Dehydration, Dizziness, Nausea suppression, Dream potentiation, Thought deceleration, Sedation, Motor control loss, Anxiety suppression, Amnesia, Focus suppression, Appetite intensification, Analysis depression, Creativity depression, Language depression, Motivation depression, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Dizziness",
+      "Nausea suppression",
+      "Sedation",
+      "Motor control loss",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Dream potentiation",
+      "Thought deceleration",
+      "Anxiety suppression",
+      "Amnesia",
+      "Focus suppression",
+      "Analysis depression",
+      "Creativity depression",
+      "Language depression",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": []
+  }
+}

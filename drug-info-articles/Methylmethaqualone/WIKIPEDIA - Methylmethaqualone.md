@@ -1,0 +1,5 @@
+# Methylmethaqualone
+*Source: https://en.wikipedia.org/wiki/Methylmethaqualone*
+
+Methylmethaqualone (MMQ) is a quinazolinone and an analogue of methaqualone that has similar sedative and hypnotic properties to its parent compound (resulting from its agonist activity at the β subtype of the GABAA receptor) and is around 3 times as potent in animal models. Methylmethaqualone differs from methaqualone by 4-methylation on the phenyl ring. It was made illegal in Germany in 1999 and listed by the DEA as a "drug of forensic interest" at about the same time, but little other information is available.  It would appear that this compound was sold on the black market in Germany as a designer drug analogue of methaqualone.
+Animal studies of methylmethaqualone have shown it to produce convulsions at only slightly above the effective sedative dose, and anecdotal reports from human users have confirmed that it can have a pro-convulsive effect, which has potential to make this compound particularly hazardous if taken in excessive doses.

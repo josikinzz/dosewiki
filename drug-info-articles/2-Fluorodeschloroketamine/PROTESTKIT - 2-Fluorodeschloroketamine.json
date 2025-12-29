@@ -1,0 +1,255 @@
+{
+  "url": "https://psychonautwiki.org/wiki/2-Fluorodeschloroketamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=2-FDCK",
+  "name": "2-FDCK",
+  "aliases": [
+    "2-fl-2'-oxo-pcm",
+    "2-fluorodeschloroketamine",
+    "2f-dck",
+    "2f-ket",
+    "2f-ketamine",
+    "2fdck",
+    "2fket",
+    "fluoroketamine"
+  ],
+  "aliasesStr": "2-fl-2'-oxo-pcm,2-fluorodeschloroketamine,2f-dck,2f-ket,2f-ketamine,2fdck,2fket,fluoroketamine",
+  "summary": "Dissociative anesthetic of the arylcyclohexylamine class. Seemingly on par with ketamine in dosage. Longer onset than the prior.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 70 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "70 - 140 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "140 mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.83 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.83 - 1.67 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.5 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 45 mg"
+        },
+        {
+          "name": "Common",
+          "value": "45 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 175 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "175 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.05 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Caution"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

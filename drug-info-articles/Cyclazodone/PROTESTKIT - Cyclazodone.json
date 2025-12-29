@@ -1,0 +1,135 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Cyclazodone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Cyclazodone",
+  "name": "Cyclazodone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted aminorexes",
+      "4-oxazolidinone"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": null,
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +",
+          "note": "Liver damage may result from heavy or sustained usage."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.75 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Empathy, affection and sociability enhancement, Motivation enhancement, Emotion suppression, Dehydration, Nausea, Headache, Vasoconstriction, Muscle cramp, Frequent urination, Temporary erectile dysfunction, Restless legs, Tactile hallucination, Physical euphoria, Pupil dilation, Bronchodilation, Thought acceleration, Increased libido, Ego inflation, Transformations, Time distortion, Analysis enhancement, Delusion, Cognitive euphoria, Depression, Anxiety, Paranoia, Irritability, Thought deceleration, Disinhibition, Bodily control enhancement, Stimulation, Wakefulness, Appetite suppression, Pain relief, Drifting, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Thought organization, Abnormal heartbeat, Depersonalization, Dry mouth, Teeth grinding, Compulsive redosing, Cognitive fatigue, Increased bodily temperature, Brightness alteration, Psychosis, Focus intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Muscle cramp",
+      "Frequent urination",
+      "Restless legs",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Bronchodilation",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Appetite suppression",
+      "Pain relief",
+      "Increased perspiration",
+      "Abnormal heartbeat",
+      "Dry mouth",
+      "Increased bodily temperature",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Emotion suppression",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Analysis enhancement",
+      "Delusion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Thought organization",
+      "Depersonalization",
+      "Cognitive fatigue",
+      "Psychosis",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Tactile hallucination",
+      "Increased libido",
+      "Brightness alteration"
+    ],
+    "Uncategorized effects": [
+      "Transformations",
+      "Depression",
+      "Drifting",
+      "Compulsive redosing"
+    ]
+  }
+}

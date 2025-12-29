@@ -1,0 +1,58 @@
+{
+  "url": "https://drugs.tripsit.me/ashwagandha",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Ashwagandha",
+  "name": "Ashwagandha",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Is an Adaptogen. It is commonly used for its ability to prevent anxiety. It also is helpful in relieving insomnia. It's name means \"Smell of Horse\" due to its smell and the traditional belief that ingesting the this herb will give you the strength and virility of a horse.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "300-500mg"
+        },
+        {
+          "name": "Common",
+          "value": "500-1000mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1000-2000mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

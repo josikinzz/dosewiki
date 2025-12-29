@@ -1,0 +1,196 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Ayahuasca",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ayahuasca.shtml",
+  "name": "Ayahuasca",
+  "aliases": [
+    "aya",
+    "caapi",
+    "cipó",
+    "hoasca",
+    "natem",
+    "pharmahuasca",
+    "shori",
+    "vegetal",
+    "yage",
+    "yagé",
+    "yajé"
+  ],
+  "aliasesStr": "aya,caapi,cipó,hoasca,natem,pharmahuasca,shori,vegetal,yage,yagé,yajé",
+  "summary": "A concoction made of two or more plants that contain at least an MAOI and DMT, the combination of which allows the DMT to work orally. Typically associated to south american cultures. Also, sometimes approximated synthetically by taking an external MAOI with extracted DMT. Causes intense, spiritually orientated hallucinogenic experiences.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "LD50 is around 50 times a regular dose"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": null,
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

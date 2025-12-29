@@ -1,0 +1,261 @@
+{
+  "url": "https://psychonautwiki.org/wiki/LSD",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_LSD.shtml",
+  "name": "LSD",
+  "aliases": [
+    "acid",
+    "blotter",
+    "cid",
+    "l",
+    "lsd-25",
+    "lucy",
+    "tabs"
+  ],
+  "aliasesStr": "acid,blotter,cid,l,lsd-25,lucy,tabs",
+  "summary": "LSD is a popular psychedelic with a relatively long history of use and research, and as such is known to be relatively safe despite its extremely high potency. It is the archetypical psychedelic to which all others are compared, and remains in popular usage.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity relative to dose"
+  ],
+  "addictionPotential": "non-addictive with a low abuse potential",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": null,
+    "zero": "5 days"
+  },
+  "crossTolerances": [
+    "psychedelics"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 µg"
+        },
+        {
+          "name": "Light",
+          "value": "15 - 75 µg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 150 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 300 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 48.0 hours"
+        }
+      ],
+      "bioavailability": "71% - 71%"
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-100ug"
+        },
+        {
+          "name": "Common",
+          "value": "100-150ug"
+        },
+        {
+          "name": "Strong",
+          "value": "175-225ug"
+        },
+        {
+          "name": "Heavy",
+          "value": "250ug+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "9.0 - 14.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "visual distortions, a sense of childlike wonder, brightening of colors,racing thoughts, hue shifts, euphoria, anxiety, confusion",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [
+      "a sense of childlike wonder",
+      "racing thoughts",
+      "euphoria",
+      "anxiety",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "visual distortions",
+      "brightening of colors",
+      "hue shifts"
+    ],
+    "Uncategorized effects": []
+  }
+}

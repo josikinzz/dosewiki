@@ -1,0 +1,24 @@
+# Codeine
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+Codeine is converted into morphine in the body. Taking it has a pain-relieving, cough-irritating, calming, euphoric and aphrodisiac effect. An increase in self-confidence is also possible. It should be remembered, however, that the effect varies greatly depending on the individual metabolism. While some people react very sensitively to codeine, others feel no psychoactive effect at all.
+
+## Dosage
+An increase in effect at high doses is rarely seen, as the body can only absorb limited amounts of codeine.
+
+## Risks
+
+### Short-term Risks
+Dry mouth, headache, nausea, vomiting, loss of appetite, itching, constipation, difficulty in urinating, tiredness/sleepiness, decrease in respiratory rate up to a life-threatening respiratory depression. In men, erectile dysfunction may also occur.
+There is a risk of psychological and physical dependence. In the case of chronic use, tolerance may develop, so that the dose must be progressively increased to achieve the desired effect. When discontinuing codeine after a phase of continuous use, withdrawal symptoms such as restlessness, stomach and/or leg cramps, cold shivers, trembling, profuse sweating and muscle spasms may appear. Due to the high dependence potential, withdrawal can be as painful and long-lasting as heroin withdrawal (!).
+
+### Long-term Risks
+In men, there may be a reduction in sexual desire (libido). In women, menstruation may be absent or irregular and sexual desire may be reduced. Other long-term risks include allergic reactions, sleep disturbances and dizziness. The dependence potential of codeine is lower than that of other opiates, but should still not be underestimated!
+
+## Safer Use
+- Do not use codeine with other depressant substances such as alcohol, cannabis, sleeping pills, MAO inhibitors (such as antidepressants) or GHB/GBL.
+- Dose low and don't top up straight away - it may be that you don't get a high.
+- With Sizzurp: The mixture with carbonic acid and sugar makes the codeine more difficult to dose. In addition, the effect is much faster and more intense.
+- When codeine is injected or snorted, severe side effects and unintentional overdose can result.
+- Codeine is a medicinal product and should therefore only be taken with medical supervision.

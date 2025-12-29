@@ -1,0 +1,370 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Propylhexedrine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Propylhexedrine",
+  "name": "Propylhexedrine",
+  "aliases": [
+    "benzedrex",
+    "hexahdromethamphetamine",
+    "propylhexadrine"
+  ],
+  "aliasesStr": "benzedrex,hexahdromethamphetamine,propylhexadrine",
+  "summary": "A relatively common CNS stimulant sold over the counter in benzedrex inhalers.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cycloalkylamines",
+      "Amphetamine"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": {
+    "full": "rapidly develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 120 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120 - 180 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "180 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-75mg"
+        },
+        {
+          "name": "Strong",
+          "value": "75-100mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated(Pure)",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-15mg"
+        },
+        {
+          "name": "Common",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30-50mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral(Benzedrex)",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "20-60mg"
+        },
+        {
+          "name": "Common",
+          "value": "60-125mg"
+        },
+        {
+          "name": "Strong",
+          "value": "125-250mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "250mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral(Pure)",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "20-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Motivation enhancement, Memory enhancement, Double vision, Dehydration, Nausea, Vasoconstriction, Frequent urination, Temporary erectile dysfunction, Pupil dilation, Bronchodilation, Thought acceleration, Increased libido, Ego inflation, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Disinhibition, Stimulation, Wakefulness, Appetite suppression, Drifting, Increased heart rate, Increased blood pressure, Increased perspiration, Increased music appreciation, Thought organization, Abnormal heartbeat, Teeth grinding, Compulsive redosing, Cognitive fatigue, Increased bodily temperature, Brightness alteration, Euphoria, Focus intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Frequent urination",
+      "Pupil dilation",
+      "Bronchodilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Abnormal heartbeat",
+      "Increased bodily temperature",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Thought acceleration",
+      "Ego inflation",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Thought organization",
+      "Cognitive fatigue",
+      "Euphoria",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Double vision",
+      "Increased libido",
+      "Brightness alteration"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Drifting",
+      "Compulsive redosing"
+    ]
+  }
+}

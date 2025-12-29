@@ -1,0 +1,108 @@
+{
+  "url": "https://drugs.tripsit.me/methylmethaqualone",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Methylmethaqualone.shtml",
+  "name": "Methylmethaqualone",
+  "aliases": [
+    "mmq"
+  ],
+  "aliasesStr": "mmq",
+  "summary": "A more potent analogue of methaqualone with a short duration. Thought to be potentially neurotoxic. Has pro-convulsive effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2-3mg"
+        },
+        {
+          "name": "Light",
+          "value": "3-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg."
+        },
+        {
+          "name": "Strong",
+          "value": "10-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2-3mg"
+        },
+        {
+          "name": "Light",
+          "value": "3-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg."
+        },
+        {
+          "name": "Strong",
+          "value": "10-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

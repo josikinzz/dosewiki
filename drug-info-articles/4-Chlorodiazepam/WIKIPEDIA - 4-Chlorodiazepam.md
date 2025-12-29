@@ -1,0 +1,4 @@
+# Ro5-4864
+*Source: https://en.wikipedia.org/wiki/Ro5-4864*
+
+Ro5-4864 (4'-chlorodiazepam) is a drug which is a benzodiazepine derivative of diazepam. However unlike most benzodiazepine derivatives, Ro5-4864 lacks affinity for GABAA receptors and lacks typical benzodiazepine effects, instead being sedative yet also convulsant and anxiogenic in effects. Ro5-4864 was found to be a potent ligand for the "peripheral benzodiazepine receptor", later renamed to mitochondrial translocator protein 18kDa (TSPO). Despite its convulsant effects, at lower doses Ro5-4864 has proved to be neuroprotective and has become widely used for research into the role of the TSPO protein in neurotoxicity. In vitro studies and rodent models also suggest the possibility of analgesic, antidepressant, cardioprotective, and anti-cancer effects.

@@ -1,0 +1,221 @@
+{
+  "url": "https://psychonautwiki.org/wiki/NM-2-AI",
+  "experiencesUrl": "https://www.reddit.com/search/?q=NM-2-AI",
+  "name": "NM-2-AI",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Stimulant that is in the aminoindane class. Is it quite close to it's bigger brother 2-AI. Yet this has a lower potency, has a longer duration though.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Amphetamine",
+      "Aminoindane"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 200 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "200 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Motivation enhancement, Memory enhancement, Dehydration, Nausea, Temporary erectile dysfunction, Thought acceleration, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Appetite suppression, Increased heart rate, Increased blood pressure, Increased perspiration, Increased music appreciation, Teeth grinding, Compulsive redosing, Cognitive fatigue, Focus intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased perspiration"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Thought acceleration",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

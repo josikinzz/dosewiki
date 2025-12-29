@@ -1,0 +1,227 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Dextropropoxyphene",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Dextropropoxyphene",
+  "name": "Dextropropoxyphene",
+  "aliases": [
+    "capadex",
+    "co-proxamol",
+    "coproxamol",
+    "darvocet",
+    "darvon",
+    "di-gesic",
+    "propoxyphene"
+  ],
+  "aliasesStr": "capadex,co-proxamol,coproxamol,darvocet,darvon,di-gesic,propoxyphene",
+  "summary": "An opioid analgesic that is an optical isomer of levopropoxyphene. Used to treat mild pain and often used for its antitussive properties. It has been taken off the market in Europe and US due to concerns of health issues relating to the Kidney, Liver, Heart and Respiratory Disorders. Just a bit stronger than Tramadol.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "high toxicity",
+    "potentially lethal when mixed with depressants like alcohol or benzodiazepines",
+    "known to cause potentially fatal heart arrhythmias"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 65 mg"
+        },
+        {
+          "name": "Common",
+          "value": "65 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "200 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ],
+      "bioavailability": "40%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Nausea, Difficulty urinating, Dizziness, Itchiness, Constipation, Physical euphoria, Pupil constriction, Dream potentiation, Cognitive euphoria, Sedation, Appetite suppression, Respiratory depression, Pain relief, Cough suppression, Anxiety suppression, Confusion, Compulsive redosing, Decreased libido, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Difficulty urinating",
+      "Dizziness",
+      "Itchiness",
+      "Constipation",
+      "Physical euphoria",
+      "Pupil constriction",
+      "Sedation",
+      "Appetite suppression",
+      "Respiratory depression",
+      "Pain relief",
+      "Cough suppression"
+    ],
+    "Mental effects": [
+      "Dream potentiation",
+      "Cognitive euphoria",
+      "Anxiety suppression",
+      "Confusion"
+    ],
+    "Sensory effects": [
+      "Decreased libido",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

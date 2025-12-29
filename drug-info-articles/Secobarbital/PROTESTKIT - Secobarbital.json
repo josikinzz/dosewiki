@@ -1,0 +1,108 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Secobarbital",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Secobarbital",
+  "name": "Secobarbital",
+  "aliases": [
+    "secobarbitone",
+    "seconal"
+  ],
+  "aliasesStr": "secobarbitone,seconal",
+  "summary": "A Barbiturate derivative that possesses all the classic effects of todays Benzodiazepines, and the old Barbiturates. It's used in the treatment of Epilepsy, short term treatment for insomnia, and a preoperative medication for anaesthesia and anxiolysis for short surgical/diagnostic/therapeutic procedures.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Barbiturates"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "moderate toxicity"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "25 - 50 mg"
+        },
+        {
+          "name": "Common",
+          "value": "50 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Dizziness, Physical euphoria, Delusion, Cognitive euphoria, Thought deceleration, Disinhibition, Sedation, Motor control loss, Respiratory depression, Pain relief, Decreased blood pressure, Muscle relaxation, Anxiety suppression, Compulsive redosing, Amnesia, Visual acuity suppression, Decreased libido, Seizure suppression, Analysis depression, Language depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dizziness",
+      "Physical euphoria",
+      "Sedation",
+      "Motor control loss",
+      "Respiratory depression",
+      "Pain relief",
+      "Decreased blood pressure",
+      "Muscle relaxation",
+      "Seizure suppression"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Amnesia",
+      "Analysis depression",
+      "Language depression"
+    ],
+    "Sensory effects": [
+      "Visual acuity suppression",
+      "Decreased libido"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

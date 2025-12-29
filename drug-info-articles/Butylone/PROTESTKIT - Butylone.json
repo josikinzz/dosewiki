@@ -1,0 +1,247 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Butylone",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_bkMBDB.shtml",
+  "name": "Butylone",
+  "aliases": [
+    "b1",
+    "bk-mbdb",
+    "bk-methyl-j"
+  ],
+  "aliasesStr": "b1,bk-mbdb,bk-methyl-j",
+  "summary": "Empathogen and stimulant of the cathinone class.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "MDxx",
+      "Cathinone",
+      "Substituted cathinones"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 80 mg"
+        },
+        {
+          "name": "Common",
+          "value": "80 - 125 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "125 - 225 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "225 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Dangerous"
+    },
+    {
+      "name": "2C-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOI",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Caution"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Empathy, affection and sociability enhancement, Vibrating vision, Dehydration, Difficulty urinating, Spontaneous bodily sensations, Thought acceleration, Increased libido, Time distortion, Analysis enhancement, Mindfulness, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Temperature regulation suppression, Increased heart rate, Increased blood pressure, Increased perspiration, Increased music appreciation, Teeth grinding, Cognitive fatigue, Tactile intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Difficulty urinating",
+      "Stimulation",
+      "Temperature regulation suppression",
+      "Increased perspiration"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Thought acceleration",
+      "Time distortion",
+      "Analysis enhancement",
+      "Mindfulness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Vibrating vision",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression"
+    ]
+  }
+}

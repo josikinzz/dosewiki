@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/jenkem",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Jenkem",
+  "name": "Jenkem",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A hoax which began in online communities of a non-existent drug which was claimed to result from a process involving human waste. http://www.snopes.com/crime/warnings/jenkem.asp",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

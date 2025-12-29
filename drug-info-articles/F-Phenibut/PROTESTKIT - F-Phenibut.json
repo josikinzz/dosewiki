@@ -1,0 +1,211 @@
+{
+  "url": "https://psychonautwiki.org/wiki/F-Phenibut",
+  "experiencesUrl": "https://www.reddit.com/search/?q=F-Phenibut",
+  "name": "F-Phenibut",
+  "aliases": [
+    "fluorobut",
+    "fluorophenibut"
+  ],
+  "aliasesStr": "fluorobut,fluorophenibut",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Gabapentinoids"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol, benzodiazepines or opioids",
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "GABA"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Common",
+          "value": "150 - 400 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "400 - 600 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "600 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Empathy, affection and sociability enhancement, Motivation enhancement, Dehydration, Nausea, Headache, Muscle cramp, Frequent urination, Dizziness, Stomach cramp, Physical euphoria, Cognitive euphoria, Depression, Thought deceleration, Disinhibition, Stimulation, Sedation, Motor control loss, Temperature regulation suppression, Respiratory depression, Increased perspiration, Anxiety suppression, Increased music appreciation, Compulsive redosing, Amnesia, Appetite intensification, Analysis depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased seizure risk",
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Muscle cramp",
+      "Frequent urination",
+      "Dizziness",
+      "Stomach cramp",
+      "Physical euphoria",
+      "Stimulation",
+      "Sedation",
+      "Motor control loss",
+      "Temperature regulation suppression",
+      "Respiratory depression",
+      "Increased perspiration",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Amnesia",
+      "Analysis depression"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

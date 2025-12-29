@@ -1,0 +1,131 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Phenobarbital",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Phenobarbital",
+  "name": "Phenobarbital",
+  "aliases": [
+    "luminal",
+    "pheno",
+    "phenobarb",
+    "phenobarbitone"
+  ],
+  "aliasesStr": "luminal,pheno,phenobarb,phenobarbitone",
+  "summary": "CNS depressant that is used mostly for insomnia (In older patients) and epliepsy (in younger patients) And it a very strong narcotic, that can be taken most ways. It's used less as \"safer\" alternatives have been made (Benzodiazepines).",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Barbiturates"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "moderate toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "12.0 - 24.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.08 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Dizziness, Physical euphoria, Delusion, Cognitive euphoria, Thought deceleration, Disinhibition, Sedation, Motor control loss, Respiratory depression, Decreased blood pressure, Muscle relaxation, Anxiety suppression, Compulsive redosing, Amnesia, Visual acuity suppression, Decreased libido, Seizure suppression, Analysis depression, Language depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dizziness",
+      "Physical euphoria",
+      "Sedation",
+      "Motor control loss",
+      "Respiratory depression",
+      "Decreased blood pressure",
+      "Muscle relaxation",
+      "Seizure suppression"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Amnesia",
+      "Analysis depression",
+      "Language depression"
+    ],
+    "Sensory effects": [
+      "Visual acuity suppression",
+      "Decreased libido"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

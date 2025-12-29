@@ -1,0 +1,84 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Carisoprodol",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Carisoprodol",
+  "name": "Carisoprodol",
+  "aliases": [
+    "soma"
+  ],
+  "aliasesStr": "soma",
+  "summary": "A skeletal muscle relaxant drug also known as Soma, carisoprodol has limited recreational value, however its main metabolite meprobamate has some moderate tranquilising properties. Sometimes found in concoctions with codeine or caffeine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Carbamate"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "moderate toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 325 mg"
+        },
+        {
+          "name": "Common",
+          "value": "325 - 500 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "500 - 750 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "750 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

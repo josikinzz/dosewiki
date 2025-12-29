@@ -1,0 +1,158 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Coluracetam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Coluracetam",
+  "name": "Coluracetam",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A nootropic drug of the racetam class, originally developed to treat Alzheimer's disease, it is currently being investigated as a treatment for major depressive disorder and generalised anxiety disorder. May be a modulator of the AMPA receptor. Limited recreational value.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Racetams"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "not addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "racetam",
+    "nootropic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.08 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dream potentiation, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Anxiety suppression, Focus intensification, Immersion intensification, Auditory acuity enhancement, Tactile intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Stimulation"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Mindfulness",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Focus intensification",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": []
+  }
+}

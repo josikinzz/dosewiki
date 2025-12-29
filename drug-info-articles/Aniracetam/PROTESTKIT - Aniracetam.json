@@ -1,0 +1,93 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Aniracetam",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Aniracetam.shtml",
+  "name": "Aniracetam",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An anxiolytic nootropic which modulates the AMPA receptor. Significantly more potent than racetam. May have positive effects on memory and cognition. Little recreational value. Sold in Europe as a prescription drug, but not approved by the FDA in the US.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Racetams"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "non-addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "racetam",
+    "nootropic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "350 mg"
+        },
+        {
+          "name": "Light",
+          "value": "500 - 1200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1200 - 1800 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1800 - 2400 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2400 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        }
+      ],
+      "bioavailability": "8.6-11.4%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dream potentiation, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Anxiety suppression, Creativity enhancement, Lowered latent Inhibition, Focus intensification, Auditory acuity enhancement, Tactile intensification, Olfactory intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Stimulation"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Mindfulness",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Creativity enhancement",
+      "Lowered latent Inhibition",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Auditory acuity enhancement",
+      "Tactile intensification",
+      "Olfactory intensification"
+    ],
+    "Uncategorized effects": []
+  }
+}

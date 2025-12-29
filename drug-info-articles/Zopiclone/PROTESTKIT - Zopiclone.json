@@ -1,0 +1,207 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Zopiclone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Zopiclone",
+  "name": "Zopiclone",
+  "aliases": [
+    "imovane",
+    "zimovane"
+  ],
+  "aliasesStr": "imovane,zimovane",
+  "summary": "A nonbenzodiazepine sedative sleep aid (Z-drug), which can have hallucinogenic effects if taken while awake. Often causes users to have a metallic taste in the mouth for ~12h. Has been reported in some cases to cause certain users to black out, redose excessively and undertake dangerous activities such as driving.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cyclopyrrolone"
+    ],
+    "psychoactive": [
+      "Hallucinogens",
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like benzodiazepines, alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of weeks of daily use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "benzodiazepines"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3.5 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 7.5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "7.5 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.5 - 9.0 hours"
+        }
+      ],
+      "bioavailability": "52 - 59%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Lethargy, tiredness, a dreamlike state while awake, can induce heavy sleep.",
+  "categorized_effects": {
+    "Physical effects": [
+      "tiredness",
+      "can induce heavy sleep."
+    ],
+    "Mental effects": [
+      "Lethargy",
+      "a dreamlike state while awake"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

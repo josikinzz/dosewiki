@@ -1,0 +1,131 @@
+{
+  "url": "https://psychonautwiki.org/wiki/EPT",
+  "experiencesUrl": "https://www.reddit.com/search/?q=EPT",
+  "name": "EPT",
+  "aliases": [
+    "ethylpropyltryptamine",
+    "n,n-ethylpropyltryptamine"
+  ],
+  "aliasesStr": "ethylpropyltryptamine,n,n-ethylpropyltryptamine",
+  "summary": "Ethylpropyltryptamine a novel tryptamine, that is the structural homologue of DMT.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "does not produce dependence and has low abuse potential",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Common",
+          "value": "40 - 80 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "80 - 110 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "110 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-75mg"
+        },
+        {
+          "name": "Common",
+          "value": "75-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory distortion, Pattern recognition enhancement, Diffraction, Symmetrical texture repetition, Object alteration, Nausea, Pupil dilation, Thought acceleration, Increased libido, Internal hallucination, Time distortion, Personal bias suppression, Memory suppression, Stimulation, Perception of bodily lightness, Motor control loss, Drifting, Color enhancement, Auditory acuity enhancement",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Pupil dilation",
+      "Stimulation",
+      "Motor control loss"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Time distortion",
+      "Personal bias suppression",
+      "Memory suppression"
+    ],
+    "Sensory effects": [
+      "Auditory distortion",
+      "Diffraction",
+      "Symmetrical texture repetition",
+      "Increased libido",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Object alteration",
+      "Drifting"
+    ]
+  }
+}

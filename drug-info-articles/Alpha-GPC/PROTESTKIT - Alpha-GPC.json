@@ -1,0 +1,89 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Alpha-GPC",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Alpha-GPC",
+  "name": "Alpha-GPC",
+  "aliases": [
+    "choline alfoscerate",
+    "l-alpha glycerylphosphorylcholine"
+  ],
+  "aliasesStr": "choline alfoscerate,l-alpha glycerylphosphorylcholine",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Choline derivative"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "after prolonged and repeated usage",
+    "half": "7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 300 mg"
+        },
+        {
+          "name": "Common",
+          "value": "300 - 500 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "500 - 1000 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "1000 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.25 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Memory enhancement, Headache, Dream potentiation, Mindfulness, Bodily control enhancement, Stimulation, Wakefulness, Teeth grinding, Body odor alteration, Focus intensification, Stamina intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Headache",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Teeth grinding",
+      "Body odor alteration",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Mindfulness",
+      "Wakefulness",
+      "Focus intensification"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

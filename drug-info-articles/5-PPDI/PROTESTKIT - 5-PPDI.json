@@ -1,0 +1,62 @@
+{
+  "url": "https://drugs.tripsit.me/5-ppdi",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5-PPDI",
+  "name": "5-PPDI",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An obscure analogue of α-PBP, which is itself an analogue of α-PVP. This rare compound has little history of human usage. Some trip reports suggest it is inactive. If it is active it likely has a similar effect profile to other pyrovalerone stimulants.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Common",
+          "value": "30-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50-70mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "70+mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

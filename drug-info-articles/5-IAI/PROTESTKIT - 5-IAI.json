@@ -1,0 +1,47 @@
+{
+  "url": "https://drugs.tripsit.me/5-iai",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5-IAI",
+  "name": "5-IAI",
+  "aliases": [
+    "5iai"
+  ],
+  "aliasesStr": "5iai",
+  "summary": "A monoamine triple releaser first synthesised by David Nichols, possesses similar properties to MDMA. Probably neurotoxic in humans, however the extent of this is unclear.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

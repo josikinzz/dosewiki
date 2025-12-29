@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/3,6-dmpm",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3,6-DMPM",
+  "name": "3,6-DMPM",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Stimulant that is related to Phenmetrazine. Nearly no information on dose or effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

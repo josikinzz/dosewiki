@@ -1,0 +1,61 @@
+{
+  "url": "https://drugs.tripsit.me/mbdb",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MBDB.shtml",
+  "name": "MBDB",
+  "aliases": [
+    "eden",
+    "methyl-j"
+  ],
+  "aliasesStr": "eden,methyl-j",
+  "summary": "A rare entactogenic drug and analogue of MDMA possibly first synthesised by David Nichols. Potentially less potent than related drugs of its type. Sometimes referred to as a 'watered down MDMA.'",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "150-180mg"
+        },
+        {
+          "name": "Common",
+          "value": "180-210mg"
+        },
+        {
+          "name": "Strong",
+          "value": "210-250mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

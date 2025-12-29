@@ -1,0 +1,130 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-MeO-PCMo",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_3MeOPCMo.shtml",
+  "name": "3-MeO-PCMo",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A less common dissociative anaesthetic compound related to PCP. An analogue of 3-meo-pcp, but far less potent. Possibly an antitussive and antidepressant. Very little history of human use or pharmacological information.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "200 - 300 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "300 - 400 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "400 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Perspective distortion, Cognitive disconnection, Physical disconnection, Nausea, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Dream potentiation, Time distortion, Déjà vu, Conceptual thinking, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Tactile suppression, Perception of bodily lightness, Motor control loss, Anxiety suppression, Increased music appreciation, Existential self-realization, Creativity enhancement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Spatial disorientation, Mania, Immersion intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Physical euphoria",
+      "Motor control loss"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Dream potentiation",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Mania",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Physical autonomy",
+      "Compulsive redosing"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "url": "https://drugs.tripsit.me/cialis",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tadalafil",
+  "name": "Tadalafil",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Tadalafil, a PDE5 inhibitor used to combat erectile disfunction. Dangerous in combination with other drugs which lower blood pressure.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2.5-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10-20mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

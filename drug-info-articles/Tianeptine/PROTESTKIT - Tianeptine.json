@@ -1,0 +1,228 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Tianeptine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tianeptine",
+  "name": "Tianeptine",
+  "aliases": [
+    "coaxil",
+    "stablon",
+    "tatinol"
+  ],
+  "aliasesStr": "coaxil,stablon,tatinol",
+  "summary": "A Tricyclic antidepressant, that has quite unique pharmacological properties than others in its class. Such as the possible indirect action on NMDA/AMPA and a full agonist at the μ-opioid receptor. While abuse of this substance is uncommon, it has been shown in a few countries.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "large therapeutic index and margin of safety"
+  ],
+  "addictionPotential": "mildly addictive",
+  "tolerance": {
+    "full": "with prolonged use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "trycyclic antidepressants",
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "6 - 12 mg"
+        },
+        {
+          "name": "Common",
+          "value": "12 - 35 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35 - 100 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "100 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 3.0 hours"
+        }
+      ],
+      "bioavailability": "99%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Motivation enhancement, Nausea, Headache, Dizziness, Constipation, Physical euphoria, Bronchodilation, Thought acceleration, Rejuvenation, Ego inflation, Internal hallucination, Cognitive euphoria, Thought deceleration, Stimulation, Muscle relaxation, Anxiety suppression, Cognitive fatigue, Physical fatigue, Focus intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Headache",
+      "Dizziness",
+      "Constipation",
+      "Physical euphoria",
+      "Bronchodilation",
+      "Stimulation",
+      "Muscle relaxation",
+      "Physical fatigue"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Rejuvenation",
+      "Ego inflation",
+      "Internal hallucination",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Anxiety suppression",
+      "Cognitive fatigue",
+      "Focus intensification"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

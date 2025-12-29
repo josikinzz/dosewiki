@@ -1,0 +1,122 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Theacrine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Theacrine",
+  "name": "Theacrine",
+  "aliases": [
+    "temorine",
+    "temurin"
+  ],
+  "aliasesStr": "temorine,temurin",
+  "summary": "Small alkaloid which can be seen as a structurally modified version of caffeine, with similar stimulating effects. It also shares anti-inflammatory and analgesic effects with caffeine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Xanthines",
+      "Purine alkaloid"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Nootropic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "produces dependence with chronic use and has a low abuse potential",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 10.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 100 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Memory enhancement, Nausea, Thought acceleration, Increased libido, Analysis enhancement, Cognitive euphoria, Anxiety, Stimulation, Wakefulness, Appetite suppression, Pain relief, Increased music appreciation, Teeth grinding, Compulsive redosing, Focus intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Nausea",
+      "Stimulation",
+      "Appetite suppression",
+      "Pain relief"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Thought acceleration",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Increased libido"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

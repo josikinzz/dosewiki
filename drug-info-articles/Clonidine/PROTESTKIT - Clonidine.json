@@ -1,0 +1,219 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Clonidine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Clonidine",
+  "name": "Clonidine",
+  "aliases": [
+    "catapres",
+    "catapres-tts",
+    "duraclon",
+    "kapvay",
+    "nexiclon xr"
+  ],
+  "aliasesStr": "catapres,catapres-tts,duraclon,kapvay,nexiclon xr",
+  "summary": "Is a medication that is used to treat high blood pressure, anxiety, withdrawal (Typically from Alcohol, Opioids, Smoking) and many other uses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "not addictive and has a low potential for abuse",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 μg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 75 μg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 100 μg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 300 μg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 μg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 8.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Memory enhancement, Dizziness, Constipation, Pupil constriction, Irritability, Thought deceleration, Sedation, Increased heart rate, Increased blood pressure, Decreased blood pressure, Anxiety suppression, Addiction suppression, Abnormal heartbeat, Dry mouth, Cognitive fatigue, Physical fatigue, Focus suppression, Decreased heart rate, Focus intensification, Auditory acuity suppression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dizziness",
+      "Constipation",
+      "Pupil constriction",
+      "Sedation",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Decreased blood pressure",
+      "Abnormal heartbeat",
+      "Dry mouth",
+      "Physical fatigue",
+      "Decreased heart rate"
+    ],
+    "Mental effects": [
+      "Memory enhancement",
+      "Irritability",
+      "Thought deceleration",
+      "Anxiety suppression",
+      "Cognitive fatigue",
+      "Focus suppression",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Auditory acuity suppression"
+    ],
+    "Uncategorized effects": [
+      "Addiction suppression"
+    ]
+  }
+}

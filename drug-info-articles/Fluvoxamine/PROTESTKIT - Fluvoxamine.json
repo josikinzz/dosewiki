@@ -1,0 +1,29 @@
+{
+  "url": "https://drugs.tripsit.me/fluvoxamine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Fluvoxamine",
+  "name": "Fluvoxamine",
+  "aliases": [
+    "faverin",
+    "luvox"
+  ],
+  "aliasesStr": "faverin,luvox",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

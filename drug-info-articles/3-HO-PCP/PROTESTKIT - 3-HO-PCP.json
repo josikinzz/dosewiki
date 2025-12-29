@@ -1,0 +1,261 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-HO-PCP",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3-HO-PCP",
+  "name": "3-HO-PCP",
+  "aliases": [
+    "3hopcp",
+    "hydroxyphencyclidine"
+  ],
+  "aliasesStr": "3hopcp,hydroxyphencyclidine",
+  "summary": "An arylcyclohexamine dissociative analogue of PCP, this drug is relatively uncommon, and little information is available. It is reported to not only have dissociative activity but also be an opioid. Some trip reports suggest very negative side-effects including intense muscle tension.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for adverse side effects such as psychosis",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "4 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 6 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8 mg +",
+          "note": "Redosing may result in dangerous cumulative effects."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Come up",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition suppression, Thought connectivity, Double vision, Scenery slicing, Perspective distortion, Cognitive disconnection, Physical disconnection, Dehydration, Difficulty urinating, Dizziness, Restless legs, Spontaneous bodily sensations, Changes in felt gravity, Physical euphoria, Internal hallucination, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Delusion, Cognitive euphoria, Visual disconnection, Thought deceleration, Thought disorganization, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Sedation, Perception of bodily lightness, Appetite suppression, Respiratory depression, Pain relief, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Olfactory hallucination, Seizure, Abnormal heartbeat, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Psychosis, Spatial disorientation, Optical sliding, Perspective hallucination, Erectile dysfunction, Creativity Enhancement, Immersion intensification, Tactile intensification, Auditory acuity suppression, Visual processing deceleration, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Difficulty urinating",
+      "Dizziness",
+      "Restless legs",
+      "Physical euphoria",
+      "Stimulation",
+      "Sedation",
+      "Appetite suppression",
+      "Respiratory depression",
+      "Pain relief",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Increased perspiration",
+      "Seizure",
+      "Abnormal heartbeat",
+      "Erectile dysfunction"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Thought connectivity",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Psychosis",
+      "Spatial disorientation",
+      "Creativity Enhancement",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Olfactory hallucination",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Perspective hallucination",
+      "Tactile intensification",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+# Buprenorphine
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+Like all opiates, buprenorphine has analgesic and cough-irritant effects. However, its euphoric and sedative properties are less pronounced than those of other opioids, which is why it is also used for substitution treatment. Buprenorphine is a partial agonist. This means that, for safety reasons, only a submaximal effect is elicited. After a certain dose, a saturation effect (ceiling effect) occurs, which prevents a further increase in the effect. This makes the active ingredient so relevant for substitution treatments, as withdrawal symptoms can be alleviated and overdoses avoided.
+
+## Dosage
+From 16 mg, the saturation effect (ceiling effect) takes effect and no more effect enhancement is felt.
+When consuming for the first time, low doses should be used, as the risk of respiratory arrest is increased.
+
+## Risks
+
+### Short-term Risks
+The side effects are less pronounced than with other opioids. Nevertheless, fatigue, constipation, drowsiness, sweating, nausea, vomiting, insomnia and irritability may occur. Buprenorphine has a lower risk of respiratory depression, which is why it is considered comparatively safe.
+Overdoses with buprenorphine are difficult to treat with the opioid antagonist naloxone due to its high binding to the μ-opioid receptor. Therefore, agents from the group of respiratory stimulants (such as doxapram) are used.
+
+### Long-term Risks
+Unlike other opioids, the active ingredient floods on slowly, which is why the risk of dependence is considered lower.
+
+## Safer Use
+- Opioids are highly effective drugs that should only be used for a limited time and at best under medical supervision.
+- Start with a low dose and wait for the effect and tolerance before adding more. Do not exceed the maximum daily dose.
+- If you inject opioids, dose even more carefully, as the range between desired effect (rush) and dangerous overdose is even more difficult to assess. Avoid injecting fentanyl; the risk of overdose is particularly high. Always use new (clean and sterile) injection material! Never exchange syringes, filters, water, disinfection swabs to avoid transmission of hepatitis and HIV.
+- Do not rely on dosage information from colleagues who regularly use opioids. Due to habituation or dependence, their doses are much higher and can be fatal for new users.
+- Take longer breaks (at least several days) between consumption.
+- After a period of abstinence, take a much lower dose! The usual dose before the abstinence phase can otherwise quickly have life-threatening consequences.
+- The simultaneous consumption of depressant substances such as alcohol, ketamine, GHB/GBL, nitrous oxide, benzodiazepines and/or other opioids is dangerous as there is an increased risk of vomiting and unconsciousness. The risk of suffocation is high!
+- Refrain from citrus fruits (especially grapefruit) before or during consumption. The combination can lead to an increase in the effect of the opiate and/or to respiratory depression.

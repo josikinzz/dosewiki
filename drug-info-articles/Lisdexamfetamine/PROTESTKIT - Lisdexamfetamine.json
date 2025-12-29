@@ -1,0 +1,222 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Lisdexamfetamine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Lisdexamfetamine.shtml",
+  "name": "Vyvanse",
+  "aliases": [
+    "elvanse",
+    "lisdexamfetamine",
+    "lisdexamphetamine",
+    "lisdextroamfetamine",
+    "lisdextroamphetamine"
+  ],
+  "aliasesStr": "elvanse,lisdexamfetamine,lisdexamphetamine,lisdextroamfetamine,lisdextroamphetamine",
+  "summary": "Also known as lisdexamphetamine, this drug is a CNS stimulant often prescribed for ADHD, narcolepsy and obesity. It is also a pro-drug for dextroamphetamine, and functions as a method for providing extended-release stimulation. It is sometimes prescribed alongside an SSRI for depression.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60 - 90 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "90 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "10.0 - 14.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ],
+      "bioavailability": ">96.4%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Increased alertness, Euphoria, Increased motivation, Reduced appetite, Flushing of the face, Increased body temperature, Tachycardia (Increased heart rate), Paranoia, Insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Reduced appetite",
+      "Flushing of the face",
+      "Increased body temperature",
+      "Tachycardia (Increased heart rate)",
+      "Insomnia."
+    ],
+    "Mental effects": [
+      "Increased alertness",
+      "Euphoria",
+      "Increased motivation",
+      "Paranoia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

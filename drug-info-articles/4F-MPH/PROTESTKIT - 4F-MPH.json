@@ -1,0 +1,166 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4F-MPH",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4F-MPH",
+  "name": "4F-MPH",
+  "aliases": [
+    "4-fmph"
+  ],
+  "aliasesStr": "4-fmph",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "5.0 - 10.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 14 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "14 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Memory enhancement, Emotion suppression, Dehydration, Nausea, Vasoconstriction, Dizziness, Spontaneous bodily sensations, Pupil dilation, Thought acceleration, Increased libido, Ego inflation, Time distortion, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Appetite suppression, Increased heart rate, Increased perspiration, Increased music appreciation, Thought organization, Abnormal heartbeat, Teeth grinding, Compulsive redosing, Cognitive fatigue, Suggestibility suppression, Focus intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Dizziness",
+      "Pupil dilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Abnormal heartbeat"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Emotion suppression",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Thought organization",
+      "Cognitive fatigue",
+      "Suggestibility suppression",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Increased libido"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

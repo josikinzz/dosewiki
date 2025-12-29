@@ -1,0 +1,32 @@
+{
+  "url": "https://drugs.tripsit.me/sinicuichi",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Sinicuichi",
+  "name": "Sinicuichi",
+  "aliases": [
+    "heimia-salicifolia",
+    "shrubby-yellowcrest",
+    "sini",
+    "sun-opener",
+    "willow-leaf-heimia"
+  ],
+  "aliasesStr": "heimia-salicifolia,shrubby-yellowcrest,sini,sun-opener,willow-leaf-heimia",
+  "summary": "A perennial shrub with small narrow leaves and yellow flowers growing up to ~1.5 meters. Known under many different names. Has been used for Shamanic purposes by natives in Central America and Mexico. Mostly auditory based.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

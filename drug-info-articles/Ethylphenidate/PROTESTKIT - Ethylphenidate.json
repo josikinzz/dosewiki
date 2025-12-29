@@ -1,0 +1,153 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Ethylphenidate",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ethylphenidate.shtml",
+  "name": "Ethylphenidate",
+  "aliases": [
+    "eph"
+  ],
+  "aliasesStr": "eph",
+  "summary": "Potent psychostimulant, similar to Methylphenidate. Note: Ethylphenidate should NOT be insufflated as it is known to be highly caustic and will cause serious harm to your nasal septum, even with light usage.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopaminergic",
+    "stimulants"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Common",
+          "value": "40 - 80 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "80 - 120 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "120 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.67 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 7.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Rectal",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Focus/mental clarity, Abstract thinking, Euphoria, Stimulation, Increased music appreciation, Warm fuzzy body high, Increased desire to talk, Wakefulness, increased sex drive, Chest pain, Vasoconstriction, Jaw Tension, Restlessness, high blood pressure, compulsion to redose, paranoia",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Stimulation",
+      "Warm fuzzy body high",
+      "Chest pain",
+      "Jaw Tension",
+      "high blood pressure"
+    ],
+    "Mental effects": [
+      "Focus/mental clarity",
+      "Abstract thinking",
+      "Euphoria",
+      "Increased music appreciation",
+      "Increased desire to talk",
+      "Wakefulness",
+      "Restlessness",
+      "paranoia"
+    ],
+    "Sensory effects": [
+      "increased sex drive"
+    ],
+    "Uncategorized effects": [
+      "compulsion to redose"
+    ]
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "url": "https://psychonautwiki.org/wiki/PMA",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_PMA.shtml",
+  "name": "PMA",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An empathogen with a slow onset and very strong serotonin release. This, combined with its lack of dopamine release, often leads users to dose more for the pleasurable effects which never come, leading to hospitalisations and deaths. Sometimes mis-sold as MDMA.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Entactogen",
+      "Hallucinogens"
+    ]
+  },
+  "toxicity": [
+    "can be considered extremely toxic when compared to other substances such as Methamphetamine or MDMA",
+    "Ingestion of PMA has been associated with severe tachycardia (abnormally high heart rate), seizures, hyperthermia, and death"
+  ],
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 40 mg"
+        },
+        {
+          "name": "Common",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Strong",
+          "value": null,
+          "note": "Higher dosages can result in serious hyperthermia and eventually death."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "short"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Double vision, Vibrating vision, Tracers, Dehydration, Nausea, Vasoconstriction, Temporary erectile dysfunction, Dizziness, Pupil dilation, Time distortion, Cognitive euphoria, Anxiety, Dream suppression, Stimulation, Wakefulness, Appetite suppression, Drifting, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Seizure, Abnormal heartbeat, Teeth grinding, Increased bodily temperature, Rapid breathing, Cognitive dysphoria",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Vasoconstriction",
+      "Temporary erectile dysfunction",
+      "Dizziness",
+      "Pupil dilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Increased perspiration",
+      "Seizure",
+      "Abnormal heartbeat",
+      "Teeth grinding",
+      "Increased bodily temperature",
+      "Rapid breathing"
+    ],
+    "Mental effects": [
+      "Time distortion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Dream suppression",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Cognitive dysphoria"
+    ],
+    "Sensory effects": [
+      "Double vision",
+      "Vibrating vision",
+      "Tracers"
+    ],
+    "Uncategorized effects": [
+      "Drifting"
+    ]
+  }
+}

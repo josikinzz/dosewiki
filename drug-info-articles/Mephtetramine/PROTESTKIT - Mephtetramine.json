@@ -1,0 +1,28 @@
+{
+  "url": "https://drugs.tripsit.me/mephtetramine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Mephtetramine",
+  "name": "Mephtetramine",
+  "aliases": [
+    "mtta"
+  ],
+  "aliasesStr": "mtta",
+  "summary": "Has a Phenpropylamine backbone like Methylphenidate. Seems barely active past negative physical effects. Only reports that include activity past the prior were mixing it with another substance.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Zolpidem",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Zolpidem",
+  "name": "Zolpidem",
+  "aliases": [
+    "ambien",
+    "edluar",
+    "intermezzo",
+    "stilnox",
+    "zolpimist"
+  ],
+  "aliasesStr": "ambien,edluar,intermezzo,stilnox,zolpimist",
+  "summary": "Commonly prescribed for insomnia, Ambien (zolpidem) can cause realistic hallucinations similar to those of deliriants, and is very likely to cause amnesia at higher doses. Take care when using this drug, as it tends to lower inhibitions to a level which causes the user to do things they might not normally do when sober.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cannabinoid"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "moderately addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ],
+      "bioavailability": "70%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Low Risk & Synergy"
+    }
+  ],
+  "effects": "Helps with insomnia/sleep, hallucinations through all physical senses, increased or decreased libido, delusions",
+  "categorized_effects": {
+    "Physical effects": [
+      "Helps with insomnia/sleep"
+    ],
+    "Mental effects": [
+      "delusions"
+    ],
+    "Sensory effects": [
+      "hallucinations through all physical senses",
+      "increased or decreased libido"
+    ],
+    "Uncategorized effects": []
+  }
+}

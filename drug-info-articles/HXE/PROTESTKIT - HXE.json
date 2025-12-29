@@ -1,0 +1,255 @@
+{
+  "url": "https://psychonautwiki.org/wiki/HXE",
+  "experiencesUrl": "https://www.reddit.com/search/?q=HXE",
+  "name": "HXE",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 130 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "130 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 60 mg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 130 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "130 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "40 - 70 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "70 - 120 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "120 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Physical autonomy, Increased libido, Dream potentiation, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Unity and interconnectedness, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Sedation, Motor control loss, Pain relief, Anxiety suppression, Increased music appreciation, Existential self-realization, Creativity enhancement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Decreased libido, Spatial disorientation, Optical sliding, Gait alteration, Mania, Perspective hallucination, Perfection of bodily lightness, Immersion intensification, Personal meaning intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Orgasm depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Stimulation",
+      "Sedation",
+      "Motor control loss",
+      "Pain relief",
+      "Gait alteration",
+      "Perfection of bodily lightness"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Mania",
+      "Immersion intensification",
+      "Personal meaning intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "External hallucination",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Visual acuity suppression",
+      "Decreased libido",
+      "Optical sliding",
+      "Perspective hallucination",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

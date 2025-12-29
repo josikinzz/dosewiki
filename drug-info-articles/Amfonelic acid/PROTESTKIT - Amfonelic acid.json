@@ -1,0 +1,98 @@
+{
+  "url": "https://drugs.tripsit.me/amfonelicacid",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Amfonelic+acid",
+  "name": "Amfonelic acid",
+  "aliases": [
+    "aa",
+    "afa",
+    "win25978"
+  ],
+  "aliasesStr": "aa,afa,win25978",
+  "summary": "A dopaminergic stimulant discovered by Sterling-Winthrop accidentally while developing antibiotics. Discontinued due to undesirable stimulant effects, it has had some popularity as a recreational drug.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2-4mg"
+        },
+        {
+          "name": "Common",
+          "value": "4-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

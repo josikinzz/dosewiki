@@ -1,0 +1,142 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Desoxypipradrol",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Desoxypipradrol_.shtml",
+  "name": "2-DPMP",
+  "aliases": [
+    "2-desoxypiperadol",
+    "2dpmp",
+    "desoxypipradol",
+    "desoxypipradrol",
+    "ivory wave"
+  ],
+  "aliasesStr": "2-desoxypiperadol,2dpmp,desoxypipradol,desoxypipradrol,ivory wave",
+  "summary": "A very potent stimulant that is a NDRI. Developed by Novartis in the 1950s, to treat narcolepsy and ADHD, however dropped when Methylphenidate was produced a few years later, which was seen as superior due to its shorter T½. 2-DPMP Half life 16-20 hours. Warning: subjective reports suggest this drug is caustic to the nasal mucosa and may cause damage to the nasal cavity.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted piperidines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 6 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "9.0 - 30.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 40.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "16.0 - 72.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 1.5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1.5 - 3.5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "3.5 - 5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "5 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 4.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "6.0 - 30.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 40.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "10.0 - 72.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

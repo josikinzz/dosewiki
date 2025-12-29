@@ -1,0 +1,34 @@
+{
+  "url": "https://drugs.tripsit.me/coronaridine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Coronaridine",
+  "name": "Coronaridine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Alkaloid found in Tabernanthe iboga and related species. Persistently reduces the self-administration of Cocaine and Morphine in rats.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

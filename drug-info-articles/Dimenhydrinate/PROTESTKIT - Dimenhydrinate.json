@@ -1,0 +1,190 @@
+{
+  "url": "https://drugs.tripsit.me/dramamine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Dimenhydrinate.shtml",
+  "name": "Dimenhydrinate",
+  "aliases": [
+    "gravol"
+  ],
+  "aliasesStr": "gravol",
+  "summary": "A combination of diphenhydramine and a mild stimulant to counteract the drowsiness accompanied by typical medical use of diphenhydramine. Roughly half the potency of DPH. Small doses can relieve motion sickness, reduce body load from opioids or DXM. Becomes a deliriant in high doses, keeping the user awake and often causing dysphoric, realistic hallucinations.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "100-250mg"
+        },
+        {
+          "name": "Common",
+          "value": "250mg-400mg"
+        },
+        {
+          "name": "Strong",
+          "value": "400mg-600mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Delirium, Dream-Like-Experiences, Paranoia, Visual and audio distortions, dry mouth, muscle cramps, Nausea, Dysphoria, Tremors.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Delirium",
+      "dry mouth",
+      "muscle cramps",
+      "Nausea",
+      "Tremors."
+    ],
+    "Mental effects": [
+      "Dream-Like-Experiences",
+      "Paranoia"
+    ],
+    "Sensory effects": [
+      "Visual and audio distortions"
+    ],
+    "Uncategorized effects": [
+      "Dysphoria"
+    ]
+  }
+}

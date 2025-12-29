@@ -1,0 +1,144 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Ephenidine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ephenidine.shtml",
+  "name": "Ephenidine",
+  "aliases": [
+    "nedpa"
+  ],
+  "aliasesStr": "nedpa",
+  "summary": "A dissociative drug which is less potent and less confusing than MXE but with otherwise similar properties. Reported as causing light stimulant effects at lower doses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 70 mg"
+        },
+        {
+          "name": "Common",
+          "value": "70 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Motivation enhancement, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Spontaneous bodily sensations, Changes in felt gravity, Physical autonomy, Thought acceleration, Ego inflation, Dream potentiation, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Appetite suppression, Pain relief, Cough suppression, Drifting, Increased heart rate, Anxiety suppression, Increased music appreciation, Existential self-realization, Creativity enhancement, Ego replacement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Decreased libido, Spatial disorientation, Gait alteration, Perspective hallucination, Personal meaning intensification, Auditory acuity enhancement, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Orgasm depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Stimulation",
+      "Motor control loss",
+      "Appetite suppression",
+      "Pain relief",
+      "Cough suppression",
+      "Increased heart rate",
+      "Gait alteration"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Motivation enhancement",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Thought acceleration",
+      "Ego inflation",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Ego replacement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Personal meaning intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Decreased libido",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting",
+      "Compulsive redosing"
+    ]
+  }
+}

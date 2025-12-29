@@ -1,0 +1,59 @@
+{
+  "url": "https://drugs.tripsit.me/bupropion",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Bupropion",
+  "name": "Bupropion",
+  "aliases": [
+    "amfebutamone",
+    "wellbutrin",
+    "zyban"
+  ],
+  "aliasesStr": "amfebutamone,wellbutrin,zyban",
+  "summary": "A frequently prescribed atypical antidepressant. Occasionally prescribed as an aid to smoking cessation. May lower seizure threshold in predisposed individuals. Poorly understood mechanism of action, probably an NDRI. Avoid combination with other drugs.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Metabolites",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "20.0 - 37.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Parent",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "11.0 - 21.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Mild - moderate increase in motor activity and agitation/excitement",
+  "categorized_effects": {
+    "Physical effects": [
+      "Mild - moderate increase in motor activity and agitation/excitement"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

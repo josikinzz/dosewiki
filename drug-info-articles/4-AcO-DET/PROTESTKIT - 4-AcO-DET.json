@@ -1,0 +1,164 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-AcO-DET",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4AcODET.shtml",
+  "name": "4-AcO-DET",
+  "aliases": [
+    "4-acetoxy-det",
+    "ethacetin",
+    "ethylacybin"
+  ],
+  "aliasesStr": "4-acetoxy-det,ethacetin,ethylacybin",
+  "summary": "Rare drug that is of the tryptamine family, can be comparable to Psilocybin. Expected to quickly hydrolyzed into the free phenolic 4-HO-DET.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "35 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Thought connectivity, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Perspective distortion, Dehydration, Nausea, Headache, Difficulty urinating, Frequent urination, Dizziness, Restless legs, Stomach cramp, Spontaneous bodily sensations, Runny nose, Watery eyes, Pupil dilation, Excessive yawning, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Perception of predeterminism, Conceptual thinking, Autonomous voice communication, Scenarios and plots, Thought loop, Perception of interdependent opposites, Delusion, Unity and interconnectedness, Enhancement and suppression cycles, Personal bias suppression, Memory suppression, Stimulation, Wakefulness, Sedation, Appetite suppression, Drifting, Color enhancement, Visual acuity enhancement, Muscle contractions, Increased music appreciation, After images, Bodily pressures, Abnormal heartbeat, Stomach bloating, Teeth grinding, Increased bodily temperature, Brightness alteration, Color shifting, Emotion intensification, 8A Geometry - Perceived exposure to semantic concept network, Perspective hallucination, Immersion intensification, Auditory acuity enhancement",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Difficulty urinating",
+      "Frequent urination",
+      "Dizziness",
+      "Restless legs",
+      "Stomach cramp",
+      "Runny nose",
+      "Watery eyes",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Stimulation",
+      "Sedation",
+      "Appetite suppression",
+      "Muscle contractions",
+      "Bodily pressures",
+      "Abnormal heartbeat",
+      "Stomach bloating",
+      "Teeth grinding",
+      "Increased bodily temperature"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Depth perception distortions",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Perception of predeterminism",
+      "Conceptual thinking",
+      "Thought loop",
+      "Perception of interdependent opposites",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Emotion intensification",
+      "8A Geometry - Perceived exposure to semantic concept network",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Brightness alteration",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Autonomous voice communication",
+      "Scenarios and plots",
+      "Enhancement and suppression cycles",
+      "Drifting"
+    ]
+  }
+}

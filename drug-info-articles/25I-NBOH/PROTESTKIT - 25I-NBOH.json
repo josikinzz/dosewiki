@@ -1,0 +1,266 @@
+{
+  "url": "https://psychonautwiki.org/wiki/25I-NBOH",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_25INBOH.shtml",
+  "name": "25I-NBOH",
+  "aliases": [
+    "cimbi-27",
+    "nboh-2ci"
+  ],
+  "aliasesStr": "cimbi-27,nboh-2ci",
+  "summary": "A phenethylamine psychedelic and stimulant derivative of 2C-I, this compound is related and has similar effects to 25i-NBOMe. It is significantly more potent than 2C-I but less potent than 25i-NBOMe. Overdoses of NBOH compounds may cause dangerous vasoconstriction. May induce uncomfortable body load.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "potentially fatal at heavy dosages"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "1 week",
+    "zero": "2 weeks"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 µg"
+        },
+        {
+          "name": "Light",
+          "value": "200 - 500 µg"
+        },
+        {
+          "name": "Common",
+          "value": "500 - 900 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "900 - 1400 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": null,
+          "note": "25I-NBOH may be fatal at heavy doses."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.01 - 0.04 days"
+        },
+        {
+          "name": "Come up",
+          "value": "0.02 - 0.06 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.08 - 0.15 days"
+        },
+        {
+          "name": "Offset",
+          "value": "0.06 - 0.1 days"
+        },
+        {
+          "name": "Total",
+          "value": "0.21 - 0.33 days"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 12.0 days"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "166ug-416ug"
+        },
+        {
+          "name": "Light",
+          "value": "416ug-766ug"
+        },
+        {
+          "name": "Common",
+          "value": "800-1400ug"
+        },
+        {
+          "name": "Strong",
+          "value": "1400ug-2000ug+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MDEA",
+  "experiencesUrl": "https://www.reddit.com/search/?q=MDEA",
+  "name": "MDEA",
+  "aliases": [
+    "eve",
+    "mde"
+  ],
+  "aliasesStr": "eve,mde",
+  "summary": "A quite rare empathogen closely related to MDMA. Yet is less potent than the prior.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "MDxx"
+    ],
+    "psychoactive": [
+      "Entactogen"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "1-1.5 months",
+    "zero": "2-3 months"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "serotonin|serotonergic",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "40 mg"
+        },
+        {
+          "name": "Light",
+          "value": "70 - 120 mg"
+        },
+        {
+          "name": "Common",
+          "value": "120 - 180 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "180 - 225 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "225 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Caution"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition enhancement, Empathy, affection and sociability enhancement, Motivation enhancement, Double vision, Vibrating vision, Tracers, Symmetrical texture repetition, Dehydration, Difficulty urinating, Temporary erectile dysfunction, Spontaneous bodily sensations, Physical euphoria, Pupil dilation, Thought acceleration, Increased libido, Dream potentiation, Time distortion, Mindfulness, Unity and interconnectedness, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Disinhibition, Dream suppression, Bodily control enhancement, Stimulation, Wakefulness, Perception of bodily heaviness, Sedation, Temperature regulation suppression, Appetite suppression, Color enhancement, Increased heart rate, Increased blood pressure, Increased perspiration, Peripheral information misinterpretation, Anxiety suppression, Increased music appreciation, Existential self-realization, Brain zaps, Creativity enhancement, Teeth grinding, Compulsive redosing, Cognitive fatigue, Increased bodily temperature, Focus intensification, Immersion intensification, Auditory acuity enhancement, Tactile intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Difficulty urinating",
+      "Temporary erectile dysfunction",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Sedation",
+      "Temperature regulation suppression",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Increased perspiration",
+      "Teeth grinding",
+      "Increased bodily temperature",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Dream potentiation",
+      "Time distortion",
+      "Mindfulness",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Dream suppression",
+      "Wakefulness",
+      "Peripheral information misinterpretation",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Brain zaps",
+      "Creativity enhancement",
+      "Cognitive fatigue",
+      "Focus intensification",
+      "Immersion intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Vibrating vision",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Perception of bodily heaviness",
+      "Color enhancement",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

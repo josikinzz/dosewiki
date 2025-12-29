@@ -1,0 +1,59 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Cake",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Cake",
+  "name": "Cake",
+  "aliases": [
+    "caky",
+    "cokoo"
+  ],
+  "aliasesStr": "caky,cokoo",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 g"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 65 g"
+        },
+        {
+          "name": "Common",
+          "value": "65 - 100 g"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 300 g"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 g +"
+        }
+      ],
+      "duration": [],
+      "bioavailability": "90%"
+    }
+  ],
+  "interactions": null,
+  "effects": "",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

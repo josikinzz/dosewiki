@@ -1,0 +1,172 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Pentobarbital",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Pentobarbital",
+  "name": "Pentobarbital",
+  "aliases": [
+    "nembutal",
+    "novopentobarb",
+    "pentobarbitone"
+  ],
+  "aliasesStr": "nembutal,novopentobarb,pentobarbitone",
+  "summary": "A CNS depressant drug that is of the barbituate class. Typically not used often as it is easier to OD on than benzodiazepines, the new alternative to barbituates. Used often for insomnia, to cause sedation.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Barbiturates"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "moderate toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "200 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 36.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intramuscular",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "100-150mg"
+        },
+        {
+          "name": "Common",
+          "value": "150-200mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "200mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.42 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 36.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-60mg"
+        },
+        {
+          "name": "Common",
+          "value": "60-100mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "100mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.02 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "15.0 - 20.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 36.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Dizziness, Physical euphoria, Delusion, Cognitive euphoria, Thought deceleration, Disinhibition, Sedation, Motor control loss, Respiratory depression, Pain relief, Decreased blood pressure, Muscle relaxation, Anxiety suppression, Compulsive redosing, Amnesia, Visual acuity suppression, Decreased libido, Seizure suppression, Analysis depression, Language depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dizziness",
+      "Physical euphoria",
+      "Sedation",
+      "Motor control loss",
+      "Respiratory depression",
+      "Pain relief",
+      "Decreased blood pressure",
+      "Muscle relaxation",
+      "Seizure suppression"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Amnesia",
+      "Analysis depression",
+      "Language depression"
+    ],
+    "Sensory effects": [
+      "Visual acuity suppression",
+      "Decreased libido"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

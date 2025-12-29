@@ -1,0 +1,93 @@
+{
+  "url": "https://drugs.tripsit.me/3-meo-pcpr",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3-MeO-PCPR",
+  "name": "3-MeO-PCPR",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "This is the N-Propyl homologue of 3-MeO-PCE. It is slightly less potent than PCP. Yet seems slightly less manic inducing.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "1-3mg"
+        },
+        {
+          "name": "Common",
+          "value": "3-8mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8-15mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-8mg"
+        },
+        {
+          "name": "Common",
+          "value": "8-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

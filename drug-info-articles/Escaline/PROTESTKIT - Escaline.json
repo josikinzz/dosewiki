@@ -1,0 +1,98 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Escaline",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Escaline.shtml",
+  "name": "Escaline",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "First synthesised in the 50s, this uncommon drug was reexamined by David Nichols in the 1990s. It is an analogue of mescaline which is roughly six times more potent, and is thus a powerful psychedelic phenethylamine. Subjective effects may include stimulation and hallucinations.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 50 mg"
+        },
+        {
+          "name": "Common",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MDA",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MDA.shtml",
+  "name": "MDA",
+  "aliases": [
+    "sally",
+    "sass",
+    "tenamfetamine"
+  ],
+  "aliasesStr": "sally,sass,tenamfetamine",
+  "summary": "A stimulant and empathogen. Similar to MDMA but typically produces more visuals than MDMA. Known to be more neurotoxic than MDMA, and is a minor metabolite of MDMA. Duration and onset similar to MDMA. The common Marquis reagent test cannot differentiate MDA and MDMA.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "MDxx"
+    ],
+    "psychoactive": [
+      "Psychedelic",
+      "Entactogen",
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "repeated and heavy usage",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Common",
+          "value": "60 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 145 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "145 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.5 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Caution"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Empathy, affection and sociability enhancement, Motivation enhancement, Vibrating vision, Tracers, Symmetrical texture repetition, Dehydration, Difficulty urinating, Temporary erectile dysfunction, Spontaneous bodily sensations, Physical euphoria, Pupil dilation, Excessive yawning, Thought acceleration, Increased libido, Dream potentiation, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Mindfulness, Scenarios and plots, Unity and interconnectedness, Cognitive euphoria, Depression, Anxiety, Irritability, Laughter fits, Thought deceleration, Thought disorganization, Disinhibition, Bodily control enhancement, Stimulation, Wakefulness, Perception of bodily heaviness, Sedation, Perception of bodily lightness, Temperature regulation suppression, Appetite suppression, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Increased perspiration, Peripheral information misinterpretation, Anxiety suppression, Increased music appreciation, Increased sense of humor, Existential self-realization, Brain zaps, Seizure, After images, Creativity enhancement, Teeth grinding, Compulsive redosing, Cognitive fatigue, Derealization, Suicidal ideation, Increased bodily temperature, Emotion intensification, 8A Geometry - Perceived exposure to semantic concept network, Perspective hallucination, Focus intensification, Immersion intensification, Auditory acuity enhancement, Tactile intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Difficulty urinating",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Sedation",
+      "Temperature regulation suppression",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Seizure",
+      "Increased bodily temperature",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Mindfulness",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Laughter fits",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Disinhibition",
+      "Wakefulness",
+      "Peripheral information misinterpretation",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Brain zaps",
+      "Creativity enhancement",
+      "Cognitive fatigue",
+      "Derealization",
+      "Suicidal ideation",
+      "Emotion intensification",
+      "8A Geometry - Perceived exposure to semantic concept network",
+      "Focus intensification",
+      "Immersion intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Vibrating vision",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "External hallucination",
+      "Perception of bodily heaviness",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

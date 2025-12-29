@@ -1,0 +1,62 @@
+{
+  "url": "https://drugs.tripsit.me/3-meomc",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3-MeOMC",
+  "name": "3-MeOMC",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A cathinone that has a short history of human use.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "25-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Lorazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Lorazepam",
+  "name": "Lorazepam",
+  "aliases": [
+    "ativan",
+    "lorsilan",
+    "orfidal"
+  ],
+  "aliasesStr": "ativan,lorsilan,orfidal",
+  "summary": "An intermediate acting benzodiazepine commonly known as Ativan, commonly prescribed as an alternative to Xanax. Sedating, hypnotic and anxiolytic. Potential to induce amnesia and lowered inhibitions in overdose. Do not combine with other depressants.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "extremely physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "benzodiazepines"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.25 - 0.5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.5 - 1.5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1.5 - 2 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2 - 3 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        }
+      ],
+      "bioavailability": "85-90%"
+    },
+    {
+      "name": "Intramuscular",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.25-0.5mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.5-1mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1-2mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, sedative, high muscle relaxant properties.",
+  "categorized_effects": {
+    "Physical effects": [
+      "sedative",
+      "high muscle relaxant properties."
+    ],
+    "Mental effects": [
+      "Anxiolytic"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

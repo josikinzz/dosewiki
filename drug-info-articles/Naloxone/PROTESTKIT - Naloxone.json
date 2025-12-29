@@ -1,0 +1,266 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Naloxone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Naloxone",
+  "name": "Naloxone",
+  "aliases": [
+    "evzio",
+    "narcan"
+  ],
+  "aliasesStr": "evzio,narcan",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted morphinans"
+    ],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "not habit-forming",
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "4 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 16 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "16 - 28 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "28 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "1 - 4 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 10.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "30.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Intramuscular",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "0.4 - 2 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 2.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "30.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "0.4 - 2 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 2.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "30.0 - 60.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Emotion suppression, Dehydration, Nausea, Sedation, Identity alteration",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Sedation"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Identity alteration"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

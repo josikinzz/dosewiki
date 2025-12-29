@@ -1,0 +1,110 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Hexedrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Hexedrone",
+  "name": "Hexedrone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A rare mephedrone analogue also known as MACP, a cathinone stimulant with similar effects to pentedrone.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cathinone"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 70 mg"
+        },
+        {
+          "name": "Common",
+          "value": "70 - 100 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100 - 125 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "125 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Dehydration, Vasoconstriction, Temporary erectile dysfunction, Spontaneous bodily sensations, Thought acceleration, Ego inflation, Time distortion, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Disinhibition, Stimulation, Wakefulness, Appetite suppression, Increased heart rate, Increased blood pressure, Increased perspiration, Increased music appreciation, Teeth grinding, Compulsive redosing, Cognitive fatigue, Focus intensification, Immersion intensification, Tactile intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Stimulation",
+      "Appetite suppression",
+      "Increased perspiration"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Focus intensification",
+      "Immersion intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

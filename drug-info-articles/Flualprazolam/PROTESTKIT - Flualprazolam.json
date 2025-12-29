@@ -1,0 +1,224 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Flualprazolam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Flualprazolam",
+  "name": "Flualprazolam",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Fluorinated alprazolam, that likely has a longer half-life and higher potency than its parent compound.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.05 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.1 - 0.3 mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.3 - 0.5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "0.5 - 1 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "1 mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Emotion suppression, Temporary erectile dysfunction, Dizziness, Physical euphoria, Increased libido, Ego inflation, Dream potentiation, Delusion, Cognitive euphoria, Anxiety, Irritability, Thought deceleration, Thought disorganization, Memory suppression, Disinhibition, Sedation, Motor control loss, Respiratory depression, Muscle relaxation, Anxiety suppression, Compulsive redosing, Visual acuity suppression, Sleepiness, Seizure suppression, Analysis depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Temporary erectile dysfunction",
+      "Dizziness",
+      "Physical euphoria",
+      "Sedation",
+      "Motor control loss",
+      "Respiratory depression",
+      "Muscle relaxation",
+      "Sleepiness",
+      "Seizure suppression"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Ego inflation",
+      "Dream potentiation",
+      "Delusion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Analysis depression"
+    ],
+    "Sensory effects": [
+      "Increased libido",
+      "Visual acuity suppression"
+    ],
+    "Uncategorized effects": [
+      "Compulsive redosing"
+    ]
+  }
+}

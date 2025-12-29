@@ -1,0 +1,101 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Oxiracetam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Oxiracetam",
+  "name": "Oxiracetam",
+  "aliases": [
+    "hydroxypiracetam",
+    "neuractiv",
+    "neuromet"
+  ],
+  "aliasesStr": "hydroxypiracetam,neuractiv,neuromet",
+  "summary": "Oxiracetam is a racetam nootropic, having a hydroxyl group being the only difference between this and Piracetam. It used as a nootropic, namely for increased cognitive function. It is usually used two to three times a day. This substance is normally taken with Choline, can cause headaches without the addition of Choline.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Racetams"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "safe even when high doses are consumed for a long period of time",
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "non-addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "racetam",
+    "nootropic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "250 mg"
+        },
+        {
+          "name": "Light",
+          "value": "500 - 1200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1200 - 1800 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1800 - 2400 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2400 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dream potentiation, Analysis enhancement, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Focus intensification, Auditory acuity enhancement",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Stimulation"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Analysis enhancement",
+      "Mindfulness",
+      "Wakefulness",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": []
+  }
+}

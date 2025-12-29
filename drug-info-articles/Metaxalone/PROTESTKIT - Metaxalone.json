@@ -1,0 +1,60 @@
+{
+  "url": "https://drugs.tripsit.me/metaxalone",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Metaxalone.shtml",
+  "name": "Metaxalone",
+  "aliases": [
+    "skelaxin"
+  ],
+  "aliasesStr": "skelaxin",
+  "summary": "Muscle relaxant, that is used to relieve pain from general pain, and other musculoskeletal conditions.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "400-800mg."
+        },
+        {
+          "name": "Common",
+          "value": "800-1600mg."
+        },
+        {
+          "name": "Strong",
+          "value": "1600-2400mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

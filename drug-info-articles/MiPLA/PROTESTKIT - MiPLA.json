@@ -1,0 +1,276 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MiPLA",
+  "experiencesUrl": "https://www.reddit.com/search/?q=MiPLA",
+  "name": "MiPLA",
+  "aliases": [
+    "lamide"
+  ],
+  "aliasesStr": "lamide",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "low potential for abuse and dependence",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "5-7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 µg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 150 µg"
+        },
+        {
+          "name": "Common",
+          "value": "150 - 200 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "200 - 250 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition enhancement, Motivation enhancement, Machinescapes, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Scenery slicing, Nausea, Difficulty urinating, Spontaneous bodily sensations, Changes in felt bodily form, Physical euphoria, Pupil dilation, Excessive yawning, Thought acceleration, Increased libido, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Cognitive euphoria, Laughter fits, Memory suppression, Bodily control enhancement, Stimulation, Wakefulness, Temperature regulation suppression, Appetite suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Muscle contractions, Increased perspiration, Increased music appreciation, Increased sense of humor, Existential self-realization, Increased salivation, Seizure, After images, Increased bodily temperature, Color shifting, Emotion intensification, 8B Geometry - Perceived exposure to inner mechanics of consciousness, Perspective hallucination, Muscle twitching, Focus intensification, Immersion intensification, Auditory acuity enhancement, Tactile intensification, Stamina intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Difficulty urinating",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Temperature regulation suppression",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle contractions",
+      "Increased perspiration",
+      "Increased salivation",
+      "Seizure",
+      "Increased bodily temperature",
+      "Muscle twitching",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Motivation enhancement",
+      "Machinescapes",
+      "Depth perception distortions",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Laughter fits",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Emotion intensification",
+      "8B Geometry - Perceived exposure to inner mechanics of consciousness",
+      "Focus intensification",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Spontaneous bodily sensations",
+      "Changes in felt bodily form",
+      "Increased libido",
+      "External hallucination",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

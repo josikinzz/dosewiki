@@ -1,0 +1,185 @@
+{
+  "url": "https://drugs.tripsit.me/4-benzylpiperidine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4-Benzylpiperidine",
+  "name": "4-Benzylpiperidine",
+  "aliases": [
+    "4-pmpd"
+  ],
+  "aliasesStr": "4-pmpd",
+  "summary": "A dopamine releasing agent with weak serotonin releasing properties. Little evidence of human use. Potentially dangerous in overdose given MAOI + monoamine releasing properties.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "75-125mg"
+        },
+        {
+          "name": "Common",
+          "value": "125-200mg"
+        },
+        {
+          "name": "Strong",
+          "value": "200-350mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "350mg+."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased energy/alertness",
+      "decreased need for sleep",
+      "decreased appetite",
+      "weight loss",
+      "sweating",
+      "bruxism",
+      "itchiness"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "increased sociability",
+      "mood lift",
+      "excessive talking",
+      "disturbed sleep patterns",
+      "aggressiveness"
+    ],
+    "Sensory effects": [
+      "increased sexuality",
+      "visual and auditory hallucinations"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

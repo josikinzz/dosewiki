@@ -1,0 +1,20 @@
+# Ephedrine
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+Stimulates circulation, increases drive and performance, and suppresses appetite.
+
+## Risks
+
+### Short-term Risks
+Even at low doses: Palpitations, restlessness, sleep problems, urinary urgency or retention and dry mouth. Also possible are feelings of anxiety, increased blood pressure (vasoconstriction), loss of appetite, dizziness, cardiac arrhythmias and even heart attacks.
+In case of overdose: confusion and paranoia. The tannins of ephedra herb can cause stomach complaints in larger quantities.
+
+### Long-term Risks
+Continuous use: Impaired memory and concentration, irritability, nervousness, aggressive behaviour, cardiac arrhythmia, chronic high blood pressure, bad teeth, liver/kidney damage and psychological disorders. Regular ephedrine use can lead to the development of tolerance and dependence, especially with psychological symptoms.
+
+## Safer Use
+- Take a low dose of ephedrine, as the active ingredient content can vary greatly, especially in herbs!
+- Drink enough water (3 - 5 dl per hour) and no alcohol!
+- People with circulatory problems/diseases, thyroid disorders and liver or kidney damage should not consume ephedrine!
+- Ephedrine is not an effective means of losing weight without medical supervision.

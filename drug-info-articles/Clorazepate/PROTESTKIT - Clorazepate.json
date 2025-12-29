@@ -1,0 +1,72 @@
+{
+  "url": "https://drugs.tripsit.me/clorazepate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Clorazepate",
+  "name": "Clorazepate",
+  "aliases": [
+    "novo-clopate",
+    "tranxene",
+    "tranzene"
+  ],
+  "aliasesStr": "novo-clopate,tranxene,tranzene",
+  "summary": "Is a prodrug for Desmethyldiazepam which is responsible for most of the therapeutic effects. Has a long half life, with the addition of Desmethyldiazepam as the main metabolite, which makes it much longer.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20-40mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.33 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ],
+      "bioavailability": "91%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

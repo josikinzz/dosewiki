@@ -1,0 +1,64 @@
+{
+  "url": "https://drugs.tripsit.me/mbzp",
+  "experiencesUrl": "https://www.reddit.com/search/?q=MBZP",
+  "name": "MBZP",
+  "aliases": [
+    "methylbenylpiperazine"
+  ],
+  "aliasesStr": "methylbenylpiperazine",
+  "summary": "A stimulant drug which is a derivative of BZP.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-80mg"
+        },
+        {
+          "name": "Common",
+          "value": "80-120mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120-160mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "160-200mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

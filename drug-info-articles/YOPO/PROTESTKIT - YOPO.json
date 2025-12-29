@@ -1,0 +1,33 @@
+{
+  "url": "https://drugs.tripsit.me/yopo",
+  "experiencesUrl": "https://www.reddit.com/search/?q=YOPO",
+  "name": "YOPO",
+  "aliases": [
+    "\"anadenanthera",
+    "anadenanthera"
+  ],
+  "aliasesStr": "\"anadenanthera,anadenanthera",
+  "summary": "Anadenanthera peregrina, also known as yopo, is a perennial tree native to the Caribbean and South America. It is an entheogen containing 5-MeO-DMT and DMT, and is used in healing ceremonies and rituals. It is also a source of dietary calcium.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

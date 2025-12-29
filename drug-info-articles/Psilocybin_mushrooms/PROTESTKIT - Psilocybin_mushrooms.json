@@ -1,0 +1,305 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Psilocybin_mushrooms",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Psilocybin+mushrooms",
+  "name": "Psilocybin mushrooms",
+  "aliases": [
+    "4-po-dmt",
+    "magic mushrooms",
+    "psilocybin",
+    "shrooms"
+  ],
+  "aliasesStr": "4-po-dmt,magic mushrooms,psilocybin,shrooms",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity relative to dose"
+  ],
+  "addictionPotential": null,
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2.5 mg Psilocybin"
+        },
+        {
+          "name": "Light",
+          "value": "2.5 - 10 mg Psilocybin"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 25 mg Psilocybin"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 50 mg Psilocybin"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg Psilocybin +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.75 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.5 - 3.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Thought connectivity, Empathy, affection and sociability enhancement, Memory enhancement, Synaesthesia, Machinescapes, Diffraction, Depth perception distortions, Tracers, Recursion, Symmetrical texture repetition, Scenery slicing, Visual haze, Perspective distortion, Environmental orbism, Nausea, Frequent urination, Spontaneous bodily sensations, Changes in felt gravity, Changes in felt bodily form, Runny nose, Watery eyes, Pupil dilation, Excessive yawning, Rejuvenation, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Mindfulness, Conceptual thinking, Autonomous voice communication, Personality regression, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Cognitive euphoria, Simultaneous emotions, Enhancement and suppression cycles, Thought deceleration, Personal bias suppression, Memory suppression, Perception of bodily heaviness, Sedation, Pain relief, Drifting, Color enhancement, Visual acuity enhancement, Muscle contractions, Increased music appreciation, Existential self-realization, Brain zaps, Olfactory hallucination, Increased salivation, Seizure, After images, Creativity enhancement, Feelings of impending doom, Catharsis, Addiction suppression, Thought organization, Confusion, Ego replacement, Dosage independent intensity, Color shifting, Emotion intensification, Depression reduction, Color tinting, 8B Geometry - Perceived exposure to inner mechanics of consciousness, Neurogenesis, Perspective hallucination, Immersion intensification, Suggestibility intensification, Spirituality intensification, Auditory acuity enhancement, Tactile intensification, Language depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Frequent urination",
+      "Runny nose",
+      "Watery eyes",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Sedation",
+      "Pain relief",
+      "Muscle contractions",
+      "Increased salivation",
+      "Seizure",
+      "Neurogenesis"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Empathy",
+      "affection and sociability enhancement",
+      "Memory enhancement",
+      "Machinescapes",
+      "Depth perception distortions",
+      "Rejuvenation",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Mindfulness",
+      "Conceptual thinking",
+      "Personality regression",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Simultaneous emotions",
+      "Thought deceleration",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Brain zaps",
+      "Creativity enhancement",
+      "Feelings of impending doom",
+      "Catharsis",
+      "Thought organization",
+      "Confusion",
+      "Ego replacement",
+      "Emotion intensification",
+      "Depression reduction",
+      "8B Geometry - Perceived exposure to inner mechanics of consciousness",
+      "Immersion intensification",
+      "Suggestibility intensification",
+      "Spirituality intensification",
+      "Language depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Visual haze",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Changes in felt bodily form",
+      "External hallucination",
+      "Perception of bodily heaviness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Olfactory hallucination",
+      "After images",
+      "Color shifting",
+      "Color tinting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Recursion",
+      "Environmental orbism",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Autonomous voice communication",
+      "Scenarios and plots",
+      "Enhancement and suppression cycles",
+      "Drifting",
+      "Addiction suppression",
+      "Dosage independent intensity"
+    ]
+  }
+}

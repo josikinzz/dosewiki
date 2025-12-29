@@ -1,0 +1,50 @@
+{
+  "url": "https://drugs.tripsit.me/yerba-mate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=YERBA-MATE",
+  "name": "YERBA-MATE",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Is marketed for its ability to suppress appetite and burn fat. Yet only with high doses. It has a quite high ratio of caffeine. It has anti-inflammatory properties.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "1000-1500mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

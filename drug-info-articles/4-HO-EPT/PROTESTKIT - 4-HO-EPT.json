@@ -1,0 +1,120 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-HO-EPT",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4-HO-EPT",
+  "name": "4-HO-EPT",
+  "aliases": [
+    "eprocin"
+  ],
+  "aliasesStr": "eprocin",
+  "summary": "The 4-Hydroxy version of EPT. Slightly more potent than the prior.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 7.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Perspective distortion, Nausea, Spontaneous bodily sensations, Pupil dilation, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Conceptual thinking, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Cognitive euphoria, Personal bias suppression, Memory suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased music appreciation, After images, Brightness alteration, Color shifting, Emotion intensification, Perspective hallucination, Immersion intensification, Auditory acuity enhancement",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Pupil dilation",
+      "Increased heart rate"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Depth perception distortions",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Conceptual thinking",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Increased music appreciation",
+      "Emotion intensification",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Brightness alteration",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

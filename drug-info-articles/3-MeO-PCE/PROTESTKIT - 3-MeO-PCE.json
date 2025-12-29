@@ -1,0 +1,222 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-MeO-PCE",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_3MEOPCE_.shtml",
+  "name": "3-MeO-PCE",
+  "aliases": [
+    "3meopce",
+    "methoxyeticyclidine",
+    "methoxyieticyclidine"
+  ],
+  "aliasesStr": "3meopce,methoxyeticyclidine,methoxyieticyclidine",
+  "summary": "3-MeO-PCP with a change of a ring replacement. Slightly more potent than 3-MeO-PCP.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "toxic dosage is unknown"
+  ],
+  "addictionPotential": "highly addictive with a high potential for adverse side effects such as psychosis",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociatives"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25+ mg",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 6 mg"
+        },
+        {
+          "name": "Common",
+          "value": "6 - 12 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "12 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.75 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Synaesthesia, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Cognitive disconnection, Physical disconnection, Dehydration, Difficulty urinating, Dizziness, Restless legs, Nausea suppression, Spontaneous bodily sensations, Changes in felt gravity, Physical autonomy, Physical euphoria, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Delusion, Unity and interconnectedness, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Bodily control enhancement, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Appetite suppression, Respiratory depression, Pain relief, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Olfactory hallucination, Seizure, Creativity enhancement, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Psychosis, Spatial disorientation, Optical sliding, Mania, Perspective hallucination, Immersion intensification, Tactile intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Increased introspection, Delusions#Delusions of sobriety",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Difficulty urinating",
+      "Dizziness",
+      "Restless legs",
+      "Nausea suppression",
+      "Physical euphoria",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Motor control loss",
+      "Appetite suppression",
+      "Respiratory depression",
+      "Pain relief",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Increased perspiration",
+      "Seizure"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Psychosis",
+      "Spatial disorientation",
+      "Mania",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection",
+      "Delusions#Delusions of sobriety"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Olfactory hallucination",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Perspective hallucination",
+      "Tactile intensification",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Compulsive redosing"
+    ]
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "url": "https://drugs.tripsit.me/isoproscaline",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Isoproscaline",
+  "name": "Isoproscaline",
+  "aliases": [
+    "ip"
+  ],
+  "aliasesStr": "ip",
+  "summary": "A analogue of mescaline, and more closely related to proscaline.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30mg"
+        },
+        {
+          "name": "Light",
+          "value": "40-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-80mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "10.0 - 20.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

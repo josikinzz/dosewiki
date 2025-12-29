@@ -1,0 +1,146 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MiPT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MIPT.shtml",
+  "name": "MiPT",
+  "aliases": [
+    "n-methyl-n-isopropyltryptamine"
+  ],
+  "aliasesStr": "n-methyl-n-isopropyltryptamine",
+  "summary": "N-Methyl-N-isopropyltryptamine, a tryptamine analogue of DMT, a very uncommon drug with very few reports of human use. Described as 'more psychedelic than hallucinogenic' users report only mild visuals with some stimulation and cognitive effects. One of the more stable tryptamines.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 75 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "75 - 200 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "3.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.03 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "3-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

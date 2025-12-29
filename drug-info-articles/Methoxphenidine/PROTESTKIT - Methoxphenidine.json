@@ -1,0 +1,130 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Methoxphenidine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Methoxphenidine.shtml",
+  "name": "Methoxphenidine",
+  "aliases": [
+    "2-meo-diphenidine",
+    "2-mxp",
+    "methoxyphenidine",
+    "mxp"
+  ],
+  "aliasesStr": "2-meo-diphenidine,2-mxp,methoxyphenidine,mxp",
+  "summary": "A dissociative from the diarylethylamine class, a more potent analogue of diphenidine. Known to be unpredictable, and can cause blackouts.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Diarylethylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 75 mg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 120 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120 - 150 mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Dizziness, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Thought acceleration, Dream potentiation, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Conceptual thinking, Scenarios and plots, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Tactile suppression, Perception of bodily lightness, Motor control loss, Pain relief, Anxiety suppression, Increased music appreciation, Depersonalization, Derealization, Amnesia, Visual acuity suppression, Spatial disorientation, Gait alteration, Perspective hallucination, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dizziness",
+      "Physical euphoria",
+      "Motor control loss",
+      "Pain relief",
+      "Gait alteration"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Thought acceleration",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Time distortion",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Spatial disorientation",
+      "Analysis depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Perspective hallucination",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots"
+    ]
+  }
+}

@@ -1,0 +1,176 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-AcO-MiPT",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4-AcO-MiPT",
+  "name": "4-AcO-MiPT",
+  "aliases": [
+    "4acomipt",
+    "mipracetin",
+    "o-acetylmiprocin"
+  ],
+  "aliasesStr": "4acomipt,mipracetin,o-acetylmiprocin",
+  "summary": "A quite potent tryptamine that has be related to having \"shroom-like\" visuals. Yet without much bodyload. Very hydroscopic. Seems to be quite safe in dosing. Similar to the likes of 2C-B.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "35 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "2-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10-15mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.03 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Thought connectivity, Synaesthesia, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Perspective distortion, Spontaneous bodily sensations, Runny nose, Watery eyes, Pupil dilation, Excessive yawning, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Autonomous voice communication, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Enhancement and suppression cycles, Personal bias suppression, Memory suppression, Wakefulness, Sedation, Drifting, Color enhancement, Visual acuity enhancement, Increased music appreciation, Existential self-realization, After images, Brightness alteration, Color shifting, Emotion intensification, 8B Geometry - Perceived exposure to inner mechanics of consciousness, Perspective hallucination, Immersion intensification, Spirituality intensification, Auditory acuity enhancement",
+  "categorized_effects": {
+    "Physical effects": [
+      "Runny nose",
+      "Watery eyes",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Sedation"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Depth perception distortions",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Thought loop",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Emotion intensification",
+      "8B Geometry - Perceived exposure to inner mechanics of consciousness",
+      "Immersion intensification",
+      "Spirituality intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Brightness alteration",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Autonomous voice communication",
+      "Scenarios and plots",
+      "Enhancement and suppression cycles",
+      "Drifting"
+    ]
+  }
+}

@@ -1,0 +1,254 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Mexedrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Mexedrone",
+  "name": "Mexedrone",
+  "aliases": [
+    "4-mmc-meo",
+    "4-mmeoc"
+  ],
+  "aliasesStr": "4-mmc-meo,4-mmeoc",
+  "summary": "Mexedrone is a stimulant drug of the cathinone class. It alters the reuptake of serotonin, dopamine, and norepinephrine to cause euphoria,  and is similar in effects to mephedrone. It is considered a designer drug and is in a legally grey area globally.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cathinone"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Common",
+          "value": "150 - 250 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "250 - 350 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "350 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-80mg"
+        },
+        {
+          "name": "Common",
+          "value": "80-120mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120-200mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Dangerous"
+    },
+    {
+      "name": "2C-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOI",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Caution"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Thought connectivity, Vibrating vision, Dehydration, Spontaneous bodily sensations, Physical euphoria, Thought acceleration, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Wakefulness, Sedation, Temperature regulation suppression, Increased perspiration, Teeth grinding, Cognitive fatigue, Auditory acuity enhancement, Tactile intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Physical euphoria",
+      "Sedation",
+      "Temperature regulation suppression",
+      "Increased perspiration"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Thought acceleration",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Cognitive fatigue",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Vibrating vision",
+      "Spontaneous bodily sensations",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression"
+    ]
+  }
+}

@@ -1,0 +1,341 @@
+{
+  "url": "https://psychonautwiki.org/wiki/A-PVP",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_aPVP.shtml",
+  "name": "A-PVP",
+  "aliases": [
+    "alpha-pvp",
+    "alpha-pyrrolidinopentiophenone",
+    "apvp",
+    "flak",
+    "flakka",
+    "flocka",
+    "gravel",
+    "o-2387",
+    "prolintanone",
+    "α-pvp",
+    "αpvp",
+    "β-ketone-prolintane"
+  ],
+  "aliasesStr": "alpha-pvp,alpha-pyrrolidinopentiophenone,apvp,flak,flakka,flocka,gravel,o-2387,prolintanone,α-pvp,αpvp,β-ketone-prolintane",
+  "summary": "A potent, short-lasting pyrovalerone-type stimulant which became popular despite often being said to not be particularly euphoric, perhaps due to its propensity to cause compulsive redosing. Effects should be similar to MDPV.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cathinone",
+      "Substituted cathinones",
+      "Substituted pyrrolidines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "highly addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.01 - 0.02 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.05 - 0.1 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 40 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "40 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.33 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.33 - 0.75 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOI",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Caution"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

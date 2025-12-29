@@ -1,0 +1,96 @@
+{
+  "url": "https://drugs.tripsit.me/5-eapb",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5-EAPB",
+  "name": "5-EAPB",
+  "aliases": [
+    "5eapb"
+  ],
+  "aliasesStr": "5eapb",
+  "summary": "A empathogen sold as a replacement to 5-MAPB after it was banned in the UK, but said to be less enjoyable and never gained much popularity.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "30-40mg"
+        },
+        {
+          "name": "Common",
+          "value": "40-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-100mg+"
+        }
+      ],
+      "duration": "[]"
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-60mg"
+        },
+        {
+          "name": "Common",
+          "value": "60-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "5.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "increased energy/alertness",
+      "Decreased need for sleep",
+      "Decreased appetite",
+      "Weight loss",
+      "Sweating",
+      "Bruxia"
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Increased sociability",
+      "mood lift",
+      "Excessive talking",
+      "Distrubed sleep patterns",
+      "agressiveness"
+    ],
+    "Sensory effects": [
+      "increase sexuality",
+      "Visual and audiotory hallucinations itchiness"
+    ],
+    "Uncategorized effects": [
+      "moodiness."
+    ]
+  }
+}

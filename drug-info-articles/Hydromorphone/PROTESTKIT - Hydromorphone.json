@@ -1,0 +1,318 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Hydromorphone",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Hydromorphone.shtml",
+  "name": "Hydromorphone",
+  "aliases": [
+    "dilaudid",
+    "diluadid",
+    "jurnista",
+    "palladone"
+  ],
+  "aliasesStr": "dilaudid,diluadid,jurnista,palladone",
+  "summary": "An opioid that is roughly 5x the potency of IV Morphine. Only comes in IR tablets in the US, and is given mostly as XR in other countries. It is frequently used in hospitals for short immediate pain relief during procedures, requiring the patient to be awake. Also frequently used as a recreational opiate.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.25 - 0.33 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "51.35% +/- 29.29%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.08 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "52.4%"
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 6 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "6 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.07 - 0.08 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1 - 2"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil Constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil Constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

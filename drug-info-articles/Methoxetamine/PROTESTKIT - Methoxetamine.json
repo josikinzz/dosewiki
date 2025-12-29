@@ -1,0 +1,227 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Methoxetamine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Methoxetamine_.shtml",
+  "name": "MXE",
+  "aliases": [
+    "3-meo-2'oxo-pce",
+    "methoxetamine",
+    "mexxy"
+  ],
+  "aliasesStr": "3-meo-2'oxo-pce,methoxetamine,mexxy",
+  "summary": "A popular dissociative drug which is an analogue of ketamine, though less sedating and more potent by weight, with a subjectively more 'complicated' set of effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 45 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "45 - 70 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "70 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Light",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "40-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-75mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "status": "Caution",
+      "name": "2C-T-x"
+    },
+    {
+      "status": "Low Risk & Synergy",
+      "name": "2C-x"
+    },
+    {
+      "note": "Little information exists about this combination.",
+      "status": "Low Risk & Synergy",
+      "name": "5-MeO-xxT"
+    },
+    {
+      "note": "There is a high risk of memory loss, vomiting and severe ataxia from this combination.",
+      "status": "Dangerous",
+      "name": "Alcohol"
+    },
+    {
+      "note": "Risk of tachycardia, hypertension, and manic states",
+      "status": "Caution",
+      "name": "Amphetamines"
+    },
+    {
+      "status": "Dangerous",
+      "name": "aMT"
+    },
+    {
+      "note": "Both substances potentiate the ataxia and sedation caused by the other and can lead to unexpected loss of consciousness at high doses. Place the affected individual in the recovery position to prevent vomit aspiration from excess.",
+      "status": "Caution",
+      "name": "Benzodiazepines"
+    },
+    {
+      "note": "No likely interactions",
+      "status": "Low Risk & No Synergy",
+      "name": "Caffeine"
+    },
+    {
+      "status": "Low Risk & Synergy",
+      "name": "Cannabis"
+    },
+    {
+      "note": "Stimulants taken with MXE can lead to hypermanic states much more easily, especially if sleep is avoided.",
+      "status": "Caution",
+      "name": "Cocaine"
+    }
+  ],
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "url": "https://drugs.tripsit.me/pre-084",
+  "experiencesUrl": "https://www.reddit.com/search/?q=PRE-084",
+  "name": "PRE-084",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A sigma-1 receptor agonist derived structurally from PCP. It has cognitive enhancing effects as well as antidepressant effects, and shows promise in treating many nervous system diseases such as ALS and parkinsons.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,306 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-FEA",
+  "experiencesUrl": "https://www.reddit.com/search/?q=3-FEA",
+  "name": "3-FEA",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A novel fluorinated amphetamine with serotonergic properties. Effects are similar to 4-FA, in that it provides slight dopamine and norepinephrine release or reuptake inhibition, as well as serotonin release and reuptake inhibition. Effects on the serotonin side are more pronounced than dopamine and norepinephrine, the latter two being almost negligibly.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Entactogen",
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "2 - 3 days",
+    "zero": "3-7 days"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "serotonin|serotonergic",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Common",
+          "value": "35 - 70 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "70 - 90 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "90 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Common",
+          "value": "35 - 60 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Empathy, affection and sociability enhancement, Motivation enhancement, Dehydration, Headache, Vasoconstriction, Difficulty urinating, Spontaneous bodily sensations, Physical euphoria, Pupil dilation, Thought acceleration, Increased libido, Ego inflation, Time distortion, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Disinhibition, Stimulation, Wakefulness, Perception of bodily heaviness, Sedation, Temperature regulation suppression, Appetite suppression, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Abnormal heartbeat, Diarrhea, Dry mouth, Teeth grinding, Compulsive redosing, Cognitive fatigue, Immersion intensification, Tactile intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Headache",
+      "Difficulty urinating",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Stimulation",
+      "Sedation",
+      "Temperature regulation suppression",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Abnormal heartbeat",
+      "Diarrhea",
+      "Dry mouth"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Immersion intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Perception of bodily heaviness",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

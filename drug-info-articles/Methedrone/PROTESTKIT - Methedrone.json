@@ -1,0 +1,28 @@
+{
+  "url": "https://drugs.tripsit.me/methedrone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Methedrone",
+  "name": "Methedrone",
+  "aliases": [
+    "bk-pmma"
+  ],
+  "aliasesStr": "bk-pmma",
+  "summary": "BK-PMMA Closely related to PMMA and others. Stimulant.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

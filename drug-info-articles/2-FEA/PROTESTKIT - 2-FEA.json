@@ -1,0 +1,264 @@
+{
+  "url": "https://psychonautwiki.org/wiki/2-FEA",
+  "experiencesUrl": "https://www.reddit.com/search/?q=2-FEA",
+  "name": "2-FEA",
+  "aliases": [
+    "2-fluoroethylamphetamine"
+  ],
+  "aliasesStr": "2-fluoroethylamphetamine",
+  "summary": "Stimulant closely related to 2-FMA. Presumably slightly less potent than the prior. Toxicology and the likes are pretty much completely unknown. Tread with caution.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted amphetamines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 30 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Motivation enhancement, Emotion suppression, Dehydration, Nausea, Headache, Vasoconstriction, Frequent urination, Temporary erectile dysfunction, Restless legs, Physical euphoria, Pupil dilation, Bronchodilation, Thought acceleration, Increased libido, Ego inflation, Transformations, Time distortion, Analysis enhancement, Delusion, Cognitive euphoria, Depression, Anxiety, Paranoia, Irritability, Thought deceleration, Disinhibition, Bodily control enhancement, Stimulation, Wakefulness, Sedation, Appetite suppression, Drifting, Increased heart rate, Increased blood pressure, Increased perspiration, Increased music appreciation, Thought organization, Abnormal heartbeat, Depersonalization, Dry mouth, Teeth grinding, Compulsive redosing, Cognitive fatigue, Increased bodily temperature, Brightness alteration, Psychosis, Focus intensification, Tactile intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Frequent urination",
+      "Restless legs",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Bronchodilation",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Sedation",
+      "Appetite suppression",
+      "Increased perspiration",
+      "Abnormal heartbeat",
+      "Dry mouth",
+      "Increased bodily temperature",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Emotion suppression",
+      "Thought acceleration",
+      "Ego inflation",
+      "Time distortion",
+      "Analysis enhancement",
+      "Delusion",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Paranoia",
+      "Irritability",
+      "Thought deceleration",
+      "Disinhibition",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Thought organization",
+      "Depersonalization",
+      "Cognitive fatigue",
+      "Psychosis",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Increased libido",
+      "Brightness alteration",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Transformations",
+      "Depression",
+      "Drifting",
+      "Compulsive redosing"
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "url": "https://drugs.tripsit.me/apap",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Acetaminophen.shtml",
+  "name": "Paracetamol",
+  "aliases": [
+    "acetaminophen",
+    "tylenol"
+  ],
+  "aliasesStr": "acetaminophen,tylenol",
+  "summary": "A common, over the counter, fever reducer and painkiller. It is mixed with many common opiates. Can cause liver damage and failure in higher doses. No recreational value.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "200-500mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ],
+      "bioavailability": "70-90%"
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

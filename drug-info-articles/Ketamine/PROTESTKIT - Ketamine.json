@@ -1,0 +1,313 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Ketamine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ketamine.shtml",
+  "name": "Ketamine",
+  "aliases": [
+    "cat tranquilizer",
+    "jet",
+    "k",
+    "ket",
+    "ketalar",
+    "ketanest",
+    "ketaset",
+    "kittens",
+    "kitty",
+    "purple",
+    "special k",
+    "vitamin k"
+  ],
+  "aliasesStr": "cat tranquilizer,jet,k,ket,ketalar,ketanest,ketaset,kittens,kitty,purple,special k,vitamin k",
+  "summary": "A short acting dissociative anaesthetic and hallucinogen commonly used in emergency medicine. It is the prototypical dissociative, and is widely used at sub-anesthetic doses recreationally. Small doses are comparable with alcohol, while larger doses are immobilising and lead to psychedelic experiences: the \"K-Hole.\"",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderate to high abuse potential and produces psychological dependence with chronic use",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 300 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "300 - 450 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "450 mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.33 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 8.0 hours"
+        }
+      ],
+      "bioavailability": "17%"
+    },
+    {
+      "name": "Sublingual",
+      "dosage": null,
+      "duration": [],
+      "bioavailability": "20  - 29%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 30 mg"
+        },
+        {
+          "name": "Common",
+          "value": "30 - 75 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "75 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.05 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.08 - 0.25 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "45%"
+    },
+    {
+      "name": "Intramuscular",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.12 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.03 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Caution"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "A feeling of drunkenness and well being at low doses. As dose increases the user may begin to feel a disconnection from their body. At 'khole' doses the user may become completely disconnected from both body and mind.",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "A feeling of drunkenness and well being at low doses. As dose increases the user may begin to feel a disconnection from their body. At 'khole' doses the user may become completely disconnected from both body and mind."
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+# Pinazepam
+*Source: https://en.wikipedia.org/wiki/Pinazepam*
+
+Pinazepam (marketed under the brand name Domar and Duna) is a benzodiazepine drug. It possesses anxiolytic, anticonvulsant, sedative and skeletal muscle relaxant properties.
+Pinazepam and its metabolite N-desmethyldiazepam are transferred to the developing fetus in utero, but the plasma drug level in the mother is usually significantly higher than in the fetus.
+Pinazepam differs from other benzodiazepines in that it has a propargyl group at the N-1 position of the benzodiazepine structure. It is less toxic than diazepam and in animal studies it appears to produce anxiolytic and anti-agitation properties with limited hypnotic and motor coordination impairing properties. Pinazepam is rapidly absorbed after oral administration. The main active metabolites of pinazepam are depropargylpinazepam (N-desmethyldiazepam, nordazepam) and oxazepam. In humans pinazepam acts as a pure anxiolytic agent in that it does not possess to any significant degree the other pharmacological characteristics of benzodiazepines. Its lack of intellectual, motor and hypnotic impairing effects makes it more appropriate than other benzodiazepines for day time use. The elimination half-life is longer in the elderly.

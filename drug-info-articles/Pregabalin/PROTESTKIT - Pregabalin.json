@@ -1,0 +1,256 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Pregabalin",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Pregabalin",
+  "name": "Pregabalin",
+  "aliases": [
+    "lyrica",
+    "nervalin",
+    "pregablin"
+  ],
+  "aliasesStr": "lyrica,nervalin,pregablin",
+  "summary": "Pregabalin (Lyrica) is a GABA derivative that is used to treat neuropathic pain and seizures, as well as anxiety.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Gabapentinoids"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity"
+  ],
+  "addictionPotential": null,
+  "tolerance": {
+    "full": "within several months of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 225 mg"
+        },
+        {
+          "name": "Common",
+          "value": "225 - 600 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "600 - 900 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "900 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "9.0 - 17.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 10.0 hours"
+        }
+      ],
+      "bioavailability": "~90%"
+    },
+    {
+      "name": "Rectal",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 40 mg"
+        },
+        {
+          "name": "Light",
+          "value": "40 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "200 - 450 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "450 - 600 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "600 mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 12.0 hours"
+        }
+      ],
+      "bioavailability": "~99%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased seizure risk",
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

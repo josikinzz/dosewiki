@@ -1,0 +1,349 @@
+// Auto-generated - do not edit
+export const substanceName = "4F-EPH";
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4F-EPH.md","displayName":"Drug Users Bible","size":1282},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4F-EPH.md","displayName":"Isomer Design","size":729},{"id":"protestkit","fileName":"PROTESTKIT - 4F-EPH.json","displayName":"Protest Kit","size":3181},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4F-EPH.md","displayName":"PsychonautWiki","size":29121},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4F-EPH.md","displayName":"TripSit Factsheets","size":417},{"id":"wikipedia","fileName":"WIKIPEDIA - 4F-EPH.md","displayName":"Wikipedia","size":354}];
+export const contents: Record<string, string> = {
+  "drugusersbible": `# 4F-EPH
+*Source: Drug Users Bible by Dominic Milton Trott*
+
+*Section 2.3.7 - CHEMSCAPE: A Chemical Journey*
+
+## Quick Reference
+- **Common Nomenclature:** 4 - Fluoromethylphenidate
+- **Street & Reference Names:** 4 - FEPH
+- **Reference Dosage:** Light 5mg+; Common 10mg+; Strong 30mg+
+- **Anticipated: Onset / Duration:** 5 Minutes / 4 Hours
+- **Maximum Dose Experienced:** 18mg+10mg+15mg
+- **Form:** Powder
+- **RoA:** Insufflated
+- **Source / Jurisdiction:** Internet / UK
+
+## Subjective Experience
+
+Released at the end of 2015, 4F-EPH was legally available during the same period as
+4F-MPH, and for me, it was that chemical’s ugly little sister.
+
+Why do I state this?
+
+I do so because, whilst having significant similarities in terms of effect, I found it to
+provide a less smooth experience, which sometimes had a distinct jittery feel.
+
+I tested it both orally and via insufflation, but both routes led me to reach the same
+conclusion.
+
+Whilst accepting that this seemed to have many fans who did consider it to be a
+recreational drug, I largely found it to be functional.
+
+As this is active at relatively low doses, particular caution is advised with respect to
+this. Note also that as EPH is cited as being caustic to the nasal septum, insufflation
+is probably best avoided.
+`,
+  "isomerdesign": `# 4F-EPH
+*Source: https://isomerdesign.com/PiHKAL/explore.php?id=634*
+
+## Chemical Data
+
+**Names:** 4F-EPH, 4-Fluoroethylphenidate
+
+**IUPAC Name:** Ethyl (4-fluorophenyl)(piperidin-2-yl)acetate
+
+**Molecular Formula:** C15H20FNO2
+
+**Molecular Weight:** 265.323
+
+**SMILES:** \`CCOC(=O)C(c1ccc(cc1)F)C1CCCCN1\`
+
+**InChI:** \`InChI=1S/C15H20FNO2/c1-2-19-15(18)14(13-5-3-4-10-17-13)11-6-8-12(16)9-7-11/h6-9,13-14,17H,2-5,10H2,1H3\`
+
+## External References
+
+- [](https://en.wikipedia.org/wiki/Markush_structure)
+- [123133727](https://pubchem.ncbi.nlm.nih.gov/compound/123133727)
+- [Q107386558](https://www.wikidata.org/wiki/Q107386558)
+- [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
+`,
+  "protestkit": `{
+  "url": "https://psychonautwiki.org/wiki/4F-EPH",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4F-EPH",
+  "name": "4F-EPH",
+  "aliases": [
+    "4-feph"
+  ],
+  "aliasesStr": "4-feph",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.42 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Empathy, affection and sociability enhancement, Motivation enhancement, Dehydration, Vasoconstriction, Temporary erectile dysfunction, Spontaneous bodily sensations, Physical euphoria, Pupil dilation, Thought acceleration, Increased libido, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Perception of bodily lightness, Appetite suppression, Increased heart rate, Increased blood pressure, Increased music appreciation, Teeth grinding, Cognitive fatigue, Decreased libido, Nasal damage, Focus intensification, Stamina intensification, Motivation depression, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Nasal damage",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Empathy",
+      "affection and sociability enhancement",
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Perception of bodily lightness",
+      "Decreased libido",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Depression"
+    ]
+  }
+}`,
+  "psychonautwiki": `# 4F-EPH
+*Source: https://psychonautwiki.org/wiki/4F-EPH*
+
+## Dosage & Duration
+
+### Oral
+
+**Dosage:**
+- Threshold: < 5 mg
+- Light: 5 - 10 mg
+- Common: 10 - 15 mg
+- Strong: 15 - 30 mg
+- Heavy: 30 mg +
+
+**Duration:**
+- Total: 5 - 6 hours
+- Onset: 10 - 25 minutes
+- After effects: 4 - 12 hours
+
+**4-Fluoroethylphenidate** (commonly known as **4F-EPH** ) is a novel synthetic [stimulant](https://psychonautwiki.org/wiki/Stimulant) of the [phenidate](https://psychonautwiki.org/wiki/Phenidate) chemical class that produces long-lasting [euphoric](https://psychonautwiki.org/wiki/Euphoria) and [stimulating](https://psychonautwiki.org/wiki/Stimulant) effects associated with potent [monoamine](https://psychonautwiki.org/wiki/Monoamine) [reuptake inhibitors](https://psychonautwiki.org/wiki/Reuptake_inhibitor) when [administered](https://psychonautwiki.org/wiki/Routes_of_administration) . It is a closely related structural analog of the commonly prescribed ADHD drug [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) (known by the brand-names *Ritalin* and *Concerta* ) as well as a [designer drug](https://psychonautwiki.org/wiki/Designer_drug) analog [ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate) . Based on its similarities to other memebers of this class, it is speculated to exert its activity as some form of double or triple [monoamine](https://psychonautwiki.org/wiki/Monoamine) [reuptake inhibitor](https://psychonautwiki.org/wiki/Reuptake_inhibitor) .
+
+Like other members of the [substituted phenidate](https://psychonautwiki.org/wiki/Substituted_phenidate) family, anecdotal reports suggest that 4F-EPH can be corrosive to the nasal cavities, albeit not to the degree of [ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate) .
+
+4F-EPH has little to no history of [recreational use](https://psychonautwiki.org/wiki/Recreational_drug_use) and has yet to be documented being sold on the streets. It was initially developed as a replacement and successor for compounds like [ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate) , which became illegal in the United Kingdom on April 2015, and later [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH) . In 2016, it became made available for sale on the online gray market as a [research chemical](https://psychonautwiki.org/wiki/Research_chemical) .
+
+Due to its potent, long-lasting stimulant effect, likely habit-forming properties as well as unknown short and long-term toxicity profile, it is strongly recommended that one use proper [harm reduction](https://psychonautwiki.org/wiki/Harm_reduction) practices if choosing to use this substance.
+
+## Chemistry
+
+4F-EPH, or 4-fluoroethylphenidate, is a synthetic molecule of the [phenidate](https://psychonautwiki.org/wiki/Phenidate) and [substituted phenethylamine](https://psychonautwiki.org/wiki/Substituted_phenethylamine) classes. It contains a phenethylamine core featuring a phenyl ring bound to an amino -NH2 group through an ethyl chain. It is structurally similar to [amphetamine](https://psychonautwiki.org/wiki/Amphetamine) , featuring a substitution at R α which is incorporated into a [piperidine](https://psychonautwiki.org/wiki/Piperidine) ring ending at the terminal amine of the phenethylamine chain. It contains an ethyl acetate bound to R β of its structure and is fluorinated at R 4 of its phenyl ring.
+
+4F-EPH is the 4-substituted flourine derivative of [ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate) , and is structurally different to [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) by elongation of the carbon chain and the addition of a fluorine group. *Ethyl-* regards the side chain of two carbon atoms, *phen-* indicates the phenyl ring, *id-* is contracted from a piperidine ring, and *-ate* indicates the acetate group containing the oxygens. 4F-EPH is a chiral compound, presumably produced as a racemic mixture.
+
+## Pharmacology
+
+4F-EPH is believed to act as a higher efficiency [dopamine](https://psychonautwiki.org/wiki/Dopamine) [reuptake inhibitor](https://psychonautwiki.org/wiki/Reuptake_inhibitor) than the closely related [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) , meaning that it effectively boosts the levels of dopamine [neurotransmitters](https://psychonautwiki.org/wiki/Neurotransmitters) in the brain by binding to and partially blocking the transporter proteins that normally remove those [monoamines](https://psychonautwiki.org/wiki/Monoamine) from the synaptic cleft. This allows dopamine to accumulate within the certain focalized regions of the brain, resulting in stimulating and euphoric effects.
+
+## Subjective effects
+
+***Disclaimer:** The effects listed below cite the [Subjective Effect Index](https://psychonautwiki.org/wiki/Subjective_effect_index) ( **SEI** ), an open research literature based on anecdotal user reports and the personal analyses of [PsychonautWiki](https://psychonautwiki.org/wiki/PsychonautWiki) [contributors](https://psychonautwiki.org/wiki/Special:TopUsers) . As a result, they should be viewed with a healthy degree of skepticism.*
+
+*It is also worth noting that these effects will not necessarily occur in a predictable or reliable manner, although higher doses are more liable to induce the full spectrum of effects. *Likewise, **adverse effects** become increasingly likely with higher doses and may include **addiction, severe injury, or death*** ☠.*
+### Physical effects
+ 
+- - **[Stimulation](https://psychonautwiki.org/wiki/Stimulation)** - 4F-EPH is considered to be mildly to moderately stimulating in a way that is quite unique for a dopaminergic stimulant and likely is the result of activity beyond dopamine and norepinephrine reuptake inhibition. Even in high doses it is much less stimulating and distinctively different than the closely related chemical [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH) . The style of stimulation can be described as smooth, with a slight to moderate energetic push similar to, but drastically weaker than [methamphetamine](https://psychonautwiki.org/wiki/Methamphetamine) . It is much subtler and less forced than that of [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH) , [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) , and [amphetamine](https://psychonautwiki.org/wiki/Amphetamine) .
+- **[Dehydration](https://psychonautwiki.org/wiki/Dehydration)** - Relatively mild, provided one consumes an appropriate amount of water. Water should be sipped slowly at spaced intervals to prevent water intoxication.
+- **[Appetite suppression](https://psychonautwiki.org/wiki/Appetite_suppression)** - This effect is mild.
+- **[Increased heart rate](https://psychonautwiki.org/wiki/Increased_heart_rate)** - 4F-EPH has a moderate effect on heart rate that is not concerning or uncomfortable at moderate doses.
+- **[Increased blood pressure](https://psychonautwiki.org/wiki/Increased_blood_pressure)** - A slight-moderate increase in blood pressure is seen with this compound, but only very excessive doses will usually raise it to problematic levels.
+- **[Teeth grinding](https://psychonautwiki.org/wiki/Teeth_grinding)** - This component can be considered to be less intense when compared with that of [MDMA](https://psychonautwiki.org/wiki/MDMA) . It is very minimal at moderate doses and only excessive doses usually cause this effect. Even then it is rarely severe enough to reach an uncomfortable or damaging degree. Magnesium supplementation may reduce this.
+- **[Pupil dilation](https://psychonautwiki.org/wiki/Pupil_dilation)** - Pupil dilation is minimal at low-moderate doses, but can be pronounced during the offset of higher doses.
+- **[Stamina enhancement](https://psychonautwiki.org/wiki/Stamina_enhancement)** - This component is much weaker than that of most other stimulants, such as [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) and [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH) .
+- **[Vasoconstriction](https://psychonautwiki.org/wiki/Vasoconstriction)** - This effect is much milder than that of most other dopaminergic stimulants at the peak, however it may rapidly become uncomfortable or even dangerous during the offset of very high doses or in individuals with circulatory problems. Blue or deep purple coloration or wrinkling of the skin of the extremities is a medical emergency if it isn't resolved quickly. Putting the hands and feet in a hot bath may help this effect, however fully submersing oneself in hot water is potentially dangerous.
+- **[Nasal damage](/w/index.php?title=Nasal_damage&action=edit&redlink=1)** - 4F-EPH is notably less caustic than EPH ( [ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate) ), however it is still mildly to moderately caustic to the nasal cavities. It is recommended to perform a **sterile** saline nasal rinse 15 minutes after snorting this substance. Even with that precaution, intranasal use without significant breaks to allow the nasal cavities to repair themselves will likely still damage the nasal mucous membranes. It is unknown whether this results in permanent injury or simply acute damage.
+- **[Increased libido](https://psychonautwiki.org/wiki/Increased_libido)** - There is often a noticeable increase in libido at low-moderate doses, however this effect is much weaker than that experienced with [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH) and [methamphetamine](https://psychonautwiki.org/wiki/Methamphetamine) . The style of sexual stimulation induced is an increase in the emotional enjoyment and sensations of sexual activity, but with minimal effect on or even a reduction in the pleasure of orgasm. This effect is less distracting and can be ignored more easily than that induced by many other dopaminergic stimulants.
+- **[Decreased libido](https://psychonautwiki.org/wiki/Decreased_libido)** - Decreased libido inconsistently occurs at any dose, but high doses increase the likelihood and may be related to unproven, but subjectively theorized serotonergic activity.
+- **[Orgasm suppression](https://psychonautwiki.org/wiki/Orgasm_suppression)** - Orgasm suppression usually only occurs at high doses and can be described as difficulty reaching an orgasm despite increased or normal libido. This is present primarily in males.
+- **[Temporary erectile dysfunction](https://psychonautwiki.org/wiki/Temporary_erectile_dysfunction)** - This is a common occurrence at moderate-high doses. Note that it is extremely unsafe for the heart to try to counteract this by combining erectile dysfunction drugs with stimulants.
+- **[Physical euphoria](https://psychonautwiki.org/wiki/Physical_euphoria)** - A slight to moderate sense of pleasant well-being and physical comfort is often present at a low level throughout the peak and is strongest at moderate doses. This effect is similar to, but much weaker than that induced by [methamphetamine](https://psychonautwiki.org/wiki/Methamphetamine) and [MDMA](https://psychonautwiki.org/wiki/MDMA) . It reduces or disappears when used in high doses or when repeatedly redosed.
+- **[Spontaneous physical sensations](https://psychonautwiki.org/wiki/Spontaneous_physical_sensations)** - Highly euphoric, mild-distinct and all-encompassing sharp tingling sensations that fade rapidly into soft sensations before disappearing frequently occur during the initial "rush" of moderate-high doses. This is particularly powerful when vaporized or injected intravenously. It is comparable to that experienced during and shortly after orgasm, although a lot milder. This effect rarely if ever occurs when consumed orally, but may occur when administered via intranasal or sublingual routes, though it is usually to a lesser degree. The rush produced by 4F-EPH may last up to 15 minutes, however it most commonly lasts around 5 minutes. It diminishes in strength rapidly and eventually disappears when redosed repetitively.
+- **[Perception of bodily lightness](https://psychonautwiki.org/wiki/Perception_of_bodily_lightness)** - A mild and pleasant feeling of lightness/floating as well as effortless movement in the entire body frequently occurs during the rush and often persists into the peak for some time. This may occur via any route. It is most common at moderate-high doses and tends to reduce or disappear at excessive doses. ### Cognitive effects
+ 
+- - **[Thought acceleration](https://psychonautwiki.org/wiki/Thought_acceleration)** - The thought acceleration induced by 4F-EPH is mild to moderate and is not usually strong enough to induce confusion. It tends towards semantic, emotional, social, and abstract thought patterns.
+- **[Analysis enhancement](https://psychonautwiki.org/wiki/Analysis_enhancement)** - 4F-EPH has the capability of enhancing analytical ability, but only at low doses and very inconsistently. Moderate to high doses do not usually enhance logical analytical abilities and tend instead toward semantic and emotional thought patterns.
+- **[Wakefulness](https://psychonautwiki.org/wiki/Wakefulness)** - 4F-EPH is relatively weak in wakefulness-promoting abilities when compared to [methylphenidate](https://psychonautwiki.org/wiki/Methylphenidate) , [amphetamine](https://psychonautwiki.org/wiki/Amphetamine) , and most other dopaminergic stimulants.
+- **[Focus enhancement](https://psychonautwiki.org/wiki/Focus_enhancement)** - 4F-EPH does not have much potential for use a "functional" stimulant to complete mundane tasks, as the focus enhancement induced by 4F-EPH tends to be inconsistent and mild in strength. It is usually only at low doses that focus enhancement may occur. Moderate and high doses tend to decrease the ability to focus on mundane tasks due to the pleasant recreational effects of physical and empathetic euphoria and abstract thought patterns. 4F-EPH is, however, effective for creative and abstract tasks such as art and fiction writing.
+- **[Motivation enhancement](https://psychonautwiki.org/wiki/Motivation_enhancement)** - This component is mild and usually present only at low doses. Moderate and high doses tend to instead strongly promote socialization and recreational activities such as gaming and watching movies.
+- **[Euphoria](https://psychonautwiki.org/wiki/Cognitive_euphoria)** - The cognitive euphoria of 4F-EPH is subtle, relaxing, and often very pleasant. It tends to promote feelings of physical and mental well-being, as well as creative thoughts. Very excessive doses may instead result in dysphoria.
+- **[Increased music appreciation](https://psychonautwiki.org/wiki/Increased_music_appreciation)** - 4F-EPH noticeably increases the enjoyment of music.
+- **[Cognitive fatigue](https://psychonautwiki.org/wiki/Cognitive_fatigue)**
+- **[Empathy, affection, and sociability enhancement](https://psychonautwiki.org/wiki/Empathy,_affection,_and_sociability_enhancement)** - 4F-EPH may result in mild empathetic and affectionate feelings, particularly at lower doses. This substance commonly results in an intense drive to socialize with others that strengthens with increasing dosage. ### After effects
+ 
+- The effects which occur during the [offset](https://psychonautwiki.org/wiki/Offset) of a [stimulant](https://psychonautwiki.org/wiki/Stimulant) experience generally feel negative and uncomfortable in comparison to the effects which occurred during its [peak](https://psychonautwiki.org/wiki/Peak) . This is often referred to as a "comedown" and occurs because of [neurotransmitter](https://psychonautwiki.org/wiki/Neurotransmitter) depletion. Its effects commonly include: 
+- **[Anxiety](https://psychonautwiki.org/wiki/Anxiety)**
+- **[Cognitive fatigue](https://psychonautwiki.org/wiki/Cognitive_fatigue)**
+- **[Depression](https://psychonautwiki.org/wiki/Depression)**
+- **[Irritability](https://psychonautwiki.org/wiki/Irritability)**
+- **[Motivation suppression](https://psychonautwiki.org/wiki/Motivation_suppression)**
+- **[Thought deceleration](https://psychonautwiki.org/wiki/Thought_deceleration)**
+- **[Wakefulness](https://psychonautwiki.org/wiki/Wakefulness)**
+### Experience reports
+
+Anecdotal reports which describe the effects of this compound within our [experience index](https://psychonautwiki.org/wiki/Experience_index) include:
+
+- [Experience:4F-EPH (15mg) - Untitled](https://psychonautwiki.org/wiki/Experience:4F-EPH_(15mg)_-_Untitled)
+
+## Toxicity and harm potential
+
+The toxicity and long-term health effects of recreational 4F-EPH use do not seem to have been studied in any scientific context and the exact toxic dosage is unknown. This is because 4F-EPH is a [research chemical](https://psychonautwiki.org/wiki/Research_chemical) with very little history of human usage. Anecdotal evidence from people who have tried 4F-EPH suggests that there are no negative health effects attributed to simply trying the drug by itself at low to moderate doses and using it very sparingly (but nothing can be completely guaranteed).
+
+It is strongly recommended that one use [harm reduction practices](https://psychonautwiki.org/wiki/Responsible_drug_use) when using this drug.
+
+### Tolerance and addiction potential
+
+As with other [stimulants](https://psychonautwiki.org/wiki/Stimulant) , the chronic use of 4F-EPH can be considered moderately addictive with a high potential for abuse and is capable of causing psychological dependence among certain users. When addiction has developed, cravings and [withdrawal effects](https://psychonautwiki.org/wiki/Withdrawal_effects) may occur if a person suddenly stops their usage.
+
+Tolerance to many of the effects of 4F-EPH develops with prolonged and repeated use. This results in users having to administer increasingly large doses to achieve the same effects. After that, it takes about 3 - 7 days for the tolerance to be reduced to half and 1 - 2 weeks to be back at baseline (in the absence of further consumption). 4F-EPH presents cross-tolerance with all [dopaminergic](https://psychonautwiki.org/wiki/Dopamine) [stimulants](https://psychonautwiki.org/wiki/Stimulant) , meaning that after the consumption of 4F-EPH all [stimulants](https://psychonautwiki.org/wiki/Stimulant) will have a reduced effect.
+
+### Dangerous interactions
+
+***Warning:*** *Many psychoactive substances that are reasonably safe to use on their own can suddenly become dangerous and even life-threatening when combined with certain other substances. The following list provides some known dangerous interactions (although it is not guaranteed to include all of them).*
+
+*Always conduct independent research (e.g. [Google](https://www.google.com) , [DuckDuckGo](https://www.duckduckgo.com) , [PubMed](https://pubmed.ncbi.nlm.nih.gov/) ) to ensure that a combination of two or more substances is safe to consume. Some of the listed interactions have been sourced from [TripSit](https://combo.tripsit.me) .*
+
+- **[25x-NBOMe](https://psychonautwiki.org/wiki/25x-NBOMe) & [25x-NBOH](https://psychonautwiki.org/wiki/25x-NBOH)** - 25x compounds are highly stimulating and physically straining. Combinations with 4F-EPH should be strictly avoided due to the risk of excessive [stimulation](https://psychonautwiki.org/wiki/Stimulation) and heart strain. This can result in [increased blood pressure](https://psychonautwiki.org/wiki/Increased_blood_pressure) , [vasoconstriction](https://psychonautwiki.org/wiki/Vasoconstriction) , panic attacks, [thought loops](https://psychonautwiki.org/wiki/Thought_loops) , [seizures](https://psychonautwiki.org/wiki/Seizures) , and heart failure in extreme cases.
+- **[Alcohol](https://psychonautwiki.org/wiki/Alcohol)** - Combining alcohol with [stimulants](https://psychonautwiki.org/wiki/Stimulants) can be dangerous due to the risk of accidental over-intoxication. Stimulants mask alcohol's [depressant](https://psychonautwiki.org/wiki/Depressant) effects, which is what most people use to assess their degree of intoxication. Once the stimulant wears off, the [depressant](https://psychonautwiki.org/wiki/Depressant) effects will be left unopposed, which can result in blackouts and severe [respiratory depression](https://psychonautwiki.org/wiki/Respiratory_depression) . If mixing, the user should strictly limit themselves to only drinking a certain amount of alcohol per hour.
+- **[DXM](https://psychonautwiki.org/wiki/DXM)** - Combinations with DXM should be avoided due to its inhibiting effects on [serotonin](https://psychonautwiki.org/wiki/Serotonin) and [norepinephrine](https://psychonautwiki.org/wiki/Norepinephrine) reuptake. There is an increased risk of [panic attacks](https://psychonautwiki.org/wiki/Panic_attacks) and hypertensive crisis, or [serotonin syndrome](https://psychonautwiki.org/wiki/Serotonin_syndrome) with serotonin releasers ( [MDMA](https://psychonautwiki.org/wiki/MDMA) , [methylone](https://psychonautwiki.org/wiki/Methylone) , [mephedrone](https://psychonautwiki.org/wiki/Mephedrone) , etc.). Monitor blood pressure carefully and avoid strenuous physical activity.
+- **[MDMA](https://psychonautwiki.org/wiki/MDMA)** - Any neurotoxic effects of MDMA are likely to be increased when other [stimulants](https://psychonautwiki.org/wiki/Stimulants) are present. There is also a risk of excessive blood pressure and heart strain (cardiotoxicity).
+- **[MXE](https://psychonautwiki.org/wiki/MXE)** - Some reports suggest combinations with MXE may dangerously increase blood pressure and increase the risk of [mania](https://psychonautwiki.org/wiki/Mania) and [psychosis](https://psychonautwiki.org/wiki/Psychosis) .
+- **[Dissociatives](https://psychonautwiki.org/wiki/Dissociatives)** - Both classes carry a risk of [delusions](https://psychonautwiki.org/wiki/Delusions) , [mania](https://psychonautwiki.org/wiki/Mania) and [psychosis](https://psychonautwiki.org/wiki/Psychosis) , and these risk may be multiplied when combined.
+- **[Stimulants](https://psychonautwiki.org/wiki/Stimulants)** - 4F-EPH may be dangerous to combine with other [stimulants](https://psychonautwiki.org/wiki/Stimulants) like [cocaine](https://psychonautwiki.org/wiki/Cocaine) as they can [increase one's heart rate](https://psychonautwiki.org/wiki/Increased_heart_rate) and [blood pressure](https://psychonautwiki.org/wiki/Increased_blood_pressure) to dangerous levels.
+- **[Tramadol](https://psychonautwiki.org/wiki/Tramadol)** - Tramadol is known to lower the seizure threshold and combinations with stimulants may further increase this risk.
+- **[MAOIs](https://psychonautwiki.org/wiki/MAOIs)** - This combination may increase the amount of neurotransmitters such as dopamine to dangerous or even fatal levels. Examples include [syrian rue](https://psychonautwiki.org/wiki/Syrian_rue) , [banisteriopsis caapi](https://psychonautwiki.org/wiki/Banisteriopsis_caapi) , and some [antidepressants](https://psychonautwiki.org/wiki/Antidepressants) .
+
+## Legal status
+
+- **Germany** : 4-Fluoroethylphenidate is controlled under the NpSG ( *New Psychoactive Substances Act* ) as of November 26, 2016. Production and import with the aim to place it on the market, administration to another person and trading is punishable. Possession is illegal but not penalized.
+- **Switzerland** : 4F-EPH is a controlled substance specifically named under Verzeichnis E.
+- **Turkey:** 4F-EPH is a classed as drug and is illegal to possess, produce, supply, or import.
+- **United Kingdom** : 4-Fluoroethylphenidate is a class B drug in the UK as of May 31st 2017, making it illegal to possess, produce or supply.
+
+## See also
+
+- [Responsible use](https://psychonautwiki.org/wiki/Responsible_use)
+- [Designer drug](https://psychonautwiki.org/wiki/Designer_drug)
+- [Stimulant](https://psychonautwiki.org/wiki/Stimulant)
+- [Substituted phenidate](https://psychonautwiki.org/wiki/Substituted_phenidate)
+- [Ethylphenidate](https://psychonautwiki.org/wiki/Ethylphenidate)
+- [4F-MPH](https://psychonautwiki.org/wiki/4F-MPH)
+
+## External links
+
+- [4F-EPH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=634)
+
+## References
+1. ↑ Davies, H. M. L., Hopper, D. W., Hansen, T., Liu, Q., Childers, S. R. (5 April 2004). "Synthesis of methylphenidate analogues and their binding affinities at dopamine and serotonin transport sites".*Bioorganic & Medicinal Chemistry Letters*.**14**(7): 1799–1802.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmcl.2003.12.097](//doi.org/10.1016%2Fj.bmcl.2003.12.097).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0960-894X](//www.worldcat.org/issn/0960-894X).
+2. ↑ Misra, M., Shi, Q., Ye, X., Gruszecka-Kowalik, E., Bu, W., Liu, Z., Schweri, M. M., Deutsch, H. M., Venanzi, C. A. (15 October 2010). "Quantitative structure-activity relationship studies of threo-methylphenidate analogs".*Bioorganic & Medicinal Chemistry*.**18**(20): 7221–7238.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmc.2010.08.034](//doi.org/10.1016%2Fj.bmc.2010.08.034).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1464-3391](//www.worldcat.org/issn/1464-3391).
+3. ↑ Singh, S. (8 March 2000). "Chemistry, design, and structure-activity relationship of cocaine antagonists".*Chemical Reviews*.**100**(3): 925–1024.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/cr9700538](//doi.org/10.1021%2Fcr9700538).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1520-6890](//www.worldcat.org/issn/1520-6890).
+4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
+5. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
+6. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
+7. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 23, 2019.
+8. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
+9. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
+10. ↑ Cumhurbaşkanı Kararı CK Karar Sayısı : 1335 | [https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)
+11. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)NewPP limit report Cached time: 20251218075112 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.041 seconds CPU time usage: 0.300 seconds Real time usage: 0.562 seconds Preprocessor visited node count: 1364/1000000 Post‐expand include size: 141707/2097152 bytes Template argument size: 26804/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14302/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 7.25 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 433.079 1 -total 35.54% 153.900 5 Template:Cite_journal 15.23% 65.940 1 Template:SubstanceBox/4F-EPH 14.33% 62.051 1 Template:SubstanceBox 14.07% 60.950 1 Template:Further 11.89% 51.483 4 Template:Cite_web 5.31% 23.004 1 Template:Effects/base 4.66% 20.169 1 Template:Effect_list 3.87% 16.768 2 Template:Effect_column 3.43% 14.865 1 Template:Citation`,
+  "tripsit-factsheets": `# 4-Fluoroethylphenidate
+*Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-fluoroethylphenidate*
+
+## Classification
+- **Categories:** stimulant, research-chemical, habit-forming, tentative
+- **Also known as:** 4f-eph, 4-feph
+
+## Dosage
+
+### Oral
+- **Common:** 10-30mg
+- **Light:** 5-10mg
+- **Strong:** 30-50mg+
+
+## Duration
+- **Onset:** 10-25 minutes
+- **Duration:** 5-6 hours
+- **After Effects:** 1-12 hours
+`,
+  "wikipedia": `# 4-Fluoroethylphenidate
+*Source: https://en.wikipedia.org/wiki/4-Fluoroethylphenidate*
+
+4-Fluoroethylphenidate (4F-EPH) is a recreational designer drug from the phenidate family, with stimulant effects. It was first identified in France in March 2016. It has been used as a nootropic drug, and was made illegal in the UK in 2017, and in Sweden in 2018.
+`,
+};

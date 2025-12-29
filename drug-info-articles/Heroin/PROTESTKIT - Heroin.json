@@ -1,0 +1,309 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Heroin",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Heroin.shtml",
+  "name": "Heroin",
+  "aliases": [
+    "brown",
+    "diamorphine",
+    "h",
+    "junk",
+    "smack"
+  ],
+  "aliasesStr": "brown,diamorphine,h,junk,smack",
+  "summary": "A powerful opioid derived from Morphine, with 2-4x its potency. Infamous for a high addiction potential and fatal respiratory depression in overdose, C. R. Alder Wright first synthesised this compound in 1874 trying to find a less addictive alternative to Morphine. In recent years, it has often been sold cut with the extremely potent fentanyl, causing a spike in overdose deaths.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "extremely addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.0 - 0.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "0.17 - 0.5 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "7.5 - 20 mg"
+        },
+        {
+          "name": "Common",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.0 - 0.02 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.02 - 1.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.5 - 3.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "5 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 0.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.0 - 0.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 5.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil Constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil Constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Phenylpiracetam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Phenylpiracetam",
+  "name": "Phenylpiracetam",
+  "aliases": [
+    "carphedon",
+    "phenotropil"
+  ],
+  "aliasesStr": "carphedon,phenotropil",
+  "summary": "A nootropic and piracetam analogue also known as fonturacetam, this drug has been shown to have potential memory enhancing, anxiolytic, anti-amnesia and anti-depressive effects, however has little recreational value. Around 45x more potent than Piracetam.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Racetams"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "safe even when high doses are consumed for a long period of time",
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "non-addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "racetam",
+    "nootropic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "200 - 400 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "400 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Headache, Dream potentiation, Analysis enhancement, Mindfulness, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Appetite suppression, Color enhancement, Visual acuity enhancement, Increased heart rate, Anxiety suppression, Cognitive fatigue, Cognitive dysphoria, Focus intensification, Auditory acuity enhancement, Tactile intensification, Stamina intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Headache",
+      "Stimulation",
+      "Appetite suppression",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Dream potentiation",
+      "Analysis enhancement",
+      "Mindfulness",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Cognitive fatigue",
+      "Cognitive dysphoria",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": []
+  }
+}

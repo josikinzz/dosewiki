@@ -1,0 +1,245 @@
+{
+  "url": "https://psychonautwiki.org/wiki/LSA",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_LSA.shtml",
+  "name": "LSA",
+  "aliases": [
+    "ergine",
+    "hbmg",
+    "hbw",
+    "hbwr",
+    "morning",
+    "morning_glory",
+    "morningglory",
+    "ololiuqui"
+  ],
+  "aliasesStr": "ergine,hbmg,hbw,hbwr,morning,morning_glory,morningglory,ololiuqui",
+  "summary": "A chemical found in Morning Glory and Hawaiian Baby Woodrose seeds, which are often legally available. Has mental effects similar to LSD, although with almost no visual effects. It is famous for being very nauseating, and for causing excessive time dilation at higher doses.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "non-addictive with a low abuse potential",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": null,
+    "zero": "7 days"
+  },
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "HBWR",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "1-2seeds"
+        },
+        {
+          "name": "Common",
+          "value": "2-6seeds"
+        },
+        {
+          "name": "Strong",
+          "value": "6-14seeds"
+        },
+        {
+          "name": "Heavy",
+          "value": "14seeds+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 3.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 10.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Morning_Glory",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-100seeds"
+        },
+        {
+          "name": "Common",
+          "value": "100-250seeds"
+        },
+        {
+          "name": "Strong",
+          "value": "250-400seeds"
+        },
+        {
+          "name": "Heavy",
+          "value": "400seeds+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 3.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

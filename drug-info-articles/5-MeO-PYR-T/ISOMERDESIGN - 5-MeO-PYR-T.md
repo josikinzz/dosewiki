@@ -1,0 +1,33 @@
+# 5-MeO-PYR-T
+*Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=43*
+
+*TiHKAL Entry #43*
+
+
+## SYNTHESIS
+A solution of 0.52 g 5-methoxyindol-3-yl-N,N-tetramethyleneglyoxylamide in 15 mL anhydrous dioxane was added, slowly, to 0.80 g LAH in 15 mL dioxane which was well-stirred and held at reflux temperature under an inert atmosphere. After the addition was complete, reflux was maintained for an additional 16 h, the reaction mixture cooled, and the excess hydride destroyed by the cautious addition of wet dioxane. The formed solids were removed by filtration, washed with hot dioxane, the filtrate and washings combined, dried over anhydrous MgSO4, and the solvent removed under vacuum. The pale amber residue was distilled at the KugelRohr at 160â170 Â°C at 0.05 mm/Hg to give 0.11 g (23%) of 5-methoxy-N,N-tetramethylenetryptamine as an off-white oil that did not crystallize. MS (in m/z): C5H10N+ 84 (100%); methoxyindolemethylene+ 160 (4%); parent ion 244 (6%). The hydrochloride salt was prepared by treating an Et2O solution of the free base with anhydrous hydrogen chloride gas, and recrystallizing the formed solids from MeOH/benzene. The mp was 164â167 Â°C.
+
+
+## DOSAGE
+
+## DURATION
+
+## QUALITATIVE COMMENTS
+(about 1 mg, smoking) âI managed to vaporize about a milligram of the material, and there was nothing profound. There was a slight feeling of calmness. As I felt sure that this material would be a quieting agent, I managed to vaporize and inhale what might have been up to another milligram. There were no psychedelic effects manifested, and I fell asleep easily 10 minutes later.â
+
+(with 3 mgs, smoking) âInitially the compound exhibited a 5-MeO-DMT-like effect. There was a total loss of self-identity in a nearly instantaneous rush. I felt as if the top of my head was blown off at the onset inset of the drug experience. My observers told me that I had been unconscious for four hours. I remember reentering with the feeling âGod is Love.â After completely coming to, I felt very nauseous, and threw up in the bathroom several times. I felt drained and sick for the rest of the evening as well as mentally slow. By the next morning I was more alert and responsive, I have absolutely no memory of anything that transpired while I was on the compound.â
+
+(with 3 mgs, smoking) âI inhaled the vaporized sample at 10 past noon. There was quite a rush. There were none of the shifting shapes, colors and forms of DMT. Nor was it acute with clarity or energy as with my many experiences with 5-MeO-DMT. The effect was intense but not terrifying, with a full body buzz and with humming resonance as I fell backwards into something where all memory was lost. I was told that at 18 past noon, I was unconscious. Something over an hour later, I started flailing, rolling about, quivering and shaking, and had very constricted pupils. In another hour I was able to talk lucidly, but quietly. In yet another hour, I was nauseous and tried for the bathroom, but didnât make it. The people who were watching me were alarmed. My actions were scary. And my skin looked funny for several days afterwards. There are long-lasting properties of this. My first exposure was with perhaps a milligrams (smoked, also) and the effects were substantial, with rough edges and minor dysphoria.â
+
+(with 4 mgs, smoking) âThis was the free base. I remember the pipe, and the inhalation and, with the pouring of a small glass of scotch, I settled down in front of the TV to watch a re-run of Star Trek. That was it. I came to some time later in the front room of a professional ally of mine, who had by chance discovered me walking down the street near his house. I do not recall, nor have I been able to regain any memories of the time I was âout there.â I apparently experienced no physical discomfort from the drug. In fact I distinctly remember feeling very comfortable when I awoke. Clearly this compound is some weird-ass shit.â
+
+
+## EXTENSIONS AND COMMENTARY
+The qualitative aspects of these (and other) reports imply some individual variability. It is always easy to look at tryptamines such as this one, or the others in these recipes, and say, âWe know that they are psychedelics. And maybe good ones or maybe bad ones. So we should look at them with that preconceived notion in mind.â But looking objectively at this particular compound, 5-MeO-pyr-T, we are far away from any vocabulary of psychedelics. How is it different from, say, what one might expect from a Fentanyl analogue? Here is a collection of trials that describe parenteral administration, and the quick development of an anesthesia. This compound may not be the new Fentanyl because of the nausea during what would be the recovery period. But what are the chances that, perhaps not with this compound, but with any of the obvious analogues that are screaming to be assayed, there just might be a useful clinical tool?
+
+There is another message of warning. Here one must accept the eloquent argument that, for the structuring of an experiment with an unknown and thus undefined new drug, there must be observers present who are both sober and sympathetic. The heroic and macho, âIâll do it my way,â can lead to both psychological problems and physical risks. As with scuba diving, always work with a partner.
+
+With both pyr-T and 4-HO-pyr-T, there are two additional ring analogies that are natural companions to 5-MeO-pyr-T. These are the piperidine and the morpholine counterparts, 5-MeO-mor-T and 5-MeO-pip-T. Both compounds are in the literature, and an entry reference to them can be gotten from the âknown tryptaminesâ appendix. Along with the pyrrolidine material I had made a reasonable supply of the amides for these other two, both by way of the 5-methoxyindole and oxalyl chloride procedure given above. With piperidine, there is 5-methoxyindol-3-yl-N,N-pentamethyleneglyoxylamide, mp 167â169 Â°C and IR, (in cm-1), 730, 780, 811, 928, 1033, 1161, a broad carbonyl at 1600 and a broad indolic NH stretch at 3190. With morpholine, the corresponding glyoxylamide melted at 193â194 Â°C, with an IR spectrum (in cm-1), of 747, 791, 856, 925, 976, 1043 and 1122, the carbonyl at 1620 and the broad NH at 3150.
+
+With the rather unexpected, and unencouraging descriptions of the pyrrolidine tryptamines in general, and this one in particular, I was not too blinding a hurry to explore the two heterocyclic analogues. The amides are still on the shelf in the lab. If some good reason comes forth to assay the final amines, they can be made with a dash of lithium aluminum hydride, but until then I have other things to do.
+

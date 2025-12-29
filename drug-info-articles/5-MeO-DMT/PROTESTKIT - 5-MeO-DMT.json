@@ -1,0 +1,270 @@
+{
+  "url": "https://psychonautwiki.org/wiki/5-MeO-DMT",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_5MeODMT.shtml",
+  "name": "5-MeO-DMT",
+  "aliases": [
+    "5-medmt",
+    "5-meo",
+    "5meo",
+    "5meodmt",
+    "jaguar",
+    "the god molecule",
+    "toad",
+    "toads"
+  ],
+  "aliasesStr": "5-medmt,5-meo,5meo,5meodmt,jaguar,the god molecule,toad,toads",
+  "summary": "A powerful psychedelic tryptamine found in many species of plants and some toad venom, with a history of use by native South Americans spanning thousands of years. Has similar qualities to DMT and related tryptamines. Very potent. Orally active in combination with an MAOI.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "non-addictive with a low abuse potential",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "1 hour",
+    "zero": "2 hours"
+  },
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 6 mg"
+        },
+        {
+          "name": "Common",
+          "value": "6 - 12 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "12 - 20 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "20 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 1.0 minutes"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "5.0 - 15.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "10.0 - 20.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "20.0 - 40.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 60.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.17 - 0.67 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Smoked: short duration, powerful rushing of sensation, overwhelming fear, panic, experience of \"the void\", ego death",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [
+      "overwhelming fear",
+      "panic",
+      "ego death"
+    ],
+    "Sensory effects": [
+      "powerful rushing of sensation"
+    ],
+    "Uncategorized effects": [
+      "Smoked: short duration",
+      "experience of \"the void\""
+    ]
+  }
+}

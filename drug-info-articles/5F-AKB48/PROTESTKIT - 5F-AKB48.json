@@ -1,0 +1,258 @@
+{
+  "url": "https://psychonautwiki.org/wiki/5F-AKB48",
+  "experiencesUrl": "https://www.reddit.com/search/?q=5F-AKB48",
+  "name": "5F-AKB48",
+  "aliases": [
+    "5f-apinaca",
+    "5fakb48",
+    "5fapinaca"
+  ],
+  "aliasesStr": "5f-apinaca,5fakb48,5fapinaca",
+  "summary": "A synthetic cannabanoid that is a Indazole. Produces subjective effects somehwat similar to that of Cannabis, yet with a very short duration. Analogue of STS-135, in which the core indole structure is subbed with an indazole base.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Cannabinoid"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "cannabinoids"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 1 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "4 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.0 - 20.0 minutes"
+        },
+        {
+          "name": "Peak",
+          "value": "10.0 - 30.0 minutes"
+        },
+        {
+          "name": "Offset",
+          "value": "5.0 - 10.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "30.0 - 60.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 30.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "500ug"
+        },
+        {
+          "name": "Light",
+          "value": "500-1000ug"
+        },
+        {
+          "name": "Strong",
+          "value": "1000-2500ug."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "5.0 - 30.0 minutes"
+        },
+        {
+          "name": "Duration",
+          "value": "30.0 - 60.0 minutes"
+        },
+        {
+          "name": "After effects",
+          "value": "15.0 - 45.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Low Risk & Synergy"
+    }
+  ],
+  "effects": "Thought connectivity, Dehydration, Spontaneous bodily sensations, Changes in felt gravity, Vasodilation, Mindfulness, Conceptual thinking, Anxiety, Paranoia, Thought deceleration, Dream suppression, Perception of bodily lightness, Motor control loss, Pain relief, Increased music appreciation, Emotion intensification, Psychosis, Auditory acuity enhancement, Appetite intensification, Analysis depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Vasodilation",
+      "Motor control loss",
+      "Pain relief",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Mindfulness",
+      "Conceptual thinking",
+      "Anxiety",
+      "Paranoia",
+      "Thought deceleration",
+      "Dream suppression",
+      "Increased music appreciation",
+      "Emotion intensification",
+      "Psychosis",
+      "Analysis depression"
+    ],
+    "Sensory effects": [
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "Perception of bodily lightness",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": []
+  }
+}

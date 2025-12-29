@@ -1,0 +1,128 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Modafinil",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Modafinil.shtml",
+  "name": "Modafinil",
+  "aliases": [
+    "alertec",
+    "modalert",
+    "modavigil",
+    "modiodal",
+    "provigil"
+  ],
+  "aliasesStr": "alertec,modalert,modavigil,modiodal,provigil",
+  "summary": "A wakefulness promoting, long acting stimulant which is typically only used functionally, because there is no real euphoric component to its effects. Also prescribed for daytime sleeping disorders.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzhydryl"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Eugeroics"
+    ]
+  },
+  "toxicity": [
+    "The median lethal dose at which 50% of participants die (LD50) from modafinil for human beings has never been reached"
+  ],
+  "addictionPotential": "not addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "benzhydryl",
+    "nootropic|nootropics"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "200 - 300 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "300 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.5 - 5.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 10.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Motivation enhancement, Memory enhancement, Emotion suppression, Dehydration, Photophobia, Nausea, Headache, Dizziness, Pupil dilation, Thought acceleration, Time distortion, Anxiety, Stimulation, Wakefulness, Appetite suppression, Increased heart rate, Anxiety suppression, Increased music appreciation, Diarrhea, Emotion intensification, Depression reduction, Body odor alteration, Focus intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Dizziness",
+      "Pupil dilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Diarrhea",
+      "Body odor alteration"
+    ],
+    "Mental effects": [
+      "Motivation enhancement",
+      "Memory enhancement",
+      "Emotion suppression",
+      "Thought acceleration",
+      "Time distortion",
+      "Anxiety",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Emotion intensification",
+      "Depression reduction",
+      "Focus intensification"
+    ],
+    "Sensory effects": [
+      "Photophobia"
+    ],
+    "Uncategorized effects": []
+  }
+}

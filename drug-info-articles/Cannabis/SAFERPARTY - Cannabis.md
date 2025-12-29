@@ -1,0 +1,38 @@
+# Cannabis
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+The most important of a total of 400 active ingredients are THC (tetrahydrocannabinol) and CBD (cannabidiol), with THC being responsible for the majority of the psychoactive effects felt. CBD also has analgesic, sedative and narcotic effects.
+The main cannabis active substances THC and CBD dock in the body to the cannabinoid receptors CB1 and CB2. This activates the body's own messenger substance endocannabinoid. This has a relaxing, appetite-stimulating, calming and pain-relieving effect. Feelings are intensified, serenity and/or groundless cheerfulness set in. The experience of time is changed, usually slowed down. In high doses and CBD-free varieties, cannabis can have hallucinogenic effects. Since it is usually consumed together with tobacco, the joint-typical effect is an interaction between cannabis and tobacco. This usually leads to an intensification and prolongation of the effect, as tobacco inhibits the degradation of endocannabinoids. 
+
+## Dosage
+The main active ingredient content and the ratio of THC to CBD differ greatly depending on the product. Therefore, the dosage is difficult to determine. Hashish contains on average more THC and mostly CBD. Outdoor weed varieties contain less THC and less CBD, while indoor weed varieties contain mainly THC and rarely CBD.
+
+## Risks
+
+### Short-term Risks
+Increase in heart rate and pulse rate, reddening of the eyes, dry mouth, excessive feeling of hunger (binge eating), dizziness, nausea and vomiting, general impairment of the ability to concentrate and remember during intoxication, as well as unpleasant intensification of feelings or introversion, drifting into one's own world of thoughts. At high doses and varieties with little CBD, circulatory problems up to circulatory collapse, in the worst case paranoia and depressive moods may occur.
+When consuming cannabis products, the dosage is more difficult to estimate, making the risks and side effects more unpredictable.
+
+### Long-term Risks
+With frequent and regular use, there is a risk of psychological dependence. Symptoms of mild physical dependence may also manifest themselves; in the case of sudden abstinence, sweating, hot/cold shivers, loss of appetite and difficulty falling asleep as well as irritability are possible. In the case of chronic use, there is a danger of loss of reality; latent psychoses can be triggered. In addition, long-term impairment of short-term memory and the ability to motivate oneself is possible.
+Smoking, especially when mixed with tobacco, increases susceptibility to respiratory problems (bronchitis, tracheitis, pneumonia, etc.) when consumed chronically. Due to the deeper inhalation as well as poorer filtering methods (such as cardboard filters), joints are more harmful to the lungs than cigarettes.
+
+## Safer Use
+- Currently, there are many misdeclared and stretched cannabis products in circulation. Therefore, if possible, use cannabis drug checking and follow the safer use instructions for synthetic cannabinoids.
+- When using new cannabis products for the first time, try a small amount first to see if you notice any suspicious effects (e.g. rapid onset of effects, unusually strong effects, etc.).
+- Cannabis products temporarily affect the ability to remember and concentrate. Consumption at work and at school is therefore not advisable.
+- When smoking, make sure you use good filtering methods (activated carbon filters) or use a vaporizer.
+- Since cannabis products are used mixed with tobacco, there is also a tobacco addiction with daily use. There are some tobacco substitutes such as damiana or coltsfoot that you can use instead of tobacco.
+- Eating or drinking cannabis products is easy on the lungs, but the effects are stronger and more unpredictable than smoking. The risk of very high and highly psychoactive doses is high. Carefully approach the right dose, don't add more right away!
+- Since the brain is developing until the age of 25, you should not use regularly until that age. You are more likely to be exposed to side effects and long-term risks from cannabis use.
+- Do not consume if you are not well, latent psychoses could be triggered.
+- In the case of mental illness, cannabis can aggravate the course of the disease or lead to relapses.
+- Cannabis use should be avoided in cases of lung disease and existing heart conditions or heart disease.
+
+## Adulterants & Extenders
+
+### Common Adulterants
+
+**Synthetic Cannabinoids**
+Synthetic cannabinoids (also described in the literature as cannabimimetics or cannabinoid receptor agonists) are classified as "new psychoactive substances" (NPS). There is little information available on the effects, risks, long-term consequences and interactions.

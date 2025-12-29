@@ -1,0 +1,229 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Etizolam",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Etizolam.shtml",
+  "name": "Etizolam",
+  "aliases": [
+    "depas",
+    "etilaam",
+    "etiz",
+    "etizest",
+    "etizola",
+    "inxity",
+    "lamet",
+    "sedekopan",
+    "towa",
+    "zoly"
+  ],
+  "aliasesStr": "depas,etilaam,etiz,etizest,etizola,inxity,lamet,sedekopan,towa,zoly",
+  "summary": "A thienodiazepine anxiolytic. Similar in action to benzodiazepine drugs. Relieves anxiety, causes sedation and mild euphoria. High doses can lead to losing memory of what happened while on the drug. Users often compulsively re-dose frequently leading to accidental blackouts. Can be found in pressed pharmaceutical pills from various countries, clandestine pill presses, or as a powder",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol or opioids"
+  ],
+  "addictionPotential": "highly addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "benzodiazepine",
+    "thienodiazepine"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 1 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "2 - 5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "5 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "5.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ],
+      "bioavailability": "93%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "anxiolytic, hypnotic, sedative, muscle relaxant, amnesia, dystaxia",
+  "categorized_effects": {
+    "Physical effects": [
+      "hypnotic",
+      "sedative",
+      "muscle relaxant",
+      "dystaxia"
+    ],
+    "Mental effects": [
+      "anxiolytic",
+      "amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

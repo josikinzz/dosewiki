@@ -1,0 +1,103 @@
+{
+  "url": "https://drugs.tripsit.me/neb",
+  "experiencesUrl": "https://www.reddit.com/search/?q=NEB",
+  "name": "NEB",
+  "aliases": [
+    "n-ethylbuphedrone"
+  ],
+  "aliasesStr": "n-ethylbuphedrone",
+  "summary": "N-Ethylbuphedrone, an uncommon substituted cathinone. First appeared around 2011 but has not become popular. Effects should somewhat resemble other cathinones generally. Short-acting stimulating with more dopamine action than serotonin.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Common",
+          "value": "15-30mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30-45mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "30mg"
+        },
+        {
+          "name": "Light",
+          "value": "30-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-80mg"
+        },
+        {
+          "name": "Strong",
+          "value": "80-100mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

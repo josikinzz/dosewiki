@@ -1,0 +1,38 @@
+{
+  "url": "https://psychonautwiki.org/wiki/8-Chlorotheophylline",
+  "experiencesUrl": "https://www.reddit.com/search/?q=8-Chlorotheophylline",
+  "name": "8-Chlorotheophylline",
+  "aliases": [
+    "8-ctp"
+  ],
+  "aliasesStr": "8-ctp",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Xanthines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": "",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "url": "https://drugs.tripsit.me/4-mpd",
+  "experiencesUrl": "https://www.reddit.com/search/?q=4-MPD",
+  "name": "4-MPD",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Stimulant of the cathinone class. Higher homologue of Mephedrone, and the p-Methyl analogue of Pentedrone.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

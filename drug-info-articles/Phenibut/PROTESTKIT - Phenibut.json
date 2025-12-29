@@ -1,0 +1,206 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Phenibut",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Phenibut",
+  "name": "Phenibut",
+  "aliases": [
+    "fenibut",
+    "phenybut",
+    "phgaba"
+  ],
+  "aliasesStr": "fenibut,phenybut,phgaba",
+  "summary": "A derivative of GABA with the addition of a phenyl ring which allows it to cross the Blood Brain Barrier. Is mostly used as an anti-anxiety and anti-insomnia medication. Tolerance and physical dependency builds very quickly.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Gabapentinoids"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "low toxicity",
+    "potentially lethal when mixed with depressants like alcohol, benzodiazepines or opioids"
+  ],
+  "addictionPotential": "moderately physically and psychologically addictive",
+  "tolerance": {
+    "full": "within a couple of days of continuous use",
+    "half": null,
+    "zero": "7 - 14 days"
+  },
+  "crossTolerances": [
+    "GABA"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.25 g"
+        },
+        {
+          "name": "Light",
+          "value": "0.5 - 1 g"
+        },
+        {
+          "name": "Common",
+          "value": "1 - 2 g"
+        },
+        {
+          "name": "Strong",
+          "value": "2 - 3.5 g"
+        },
+        {
+          "name": "Heavy",
+          "value": "3.5 g +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "10.0 - 16.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Caution"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "increased seizure risk",
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "url": "https://drugs.tripsit.me/mdoh",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MDOH.shtml",
+  "name": "MDOH",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An entactogen, stimulant and psychedelic first synthesised by Alexander Shulgin, MDOH is an analogue of MDA. Described as highly psychedelic, it is likely a serotonin releasing agent. It has not seen widespread use, perhaps due to a number of reported negative side effects such as urinary retention and a heavy comedown.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "80mg"
+        },
+        {
+          "name": "Light",
+          "value": "100-120mg"
+        },
+        {
+          "name": "Common",
+          "value": "120-150mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Isopropylphenidate",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Isopropylphenidate.shtml",
+  "name": "Isopropylphenidate",
+  "aliases": [
+    "iph",
+    "ipp",
+    "ippd",
+    "ipph"
+  ],
+  "aliasesStr": "iph,ipp,ippd,ipph",
+  "summary": "IPPH (or incorrectly IPH) is a novel piperidine based methylphenidate analogue and NDRI stimulant, but comes with much less physical side effects.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dopamine",
+    "stimulant"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 45 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "45 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.5 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 35 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "35 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.08 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.5 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Thought connectivity, Motivation enhancement, Dehydration, Vasoconstriction, Thought acceleration, Increased libido, Time distortion, Analysis enhancement, Cognitive euphoria, Depression, Anxiety, Irritability, Thought deceleration, Stimulation, Wakefulness, Mouth numbing, Appetite suppression, Increased heart rate, Increased music appreciation, Dry mouth, Teeth grinding, Compulsive redosing, Cognitive fatigue, Focus intensification, Stamina intensification, Motivation depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Stimulation",
+      "Mouth numbing",
+      "Appetite suppression",
+      "Dry mouth",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Thought connectivity",
+      "Motivation enhancement",
+      "Thought acceleration",
+      "Time distortion",
+      "Analysis enhancement",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Irritability",
+      "Thought deceleration",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Cognitive fatigue",
+      "Focus intensification",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Increased libido"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Compulsive redosing"
+    ]
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "url": "https://psychonautwiki.org/wiki/4-HO-MET",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HOMET.shtml",
+  "name": "4-HO-MET",
+  "aliases": [
+    "4homet",
+    "colour",
+    "ethocin",
+    "homet",
+    "methylcybin",
+    "metocin"
+  ],
+  "aliasesStr": "4homet,colour,ethocin,homet,methylcybin,metocin",
+  "summary": "A lesser known psychedelic tryptamine. Functional analogue of Psilocin. Very poorly soluble in water and alcohol.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 35 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "35 - 60 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "60 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 2.0 minutes"
+        },
+        {
+          "name": "Total",
+          "value": "25.0 - 45.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25 - 45 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "45 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.67 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intravenous",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.42 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 7.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "A trip similar to mushrooms, hallucination and general shift in consciousness.",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "A trip similar to mushrooms",
+      "hallucination and general shift in consciousness."
+    ]
+  }
+}

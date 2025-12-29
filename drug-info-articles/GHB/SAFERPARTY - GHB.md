@@ -1,0 +1,24 @@
+# GHB
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+The effect is extremely dose-dependent and varies greatly from individual to individual. It also depends on the purity of the substance. The spectrum of effects ranges from euphoria, relaxation, disinhibition, intensification of perception, urge to talk (babble flash), slight dizziness and drowsiness to deep (coma-like) sleep or unconsciousness.
+
+## Risks
+
+### Short-term Risks
+The higher the dose, the more likely nausea, vomiting and dizziness will occur. Headaches, confusion, breathing difficulties, cardiac arrhythmias, impaired balance and memory can occur at very high doses, as can uncontrollable muscle twitching, which is easily mistaken for epilepsy but can also progress into epilepsy.
+The danger of an unintentional overdose is very high with GHB - even if it is not mixed! Signs of a GHB overdose are severe drowsiness followed by several hours of deep sleep that cannot be disturbed or can only be disturbed with difficulty (sometimes interrupted by short periods of wakefulness = standing man symptom), mild to very severe nausea, nausea, dizziness, headache, muscle atrophy (barely able to stay on one's feet) up to complete immobility, unconsciousness, disappearance of reflexes and breathing difficulties. It is difficult to assess whether users are only in a deep sleep or already in a coma after GHB use - if in doubt, always seek medical help!
+
+### Long-term Risks
+Regular use of GHB/GBL can lead to sleep disorders, anxiety and tremors; there is a risk of dependence with psychological and physical symptoms. In the case of chronic high-dose consumption (several doses daily), severe physical withdrawal symptoms such as sweating, muscle cramps or epileptic seizures occur upon discontinuation.
+
+## Safer Use
+- If you are offered GHB, ask about the origin of the substance and the dosage.
+- Dose carefully! If GHB does not (yet) work, it is best to wait 2 hours and not add more right away. Often, overdosing is caused by adding more. Use an insulin syringe or graduated pipettes so that you can measure your unit of consumption accurately. Make a note of when you took your last dose.
+- Refrain from using GHB when you are alone.
+- With GHB, refrain from mixed consumption of any kind, especially with alcohol! Dilute the liquid before consumption, e.g. with tea.
+- If you have sex on GHB, follow the safe sex rules. Have condoms etc. ready before consumption.
+- People with epilepsy, heart or kidney dysfunction should not consume GHB under any circumstances!
+- GHB withdrawal should only be carried out under medical supervision.
+- Never leave your drink unattended to avoid someone mixing GHB into your drink. If your drink tastes strange, pour it out for your own safety.

@@ -1,0 +1,314 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Dextromethorphan",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DXM.shtml",
+  "name": "Dextromethorphan",
+  "aliases": [
+    "delsym",
+    "dex",
+    "dexalone",
+    "dm",
+    "dmo",
+    "duract",
+    "dxm",
+    "robitussin",
+    "robo",
+    "robotussin",
+    "syrup"
+  ],
+  "aliasesStr": "delsym,dex,dexalone,dm,dmo,duract,dxm,robitussin,robo,robotussin,syrup",
+  "summary": "Commonly found in certain over the counter cough medicines. Has dissociative effects similar to ketamine or MXE, though also shares properties with opioids and alcohol. Make sure DXM is the only active ingredient in the preparation.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "produces dependence with chronic use and has moderate abuse potential",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociatives"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "75 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 200 mg"
+        },
+        {
+          "name": "Common",
+          "value": "200 - 400 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "400 - 700 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "700 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 2.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 12.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Caution"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MMC class",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Empathy, affection and sociability enhancement, Synaesthesia, Magnification, Double vision, Vibrating vision, Depth perception distortions, Tracers, Scenery slicing, Visual haze, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Difficulty urinating, Dizziness, Itchiness, Spontaneous bodily sensations, Changes in felt bodily form, Physical autonomy, Physical euphoria, Pupil dilation, Increased libido, Ego inflation, Dream potentiation, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Delusion, Unity and interconnectedness, Cognitive euphoria, Anxiety, Visual disconnection, Thought deceleration, Personal bias suppression, Memory suppression, Disinhibition, Bodily control enhancement, Stimulation, Wakefulness, Tactile suppression, Sedation, Perception of bodily lightness, Motor control loss, Temperature regulation suppression, Appetite suppression, Pain relief, Cough suppression, Drifting, Color enhancement, Increased heart rate, Increased blood pressure, Muscle relaxation, Increased perspiration, Anxiety suppression, Increased music appreciation, Increased sense of humor, Existential self-realization, After images, Creativity enhancement, Confusion, Depersonalization, Cognitive fatigue, Derealization, Increased bodily temperature, Amnesia, Gustatory hallucination, Emotion intensification, Visual acuity suppression, Sleepiness, Decreased libido, Focus suppression, Spatial disorientation, Optical sliding, Gait alteration, Peripheral vision enhancement, Visual stretching, Perspective hallucination, Muscle twitching, Visual processing acceleration, Immersion intensification, Personal meaning intensification, Spirituality intensification, Auditory acuity enhancement, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Motivation depression, Orgasm depression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Difficulty urinating",
+      "Dizziness",
+      "Itchiness",
+      "Physical euphoria",
+      "Pupil dilation",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Sedation",
+      "Motor control loss",
+      "Temperature regulation suppression",
+      "Appetite suppression",
+      "Pain relief",
+      "Cough suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle relaxation",
+      "Increased perspiration",
+      "Increased bodily temperature",
+      "Sleepiness",
+      "Gait alteration",
+      "Muscle twitching"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Empathy",
+      "affection and sociability enhancement",
+      "Depth perception distortions",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Ego inflation",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Unity and interconnectedness",
+      "Cognitive euphoria",
+      "Anxiety",
+      "Thought deceleration",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Disinhibition",
+      "Wakefulness",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Confusion",
+      "Depersonalization",
+      "Cognitive fatigue",
+      "Derealization",
+      "Amnesia",
+      "Emotion intensification",
+      "Focus suppression",
+      "Spatial disorientation",
+      "Immersion intensification",
+      "Personal meaning intensification",
+      "Spirituality intensification",
+      "Analysis depression",
+      "Motivation depression"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Synaesthesia",
+      "Magnification",
+      "Double vision",
+      "Vibrating vision",
+      "Tracers",
+      "Scenery slicing",
+      "Visual haze",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt bodily form",
+      "Increased libido",
+      "External hallucination",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "After images",
+      "Gustatory hallucination",
+      "Visual acuity suppression",
+      "Decreased libido",
+      "Optical sliding",
+      "Peripheral vision enhancement",
+      "Visual stretching",
+      "Perspective hallucination",
+      "Visual processing acceleration",
+      "Auditory acuity enhancement",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Memantine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Memantine",
+  "name": "Memantine",
+  "aliases": [
+    "both extended-release)",
+    "ebixa",
+    "memaxa",
+    "namenda",
+    "namenda xr",
+    "namzaric (with donepezil"
+  ],
+  "aliasesStr": "both extended-release),ebixa,memaxa,namenda,namenda xr,namzaric (with donepezil",
+  "summary": "An NMDA-antagonist that if used recreationally can cause to a very prolonged \"hole\" lasting up to 16+ hours.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Adamantanes"
+    ],
+    "psychoactive": [
+      "Dissociatives",
+      "Deliriant"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "unknown",
+  "tolerance": null,
+  "crossTolerances": [
+    "dissociatives"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "30 - 70 mg"
+        },
+        {
+          "name": "Common",
+          "value": "70 - 110 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "110 - 170 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "170 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 3.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "3.0 - 12.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "5.0 - 24.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "~ 18 - 36 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "8.0 - 24.0 hours"
+        }
+      ],
+      "bioavailability": "41 - 63%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Motivation enhancement, Machinescapes, Double vision, Depth perception distortions, Symmetrical texture repetition, Scenery slicing, Visual haze, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Difficulty urinating, Dizziness, Constipation, Nausea suppression, Spontaneous bodily sensations, Changes in felt gravity, Physical autonomy, Physical euphoria, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Mindfulness, Conceptual thinking, Scenarios and plots, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Dream suppression, Bodily control enhancement, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Appetite suppression, Pain relief, Cough suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Anxiety suppression, Increased music appreciation, Existential self-realization, After images, Creativity enhancement, Feelings of impending doom, Depersonalization, Derealization, Amnesia, Brightness alteration, Visual acuity suppression, Decreased libido, Mania, Perspective hallucination, Immersion intensification, Personal meaning intensification, Auditory acuity enhancement, Stamina intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Gustatory depression, Orgasm depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Difficulty urinating",
+      "Dizziness",
+      "Constipation",
+      "Nausea suppression",
+      "Physical euphoria",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Motor control loss",
+      "Appetite suppression",
+      "Pain relief",
+      "Cough suppression",
+      "Increased heart rate",
+      "Stamina intensification",
+      "Gustatory depression"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Motivation enhancement",
+      "Machinescapes",
+      "Depth perception distortions",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Mindfulness",
+      "Conceptual thinking",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Dream suppression",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Feelings of impending doom",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Mania",
+      "Immersion intensification",
+      "Personal meaning intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Symmetrical texture repetition",
+      "Scenery slicing",
+      "Visual haze",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Changes in felt gravity",
+      "External hallucination",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "After images",
+      "Brightness alteration",
+      "Visual acuity suppression",
+      "Decreased libido",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Auditory acuity suppression",
+      "Visual processing deceleration",
+      "Orgasm depression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

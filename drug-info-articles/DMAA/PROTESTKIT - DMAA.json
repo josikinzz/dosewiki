@@ -1,0 +1,54 @@
+{
+  "url": "https://drugs.tripsit.me/dmaa",
+  "experiencesUrl": "https://www.reddit.com/search/?q=DMAA",
+  "name": "DMAA",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Also known as methylhexanamine, this sympathetomimetic drug was developed as a nasal decongestant by Eli Lilly in the 1940s. It has been used as a weight loss aid and missold as a dietary supplement and component of some energy drinks. Carries a risk of heart attack, stroke and other life-threatening cardiovascular issues.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Light",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "20-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50-100mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

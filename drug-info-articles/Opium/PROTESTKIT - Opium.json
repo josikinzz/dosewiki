@@ -1,0 +1,69 @@
+{
+  "url": "https://drugs.tripsit.me/opium",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Opium.shtml",
+  "name": "Opium",
+  "aliases": [
+    "o"
+  ],
+  "aliasesStr": "o",
+  "summary": "Opium is a naturally occurring analgesic harvested as a latex from ripe Papaver somniferum (opium poppy) pods. The sap of the poppy plant primarily contains codeine and morphine with the amounts varying by plant, which can be made into a tea and consumed raw, or further processed.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "333-500mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "100mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

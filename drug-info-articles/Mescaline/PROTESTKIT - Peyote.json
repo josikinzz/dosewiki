@@ -1,0 +1,220 @@
+{
+  "url": "https://drugs.tripsit.me/peyote",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Peyote.shtml",
+  "name": "Peyote",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Peyote is a small, spineless cactus that contains mescaline as its primary active chemical. It has a long history of use among the natives of northern Mexico and SW United States.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Dried",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-20g"
+        },
+        {
+          "name": "Common",
+          "value": "20-30g"
+        },
+        {
+          "name": "Strong",
+          "value": "30-40g"
+        },
+        {
+          "name": "Heavy",
+          "value": "40g+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Fresh",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "50-100g"
+        },
+        {
+          "name": "Common",
+          "value": "100-150g"
+        },
+        {
+          "name": "Heavy",
+          "value": "200g+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "feelings of insight, brightening of colors, mood lift, closed and open eye visuals, giggling, increase in energy happy feelings, change in consciousness, loss of appettite, unusla thoughts and speech, mild to extreme distractability, changes in time and reality, changes in self control, ego softening, pupil dialation, body tremors, nausea, chest and neck pain, shortness of",
+  "categorized_effects": {
+    "Physical effects": [
+      "loss of appettite",
+      "pupil dialation",
+      "body tremors",
+      "nausea",
+      "chest and neck pain"
+    ],
+    "Mental effects": [
+      "feelings of insight",
+      "mood lift",
+      "giggling",
+      "increase in energy happy feelings",
+      "change in consciousness",
+      "unusla thoughts and speech",
+      "mild to extreme distractability",
+      "changes in time and reality",
+      "changes in self control",
+      "ego softening"
+    ],
+    "Sensory effects": [
+      "brightening of colors",
+      "closed and open eye visuals"
+    ],
+    "Uncategorized effects": [
+      "shortness of"
+    ]
+  }
+}

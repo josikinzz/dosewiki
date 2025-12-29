@@ -1,0 +1,86 @@
+{
+  "url": "https://drugs.tripsit.me/prl-8-53",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_PRL853.shtml",
+  "name": "PRL-8-53",
+  "aliases": [
+    "prl853"
+  ],
+  "aliasesStr": "prl853",
+  "summary": "A nootropic research chemical first synthesized in the 70s. One study shows a drastic improvement in mid-term memory among users, but otherwise it is severely lacking in information surrounding it. It has no recreational potential.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2-3mg"
+        },
+        {
+          "name": "Light",
+          "value": "3-5mg"
+        },
+        {
+          "name": "Common",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Sublingual",
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

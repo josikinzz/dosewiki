@@ -1,0 +1,90 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Haloperidol",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Haloperidol",
+  "name": "Haloperidol",
+  "aliases": [
+    "haldol"
+  ],
+  "aliasesStr": "haldol",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted piperidines",
+      "Butyrophenone"
+    ],
+    "psychoactive": [
+      "Antipsychotic"
+    ]
+  },
+  "toxicity": [
+    "can have serious side effects at higher dosages",
+    "risk of having severe extrapyramidal symptoms and muscle rigidity"
+  ],
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.25 - 1 mg"
+        },
+        {
+          "name": "Common",
+          "value": "1 - 5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "10 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "12.0 - 36.0 hours"
+        }
+      ],
+      "bioavailability": "60-70%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Dehydration, Difficulty urinating, Constipation, Nausea suppression, Excessive yawning, Dream potentiation, Thought deceleration, Sedation, Respiratory depression, Cognitive fatigue, Muscle tension, Physical fatigue, Sleepiness, Focus suppression",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Difficulty urinating",
+      "Constipation",
+      "Nausea suppression",
+      "Excessive yawning",
+      "Sedation",
+      "Respiratory depression",
+      "Muscle tension",
+      "Physical fatigue",
+      "Sleepiness"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Dream potentiation",
+      "Thought deceleration",
+      "Cognitive fatigue",
+      "Focus suppression"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

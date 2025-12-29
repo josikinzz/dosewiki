@@ -1,0 +1,352 @@
+// Auto-generated - do not edit
+export const substanceName = "DOET";
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOET.md","displayName":"Isomer Design","size":5418},{"id":"protestkit","fileName":"PROTESTKIT - DOET.json","displayName":"Protest Kit","size":4012},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOET.md","displayName":"TripSit Factsheets","size":1080},{"id":"wikipedia","fileName":"WIKIPEDIA - DOET.md","displayName":"Wikipedia","size":15827}];
+export const contents: Record<string, string> = {
+  "isomerdesign": `# DOET
+*Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=66*
+
+*PiHKAL Entry #66*
+
+
+## SYNTHESIS
+A suspension of 6.5 g LAH in 500 mL well stirred anhydrous Et2O was held at reflux under an inert atmosphere, with the return of the condensed solvent passing through a Soxhlet thimble containing 6.5 g 1-(2,5-dimethoxy-4-ethylphenyl)-2-nitropropene. After the addition of the nitrostyrene was complete, the stirred suspension was maintained at reflux for an additional 18 h, then cooled to room temperature. The excess hydride was destroyed with 500 mL 8% H2SO4, added cautiously until the hydrogen evolution ceased, then at a speed that allowed the formed solids to disperse. The phases were separated, the aqueous phase washed once with Et2O, treated with 150 g potassium sodium tartrate, and finally made basic (pH >9) with 5% NaOH. This was extracted with 3Ã100 mL CH2Cl2, the extracts pooled, and the solvent removed under vacuum. The residue, 7.9 g of a clear oil, was dissolved in 100 mL anhydrous Et2O and saturated with anhydrous HCl gas. After standing at room temperature for 2 h, the crystalline 2,5-dimethoxy-4-ethylamphetamine hydrochloride (DOET) was removed by filtration, washed with Et2O, and air dried to constant weight. There was obtained 5.9 g of lustrous white crystal with a mp of 190â191 Â°C. Recrystallization from CH3CN or EtOAc increased the mp to 194â195 Â°C. Anal. (C13H22ClNO2) C,H,N.
+
+
+## DOSAGE
+
+## DURATION
+
+## QUALITATIVE COMMENTS
+(with 2.5 mg) âThere is much, too much, movement with my eyes closed. And an awful lot there with my eyes open. The movement on the concrete floor in the basement when I went downstairs for wood for the fireplace, was too much. I felt almost sea-sick. And I am having reality problemsâI cannot seem to find my centering point of reference. There has to be a place to pin myself down to, and it is not findable anywhere I look. And my legs are twitching, and feeling as if they are falling asleep, and I had a crawling sensation on my body, so the body is not at peace either. In the morning I was still ++, but there is a clear indication that I am repairing. Anyway, I survived the experience. This is definitely not my thing.â
+
+(with 4 mg) âJust after an hour into the experiment, I was surprised by the awareness of some effectsâI had forgotten that I had taken something. At the second hour, it was real, but subtle. As a psychotomimetic or STP-like thing, there is very little there. But as a mood energizer, it is really a ++ or more. The clinical literature is rightânone of the hallucinogenic effects, but one brings into play whatever one wants to. Worked at cleaning up the office until 11 p.m. I slept well. This has none of the LSD or STP seriousness.â
+
+(with 6 mg) âThe onset was slow, and subtle. But the effects are fully there in about three or so hours. Everything I smelled was vivid, as are all the colors and shapes; they are clean, beautiful, serenely self-contained. No visual movement. The eyes-closed fantasy images tend to take off on their own, however, and they are extremely rich. I donât see any dark corners. I believe it might well be possible to be creative with this, and there is no suggestion of body depletion, of body load.â
+
+(with 7 mg) âA hot day. Unbelievably lovely erotic-to-divine, deep loving, open, not much visual, eyes-closed form-image-symbol. Sleep attempts very shallow, slight âthinnessâ, with an anticipation of darts. Intellect and feeling-emotion area intact and functioning at all times. Next morning still at a plus one. Incredible material. Perhaps best at 6 to 7 milligrams, no higher due to body load.â
+
+
+## EXTENSIONS AND COMMENTARY
+The original publications of the action of DOM clearly documented the compound as being a psychedelic and one with a sizeable measure of potential abuse. And, it is not a surprise that it was quickly shuffled into a legal classification that effectively precluded any further study of it. So, when this immediate homologue of DOM was studied and discussed in the literature, all reported dosages were those that were at the lowest levels, and no disturbing hints of abusability were mentioned. And this particular homologue has so far escaped the attention and restrictive action of the drug enforcement agencies, although the specific wording of the Controlled Substance Analogue Enforcement Act of 1986 might make this point moot, at least as far as human trials are concerned. At modest levels, DOET has the reputation of being a cognitive enhancer and is largely free of those sensory distortions that would catch the attention of the authorities who cannot tolerate drugs that distort the senses. The higher levels mentioned here have never been put into the published literature. It must be noted that there is a considerable variation of individual responses to this material. The effective dose range stated is quite broad. Some people are quite sensitive. This is, after all, one of the Classic Ladies, namely HECATE.
+
+The young experimental subject who had the dramatic relief from menstrual cramps at the one milligram dose tried the compound again the following month, and again had complete relief. But another volunteer, also plagued with severe cramping at that particular time of month, found no relief at all. A 50% success rate. No one else has, to my knowledge, explored this particular property.
+
+`,
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/doet",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DOET.shtml",
+  "name": "DOET",
+  "aliases": [
+    "doe"
+  ],
+  "aliasesStr": "doe",
+  "summary": "A potent and long acting psychedelic stimulant and substituted amphetamine, similar in effects to other DOx compounds. First synthesised by Alexander Shulgin.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1mg"
+        },
+        {
+          "name": "Light",
+          "value": "2-4mg"
+        },
+        {
+          "name": "Common",
+          "value": "4-6mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6-10mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "12.0 - 30.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 72.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Unsafe"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Caution"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Caution"
+    },
+    {
+      "name": "DOx",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Caution"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Caution"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Caution"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Caution"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}`,
+  "tripsit-factsheets": `# DOET
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+A potent and long acting psychedelic stimulant and substituted amphetamine, similar in effects to other DOx compounds. First synthesised by Alexander Shulgin.
+
+## Classification
+- **Categories:** psychedelic, research-chemical, tentative
+- **Also known as:** doe
+
+## Dosage
+
+### Oral
+- **Common:** 4-6mg
+- **Light:** 2-4mg
+- **Strong:** 6-10mg
+- **Threshold:** 1mg
+
+*Note:  NOTE: These doses are tentative and it is recommended to do further research.*
+
+## Duration
+- **Onset:** 1-3 hours
+- **Duration:** 12-30 hours
+- **After Effects:** 12-72 hours
+
+## Effects
+- Euphoria
+- empathy
+- insight
+- brightened colour
+- Closed/Open eye visuals
+- enhanced tactile sensation
+- mental/physical stimulation
+- decreased appetite
+- pupil dilation
+- restlessness
+- change in perception
+- ego softening
+- sweating/chills
+- muscle tension
+- confusion
+- insomnia
+
+## External Links
+- [experiences](https://www.erowid.org/experiences/subs/exp_DOET.shtml)
+- [pihkal](https://www.erowid.org/library/books_online/pihkal/pihkal066.shtml)
+`,
+  "wikipedia": `# 2,5-Dimethoxy-4-ethylamphetamine
+*Source: https://en.wikipedia.org/wiki/2,5-Dimethoxy-4-ethylamphetamine*
+
+DOET, also known as 4-ethyl-2,5-dimethoxyamphetamine or as Hecate, is a psychedelic drug of the phenethylamine, amphetamine, and DOx families. It is closely related to DOM and is a synthetic analogue of the naturally occurring phenethylamine psychedelic mescaline. The drug is the derivative of DOM in which the methyl group at the 4 position has been replaced with a ethyl group. It is taken orally. DOET has a slow onset of 1 to 3 hours, a delayed peak of 3 to 5 hours, and a dose-dependent and potentially very long duration of 5 to 20 hours.
+Effects of DOET at low doses include mild euphoria, enhanced self-awareness, and talkativeness, among others. Mild closed-eye visuals can also occur. At higher doses, DOET produces psychedelic effects including heightened emotions, sensory enhancement, rich closed-eye visuals, and open-eye visuals, among others. Physical effects include pupil dilation, increased heart rate, and increased blood pressure. It acts as a selective agonist of the serotonin 5-HT2 receptors, including of the serotonin 5-HT2A, 5-HT2B, and 5-HT2C receptors.
+DOET was first discovered by Alexander Shulgin in the 1960s. It was clinically studied at low and sub-hallucinogenic doses for potential use as a pharmaceutical drug acting as a "psychic energizer" by Dow Chemical Company in the 1960s. However, its development was terminated after DOM emerged as a street drug and caused a small public health crisis in San Francisco in 1967. Nonetheless, DOET's effects at low doses were extensively characterized in small clinical trials. The psychedelic effects of DOET at higher doses were subsequently described by Shulgin in his book PiHKAL (Phenethylamines I Have Known and Loved) in 1991.
+
+## Use and effects
+
+In a 1968 clinical trial, DOET at an oral dose of 1.5 mg (as the hydrochloride salt) produced mild euphoria and enhanced self-awareness, but no hallucinogenic effects (in terms of perceptual distortions or hallucinations/open-eye visuals), marked behavioral changes, or intellectual impairment. Other reported effects included feeling high, feelings of insight, feelings of pleasantness, body image awareness, impatience, slight difficulty concentrating, talkativeness, racing thoughts, mild closed-eye visuals, time dilation in some, feeling alert, and feeling "washed out" after the drug. Some of the effects of DOET in the study resembled those of dextroamphetamine, including talkativeness, euphoria, and feeling alert. The subjective effects began 1 to 1.5 hours after dosing, peaked around 3 to 4 hours after administration, and the duration was about 5 to 6 hours. Pupil dilation was also observed, but there were no marked changes in heart rate or blood pressure. There were also changes on cognitive tests of association and serial learning. The effects of DOET were similar to those of low doses of DOM (2.7–3.3 mg) but DOET appeared to be more potent (with 2.0 mg DOM being indistinguishable from placebo).
+In a subsequent 1971 clinical trial, DOET hydrochloride at oral doses of 0.75 to 4 mg again produced pupil dilation (dose-dependent), mild euphoria, feelings of enhanced self-awareness, and many of the other effects observed in the previous trial. Once again, there were no hallucinogenic effects, aside from closed-eye visuals in a minority of individuals, and there was no cognitive impairment. New assessed and reported effects included feeling relaxed, feelings of unpleasantness in some, lightheadedness, reduced depressive feelings, and feeling anxious or restless. The feelings of nervousness and restlessness occurred more at the higher doses. DOET appeared to show a greater apparent separation between threshold and hallucinogenic doses than had been documented for other psychedelics. Other psychedelics like LSD and DOM show a 2- to 3-fold separation, whereas DOET showed an at least 5-fold separation. The lesser influence of DOET on perceptual processes than equivalent doses of DOM was in spite of the greater potency of DOET than DOM in producing subjective effects in general.
+A third and final 1974 clinical trial assessed oral doses of 1 to 4 mg (S)-(+)-DOET, 1 to 2 mg (R)-(−)-DOET, and 2 to 4 mg (RS)-(±)-DOET. It was found that 1 mg (R)-(−)-DOET was equivalent to 4 mg (S)-(+)-DOET in producing psychoactive effects and hence that (R)-(−)-DOET was about 4 times as potent as (S)-(+)-DOET. The onset was 1.5 to 3 hours, peak effects were at 4 to 5 hours, and the duration was 6 to 10 hours. The subjective effects were similar to the earlier trials, but new reported effects included enhanced perception of all senses, difficult-to-describe cognitive alteration, relaxed well-being, and heightened emotions with rapid mood changes. No hallucinogenic effects or visual distortions with eyes open occurred, but vivid imagery with eyes closed could be experienced at the higher doses.
+Based on the preceding clinical trials, DOET does not produce clear hallucinogenic effects, aside from closed-eye visuals, at doses of up to 4 mg. However, Alexander Shulgin has stated that DOET is psychedelic at doses of 3 mg and above. In his book PiHKAL (Phenethylamines I Have Known and Loved), Shulgin listed the dose of DOET as 2 to 6 mg orally and its duration as 14 to 20 hours. In experience reports of 1 to 7 mg DOET in different individuals, 1 mg produced relaxation but no psychedelic effects; 2.5 mg produced both open- and closed-eye visuals; 4 mg produced mood-energizing effects but very little or no hallucinogenic effect; 6 mg produced sensory enhancement, rich closed-eye visuals, and no open-eye visual movement; and 7 mg produced strong feelings with themes of love, eroticism, and divinity, openness, not much visually, closed-eye visuals, and body load symptoms. There was considerable variation in subjective effects between individuals. Shulgin has described both DOET and DOM as being effective antidepressants at lower doses and DOET as being a cognitive enhancer at modest doses. DOET, also known as Hecate, is one of Shulgin's "ten classic ladies", a series of methylated DOM derivatives.
+In line with notions that DOET is a "psychic energizer", the related psychedelic DOPR has shown pro-motivational effects in rodents at sub-hallucinogenic doses and the related drug Ariadne (4C-DOM) has reportedly shown pro-motivational effects in monkeys despite being non-hallucinogenic. ASR-2001 (2CB-5PrO), a non-hallucinogenic analogue of the related psychedelic 2C-B, is under development for use as a stimulant-like medication for the treatment of psychiatric disorders.
+
+## Interactions
+
+## Pharmacology
+
+### Pharmacodynamics
+
+DOET acts as a selective serotonin 5-HT2 receptor agonist, including of the serotonin 5-HT2A, 5-HT2B, and 5-HT2C receptors. In one study, its affinities (Ki) were 12 nM for the serotonin 5-HT2A receptor, 108 nM for the serotonin 5-HT2C receptor (9-fold lower than for 5-HT2A), and 9,727 nM for the serotonin 5-HT1A receptor (811-fold lower than for 5-HT2A). The drug's EC50Tooltip half-maximal effective concentration for activation of the serotonin 5-HT2A receptor was 1.7 to 8.1 nM depending on the intracellular signaling cascade, while its EmaxTooltip maximal efficacy was 99%. At the serotonin 5-HT2B receptor, its EC50 was 68 nM (8- to 40-fold lower than for 5-HT2A) and its Emax was 73%. DOET is a full agonist of the serotonin 5-HT2A receptor and a high-efficacy partial agonist of the serotonin 5-HT2B and 5-HT2C receptors. The drug is a very weak or inactive agonist of the human trace amine-associated receptor 1 (TAAR1) and is inactive at the rhesus monkey TAAR1. In contrast to many other amphetamines, but like other DOx drugs, DOET does not bind to the monoamine transporters.
+DOET produces the head-twitch response (HTR), a behavioral proxy of psychedelic effects, in rodents. As with other psychedelics, DOET shows a biphasic or inverted U-shaped dose–response curve for production of the HTR. The drug induces the HTR to a similar maximal extent as other related psychedelics like DOM and DOI. DOET substitutes for the phenethylamine psychedelics mescaline and DOM, partially substitutes for the tryptamine psychedelic 5-MeO-DMT, and does not substitute for the psychostimulant dextroamphetamine in animal drug discrimination tests. DOET produces hyperlocomotion in mice. However, like other psychedelics, it shows a biphasic or inverted U-shaped dose–response curve, increasing locomotor activity at low to moderate doses and reducing it at high doses. DOET produces serotonin receptor-dependent pressor and hyperthermic effects in rodents.
+
+### Pharmacokinetics
+
+In terms of effects in humans, the onset of lower doses of DOET and its individual enantiomers (0.75–4 mg) is 1 to 3 hours, peak effects occur after 3 to 5 hours, and the duration is 5 to 10 hours. At higher doses of DOET (2 to 6 mg), the duration was reported to be 14 to 20 hours. DOET, like other DOx drugs, has an unusually slow onset and long duration. The drug crosses the blood–brain barrier in rodents. DOET is metabolized by oxidation of the ethyl group at the 4 position in rodents. It appears to be metabolized more quickly than DOM. In humans, DOET is excreted 10 to 40% in urine unchanged within 24 hours. The greatest excretion rate occurred between 3 and 6 hours.
+
+## Chemistry
+
+DOET, also known as 4-ethyl-2,5-dimethoxyamphetamine or as 4-ethyl-2,5-dimethoxy-α-methylphenethylamine, is a substituted phenethylamine and amphetamine and is a member of the DOx group of drugs. It is structurally related to the naturally occurring phenethylamine psychedelic mescaline (3,4,5-trimethoxyphenethylamine).
+
+### Synthesis
+
+The chemical synthesis of DOET has been described.
+
+### Analogues
+
+Analogues of DOET include other DOx drugs such as DOM, DOPR, DOBU, DOAM, DOB, and DOI. The α-desmethyl or phenethylamine analogue of DOET is 2C-E. Ariadne is the α-ethyl or phenylisobutylamine analogue of DOM.
+
+## History
+
+DOET was discovered by Alexander Shulgin in the 1960s. He assessed DOET after synthesizing DOM in 1963 and discovering DOM's psychedelic effects in 1964. Shulgin found that DOET was a remarkable "psychic energizer" at low doses without producing psychedelic effects at these doses. The effects that he experienced included positive mood, talkativeness, and disinhibition that lasted the whole day. In contrast to Shulgin however, a friend and colleague of Shulgin's that he had try DOET a month later only experienced intense lethargy followed by profound depression after taking the drug. Nonetheless, Shulgin's enthusiasm was not dissuaded, and he felt that the drug should be exploited. Shulgin was working at Dow Chemical Company at the time, and he pitched DOET to the company. They selected DOET as a promising compound and decided to move forward with clinical trials for potential use as a pharmaceutical drug. Shulgin and the company filed a patent for DOET in 1966, which was published in 1970. Dow Chemical Company tasked neuroscientist Solomon H. Snyder at Johns Hopkins University with clinically studying DOET.
+In 1967, DOM emerged as a street drug and LSD replacement with the name "STP" in San Francisco and caused a small public health crisis. This occurred after LSD distributor Owsley Stanley learned of DOM from Shulgin and began distributing very-high-dose DOM tablets for free. LSD had become illegal in California in 1966 and an alternative had been sought by Stanley. The DOET tablets he distributed could have very long durations (up to 3–4 days) and resulted in intense experiences, worrying physical side effects, and hospitalizations. DOM was first described in the media and scientific literature in 1967 as a result of the crisis. The drug became illegal in the United States in 1968. It is unclear why Shulgin told Stanley about DOM and risked his professional career as well as the DOET clinical development. However, it might have been because Shulgin felt that DOM was a promising compound but was not being further pursued by Dow Chemical Company and would otherwise be forgotten.
+Dow Chemical Company terminated its clinical research program on DOET due to the DOM public health crisis. DOET was subsequently first described in the scientific literature by Snyder and colleagues in 1968. Snyder continued to be interested in DOET as a potential medicine, but it was never further developed. Snyder conducted and published a series of three clinical trials of low-dose DOET between 1968 and 1974. In these trials, he compared DOET with DOM, dextroamphetamine, and placebo. As with Shulgin, he found DOET to produce amphetamine-like mild euphoria and talkativeness, among other effects, without producing significant hallucinogenic effects at the assessed doses. Snyder also studied the individual enantiomers of DOET. Shulgin first discussed DOET in publications in 1969 and 1970. DOET became a Schedule I controlled substance in the United States in February 1973.
+Ariadne (4C-D, 4C-DOM, BL-3912, Dimoxamine), the α-ethyl or phenylisobutylamine analogue of DOM, was developed by Shulgin in the 1970s. He found it to be psychoactive and to produce "the alert of a psychedelic, with none of the rest of the package". This threshold psychoactivity without psychedelic effects was reminiscent of low doses of DOET. However, in contrast to DOET and other DOx drugs like DOM, Ariadne remained completely non-hallucinogenic even at very high doses, showing a hard ceiling to its psychoactive effects and a lack of recreational potential. Ariadne was patented and developed by Shulgin and Bristol Laboratories for potential use as an antidepressant and for a variety of other clinical indications in the 1970s. (R)-Ariadne (BL-3912A) completed phase 2 clinical trials and showed promising initial clinical benefits. However, further clinical development was halted for strategic economic reasons. In 2023, Ariadne was found to exhibit reduced-efficacy partial agonism of the serotonin 5-HT2A receptor compared to DOM, and this was considered to account for its dramatically reduced hallucinogenic potential.
+Shulgin first synthesized 2C-E, the α-desmethyl or phenethylamine analogue of DOET, in 1977. Shulgin first published reports describing the psychedelic effects of higher doses of DOET in PiHKAL in 1991. Prior to this, no reports had clearly been published of hallucinogenic effects of DOET, although Snyder had observed some closed-eye visuals with low-dose DOET in his clinical trials. Shulgin also described 2C-E as producing robust psychedelic effects in PiHKAL, though with much higher doses required than DOET.
+
+## Society and culture
+
+### Names
+
+DOET was originally named DOE by Alexander Shulgin. However, he subsequently recalled that this was also an acronym for desoxyephedrine (methamphetamine). As a result, he changed his name for the drug from DOE to DOET or DOEt. Other names that Shulgin has given DOET have included HECATE or Hecate (after the Greek goddess) and DMEA (short for dimethoxyethylamphetamine).
+
+### Legal status
+
+#### United Nations
+
+Internationally, DOET is a Schedule I controlled drug; under the Convention on Psychotropic Substances, it is legal only for medical uses or scientific research.
+
+#### Australia
+
+DOET is considered a Schedule 9 prohibited substance in Australia under the Poisons Standard (October 2015). A Schedule 9 substance is a substance which may be abused or misused, the manufacture, possession, sale or use of which should be prohibited by law except when required for medical or scientific research, or for analytical, teaching or training purposes with approval of Commonwealth and/or State or Territory Health Authorities.
+
+#### United States
+
+DOET is classified as a Schedule I substance in the United States.
+`,
+};

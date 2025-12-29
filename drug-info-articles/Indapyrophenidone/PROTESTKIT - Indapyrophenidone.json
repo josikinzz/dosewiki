@@ -1,0 +1,89 @@
+{
+  "url": "https://drugs.tripsit.me/indapyrophenidone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Indapyrophenidone",
+  "name": "Indapyrophenidone",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Indane analogue of Pyrophenidone, a NDRI stimulant with a short duration.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "20-40mg"
+        },
+        {
+          "name": "Common",
+          "value": "40-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-90mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "90mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "1.0 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-25mg"
+        },
+        {
+          "name": "Strong",
+          "value": "25-50mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50mg+."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

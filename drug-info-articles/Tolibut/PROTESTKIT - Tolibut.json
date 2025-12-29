@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/tolibut",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tolibut",
+  "name": "Tolibut",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Analogue of GABA, and the 4-methyl analogue of Phenibut. Has similar effects, acts on GABA(B).",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

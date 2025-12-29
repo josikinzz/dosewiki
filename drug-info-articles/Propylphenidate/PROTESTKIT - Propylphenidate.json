@@ -1,0 +1,64 @@
+{
+  "url": "https://drugs.tripsit.me/propylphenidate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Propylphenidate",
+  "name": "Propylphenidate",
+  "aliases": [
+    "pph"
+  ],
+  "aliasesStr": "pph",
+  "summary": "Propylphenidate is a short acting stimulant.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "15-25mg"
+        },
+        {
+          "name": "Common",
+          "value": "25-60mg"
+        },
+        {
+          "name": "Strong",
+          "value": "60-100mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "100mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.42 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "url": "https://psychonautwiki.org/wiki/MCPP",
+  "experiencesUrl": "https://www.reddit.com/search/?q=MCPP",
+  "name": "MCPP",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A phenylpiperazine stimulant first developed in the 1970s before being sold in the RC market, often mislabelled as MDMA. Said to have very unpleasant effects such as anxiogenesis and headaches.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted piperazines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "15 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 50 mg"
+        },
+        {
+          "name": "Common",
+          "value": "50 - 120 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "120 - 150 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "150 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "30.0 - 30.0 minutes"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Tracers, Dehydration, Nausea, Headache, Vasoconstriction, Difficulty urinating, Temporary erectile dysfunction, Pupil dilation, Depression, Anxiety, Stimulation, Perception of bodily heaviness, Appetite suppression, Drifting, Feelings of impending doom, Abnormal heartbeat, Teeth grinding, Increased bodily temperature, Cognitive dysphoria, Decreased libido",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Difficulty urinating",
+      "Pupil dilation",
+      "Stimulation",
+      "Appetite suppression",
+      "Abnormal heartbeat",
+      "Increased bodily temperature"
+    ],
+    "Mental effects": [
+      "Anxiety",
+      "Feelings of impending doom",
+      "Cognitive dysphoria"
+    ],
+    "Sensory effects": [
+      "Tracers",
+      "Perception of bodily heaviness",
+      "Decreased libido"
+    ],
+    "Uncategorized effects": [
+      "Depression",
+      "Drifting"
+    ]
+  }
+}

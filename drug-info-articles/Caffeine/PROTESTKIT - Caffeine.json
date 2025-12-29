@@ -1,0 +1,321 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Caffeine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Caffeine.shtml",
+  "name": "Caffeine",
+  "aliases": [
+    "coffee"
+  ],
+  "aliasesStr": "coffee",
+  "summary": "Caffeine is a a CNS stimulant, and also the most widely used psychoactive substance in the world. It is legal and unregulated in most parts of the world, and is found in many commonly sold products. It has a good safety profile, though regular heavy use can cause physical dependence and contribute to certain medical conditions.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Xanthines"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": [
+    "The LD50 of caffeine in humans is dependent on individual sensitivity, but is estimated to be about 150 to 200 milligrams per kilogram of body mass or roughly 80 to 100 cups of coffee for an average adult"
+  ],
+  "addictionPotential": "develop with regular consumption, leading to cravings and withdrawal effects upon sudden cessation, but has low abuse potential",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "25 - 75 mg"
+        },
+        {
+          "name": "Common",
+          "value": "75 - 125 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "125 - 175 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "175 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.08 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.17 - 0.33 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.5 - 0.75 hours"
+        },
+        {
+          "name": "Total",
+          "value": "0.75 - 1.17 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ],
+      "bioavailability": "Vaped (not effective when smoked)."
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "10 mg"
+        },
+        {
+          "name": "Light",
+          "value": "20 - 50 mg"
+        },
+        {
+          "name": "Common",
+          "value": "50 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 500 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "500 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.17 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 4.0 hours"
+        }
+      ],
+      "bioavailability": "~100%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 40 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40 - 80 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "80 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.01 - 0.03 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.01 - 0.03 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "6.0 - 10.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.0 - 2.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "6.0 - 24.0 hours"
+        }
+      ],
+      "bioavailability": "Caffeine's poor water solubility significantly limits its absorption through nasal membranes."
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Caution"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Low Risk & No Synergy"
+    }
+  ],
+  "effects": "elevated heartrate, increase in cognitive abilities, physical agitation, panicked thinking, racing thoughts, uncomfortable bodyload",
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding",
+      "elevated heartrate",
+      "physical agitation",
+      "uncomfortable bodyload"
+    ],
+    "Mental effects": [
+      "increase in cognitive abilities",
+      "panicked thinking",
+      "racing thoughts"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

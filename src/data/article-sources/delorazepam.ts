@@ -1,0 +1,269 @@
+// Auto-generated - do not edit
+export const substanceName = "Delorazepam";
+export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Delorazepam.json","displayName":"Protest Kit","size":3853},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Delorazepam.md","displayName":"TripSit Factsheets","size":938},{"id":"wikipedia","fileName":"WIKIPEDIA - Delorazepam.md","displayName":"Wikipedia","size":7498}];
+export const contents: Record<string, string> = {
+  "protestkit": `{
+  "url": "https://drugs.tripsit.me/delorazepam",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Delorazepam",
+  "name": "Delorazepam",
+  "aliases": [
+    "nordiclazepam"
+  ],
+  "aliasesStr": "nordiclazepam",
+  "summary": "Also known as chlordesmethyldiazepam, this uncommon benzodiazepine compound is primarily used for treatment of anxiety and alcohol withdrawal, due to its long half-life (60-140 hours). It is also the active metabolite of diclazepam and cloxazolam.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.25-0.5mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.5-1.5mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1.5-2mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2-3mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "12.0 - 16.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "72.0 - 72.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "DXM",
+      "status": "Caution"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Caution"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MXE",
+      "status": "Caution"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Opioids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "PDA5",
+      "status": "Caution"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Unsafe"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}`,
+  "tripsit-factsheets": `# Delorazepam
+*Source: TripSit Factsheets (tripsit.me)*
+
+## Summary
+
+THe drug is also known as chlordesmethyldiazepam. This uncommon benzodiazepine compound is primarily used for treatment of anxiety disorders and alcohol withdrawal, due to its long half-life (60-140 hours). It is also the active metabolite of diclazepam and cloxazolam.
+
+## Classification
+- **Categories:** benzodiazepine, habit-forming, depressant
+- **Also known as:** nordiclazepam
+
+## Dosage
+
+### Oral
+- **Common:** 0.5-1.5mg
+- **Heavy:** 2-3mg
+- **Light:** 0.25-0.5mg
+- **Strong:** 1.5-2mg
+
+*Note:  NOTE: Higher doses increase the chances of blacking out. 1mg Delorazepam is approximately equal to 10mg Diazepam.*
+
+## Duration
+- **Onset:** 30-60 minutes
+- **Duration:** 12-16 hours
+- **After Effects:** 72 hours
+
+## Effects
+- Anxiolytic
+- Sedative
+- Muscle Relaxant
+- Amnesia
+- Dystaxia
+- Hypnotic
+
+## Additional Information
+- **Avoid:** All other CNS depressants.
+`,
+  "wikipedia": `# Delorazepam
+*Source: https://en.wikipedia.org/wiki/Delorazepam*
+
+Delorazepam, also known as chlordesmethyldiazepam and nordiclazepam, is a drug which is a benzodiazepine and a derivative of desmethyldiazepam. It is marketed in Italy, where it is available under the trade name EN. Delorazepam is also an active metabolite of the benzodiazepine drugs diclazepam and cloxazolam. 
+Adverse effects may include hangover-type effects, drowsiness, behavioural impairments, and short-term memory impairments. Similar to other benzodiazepines delorazepam has anxiolytic, skeletal muscle relaxant, hypnotic, and anticonvulsant properties.
+
+## Indications
+
+Delorazepam is mainly used as an anxiolytic because of its long elimination half-life; showing superiority over the short-acting drug lorazepam. In comparison with the antidepressant drugs, paroxetine and imipramine, delorazepam was found to be more effective in the short-term but after 4 weeks the antidepressants showed superior anti-anxiety effects.
+Delorazepam is also used as a premedication for dental phobia for its anxiolytic properties. High doses of Delorazepam may be administered the night before a dental (or other medical) procedure in order to provide relief from anxiety-associated insomnia that night with the effects persisting long enough to sufficiently treat anxiety the next day.
+Delorazepam has also demonstrated effectiveness in treating alcohol withdrawal.
+
+### Availability
+
+Delorazepam is available in tablet and liquid drop formulations. The liquid drop formulation is absorbed more quickly and has improved bioavailability. It is also available as an injectable solution for intravenous and intramuscular administration.
+
+## Pharmacology
+
+Delorazepam is well absorbed after administration, reaching peak plasma levels within 1 – 2 hours. It has a very long elimination half-life and can still be detected 72 hours after dosing. Bioavailability is about 77 percent. Peak plasma levels occur at just over one hour after administration. Significant accumulation occurs of delorazepam due to its slow metabolism; the elderly metabolise delorazepam and its active metabolite slower than younger individuals, resulting in a dose of delorazepam accumulating faster and peaking at a higher plasma concentration than an equal dose administered to a younger individual. The elderly also have a poorer response to the therapeutic effects and a higher rate of adverse effects. The elimination half-life of delorazepam is 80–115 hours. The active metabolite of delorazepam is lorazepam and represents about 15 - 24 percent of the parent drug (delorazepam). The pharmacokinetics of delorazepam are not altered if it is taken with food, except for some slowing of absorption. Delorazepams potency is approximately equal to that of lorazepam, being ten times more potent by weight than diazepam (1 mg delorazepam = 1 mg lorazepam = 5 mg diazepam), typical doses range from 0.5 mg - 2 mg. Treatment is generally initiated at 1 mg for healthy adults and 0.5 mg in pediatric and geriatric patients and patients with mild renal impairment, treatment is contraindicated in patients with moderate or severe renal impairment.
+
+## Side effects and contraindications
+
+Delorazepam hosts all the classic side-effects of GABAA positive allosteric modulators (like other  benzodiazepines). These include sedation/somnolence, dizziness/ataxia, amnesia, reduced inhibition, increased talkativeness/sociability, euphoria, impaired judgement, hallucinations, and respiratory depression. Paradoxical reactions including increased anxiety, excitation, and aggression may occur and are more common in elderly, pediatric, and schizophrenic patients. In rare instances, delorazepam may cause suicidal ideation and actions.
+Long term use of delorazepam (as well as all other benzodiazepines) has been found to increase long term cognitive deficits (persisting longer than sixth months) which some researchers claim to be permanent. Short term use may occasionally cause depression and the risk of depressive symptoms occurring increases considerably with longer terms of use, delorazepam is not intended to be used for more than 2–4 weeks unless it used only occasionally on an as-needed basis. When being used on an as-needed basis the need for delorazepam therapy should be re-evaluated each time a new prescription for delorazepam is issued, and alternative medications should be considered if patients begin to take delorazepam habitually (many days in a row).
+The most serious effect of long term delorazepam use is dependence, with withdrawal symptoms which mimic delirium tremens presenting when delorazepam use is discontinued. Although the withdrawal effects from delorazepam are generally less severe than its shorter-acting counterparts, they can be life-threatening. Slow de-titration of delorazepam over a period of weeks or months is generally suggested to minimize the severity of withdrawal. Psychological effects of withdrawal such as rebound anxiety and insomnia have been known to persist for months after physical dependence has been successfully treated.
+Delorazepam is contraindicated in those with severe schizophrenia or schizo-affective disorders, those with a known allergy or hypersensitivity to delorazepam or related benzodiazepines, and those with moderate to severe renal impairment (delorazepam is sometimes administered at a reduced dose to patients with mild renal impairment). Delorazepam is generally considered to be contraindicated in patients with severe acute or chronic illnesses but is occasionally used in the palliative care of terminal patients during their last days/weeks of life.
+Patients with a history of substance and/or alcohol use are believed to have an increased risk of abusing delorazepam (as well as all other benzodiazepines), this must be considered when a physician prescribes delorazepam to such patients. Although all patients being treated with delorazepam should be routinely monitored for signs of use and diversion of medication, increased monitoring of patients with a history of substance and/or alcohol use is always warranted. Non-medical benzodiazepine use in patients who have them prescribed on an as-needed basis for chronic/refractory anxiety, insomnia, and intermittent muscle spasms has occurred and generally occurs very slowly, becoming evident only after months or years since the initiation of therapy. Monitoring of patients actively using delorazepam should never be discontinued even if the patients has been stable on the medication for many months or years.
+Caution must be used when delorazepam is administered alongside other sedative medications (ex. opiates, barbiturates, z-drugs, and phenothiazines) due to an increased risk of sedation, ataxia, and (potentially fatal) respiratory depression. Although overdoses of benzodiazepines alone rarely result in death, the combination of benzodiazepines and other sedatives (particularly other gabaminergic drugs such as barbiturates and alcohol) is far more likely to result in death.
+
+## Special cautions
+
+People with renal failure on haemodialysis have a slow elimination rate and a reduced volume of distribution of the drug. Liver disease has a profound effect on the elimination rate of delorazepam, resulting in the half-life almost doubling to 395 hours, whereas healthy patients showed an elimination half-life of 204 hours on average. Caution is recommended when using delorazepam in patients with liver disease.
+`,
+};

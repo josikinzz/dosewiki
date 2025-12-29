@@ -1,0 +1,276 @@
+{
+  "url": "https://psychonautwiki.org/wiki/LSM-775",
+  "experiencesUrl": "https://www.reddit.com/search/?q=LSM-775",
+  "name": "LSM-775",
+  "aliases": [
+    "lsm"
+  ],
+  "aliasesStr": "lsm",
+  "summary": "Psychedelic of the lysergamide class, less potent by weight and produces a rather mild, dreamy and even sedating trip compared to its bigger brother LSD.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Lysergamides"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "5-7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [
+    "psychedelics"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "250 µg"
+        },
+        {
+          "name": "Light",
+          "value": "500 - 750 µg"
+        },
+        {
+          "name": "Common",
+          "value": "750 - 1250 µg"
+        },
+        {
+          "name": "Strong",
+          "value": "1250 - 1500 µg"
+        },
+        {
+          "name": "Heavy",
+          "value": "1500 µg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Total",
+          "value": "6.0 - 10.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Caution"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory distortion, Geometry, Pattern recognition enhancement, Thought connectivity, Synaesthesia, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Perspective distortion, Dehydration, Nausea, Headache, Vasoconstriction, Muscle cramp, Difficulty urinating, Frequent urination, Spontaneous bodily sensations, Physical euphoria, Watery eyes, Pupil dilation, Excessive yawning, Thought acceleration, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Analysis enhancement, Déjà vu, Conceptual thinking, Scenarios and plots, Thought loop, Perception of interdependent opposites, Unity and interconnectedness, Anxiety, Paranoia, Laughter fits, Personal bias suppression, Memory suppression, Bodily control enhancement, Wakefulness, Perception of bodily heaviness, Sedation, Temperature regulation suppression, Mouth numbing, Appetite suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Muscle contractions, Increased perspiration, Increased music appreciation, Increased sense of humor, Existential self-realization, Olfactory hallucination, Seizure, After images, Confusion, Teeth grinding, Increased bodily temperature, Brightness alteration, Color shifting, Perception of self-design, Perception of eternalism, 8A Geometry - Perceived exposure to semantic concept network, Perspective hallucination, Muscle twitching, Immersion intensification, Spirituality intensification, Auditory acuity enhancement, Stamina intensification, Language depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Nausea",
+      "Headache",
+      "Vasoconstriction",
+      "Muscle cramp",
+      "Difficulty urinating",
+      "Frequent urination",
+      "Physical euphoria",
+      "Watery eyes",
+      "Pupil dilation",
+      "Excessive yawning",
+      "Bodily control enhancement",
+      "Sedation",
+      "Temperature regulation suppression",
+      "Mouth numbing",
+      "Appetite suppression",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle contractions",
+      "Increased perspiration",
+      "Seizure",
+      "Teeth grinding",
+      "Increased bodily temperature",
+      "Muscle twitching",
+      "Stamina intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Depth perception distortions",
+      "Thought acceleration",
+      "Internal hallucination",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Thought loop",
+      "Perception of interdependent opposites",
+      "Unity and interconnectedness",
+      "Anxiety",
+      "Paranoia",
+      "Laughter fits",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Increased sense of humor",
+      "Existential self-realization",
+      "Confusion",
+      "Perception of self-design",
+      "Perception of eternalism",
+      "8A Geometry - Perceived exposure to semantic concept network",
+      "Immersion intensification",
+      "Spirituality intensification",
+      "Language depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory distortion",
+      "Synaesthesia",
+      "Diffraction",
+      "Tracers",
+      "Symmetrical texture repetition",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Perception of bodily heaviness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Olfactory hallucination",
+      "After images",
+      "Brightness alteration",
+      "Color shifting",
+      "Perspective hallucination",
+      "Auditory acuity enhancement"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Drifting"
+    ]
+  }
+}

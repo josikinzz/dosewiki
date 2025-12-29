@@ -1,0 +1,97 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Choline_bitartrate",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Choline+bitartrate",
+  "name": "Choline bitartrate",
+  "aliases": [
+    "choline"
+  ],
+  "aliasesStr": "choline",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Ammonium salt"
+    ],
+    "psychoactive": [
+      "Nootropic"
+    ]
+  },
+  "toxicity": [
+    "extremely low toxicity"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "after prolonged and repeated usage",
+    "half": "7 days",
+    "zero": "14 days"
+  },
+  "crossTolerances": [],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "50 mg"
+        },
+        {
+          "name": "Light",
+          "value": "100 - 250 mg"
+        },
+        {
+          "name": "Common",
+          "value": "250 - 1000 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1000 - 2000 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "2000 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.75 - 1.25 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.25 - 0.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 4.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 8.0 hours"
+        }
+      ],
+      "bioavailability": "40%"
+    }
+  ],
+  "interactions": null,
+  "effects": "Headache, Dream potentiation, Stimulation, Body odor alteration",
+  "categorized_effects": {
+    "Physical effects": [
+      "Headache",
+      "Stimulation",
+      "Body odor alteration"
+    ],
+    "Mental effects": [
+      "Dream potentiation"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

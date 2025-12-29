@@ -1,0 +1,112 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Tizanidine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Tizanidine",
+  "name": "Tizanidine",
+  "aliases": [
+    "sirdalud",
+    "trinex",
+    "xanaflex"
+  ],
+  "aliasesStr": "sirdalud,trinex,xanaflex",
+  "summary": null,
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Imidazoline"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 μg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 3 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 5 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "6 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.25 - 0.75 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Geometry, Visual haze, Headache, Dizziness, Spontaneous bodily sensations, Physical euphoria, Watery eyes, Pupil constriction, Dream potentiation, Scenarios and plots, Irritability, Thought deceleration, Memory suppression, Perception of bodily heaviness, Sedation, Pain relief, Drifting, Increased heart rate, Increased blood pressure, Decreased blood pressure, Muscle relaxation, Anxiety suppression, Environmental patterning, Abnormal heartbeat, Dry mouth, Cognitive fatigue, Delirium, Visual acuity suppression, Physical fatigue, Sleepiness, Focus suppression, Seizure suppression, Decreased heart rate, Soreness",
+  "categorized_effects": {
+    "Physical effects": [
+      "Headache",
+      "Dizziness",
+      "Physical euphoria",
+      "Watery eyes",
+      "Pupil constriction",
+      "Sedation",
+      "Pain relief",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Decreased blood pressure",
+      "Muscle relaxation",
+      "Abnormal heartbeat",
+      "Dry mouth",
+      "Delirium",
+      "Physical fatigue",
+      "Sleepiness",
+      "Seizure suppression",
+      "Decreased heart rate",
+      "Soreness"
+    ],
+    "Mental effects": [
+      "Dream potentiation",
+      "Irritability",
+      "Thought deceleration",
+      "Memory suppression",
+      "Anxiety suppression",
+      "Cognitive fatigue",
+      "Focus suppression"
+    ],
+    "Sensory effects": [
+      "Visual haze",
+      "Spontaneous bodily sensations",
+      "Perception of bodily heaviness",
+      "Visual acuity suppression"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Scenarios and plots",
+      "Drifting",
+      "Environmental patterning"
+    ]
+  }
+}

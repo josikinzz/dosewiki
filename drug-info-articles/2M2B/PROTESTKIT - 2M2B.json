@@ -1,0 +1,99 @@
+{
+  "url": "https://psychonautwiki.org/wiki/2M2B",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_2Methyl2Butanol.shtml",
+  "name": "2M2B",
+  "aliases": [
+    "2-methyl-2-butanol"
+  ],
+  "aliasesStr": "2-methyl-2-butanol",
+  "summary": "A tertiary alcohol that has sedative, hypnotic, and anxiolytic effects. It is also roughly 20x more potent than Ethanol by weight.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Alcohol"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "GABA",
+    "depressants"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "0.5 mL"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 5 mL"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mL"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 15 mL"
+        },
+        {
+          "name": "Heavy",
+          "value": "15 mL +",
+          "note": "There have been unconsciousness and deaths reported at as low as 18 mL respective 29 mL."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.83 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "6.0 - 8.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "8.0 - 14.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 4.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Sedative",
+      "Muscle Relaxant",
+      "Dystaxia"
+    ],
+    "Mental effects": [
+      "Anxiolytic",
+      "Amnesia"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": [
+      "Hypnotic."
+    ]
+  }
+}

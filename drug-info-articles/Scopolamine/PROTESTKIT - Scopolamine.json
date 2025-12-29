@@ -1,0 +1,30 @@
+{
+  "url": "https://drugs.tripsit.me/scopolamine",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Scopolamine.shtml",
+  "name": "Scopolamine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "The main active compound in datura, medium and high doses have serious side effects and cause extremely unpleasant deleriant hallucinations. Avoid it.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzodiazepines"
+    ],
+    "psychoactive": [
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

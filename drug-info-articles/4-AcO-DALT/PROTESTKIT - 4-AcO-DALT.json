@@ -1,0 +1,119 @@
+{
+  "url": "https://drugs.tripsit.me/4-aco-dalt",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4AcODALT.shtml",
+  "name": "4-AcO-DALT",
+  "aliases": [
+    "4acodalt"
+  ],
+  "aliasesStr": "4acodalt",
+  "summary": "An uncommon tryptamine derivative first reported in the mid 2000s, likely a psychedelic. Little is known about the pharmacology or effects of this compound.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20mg"
+        },
+        {
+          "name": "Light",
+          "value": "40-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-70mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "100+mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 9.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2-4mg"
+        },
+        {
+          "name": "Light",
+          "value": "5-8mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15+mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "5.0 - 9.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

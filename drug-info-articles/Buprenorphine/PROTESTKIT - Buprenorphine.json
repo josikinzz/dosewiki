@@ -1,0 +1,298 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Buprenorphine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Buprenorphine",
+  "name": "Buprenorphine",
+  "aliases": [
+    "addnok",
+    "bupe",
+    "buprenex",
+    "butrans",
+    "cizdol",
+    "suboxone",
+    "subs",
+    "subutex",
+    "transtec"
+  ],
+  "aliasesStr": "addnok,bupe,buprenex,butrans,cizdol,suboxone,subs,subutex,transtec",
+  "summary": "A semi-synthetic opioid analgesic also known as subutex. Often administered as Butrans patches, or in combination with Naloxone as Suboxone, a heroin replacement therapy drug. Will cause withdrawals if you have an opioid tolerance and don't wait long enough (typically around 48 hours) before taking this.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Opioids"
+    ]
+  },
+  "toxicity": [
+    "low toxicity"
+  ],
+  "addictionPotential": "moderately addictive with a high potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "opioids"
+  ],
+  "roas": [
+    {
+      "name": "Sublingual",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "<=0.3 mg"
+        },
+        {
+          "name": "Light",
+          "value": "1 - 2 mg"
+        },
+        {
+          "name": "Common",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "8mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.06 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.06 - 0.08 days"
+        },
+        {
+          "name": "Total",
+          "value": "0.75 - 1.0 days"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 days"
+        }
+      ],
+      "bioavailability": "30%"
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 0.2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "0.2 - 0.4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.4 - 0.8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "0.8 - 1.5 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "1.5 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.04 days"
+        },
+        {
+          "name": "Peak",
+          "value": "0.17 - 0.33 days"
+        },
+        {
+          "name": "Total",
+          "value": "0.33 - 0.58 days"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 3.0 days"
+        }
+      ],
+      "bioavailability": "48%"
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.2-0.4mg"
+        },
+        {
+          "name": "Common",
+          "value": "0.4-0.8mg"
+        },
+        {
+          "name": "Strong",
+          "value": "0.8-1.5mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "1.5mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "Low Dose: 8-12 hours High Dose: 24-72 hours hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 16.0 hours"
+        }
+      ],
+      "bioavailability": "22%"
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "2C-x",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "5-MeO-xxT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Caution"
+    },
+    {
+      "name": "Benzos",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "DXM",
+      "status": "Dangerous"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Dangerous"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Caution"
+    },
+    {
+      "name": "MDMA",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Dangerous"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Caution"
+    },
+    {
+      "name": "PDA5",
+      "status": "Unsafe"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Dangerous"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Dangerous"
+    }
+  ],
+  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dry Mouth",
+      "Itchiness",
+      "Relaxant",
+      "Constipation",
+      "Pupil constriction",
+      "Analgesia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "Mood lift"
+    ],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

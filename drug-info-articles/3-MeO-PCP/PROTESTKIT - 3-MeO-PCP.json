@@ -1,0 +1,262 @@
+{
+  "url": "https://psychonautwiki.org/wiki/3-MeO-PCP",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_3MeOPCP.shtml",
+  "name": "3-MeO-PCP",
+  "aliases": [
+    "3-meo",
+    "3meopcp"
+  ],
+  "aliasesStr": "3-meo,3meopcp",
+  "summary": "A potent dissociative often compared to MXE but with a longer duration, much less sedating effects and causing an overall different experience. Users have reported effects as being similar to PCP. Roughtly ten times more potent than 4-MeO-PCP.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": [
+    "toxic dosage is unknown"
+  ],
+  "addictionPotential": "produces dependence with chronic use and has a high potential for abuse",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Common",
+          "value": "10 - 20 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "20 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "45.0 - 120.0 minutes"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "2 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15 - 25 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "25 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15 mg +",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.75 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "0.75 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Intramuscular",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.12 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "2.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition suppression, Double vision, Vibrating vision, Scenery slicing, Perspective distortion, Cognitive disconnection, Physical disconnection, Dehydration, Difficulty urinating, Dizziness, Restless legs, Nausea suppression, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Increased libido, Dream potentiation, Internal hallucination, Settings, sceneries, and landscapes, Time distortion, Déjà vu, Conceptual thinking, Scenarios and plots, Delusion, Cognitive euphoria, Visual disconnection, Thought deceleration, Memory suppression, Disinhibition, Bodily control enhancement, Stimulation, Tactile suppression, Appetite suppression, Respiratory depression, Pain relief, Visual acuity enhancement, Increased heart rate, Increased blood pressure, Increased perspiration, Anxiety suppression, Increased music appreciation, Existential self-realization, Olfactory hallucination, Seizure, Creativity enhancement, Addiction suppression, Abnormal heartbeat, Depersonalization, Compulsive redosing, Derealization, Amnesia, Visual acuity suppression, Psychosis, Spatial disorientation, Optical sliding, Mania, Perspective hallucination, Immersion intensification, Auditory acuity enhancement, Tactile intensification, Appetite intensification, Auditory acuity suppression, Visual processing deceleration",
+  "categorized_effects": {
+    "Physical effects": [
+      "Dehydration",
+      "Difficulty urinating",
+      "Dizziness",
+      "Restless legs",
+      "Nausea suppression",
+      "Physical euphoria",
+      "Bodily control enhancement",
+      "Stimulation",
+      "Appetite suppression",
+      "Respiratory depression",
+      "Pain relief",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Increased perspiration",
+      "Seizure",
+      "Abnormal heartbeat",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Dream potentiation",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Increased music appreciation",
+      "Existential self-realization",
+      "Creativity enhancement",
+      "Depersonalization",
+      "Derealization",
+      "Amnesia",
+      "Psychosis",
+      "Spatial disorientation",
+      "Mania",
+      "Immersion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Vibrating vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Visual acuity enhancement",
+      "Olfactory hallucination",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Perspective hallucination",
+      "Auditory acuity enhancement",
+      "Tactile intensification",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Physical autonomy",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Addiction suppression",
+      "Compulsive redosing"
+    ]
+  }
+}

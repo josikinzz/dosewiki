@@ -1,0 +1,121 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Promethazine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Promethazine",
+  "name": "Promethazine",
+  "aliases": [
+    "lergigan",
+    "phenergan"
+  ],
+  "aliasesStr": "lergigan,phenergan",
+  "summary": "A first generation antihistamine,  which also possesses anticholinergic, strong sedative and antipsychotic properties. Once commonly used as a treatment for psychosis, it is now more commonly seen as a component of codeine cough syrups as an anti-nausea agent.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Phenothiazine"
+    ],
+    "psychoactive": [
+      "Deliriant",
+      "Depressant"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "5 - 12.5 mg"
+        },
+        {
+          "name": "Light",
+          "value": "12.5 - 25 mg"
+        },
+        {
+          "name": "Common",
+          "value": "25 - 50 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "100 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 1.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "3.0 - 5.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "12.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Emotion suppression, Depth perception distortions, Difficulty urinating, Nausea suppression, Physical euphoria, Transformations, External hallucination, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Shadow people, Scenarios and plots, Delusion, Anxiety, Sedation, Increased heart rate, Increased blood pressure, Muscle relaxation, Peripheral information misinterpretation, Anxiety suppression, Confusion, Abnormal heartbeat, Dry mouth, Delirium, Unspeakable horrors, Object activation, Sleepiness, Euphoria, Perspective hallucination",
+  "categorized_effects": {
+    "Physical effects": [
+      "Difficulty urinating",
+      "Nausea suppression",
+      "Physical euphoria",
+      "Sedation",
+      "Increased heart rate",
+      "Increased blood pressure",
+      "Muscle relaxation",
+      "Abnormal heartbeat",
+      "Dry mouth",
+      "Delirium",
+      "Sleepiness"
+    ],
+    "Mental effects": [
+      "Emotion suppression",
+      "Depth perception distortions",
+      "Internal hallucination",
+      "Shadow people",
+      "Delusion",
+      "Anxiety",
+      "Peripheral information misinterpretation",
+      "Anxiety suppression",
+      "Confusion",
+      "Euphoria"
+    ],
+    "Sensory effects": [
+      "External hallucination",
+      "Perspective hallucination"
+    ],
+    "Uncategorized effects": [
+      "Transformations",
+      "Autonomous entity",
+      "Settings",
+      "sceneries",
+      "and landscapes",
+      "Scenarios and plots",
+      "Unspeakable horrors",
+      "Object activation"
+    ]
+  }
+}

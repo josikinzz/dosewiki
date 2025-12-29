@@ -1,0 +1,26 @@
+{
+  "url": "https://drugs.tripsit.me/methoxypiperamide",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Methoxypiperamide",
+  "name": "Methoxypiperamide",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Drug of the Piperazine class. The 4-Methoxy-α-keto analogue of Methylbenzylpiperazine. Seemingly inactive on its own. Was sold in tandem with Mephtetramine.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

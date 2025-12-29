@@ -1,0 +1,257 @@
+{
+  "url": "https://psychonautwiki.org/wiki/5-MeO-DiBF",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_5MeODiBF.shtml",
+  "name": "5-MeO-DiBF",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "An uncommon and new psychedelic drug related to tryptamine; the Benzofuran analogue of 5-MeO-DiPT. Probably a serotonin receptor partial agonist. Little history of human use.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted tryptamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": [
+    "toxic dose is unknown"
+  ],
+  "addictionPotential": "not habit-forming",
+  "tolerance": {
+    "full": "almost immediately after ingestion",
+    "half": "3 days",
+    "zero": "7 days"
+  },
+  "crossTolerances": [
+    "psychedelic"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "20 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 80 mg"
+        },
+        {
+          "name": "Common",
+          "value": "80 - 110 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "110 - 140 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "140 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Peak",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5-10mg"
+        },
+        {
+          "name": "Common",
+          "value": "10-15mg"
+        },
+        {
+          "name": "Strong",
+          "value": "15-20mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.75 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "6.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 12.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "name": "2C-T-x",
+      "status": "Caution"
+    },
+    {
+      "name": "2C-x",
+      "status": "Caution"
+    },
+    {
+      "name": "Alcohol",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Amphetamines",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Benzos",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Caffeine",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Cannabis",
+      "status": "Caution"
+    },
+    {
+      "name": "Cocaine",
+      "status": "Unsafe"
+    },
+    {
+      "name": "DMT",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "DOx",
+      "status": "Caution"
+    },
+    {
+      "name": "DXM",
+      "status": "Unsafe"
+    },
+    {
+      "name": "GHB/GBL",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Gabapentinoids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "Ketamine",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "LSD",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "MAOIs",
+      "status": "Dangerous"
+    },
+    {
+      "name": "MDMA",
+      "status": "Caution"
+    },
+    {
+      "name": "MMC class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "MXE",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Mescaline",
+      "status": "Caution"
+    },
+    {
+      "name": "Mushrooms",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "NBOMes",
+      "status": "Caution"
+    },
+    {
+      "name": "Nitrous",
+      "status": "Low Risk & Synergy"
+    },
+    {
+      "name": "Opioids",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PDA5",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "PVP class",
+      "status": "Unsafe"
+    },
+    {
+      "name": "Poppers",
+      "status": "Low Risk & No Synergy"
+    },
+    {
+      "name": "SSRIs",
+      "status": "Low Risk & Decrease"
+    },
+    {
+      "name": "Tramadol",
+      "status": "Unsafe"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Pattern recognition enhancement, Thought connectivity, Tracers, Nausea, Spontaneous bodily sensations, Pupil dilation, Thought acceleration, Rejuvenation, Increased libido, Novelty enhancement, Time distortion, Analysis enhancement, Conceptual thinking, Personal bias suppression, Memory suppression, Stimulation, Wakefulness, Perception of bodily lightness, Temperature regulation suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased music appreciation, Color shifting, Emotion intensification, Muscle twitching, Auditory acuity enhancement, Tactile intensification",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Pupil dilation",
+      "Stimulation",
+      "Temperature regulation suppression",
+      "Increased heart rate",
+      "Muscle twitching"
+    ],
+    "Mental effects": [
+      "Pattern recognition enhancement",
+      "Thought connectivity",
+      "Thought acceleration",
+      "Rejuvenation",
+      "Novelty enhancement",
+      "Time distortion",
+      "Analysis enhancement",
+      "Conceptual thinking",
+      "Personal bias suppression",
+      "Memory suppression",
+      "Wakefulness",
+      "Increased music appreciation",
+      "Emotion intensification"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Tracers",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "Perception of bodily lightness",
+      "Color enhancement",
+      "Visual acuity enhancement",
+      "Color shifting",
+      "Auditory acuity enhancement",
+      "Tactile intensification"
+    ],
+    "Uncategorized effects": [
+      "Drifting"
+    ]
+  }
+}

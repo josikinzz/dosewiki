@@ -1,0 +1,87 @@
+{
+  "url": "https://drugs.tripsit.me/pentylone",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Pentylone",
+  "name": "Pentylone",
+  "aliases": [
+    "4-meppp",
+    "bk-mbdp",
+    "bk-methyl-k"
+  ],
+  "aliasesStr": "4-meppp,bk-mbdp,bk-methyl-k",
+  "summary": "A stimulant, empathogen and substituted cathinone. It was first synthesised in the 1960s, and re-appeared on the research chemical scene in 2010. Still, very little is known about the pharmacology or effects of this compound.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "20-40mg"
+        },
+        {
+          "name": "Strong",
+          "value": "40-80mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 4.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

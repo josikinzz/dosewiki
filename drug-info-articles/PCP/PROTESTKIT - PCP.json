@@ -1,0 +1,313 @@
+{
+  "url": "https://psychonautwiki.org/wiki/PCP",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_PCP.shtml",
+  "name": "PCP",
+  "aliases": [
+    "angel",
+    "angel dust",
+    "angel_dust",
+    "angeldust",
+    "boat",
+    "dust",
+    "phencyclidine",
+    "sernyl",
+    "sherman",
+    "supergrass",
+    "tic tac",
+    "wet",
+    "zoom"
+  ],
+  "aliasesStr": "angel,angel dust,angel_dust,angeldust,boat,dust,phencyclidine,sernyl,sherman,supergrass,tic tac,wet,zoom",
+  "summary": "A strong dissociative drug.  PCP works primarily as an NMDA receptor antagonist. Also referred to as \"wet\" or \"angel dust\". Best known for stories of the strange and sometimes violent behaviour of those under its influence, though it is likely these are only in overdose cases.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Arylcyclohexylamines"
+    ],
+    "psychoactive": [
+      "Dissociatives"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": "highly addictive with a high potential for adverse side effects such as psychosis",
+  "tolerance": {
+    "full": "with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "dissociative|dissociatives"
+  ],
+  "roas": [
+    {
+      "name": "Smoked",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 12 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "12 mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.03 - 0.33 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.33 - 0.67 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "3 - 5 mg"
+        },
+        {
+          "name": "Common",
+          "value": "5 - 10 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.67 - 2.0 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1 mg"
+        },
+        {
+          "name": "Light",
+          "value": "2 - 4 mg"
+        },
+        {
+          "name": "Common",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "8 - 15 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "15mg+",
+          "note": "Heavy doses may result in psychosis and mania."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.5 hours"
+        },
+        {
+          "name": "Come up",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "2.0 - 3.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "4.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "4.0 - 48.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "status": "Dangerous",
+      "name": "2C-T-x"
+    },
+    {
+      "status": "Low Risk & Synergy",
+      "name": "2C-x"
+    },
+    {
+      "status": "Dangerous",
+      "name": "5-MeO-xxT"
+    },
+    {
+      "note": "Details of this combination are not well understood but PCP generally interacts in an unpredictable manner.",
+      "status": "Unsafe",
+      "name": "Alcohol"
+    },
+    {
+      "note": "This combination can easily lead to hypermanic states",
+      "status": "Unsafe",
+      "name": "Amphetamines"
+    },
+    {
+      "status": "Dangerous",
+      "name": "aMT"
+    },
+    {
+      "note": "Both substances potentiate the ataxia and sedation caused by the other and can lead to unexpected loss of consciousness at high doses. While unconscious, vomit aspiration is a risk if not placed in the recovery position. Memory blackouts are likely",
+      "status": "Unsafe",
+      "name": "Benzodiazepines"
+    },
+    {
+      "note": "Details of this combination are not well understood but PCP generally interacts in an unpredictable manner.",
+      "status": "Caution",
+      "name": "Caffeine"
+    },
+    {
+      "status": "Low Risk & Synergy",
+      "name": "Cannabis"
+    },
+    {
+      "note": "This combination can easily lead to hypermanic states",
+      "status": "Unsafe",
+      "name": "Cocaine"
+    }
+  ],
+  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition suppression, Thought connectivity, Double vision, Scenery slicing, Perspective distortion, Environmental cubism, Environmental orbism, Cognitive disconnection, Physical disconnection, Nausea, Dizziness, Spontaneous bodily sensations, Physical autonomy, Physical euphoria, Thought acceleration, Increased libido, Ego inflation, External hallucination, Internal hallucination, Time distortion, Déjà vu, Conceptual thinking, Delusion, Cognitive euphoria, Visual disconnection, Thought deceleration, Thought disorganization, Memory suppression, Disinhibition, Stimulation, Tactile suppression, Perception of bodily lightness, Motor control loss, Pain relief, Anxiety suppression, Creativity enhancement, Feelings of impending doom, Depersonalization, Compulsive redosing, Derealization, Suicidal ideation, Amnesia, Visual acuity suppression, Psychosis, Optical sliding, Mania, Bowel movements, Immersion intensification, Appetite intensification, Auditory acuity suppression, Visual processing deceleration, Analysis depression, Increased introspection",
+  "categorized_effects": {
+    "Physical effects": [
+      "Nausea",
+      "Dizziness",
+      "Physical euphoria",
+      "Stimulation",
+      "Motor control loss",
+      "Pain relief",
+      "Bowel movements",
+      "Appetite intensification"
+    ],
+    "Mental effects": [
+      "Pattern recognition suppression",
+      "Thought connectivity",
+      "Cognitive disconnection",
+      "Physical disconnection",
+      "Thought acceleration",
+      "Ego inflation",
+      "Internal hallucination",
+      "Time distortion",
+      "Déjà vu",
+      "Conceptual thinking",
+      "Delusion",
+      "Cognitive euphoria",
+      "Thought deceleration",
+      "Thought disorganization",
+      "Memory suppression",
+      "Disinhibition",
+      "Anxiety suppression",
+      "Creativity enhancement",
+      "Feelings of impending doom",
+      "Depersonalization",
+      "Derealization",
+      "Suicidal ideation",
+      "Amnesia",
+      "Psychosis",
+      "Mania",
+      "Immersion intensification",
+      "Analysis depression",
+      "Increased introspection"
+    ],
+    "Sensory effects": [
+      "Auditory hallucination",
+      "Auditory distortion",
+      "Double vision",
+      "Scenery slicing",
+      "Perspective distortion",
+      "Spontaneous bodily sensations",
+      "Increased libido",
+      "External hallucination",
+      "Visual disconnection",
+      "Tactile suppression",
+      "Perception of bodily lightness",
+      "Visual acuity suppression",
+      "Optical sliding",
+      "Auditory acuity suppression",
+      "Visual processing deceleration"
+    ],
+    "Uncategorized effects": [
+      "Geometry",
+      "Environmental cubism",
+      "Environmental orbism",
+      "Physical autonomy",
+      "Compulsive redosing"
+    ]
+  }
+}

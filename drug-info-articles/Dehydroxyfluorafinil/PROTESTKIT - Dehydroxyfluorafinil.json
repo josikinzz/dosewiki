@@ -1,0 +1,82 @@
+{
+  "url": "https://psychonautwiki.org/wiki/N-Methylbisfluoromodafinil",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Dehydroxyfluorafinil",
+  "name": "Dehydroxyfluorafinil",
+  "aliases": [
+    "modafiendz",
+    "n-methylbisfluoromodafinil"
+  ],
+  "aliasesStr": "modafiendz,n-methylbisfluoromodafinil",
+  "summary": "Nootropic of the benzhydryl class. Closely related to Adrafinil and Modafinil. Was branded as \"Modafiendz\" through some research chemical vendors.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Benzhydryl"
+    ],
+    "psychoactive": [
+      "Stimulants",
+      "Nootropic",
+      "Eugeroics"
+    ]
+  },
+  "toxicity": [
+    "exact toxic dosage is unknown"
+  ],
+  "addictionPotential": "mildly addictive with a low potential for abuse",
+  "tolerance": {
+    "full": "develops with prolonged and repeated use",
+    "half": "3 - 7 days",
+    "zero": "1 - 2 weeks"
+  },
+  "crossTolerances": [
+    "modafanil",
+    "analog"
+  ],
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "25 mg"
+        },
+        {
+          "name": "Light",
+          "value": "50 - 100 mg"
+        },
+        {
+          "name": "Common",
+          "value": "100 - 150 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "150 - 200 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "200 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Total",
+          "value": "5.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

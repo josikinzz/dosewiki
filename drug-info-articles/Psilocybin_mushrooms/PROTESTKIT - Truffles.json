@@ -1,0 +1,91 @@
+{
+  "url": "https://drugs.tripsit.me/truffles",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Truffles",
+  "name": "Truffles",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Truffles (magic truffles, sclerotium) are the thickened root sections of magic mushrooms. Like magic mushrooms, Truffles contain the psycho-active chemicals psilocybin and psilocin. See mushrooms for more information.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Dry",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "0.5-1.5g"
+        },
+        {
+          "name": "Common",
+          "value": "1.5-4g"
+        },
+        {
+          "name": "Heavy",
+          "value": "4g+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Wet",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "5g"
+        },
+        {
+          "name": "Common",
+          "value": "10g"
+        },
+        {
+          "name": "Heavy",
+          "value": "15g+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "visual distortion, color enhancement, sense of conection with nature, sense of well being, sense of wonder, closed eye visuals, tactile enhancement",
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [
+      "sense of conection with nature",
+      "sense of wonder"
+    ],
+    "Sensory effects": [
+      "visual distortion",
+      "color enhancement",
+      "closed eye visuals",
+      "tactile enhancement"
+    ],
+    "Uncategorized effects": [
+      "sense of well being"
+    ]
+  }
+}

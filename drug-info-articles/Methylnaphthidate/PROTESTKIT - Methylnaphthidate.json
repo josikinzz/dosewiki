@@ -1,0 +1,134 @@
+{
+  "url": "https://psychonautwiki.org/wiki/Methylnaphthidate",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_HDMP28.shtml",
+  "name": "HDMP-28",
+  "aliases": [
+    "methylnaphthidate",
+    "methylnaphtidate"
+  ],
+  "aliasesStr": "methylnaphthidate,methylnaphtidate",
+  "summary": "Also commonly known as methylnapthidate. A functional stimulant similar to methylphenidate but with a longer duration. Not especially recreational.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenidates"
+    ],
+    "psychoactive": [
+      "Stimulants"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "4 mg"
+        },
+        {
+          "name": "Light",
+          "value": "10 - 15 mg"
+        },
+        {
+          "name": "Common",
+          "value": "15 - 30 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "30 - 50 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "50 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.17 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.5 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "2.0 - 5.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "< 4 mg"
+        },
+        {
+          "name": "Light",
+          "value": "4 - 8 mg"
+        },
+        {
+          "name": "Common",
+          "value": "8 - 14 mg"
+        },
+        {
+          "name": "Strong",
+          "value": "14 - 28 mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "28 mg +"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.05 - 0.1 hours"
+        },
+        {
+          "name": "Peak",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Offset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Total",
+          "value": "1.5 - 3.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 2.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [
+      "vasoconstriction",
+      "temporary erectile dysfunction",
+      "increased heart rate",
+      "increased blood pressure",
+      "teeth grinding"
+    ],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

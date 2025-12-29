@@ -1,0 +1,24 @@
+# DOM
+*Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
+
+## Effects
+At the beginning, typical effects of amphetamine unfold, such as increased alertness, accelerated pulse, slight euphoria, increased self-confidence and urge to talk. Afterwards, the effect changes: one often feels a strong urge to move, sensory perception, feelings and empathy are heightened, colours are perceived more distinctly. With DOB and DOI, coloured, superimposed, pulsating patterns are perceived. This effect is weaker with DOM.
+
+## Risks
+
+### Short-term Risks
+Since the effect of DOM comes on late, the danger of overdosing by refilling is particularly great. The long duration of action poses a psychological burden. Confusion or anxiety is common, especially at high doses. Some DOB users report a burning or pressure sensation in the bladder. At high doses, temporary paralysis, inability to communicate or insensitivity to pain (caution: risk of injury and accidents) may occur. Teeth grinding and strain on the cardiovascular system are also possible.
+
+### Long-term Risks
+Due to the long and intense effects, use - especially frequent use - carries the risk of a loss of reality, which can manifest itself in schizophrenic traits and anxiety states. The consumption of DOM can trigger latent (hidden) psychoses.
+
+## Safer Use
+- DOM are not suitable as party drugs and should only be used by experienced users.
+- Plan your trip ahead because of the long duration of action.
+- Never consume DOM alone and only when you feel very well mentally and physically and are well rested!
+- Pay attention to set and setting: only take DOM in a place where you feel safe and avoid unwanted disturbances from outside! Prepare yourself well for the trip and prepare yourself internally for the long duration of the effect.
+- Drink enough water during the trip.
+- Mixed use of these potent substances should be avoided at all costs.
+- As amphetamine derivatives, DOM can be particularly draining because of their long duration of action. Light vitamin-rich food, fruits, vegetable juices, vitamins and minerals promote a soft landing after the trip has subsided and can weaken a hangover.
+- Plan enough time for recovery after the trip (at least 1 day)!
+- A trip with DOM should remain an exceptional experience. Make sure to take long breaks from consumption so that the experience can be processed.

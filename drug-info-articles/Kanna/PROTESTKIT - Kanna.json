@@ -1,0 +1,129 @@
+{
+  "url": "https://drugs.tripsit.me/kanna",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Kanna",
+  "name": "Kanna",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A South African plant containing numerous psychoactive alkaloids, including mesembrine and mesembrenone. The first written account of the substance was in 1662. The pharmacology of these compounds is poorly understood, but they are suspected to be serotonin uptake inhibitors and potentially monoamine releasers. Said to suppress appetite, produce mild euphoria and reduce anxiety.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Insufflated",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "10-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "20-50mg"
+        },
+        {
+          "name": "Strong",
+          "value": "50-150mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.08 - 0.17 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "1.0 - 2.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "250-500mg"
+        },
+        {
+          "name": "Common",
+          "value": "500-1000mg"
+        },
+        {
+          "name": "Strong",
+          "value": "1000-2000mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.5 - 1.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "3.0 - 6.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Vapourized",
+      "dosage": [
+        {
+          "name": "Light",
+          "value": "30-50mg"
+        },
+        {
+          "name": "Common",
+          "value": "50-100mg"
+        },
+        {
+          "name": "Strong",
+          "value": "100-250mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Duration",
+          "value": "1.5 - 2.5 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    },
+    {
+      "name": "Smoked",
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.02 - 0.03 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 8.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

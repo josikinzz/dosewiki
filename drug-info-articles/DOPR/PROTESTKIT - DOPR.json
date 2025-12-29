@@ -1,0 +1,86 @@
+{
+  "url": "https://drugs.tripsit.me/dopr",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DOPR.shtml",
+  "name": "DOPR",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "A rare psychedelic amphetamine of the same class as DOM. This is a powerful and potent psychedelic with all the effects you would expect from an amphetamine. Described by Shulgin as a 'heavy duty psychedelic'. Analogue of 2C-P.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "1.25mg"
+        },
+        {
+          "name": "Light",
+          "value": "2.5mg"
+        },
+        {
+          "name": "Common",
+          "value": "2.5-3.5mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "3.5-5mg."
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.5 - 4.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "18.0 - 30.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "1.0 - 24.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}

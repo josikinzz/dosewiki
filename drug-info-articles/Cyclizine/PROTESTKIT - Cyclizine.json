@@ -1,0 +1,50 @@
+{
+  "url": "https://drugs.tripsit.me/cyclizine",
+  "experiencesUrl": "https://www.reddit.com/search/?q=Cyclizine",
+  "name": "Cyclizine",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "First generation antihistamine and anticholinergic drug used to combat nausea and vomiting. Causes drowsiness. Like most antihistamines in high doses it induces delirium and vivid realistic hallucinations. Probably uncomfortable and not enjoyable.",
+  "reagents": null,
+  "classes": {
+    "chemical": [],
+    "psychoactive": []
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Common",
+          "value": "25-50mg"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "0.17 - 0.5 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "4.0 - 8.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "14.0 - 14.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": null,
+  "categorized_effects": {
+    "Physical effects": [],
+    "Mental effects": [],
+    "Sensory effects": [],
+    "Uncategorized effects": []
+  }
+}

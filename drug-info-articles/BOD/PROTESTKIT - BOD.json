@@ -1,0 +1,86 @@
+{
+  "url": "https://drugs.tripsit.me/bod",
+  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_BOD.shtml",
+  "name": "BOD",
+  "aliases": [],
+  "aliasesStr": "",
+  "summary": "Beta-methoxy analogue of 2C-D, seems to be more \"mild\" than the likes of 2C-X and DOX compounds. Is 50/50 whether the body load is barely there, or overpowering the experience.",
+  "reagents": null,
+  "classes": {
+    "chemical": [
+      "Substituted phenethylamines"
+    ],
+    "psychoactive": [
+      "Psychedelic"
+    ]
+  },
+  "toxicity": null,
+  "addictionPotential": null,
+  "tolerance": null,
+  "crossTolerances": null,
+  "roas": [
+    {
+      "name": "Oral",
+      "dosage": [
+        {
+          "name": "Threshold",
+          "value": "12-15mg"
+        },
+        {
+          "name": "Light",
+          "value": "15-20mg"
+        },
+        {
+          "name": "Common",
+          "value": "20-30mg"
+        },
+        {
+          "name": "Heavy",
+          "value": "30-40mg+"
+        }
+      ],
+      "duration": [
+        {
+          "name": "Onset",
+          "value": "1.0 - 2.0 hours"
+        },
+        {
+          "name": "Duration",
+          "value": "8.0 - 14.0 hours"
+        },
+        {
+          "name": "After effects",
+          "value": "3.0 - 6.0 hours"
+        }
+      ]
+    }
+  ],
+  "interactions": null,
+  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
+  "categorized_effects": {
+    "Physical effects": [
+      "decreased appetite",
+      "pupil dilation",
+      "sweating/chills",
+      "muscle tension",
+      "insomnia."
+    ],
+    "Mental effects": [
+      "Euphoria",
+      "empathy",
+      "insight",
+      "restlessness",
+      "ego softening",
+      "confusion"
+    ],
+    "Sensory effects": [
+      "brightened colour",
+      "Closed/Open eye visuals",
+      "enhanced tactile sensation",
+      "change in perception"
+    ],
+    "Uncategorized effects": [
+      "mental/physical stimulation"
+    ]
+  }
+}
