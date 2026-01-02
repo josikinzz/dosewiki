@@ -111,13 +111,14 @@ export const AboutPage = memo(function AboutPage() {
       />
       <div className="space-y-6 md:space-y-8">
         <SectionCard className="space-y-2 md:space-y-3">
-          <ReactMarkdown
-            className="prose prose-invert max-w-none"
-            components={markdownComponents}
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-          >
-            {aboutMarkdown}
-          </ReactMarkdown>
+          <div className="prose prose-invert max-w-none">
+            <ReactMarkdown
+              components={markdownComponents}
+              remarkPlugins={[remarkGfm, remarkBreaks]}
+            >
+              {aboutMarkdown}
+            </ReactMarkdown>
+          </div>
         </SectionCard>
 
         {founders.length > 0 ? (

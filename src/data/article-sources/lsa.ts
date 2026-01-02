@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "LSA";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - LSA.md","displayName":"DEIA","size":14521},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - HBWS.md","displayName":"Drug Users Bible","size":1643},{"id":"protestkit","fileName":"PROTESTKIT - LSA.json","displayName":"Protest Kit","size":5242},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSA.md","displayName":"TripSit Factsheets","size":1338},{"id":"wikipedia","fileName":"WIKIPEDIA - HBWS.md","displayName":"Wikipedia","size":3909}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - LSA.md","displayName":"Disregard Everything I Say","size":14521},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - HBWS.md","displayName":"Drug Users Bible","size":1643},{"id":"protestkit","fileName":"PROTESTKIT - LSA.json","displayName":"Protest Kit","size":5242},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSA.md","displayName":"TripSit Factsheets","size":1338},{"id":"wikipedia","fileName":"WIKIPEDIA - HBWS.md","displayName":"Wikipedia","size":3909}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# LSA
 *Source: https://disregardeverythingisay.com/post/60088457046/lsa-broken-down-and-described*

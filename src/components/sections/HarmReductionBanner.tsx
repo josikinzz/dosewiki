@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShieldAlert, SquareArrowOutUpRight, X } from "lucide-react";
 import type { CitationEntry } from "../../types/content";
+import { Button } from "@/components/ui/button";
 
 interface HarmReductionBannerProps {
   citations: CitationEntry[];
@@ -70,14 +71,13 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
   return (
     <section className="relative overflow-hidden rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 shadow-[0_14px_36px_-22px_rgba(239,68,68,0.55)] transition duration-200 hover:border-red-300/50 hover:bg-red-500/15 hover:shadow-[0_18px_46px_-25px_rgba(239,68,68,0.65)]">
       {onDismiss && !isClosing ? (
-        <button
-          type="button"
+        <Button
+          variant="dismissDanger"
           onClick={handleDismissClick}
-          className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-400/40 bg-red-500/20 text-red-200 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
           aria-label="Dismiss harm reduction disclaimer"
         >
           <X className="h-4 w-4" aria-hidden="true" focusable="false" />
-        </button>
+        </Button>
       ) : null}
       <div className="flex gap-4 pr-10 text-sm text-red-100/90 md:pr-16">
         <ShieldAlert

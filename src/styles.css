@@ -13,6 +13,46 @@
 
   :root {
     color-scheme: dark;
+
+    /* shadcn theme variables - mapped to dose.wiki palette */
+    --background: 261 40% 6%;          /* #0f0a1f */
+    --foreground: 0 0% 100%;           /* white */
+
+    --card: 261 30% 8%;                /* slightly lighter than bg */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 261 35% 10%;            /* #120d27 */
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 292 91% 73%;            /* fuchsia-300 */
+    --primary-foreground: 261 40% 6%;
+
+    --secondary: 0 0% 100%;            /* white-based */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 261 20% 12%;
+    --muted-foreground: 0 0% 75%;      /* text-white/75 */
+
+    --accent: 292 91% 73%;             /* fuchsia-300 */
+    --accent-foreground: 261 40% 6%;
+
+    --destructive: 0 84% 60%;          /* rose/red for danger */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 100%;               /* white - opacity applied via Tailwind */
+    --input: 0 0% 100%;
+    --ring: 292 91% 73%;               /* fuchsia-300 */
+
+    --radius: 1rem;                    /* 16px = rounded-2xl */
+
+    /* dose.wiki specific tokens */
+    --dose-bg-deep: 261 40% 6%;
+    --dose-fuchsia-100: 292 88% 90%;
+    --dose-fuchsia-200: 292 91% 82%;
+    --dose-fuchsia-300: 292 91% 73%;
+    --dose-fuchsia-400: 292 91% 63%;
+    --dose-fuchsia-500: 292 84% 61%;
+    --dose-violet-500: 258 90% 66%;
   }
 
   html,

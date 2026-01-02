@@ -5,6 +5,7 @@ import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
 import { viewToHash } from "../../utils/routing";
 import { GlobalSearch } from "../common/GlobalSearch";
+import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   currentView: AppView;
@@ -99,10 +100,9 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   return (
     <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur backdrop-safe">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
-        <button
-          type="button"
+        <Button
+          variant="brand"
           onClick={() => handleNavigate(substancesView)}
-          className="group/brand flex items-center gap-2 text-left"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <img
@@ -115,7 +115,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
           <span className="inline-flex items-center text-2xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
             dose.wiki
           </span>
-        </button>
+        </Button>
 
         <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
           <GlobalSearch
@@ -173,18 +173,19 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
         </div>
 
         <div className="relative flex-shrink-0 md:hidden">
-          <button
+          <Button
             ref={menuButtonRef}
-            type="button"
+            variant="secondary"
+            size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            className="h-9 w-9"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
           >
             {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             <span className="sr-only">Toggle navigation</span>
-          </button>
+          </Button>
 
           {isMenuOpen && (
             <div

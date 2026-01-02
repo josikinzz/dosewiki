@@ -10,6 +10,7 @@ import {
   aboutFounderKeys as aboutFounderKeysSource,
   normalizeFounderKeys,
 } from "../../data/about";
+import { systemPrompt as generatorPromptSource } from "../../data/article-sources/prompt";
 import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
 import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
@@ -66,6 +67,10 @@ type DevModeContextValue = {
   replaceAboutFounderKeys: (nextKeys: string[]) => void;
   resetAboutFounderKeys: () => void;
   getOriginalAboutFounderKeys: () => string[];
+  generatorPrompt: string;
+  replaceGeneratorPrompt: (nextPrompt: string) => void;
+  resetGeneratorPrompt: () => void;
+  getOriginalGeneratorPrompt: () => string;
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -99,6 +104,8 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [aboutSubtitle, setAboutSubtitle] = useState<string>(() => aboutSubtitleSource);
   const originalAboutFounderKeysRef = useRef<string[]>([...aboutFounderKeysSource]);
   const [aboutFounderKeys, setAboutFounderKeys] = useState<string[]>(() => [...aboutFounderKeysSource]);
+  const originalGeneratorPromptRef = useRef<string>(generatorPromptSource);
+  const [generatorPrompt, setGeneratorPrompt] = useState<string>(() => generatorPromptSource);
   const lastVisitedHashRef = useRef<string | null>(null);
 
   const isDevHash = useCallback((value: string | null | undefined) => {
@@ -316,6 +323,16 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const replaceGeneratorPrompt = useCallback((nextPrompt: string) => {
+    setGeneratorPrompt(nextPrompt);
+  }, []);
+
+  const resetGeneratorPrompt = useCallback(() => {
+    setGeneratorPrompt(originalGeneratorPromptRef.current);
+  }, []);
+
+  const getOriginalGeneratorPrompt = useCallback(() => originalGeneratorPromptRef.current, []);
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
     psychoactiveIndexManual,
@@ -354,6 +371,10 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     replaceAboutFounderKeys,
     resetAboutFounderKeys,
     getOriginalAboutFounderKeys,
+    generatorPrompt,
+    replaceGeneratorPrompt,
+    resetGeneratorPrompt,
+    getOriginalGeneratorPrompt,
   }), [
     aboutFounderKeys,
     aboutMarkdown,
@@ -392,6 +413,10 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     resetChemicalIndexManual,
     resetMechanismIndexManual,
     updateArticleAt,
+    generatorPrompt,
+    replaceGeneratorPrompt,
+    resetGeneratorPrompt,
+    getOriginalGeneratorPrompt,
   ]);
 
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;

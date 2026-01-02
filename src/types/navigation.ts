@@ -6,7 +6,8 @@ export type DevTab =
   | "profile"
   | "index-layout"
   | "about"
-  | "layout-lab";
+  | "layout-lab"
+  | "generator";
 
 export type AppView =
   | { type: "substances" }
@@ -20,5 +21,4 @@ export type AppView =
   | { type: "about" }
   | { type: "search"; query: string }
   | { type: "dev"; tab: DevTab; slug?: string }
-  | { type: "contributor"; profileKey: string }
-  | { type: "generator" };
+  | { type: "contributor"; profileKey: string };

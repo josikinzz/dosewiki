@@ -164,7 +164,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 1P-LSD.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 13385
       },
       {
@@ -836,7 +836,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25B-NBOMe.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10966
       },
       {
@@ -914,7 +914,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25C-NBOMe.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11672
       },
       {
@@ -1184,7 +1184,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25I-NBOMe.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12897
       },
       {
@@ -1244,7 +1244,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25N-NBOMe.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10948
       },
       {
@@ -1370,7 +1370,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-B.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10119
       },
       {
@@ -1550,7 +1550,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-C.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12468
       },
       {
@@ -1652,7 +1652,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-E.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11128
       },
       {
@@ -1778,7 +1778,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-I.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9490
       },
       {
@@ -1898,7 +1898,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-P.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9773
       },
       {
@@ -1988,7 +1988,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-T-2.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 14842
       },
       {
@@ -2108,7 +2108,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-T-7.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9662
       },
       {
@@ -2702,7 +2702,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 3-MeO-PCMo.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11966
       },
       {
@@ -3074,7 +3074,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-AcO-DMT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9932
       },
       {
@@ -3200,7 +3200,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-AcO-MET.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11742
       },
       {
@@ -3986,7 +3986,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12047
       },
       {
@@ -4838,7 +4838,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 5-MeO-DMT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12983
       },
       {
@@ -5090,7 +5090,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 5-MeO-MiPT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10324
       },
       {
@@ -5678,7 +5678,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - AL-LAD.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 13380
       },
       {
@@ -5858,7 +5858,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - AMT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11710
       },
       {
@@ -6728,7 +6728,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ayahuasca.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 17141
       },
       {
@@ -8990,7 +8990,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DMT.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 17653
       },
       {
@@ -9062,7 +9062,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOB.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9370
       },
       {
@@ -9122,7 +9122,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOC.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9743
       },
       {
@@ -9296,7 +9296,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOM.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 8956
       },
       {
@@ -9494,7 +9494,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Datura.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 4421
       },
       {
@@ -9842,7 +9842,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Dextromethorphan.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12897
       },
       {
@@ -10310,7 +10310,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Diphenhydramine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10498
       },
       {
@@ -10376,7 +10376,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Diphenidine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 13426
       },
       {
@@ -10676,7 +10676,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ephenidine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12701
       },
       {
@@ -13208,7 +13208,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ketamine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 16021
       },
       {
@@ -13466,7 +13466,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - LSA.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 14521
       },
       {
@@ -13502,7 +13502,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - LSD.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 11378
       },
       {
@@ -14108,7 +14108,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - MDAI.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 7660
       },
       {
@@ -14210,7 +14210,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - MDMA.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 12273
       },
       {
@@ -15044,7 +15044,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Mescaline.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 177
       },
       {
@@ -15506,7 +15506,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methoxetamine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 15224
       },
       {
@@ -15572,7 +15572,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methoxphenidine.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 9035
       },
       {
@@ -15770,7 +15770,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methylone.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10592
       },
       {
@@ -16982,7 +16982,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Nitrous.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 13722
       },
       {
@@ -19136,7 +19136,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Psilocin.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10239
       },
       {
@@ -19172,7 +19172,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Psilocybin_mushrooms.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 10251
       },
       {
@@ -19610,7 +19610,7 @@ export const substances: SubstanceInfo[] = [
       {
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Salvia.md",
-        "displayName": "DEIA",
+        "displayName": "Disregard Everything I Say",
         "size": 14543
       },
       {

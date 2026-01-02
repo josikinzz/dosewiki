@@ -1,6 +1,7 @@
 import { Leaf, MessageSquarePlus } from "lucide-react";
 
 import type { HeroBadge, MoleculeAsset, NameVariant } from "../../types/content";
+import { Button } from "@/components/ui/button";
 
 interface HeroProps {
   title: string;
@@ -155,14 +156,14 @@ export function Hero({
               );
 
               return isInteractive ? (
-                <button
+                <Button
                   key={`${badge.label}-${badge.categoryKey}`}
-                  type="button"
+                  variant="ghostPill"
                   onClick={() => handleBadgeClick(badge)}
                   className={interactiveBadgeClasses}
                 >
                   {content}
-                </button>
+                </Button>
               ) : (
                 <span
                   key={badge.label}

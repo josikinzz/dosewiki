@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { Cog } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
-import { BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/library";
 import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/library";
 
@@ -13,9 +14,6 @@ interface MechanismDetailPageProps {
   onSelectMechanism?: (mechanismSlug: string, qualifierSlug?: string) => void;
   activeQualifierSlug?: string;
 }
-
-const ACTIVE_QUALIFIER_CLASSES =
-  "bg-fuchsia-500/25 text-white ring-fuchsia-400/40 hover:bg-fuchsia-500/25 hover:text-white";
 
 function getSectionId(mechanismSlug: string, qualifierKey: string) {
   return `mechanism-${mechanismSlug}-${qualifierKey}`;
@@ -83,17 +81,21 @@ export function MechanismDetailPage({
             const countLabel = `${qualifier.total}`;
 
             return (
-              <button
+              <Badge
                 key={qualifier.key}
-                type="button"
+                variant="effectInteractive"
+                role="button"
+                tabIndex={0}
                 onClick={() => handleQualifierSelect(qualifier.key)}
-                className={`${BADGE_INTERACTIVE_CLASSES} ${
-                  isActive ? ACTIVE_QUALIFIER_CLASSES : ""
-                } inline-flex items-center gap-2 gap-fallback-row-2`}
+                onKeyDown={(e) => e.key === "Enter" && handleQualifierSelect(qualifier.key)}
+                className={cn(
+                  "gap-2 gap-fallback-row-2",
+                  isActive && "bg-fuchsia-500/25 text-white ring-fuchsia-400/40 hover:bg-fuchsia-500/25 hover:text-white"
+                )}
               >
                 <span>{displayLabel}</span>
                 <span className="text-xs text-white/60">{countLabel}</span>
-              </button>
+              </Badge>
             );
           })}
         </div>

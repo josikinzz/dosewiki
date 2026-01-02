@@ -13,7 +13,6 @@ type ArticleRecord = (typeof articlesSource)[number];
 
 interface LayoutLabTabProps {
   articles: ArticleRecord[];
-  baseInputClass: string;
   defaultSlug: string | null;
   onSelectArticleIndex?: (index: number) => void;
   onOpenEditor?: () => void;
@@ -26,7 +25,6 @@ interface NormalizedLayoutRecord {
 
 export function LayoutLabTab({
   articles,
-  baseInputClass,
   defaultSlug,
   onSelectArticleIndex,
   onOpenEditor,
@@ -113,7 +111,6 @@ export function LayoutLabTab({
           onQueryChange={setQuery}
           suggestions={suggestions}
           onSelect={(slug) => selectSlug(slug)}
-          baseInputClass={baseInputClass}
           activeSlug={selectedSlug}
         />
 

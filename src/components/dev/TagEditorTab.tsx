@@ -6,29 +6,16 @@ import { TagMutation, TAG_FIELD_LABELS, TAG_FIELDS, applyTagMutation, buildTagRe
 import { DiffPreview } from "../common/DiffPreview";
 import { SectionCard } from "../common/SectionCard";
 import { useDevMode } from "./DevModeContext";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Notice = {
   type: "success" | "error";
   message: string;
 };
-
-const baseInputClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 md:text-sm";
-
-const subtleInputClass =
-  "w-full rounded-full border border-white/10 bg-slate-950/60 px-4 py-2 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
-
-const pillButtonClass =
-  "inline-flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white";
-
-const neutralButtonClass =
-  "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/75 transition hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10 hover:text-white";
-
-const dangerButtonClass =
-  "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
-
-const glassPillButtonBaseClass =
-  "inline-flex items-center gap-2 rounded-full bg-white/12 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 
 type SelectedTag = {
   field: TagField;
@@ -317,14 +304,14 @@ export function TagEditorTab({
               articles and downstream Dev tools.
             </p>
           </div>
-          <button
-            type="button"
-            className={neutralButtonClass}
+          <Button
+            variant="pill"
+            size="pill"
             onClick={() => setRegistryVersion((previous) => previous + 1)}
           >
             <RefreshCw className="h-4 w-4" aria-hidden="true" focusable="false" />
             Refresh snapshot
-          </button>
+          </Button>
         </div>
         <div className="text-xs text-white/55">
           <span className="font-semibold text-white/70">{totalTags}</span> unique tags detected across the dataset.
@@ -332,15 +319,9 @@ export function TagEditorTab({
       </SectionCard>
 
       {notice && (
-        <div
-          className={`rounded-xl border px-4 py-3 text-sm ${
-            notice.type === "error"
-              ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-              : "border-emerald-500/35 bg-emerald-500/10 text-emerald-200"
-          }`}
-        >
-          {notice.message}
-        </div>
+        <Alert variant={notice.type === "error" ? "destructive" : "success"}>
+          <AlertDescription>{notice.message}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[21rem,1fr]">
@@ -349,21 +330,18 @@ export function TagEditorTab({
             <label className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45" htmlFor="tag-field-filter">
               Field
             </label>
-            <div className="relative">
-              <select
-                id="tag-field-filter"
-                className={subtleInputClass}
-                value={activeField}
-                onChange={(event) => setActiveField(event.target.value as TagField)}
-              >
+            <Select value={activeField} onValueChange={(value) => setActiveField(value as TagField)}>
+              <SelectTrigger id="tag-field-filter" className="rounded-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {TAG_FIELDS.map((field) => (
-                  <option key={field} value={field}>
+                  <SelectItem key={field} value={field}>
                     {TAG_FIELD_LABELS[field]}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <ArrowLeftRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
-            </div>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -372,10 +350,10 @@ export function TagEditorTab({
             </label>
             <div className="relative mt-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
-              <input
+              <Input
                 id="tag-search"
                 type="search"
-                className={`${baseInputClass} pl-9`}
+                className="pl-9"
                 placeholder="Filter by label"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -390,22 +368,18 @@ export function TagEditorTab({
               filteredTags.map((usage) => {
                 const isActive = selected?.field === usage.field && selected.key === usage.key;
                 return (
-                  <button
+                  <Button
                     key={`${usage.field}-${usage.key}`}
-                    type="button"
+                    variant="tagListItem"
                     onClick={() => handleSelectUsage(usage)}
-                    className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
-                      isActive
-                        ? "border-fuchsia-400/70 bg-fuchsia-500/15 text-white shadow-inner shadow-fuchsia-500/25"
-                        : "border-white/10 bg-white/5 text-white/75 hover:border-fuchsia-400/50 hover:bg-fuchsia-500/10 hover:text-white"
-                    }`}
+                    data-active={isActive}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="font-semibold">{usage.tag}</span>
                       <span className="text-xs uppercase tracking-wide text-white/55">{usage.count} uses</span>
                     </div>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.25em] text-white/45">{TAG_FIELD_LABELS[usage.field]}</p>
-                  </button>
+                  </Button>
                 );
               })
             )}
@@ -418,9 +392,9 @@ export function TagEditorTab({
               <SectionCard className="space-y-4 bg-white/[0.03]">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-base font-semibold text-white">
+                    <Badge variant="secondary" className="px-4 py-2 text-base font-semibold">
                       {selectedUsage.tag}
-                    </span>
+                    </Badge>
                     <span className="text-xs uppercase tracking-[0.28em] text-white/45">
                       {TAG_FIELD_LABELS[selectedUsage.field]}
                     </span>
@@ -470,9 +444,8 @@ export function TagEditorTab({
                     <span className="text-sm font-semibold uppercase tracking-wide text-white/60">Rename</span>
                     <Pencil className="h-4 w-4 text-white/45" aria-hidden="true" focusable="false" />
                   </div>
-                  <input
+                  <Input
                     type="text"
-                    className={baseInputClass}
                     value={renameValue}
                     placeholder="Enter new label"
                     onChange={(event) => setRenameValue(event.target.value)}
@@ -481,13 +454,15 @@ export function TagEditorTab({
                     <p className="text-xs text-white/55">
                       Updates every occurrence of this tag across the dataset.
                     </p>
-                    <button
+                    <Button
                       type="submit"
-                      className={pillButtonClass}
+                      variant="default"
+                      size="pill"
+                      className="rounded-full"
                       disabled={isApplying}
                     >
                       Rename tag
-                    </button>
+                    </Button>
                   </div>
                 </form>
 
@@ -499,31 +474,30 @@ export function TagEditorTab({
                     <ArrowLeftRight className="h-4 w-4 text-white/45" aria-hidden="true" focusable="false" />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
+                    <div className="space-y-1">
                       <label className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45" htmlFor="move-target-field">
                         Destination field
                       </label>
-                      <select
-                        id="move-target-field"
-                        className={subtleInputClass}
-                        value={moveTargetField}
-                        onChange={(event) => setMoveTargetField(event.target.value as TagField)}
-                      >
-                        {TAG_FIELDS.filter((field) => field !== selectedUsage.field).map((field) => (
-                          <option key={field} value={field}>
-                            {TAG_FIELD_LABELS[field]}
-                          </option>
-                        ))}
-                      </select>
+                      <Select value={moveTargetField} onValueChange={(value) => setMoveTargetField(value as TagField)}>
+                        <SelectTrigger id="move-target-field" className="rounded-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TAG_FIELDS.filter((field) => field !== selectedUsage.field).map((field) => (
+                            <SelectItem key={field} value={field}>
+                              {TAG_FIELD_LABELS[field]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <label className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45" htmlFor="move-label">
                         Optional rename
                       </label>
-                      <input
+                      <Input
                         id="move-label"
                         type="text"
-                        className={baseInputClass}
                         value={moveLabel}
                         onChange={(event) => setMoveLabel(event.target.value)}
                         placeholder={selectedUsage.tag}
@@ -543,9 +517,9 @@ export function TagEditorTab({
                     <p className="text-xs text-white/55">
                       Moves or copies the tag to the chosen field and merges duplicates automatically.
                     </p>
-                    <button type="submit" className={pillButtonClass} disabled={isApplying}>
+                    <Button type="submit" variant="default" size="pill" className="rounded-full" disabled={isApplying}>
                       {keepSourceCopy ? "Copy tag" : "Move tag"}
-                    </button>
+                    </Button>
                   </div>
                 </form>
 
@@ -569,10 +543,10 @@ export function TagEditorTab({
                     />
                     I understand this will permanently remove the tag.
                   </label>
-                  <button type="button" className={dangerButtonClass} onClick={handleDelete} disabled={isApplying || !deleteConfirmed}>
+                  <Button variant="destructive" size="pill" className="rounded-full" onClick={handleDelete} disabled={isApplying || !deleteConfirmed}>
                     <Trash2 className="h-4 w-4" aria-hidden="true" focusable="false" />
                     Delete tag everywhere
-                  </button>
+                  </Button>
                 </div>
               </SectionCard>
             </>
@@ -601,24 +575,26 @@ export function TagEditorTab({
           className="max-h-72"
         />
         <div className="flex flex-wrap gap-2 text-xs">
-          <button
-            type="button"
-            className={`${glassPillButtonBaseClass} px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60`}
+          <Button
+            variant="glass"
+            size="xs"
+            className="rounded-full"
             onClick={handleCopyDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >
             <Copy className="h-3.5 w-3.5" />
             Copy diff
-          </button>
-          <button
-            type="button"
-            className={`${glassPillButtonBaseClass} px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-60`}
+          </Button>
+          <Button
+            variant="glass"
+            size="xs"
+            className="rounded-full"
             onClick={handleDownloadDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >
             <Download className="h-3.5 w-3.5" />
             Download .diff
-          </button>
+          </Button>
         </div>
       </SectionCard>
       {commitPanel ? <div>{commitPanel}</div> : null}

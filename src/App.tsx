@@ -35,7 +35,6 @@ import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
 import { SubstanceArticle } from "./components/pages/SubstanceArticle";
-import { ArticleGeneratorPage } from "./components/pages/ArticleGeneratorPage";
 
 const DEFAULT_SLUG = lsdMetadata.slug;
 const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
@@ -393,8 +392,6 @@ export default function App() {
         <main>
           <AboutPage />
         </main>
-      ) : view.type === "generator" ? (
-        <ArticleGeneratorPage />
       ) : view.type === "contributor" ? (
         (() => {
           const rawKey = view.profileKey.trim();

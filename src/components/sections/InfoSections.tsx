@@ -1,5 +1,6 @@
 ﻿import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { Button } from "@/components/ui/button";
 import type { InfoSection, InfoSectionItem } from "../../types/content";
 
 type BulletEntry = {
@@ -95,13 +96,12 @@ export function InfoSectionItemCard({
           <li key={entry.key} className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
             {entry.onClick ? (
-              <button
-                type="button"
+              <Button
+                variant="inlineLink"
                 onClick={entry.onClick}
-                className="text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
               >
                 {entry.label}
-              </button>
+              </Button>
             ) : (
               <span className="text-white/85">{entry.label}</span>
             )}

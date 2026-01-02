@@ -16,7 +16,7 @@ const SOURCE_DISPLAY_NAMES = {
   EROWID: "Erowid",
   ISOMERDESIGN: "Isomer Design",
   DRUGBANK: "DrugBank",
-  DISREGARDEVERYTHINGISAY: "DEIA",
+  DISREGARDEVERYTHINGISAY: "Disregard Everything I Say",
   PROTESTKIT: "Protest Kit",
   DMTURNER: "D.M. Turner",
   DRUGUSERSBIBLE: "Drug Users Bible",
@@ -171,12 +171,19 @@ export async function loadSubstanceSources(slug: string): Promise<SubstanceModul
 
   fs.writeFileSync(path.join(OUTPUT_DIR, "index.ts"), indexContent);
 
-  // Also load the PROMPT.md
+  // Copy PROMPT.md to output directory and create import wrapper
   const promptPath = path.join(ARTICLES_DIR, "PROMPT.md");
+  const outputPromptMdPath = path.join(OUTPUT_DIR, "prompt.md");
   if (fs.existsSync(promptPath)) {
-    const promptContent = fs.readFileSync(promptPath, "utf-8");
+    // Only copy if output prompt.md doesn't exist (preserve edits made via DevMode)
+    if (!fs.existsSync(outputPromptMdPath)) {
+      const promptContent = fs.readFileSync(promptPath, "utf-8");
+      fs.writeFileSync(outputPromptMdPath, promptContent);
+    }
+    // Generate prompt.ts that imports from the markdown file
     const promptModule = `// Auto-generated - do not edit
-export const systemPrompt = \`${escapeString(promptContent)}\`;
+import promptContent from './prompt.md?raw';
+export const systemPrompt = promptContent;
 `;
     fs.writeFileSync(path.join(OUTPUT_DIR, "prompt.ts"), promptModule);
   }

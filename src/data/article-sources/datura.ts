@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Datura";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Datura.md","displayName":"DEIA","size":4421},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Datura.md","displayName":"Drug Users Bible","size":5741},{"id":"protestkit","fileName":"PROTESTKIT - Datura.json","displayName":"Protest Kit","size":2172},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Datura.md","displayName":"TripSit Factsheets","size":934},{"id":"wikipedia","fileName":"WIKIPEDIA - Datura.md","displayName":"Wikipedia","size":17342}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Datura.md","displayName":"Disregard Everything I Say","size":4421},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Datura.md","displayName":"Drug Users Bible","size":5741},{"id":"protestkit","fileName":"PROTESTKIT - Datura.json","displayName":"Protest Kit","size":2172},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Datura.md","displayName":"TripSit Factsheets","size":934},{"id":"wikipedia","fileName":"WIKIPEDIA - Datura.md","displayName":"Wikipedia","size":17342}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Datura
 *Source: https://disregardeverythingisay.com/post/34795202116/datura-broken-down-and-described*

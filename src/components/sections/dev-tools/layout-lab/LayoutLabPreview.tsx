@@ -1,5 +1,7 @@
 import { Leaf, MessageSquarePlus, Share2 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { IconBadge } from "../../../common/IconBadge";
 import { SectionCard } from "../../../common/SectionCard";
 import type { SubstanceRecord } from "../../../../data/contentBuilder";
@@ -91,12 +93,12 @@ export function LayoutLabPreview({
           {content.heroBadges.length > 0 ? (
             <div className="flex flex-wrap gap-2 pt-4">
               {content.heroBadges.map((badge) => (
-                <span
+                <Badge
                   key={`${badge.label}-${badge.categoryKey ?? badge.label}`}
-                  className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.35em] text-white/70"
+                  variant="ghostPill"
                 >
                   {badge.label}
-                </span>
+                </Badge>
               ))}
             </div>
           ) : null}
@@ -173,13 +175,14 @@ export function LayoutLabPreview({
               {shareHref}
             </a>
             {onOpenEditor && (
-              <button
-                type="button"
+              <Button
+                variant="ghostPill"
+                size="chipXs"
+                className="mt-3"
                 onClick={onOpenEditor}
-                className="mt-3 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white/70 transition hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white"
               >
                 Open in editor
-              </button>
+              </Button>
             )}
           </SectionCard>
         </div>

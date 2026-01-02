@@ -19,8 +19,6 @@ export function viewToHash(view: AppView): string {
     }
     case "about":
       return "#/about";
-    case "generator":
-      return "#/generator";
     case "category":
       return `#/category/${view.categoryKey}`;
     case "effect":
@@ -98,8 +96,6 @@ export function parseHash(
       }
       case "about":
         return { type: "about" };
-      case "generator":
-        return { type: "generator" };
       case "category":
         if (slug) {
           return { type: "category", categoryKey: slug };
@@ -176,6 +172,8 @@ export function parseHash(
           tab = "about";
         } else if (candidate === "layout-lab" || candidate === "layout") {
           tab = "layout-lab";
+        } else if (candidate === "generator" || candidate === "gen") {
+          tab = "generator";
         } else {
           tab = "edit";
         }

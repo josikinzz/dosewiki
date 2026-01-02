@@ -19,6 +19,7 @@ const PSYCHOACTIVE_INDEX_PATH = "src/data/psychoactiveIndexManual.json";
 const ABOUT_MARKDOWN_PATH = "src/data/aboutContent.md";
 const ABOUT_SUBTITLE_PATH = "src/data/aboutSubtitle.md";
 const ABOUT_CONFIG_PATH = "src/data/aboutConfig.json";
+const GENERATOR_PROMPT_PATH = "src/data/article-sources/prompt.md";
 const CHANGE_LOG_LIMIT = 250;
 
 const normalizeChangedArticles = (rawArticles) => {
@@ -205,6 +206,14 @@ export default async function handler(req, res) {
     serializedAboutConfig = JSON.stringify(normalizedAboutConfigPayload, null, 2);
   }
 
+  let normalizedGeneratorPrompt = null;
+  if (Object.prototype.hasOwnProperty.call(body, 'generatorPrompt')) {
+    if (typeof body.generatorPrompt !== "string") {
+      return res.status(400).json({ error: "generatorPrompt must be a string when provided." });
+    }
+    normalizedGeneratorPrompt = normalizeAboutMarkdown(body.generatorPrompt);
+  }
+
   const rawChangelogMarkdown = typeof body.changelogMarkdown === "string" ? body.changelogMarkdown.trim() : "";
   const changelogMarkdown =
     rawChangelogMarkdown.length > 0 ? rawChangelogMarkdown : "No diff details were provided for this commit.";
@@ -296,6 +305,16 @@ export default async function handler(req, res) {
         mode: "100644",
         type: "blob",
         sha: aboutConfigBlobSha,
+      });
+    }
+
+    if (normalizedGeneratorPrompt !== null) {
+      const generatorPromptBlobSha = await createBlob(githubToken, normalizedGeneratorPrompt);
+      treeEntries.push({
+        path: GENERATOR_PROMPT_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: generatorPromptBlobSha,
       });
     }
 

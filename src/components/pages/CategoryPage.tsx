@@ -1,6 +1,7 @@
 import { PageHeader } from "../sections/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { Button } from "@/components/ui/button";
 import type { CategoryDetail } from "../../data/library";
 
 interface CategoryPageProps {
@@ -26,10 +27,10 @@ export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
             <ul className="mt-4 space-y-2 text-sm text-white/85">
               {group.drugs.map((drug) => (
                 <li key={drug.slug}>
-                  <button
-                    type="button"
+                  <Button
+                    variant="listItem"
+                    size="listItem"
                     onClick={() => onSelectDrug(drug.slug)}
-                    className="w-full rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                   >
                     <span className="flex flex-wrap items-baseline gap-2">
                       <span className="hyphenate">{drug.name}</span>
@@ -37,7 +38,7 @@ export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
                         <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
                       )}
                     </span>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

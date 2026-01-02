@@ -13,12 +13,12 @@ import { parseListInput } from "../../utils/articleDraftForm";
 
 import { useDevTagOptions } from "../../hooks/useDevTagOptions";
 import { TagMultiSelect } from "../common/TagMultiSelect";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-const baseInputClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 md:text-sm";
-const baseTextareaClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-3 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 md:text-sm";
-const labelClass = "mb-2 block text-xs font-medium uppercase tracking-wide text-white/50";
 const helperTextClass = "text-[11px] text-white/45";
 
 const doseRangeLabels: Array<[keyof DoseRangeForm, string]> = [
@@ -161,12 +161,12 @@ const ListPreview = ({ items, emptyLabel }: ListPreviewProps) => {
   return (
     <div className="flex flex-wrap gap-2 pt-2">
       {items.map((item, index) => (
-        <span
+        <Badge
           key={`${item}-${index}`}
-          className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs text-white/70"
+          variant="secondary"
         >
           {item}
-        </span>
+        </Badge>
       ))}
     </div>
   );
@@ -201,13 +201,12 @@ const OverviewFields = ({
   return (
     <section className="space-y-6">
       <SectionHeader title="Overview" description="Controls the hero title, alias rail, and index metadata." />
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-display-title`}>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-display-title`}>
           Display name / Title
-        </label>
-        <input
+        </Label>
+        <Input
           id={`${idPrefix}-display-title`}
-          className={baseInputClass}
           value={displayNameTitleValue}
           onChange={handleDisplayTitleChange}
           placeholder="Primary article title"
@@ -217,13 +216,12 @@ const OverviewFields = ({
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-id`}>
+        <div className="space-y-2">
+          <Label htmlFor={`${idPrefix}-id`}>
             Article ID
-          </label>
-          <input
+          </Label>
+          <Input
             id={`${idPrefix}-id`}
-            className={baseInputClass}
             value={form.id}
             onChange={handleFieldChange("id")}
             placeholder="e.g., 101"
@@ -246,49 +244,45 @@ const OverviewFields = ({
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-substitutive-name`}>
+        <div className="space-y-2">
+          <Label htmlFor={`${idPrefix}-substitutive-name`}>
             Substitutive name
-          </label>
-          <input
+          </Label>
+          <Input
             id={`${idPrefix}-substitutive-name`}
-            className={baseInputClass}
             value={form.substitutiveName}
             onChange={handleFieldChange("substitutiveName")}
             placeholder="Systematic or ISO name"
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-iupac-name`}>
+        <div className="space-y-2">
+          <Label htmlFor={`${idPrefix}-iupac-name`}>
             IUPAC name
-          </label>
-          <input
+          </Label>
+          <Input
             id={`${idPrefix}-iupac-name`}
-            className={baseInputClass}
             value={form.iupacName}
             onChange={handleFieldChange("iupacName")}
             placeholder="Add full IUPAC naming (optional)"
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-botanical-name`}>
+        <div className="space-y-2">
+          <Label htmlFor={`${idPrefix}-botanical-name`}>
             Botanical name
-          </label>
-          <input
+          </Label>
+          <Input
             id={`${idPrefix}-botanical-name`}
-            className={baseInputClass}
             value={form.botanicalName}
             onChange={handleFieldChange("botanicalName")}
             placeholder="Latin binomial (optional)"
           />
         </div>
-        <div>
-          <label className={labelClass} htmlFor={`${idPrefix}-alternative-name`}>
+        <div className="space-y-2">
+          <Label htmlFor={`${idPrefix}-alternative-name`}>
             Alternative name
-          </label>
-          <input
+          </Label>
+          <Input
             id={`${idPrefix}-alternative-name`}
-            className={baseInputClass}
             value={form.alternativeName}
             onChange={handleFieldChange("alternativeName")}
             placeholder="Common alias (optional)"
@@ -338,29 +332,28 @@ const DosageDurationFields = ({
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-white/75">Route {index + 1}</p>
               {form.routes.length > 1 && (
-                <button
+                <Button
                   type="button"
-                  className="text-xs text-white/60 transition hover:text-white"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => removeRouteEntry(index)}
                 >
                   Remove
-                </button>
+                </Button>
               )}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className={labelClass}>Administration route</label>
-                <input
-                  className={baseInputClass}
+              <div className="space-y-2">
+                <Label>Administration route</Label>
+                <Input
                   value={route.route}
                   onChange={handleRouteFieldChange(index, "route")}
                   placeholder="e.g., Oral"
                 />
               </div>
-              <div>
-                <label className={labelClass}>Units</label>
-                <input
-                  className={baseInputClass}
+              <div className="space-y-2">
+                <Label>Units</Label>
+                <Input
                   value={route.units}
                   onChange={handleRouteFieldChange(index, "units")}
                   placeholder="e.g., µg"
@@ -369,10 +362,9 @@ const DosageDurationFields = ({
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {doseRangeLabels.map(([key, label]) => (
-                <div key={`${routeKey}-${key}`}>
-                  <label className={labelClass}>{label}</label>
-                  <input
-                    className={baseInputClass}
+                <div key={`${routeKey}-${key}`} className="space-y-2">
+                  <Label>{label}</Label>
+                  <Input
                     value={route.doseRanges[key]}
                     onChange={handleDoseRangeFieldChange(index, key)}
                     placeholder="e.g., 10-20 µg"
@@ -382,10 +374,9 @@ const DosageDurationFields = ({
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {routeDurationLabels.map(([stageKey, label, placeholder]) => (
-                <div key={`${routeKey}-duration-${stageKey}`}>
-                  <label className={labelClass}>{label}</label>
-                  <input
-                    className={baseInputClass}
+                <div key={`${routeKey}-duration-${stageKey}`} className="space-y-2">
+                  <Label>{label}</Label>
+                  <Input
                     value={durationRoute?.stages?.[stageKey] ?? ""}
                     onChange={handleDurationRouteStageChange(index, stageKey)}
                     placeholder={placeholder}
@@ -394,32 +385,33 @@ const DosageDurationFields = ({
               ))}
             </div>
             <div className="flex justify-end">
-              <button
+              <Button
                 type="button"
-                className="text-xs text-white/60 transition hover:text-white"
+                variant="ghost"
+                size="sm"
                 onClick={() => applyDurationDefaultsToRoute(index)}
               >
                 Copy defaults
-              </button>
+              </Button>
             </div>
           </div>
         );
       })}
     </div>
-    <button
+    <Button
       type="button"
+      variant="outline"
+      className="w-full border-dashed"
       onClick={addRouteEntry}
-      className="w-full rounded-xl border border-dashed border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
     >
       Add route
-    </button>
+    </Button>
     <p className={helperTextClass}>Separate ranges with hyphens; omit values when data is unavailable.</p>
     <div className="grid gap-4 md:grid-cols-2">
       {durationLabels.map(([key, label, placeholder]) => (
-        <div key={`${idPrefix}-${key}`}>
-          <label className={labelClass}>{label}</label>
-          <input
-            className={baseInputClass}
+        <div key={`${idPrefix}-${key}`} className="space-y-2">
+          <Label>{label}</Label>
+          <Input
             value={form.duration[key]}
             onChange={handleDurationFieldChange(key)}
             placeholder={placeholder}
@@ -485,13 +477,12 @@ const ChemistryFields = ({
       />
         <CharacterCount value={form.mechanismOfAction} />
       </div>
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-half-life`}>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-half-life`}>
           Half-life (optional)
-        </label>
-        <input
+        </Label>
+        <Input
           id={`${idPrefix}-half-life`}
-          className={baseInputClass}
           value={form.halfLife}
           onChange={handleFieldChange("halfLife")}
           placeholder="e.g., ~3.6 hours"
@@ -511,13 +502,13 @@ const SubjectiveEffectsFields = ({ idPrefix, form, handleFieldChange }: Subjecti
         title="Subjective Effects"
         description="Powers the badge cloud on the Substance page."
       />
-      <div>
-        <label className={labelClass} htmlFor={`${idPrefix}-subjective-effects`}>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-subjective-effects`}>
           Subjective effects
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id={`${idPrefix}-subjective-effects`}
-          className={`${baseTextareaClass} min-h-[100px]`}
+          className="min-h-[100px]"
           value={form.subjectiveEffectsInput}
           onChange={handleFieldChange("subjectiveEffectsInput")}
           placeholder="Euphoria\nTime dilation"
@@ -535,13 +526,13 @@ const AddictionFields = ({ idPrefix, form, handleFieldChange }: AddictionFieldsP
       title="Addiction Potential"
       description="Surfaces as the dedicated Addiction Potential card."
     />
-    <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-addiction-potential`}>
+    <div className="space-y-2">
+      <Label htmlFor={`${idPrefix}-addiction-potential`}>
         Addiction potential summary
-      </label>
-      <textarea
+      </Label>
+      <Textarea
         id={`${idPrefix}-addiction-potential`}
-        className={`${baseTextareaClass} min-h-[120px]`}
+        className="min-h-[120px]"
         value={form.addictionPotential}
         onChange={handleFieldChange("addictionPotential")}
         placeholder="Summarise dependence risk, compulsion, and mitigation guidance."
@@ -559,28 +550,28 @@ const InteractionsFields = ({ form, handleFieldChange }: InteractionsFieldsProps
       description="Match the live Interactions buckets: Dangerous, Unsafe, and Use with Caution."
     />
     <div className="grid gap-4 md:grid-cols-2">
-      <div>
-        <label className={labelClass}>Dangerous combinations</label>
-        <textarea
-          className={`${baseTextareaClass} min-h-[100px]`}
+      <div className="space-y-2">
+        <Label>Dangerous combinations</Label>
+        <Textarea
+          className="min-h-[100px]"
           value={form.interactionsDangerousInput}
           onChange={handleFieldChange("interactionsDangerousInput")}
           placeholder="MAOIs"
         />
       </div>
-      <div>
-        <label className={labelClass}>Unsafe combinations</label>
-        <textarea
-          className={`${baseTextareaClass} min-h-[100px]`}
+      <div className="space-y-2">
+        <Label>Unsafe combinations</Label>
+        <Textarea
+          className="min-h-[100px]"
           value={form.interactionsUnsafeInput}
           onChange={handleFieldChange("interactionsUnsafeInput")}
           placeholder="SSRIs"
         />
       </div>
-      <div className="md:col-span-2">
-        <label className={labelClass}>Use with caution</label>
-        <textarea
-          className={`${baseTextareaClass} min-h-[100px]`}
+      <div className="space-y-2 md:col-span-2">
+        <Label>Use with caution</Label>
+        <Textarea
+          className="min-h-[100px]"
           value={form.interactionsCautionInput}
           onChange={handleFieldChange("interactionsCautionInput")}
           placeholder="Alcohol"
@@ -604,10 +595,9 @@ const ToleranceFields = ({
     />
     <div className="grid gap-4 md:grid-cols-3">
       {toleranceLabels.map(([key, label]) => (
-        <div key={`${idPrefix}-${key}`}>
-          <label className={labelClass}>{label}</label>
-          <input
-            className={baseInputClass}
+        <div key={`${idPrefix}-${key}`} className="space-y-2">
+          <Label>{label}</Label>
+          <Input
             value={form.tolerance[key]}
             onChange={handleToleranceFieldChange(key)}
             placeholder="e.g., ~3 days"
@@ -615,13 +605,13 @@ const ToleranceFields = ({
         </div>
       ))}
     </div>
-    <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-cross-tolerances`}>
+    <div className="space-y-2">
+      <Label htmlFor={`${idPrefix}-cross-tolerances`}>
         Cross tolerances
-      </label>
-      <textarea
+      </Label>
+      <Textarea
         id={`${idPrefix}-cross-tolerances`}
-        className={`${baseTextareaClass} min-h-[100px]`}
+        className="min-h-[100px]"
         value={form.crossTolerancesInput}
         onChange={handleFieldChange("crossTolerancesInput")}
         placeholder="Other arylcyclohexylamines"
@@ -637,13 +627,13 @@ const NotesFields = ({ idPrefix, form, handleFieldChange }: NotesFieldsProps) =>
       title="Notes"
       description="Appears near the end of the article as Markdown-rendered advisory content."
     />
-    <div>
-      <label className={labelClass} htmlFor={`${idPrefix}-notes`}>
+    <div className="space-y-2">
+      <Label htmlFor={`${idPrefix}-notes`}>
         Notes
-      </label>
-      <textarea
+      </Label>
+      <Textarea
         id={`${idPrefix}-notes`}
-        className={`${baseTextareaClass} min-h-[140px]`}
+        className="min-h-[140px]"
         value={form.notes}
         onChange={handleFieldChange("notes")}
         placeholder="Set & setting, harm reduction, and contextual insights."
@@ -674,29 +664,28 @@ const CitationsFields = ({
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-white/75">Citation {index + 1}</p>
               {form.citations.length > 1 && (
-                <button
+                <Button
                   type="button"
-                  className="text-xs text-white/60 transition hover:text-white"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => removeCitationEntry(index)}
                 >
                   Remove
-                </button>
+                </Button>
               )}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className={labelClass}>Citation label</label>
-                <input
-                  className={baseInputClass}
+              <div className="space-y-2">
+                <Label>Citation label</Label>
+                <Input
                   value={citation.name}
                   onChange={handleCitationFieldChange(index, "name")}
                   placeholder="TripSit"
                 />
               </div>
-              <div>
-                <label className={labelClass}>Citation URL</label>
-                <input
-                  className={baseInputClass}
+              <div className="space-y-2">
+                <Label>Citation URL</Label>
+                <Input
                   value={citation.reference}
                   onChange={handleCitationFieldChange(index, "reference")}
                   placeholder="https://..."
@@ -707,13 +696,14 @@ const CitationsFields = ({
         );
       })}
     </div>
-    <button
+    <Button
       type="button"
+      variant="outline"
+      className="w-full border-dashed"
       onClick={addCitationEntry}
-      className="w-full rounded-xl border border-dashed border-white/10 bg-slate-950/40 px-3 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
     >
       Add citation
-    </button>
+    </Button>
   </section>
 );
 

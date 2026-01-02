@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import type { TagOption } from "../../data/tagOptions";
+import { Button } from "@/components/ui/button";
 
 const collapseWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();
 const toComparable = (value: string): string => collapseWhitespace(value).toLowerCase();
@@ -479,14 +480,13 @@ export const TagMultiSelect = ({
                 >
                   {tag}
                   {!disabled ? (
-                    <button
-                      type="button"
+                    <Button
+                      variant="tagRemove"
                       aria-label={`Remove ${tag}`}
                       onClick={handleRemoveClick}
-                      className="rounded-full p-0.5 text-white/50 transition hover:text-white"
                     >
                       <X className="h-3 w-3" />
-                    </button>
+                    </Button>
                   ) : null}
                 </span>
               );
@@ -518,28 +518,29 @@ export const TagMultiSelect = ({
             />
           </div>
           {shouldShowTriggerButton ? (
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/75 transition hover:border-white/25 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-white/15 disabled:hover:bg-white/5 disabled:hover:text-white/75 disabled:focus:ring-0"
+            <Button
+              variant="pill"
+              size="icon"
+              className="h-9 w-9"
               onClick={handleTriggerClick}
               aria-label={computedAddButtonLabel}
               disabled={disabled}
             >
               <Plus className="h-4 w-4" aria-hidden="true" focusable="false" />
-            </button>
+            </Button>
           ) : null}
         </div>
         {shouldShowInlineCreateButton ? (
           <div className="mt-3">
-            <button
-              type="button"
-              className="w-full rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-3 py-2 text-sm font-medium text-fuchsia-100 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-300/40 disabled:cursor-not-allowed disabled:opacity-45"
+            <Button
+              variant="default"
+              className="w-full rounded-lg"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => handleAddTag(normalizedQuery)}
               disabled={disabled}
             >
               {createOptionLabel}
-            </button>
+            </Button>
           </div>
         ) : null}
         {shouldShowInlineEmptyState ? (

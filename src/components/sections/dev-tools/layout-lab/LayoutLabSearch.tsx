@@ -2,6 +2,8 @@ import { FormEvent } from "react";
 import { Search } from "lucide-react";
 
 import { IconBadge } from "../../../common/IconBadge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import type { LayoutLabOption } from "./useLayoutLabSelection";
 
@@ -10,7 +12,6 @@ interface LayoutLabSearchProps {
   onQueryChange: (value: string) => void;
   suggestions: LayoutLabOption[];
   onSelect: (slug: string) => void;
-  baseInputClass: string;
   activeSlug?: string | null;
 }
 
@@ -19,7 +20,6 @@ export function LayoutLabSearch({
   onQueryChange,
   suggestions,
   onSelect,
-  baseInputClass,
   activeSlug,
 }: LayoutLabSearchProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -42,13 +42,13 @@ export function LayoutLabSearch({
         </label>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-          <input
+          <Input
             id="layout-lab-search"
             type="search"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Type a drug name, alias, or slug"
-            className={`${baseInputClass} pl-9`}
+            className="pl-9"
             autoComplete="off"
           />
         </div>
@@ -62,19 +62,15 @@ export function LayoutLabSearch({
           suggestions.map((suggestion) => {
             const isActive = suggestion.slug === activeSlug;
             return (
-              <button
+              <Button
                 key={suggestion.slug}
-                type="button"
+                variant={isActive ? "suggestionActive" : "suggestion"}
+                size="suggestion"
                 onClick={() => onSelect(suggestion.slug)}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/40 ring-1 ring-white/10 ${
-                  isActive
-                    ? "border border-fuchsia-400/50 bg-gradient-to-r from-fuchsia-500/20 to-violet-500/10 text-white"
-                    : "border border-transparent bg-white/5 text-white/80 hover:border-fuchsia-400/40 hover:bg-fuchsia-500/10 hover:text-white"
-                }`}
               >
                 <span>{suggestion.label}</span>
                 <span className="text-[11px] uppercase tracking-[0.35em] text-white/35">#{suggestion.slug}</span>
-              </button>
+              </Button>
             );
           })
         )}

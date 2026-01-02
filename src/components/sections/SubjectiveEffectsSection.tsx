@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import { BADGE_BASE_CLASSES, BADGE_INTERACTIVE_CLASSES } from "../common/badgeStyles";
+import { Badge } from "@/components/ui/badge";
 
 interface SubjectiveEffectsSectionProps {
   effects: string[];
@@ -26,21 +26,20 @@ export function SubjectiveEffectsSection({ effects, onEffectSelect }: Subjective
         {effects.map((effect) => {
           const isInteractive = Boolean(onEffectSelect);
           return isInteractive ? (
-            <button
+            <Badge
               key={effect}
-              type="button"
+              variant="effectInteractive"
+              role="button"
+              tabIndex={0}
               onClick={() => handleSelect(effect)}
-              className={BADGE_INTERACTIVE_CLASSES}
+              onKeyDown={(e) => e.key === "Enter" && handleSelect(effect)}
             >
               {effect}
-            </button>
+            </Badge>
           ) : (
-            <span
-              key={effect}
-              className={BADGE_BASE_CLASSES}
-            >
+            <Badge key={effect} variant="effect">
               {effect}
-            </span>
+            </Badge>
           );
         })}
       </div>

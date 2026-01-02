@@ -1,6 +1,7 @@
 import { ChartNoAxesCombined, Scale, Timer } from 'lucide-react';
 import { SectionCard } from '../common/SectionCard';
 import { IconBadge } from '../common/IconBadge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { RouteInfo, RouteKey } from '../../types/content';
 
 interface DosageDurationCardProps {
@@ -62,33 +63,29 @@ export function DosageDurationCard({
             <h2 className="text-xl font-semibold text-fuchsia-300">Dosage & Duration</h2>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+        <ToggleGroup
+          type="single"
+          value={activeRouteKey}
+          onValueChange={(value) => value && onRouteChange(value as RouteKey)}
+          variant="pill"
+          size="pill"
+          className="flex-wrap md:justify-end"
+        >
           {orderedRoutes.map((key) => {
             const info = routes[key];
             if (!info) {
               return null;
             }
 
-            const isActive = key === activeRouteKey;
             const label = resolveLabel(key);
 
             return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onRouteChange(key)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                  isActive
-                    ? 'border-white/40 bg-white/20 text-white shadow-[0_10px_30px_-12px_rgba(168,85,247,0.65)]'
-                    : 'border-white/20 bg-white/0 text-white/75 hover:bg-white/10 hover:text-white'
-                }`}
-                aria-pressed={isActive}
-              >
+              <ToggleGroupItem key={key} value={key}>
                 {label}
-              </button>
+              </ToggleGroupItem>
             );
           })}
-        </div>
+        </ToggleGroup>
       </div>
       {showNote && (
         <p className="mt-3 text-xs text-white/70 md:text-sm">{trimmedNote}</p>

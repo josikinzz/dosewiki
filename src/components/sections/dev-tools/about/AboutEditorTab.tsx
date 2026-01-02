@@ -8,6 +8,9 @@ import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
 
 import { SectionCard } from "../../../common/SectionCard";
 import { DiffPreview } from "../../../common/DiffPreview";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import type { NormalizedUserProfile } from "../../../../data/userProfiles";
 
 const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
@@ -24,8 +27,6 @@ const AUTO_RESIZE_MIN_HEIGHT = 240;
 const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
 interface AboutEditorTabProps {
-  baseInputClass: string;
-  pillButtonBaseClass: string;
   aboutMarkdown: string;
   originalAboutMarkdown: string;
   onMarkdownChange: (value: string) => void;
@@ -91,8 +92,6 @@ const toInitials = (value: string) => {
 };
 
 export const AboutEditorTab = memo(function AboutEditorTab({
-  baseInputClass,
-  pillButtonBaseClass,
   aboutMarkdown,
   originalAboutMarkdown,
   onMarkdownChange,
@@ -273,34 +272,36 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           </div>
         </div>
         <div className="space-y-3">
-          <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="about-markdown-editor">
+          <Label htmlFor="about-markdown-editor">
             Markdown source
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="about-markdown-editor"
             ref={textareaRef}
-            className={`${baseInputClass} min-h-[240px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6`}
+            className="min-h-[240px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6"
             value={aboutMarkdown}
             onChange={handleTextareaChange}
           />
           <div className="flex flex-wrap gap-2 text-xs">
-            <button
+            <Button
               type="button"
-              className={`${pillButtonBaseClass} px-3 py-1.5`}
+              variant="secondary"
+              size="sm"
               onClick={onCopyMarkdown}
             >
               <Copy className="h-3.5 w-3.5" />
               Copy markdown
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className={`${pillButtonBaseClass} px-3 py-1.5 ${isMarkdownDirty ? "" : "opacity-60"}`}
+              variant="secondary"
+              size="sm"
               onClick={onResetMarkdown}
               disabled={!isMarkdownDirty}
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Reset to source
-            </button>
+            </Button>
           </div>
         </div>
       </SectionCard>
@@ -318,34 +319,36 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           </div>
         </div>
         <div className="space-y-3">
-          <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="about-subtitle-editor">
+          <Label htmlFor="about-subtitle-editor">
             Subtitle source
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="about-subtitle-editor"
             ref={subtitleTextareaRef}
-            className={`${baseInputClass} min-h-[160px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6`}
+            className="min-h-[160px] resize-none whitespace-pre-wrap font-mono text-[16px] leading-6"
             value={aboutSubtitle}
             onChange={handleSubtitleTextareaChange}
           />
           <div className="flex flex-wrap gap-2 text-xs">
-            <button
+            <Button
               type="button"
-              className={`${pillButtonBaseClass} px-3 py-1.5`}
+              variant="secondary"
+              size="sm"
               onClick={onCopySubtitle}
             >
               <Copy className="h-3.5 w-3.5" />
               Copy subtitle
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className={`${pillButtonBaseClass} px-3 py-1.5 ${isSubtitleDirty ? "" : "opacity-60"}`}
+              variant="secondary"
+              size="sm"
               onClick={onResetSubtitle}
               disabled={!isSubtitleDirty}
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Reset subtitle
-            </button>
+            </Button>
           </div>
         </div>
       </SectionCard>
@@ -372,13 +375,14 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#120d27]/40 p-6">
-            <ReactMarkdown
-              className="prose prose-invert max-w-none"
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              components={markdownComponents}
-            >
-              {resolvedPreviewMarkdown}
-            </ReactMarkdown>
+            <div className="prose prose-invert max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={markdownComponents}
+              >
+                {resolvedPreviewMarkdown}
+              </ReactMarkdown>
+            </div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#120d27]/40 p-6">
@@ -478,15 +482,16 @@ export const AboutEditorTab = memo(function AboutEditorTab({
           })}
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
-          <button
+          <Button
             type="button"
-            className={`${pillButtonBaseClass} px-3 py-1.5 ${isFounderSelectionDirty ? "" : "opacity-60"}`}
+            variant="secondary"
+            size="sm"
             onClick={onResetFounderKeys}
             disabled={!isFounderSelectionDirty}
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Reset selections
-          </button>
+          </Button>
         </div>
         {(addedFounders.length > 0 || removedFounders.length > 0) && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
