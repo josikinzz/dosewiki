@@ -22,7 +22,6 @@ import {
   Check,
   Copy,
   Download,
-  FileJson,
   FileText,
   FlaskConical,
   Loader2,
@@ -369,33 +368,18 @@ export const GeneratorTab = memo(function GeneratorTab({
     navigator.clipboard.writeText(streamedOutput);
   }, [streamedOutput]);
 
-  // Download JSON
+  // Download YAML
   const handleDownload = useCallback(() => {
     const selectedSubstance = substances.find((s) => s.slug === selectedSubstanceSlug);
-    const blob = new Blob([streamedOutput], { type: "application/json" });
+    const blob = new Blob([streamedOutput], { type: "text/yaml" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${selectedSubstance?.name ?? "article"}.json`;
+    a.download = `${selectedSubstance?.name ?? "article"}.yaml`;
     a.click();
     URL.revokeObjectURL(url);
   }, [streamedOutput, selectedSubstanceSlug]);
 
-  // Try to extract JSON from output
-  const extractedJson = useMemo(() => {
-    if (!streamedOutput) return null;
-    // Try to find JSON object in output
-    const match = streamedOutput.match(/\{[\s\S]*\}/);
-    if (match) {
-      try {
-        const parsed = JSON.parse(match[0]);
-        return JSON.stringify(parsed, null, 2);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }, [streamedOutput]);
 
   const selectedSubstance = useMemo(
     () => substances.find((s) => s.slug === selectedSubstanceSlug),
@@ -672,16 +656,10 @@ export const GeneratorTab = memo(function GeneratorTab({
           </div>
           <JsonEditor
             id="generated-output"
-            value={extractedJson ?? streamedOutput}
+            value={streamedOutput}
             onChange={setStreamedOutput}
             minHeight={400}
           />
-          {extractedJson && extractedJson !== streamedOutput && (
-            <p className="mt-2 text-xs text-white/40">
-              <FileJson className="mr-1 inline h-3.5 w-3.5" />
-              JSON extracted and formatted from response
-            </p>
-          )}
         </SectionCard>
       )}
 
