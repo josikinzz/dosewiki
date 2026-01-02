@@ -60,7 +60,7 @@ const buttonVariants = cva(
         categoryHeader:
           "flex flex-1 flex-col items-start text-left",
         searchOption:
-          "flex w-full flex-col gap-1.5 px-4 py-3 text-left text-sm transition hover:bg-[rgba(255,255,255,0.08)] hover:text-white/90 data-[highlighted=true]:bg-[rgba(255,255,255,0.18)] data-[highlighted=true]:text-white data-[highlighted=false]:text-white/80",
+          "flex h-auto w-full flex-col items-stretch justify-start gap-1.5 px-4 py-3 text-left text-sm whitespace-normal transition hover:bg-fuchsia-500/15 data-[highlighted=true]:bg-fuchsia-500/20 data-[highlighted=false]:bg-transparent",
         brand:
           "group/brand flex items-center gap-2 text-left",
         inlineLink:
@@ -109,6 +109,7 @@ const buttonVariants = cva(
         tabPrimary: "min-w-[9rem] gap-2 px-4 py-2 sm:min-w-0",
         tabSecondary: "min-w-[8rem] gap-2 px-4 py-2 sm:min-w-0",
         addCard: "px-6 py-10",
+        auto: "h-auto w-auto",
       },
     },
     defaultVariants: {

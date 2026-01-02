@@ -25,7 +25,7 @@ const SOURCE_DISPLAY_NAMES = {
 };
 
 // Sources to exclude from the generator
-const EXCLUDED_SOURCES = new Set(["BLUELIGHT"]);
+const EXCLUDED_SOURCES = new Set(["BLUELIGHT", "DMTURNER"]);
 
 function getDisplayName(sourceKey) {
   return SOURCE_DISPLAY_NAMES[sourceKey] || sourceKey;

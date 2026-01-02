@@ -195,9 +195,10 @@ export function CategoryGrid({
           >
             <header className="flex items-start justify-between gap-4 pb-2 text-white/90">
               <div className="flex flex-1 items-start gap-3">
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-start gap-1">
                   <Button
                     variant="iconGhost"
+                    size="auto"
                     onClick={() => void handleCopyGroup(group)}
                     aria-label={`Copy ${group.name} list to clipboard`}
                   >

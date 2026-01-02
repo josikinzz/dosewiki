@@ -4,28 +4,8 @@ import { querySearch, type SearchMatch } from "../../data/search";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 const MAX_SUGGESTIONS = 8;
-
-const META_TOKEN_SPLIT = /[·,/]/;
-
-function extractMetaTokens(meta?: SearchMatch["meta"]): string[] {
-  if (!meta) {
-    return [];
-  }
-
-  const tokens = new Set<string>();
-  meta.forEach((entry) => {
-    entry.value
-      .split(META_TOKEN_SPLIT)
-      .map((token) => token.trim())
-      .filter((token) => token.length > 0)
-      .forEach((token) => tokens.add(token));
-  });
-
-  return Array.from(tokens);
-}
 
 interface GlobalSearchProps {
   currentView: AppView;
@@ -422,6 +402,7 @@ export function GlobalSearch({
                   ) : null}
                   <Button
                     variant="searchOption"
+                    className="!h-auto"
                     id={optionId}
                     role="option"
                     aria-selected={isHighlighted}
@@ -433,30 +414,11 @@ export function GlobalSearch({
                     <span className="text-[10px] uppercase tracking-[0.32em] text-white/55">
                       {renderSuggestionType(match)}
                     </span>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-0.5">
                       <span className="text-base font-semibold text-fuchsia-200">{match.label}</span>
                       {match.secondary && (
-                        <span className="text-xs text-white/65">{match.secondary}</span>
+                        <span className="line-clamp-2 text-xs leading-relaxed text-white/50">{match.secondary}</span>
                       )}
-                      {(() => {
-                        const tokens = extractMetaTokens(match.meta);
-                        if (tokens.length === 0) {
-                          return null;
-                        }
-                        return (
-                          <span className="mt-1.5 flex flex-wrap gap-2 gap-fallback-wrap-3">
-                            {tokens.map((token) => (
-                              <Badge
-                                key={`${match.id}-badge-${token}`}
-                                variant="default"
-                                className="text-[9px]"
-                              >
-                                {token}
-                              </Badge>
-                            ))}
-                          </span>
-                        );
-                      })()}
                     </div>
                   </Button>
                 </li>
