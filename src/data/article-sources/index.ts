@@ -1374,12 +1374,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10119
       },
       {
-        "id": "dmturner",
-        "fileName": "DMTURNER - 2C-B.md",
-        "displayName": "D.M. Turner",
-        "size": 7822
-      },
-      {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-B.md",
         "displayName": "Drug Users Bible",
@@ -8994,12 +8988,6 @@ export const substances: SubstanceInfo[] = [
         "size": 17653
       },
       {
-        "id": "dmturner",
-        "fileName": "DMTURNER - DMT.md",
-        "displayName": "D.M. Turner",
-        "size": 21481
-      },
-      {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - DMT.md",
         "displayName": "Drug Users Bible",
@@ -13212,12 +13200,6 @@ export const substances: SubstanceInfo[] = [
         "size": 16021
       },
       {
-        "id": "dmturner",
-        "fileName": "DMTURNER - Ketamine.md",
-        "displayName": "D.M. Turner",
-        "size": 18199
-      },
-      {
         "id": "drugbank",
         "fileName": "DRUGBANK - Ketamine.md",
         "displayName": "DrugBank",
@@ -13504,12 +13486,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DISREGARDEVERYTHINGISAY - LSD.md",
         "displayName": "Disregard Everything I Say",
         "size": 11378
-      },
-      {
-        "id": "dmturner",
-        "fileName": "DMTURNER - LSD.md",
-        "displayName": "D.M. Turner",
-        "size": 12939
       },
       {
         "id": "drugbank",
@@ -14212,12 +14188,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DISREGARDEVERYTHINGISAY - MDMA.md",
         "displayName": "Disregard Everything I Say",
         "size": 12273
-      },
-      {
-        "id": "dmturner",
-        "fileName": "DMTURNER - MDMA.md",
-        "displayName": "D.M. Turner",
-        "size": 8480
       },
       {
         "id": "drugbank",
@@ -15046,12 +15016,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DISREGARDEVERYTHINGISAY - Mescaline.md",
         "displayName": "Disregard Everything I Say",
         "size": 177
-      },
-      {
-        "id": "dmturner",
-        "fileName": "DMTURNER - Mescaline.md",
-        "displayName": "D.M. Turner",
-        "size": 20095
       },
       {
         "id": "drugusersbible",
@@ -19176,12 +19140,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10251
       },
       {
-        "id": "dmturner",
-        "fileName": "DMTURNER - Psilocybin_mushrooms.md",
-        "displayName": "D.M. Turner",
-        "size": 7035
-      },
-      {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Magic_Truffles.md",
         "displayName": "Drug Users Bible",
@@ -20033,12 +19991,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Syrian_Rue",
     "slug": "syrian-rue",
     "sources": [
-      {
-        "id": "dmturner",
-        "fileName": "DMTURNER - Syrian_Rue.md",
-        "displayName": "D.M. Turner",
-        "size": 5954
-      },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Syrian_Rue.md",

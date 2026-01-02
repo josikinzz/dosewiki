@@ -255,28 +255,41 @@ Each route object:
 | `dose_ranges` | `object` | Contains threshold, light, moderate, strong, heavy dose objects |
 | `notes` | `string` | Route-specific warnings (e.g., "Severe nasal burning") |
 
-Each dose range object (threshold, light, moderate, strong, heavy):
+Each dose range object:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `min` | `number` or `null` | Minimum dose value (use same value as max for single-point doses) |
-| `max` | `number` or `null` | Maximum dose value (use `null` for open-ended "+" ranges like heavy doses) |
+| `min` | `number` or `null` | Dose value (required for all tiers) |
+| `max` | `number` or `null` | Upper bound of range (see notes below) |
 | `unit` | `string` | ASCII units: `mg`, `ug`, `g`, `ml` |
+
+**Tier-specific rules:**
+- **threshold**: `max` is always `null` (single value, e.g., "15 mg")
+- **light/moderate/strong**: use both `min` and `max` for ranges (e.g., "25-75 mg")
+- **heavy**: `max` is always `null` (renders as "300+ mg")
 
 Example:
 ```yaml
 dose_ranges:
   threshold:
     min: 15
-    max: 15
+    max: null    # always null - threshold is a single value
     unit: ug
   light:
     min: 25
     max: 75
     unit: ug
+  moderate:
+    min: 75
+    max: 150
+    unit: ug
+  strong:
+    min: 150
+    max: 300
+    unit: ug
   heavy:
     min: 300
-    max: null    # represents "300+ ug"
+    max: null    # always null - renders as "300+ ug"
     unit: ug
 ```
 
