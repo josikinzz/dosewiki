@@ -2,6 +2,9 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { Search, X } from "lucide-react";
 import { querySearch, type SearchMatch } from "../../data/search";
 import type { AppView } from "../../types/navigation";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const MAX_SUGGESTIONS = 8;
 
@@ -356,17 +359,15 @@ export function GlobalSearch({
         <label htmlFor="global-search" className="sr-only">
           Search the library
         </label>
-        <input
+        <Input
           id="global-search"
           ref={inputRef}
           type="search"
           placeholder="Search..."
           autoComplete="off"
-          className={`w-full rounded-2xl bg-white/10 pl-10 ${
+          className={`w-full rounded-2xl pl-10 ${
             clearButtonVisible ? "pr-14" : "pr-10"
-          } text-[16px] text-white/90 placeholder-white/50 ring-1 ring-white/15 transition duration-200 hover:bg-white/12 hover:ring-white/25 focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40 md:text-sm ${
-            compact ? "py-2" : "py-3"
-          }`}
+          } ${compact ? "py-2" : "py-3"}`}
           value={query}
           onChange={handleChange}
           onFocus={handleFocus}
@@ -384,15 +385,16 @@ export function GlobalSearch({
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" aria-hidden="true" />
         {clearButtonVisible && (
           <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
-            <button
-              type="button"
+            <Button
+              variant="default"
+              size="icon"
               onMouseDown={(event) => event.preventDefault()}
               onClick={handleClear}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-200/80 transition hover:border-fuchsia-300/70 hover:bg-fuchsia-500/25 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              className="rounded-full"
               aria-label="Clear search"
             >
               <X className="h-4 w-4" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
         )}
         {showSuggestions && (
@@ -418,19 +420,15 @@ export function GlobalSearch({
                   {index > 0 ? (
                     <div className="mx-4 my-2 h-px w-auto bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.12)_20%,rgba(255,255,255,0.12)_80%,rgba(255,255,255,0)_100%)]" />
                   ) : null}
-                  <button
-                    type="button"
+                  <Button
+                    variant="searchOption"
                     id={optionId}
                     role="option"
                     aria-selected={isHighlighted}
+                    data-highlighted={isHighlighted}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handleSelectMatch(match)}
                     onMouseEnter={() => setActiveIndex(index)}
-                    className={`flex w-full flex-col gap-1.5 px-4 py-3 text-left text-sm transition ${
-                      isHighlighted
-                        ? "bg-[rgba(255,255,255,0.18)] text-white"
-                        : "text-white/80 hover:bg-[rgba(255,255,255,0.08)] hover:text-white/90"
-                    }`}
                   >
                     <span className="text-[10px] uppercase tracking-[0.32em] text-white/55">
                       {renderSuggestionType(match)}
@@ -448,18 +446,19 @@ export function GlobalSearch({
                         return (
                           <span className="mt-1.5 flex flex-wrap gap-2 gap-fallback-wrap-3">
                             {tokens.map((token) => (
-                              <span
+                              <Badge
                                 key={`${match.id}-badge-${token}`}
-                                className="inline-flex items-center rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-fuchsia-200/90"
+                                variant="default"
+                                className="text-[9px]"
                               >
                                 {token}
-                              </span>
+                              </Badge>
                             ))}
                           </span>
                         );
                       })()}
                     </div>
-                  </button>
+                  </Button>
                 </li>
               );
             })}

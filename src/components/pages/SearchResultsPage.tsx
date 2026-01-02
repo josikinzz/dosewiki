@@ -2,6 +2,8 @@
 import { Search } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import type { SearchMatch } from "../../data/search";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface SearchResultsPageProps {
   query: string;
@@ -100,10 +102,10 @@ export const SearchResultsPage = memo(function SearchResultsPage({
         <ul className="space-y-3">
           {results.map((match) => (
             <li key={match.id}>
-              <button
-                type="button"
+              <Button
+                variant="card"
+                size="card"
                 onClick={() => handleSelect(match)}
-                className="flex w-full items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-left transition hover:border-fuchsia-400/40 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
               >
                 <div className="flex flex-col gap-2">
                   <span className="text-[11px] uppercase tracking-[0.34em] text-white/60">
@@ -121,12 +123,13 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                     return (
                       <span className="mt-1.5 flex flex-wrap gap-1.5">
                         {tokens.map((token) => (
-                          <span
+                          <Badge
                             key={`${match.id}-badge-${token}`}
-                            className="inline-flex items-center rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-0.5 text-[10px] uppercase tracking-[0.24em] text-fuchsia-200/90"
+                            variant="default"
+                            className="text-[10px]"
                           >
                             {token}
-                          </span>
+                          </Badge>
                         ))}
                       </span>
                     );
@@ -135,7 +138,7 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                 <span className="mt-1 hidden shrink-0 text-xs font-semibold uppercase tracking-wide text-white/60 sm:inline-flex">
                   View
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

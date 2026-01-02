@@ -2,6 +2,8 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Edit3, Leaf, MessageSquarePlus, Wrench } from "lucide-react";
 
 import type { SubstanceRecord } from "../../data/contentBuilder";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { RouteKey } from "../../types/content";
 import articles from "../../data/articles";
 import { slugify } from "../../utils/slug";
@@ -125,21 +127,21 @@ export function SubstanceArticle({
           };
 
           return badge.categoryKey ? (
-            <button
+            <Button
               key={`${badge.label}-${badge.categoryKey}`}
-              type="button"
+              variant="ghostPill"
+              size="chipXs"
               onClick={handleClick}
-              className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.35em] text-white/70 transition hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {badge.label}
-            </button>
+            </Button>
           ) : (
-            <span
+            <Badge
               key={badge.label}
-              className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.35em] text-white/70"
+              variant="ghostPill"
             >
               {badge.label}
-            </span>
+            </Badge>
           );
         })}
       </div>
@@ -221,12 +223,8 @@ export function SubstanceArticle({
     openDevMode({ tab: "edit", slug: record.slug });
   }, [openDevMode, record.slug]);
 
-  const switchToDesktopUi = useCallback(() => {
-    setDesktopViewMode((previous) => (previous === "ui" ? previous : "ui"));
-  }, []);
-
-  const switchToDesktopJson = useCallback(() => {
-    setDesktopViewMode((previous) => (previous === "json" ? previous : "json"));
+  const handleDesktopViewModeChange = useCallback((mode: "ui" | "json") => {
+    setDesktopViewMode(mode);
   }, []);
 
   return (
@@ -403,18 +401,18 @@ export function SubstanceArticle({
                   </div>
                   <UiJsonToggle
                     mode={desktopViewMode}
-                    onUiClick={switchToDesktopUi}
-                    onJsonClick={switchToDesktopJson}
+                    onModeChange={handleDesktopViewModeChange}
                     className="mx-0"
                   />
-                  <button
-                    type="button"
+                  <Button
+                    variant="default"
+                    size="chipXs"
                     onClick={handleOpenDevEditor}
-                    className="inline-flex items-center gap-2 self-start rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                    className="self-start rounded-full"
                   >
                     <Edit3 aria-hidden className="h-4 w-4" focusable="false" />
                     Open editor
-                  </button>
+                  </Button>
                 </SectionCard>
 
                 {content.heroBadges && content.heroBadges.length > 0 ? (

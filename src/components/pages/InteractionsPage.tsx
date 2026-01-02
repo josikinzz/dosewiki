@@ -10,6 +10,15 @@ import {
 import type { SubstanceRecord } from "../../data/contentBuilder";
 import type { InteractionGroup, InteractionTarget } from "../../types/content";
 import { SectionCard } from "../common/SectionCard";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   compareInteractions,
   type InteractionComparisonResult,
@@ -123,16 +132,13 @@ const InteractionSummaryList = ({
             <li key={`${subjectName}-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-start justify-between gap-3 gap-fallback-row-3">
                 <div className="space-y-0.5">
-                  <button
-                    type="button"
+                  <Button
+                    variant="substanceLink"
                     onClick={() => entry.target.matchedSubstanceSlug && onNavigate(entry.target.matchedSubstanceSlug)}
                     disabled={!entry.target.matchedSubstanceSlug}
-                    className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                      entry.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
-                    }`}
                   >
                     {label}
-                  </button>
+                  </Button>
                   {badge}
                   {renderTargetRationale(entry.target)}
                 </div>
@@ -146,13 +152,14 @@ const InteractionSummaryList = ({
       </ul>
       {hasAdditionalEntries ? (
         <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-full border border-white/15 px-4 py-1.5 text-sm font-medium text-white/85 transition hover:border-fuchsia-400/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          <Button
+            variant="outline"
+            size="pill"
+            className="rounded-full"
             onClick={() => setVisibleCount((previous) => Math.min(entries.length, previous + LIST_CHUNK_SIZE))}
           >
             Show more
-          </button>
+          </Button>
         </div>
       ) : null}
     </>
@@ -193,19 +200,16 @@ const SharedInteractionList = ({
             <li key={`shared-${entry.slug}`} className="rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-start justify-between gap-3 gap-fallback-row-3">
                 <div className="space-y-0.5">
-                  <button
-                    type="button"
+                  <Button
+                    variant="substanceLink"
                     onClick={() =>
                       entry.primary.target.matchedSubstanceSlug &&
                       onNavigate(entry.primary.target.matchedSubstanceSlug)
                     }
                     disabled={!entry.primary.target.matchedSubstanceSlug}
-                    className={`text-sm font-semibold text-white transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                      entry.primary.target.matchedSubstanceSlug ? "" : "cursor-default text-white/80"
-                    }`}
                   >
                     {label}
-                  </button>
+                  </Button>
                   {badge}
                   {entry.primary.target.rationale && (
                     <p className="text-xs text-white/60">
@@ -244,13 +248,14 @@ const SharedInteractionList = ({
       </ul>
       {hasMore ? (
         <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-full border border-white/15 px-4 py-1.5 text-sm font-medium text-white/85 transition hover:border-fuchsia-400/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          <Button
+            variant="outline"
+            size="pill"
+            className="rounded-full"
             onClick={() => setVisibleCount((previous) => Math.min(entries.length, previous + LIST_CHUNK_SIZE))}
           >
             Show more
-          </button>
+          </Button>
         </div>
       ) : null}
     </>
@@ -426,67 +431,67 @@ export function InteractionsPage({
             </p>
           </div>
           <div className="flex items-center gap-2 gap-fallback-row-2">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleSwap}
-              className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
               Swap
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleReset}
-              className="inline-flex items-center gap-2 gap-fallback-row-2 rounded-xl border border-white/10 bg-white/10 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               Reset
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[1fr,auto,1fr] md:items-end">
-          <div>
-            <label htmlFor="primary-substance" className="text-sm font-medium text-white/80">
+          <div className="space-y-2">
+            <Label htmlFor="primary-substance" className="text-sm font-medium text-white/80">
               Substance A
-            </label>
-            <select
-              id="primary-substance"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-[#16112a] px-3 py-2 text-sm text-white focus:border-fuchsia-400 focus:outline-none"
+            </Label>
+            <Select
               value={primarySlug}
-              onChange={(event) => {
-                const nextPrimary = event.target.value;
-                updateSelection(nextPrimary, secondarySlug);
-              }}
+              onValueChange={(value) => updateSelection(value, secondarySlug)}
             >
-              {sortedSubstances.map((record) => (
-                <option key={`primary-${record.slug}`} value={record.slug}>
-                  {record.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="primary-substance">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedSubstances.map((record) => (
+                  <SelectItem key={`primary-${record.slug}`} value={record.slug}>
+                    {record.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="hidden md:flex md:flex-col md:items-center md:justify-center">
             <ArrowLeftRight className="h-5 w-5 text-white/60" aria-hidden="true" />
           </div>
-          <div>
-            <label htmlFor="secondary-substance" className="text-sm font-medium text-white/80">
+          <div className="space-y-2">
+            <Label htmlFor="secondary-substance" className="text-sm font-medium text-white/80">
               Substance B
-            </label>
-            <select
-              id="secondary-substance"
-              className="mt-2 w-full rounded-xl border border-white/10 bg-[#16112a] px-3 py-2 text-sm text-white focus:border-fuchsia-400 focus:outline-none"
+            </Label>
+            <Select
               value={secondarySlug}
-              onChange={(event) => {
-                const nextSecondary = event.target.value;
-                updateSelection(primarySlug, nextSecondary);
-              }}
+              onValueChange={(value) => updateSelection(primarySlug, value)}
             >
-              {sortedSubstances.map((record) => (
-                <option key={`secondary-${record.slug}`} value={record.slug}>
-                  {record.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="secondary-substance">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedSubstances.map((record) => (
+                  <SelectItem key={`secondary-${record.slug}`} value={record.slug}>
+                    {record.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Diphenidine";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Diphenidine.md","displayName":"DEIA","size":13426},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Diphenidine.md","displayName":"Drug Users Bible","size":3712},{"id":"protestkit","fileName":"PROTESTKIT - Diphenidine.json","displayName":"Protest Kit","size":6352},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diphenidine.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - Diphenidine.md","displayName":"Wikipedia","size":2865}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Diphenidine.md","displayName":"Disregard Everything I Say","size":13426},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Diphenidine.md","displayName":"Drug Users Bible","size":3712},{"id":"protestkit","fileName":"PROTESTKIT - Diphenidine.json","displayName":"Protest Kit","size":6352},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diphenidine.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - Diphenidine.md","displayName":"Wikipedia","size":2865}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Diphenidine
 *Source: https://disregardeverythingisay.com/post/107535099362/diphenidine-broken-down-and-described*

@@ -1,5 +1,6 @@
 ﻿import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import type { OutputAsset, OutputChunk } from 'rollup';
 
@@ -64,6 +65,11 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), ...(inline ? [singleFilePlugin()] : [])],
     esbuild: {
       target: 'es2017',
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
     server: {
       fs: {

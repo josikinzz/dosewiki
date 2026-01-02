@@ -2,9 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import { ExternalLink, FileText, ImageOff, ImageUp, Link2, Plus, RefreshCw, Save, Trash2, UserRound } from "lucide-react";
+import { ExternalLink, ImageOff, ImageUp, Plus, RefreshCw, Save, Trash2, UserRound } from "lucide-react";
 
 import { SectionCard } from "../common/SectionCard";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { ChangeLogEntry } from "../../data/changeLog";
 
@@ -31,7 +36,6 @@ type ProfileFormState = {
 };
 
 type ProfileEditorTabProps = {
-  baseInputClass: string;
   profile: NormalizedUserProfile;
   profileHistory: ChangeLogEntry[];
   verifyCredentials: (
@@ -115,7 +119,6 @@ const inferAvatarMimeType = (file: File) => {
 };
 
 export function ProfileEditorTab({
-  baseInputClass,
   profile,
   profileHistory,
   verifyCredentials,
@@ -433,37 +436,30 @@ export function ProfileEditorTab({
         </div>
 
         {notice && (
-          <div
-            className={`rounded-2xl border px-4 py-3 text-sm ${
-              notice.type === "error"
-                ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
-            }`}
-          >
-            {notice.message}
-          </div>
+          <Alert variant={notice.type === "error" ? "destructive" : "success"}>
+            <AlertDescription>{notice.message}</AlertDescription>
+          </Alert>
         )}
 
         <div className="space-y-6">
-          <div className="space-y-3">
-              <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-display-name">
-                Display name
-              </label>
-              <input
-                id="profile-display-name"
-                type="text"
-                className={baseInputClass}
-                value={form.displayName}
-                onChange={(event) => setForm((previous) => ({ ...previous, displayName: event.target.value }))}
-                placeholder="Contributor name"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="profile-display-name">
+              Display name
+            </Label>
+            <Input
+              id="profile-display-name"
+              type="text"
+              value={form.displayName}
+              onChange={(event) => setForm((previous) => ({ ...previous, displayName: event.target.value }))}
+              placeholder="Contributor name"
+            />
+          </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-avatar-url">
+                <Label htmlFor="profile-avatar-url">
                   Avatar
-                </label>
+                </Label>
                 {avatarSelectionSummary && (
                   <span className="text-xs text-white/55">{avatarSelectionSummary}</span>
                 )}
@@ -478,32 +474,31 @@ export function ProfileEditorTab({
                   )}
                 </div>
                 <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                  <button
+                  <Button
                     type="button"
                     onClick={handleAvatarUploadClick}
-                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-fuchsia-500/30 via-violet-500/25 to-sky-500/20 text-sm font-medium text-white/90 shadow-sm shadow-fuchsia-500/25 ring-1 ring-fuchsia-400/40 transition hover:shadow-fuchsia-500/35 hover:ring-fuchsia-200/55"
                   >
                     <ImageUp className="h-4 w-4" />
                     Upload image
-                  </button>
+                  </Button>
                   {avatarFile ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={handleClearAvatarSelection}
-                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/10 text-sm text-white/80 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
                     >
                       <ImageOff className="h-4 w-4" />
                       Clear selected image
-                    </button>
+                    </Button>
                   ) : trimmedAvatarUrl.length > 0 ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="destructive"
                       onClick={handleRemoveAvatar}
-                      className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-white/10 text-sm text-rose-200/85 ring-1 ring-rose-300/30 transition hover:text-rose-100 hover:ring-rose-200/45"
                     >
                       <Trash2 className="h-4 w-4" />
                       Remove avatar
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               </div>
@@ -522,13 +517,12 @@ export function ProfileEditorTab({
               </p>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-avatar-url">
+                <Label htmlFor="profile-avatar-url">
                   Remote image URL (optional)
-                </label>
-                <input
+                </Label>
+                <Input
                   id="profile-avatar-url"
                   type="url"
-                  className={baseInputClass}
                   value={form.avatarUrl}
                   onChange={(event) => setForm((previous) => ({ ...previous, avatarUrl: event.target.value }))}
                   placeholder="https://example.com/avatar.png"
@@ -541,16 +535,16 @@ export function ProfileEditorTab({
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="profile-bio">
+                <Label htmlFor="profile-bio">
                   Bio
-                </label>
+                </Label>
                 <span className={`text-xs ${bioLength > MAX_BIO_LENGTH ? "text-rose-300" : "text-white/45"}`}>
                   {bioLength}/{MAX_BIO_LENGTH}
                 </span>
               </div>
-              <textarea
+              <Textarea
                 id="profile-bio"
-                className={`${baseInputClass} min-h-[180px] resize-y`}
+                className="min-h-[180px] resize-y"
                 value={form.bio}
                 onChange={(event) => setForm((previous) => ({ ...previous, bio: event.target.value }))}
                 placeholder="Share your research focus, experience, or collaboration interests."
@@ -559,7 +553,7 @@ export function ProfileEditorTab({
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45">Links</p>
+                <Label>Links</Label>
                 <span className="text-xs text-white/45">
                   {form.links.length}/{MAX_LINKS}
                 </span>
@@ -574,28 +568,27 @@ export function ProfileEditorTab({
               <div className="space-y-3">
                 {form.links.map((link, index) => (
                   <div key={index} className="grid gap-3 sm:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto]">
-                    <input
+                    <Input
                       type="text"
-                      className={baseInputClass}
                       value={link.label}
                       onChange={(event) => handleLinkChange(index, "label", event.target.value)}
                       placeholder="Label (e.g., Portfolio)"
                     />
-                    <input
+                    <Input
                       type="url"
-                      className={baseInputClass}
                       value={link.url}
                       onChange={(event) => handleLinkChange(index, "url", event.target.value)}
                       placeholder="https://example.com"
                     />
-                    <button
+                    <Button
                       type="button"
-                      className="inline-flex h-[42px] items-center justify-center rounded-xl px-3 text-sm text-white/75 bg-white/10 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
+                      variant="secondary"
+                      size="icon"
                       onClick={() => handleRemoveLink(index)}
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Remove link</span>
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -606,45 +599,37 @@ export function ProfileEditorTab({
                 </p>
               )}
 
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={handleAddLink}
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 bg-gradient-to-r from-white/15 via-white/10 to-white/5 text-sm font-medium text-white/85 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35 disabled:cursor-not-allowed disabled:bg-white/8 disabled:text-white/35 disabled:shadow-none disabled:ring-white/10"
                 disabled={form.links.length >= MAX_LINKS}
               >
                 <Plus className="h-4 w-4" />
                 Add link
-              </button>
+              </Button>
             </div>
           </div>
 
         <div className="flex flex-wrap gap-4 text-sm">
-          <button
+          <Button
             type="button"
             onClick={handleSave}
             disabled={isSaving || !isDirty || !hasStoredCredentials}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 transition ${
-              isSaving || !isDirty || !hasStoredCredentials
-                ? "cursor-not-allowed bg-white/8 text-white/35 ring-1 ring-white/15"
-                : "bg-gradient-to-r from-fuchsia-500/35 via-violet-500/25 to-sky-500/25 text-white/90 shadow-md shadow-fuchsia-500/20 ring-1 ring-fuchsia-300/40 hover:shadow-fuchsia-500/30 hover:ring-fuchsia-200/55"
-            }`}
           >
             <Save className="h-4 w-4" />
             Save profile
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             onClick={handleReset}
             disabled={isSaving || !isDirty}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-white/80 transition ${
-              isSaving || !isDirty
-                ? "cursor-not-allowed bg-white/8 text-white/35 ring-1 ring-white/15"
-                : "bg-white/10 ring-1 ring-white/20 hover:text-white hover:ring-white/35"
-            }`}
           >
             <RefreshCw className="h-4 w-4" />
             Reset changes
-          </button>
+          </Button>
         </div>
       </SectionCard>
     </div>

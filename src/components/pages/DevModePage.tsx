@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   BadgeCheck,
-  ChevronDown,
   Copy,
   Download,
   Edit3,
@@ -17,6 +16,7 @@ import {
   RefreshCw,
   Save,
   ScrollText,
+  Sparkles,
   Tags,
   Trash2,
   Undo2,
@@ -72,9 +72,19 @@ import { useDevMode } from "../dev/DevModeContext";
 import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/TagEditorTab";
 import { ProfileEditorTab } from "../dev/ProfileEditorTab";
+import { GeneratorTab } from "../sections/dev-tools/generator/GeneratorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
 import { SectionCard } from "../common/SectionCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
 import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
@@ -101,7 +111,8 @@ type DevModeTab =
   | "profile"
   | "index-layout"
   | "about"
-  | "layout-lab";
+  | "layout-lab"
+  | "generator";
 
 type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
 
@@ -113,7 +124,7 @@ const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "layout-lab") {
+  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "layout-lab" || tab === "generator") {
     return "edit";
   }
   if (tab === "create") {
@@ -131,16 +142,6 @@ type DevModePageProps = {
   onTabChange: (tab: DevModeTab) => void;
 };
 
-const baseInputClass =
-  "w-full rounded-xl border border-white/10 bg-slate-950/60 px-3 py-2 text-[16px] text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30 md:text-sm";
-const baseSelectClass =
-  "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-12 text-sm text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
-const compactSelectClass =
-  "w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-xs text-white placeholder:text-white/45 shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30";
-const dangerButtonClass =
-  "inline-flex items-center gap-2 rounded-full border border-rose-500/50 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-400 hover:bg-rose-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
-const pillButtonBaseClass =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-white/12 p-2 font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:bg-white/16 hover:text-white hover:ring-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
@@ -307,6 +308,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     resetAboutSubtitle,
     replaceAboutFounderKeys,
     resetAboutFounderKeys,
+    generatorPrompt,
+    replaceGeneratorPrompt,
+    resetGeneratorPrompt,
+    getOriginalGeneratorPrompt,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const initialSlugAppliedRef = useRef<string | null>(null);
@@ -465,6 +470,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     () => getOriginalAboutFounderKeys(),
     [getOriginalAboutFounderKeys],
   );
+  const originalGeneratorPrompt = useMemo(
+    () => getOriginalGeneratorPrompt(),
+    [getOriginalGeneratorPrompt],
+  );
 
   const aboutMarkdownChangelog = useMemo(
     () => buildTextChangelog("About copy", originalAboutMarkdown, aboutMarkdown),
@@ -473,6 +482,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const aboutSubtitleChangelog = useMemo(
     () => buildTextChangelog("About subtitle", originalAboutSubtitle, aboutSubtitle),
     [aboutSubtitle, originalAboutSubtitle],
+  );
+  const generatorPromptChangelog = useMemo(
+    () => buildTextChangelog("Generator prompt", originalGeneratorPrompt, generatorPrompt),
+    [generatorPrompt, originalGeneratorPrompt],
   );
 
   const founderLabelByKey = useMemo(() => {
@@ -553,8 +566,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const hasAboutSubtitleChanges = aboutSubtitleChangelog.hasChanges;
   const hasAboutFounderChanges = aboutFounderChangelog.hasChanges;
   const hasManualChanges = psychoactiveManualChangelog.hasChanges;
+  const hasGeneratorPromptChanges = generatorPromptChangelog.hasChanges;
   const hasPendingChanges =
-    hasArticleDatasetChanges || hasAboutMarkdownChanges || hasAboutSubtitleChanges || hasAboutFounderChanges || hasManualChanges;
+    hasArticleDatasetChanges || hasAboutMarkdownChanges || hasAboutSubtitleChanges || hasAboutFounderChanges || hasManualChanges || hasGeneratorPromptChanges;
 
   const combinedChangelogMarkdown = useMemo(() => {
     const segments: string[] = [];
@@ -573,6 +587,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
     if (hasAboutFounderChanges) {
       segments.push(aboutFounderChangelog.markdown.trimEnd());
+    }
+    if (hasGeneratorPromptChanges) {
+      segments.push(generatorPromptChangelog.markdown.trimEnd());
     }
 
     if (segments.length === 0) {
@@ -593,7 +610,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     hasAboutSubtitleChanges,
     hasArticleDatasetChanges,
     hasManualChanges,
+    hasGeneratorPromptChanges,
     psychoactiveManualChangelog.markdown,
+    generatorPromptChangelog.markdown,
   ]);
 
   const trimmedUsername = username.trim();
@@ -886,16 +905,12 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   const latestChangeLogEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
 
-  const handleChangeLogArticleSelect = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const value = event.target.value;
-      setChangeLogFilters((previous) => ({
-        ...previous,
-        articleSlug: value === "" ? null : value,
-      }));
-    },
-    [],
-  );
+  const handleChangeLogArticleSelect = useCallback((value: string) => {
+    setChangeLogFilters((previous) => ({
+      ...previous,
+      articleSlug: value === "" ? null : value,
+    }));
+  }, []);
 
   const handleChangeLogSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -1406,6 +1421,32 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [draftMode, editorValue, replaceEditArticleForm]);
 
+  const handleDraftModeChange = useCallback((mode: "ui" | "json") => {
+    if (mode === "json") {
+      if (draftMode === "json") return;
+      const draftPayload = buildArticleFromDraft(editArticleForm);
+      const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
+      setEditorValue(JSON.stringify(merged, null, 2));
+      setDraftMode("json");
+      setNotice(null);
+    } else {
+      if (draftMode === "ui") return;
+      try {
+        const parsed = JSON.parse(editorValue);
+        if (!parsed || typeof parsed !== "object") {
+          throw new Error("Parsed data must be an object");
+        }
+        const hydrated = hydrateArticleDraftForm(parsed);
+        replaceEditArticleForm(hydrated, { emitMutate: false });
+        setDraftMode("ui");
+        setNotice(null);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+        setNotice({ type: "error", message: `Switch failed: ${reason}` });
+      }
+    }
+  }, [draftMode, editArticleForm, selectedArticle, editorValue, replaceEditArticleForm]);
+
   const handleEditorChange = useCallback(
     (value: string) => {
       setEditorValue(value);
@@ -1779,6 +1820,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           aboutMarkdown,
           aboutSubtitleMarkdown: aboutSubtitle,
           aboutConfig: { founderProfileKeys: aboutFounderKeys },
+          generatorPrompt: hasGeneratorPromptChanges ? generatorPrompt : undefined,
         }),
       });
 
@@ -1837,6 +1879,8 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
+    generatorPrompt,
+    hasGeneratorPromptChanges,
     originalArticles,
     pushChangeLogNotice,
     getOriginalPsychoactiveIndexManual,
@@ -2121,6 +2165,29 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [createDraftMode, newArticleJsonDraft, replaceNewArticleForm, setCreatorNotice]);
 
+  const handleCreateDraftModeChange = useCallback((mode: "ui" | "json") => {
+    if (mode === "json") {
+      if (createDraftMode === "json") return;
+      setCreateDraftMode("json");
+      setCreatorNotice(null);
+    } else {
+      if (createDraftMode === "ui") return;
+      try {
+        const parsed = JSON.parse(newArticleJsonDraft);
+        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+          throw new Error("Article JSON must be an object.");
+        }
+        const hydrated = hydrateArticleDraftForm(parsed);
+        replaceNewArticleForm(hydrated);
+        setCreateDraftMode("ui");
+        setCreatorNotice(null);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+        setCreatorNotice({ type: "error", message: `Switch failed: ${reason}` });
+      }
+    }
+  }, [createDraftMode, newArticleJsonDraft, replaceNewArticleForm, setCreatorNotice]);
+
   const copyNewArticleJson = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(newArticleJsonDraft);
@@ -2146,8 +2213,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleForm.drugName, newArticleForm.title, newArticleJsonDraft]);
 
-  const handleClassificationChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
+  const handleClassificationChange = (value: string) => {
     if (!value) {
       return;
     }
@@ -2160,21 +2226,21 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setClassificationView(nextValue);
   };
 
-  const handleCategoryJump = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
+  const [categoryJumpKey, setCategoryJumpKey] = useState(0);
+
+  const handleCategoryJump = (value: string) => {
     if (!value) {
       return;
     }
 
     const nextIndex = Number(value);
     if (Number.isNaN(nextIndex)) {
-      event.target.value = "";
       return;
     }
 
     setArticleDeleteNotice(null);
     setSelectedIndex(nextIndex);
-    event.target.value = "";
+    setCategoryJumpKey((prev) => prev + 1);
   };
 
   const handleProfileUpdated = useCallback(
@@ -2231,6 +2297,20 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       console.error('Failed to copy About subtitle', error);
     });
   }, [aboutSubtitle]);
+
+  const handleGeneratorPromptChange = useCallback((value: string) => {
+    replaceGeneratorPrompt(value);
+  }, [replaceGeneratorPrompt]);
+
+  const handleGeneratorPromptReset = useCallback(() => {
+    resetGeneratorPrompt();
+  }, [resetGeneratorPrompt]);
+
+  const handleGeneratorPromptCopy = useCallback(() => {
+    navigator.clipboard.writeText(generatorPrompt).catch((error) => {
+      console.error('Failed to copy generator prompt', error);
+    });
+  }, [generatorPrompt]);
 
   const canonicalizeFounderKeyList = useCallback((keys: readonly string[]) => {
     const seen = new Set<string>();
@@ -2341,10 +2421,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   >
                     Username (ENV key)
                   </label>
-                  <input
+                  <Input
                     id="dev-mode-saved-username"
                     type="text"
-                    className={baseInputClass}
                     placeholder="Enter your username"
                     autoComplete="username"
                     value={usernameDraft}
@@ -2360,30 +2439,33 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                     User password
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       id="dev-mode-saved-password"
                       type={isPasswordVisible ? "text" : "password"}
-                      className={`${baseInputClass} pr-12`}
+                      className="pr-12"
                       placeholder="Paste your user password"
                       autoComplete="current-password"
                       value={passwordDraft}
                       onChange={(event) => setPasswordDraft(event.target.value)}
                       onKeyDown={handleCredentialInputKeyDown}
                     />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-3 flex items-center text-white/55 transition hover:text-white"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute inset-y-0 right-3 my-auto h-8 w-8"
                       onClick={() => setIsPasswordVisible((prev) => !prev)}
                       aria-label={isPasswordVisible ? "Hide password" : "Show password"}
                     >
                       {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
-              <button
+              <Button
                 type="submit"
-                className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:border-white/15 disabled:bg-white/10 disabled:text-white/50"
+                variant="default"
+                size="pill"
+                className="rounded-full"
                 disabled={isVerifyingCredentials}
               >
                 {isVerifyingCredentials ? (
@@ -2392,7 +2474,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   <Save className="h-4 w-4" />
                 )}
                 {isVerifyingCredentials ? "Verifying…" : "Save"}
-              </button>
+              </Button>
             </form>
             <div className="mt-2 min-h-[1.25rem] text-xs">
               {passwordNotice ? (
@@ -2421,15 +2503,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 <div className="text-white/45">Not logged in.</div>
               )}
               {hasStoredCredentials && (
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="xs"
+                  className="self-start rounded-full"
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 self-start rounded-full border border-white/15 px-3 py-1 font-medium text-white/75 transition hover:border-white/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={isVerifyingCredentials}
                 >
                   <LogOut className="h-4 w-4" />
                   Log out
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -2437,140 +2520,130 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
         <div className="mt-8 flex w-full flex-col items-center gap-4">
         <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-          <button
-            type="button"
+          <Button
+            variant="tabPrimary"
+            size="tabPrimary"
             onClick={() => handlePrimaryTabChange("edit")}
-            className={`flex min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:min-w-0 sm:flex-none sm:tracking-[0.3em] ${
-              activePrimaryTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-            }`}
+            data-active={activePrimaryTab === "edit"}
             aria-pressed={activePrimaryTab === "edit"}
           >
             <Edit3 className="h-4 w-4" aria-hidden="true" focusable="false" />
             <span>EDIT</span>
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="tabPrimary"
+            size="tabPrimary"
             onClick={() => handlePrimaryTabChange("create")}
-            className={`flex min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:min-w-0 sm:flex-none sm:tracking-[0.3em] ${
-              activePrimaryTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-            }`}
+            data-active={activePrimaryTab === "create"}
             aria-pressed={activePrimaryTab === "create"}
           >
             <PlusCircle className="h-4 w-4" aria-hidden="true" focusable="false" />
             <span>CREATE</span>
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="tabPrimary"
+            size="tabPrimary"
             onClick={() => handlePrimaryTabChange("change-log")}
-            className={`flex min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:min-w-0 sm:flex-none sm:tracking-[0.3em] ${
-              activePrimaryTab === "change-log"
-                ? "bg-fuchsia-500/20 text-white"
-                : "text-white/70 hover:text-white"
-            }`}
+            data-active={activePrimaryTab === "change-log"}
             aria-pressed={activePrimaryTab === "change-log"}
           >
             <ScrollText className="h-4 w-4" aria-hidden="true" focusable="false" />
             <span>CHANGE LOG</span>
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={hasStoredCredentials ? "tabPrimary" : "tabPrimaryDisabled"}
+            size="tabPrimary"
             onClick={() => {
               if (hasStoredCredentials) {
                 handlePrimaryTabChange("profile");
               }
             }}
-            className={`flex min-w-[9rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] transition sm:min-w-0 sm:flex-none sm:tracking-[0.3em] ${
-              activePrimaryTab === "profile"
-                ? "bg-fuchsia-500/20 text-white"
-                : hasStoredCredentials
-                  ? "text-white/70 hover:text-white"
-                  : "cursor-not-allowed text-white/30"
-            }`}
+            data-active={activePrimaryTab === "profile"}
             aria-pressed={activePrimaryTab === "profile"}
             disabled={!hasStoredCredentials}
           >
             <UserRound className="h-4 w-4" aria-hidden="true" focusable="false" />
             <span>PROFILE</span>
-          </button>
+          </Button>
         </div>
 
         {activePrimaryTab === "edit" && (
           <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-            <button
-              type="button"
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("edit")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "edit" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "edit"}
               aria-pressed={activeTab === "edit"}
             >
               <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Substances</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("tag-editor")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "tag-editor" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "tag-editor"}
               aria-pressed={activeTab === "tag-editor"}
             >
               <Tags className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Tags</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("about")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "about" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "about"}
               aria-pressed={activeTab === "about"}
             >
               <FileText className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>About</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("index-layout")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "index-layout"
-                  ? "bg-fuchsia-500/20 text-white"
-                  : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "index-layout"}
               aria-pressed={activeTab === "index-layout"}
             >
               <LayoutDashboard className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Index layout</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("layout-lab")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "layout-lab"
-                  ? "bg-fuchsia-500/20 text-white"
-                  : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "layout-lab"}
               aria-pressed={activeTab === "layout-lab"}
             >
               <LayoutGrid className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Layout lab</span>
-            </button>
+            </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
+              onClick={() => handleTabChange("generator")}
+              data-active={activeTab === "generator"}
+              aria-pressed={activeTab === "generator"}
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Generator</span>
+            </Button>
           </div>
         )}
 
         {activePrimaryTab === "create" && (
           <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-            <button
-              type="button"
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
               onClick={() => handleTabChange("create")}
-              className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition sm:min-w-0 sm:flex-none ${
-                activeTab === "create" ? "bg-fuchsia-500/20 text-white" : "text-white/70 hover:text-white"
-              }`}
+              data-active={activeTab === "create"}
               aria-pressed={activeTab === "create"}
             >
               <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Substances</span>
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -2591,16 +2664,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   to begin editing.
                 </p>
               </div>
-              <label className="sr-only" htmlFor="dev-mode-article">
-                Article
-              </label>
-              <div className="relative">
-                <select
-                  id="dev-mode-article"
-                  className={baseSelectClass}
-                  value={hasArticles ? selectedIndex : ""}
-                  onChange={(event) => {
-                  const { value } = event.target;
+              <Select
+                value={hasArticles ? selectedIndex.toString() : ""}
+                onValueChange={(value) => {
                   if (value === "") {
                     return;
                   }
@@ -2613,40 +2679,45 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 }}
                 disabled={!hasArticles}
               >
-                {hasArticles ? (
-                  articleOptions.map(({ index, label }) => (
-                    <option key={index} value={index}>
-                      {label}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">No articles available</option>
-                )}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
-            </div>
+                <SelectTrigger id="dev-mode-article" aria-label="Article">
+                  <SelectValue placeholder="No articles available" />
+                </SelectTrigger>
+                <SelectContent>
+                  {hasArticles ? (
+                    articleOptions.map(({ index, label }) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {label}
+                      </SelectItem>
+                    ))
+                  ) : null}
+                </SelectContent>
+              </Select>
 
             {categoryDropdowns.length > 0 && (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
                 <div className="mb-3 space-y-2">
                   <p className="text-sm font-semibold uppercase tracking-wide text-white/60">Jump by</p>
-                  <div className="relative w-full max-w-full min-w-0 sm:max-w-[14rem]">
-                    <label className="sr-only" htmlFor="dev-mode-classification">
-                      Classification type
-                    </label>
-                    <select
-                      id="dev-mode-classification"
-                      className={`${compactSelectClass} text-sm min-w-0 max-w-full`}
+                  <div className="w-full max-w-full min-w-0 sm:max-w-[14rem]">
+                    <Select
                       value={classificationView}
-                      onChange={handleClassificationChange}
+                      onValueChange={handleClassificationChange}
                     >
-                      {classificationOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      <SelectTrigger
+                        id="dev-mode-classification"
+                        aria-label="Classification type"
+                        selectSize="compact"
+                        className="text-sm"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classificationOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -2658,22 +2729,25 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                       >
                         {group.name}
                       </label>
-                      <div className="relative">
-                        <select
+                      <Select
+                        key={`${group.key}-${categoryJumpKey}`}
+                        value=""
+                        onValueChange={handleCategoryJump}
+                      >
+                        <SelectTrigger
                           id={`dev-mode-category-${group.key}`}
-                          className={compactSelectClass}
-                          defaultValue=""
-                          onChange={handleCategoryJump}
+                          selectSize="compact"
                         >
-                          <option value="">Select substance…</option>
+                          <SelectValue placeholder="Select substance…" />
+                        </SelectTrigger>
+                        <SelectContent>
                           {group.options.map((option) => (
-                            <option key={`${group.key}-${option.index}`} value={option.index.toString()}>
+                            <SelectItem key={`${group.key}-${option.index}`} value={option.index.toString()}>
                               {option.label}
-                            </option>
+                            </SelectItem>
                           ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                      </div>
+                        </SelectContent>
+                      </Select>
                     </div>
                   ))}
                 </div>
@@ -2698,30 +2772,31 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 <h2 className="text-lg font-semibold text-fuchsia-200">Manage drafts</h2>
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
+                <Button
+                  variant="glass"
+                  size="pill"
                   onClick={resetArticle}
                 >
                   <Undo2 className="h-4 w-4" />
                   Reset article
-                </button>
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
+                </Button>
+                <Button
+                  variant="glass"
+                  size="pill"
                   onClick={resetDataset}
                 >
                   <RefreshCw className="h-4 w-4" />
                   Reset all
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
+                </Button>
+                <Button
+                  variant="default"
+                  size="pill"
+                  className="rounded-full"
                   onClick={downloadDraft}
                 >
                   <Download className="h-4 w-4" />
                   Download dataset
-                </button>
+                </Button>
             </div>
             <div className="h-px w-full bg-white/10" />
             <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
@@ -2753,9 +2828,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 />
                 I understand this will permanently remove the article.
               </label>
-              <button
-                type="button"
-                className={dangerButtonClass}
+              <Button
+                variant="destructive"
+                size="pill"
+                className="rounded-full"
                 onClick={handleDeleteArticle}
                 disabled={!articleDeleteConfirmed || !selectedArticle || isDeletingArticle}
               >
@@ -2765,7 +2841,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   <Trash2 className="h-4 w-4" aria-hidden="true" focusable="false" />
                 )}
                 {isDeletingArticle ? "Deleting…" : "Delete article"}
-              </button>
+              </Button>
               </div>
             </SectionCard>
 
@@ -2777,7 +2853,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
                 <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
               </div>
-              <UiJsonToggle mode={draftMode} onUiClick={switchToUiMode} onJsonClick={switchToJsonMode} />
+              <UiJsonToggle mode={draftMode} onModeChange={handleDraftModeChange} />
               {draftMode === "ui" ? (
                 <div className="space-y-8">
                   <ArticleDraftFormFields idPrefix="edit-article" controller={editArticleController} />
@@ -2798,31 +2874,33 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  <Button
+                    variant="default"
+                    size="pill"
+                    className="rounded-full"
                     onClick={downloadArticle}
                     disabled={hasInvalidJsonDraft}
                   >
                     <Download className="h-3.5 w-3.5" />
                     Download article
-                  </button>
-                  <button
-                    type="button"
-                    className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
+                  </Button>
+                  <Button
+                    variant="glass"
+                    size="pill"
                     onClick={copyDraft}
                   >
                     <Copy className="h-3.5 w-3.5" />
                     Copy JSON
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  </Button>
+                  <Button
+                    variant="success"
+                    size="pill"
+                    className="rounded-full"
                     onClick={applyEdits}
                     disabled={hasInvalidJsonDraft}
                   >
                     Save draft
-                  </button>
+                  </Button>
                 </div>
               </div>
             </SectionCard>
@@ -2840,22 +2918,24 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
               </div>
               <DiffPreview diffText={changelogMarkdown} className="max-h-64" />
               <div className="flex flex-wrap gap-2 text-xs">
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                <Button
+                  variant="glass"
+                  size="xs"
+                  className="rounded-full"
                   onClick={copyChangelog}
                 >
                   <Copy className="h-3.5 w-3.5" />
                   Copy diff
-                </button>
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                </Button>
+                <Button
+                  variant="glass"
+                  size="xs"
+                  className="rounded-full"
                   onClick={downloadChangelog}
                 >
                   <Download className="h-3.5 w-3.5" />
                   Download .diff
-                </button>
+                </Button>
               </div>
               {changeLogNotice && (
                 <div
@@ -2922,22 +3002,24 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                          <Button
+                            variant="glass"
+                            size="xs"
+                            className="rounded-full"
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
                             <Copy className="h-4 w-4" />
                             Copy diff
-                          </button>
-                          <button
-                            type="button"
-                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                          </Button>
+                          <Button
+                            variant="glass"
+                            size="xs"
+                            className="rounded-full"
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
                             <Download className="h-4 w-4" />
                             Download .diff
-                          </button>
+                          </Button>
                         </div>
                       </div>
                       <DiffPreview diffText={entry.markdown} className="max-h-56" />
@@ -2964,8 +3046,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
             )}
             <UiJsonToggle
               mode={createDraftMode}
-              onUiClick={switchToCreateUiMode}
-              onJsonClick={switchToCreateJsonMode}
+              onModeChange={handleCreateDraftModeChange}
             />
             {createDraftMode === "ui" ? (
               <div className="space-y-8">
@@ -2989,39 +3070,41 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 {newArticleJsonError && <p className="text-rose-300">JSON error: {newArticleJsonError}</p>}
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
+                <Button
+                  variant="success"
+                  size="pill"
+                  className="rounded-full"
                   onClick={handleStageNewArticle}
-                  className="flex items-center gap-2 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={!isNewArticleValid || !isNewArticleJsonValid}
                 >
                   <Upload className="h-3.5 w-3.5" />
                   {isNewArticleStaged ? "Restage article" : "Stage article"}
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="pill"
                   onClick={copyNewArticleJson}
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                 >
                   <Copy className="h-3.5 w-3.5" />
                   Copy JSON
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="default"
+                  size="pill"
+                  className="rounded-full"
                   onClick={downloadNewArticleJson}
-                  className="flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white"
                 >
                   <Download className="h-3.5 w-3.5" />
                   Download JSON
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="pill"
                   onClick={resetNewArticleForm}
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-sm`}
                 >
                   <Undo2 className="h-3.5 w-3.5" />
                   Reset form
-                </button>
+                </Button>
               </div>
             </div>
           </SectionCard>
@@ -3042,22 +3125,22 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                 <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-article">
                   Article
                 </label>
-                <div className="relative">
-                  <select
-                    id="change-log-article"
-                    className={baseSelectClass}
-                    value={changeLogFilters.articleSlug ?? ""}
-                    onChange={handleChangeLogArticleSelect}
-                  >
-                    <option value="">All articles</option>
+                <Select
+                  value={changeLogFilters.articleSlug ?? ""}
+                  onValueChange={handleChangeLogArticleSelect}
+                >
+                  <SelectTrigger id="change-log-article">
+                    <SelectValue placeholder="All articles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All articles</SelectItem>
                     {changeLogArticleOptions.map((option) => (
-                      <option key={option.slug} value={option.slug}>
+                      <SelectItem key={option.slug} value={option.slug}>
                         {option.title}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
@@ -3065,63 +3148,63 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-start">
                     Start date
                   </label>
-                  <input
+                  <Input
                     id="change-log-start"
                     type="date"
                     value={changeLogFilters.startDate ?? ""}
                     onChange={handleChangeLogDateChange("startDate")}
-                    className={baseInputClass}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-end">
                     End date
                   </label>
-                  <input
+                  <Input
                     id="change-log-end"
                     type="date"
                     value={changeLogFilters.endDate ?? ""}
                     onChange={handleChangeLogDateChange("endDate")}
-                    className={baseInputClass}
                   />
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 text-xs">
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                <Button
+                  variant="glass"
+                  size="xs"
+                  className="rounded-full"
                   onClick={() => applyQuickDateRange(7)}
                 >
                   Past 7 days
-                </button>
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                </Button>
+                <Button
+                  variant="glass"
+                  size="xs"
+                  className="rounded-full"
                   onClick={() => applyQuickDateRange(30)}
                 >
                   Past 30 days
-                </button>
-                <button
-                  type="button"
-                  className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                </Button>
+                <Button
+                  variant="glass"
+                  size="xs"
+                  className="rounded-full"
                   onClick={() => applyQuickDateRange(null)}
                 >
                   All time
-                </button>
+                </Button>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-search">
                   Search
                 </label>
-                <input
+                <Input
                   id="change-log-search"
                   type="search"
                   placeholder="Find commits by keyword or diff copy…"
                   value={changeLogFilters.searchQuery}
                   onChange={handleChangeLogSearchChange}
-                  className={baseInputClass}
                 />
               </div>
 
@@ -3148,13 +3231,13 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
               {activeChangeLogFilterCount > 0 && (
                 <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
                   <span>{activeChangeLogFilterCount} filters active</span>
-                  <button
-                    type="button"
-                    className="text-white/80 transition hover:text-white"
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={clearChangeLogFilters}
                   >
                     Clear
-                  </button>
+                  </Button>
                 </div>
               )}
             </SectionCard>
@@ -3221,22 +3304,24 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                         )}
                       </div>
                         <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                          <Button
+                            variant="glass"
+                            size="xs"
+                            className="rounded-full"
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
                             <Copy className="h-4 w-4" />
                             Copy diff
-                          </button>
-                          <button
-                            type="button"
-                            className={`${pillButtonBaseClass} px-3 py-1.5 text-xs`}
+                          </Button>
+                          <Button
+                            variant="glass"
+                            size="xs"
+                            className="rounded-full"
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
                             <Download className="h-4 w-4" />
                             Download .diff
-                          </button>
+                          </Button>
                         </div>
                       </div>
 
@@ -3244,16 +3329,22 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                         {entry.articles.map((article) => {
                           const href = viewToHash({ type: "substance", slug: article.slug });
                           return (
-                            <a
+                            <Button
                               key={`${entry.id}-${article.slug}`}
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`${pillButtonBaseClass} px-3 py-1 text-xs`}
-                              onClick={() => focusArticleFilter(article.slug)}
+                              variant="glass"
+                              size="xs"
+                              className="rounded-full"
+                              asChild
                             >
-                              {article.title}
-                            </a>
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => focusArticleFilter(article.slug)}
+                              >
+                                {article.title}
+                              </a>
+                            </Button>
                           );
                         })}
                       </div>
@@ -3268,7 +3359,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         </div>
       ) : activeTab === "profile" ? (
         <ProfileEditorTab
-          baseInputClass={baseInputClass}
           profile={profileData}
           profileHistory={profileHistory}
           verifyCredentials={verifyDevCredentials}
@@ -3278,22 +3368,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       ) : activeTab === "layout-lab" ? (
         <LayoutLabTab
           articles={articles}
-          baseInputClass={baseInputClass}
           defaultSlug={selectedArticleSlug}
           onSelectArticleIndex={setSelectedIndex}
           onOpenEditor={() => handleTabChange("edit")}
         />
       ) : activeTab === "index-layout" ? (
         <IndexLayoutTab
-          baseInputClass={baseInputClass}
-          baseSelectClass={baseSelectClass}
-          pillButtonBaseClass={pillButtonBaseClass}
           commitPanel={commitPanel}
         />
       ) : activeTab === "about" ? (
         <AboutEditorTab
-          baseInputClass={baseInputClass}
-          pillButtonBaseClass={pillButtonBaseClass}
           aboutMarkdown={aboutMarkdown}
           originalAboutMarkdown={originalAboutMarkdown}
           onMarkdownChange={handleAboutMarkdownChange}
@@ -3322,6 +3406,17 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           hasDatasetChanges={hasPendingChanges}
           onCopyDatasetMarkdown={copyDatasetMarkdownForTagEditor}
           onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
+        />
+      ) : activeTab === "generator" ? (
+        <GeneratorTab
+          generatorPrompt={generatorPrompt}
+          originalGeneratorPrompt={originalGeneratorPrompt}
+          onPromptChange={handleGeneratorPromptChange}
+          onResetPrompt={handleGeneratorPromptReset}
+          promptDiff={generatorPromptChangelog.markdown}
+          promptHasChanges={generatorPromptChangelog.hasChanges}
+          onCopyPrompt={handleGeneratorPromptCopy}
+          commitPanel={commitPanel}
         />
       ) : null}
       </div>

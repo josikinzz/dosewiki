@@ -3,6 +3,7 @@ import { BrainCircuit, Cog, FlaskConical, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { PageHeader } from "../sections/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
+import { Button } from "@/components/ui/button";
 import type { DosageCategoryGroup } from "../../data/library";
 import {
   chemicalClassIndexGroups,
@@ -106,16 +107,12 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
               const Icon = option.icon;
 
               return (
-                <button
+                <Button
                   key={option.key}
-                  type="button"
+                  variant={isActive ? "toggleActive" : "toggleInactive"}
                   onClick={() => setSortKey(option.key)}
-                  className={
-                    isActive
-                      ? "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 px-5 py-2.5 text-sm font-medium text-white shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-fuchsia-300/60 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                      : "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 px-5 py-2.5 text-sm font-medium text-white/75 ring-1 ring-white/15 transition hover:text-white hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                  }
                   aria-pressed={isActive}
+                  className="gap-2 px-5 py-2.5"
                 >
                   <Icon
                     className={
@@ -129,7 +126,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
                   <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
                     {option.label}
                   </span>
-                </button>
+                </Button>
               );
             })}
           </div>

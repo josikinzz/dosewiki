@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { DosageCategoryGroup } from "../../data/library";
 import { IconBadge } from "../common/IconBadge";
+import { Button } from "@/components/ui/button";
 
 interface CategoryGridProps {
   groups: DosageCategoryGroup[];
@@ -195,10 +196,9 @@ export function CategoryGrid({
             <header className="flex items-start justify-between gap-4 pb-2 text-white/90">
               <div className="flex flex-1 items-start gap-3">
                 <div className="flex flex-col items-center gap-1">
-                  <button
-                    type="button"
+                  <Button
+                    variant="iconGhost"
                     onClick={() => void handleCopyGroup(group)}
-                    className="rounded-xl p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                     aria-label={`Copy ${group.name} list to clipboard`}
                   >
                     <IconBadge
@@ -209,7 +209,7 @@ export function CategoryGrid({
                           : ""
                       }
                     />
-                  </button>
+                  </Button>
                   {copiedKey === group.key ? (
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
                       Copied
@@ -217,28 +217,28 @@ export function CategoryGrid({
                   ) : null}
                 </div>
                 {isCategorySelectable ? (
-                  <button
-                    type="button"
-                    className="flex flex-1 flex-col items-start text-left"
+                  <Button
+                    variant="categoryHeader"
                     onClick={() => handleSelectCategory(group.key)}
                   >
                     {titleContent}
-                  </button>
+                  </Button>
                 ) : (
                   <div className="flex flex-1 flex-col items-start text-left">
                     {titleContent}
                   </div>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => handleToggle(group.key)}
-                className="rounded-full p-2 text-white/60 transition hover:bg-white/10 hover:text-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                className="rounded-full"
                 aria-expanded={isExpanded}
                 aria-controls={listId}
               >
                 <ChevronIcon className="h-4 w-4" aria-hidden="true" focusable="false" />
-              </button>
+              </Button>
             </header>
             {group.total === 0 ? (
               <p id={listId} className="mt-4 text-sm text-white/70">
@@ -263,10 +263,11 @@ export function CategoryGrid({
                     <ul className="mt-3 space-y-1">
                       {section.drugs.map((drug) => (
                         <li key={drug.slug}>
-                          <button
-                            type="button"
+                          <Button
+                            variant="listItem"
+                            size="listItem"
                             onClick={() => onSelectDrug(drug.slug)}
-                            className="hyphenate w-full break-words rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                            className="hyphenate break-words"
                           >
                             <span className="flex flex-wrap items-baseline gap-2">
                               <span className="hyphenate">{drug.name}</span>
@@ -274,7 +275,7 @@ export function CategoryGrid({
                                 <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
                               )}
                             </span>
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>
@@ -285,10 +286,11 @@ export function CategoryGrid({
               <ul id={listId} className={listClass}>
                 {group.drugs.map((drug) => (
                   <li key={drug.slug}>
-                    <button
-                      type="button"
+                    <Button
+                      variant="listItem"
+                      size="listItem"
                       onClick={() => onSelectDrug(drug.slug)}
-                      className="hyphenate w-full break-words rounded-xl px-3 py-2 text-left text-white/85 transition hover:bg-white/10 hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                      className="hyphenate break-words"
                     >
                       <span className="flex flex-wrap items-baseline gap-2">
                         <span className="hyphenate">{drug.name}</span>
@@ -296,7 +298,7 @@ export function CategoryGrid({
                           <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
                         )}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>

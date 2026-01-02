@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import type { EffectSummary } from "../../data/library";
 import { PageHeader } from "../sections/PageHeader";
 import { SectionCard } from "../common/SectionCard";
+import { Button } from "@/components/ui/button";
 
 interface EffectsPageProps {
   effects: EffectSummary[];
@@ -24,15 +25,15 @@ export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }
         </div>
         <div className="mt-4 flex flex-wrap gap-2.5">
           {effects.map((effect) => (
-            <button
+            <Button
               key={effect.slug}
-              type="button"
+              variant="chip"
+              size="chip"
               onClick={() => onSelectEffect(effect.slug)}
-              className="rounded-full bg-white/10 px-3.5 py-1.5 text-xs text-white/85 ring-1 ring-white/10 transition hover:bg-white/12 hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {effect.name}
               <span className="ml-2 text-white/50">({effect.total})</span>
-            </button>
+            </Button>
           ))}
           {effects.length === 0 && (
             <p className="text-sm text-white/70">No subjective effects recorded in the dataset.</p>

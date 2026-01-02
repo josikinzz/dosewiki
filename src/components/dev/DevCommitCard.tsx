@@ -2,6 +2,7 @@ import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { SectionCard } from "../common/SectionCard";
+import { Button } from "@/components/ui/button";
 
 export type DevCommitNotice = {
   type: "success" | "error";
@@ -18,9 +19,6 @@ type DevCommitCardProps = {
   onCommit: () => void;
   footerSlot?: ReactNode;
 };
-
-const commitButtonClass =
-  "flex items-center gap-2 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/10 px-4 py-2 text-sm font-medium text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-60";
 
 export function DevCommitCard({
   notice,
@@ -66,10 +64,10 @@ export function DevCommitCard({
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">{message}</div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className={commitButtonClass} onClick={onCommit} disabled={isCommitDisabled}>
+          <Button variant="default" size="pill" className="rounded-full" onClick={onCommit} disabled={isCommitDisabled}>
             <ShieldCheck className="h-4 w-4" />
             {isSaving ? "Saving…" : "Commit changes"}
-          </button>
+          </Button>
         </div>
       </div>
       {footerSlot ? <div className="text-xs text-white/45">{footerSlot}</div> : null}

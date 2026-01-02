@@ -1,5 +1,6 @@
 ﻿import { Wrench } from "lucide-react";
 import { useDevMode } from "../dev/DevModeContext";
+import { Button } from "@/components/ui/button";
 
 export function Footer() {
   const { open } = useDevMode();
@@ -32,14 +33,15 @@ export function Footer() {
           </span>
           Use responsibly.
         </p>
-        <button
-          type="button"
+        <Button
+          variant="default"
+          size="icon"
           aria-label="Open developer draft editor"
           onClick={open}
-          className="self-center md:ml-auto md:self-auto flex h-8 w-8 items-center justify-center rounded-full border border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200 transition hover:border-fuchsia-400 hover:bg-fuchsia-500/20 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-300"
+          className="self-center rounded-full md:ml-auto md:self-auto"
         >
           <Wrench className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Button>
       </div>
     </footer>
   );

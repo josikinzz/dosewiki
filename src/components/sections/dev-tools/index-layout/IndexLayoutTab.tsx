@@ -23,6 +23,10 @@ import {
 
 import { IconBadge } from "../../../common/IconBadge";
 import { JsonEditor } from "../../../common/JsonEditor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDevMode } from "../../../dev/DevModeContext";
 import type {
   ManualCategoryDefinition,
@@ -39,9 +43,6 @@ import { getCategoryIcon } from "../../../../data/categoryIcons";
 import { slugify } from "../../../../utils/slug";
 
 interface IndexLayoutTabProps {
-  baseInputClass: string;
-  baseSelectClass: string;
-  pillButtonBaseClass: string;
   commitPanel?: ReactNode;
 }
 
@@ -256,15 +257,6 @@ type ManualDatasetKey = "psychoactive" | "chemical" | "mechanism";
 
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
 
-const DATASET_TOGGLE_ACTIVE_CLASS =
-  "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 px-5 py-2.5 text-sm font-medium text-white shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-fuchsia-300/60 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
-const DATASET_TOGGLE_INACTIVE_CLASS =
-  "group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/12 via-white/5 to-white/0 px-5 py-2.5 text-sm font-medium text-white/75 ring-1 ring-white/15 transition hover:text-white hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400";
-const DATASET_TOGGLE_ICON_ACTIVE_CLASS = "h-5 w-5 text-fuchsia-100 drop-shadow";
-const DATASET_TOGGLE_ICON_INACTIVE_CLASS = "h-5 w-5 text-fuchsia-200/70";
-const DATASET_TOGGLE_LABEL_ACTIVE_CLASS = "tracking-wide text-white";
-const DATASET_TOGGLE_LABEL_INACTIVE_CLASS = "tracking-wide text-white/80";
-
 const sortSlugsForDataset = (
   dataset: ManualDatasetKey,
   slugs: readonly string[],
@@ -405,14 +397,15 @@ function SubstanceListItem({ status, onRemove }: SubstanceListItemProps) {
           ))}
         </div>
       </div>
-      <button
-        type="button"
+      <Button
+        variant="glass"
+        size="icon"
         onClick={onRemove}
-        className="rounded-full p-1.5 text-white/60 transition group-hover:text-white hover:bg-rose-500/20 hover:text-rose-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-400"
+        className="h-7 w-7 opacity-60 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
         aria-label={`Remove ${displayName}`}
       >
         <Trash2 className="h-4 w-4" />
-      </button>
+      </Button>
     </li>
   );
 }
@@ -422,9 +415,6 @@ interface AddSlugControlProps {
   existingSlugs: string[];
   onAdd: (slug: string) => void;
   options: SubstanceOption[];
-  baseInputClass: string;
-  baseSelectClass: string;
-  pillButtonBaseClass: string;
   filterContext: {
     sectionSlugs: ReadonlySet<string>;
     categorySlugs: ReadonlySet<string>;
@@ -437,9 +427,6 @@ function AddSlugControl({
   existingSlugs,
   onAdd,
   options,
-  baseInputClass,
-  baseSelectClass,
-  pillButtonBaseClass,
   filterContext,
 }: AddSlugControlProps) {
   const filterSelectId = useId();
@@ -511,7 +498,7 @@ function AddSlugControl({
   return (
     <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner shadow-black/20">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <input
+        <Input
           value={value}
           onChange={(event) => {
             setValue(event.target.value);
@@ -523,29 +510,28 @@ function AddSlugControl({
               handleSubmit();
             }
           }}
-          className={`${baseInputClass} flex-1 bg-transparent`}
+          className="flex-1 bg-transparent"
           placeholder={label}
         />
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <Button
+            variant="glass"
+            size="icon"
             onClick={handleSubmit}
-            className={`${pillButtonBaseClass} bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30`}
+            className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
             aria-label={label}
           >
             <PlusCircle className="h-4 w-4" />
-            <span className="sr-only">{label}</span>
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="glass"
+            size="icon"
             onClick={() => setShowPicker((previous) => !previous)}
-            className={`${pillButtonBaseClass} bg-white/10 text-white/80 hover:bg-white/20`}
             aria-expanded={showPicker}
             aria-label="Browse substances"
           >
             <ListFilter className="h-4 w-4" />
-            <span className="sr-only">Browse substances</span>
-          </button>
+          </Button>
         </div>
       </div>
       {error ? <p className="text-sm text-rose-300">{error}</p> : null}
@@ -557,26 +543,26 @@ function AddSlugControl({
               <label className="text-[10px] uppercase tracking-[0.3em] text-white/40" htmlFor={filterSelectId}>
                 Filter
               </label>
-              <select
-                className={`${baseSelectClass} w-auto min-w-[11rem] bg-slate-950/80 text-xs`}
-                id={filterSelectId}
-                value={filterMode}
-                onChange={(event) => setFilterMode(event.target.value as AddSlugFilterMode)}
-              >
-                <option value="all">All drugs</option>
-                <option value="missing-section">Missing from section</option>
-                <option value="missing-category">Missing from category</option>
-                <option value="missing-index">Missing from index</option>
-              </select>
-              <button
-                type="button"
+              <Select value={filterMode} onValueChange={(value) => setFilterMode(value as AddSlugFilterMode)}>
+                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem] bg-slate-950/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All drugs</SelectItem>
+                  <SelectItem value="missing-section">Missing from section</SelectItem>
+                  <SelectItem value="missing-category">Missing from category</SelectItem>
+                  <SelectItem value="missing-index">Missing from index</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="glass"
+                size="icon"
                 onClick={() => setShowPicker(false)}
-                className="rounded-full bg-white/10 p-1 text-white/60 transition hover:bg-white/20 hover:text-white"
+                className="h-6 w-6"
                 aria-label="Close substance picker"
               >
                 <X className="h-3.5 w-3.5" />
-                <span className="sr-only">Close substance picker</span>
-              </button>
+              </Button>
             </div>
           </div>
           <div className="max-h-64 overflow-y-auto">
@@ -584,13 +570,12 @@ function AddSlugControl({
               <ul className="space-y-1 text-sm text-white/80">
                 {filteredOptions.map((option) => (
                   <li key={option.slug}>
-                    <button
-                      type="button"
+                    <Button
+                      variant="pickerListItem"
                       onClick={() => handleSelect(option.slug)}
-                      className="w-full rounded-md px-2 py-1 text-left transition hover:bg-white/10 hover:text-fuchsia-200"
                     >
                       {formatSubstanceLabel(option)}
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -612,9 +597,6 @@ interface SectionEditorProps {
   isFirst: boolean;
   isLast: boolean;
   showTopDivider: boolean;
-  baseInputClass: string;
-  baseSelectClass: string;
-  pillButtonBaseClass: string;
   substanceOptions: SubstanceOption[];
   slugStatuses: Map<string, SlugStatus>;
   categorySlugSet: ReadonlySet<string>;
@@ -630,9 +612,6 @@ const SectionEditor = memo(
     isFirst,
     isLast,
     showTopDivider,
-    baseInputClass,
-    baseSelectClass,
-    pillButtonBaseClass,
     substanceOptions,
     slugStatuses,
     categorySlugSet,
@@ -718,8 +697,8 @@ const SectionEditor = memo(
       <div className={sectionWrapperClass}>
         <header className="flex flex-wrap items-start gap-2 text-white/85">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <input
-              className={`${baseInputClass} w-full text-sm font-semibold uppercase tracking-wide`}
+            <Input
+              className="w-full text-sm font-semibold uppercase tracking-wide"
               placeholder="Section label"
               value={section.label}
               onChange={(event) => handleLabelChange(event.target.value)}
@@ -729,45 +708,42 @@ const SectionEditor = memo(
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
+            <Button
+              variant="glass"
+              size="icon"
               onClick={() => onMove("up")}
               disabled={isFirst}
-              className={`${pillButtonBaseClass} ${isFirst ? "cursor-not-allowed opacity-40" : "hover:bg-white/15"}`}
               aria-label="Move section up"
             >
               <ArrowUp className="h-4 w-4" />
-              <span className="sr-only">Move section up</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="glass"
+              size="icon"
               onClick={() => onMove("down")}
               disabled={isLast}
-              className={`${pillButtonBaseClass} ${isLast ? "cursor-not-allowed opacity-40" : "hover:bg-white/15"}`}
               aria-label="Move section down"
             >
               <ArrowDown className="h-4 w-4" />
-              <span className="sr-only">Move section down</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="glass"
+              size="icon"
               onClick={() => setDetailsOpen((previous) => !previous)}
-              className={`${pillButtonBaseClass} hover:bg-white/15`}
               aria-expanded={detailsOpen}
               aria-label="Toggle section details"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              <span className="sr-only">Toggle section details</span>
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="glass"
+              size="icon"
               onClick={onRemove}
-              className={`${pillButtonBaseClass} hover:bg-rose-500/20 hover:text-rose-200`}
+              className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
               aria-label="Remove section"
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Remove section</span>
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -776,8 +752,8 @@ const SectionEditor = memo(
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-xs uppercase tracking-wide text-white/60">Section key</label>
-                <input
-                  className={`${baseInputClass} w-full`}
+                <Input
+                  className="w-full"
                   placeholder="Section key"
                   value={section.key}
                   onChange={(event) => handleKeyChange(event.target.value)}
@@ -785,23 +761,27 @@ const SectionEditor = memo(
               </div>
               <div className="space-y-1">
                 <label className="text-xs uppercase tracking-wide text-white/60">Link type</label>
-                <select
-                  className={`${baseSelectClass} w-full`}
+                <Select
                   value={section.link?.type ?? ""}
-                  onChange={(event) => handleLinkTypeChange(event.target.value as ManualSectionLinkType | "")}
+                  onValueChange={(value) => handleLinkTypeChange(value as ManualSectionLinkType | "")}
                 >
-                  <option value="">No link</option>
-                  <option value="chemicalClass">Chemical class</option>
-                  <option value="psychoactiveClass">Psychoactive class</option>
-                  <option value="mechanism">Mechanism</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="No link" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No link</SelectItem>
+                    <SelectItem value="chemicalClass">Chemical class</SelectItem>
+                    <SelectItem value="psychoactiveClass">Psychoactive class</SelectItem>
+                    <SelectItem value="mechanism">Mechanism</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             {section.link?.type && (
               <div className="space-y-1">
                 <label className="text-xs uppercase tracking-wide text-white/60">Link value</label>
-                <input
-                  className={`${baseInputClass} w-full`}
+                <Input
+                  className="w-full"
                   placeholder="e.g. Tryptamine"
                   value={section.link?.value ?? ""}
                   onChange={(event) => handleLinkValueChange(event.target.value)}
@@ -810,8 +790,8 @@ const SectionEditor = memo(
             )}
             <div className="space-y-1">
               <label className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
-              <textarea
-                className={`${baseInputClass} min-h-[80px] w-full`}
+              <Textarea
+                className="min-h-[80px] w-full"
                 value={section.notes ?? ""}
                 onChange={(event) => handleNotesChange(event.target.value)}
                 placeholder="Optional editor notes"
@@ -841,9 +821,6 @@ const SectionEditor = memo(
             existingSlugs={[...section.drugs]}
             onAdd={handleSlugAdd}
             options={substanceOptions}
-            baseInputClass={baseInputClass}
-            baseSelectClass={baseSelectClass}
-            pillButtonBaseClass={pillButtonBaseClass}
             filterContext={{
               sectionSlugs: sectionSlugSet,
               categorySlugs: categorySlugSet,
@@ -859,9 +836,6 @@ const SectionEditor = memo(
     && previous.isFirst === next.isFirst
     && previous.isLast === next.isLast
     && previous.showTopDivider === next.showTopDivider
-    && previous.baseInputClass === next.baseInputClass
-    && previous.baseSelectClass === next.baseSelectClass
-    && previous.pillButtonBaseClass === next.pillButtonBaseClass
     && previous.substanceOptions === next.substanceOptions
     && previous.slugStatuses === next.slugStatuses
     && previous.categorySlugSet === next.categorySlugSet
@@ -882,9 +856,6 @@ interface CategoryEditorProps {
   onRemoveCategory: (index: number) => void;
   onMoveCategory: (index: number, direction: "up" | "down") => void;
   onAddSection: (index: number) => void;
-  baseInputClass: string;
-  baseSelectClass: string;
-  pillButtonBaseClass: string;
   substanceOptions: SubstanceOption[];
   datasetSlugSet: ReadonlySet<string>;
 }
@@ -898,9 +869,6 @@ const CategoryEditor = memo(
     onRemoveCategory,
     onMoveCategory,
     onAddSection,
-    baseInputClass,
-    baseSelectClass,
-    pillButtonBaseClass,
     substanceOptions,
     datasetSlugSet,
   }: CategoryEditorProps) => {
@@ -1058,8 +1026,8 @@ const CategoryEditor = memo(
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1">
             <label className="text-xs uppercase tracking-wide text-white/60">Category key</label>
-            <input
-              className={`${baseInputClass} w-full`}
+            <Input
+              className="w-full"
               value={category.key}
               onChange={(event) => handleKeyChange(event.target.value)}
               placeholder="Unique key"
@@ -1067,8 +1035,8 @@ const CategoryEditor = memo(
           </div>
           <div className="space-y-1">
             <label className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
-            <input
-              className={`${baseInputClass} w-full`}
+            <Input
+              className="w-full"
               value={category.iconKey}
               onChange={(event) => handleIconChange(event.target.value)}
               placeholder="Icon identifier"
@@ -1077,8 +1045,8 @@ const CategoryEditor = memo(
         </div>
         <div className="mt-3 space-y-1">
           <label className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
-          <textarea
-            className={`${baseInputClass} min-h-[90px] w-full`}
+          <Textarea
+            className="min-h-[90px] w-full"
             value={category.notes ?? ""}
             onChange={(event) => handleNotesChange(event.target.value)}
             placeholder="Optional editor notes for this category"
@@ -1096,62 +1064,59 @@ const CategoryEditor = memo(
                 <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <input
-                  className={`${baseInputClass} w-full text-lg font-semibold`}
+                <Input
+                  className="w-full text-lg font-semibold"
                   value={category.label}
                   onChange={(event) => handleLabelChange(event.target.value)}
                   placeholder="Category label"
                 />
               </div>
               <div className="ml-auto mt-1 flex items-center gap-1 text-white/70">
-                <button
-                  type="button"
+                <Button
+                  variant="glass"
+                  size="icon"
                   onClick={() => handleMoveCategory("up")}
                   disabled={index === 0}
-                  className={`${pillButtonBaseClass} ${index === 0 ? "cursor-not-allowed opacity-40" : "hover:bg-white/15"}`}
                   aria-label="Move category up"
                 >
                   <ArrowUp className="h-4 w-4" />
-                  <span className="sr-only">Move category up</span>
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="icon"
                   onClick={() => handleMoveCategory("down")}
                   disabled={index === total - 1}
-                  className={`${pillButtonBaseClass} ${index === total - 1 ? "cursor-not-allowed opacity-40" : "hover:bg-white/15"}`}
                   aria-label="Move category down"
                 >
                   <ArrowDown className="h-4 w-4" />
-                  <span className="sr-only">Move category down</span>
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="icon"
                   onClick={handleAddSection}
-                  className={`${pillButtonBaseClass} hover:bg-white/15`}
                   aria-label="Add section"
                 >
                   <PlusCircle className="h-4 w-4" />
-                  <span className="sr-only">Add section</span>
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="icon"
                   onClick={() => setDetailsOpen((previous) => !previous)}
-                  className={`${pillButtonBaseClass} ${detailsOpen ? "bg-white/15 text-white" : "hover:bg-white/15"}`}
+                  className={detailsOpen ? "bg-white/15 text-white" : ""}
                   aria-expanded={detailsOpen}
                   aria-label="Toggle category details"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Toggle category details</span>
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="glass"
+                  size="icon"
                   onClick={handleRemoveCategory}
-                  className={`${pillButtonBaseClass} hover:bg-rose-500/20 hover:text-rose-200`}
+                  className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
                   aria-label="Remove category"
                 >
                   <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Remove category</span>
-                </button>
+                </Button>
               </div>
             </header>
 
@@ -1176,9 +1141,6 @@ const CategoryEditor = memo(
                 ]}
                 onAdd={handleTopLevelAdd}
                 options={substanceOptions}
-                baseInputClass={baseInputClass}
-                baseSelectClass={baseSelectClass}
-                pillButtonBaseClass={pillButtonBaseClass}
                 filterContext={{
                   sectionSlugs: topLevelSlugSet,
                   categorySlugs: categorySlugSet,
@@ -1209,9 +1171,6 @@ const CategoryEditor = memo(
                       isFirst={sectionIndex === 0}
                       isLast={sectionIndex === category.sections.length - 1}
                       showTopDivider={sectionIndex > 0 || totalPrimary > 0}
-                      baseInputClass={baseInputClass}
-                      baseSelectClass={baseSelectClass}
-                      pillButtonBaseClass={pillButtonBaseClass}
                       substanceOptions={substanceOptions}
                       slugStatuses={slugStatuses}
                       categorySlugSet={categorySlugSet}
@@ -1235,9 +1194,6 @@ const CategoryEditor = memo(
     previous.category === next.category
     && previous.index === next.index
     && previous.total === next.total
-    && previous.baseInputClass === next.baseInputClass
-    && previous.baseSelectClass === next.baseSelectClass
-    && previous.pillButtonBaseClass === next.pillButtonBaseClass
     && previous.substanceOptions === next.substanceOptions
     && previous.datasetSlugSet === next.datasetSlugSet
     && previous.onAddSection === next.onAddSection
@@ -1247,9 +1203,6 @@ const CategoryEditor = memo(
 );
 
 export function IndexLayoutTab({
-  baseInputClass,
-  baseSelectClass,
-  pillButtonBaseClass,
   commitPanel,
 }: IndexLayoutTabProps) {
   const {
@@ -1716,67 +1669,69 @@ export function IndexLayoutTab({
           const isActive = datasetKey === activeDataset;
           const Icon = definition.icon;
           return (
-            <button
+            <Button
               key={datasetKey}
-              type="button"
+              variant={isActive ? "toggleActive" : "toggleInactive"}
+              size="pill"
               onClick={() => setActiveDataset(datasetKey)}
-              className={isActive ? DATASET_TOGGLE_ACTIVE_CLASS : DATASET_TOGGLE_INACTIVE_CLASS}
+              className="gap-2 px-5 py-2.5"
               aria-pressed={isActive}
             >
               <Icon
-                className={isActive ? DATASET_TOGGLE_ICON_ACTIVE_CLASS : DATASET_TOGGLE_ICON_INACTIVE_CLASS}
+                className={isActive ? "h-5 w-5 text-fuchsia-100 drop-shadow" : "h-5 w-5 text-fuchsia-200/70"}
                 aria-hidden="true"
                 focusable="false"
               />
-              <span className={isActive ? DATASET_TOGGLE_LABEL_ACTIVE_CLASS : DATASET_TOGGLE_LABEL_INACTIVE_CLASS}>
+              <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
                 {definition.label}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
+        <Button
+          variant="glass"
+          size="sm"
           onClick={handleSave}
           disabled={!hasUnsavedChanges}
-          className={`${pillButtonBaseClass} bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30 disabled:cursor-not-allowed disabled:opacity-40`}
+          className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
           aria-label="Save layout"
         >
           <Save className="h-4 w-4" aria-hidden="true" focusable="false" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Save</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
           onClick={handleOrganizeEntries}
-          className={`${pillButtonBaseClass} bg-white/10 text-white/80 hover:bg-white/20`}
           aria-label="Organize entries"
         >
           <ArrowDownAZ className="h-4 w-4" aria-hidden="true" focusable="false" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Organize</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
           onClick={handleResetDraft}
-          className={`${pillButtonBaseClass} bg-white/10 text-white/80 hover:bg-white/20`}
           aria-label="Reset unsaved changes"
         >
           <RotateCcw className="h-4 w-4" aria-hidden="true" focusable="false" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Reset</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
           onClick={handleResetToOriginal}
-          className={`${pillButtonBaseClass} bg-white/10 text-white/80 hover:bg-white/20`}
           aria-label="Restore original dataset"
         >
           <ArrowLeftRight className="h-4 w-4" aria-hidden="true" focusable="false" />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Restore</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="glass"
+          size="sm"
           onClick={() => setShowJsonEditor((previous) => !previous)}
-          className={`${pillButtonBaseClass} bg-white/10 text-white/80 hover:bg-white/20`}
           aria-pressed={showJsonEditor}
           aria-label={showJsonEditor ? "Hide JSON editor" : "Show JSON editor"}
         >
@@ -1784,7 +1739,7 @@ export function IndexLayoutTab({
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
             {showJsonEditor ? "Hide JSON" : "Show JSON"}
           </span>
-        </button>
+        </Button>
         {saveNotice && <span className="text-sm text-emerald-300">{saveNotice}</span>}
         {hasUnsavedChanges && <span className="text-sm text-white/60">Unsaved changes</span>}
       </div>
@@ -1800,15 +1755,15 @@ export function IndexLayoutTab({
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm font-medium text-white/70">
             <span>{`${activeDefinition.label} JSON layout`}</span>
-            <button
-              type="button"
+            <Button
+              variant="glass"
+              size="icon"
               onClick={handleApplyJson}
-              className={`${pillButtonBaseClass} bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30`}
+              className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
               aria-label="Apply JSON edits"
             >
               <Check className="h-4 w-4" />
-              <span className="sr-only">Apply JSON edits</span>
-            </button>
+            </Button>
           </div>
           <JsonEditor
             value={rawJsonDraft}
@@ -1831,23 +1786,20 @@ export function IndexLayoutTab({
                 onRemoveCategory={removeCategory}
                 onMoveCategory={moveCategory}
                 onAddSection={addSection}
-                baseInputClass={baseInputClass}
-                baseSelectClass={baseSelectClass}
-                pillButtonBaseClass={pillButtonBaseClass}
                 substanceOptions={substanceOptions}
                 datasetSlugSet={datasetSlugSet}
               />
             ))}
             <div className="mb-6 break-inside-avoid break-inside-avoid-column">
-              <button
-                type="button"
+              <Button
+                variant="addCard"
+                size="addCard"
                 onClick={addCategory}
-                className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/12 bg-white/5 px-6 py-10 text-white/70 transition hover:border-fuchsia-400/30 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 aria-label="Add category"
               >
                 <PlusCircle className="h-6 w-6" />
                 <span className="text-xs uppercase tracking-[0.3em]">New category</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
