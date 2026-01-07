@@ -1,63 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Diclofensine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Diclofensine.json","displayName":"Protest Kit","size":1379},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diclofensine.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diclofensine.md","displayName":"Wikipedia","size":1404}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diclofensine.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diclofensine.md","displayName":"Wikipedia","size":1404}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/diclofensine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Diclofensine",
-  "name": "Diclofensine",
-  "aliases": [
-    "ro8-4650"
-  ],
-  "aliasesStr": "ro8-4650",
-  "summary": "A triple monoamine reuptake inhibitor developed by Hoffman-LaRoche in the 1970s as an antidepressant but discontinued, probably due to high abuse potential. Has not become popular as a recreational drug at this time. Acts as an SNDRI, mostly inhibits dopamine and noradrenaline.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "12-15mg"
-        },
-        {
-          "name": "Light",
-          "value": "30-40mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-60mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "60-80mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Diclofensine
 *Source: TripSit Factsheets (tripsit.me)*
 

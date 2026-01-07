@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25-DMA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25-DMA.md","displayName":"Isomer Design","size":6620},{"id":"protestkit","fileName":"PROTESTKIT - 25-DMA.json","displayName":"Protest Kit","size":692},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25-DMA.md","displayName":"PsychonautWiki","size":15714},{"id":"wikipedia","fileName":"WIKIPEDIA - 25-DMA.md","displayName":"Wikipedia","size":403}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25-DMA.md","displayName":"Isomer Design","size":6620},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25-DMA.md","displayName":"PsychonautWiki","size":15714},{"id":"wikipedia","fileName":"WIKIPEDIA - 25-DMA.md","displayName":"Wikipedia","size":403}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 25-DMA
 *Source: http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=54*
@@ -32,32 +32,6 @@ The 2,5-dimethylamphetamine analogue mentioned above was also explored in this I
 All of these latter materials remain unevaluated in man.
 
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/2,5-DMA_(DMA)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=2,5-DMA+(DMA)",
-  "name": "2,5-DMA (DMA)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# 2,5-DMA
 *Source: https://psychonautwiki.org/wiki/2,5-DMA*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propranolol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propranolol.md","displayName":"DrugBank","size":26358},{"id":"protestkit","fileName":"PROTESTKIT - Propranolol.json","displayName":"Protest Kit","size":1420},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propranolol.md","displayName":"TripSit Factsheets","size":540},{"id":"wikipedia","fileName":"WIKIPEDIA - Propranolol.md","displayName":"Wikipedia","size":22257}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propranolol.md","displayName":"DrugBank","size":26358},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propranolol.md","displayName":"TripSit Factsheets","size":540},{"id":"wikipedia","fileName":"WIKIPEDIA - Propranolol.md","displayName":"Wikipedia","size":22257}];
 export const contents: Record<string, string> = {
   "drugbank": `# Propranolol
 *Source: https://go.drugbank.com/drugs/DB00571*
@@ -1655,68 +1655,6 @@ ATP-dependent translocase ABCB1
 141477.255 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/propranolol",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Propranolol",
-  "name": "Propranolol",
-  "aliases": [
-    "hemangeol",
-    "inderal",
-    "innopran"
-  ],
-  "aliasesStr": "hemangeol,inderal,innopran",
-  "summary": "Is a nonselective beta blocker. It is used in medication for high blood pressure, anxiety, and tremors. Also fun fact, it was the first successful beta-blocker developed.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-30mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-80mg"
-        },
-        {
-          "name": "Strong",
-          "value": "80-140mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 7.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Propranolol
 *Source: TripSit Factsheets (tripsit.me)*
 

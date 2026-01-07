@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-Methylmethylphenidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-Methylmethylphenidate.md","displayName":"Drug Users Bible","size":1184},{"id":"protestkit","fileName":"PROTESTKIT - 4-Methylmethylphenidate.json","displayName":"Protest Kit","size":2797},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Methylmethylphenidate.md","displayName":"TripSit Factsheets","size":1014},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Methylmethylphenidate.md","displayName":"Wikipedia","size":1383}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-Methylmethylphenidate.md","displayName":"Drug Users Bible","size":1184},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Methylmethylphenidate.md","displayName":"TripSit Factsheets","size":1014},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Methylmethylphenidate.md","displayName":"Wikipedia","size":1383}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 4-Me-TMP
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -32,119 +32,6 @@ baggy for over two years. It was eventually binned.
 To be fair, others have reported far more positively than this, with a handful even
 citing a recreational edge at high doses.
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-methylmethylphenidate",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4-Methylmethylphenidate",
-  "name": "4-Methylmethylphenidate",
-  "aliases": [
-    "4-me-tmp",
-    "4-metmp",
-    "4-mmph"
-  ],
-  "aliasesStr": "4-me-tmp,4-metmp,4-mmph",
-  "summary": "A stimulant drug related to methylphenidate and also known as 4-Me-TMP, it has demonstrated lower dopamine reuptake inhibition properties and is potentially less potent. Has been subjectively described as very similar in feel to MPH.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Insufflated",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-45mg"
-        },
-        {
-          "name": "Strong",
-          "value": "45-70mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "70mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.08 - 0.33 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "2.0 - 5.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "25-40mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-60mg"
-        },
-        {
-          "name": "Strong",
-          "value": "60-90mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "90-125mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.58 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
-  "categorized_effects": {
-    "Physical effects": [
-      "increased energy/alertness",
-      "decreased need for sleep",
-      "decreased appetite",
-      "weight loss",
-      "sweating",
-      "bruxism",
-      "itchiness"
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "increased sociability",
-      "mood lift",
-      "excessive talking",
-      "disturbed sleep patterns",
-      "aggressiveness"
-    ],
-    "Sensory effects": [
-      "increased sexuality",
-      "visual and auditory hallucinations"
-    ],
-    "Uncategorized effects": [
-      "moodiness."
-    ]
-  }
-}`,
   "tripsit-factsheets": `# 4-Methylmethylphenidate
 *Source: TripSit Factsheets (tripsit.me)*
 

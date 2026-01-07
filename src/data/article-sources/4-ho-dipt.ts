@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-DiPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - 4-HO-DiPT.md","displayName":"Erowid","size":6140},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DiPT.md","displayName":"Isomer Design","size":5644},{"id":"protestkit","fileName":"PROTESTKIT - 4-HO-DiPT.json","displayName":"Protest Kit","size":2655},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DiPT.md","displayName":"PsychonautWiki","size":20571},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DiPT.md","displayName":"TripSit Factsheets","size":852},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DiPT.md","displayName":"Wikipedia","size":7538}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 4-HO-DiPT.md","displayName":"Erowid","size":6140},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DiPT.md","displayName":"Isomer Design","size":5644},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DiPT.md","displayName":"PsychonautWiki","size":20571},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DiPT.md","displayName":"TripSit Factsheets","size":852},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DiPT.md","displayName":"Wikipedia","size":7538}];
 export const contents: Record<string, string> = {
   "erowid": `# 4-HO-DiPT
 *Source: https://erowid.org/chemicals/4_ho_dipt/4_ho_dipt.shtml*
@@ -157,114 +157,6 @@ And similar comments can be made regarding the consistency of physical side-effe
 An interesting sideline. This is the same nitrogen substitution pattern, N,N-diisopropyl, that is present in the rather dramatic sex-enhancer 5-MeO-DIPT. I wonder what might come out of an exploration of this substitution pattern in the world of the phenethylamines? As a rule, most phenethylamines lose their appeal with substitution on the nitrogen atom. But has anyone tried to make an N,N-diisopropyl homologue of MDMA, for example? Or of mescaline? Or of DOM? It would be interesting to explore these areas.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/4-HO-DiPT",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HODiPT.shtml",
-  "name": "4-HO-DiPT",
-  "aliases": [
-    "iprocin"
-  ],
-  "aliasesStr": "iprocin",
-  "summary": "A psychedelic tryptamine also known as iprocin. A homologue of psilocin, this drug likely has similar effects to psychedelic mushrooms. Said to have a rapid onset and relatively short duration for a drug of its class.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "3 mg"
-        },
-        {
-          "name": "Light",
-          "value": "3 - 10 mg"
-        },
-        {
-          "name": "Common",
-          "value": "10 - 20 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "20 - 30 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "30 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "1.0 - 1.5 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "2.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# 4-HO-DiPT
 *Source: https://psychonautwiki.org/wiki/4-HO-DiPT*
 

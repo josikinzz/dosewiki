@@ -1,69 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "25I-NBMD";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 25I-NBMD.json","displayName":"Protest Kit","size":1390},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBMD.md","displayName":"TripSit Factsheets","size":528},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBMD.md","displayName":"Wikipedia","size":1034}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBMD.md","displayName":"TripSit Factsheets","size":528},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBMD.md","displayName":"Wikipedia","size":1034}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/25i-nbmd",
-  "experiencesUrl": "https://www.reddit.com/search/?q=25I-NBMD",
-  "name": "25I-NBMD",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A psychedelic phenethylamine that is related to the 25X-NBOMe series which in turn makes it related to the 2C-X series. Quite potent substance.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Sublingual",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "800-1500ug"
-        },
-        {
-          "name": "Common",
-          "value": "1500-2000ug"
-        },
-        {
-          "name": "Strong",
-          "value": "2000-3000ug+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 25I-NBMD
 *Source: TripSit Factsheets (tripsit.me)*
 

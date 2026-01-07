@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Naproxen";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Naproxen.md","displayName":"DrugBank","size":46164},{"id":"protestkit","fileName":"PROTESTKIT - Naproxen.json","displayName":"Protest Kit","size":1205},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naproxen.md","displayName":"TripSit Factsheets","size":701},{"id":"wikipedia","fileName":"WIKIPEDIA - Naproxen.md","displayName":"Wikipedia","size":11882}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Naproxen.md","displayName":"DrugBank","size":46164},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naproxen.md","displayName":"TripSit Factsheets","size":701},{"id":"wikipedia","fileName":"WIKIPEDIA - Naproxen.md","displayName":"Wikipedia","size":11882}];
 export const contents: Record<string, string> = {
   "drugbank": `# Naproxen
 *Source: https://go.drugbank.com/drugs/DB00788*
@@ -2609,52 +2609,6 @@ Organic anion transporter 3
 59855.585 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/naproxen",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Naproxen.shtml",
-  "name": "Naproxen",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A very common pain reliever/fever reducer also known as Aleve. Naproxen is in the same category as Ibuprofen, which is also a nonsteroidal anti-inflammatory. This drug is available in most places over the counter. Is sometimes used to reduce the body-load of certain drugs.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "250-500mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Naproxen
 *Source: TripSit Factsheets (tripsit.me)*
 

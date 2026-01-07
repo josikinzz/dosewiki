@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ibuprofen";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ibuprofen.md","displayName":"DrugBank","size":48986},{"id":"protestkit","fileName":"PROTESTKIT - Ibuprofen.json","displayName":"Protest Kit","size":1138},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ibuprofen.md","displayName":"TripSit Factsheets","size":522},{"id":"wikipedia","fileName":"WIKIPEDIA - Ibuprofen.md","displayName":"Wikipedia","size":18892}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ibuprofen.md","displayName":"DrugBank","size":48986},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ibuprofen.md","displayName":"TripSit Factsheets","size":522},{"id":"wikipedia","fileName":"WIKIPEDIA - Ibuprofen.md","displayName":"Wikipedia","size":18892}];
 export const contents: Record<string, string> = {
   "drugbank": `# Ibuprofen
 *Source: https://go.drugbank.com/drugs/DB01050*
@@ -2469,52 +2469,6 @@ Solute carrier family 22 member 11
 59970.945 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/ibuprofen",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Ibuprofen",
-  "name": "Ibuprofen",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A ubiquitously available pain reliever/fever reducer. Ibuprofen is a nonsteroidal anti-inflammatory drug, available in many forms. It is sometimes used to reduce the body-load caused by certain drugs, such as stimulants.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "400-800mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Ibuprofen
 *Source: TripSit Factsheets (tripsit.me)*
 

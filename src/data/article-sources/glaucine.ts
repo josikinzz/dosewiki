@@ -1,65 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Glaucine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Glaucine.json","displayName":"Protest Kit","size":1348},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glaucine.md","displayName":"TripSit Factsheets","size":471},{"id":"wikipedia","fileName":"WIKIPEDIA - Glaucine.md","displayName":"Wikipedia","size":4139}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glaucine.md","displayName":"TripSit Factsheets","size":471},{"id":"wikipedia","fileName":"WIKIPEDIA - Glaucine.md","displayName":"Wikipedia","size":4139}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/glaucine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Glaucine",
-  "name": "Glaucine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An alkaloid that is found in several different scpecies in the Papaveraceae family. It has antiinflammatory and antitussive effects. Can also be referred to as Yellow Horned Poppy.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "50-100mg"
-        },
-        {
-          "name": "Common",
-          "value": "100-150mg"
-        },
-        {
-          "name": "Strong",
-          "value": "150-200mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.75 - 1.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Glaucine
 *Source: TripSit Factsheets (tripsit.me)*
 

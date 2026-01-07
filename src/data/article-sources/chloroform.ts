@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Chloroform";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Chloroform.md","displayName":"DrugBank","size":10077},{"id":"protestkit","fileName":"PROTESTKIT - Chloroform.json","displayName":"Protest Kit","size":853},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloroform.md","displayName":"TripSit Factsheets","size":664},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloroform.md","displayName":"Wikipedia","size":19379}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Chloroform.md","displayName":"DrugBank","size":10077},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloroform.md","displayName":"TripSit Factsheets","size":664},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloroform.md","displayName":"Wikipedia","size":19379}];
 export const contents: Record<string, string> = {
   "drugbank": `# Chloroform
 *Source: https://go.drugbank.com/drugs/DB11387*
@@ -498,32 +498,6 @@ predicted
 DeepCCS 1.0 (2019)
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/chloroform",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Chloroform.shtml",
-  "name": "Chloroform",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A naturally occurring organic compound once used as an anaesthetic. Has practically disappeared in this usage due to numerous harmful effects including danger of sudden death through cardiac arrhythmia. Has been implicated in numerous murders. Highly unsafe.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Chloroform
 *Source: TripSit Factsheets (tripsit.me)*
 

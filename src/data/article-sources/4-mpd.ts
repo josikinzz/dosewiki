@@ -1,41 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MPD";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 4-MPD.json","displayName":"Protest Kit","size":851},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MPD.md","displayName":"TripSit Factsheets","size":243},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MPD.md","displayName":"Wikipedia","size":563}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MPD.md","displayName":"TripSit Factsheets","size":243},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MPD.md","displayName":"Wikipedia","size":563}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-mpd",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4-MPD",
-  "name": "4-MPD",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Stimulant of the cathinone class. Higher homologue of Mephedrone, and the p-Methyl analogue of Pentedrone.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 4-MPD
 *Source: TripSit Factsheets (tripsit.me)*
 

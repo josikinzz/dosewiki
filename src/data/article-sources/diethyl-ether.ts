@@ -1,35 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Diethyl ether";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Diethyl ether.json","displayName":"Protest Kit","size":872},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diethyl ether.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diethyl ether.md","displayName":"Wikipedia","size":4156}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diethyl ether.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diethyl ether.md","displayName":"Wikipedia","size":4156}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/diethyl-ether",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ether.shtml",
-  "name": "Diethyl ether",
-  "aliases": [
-    "ether"
-  ],
-  "aliasesStr": "ether",
-  "summary": "An industrial solvent which is sometimes used recreationally as a dissociative anaesthetic, with a short length of action. Effects are similar to alcohol. Leaves one's breath tasting and smelling strongly of ether for much longer than the experience lasts.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Diethyl ether
 *Source: TripSit Factsheets (tripsit.me)*
 

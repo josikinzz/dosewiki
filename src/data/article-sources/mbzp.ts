@@ -1,71 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "MBZP";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - MBZP.json","displayName":"Protest Kit","size":1331},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBZP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - MBZP.md","displayName":"Wikipedia","size":2783}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBZP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - MBZP.md","displayName":"Wikipedia","size":2783}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/mbzp",
-  "experiencesUrl": "https://www.reddit.com/search/?q=MBZP",
-  "name": "MBZP",
-  "aliases": [
-    "methylbenylpiperazine"
-  ],
-  "aliasesStr": "methylbenylpiperazine",
-  "summary": "A stimulant drug which is a derivative of BZP.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "50-80mg"
-        },
-        {
-          "name": "Common",
-          "value": "80-120mg"
-        },
-        {
-          "name": "Strong",
-          "value": "120-160mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "160-200mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# MBZP
 *Source: TripSit Factsheets (tripsit.me)*
 

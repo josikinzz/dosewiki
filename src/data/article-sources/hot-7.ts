@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "HOT-7";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-7.md","displayName":"Isomer Design","size":2046},{"id":"protestkit","fileName":"PROTESTKIT - HOT-7.json","displayName":"Protest Kit","size":2097},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-7.md","displayName":"TripSit Factsheets","size":969},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-7.md","displayName":"Wikipedia","size":1617}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-7.md","displayName":"Isomer Design","size":2046},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-7.md","displayName":"TripSit Factsheets","size":969},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-7.md","displayName":"Wikipedia","size":1617}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# HOT-7
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=88*
@@ -30,94 +30,6 @@ So, as far as nomenclature is concerned, the family of N-hydroxy analogues of N-
 How does HOT-7 compare with 2C-T-7? They are almost identical. The same range of dose (centering on 20 milligrams) and if anything, perhaps slightly less long lived. Lets try some other N-hydroxys!
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/hot-7",
-  "experiencesUrl": "https://www.reddit.com/search/?q=HOT-7",
-  "name": "HOT-7",
-  "aliases": [
-    "hot7"
-  ],
-  "aliasesStr": "hot7",
-  "summary": "A rather rare psychedelic phenylethylamine that is the hydroxylated version and prodrug for 2C-T-7.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "15mg"
-        },
-        {
-          "name": "Light",
-          "value": "15-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-30mg"
-        },
-        {
-          "name": "Strong",
-          "value": "30-40mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 3.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# HOT-7
 *Source: TripSit Factsheets (tripsit.me)*
 

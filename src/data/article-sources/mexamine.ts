@@ -1,53 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Mexamine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Mexamine.json","displayName":"Protest Kit","size":1408},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexamine.md","displayName":"TripSit Factsheets","size":613},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexamine.md","displayName":"Wikipedia","size":5277}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexamine.md","displayName":"TripSit Factsheets","size":613},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexamine.md","displayName":"Wikipedia","size":5277}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/mexamine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Mexamine",
-  "name": "Mexamine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "5-Methoxytryptamine, a tryptamine derivative that naturally occurs in the body at low levels. No evidence of recreational use. Apparently enhances dreams.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# Mexamine
 *Source: TripSit Factsheets (tripsit.me)*
 

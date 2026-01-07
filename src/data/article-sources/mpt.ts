@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MPT.md","displayName":"Isomer Design","size":749},{"id":"protestkit","fileName":"PROTESTKIT - MPT.json","displayName":"Protest Kit","size":3105},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MPT.md","displayName":"PsychonautWiki","size":15753},{"id":"wikipedia","fileName":"WIKIPEDIA - MPT.md","displayName":"Wikipedia","size":1009}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MPT.md","displayName":"Isomer Design","size":749},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MPT.md","displayName":"PsychonautWiki","size":15753},{"id":"wikipedia","fileName":"WIKIPEDIA - MPT.md","displayName":"Wikipedia","size":1009}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MPT
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5175*
@@ -26,107 +26,6 @@ export const contents: Record<string, string> = {
 - [74405270](https://pubchem.ncbi.nlm.nih.gov/compound/74405270)
 - [List of substituted tryptamines](https://en.wikipedia.org/wiki/Substituted_tryptamine#List_of_substituted_tryptamines)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/MPT",
-  "experiencesUrl": "https://www.reddit.com/search/?q=MPT",
-  "name": "MPT",
-  "aliases": [
-    "methylpropyltryptamine"
-  ],
-  "aliasesStr": "methylpropyltryptamine",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "??? - ??? mg",
-          "note": "\\"???\\" is not a number."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Total",
-          "value": "??? - ???"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Auditory hallucination, Auditory distortion, Geometry, Pattern recognition enhancement, Diffraction, Depth perception distortions, Tracers, Symmetrical texture repetition, Perspective distortion, Nausea, Spontaneous bodily sensations, Pupil dilation, Transformations, Internal hallucination, Autonomous entity, Settings, sceneries, and landscapes, Novelty enhancement, Time distortion, Conceptual thinking, Scenarios and plots, Thought loop, Delusion, Unity and interconnectedness, Cognitive euphoria, Personal bias suppression, Memory suppression, Drifting, Color enhancement, Visual acuity enhancement, Increased heart rate, Increased music appreciation, After images, Brightness alteration, Color shifting, Emotion intensification, Perspective hallucination, Immersion intensification, Auditory acuity enhancement",
-  "categorized_effects": {
-    "Physical effects": [
-      "Nausea",
-      "Pupil dilation",
-      "Increased heart rate"
-    ],
-    "Mental effects": [
-      "Pattern recognition enhancement",
-      "Depth perception distortions",
-      "Internal hallucination",
-      "Novelty enhancement",
-      "Time distortion",
-      "Conceptual thinking",
-      "Thought loop",
-      "Delusion",
-      "Unity and interconnectedness",
-      "Cognitive euphoria",
-      "Personal bias suppression",
-      "Memory suppression",
-      "Increased music appreciation",
-      "Emotion intensification",
-      "Immersion intensification"
-    ],
-    "Sensory effects": [
-      "Auditory hallucination",
-      "Auditory distortion",
-      "Diffraction",
-      "Tracers",
-      "Symmetrical texture repetition",
-      "Perspective distortion",
-      "Spontaneous bodily sensations",
-      "Color enhancement",
-      "Visual acuity enhancement",
-      "After images",
-      "Brightness alteration",
-      "Color shifting",
-      "Perspective hallucination",
-      "Auditory acuity enhancement"
-    ],
-    "Uncategorized effects": [
-      "Geometry",
-      "Transformations",
-      "Autonomous entity",
-      "Settings",
-      "sceneries",
-      "and landscapes",
-      "Scenarios and plots",
-      "Drifting"
-    ]
-  }
-}`,
   "psychonautwiki": `# MPT
 *Source: https://psychonautwiki.org/wiki/MPT*
 

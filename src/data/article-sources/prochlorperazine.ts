@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Prochlorperazine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Prochlorperazine.md","displayName":"DrugBank","size":30851},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Prochlorperazine.md","displayName":"Isomer Design","size":764},{"id":"protestkit","fileName":"PROTESTKIT - Prochlorperazine.json","displayName":"Protest Kit","size":2151},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Prochlorperazine.md","displayName":"PsychonautWiki","size":9751},{"id":"wikipedia","fileName":"WIKIPEDIA - Prochlorperazine.md","displayName":"Wikipedia","size":6074}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Prochlorperazine.md","displayName":"DrugBank","size":30851},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Prochlorperazine.md","displayName":"Isomer Design","size":764},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Prochlorperazine.md","displayName":"PsychonautWiki","size":9751},{"id":"wikipedia","fileName":"WIKIPEDIA - Prochlorperazine.md","displayName":"Wikipedia","size":6074}];
 export const contents: Record<string, string> = {
   "drugbank": `# Prochlorperazine
 *Source: https://go.drugbank.com/drugs/DB00433*
@@ -1536,94 +1536,6 @@ This binding interaction is theoretical based on the actions of the phenothiazin
 - [Q2359690](https://www.wikidata.org/wiki/Q2359690)
 - [Prochlorperazine](https://en.wikipedia.org/wiki/Prochlorperazine)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Prochlorperazine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Prochlorperazine",
-  "name": "Prochlorperazine",
-  "aliases": [
-    "buccastem",
-    "compazine",
-    "phenotil",
-    "stemetil",
-    "stemzine"
-  ],
-  "aliasesStr": "buccastem,compazine,phenotil,stemetil,stemzine",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Phenothiazine"
-    ],
-    "psychoactive": [
-      "Antipsychotic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "2 mg"
-        },
-        {
-          "name": "Light",
-          "value": "2.5 - 5 mg"
-        },
-        {
-          "name": "Common",
-          "value": "5 - 20 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "20 - 40 mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Total",
-          "value": "4.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Emotion suppression, Dehydration, Dizziness, Nausea suppression, Dream potentiation, Thought deceleration, Sedation, Motor control loss, Anxiety suppression, Amnesia, Focus suppression, Appetite intensification, Analysis depression, Creativity depression, Language depression, Motivation depression, Orgasm depression",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dehydration",
-      "Dizziness",
-      "Nausea suppression",
-      "Sedation",
-      "Motor control loss",
-      "Appetite intensification"
-    ],
-    "Mental effects": [
-      "Emotion suppression",
-      "Dream potentiation",
-      "Thought deceleration",
-      "Anxiety suppression",
-      "Amnesia",
-      "Focus suppression",
-      "Analysis depression",
-      "Creativity depression",
-      "Language depression",
-      "Motivation depression"
-    ],
-    "Sensory effects": [
-      "Orgasm depression"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Prochlorperazine
 *Source: https://psychonautwiki.org/wiki/Prochlorperazine*
 

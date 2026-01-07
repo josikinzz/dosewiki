@@ -1,53 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Naphyrone";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Naphyrone.json","displayName":"Protest Kit","size":1102},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naphyrone.md","displayName":"TripSit Factsheets","size":448},{"id":"wikipedia","fileName":"WIKIPEDIA - Naphyrone.md","displayName":"Wikipedia","size":3301}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naphyrone.md","displayName":"TripSit Factsheets","size":448},{"id":"wikipedia","fileName":"WIKIPEDIA - Naphyrone.md","displayName":"Wikipedia","size":3301}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/naphyrone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Naphyrone",
-  "name": "Naphyrone",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A drug derived from pyrovalerone which acts as a TRI, producing stimulating effects. Had been sold in a blend called \\"NRG-1\\" Little information exists about the safety profile of this drug.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "20-35mg"
-        },
-        {
-          "name": "Strong",
-          "value": "35-50mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "6.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Naphyrone
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ibogaine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ibogaine.md","displayName":"Drug Users Bible","size":5090},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ibogaine.md","displayName":"Isomer Design","size":4852},{"id":"protestkit","fileName":"PROTESTKIT - Ibogaine.json","displayName":"Protest Kit","size":2415},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Ibogaine.md","displayName":"The Drug Classroom","size":7290},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ibogaine.md","displayName":"TripSit Factsheets","size":1276},{"id":"wikipedia","fileName":"WIKIPEDIA - Ibogaine.md","displayName":"Wikipedia","size":33044}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ibogaine.md","displayName":"Drug Users Bible","size":5090},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ibogaine.md","displayName":"Isomer Design","size":4852},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Ibogaine.md","displayName":"The Drug Classroom","size":7290},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ibogaine.md","displayName":"TripSit Factsheets","size":1276},{"id":"wikipedia","fileName":"WIKIPEDIA - Ibogaine.md","displayName":"Wikipedia","size":33044}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Iboga
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -151,89 +151,6 @@ And this all leads smoothly to the botany, which is almost as convoluted as the 
 And there are many plants in the Apocynaceae family that carry fascinating alkaloids that are closely related in structure to ibogaine and which, potentially, might have a similar psychopharmacology. In most of these, ibogaine is present in very small amounts, if any at all.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Ibogaine",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Ibogaine.shtml",
-  "name": "Ibogaine",
-  "aliases": [
-    "endabuse",
-    "iboga"
-  ],
-  "aliasesStr": "endabuse,iboga",
-  "summary": "An alkaloid found in many African plants most famously Iboga, with psychedelic and hallucinogenic properties. May be unpleasant. Traditionally used in tribal environments for coming-of-age rituals, it has recently been used as an alternative treatment for drug addiction although this usage has not been backed by conclusive data in humans. Has killed in overdose.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": "not habit-forming",
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "15 - 22 mg/kg of body weight"
-        },
-        {
-          "name": "Strong",
-          "value": null,
-          "note": "Strong doses may result in fatal heart complications."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 3.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "18.0 - 36.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "24.0 - 72.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Addiction help, Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil constriction, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil constriction",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "Addiction help",
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "thedrugclassroom": `# Ibogaine & Iboga
 *Source: https://thedrugclassroom.com/video/ibogaine-iboga/*
 

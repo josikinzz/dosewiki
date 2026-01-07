@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-MiPT";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md","displayName":"Disregard Everything I Say","size":12047},{"id":"erowid","fileName":"EROWID - 4-HO-MiPT.md","displayName":"Erowid","size":5911},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MiPT.md","displayName":"Isomer Design","size":7053},{"id":"protestkit","fileName":"PROTESTKIT - 4-HO-MiPT.json","displayName":"Protest Kit","size":2535},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MiPT.md","displayName":"PsychonautWiki","size":36164},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MiPT.md","displayName":"TripSit Factsheets","size":785},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 4-HO-MiPT.md","displayName":"TripSit Wiki","size":1543},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MiPT.md","displayName":"Wikipedia","size":6242}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md","displayName":"Disregard Everything I Say","size":12047},{"id":"erowid","fileName":"EROWID - 4-HO-MiPT.md","displayName":"Erowid","size":5911},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MiPT.md","displayName":"Isomer Design","size":7053},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MiPT.md","displayName":"PsychonautWiki","size":36164},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MiPT.md","displayName":"TripSit Factsheets","size":785},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 4-HO-MiPT.md","displayName":"TripSit Wiki","size":1543},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MiPT.md","displayName":"Wikipedia","size":6242}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 4-HO-MiPT
 *Source: https://disregardeverythingisay.com/post/92506586004/4-ho-mipt-broken-down-and-described*
@@ -273,112 +273,6 @@ If one were to be a complete perfectionist in these areas of chemistry, one shou
 A careful clinical comparison of the acetate ester of psilocin with the phosphate ester and the free phenol might help resolve this question. The ideal way of resolving this would be to run pharmacokinetic studies on blood levels of these three materials, in parallel with the psychopharmacological responses. I feel that this is not likely to be done in the foreseeable future.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/4-HO-MiPT",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HOMiPT.shtml",
-  "name": "4-HO-MiPT",
-  "aliases": [
-    "4-ho",
-    "4homipt",
-    "ho-mipt",
-    "homipt",
-    "miprocin"
-  ],
-  "aliasesStr": "4-ho,4homipt,ho-mipt,homipt,miprocin",
-  "summary": "A reasonably popular tryptamine deriviative and Psilocin analogue, first synthesised by Alexander Shulgin. It has been reported as having comparable effects to psychedelic mushrooms, though with a shorter duration.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "5 mg"
-        },
-        {
-          "name": "Light",
-          "value": "10 - 15 mg"
-        },
-        {
-          "name": "Common",
-          "value": "15 - 25 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "25 - 35 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "35 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.75 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "0.33 - 1.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "1.5 - 2.5 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "1.0 - 2.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Brightened colors, visual distortions, altered perception, a sense of conectedness with the world around you, heightend emotions, paranoia, unwanted thoughts.",
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [
-      "a sense of conectedness with the world around you",
-      "heightend emotions",
-      "paranoia"
-    ],
-    "Sensory effects": [
-      "Brightened colors",
-      "visual distortions",
-      "altered perception"
-    ],
-    "Uncategorized effects": [
-      "unwanted thoughts."
-    ]
-  }
-}`,
   "psychonautwiki": `# 4-HO-MiPT
 *Source: https://psychonautwiki.org/wiki/4-HO-MiPT*
 

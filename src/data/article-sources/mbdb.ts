@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MBDB";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MBDB.md","displayName":"Isomer Design","size":4672},{"id":"protestkit","fileName":"PROTESTKIT - MBDB.json","displayName":"Protest Kit","size":1411},{"id":"saferparty","fileName":"SAFERPARTY - MBDB.md","displayName":"Safer Party","size":1142},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBDB.md","displayName":"TripSit Factsheets","size":713},{"id":"wikipedia","fileName":"WIKIPEDIA - MBDB.md","displayName":"Wikipedia","size":6657}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MBDB.md","displayName":"Isomer Design","size":4672},{"id":"saferparty","fileName":"SAFERPARTY - MBDB.md","displayName":"Safer Party","size":1142},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBDB.md","displayName":"TripSit Factsheets","size":713},{"id":"wikipedia","fileName":"WIKIPEDIA - MBDB.md","displayName":"Wikipedia","size":6657}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MBDB
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=128*
@@ -30,67 +30,6 @@ First, a little bit of local color. In San Francisco, there is a public transpor
 It is quite obvious, that with one carbon atom lying on that alpha-position, you are precisely half-way between no carbons and two carbons. And there was one letter of the alphabet that lies precisely half-way between an H and a J. So, an natural naming pattern developed. The I compounds were already pretty well known by names such as MDA and MDMA and MDE, so I, and METHYL-I, and ETHYL-I, didnât have any appeal. But for the new, the alpha-ethyl compounds, why not call them the J-compounds? If it has a methyl on the nitrogen it will be METHYL-J and if it has an ethyl group it will be ETHYL-J. And in the next longer group, the 3-carbon propyl group on the alpha-position becomes the K family, and the 4-carbon butyl group located there, the L family. Each with its METHYL and ETHYL prefixes, if the nitrogen atoms are substituted with a methyl or and ethyl group. Vâla, comme on dit en FranÃ§ais. Le systiÃ¨me Muni Metro. Plus simple.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/mbdb",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MBDB.shtml",
-  "name": "MBDB",
-  "aliases": [
-    "eden",
-    "methyl-j"
-  ],
-  "aliasesStr": "eden,methyl-j",
-  "summary": "A rare entactogenic drug and analogue of MDMA possibly first synthesised by David Nichols. Potentially less potent than related drugs of its type. Sometimes referred to as a 'watered down MDMA.'",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "150-180mg"
-        },
-        {
-          "name": "Common",
-          "value": "180-210mg"
-        },
-        {
-          "name": "Strong",
-          "value": "210-250mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 2.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "saferparty": `# MBDB
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 

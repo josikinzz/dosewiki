@@ -18,12 +18,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "1-4-butanediol",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1,4-Butanediol.json",
-        "displayName": "Protest Kit",
-        "size": 2729
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1,4-Butanediol.md",
         "displayName": "TripSit Factsheets",
@@ -64,12 +58,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 1B-LSD.md",
         "displayName": "Isomer Design",
         "size": 649
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1B-LSD.json",
-        "displayName": "Protest Kit",
-        "size": 8482
       },
       {
         "id": "psychonautwiki",
@@ -132,12 +120,6 @@ export const substances: SubstanceInfo[] = [
         "size": 836
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1P-ETH-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 6693
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1P-ETH-LAD.md",
         "displayName": "PsychonautWiki",
@@ -180,12 +162,6 @@ export const substances: SubstanceInfo[] = [
         "size": 838
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1P-LSD.json",
-        "displayName": "Protest Kit",
-        "size": 8581
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1P-LSD.md",
         "displayName": "PsychonautWiki",
@@ -210,12 +186,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "1v-lsd",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1V-LSD.json",
-        "displayName": "Protest Kit",
-        "size": 8087
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1V-LSD.md",
         "displayName": "PsychonautWiki",
@@ -238,12 +208,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 1cP-AL-LAD.md",
         "displayName": "Isomer Design",
         "size": 685
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1cP-AL-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 7875
       },
       {
         "id": "psychonautwiki",
@@ -276,12 +240,6 @@ export const substances: SubstanceInfo[] = [
         "size": 800
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1cP-LSD.json",
-        "displayName": "Protest Kit",
-        "size": 8320
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1cP-LSD.md",
         "displayName": "PsychonautWiki",
@@ -312,12 +270,6 @@ export const substances: SubstanceInfo[] = [
         "size": 615
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 1cP-MiPLA.json",
-        "displayName": "Protest Kit",
-        "size": 7330
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1cP-MiPLA.md",
         "displayName": "PsychonautWiki",
@@ -340,12 +292,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - 2-AI.md",
         "displayName": "Drug Users Bible",
         "size": 3112
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-AI.json",
-        "displayName": "Protest Kit",
-        "size": 4095
       },
       {
         "id": "tripsit-factsheets",
@@ -396,12 +342,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "2-chloroephenidine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-Chloroephenidine.json",
-        "displayName": "Protest Kit",
-        "size": 1578
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-Chloroephenidine.md",
         "displayName": "TripSit Factsheets",
@@ -418,12 +358,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2-FA.md",
         "displayName": "Isomer Design",
         "size": 693
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-FA.json",
-        "displayName": "Protest Kit",
-        "size": 2875
       },
       {
         "id": "psychonautwiki",
@@ -456,12 +390,6 @@ export const substances: SubstanceInfo[] = [
         "size": 592
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-FEA.json",
-        "displayName": "Protest Kit",
-        "size": 6272
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-FEA.md",
         "displayName": "PsychonautWiki",
@@ -490,12 +418,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2-FMA.md",
         "displayName": "Isomer Design",
         "size": 776
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-FMA.json",
-        "displayName": "Protest Kit",
-        "size": 7286
       },
       {
         "id": "psychonautwiki",
@@ -546,12 +468,6 @@ export const substances: SubstanceInfo[] = [
         "size": 859
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-Fluorodeschloroketamine.json",
-        "displayName": "Protest Kit",
-        "size": 5043
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-Fluorodeschloroketamine.md",
         "displayName": "PsychonautWiki",
@@ -575,12 +491,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2-MA",
     "slug": "2-ma",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-MA.json",
-        "displayName": "Protest Kit",
-        "size": 3805
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MA.md",
@@ -612,12 +522,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "2-mec",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-MEC.json",
-        "displayName": "Protest Kit",
-        "size": 1850
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MEC.md",
         "displayName": "TripSit Factsheets",
@@ -629,12 +533,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2-MMC",
     "slug": "2-mmc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-MMC.json",
-        "displayName": "Protest Kit",
-        "size": 3973
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MMC.md",
@@ -653,12 +551,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2-MPPP",
     "slug": "2-mppp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-MPPP.json",
-        "displayName": "Protest Kit",
-        "size": 3161
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MPPP.md",
@@ -684,12 +576,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4439
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-Me-DMT.json",
-        "displayName": "Protest Kit",
-        "size": 785
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-Me-DMT.md",
         "displayName": "TripSit Factsheets",
@@ -707,12 +593,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2-NMC",
     "slug": "2-nmc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-NMC.json",
-        "displayName": "Protest Kit",
-        "size": 572
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-NMC.md",
@@ -732,12 +612,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "2-pa",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-PA.json",
-        "displayName": "Protest Kit",
-        "size": 3341
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-PA.md",
         "displayName": "TripSit Factsheets",
@@ -749,12 +623,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2-PTA",
     "slug": "2-pta",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2-PTA.json",
-        "displayName": "Protest Kit",
-        "size": 3390
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-PTA.md",
@@ -772,12 +640,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25-DMA.md",
         "displayName": "Isomer Design",
         "size": 6620
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25-DMA.json",
-        "displayName": "Protest Kit",
-        "size": 692
       },
       {
         "id": "psychonautwiki",
@@ -802,12 +664,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25B-NBOH.md",
         "displayName": "Isomer Design",
         "size": 785
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25B-NBOH.json",
-        "displayName": "Protest Kit",
-        "size": 2813
       },
       {
         "id": "psychonautwiki",
@@ -846,12 +702,6 @@ export const substances: SubstanceInfo[] = [
         "size": 724
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25B-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 5646
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25B-NBOMe.md",
         "displayName": "PsychonautWiki",
@@ -880,12 +730,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25C-NBOH.md",
         "displayName": "Isomer Design",
         "size": 733
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25C-NBOH.json",
-        "displayName": "Protest Kit",
-        "size": 4680
       },
       {
         "id": "psychonautwiki",
@@ -930,12 +774,6 @@ export const substances: SubstanceInfo[] = [
         "size": 725
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25C-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 4513
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25C-NBOMe.md",
         "displayName": "PsychonautWiki",
@@ -964,12 +802,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25D-NBOMe.md",
         "displayName": "Isomer Design",
         "size": 731
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25D-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 4991
       },
       {
         "id": "psychonautwiki",
@@ -1002,12 +834,6 @@ export const substances: SubstanceInfo[] = [
         "size": 743
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25E-NBOH.json",
-        "displayName": "Protest Kit",
-        "size": 2717
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25E-NBOH.md",
         "displayName": "PsychonautWiki",
@@ -1025,12 +851,6 @@ export const substances: SubstanceInfo[] = [
     "name": "25E-NBOMe",
     "slug": "25e-nbome",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25E-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 4345
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25E-NBOMe.md",
@@ -1050,12 +870,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "25g-nbome",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25G-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 4947
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25G-NBOMe.md",
         "displayName": "TripSit Factsheets",
@@ -1073,12 +887,6 @@ export const substances: SubstanceInfo[] = [
     "name": "25H-NBOMe",
     "slug": "25h-nbome",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25H-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 3699
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25H-NBOMe.md",
@@ -1098,12 +906,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "25i-nbf",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25I-NBF.json",
-        "displayName": "Protest Kit",
-        "size": 1034
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBF.md",
         "displayName": "TripSit Factsheets",
@@ -1121,12 +923,6 @@ export const substances: SubstanceInfo[] = [
     "name": "25I-NBMD",
     "slug": "25i-nbmd",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25I-NBMD.json",
-        "displayName": "Protest Kit",
-        "size": 1390
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBMD.md",
@@ -1150,12 +946,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25I-NBOH.md",
         "displayName": "Isomer Design",
         "size": 780
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25I-NBOH.json",
-        "displayName": "Protest Kit",
-        "size": 5607
       },
       {
         "id": "psychonautwiki",
@@ -1198,12 +988,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 25I-NBOMe.md",
         "displayName": "Isomer Design",
         "size": 727
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25I-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 6190
       },
       {
         "id": "psychonautwiki",
@@ -1254,12 +1038,6 @@ export const substances: SubstanceInfo[] = [
         "size": 745
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25N-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 5917
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25N-NBOMe.md",
         "displayName": "PsychonautWiki",
@@ -1284,12 +1062,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "25p-nbome",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25P-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 2723
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25P-NBOMe.md",
         "displayName": "TripSit Factsheets",
@@ -1308,12 +1080,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "25t-2-nbome",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25T-2-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 3418
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25T-2-NBOMe.md",
         "displayName": "TripSit Factsheets",
@@ -1326,12 +1092,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "25t-4-nbome",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25T-4-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 3430
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25T-4-NBOMe.md",
         "displayName": "TripSit Factsheets",
@@ -1343,12 +1103,6 @@ export const substances: SubstanceInfo[] = [
     "name": "25iP-NBOMe",
     "slug": "25ip-nbome",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 25iP-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 4333
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25iP-NBOMe.md",
@@ -1390,12 +1144,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-B.md",
         "displayName": "Isomer Design",
         "size": 10710
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-B.json",
-        "displayName": "Protest Kit",
-        "size": 7200
       },
       {
         "id": "psychonautwiki",
@@ -1446,12 +1194,6 @@ export const substances: SubstanceInfo[] = [
         "size": 1012
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-B-AN.json",
-        "displayName": "Protest Kit",
-        "size": 3363
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B-AN.md",
         "displayName": "TripSit Factsheets",
@@ -1488,12 +1230,6 @@ export const substances: SubstanceInfo[] = [
         "size": 783
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-B-FLY.json",
-        "displayName": "Protest Kit",
-        "size": 4723
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-B-FLY.md",
         "displayName": "PsychonautWiki",
@@ -1517,12 +1253,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2C-B-FLY-NBOMe",
     "slug": "2c-b-fly-nbome",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-B-FLY-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 2930
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B-FLY-NBOMe.md",
@@ -1558,12 +1288,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-C.md",
         "displayName": "Isomer Design",
         "size": 4263
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-C.json",
-        "displayName": "Protest Kit",
-        "size": 4882
       },
       {
         "id": "psychonautwiki",
@@ -1606,12 +1330,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-D.md",
         "displayName": "Isomer Design",
         "size": 9035
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-D.json",
-        "displayName": "Protest Kit",
-        "size": 5104
       },
       {
         "id": "psychonautwiki",
@@ -1668,12 +1386,6 @@ export const substances: SubstanceInfo[] = [
         "size": 7968
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-E.json",
-        "displayName": "Protest Kit",
-        "size": 5753
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-E.md",
         "displayName": "PsychonautWiki",
@@ -1716,12 +1428,6 @@ export const substances: SubstanceInfo[] = [
         "size": 9526
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-G.json",
-        "displayName": "Protest Kit",
-        "size": 4125
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-G.md",
         "displayName": "TripSit Factsheets",
@@ -1744,12 +1450,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-H.md",
         "displayName": "Isomer Design",
         "size": 2405
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-H.json",
-        "displayName": "Protest Kit",
-        "size": 2781
       },
       {
         "id": "psychonautwiki",
@@ -1794,12 +1494,6 @@ export const substances: SubstanceInfo[] = [
         "size": 8199
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-I.json",
-        "displayName": "Protest Kit",
-        "size": 5667
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-I.md",
         "displayName": "PsychonautWiki",
@@ -1836,12 +1530,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "2c-ip",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-IP.json",
-        "displayName": "Protest Kit",
-        "size": 4189
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-IP.md",
         "displayName": "TripSit Factsheets",
@@ -1864,12 +1552,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-N.md",
         "displayName": "Isomer Design",
         "size": 703
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-N.json",
-        "displayName": "Protest Kit",
-        "size": 4209
       },
       {
         "id": "tripsit-factsheets",
@@ -1908,12 +1590,6 @@ export const substances: SubstanceInfo[] = [
         "size": 6893
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-P.json",
-        "displayName": "Protest Kit",
-        "size": 5535
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-P.md",
         "displayName": "PsychonautWiki",
@@ -1948,12 +1624,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-T.md",
         "displayName": "Isomer Design",
         "size": 7945
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-T.json",
-        "displayName": "Protest Kit",
-        "size": 6153
       },
       {
         "id": "psychonautwiki",
@@ -1998,12 +1668,6 @@ export const substances: SubstanceInfo[] = [
         "size": 11043
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-T-2.json",
-        "displayName": "Protest Kit",
-        "size": 5833
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-2.md",
         "displayName": "PsychonautWiki",
@@ -2040,12 +1704,6 @@ export const substances: SubstanceInfo[] = [
         "size": 9532
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-T-21.json",
-        "displayName": "Protest Kit",
-        "size": 4543
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-21.md",
         "displayName": "PsychonautWiki",
@@ -2074,12 +1732,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 2C-T-4.md",
         "displayName": "Isomer Design",
         "size": 6647
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-T-4.json",
-        "displayName": "Protest Kit",
-        "size": 3618
       },
       {
         "id": "tripsit-factsheets",
@@ -2118,12 +1770,6 @@ export const substances: SubstanceInfo[] = [
         "size": 7163
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2C-T-7.json",
-        "displayName": "Protest Kit",
-        "size": 6068
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-7.md",
         "displayName": "PsychonautWiki",
@@ -2147,12 +1793,6 @@ export const substances: SubstanceInfo[] = [
     "name": "2M2B",
     "slug": "2m2b",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 2M2B.json",
-        "displayName": "Protest Kit",
-        "size": 2269
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2M2B.md",
@@ -2190,12 +1830,6 @@ export const substances: SubstanceInfo[] = [
         "size": 915
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3,4-CTMP.json",
-        "displayName": "Protest Kit",
-        "size": 2644
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3,4-CTMP.md",
         "displayName": "PsychonautWiki",
@@ -2220,12 +1854,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "3-6-dmpm",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3,6-DMPM.json",
-        "displayName": "Protest Kit",
-        "size": 657
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3,6-DMPM.md",
         "displayName": "TripSit Factsheets",
@@ -2237,12 +1865,6 @@ export const substances: SubstanceInfo[] = [
     "name": "3-CMC",
     "slug": "3-cmc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-CMC.json",
-        "displayName": "Protest Kit",
-        "size": 4113
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-CMC.md",
@@ -2266,12 +1888,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3-Cl-PCP.md",
         "displayName": "Isomer Design",
         "size": 620
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-Cl-PCP.json",
-        "displayName": "Protest Kit",
-        "size": 3912
       },
       {
         "id": "psychonautwiki",
@@ -2310,12 +1926,6 @@ export const substances: SubstanceInfo[] = [
         "size": 697
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-FA.json",
-        "displayName": "Protest Kit",
-        "size": 2881
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FA.md",
         "displayName": "PsychonautWiki",
@@ -2344,12 +1954,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3-FEA.md",
         "displayName": "Isomer Design",
         "size": 770
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-FEA.json",
-        "displayName": "Protest Kit",
-        "size": 7148
       },
       {
         "id": "psychonautwiki",
@@ -2382,12 +1986,6 @@ export const substances: SubstanceInfo[] = [
         "size": 765
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-FMA.json",
-        "displayName": "Protest Kit",
-        "size": 4768
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FMA.md",
         "displayName": "PsychonautWiki",
@@ -2411,12 +2009,6 @@ export const substances: SubstanceInfo[] = [
     "name": "3-FMC",
     "slug": "3-fmc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-FMC.json",
-        "displayName": "Protest Kit",
-        "size": 4030
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FMC.md",
@@ -2446,12 +2038,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3-FPM.md",
         "displayName": "Isomer Design",
         "size": 854
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-FPM.json",
-        "displayName": "Protest Kit",
-        "size": 5492
       },
       {
         "id": "psychonautwiki",
@@ -2490,12 +2076,6 @@ export const substances: SubstanceInfo[] = [
         "size": 676
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-HO-PCE.json",
-        "displayName": "Protest Kit",
-        "size": 6328
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-HO-PCE.md",
         "displayName": "PsychonautWiki",
@@ -2532,12 +2112,6 @@ export const substances: SubstanceInfo[] = [
         "size": 861
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-HO-PCP.json",
-        "displayName": "Protest Kit",
-        "size": 7034
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-HO-PCP.md",
         "displayName": "PsychonautWiki",
@@ -2562,12 +2136,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "3-mec",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MEC.json",
-        "displayName": "Protest Kit",
-        "size": 1961
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MEC.md",
         "displayName": "TripSit Factsheets",
@@ -2590,12 +2158,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3-MMC.md",
         "displayName": "Isomer Design",
         "size": 689
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MMC.json",
-        "displayName": "Protest Kit",
-        "size": 7033
       },
       {
         "id": "psychonautwiki",
@@ -2664,12 +2226,6 @@ export const substances: SubstanceInfo[] = [
         "size": 872
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeO-PCE.json",
-        "displayName": "Protest Kit",
-        "size": 6747
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MeO-PCE.md",
         "displayName": "PsychonautWiki",
@@ -2712,12 +2268,6 @@ export const substances: SubstanceInfo[] = [
         "size": 828
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeO-PCMo.json",
-        "displayName": "Protest Kit",
-        "size": 4062
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MeO-PCMo.md",
         "displayName": "PsychonautWiki",
@@ -2752,12 +2302,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3-MeO-PCP.md",
         "displayName": "Isomer Design",
         "size": 767
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeO-PCP.json",
-        "displayName": "Protest Kit",
-        "size": 7511
       },
       {
         "id": "psychonautwiki",
@@ -2796,12 +2340,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "3-meo-pcpr",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeO-PCPR.json",
-        "displayName": "Protest Kit",
-        "size": 1940
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCPR.md",
         "displayName": "TripSit Factsheets",
@@ -2814,12 +2352,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "3-meo-pcpy",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeO-PCPY.json",
-        "displayName": "Protest Kit",
-        "size": 3755
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCPY.md",
         "displayName": "TripSit Factsheets",
@@ -2831,12 +2363,6 @@ export const substances: SubstanceInfo[] = [
     "name": "3-MeOMC",
     "slug": "3-meomc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-MeOMC.json",
-        "displayName": "Protest Kit",
-        "size": 1310
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeOMC.md",
@@ -2855,12 +2381,6 @@ export const substances: SubstanceInfo[] = [
     "name": "3-OH-Phenazepam",
     "slug": "3-oh-phenazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3-OH-Phenazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3696
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-OH-Phenazepam.md",
@@ -2896,12 +2416,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 3C-E.md",
         "displayName": "Isomer Design",
         "size": 3400
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3C-E.json",
-        "displayName": "Protest Kit",
-        "size": 5483
       },
       {
         "id": "psychonautwiki",
@@ -2940,12 +2454,6 @@ export const substances: SubstanceInfo[] = [
         "size": 744
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 3C-P.json",
-        "displayName": "Protest Kit",
-        "size": 4877
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3C-P.md",
         "displayName": "PsychonautWiki",
@@ -2970,12 +2478,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-4-dmar",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4,4-DMAR.json",
-        "displayName": "Protest Kit",
-        "size": 1576
-      },
-      {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 4,4-DMAR.md",
         "displayName": "The Drug Classroom",
@@ -2999,12 +2501,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-AcO-DALT",
     "slug": "4-aco-dalt",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-DALT.json",
-        "displayName": "Protest Kit",
-        "size": 2790
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DALT.md",
@@ -3034,12 +2530,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-AcO-DET.md",
         "displayName": "Isomer Design",
         "size": 788
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-DET.json",
-        "displayName": "Protest Kit",
-        "size": 5318
       },
       {
         "id": "psychonautwiki",
@@ -3090,12 +2580,6 @@ export const substances: SubstanceInfo[] = [
         "size": 797
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-DMT.json",
-        "displayName": "Protest Kit",
-        "size": 5565
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-DMT.md",
         "displayName": "PsychonautWiki",
@@ -3126,12 +2610,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-aco-dpt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-DPT.json",
-        "displayName": "Protest Kit",
-        "size": 1373
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DPT.md",
         "displayName": "TripSit Factsheets",
@@ -3160,12 +2638,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-AcO-DiPT.md",
         "displayName": "Isomer Design",
         "size": 823
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-DiPT.json",
-        "displayName": "Protest Kit",
-        "size": 2869
       },
       {
         "id": "psychonautwiki",
@@ -3202,12 +2674,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-AcO-MET.md",
         "displayName": "Isomer Design",
         "size": 793
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-MET.json",
-        "displayName": "Protest Kit",
-        "size": 2790
       },
       {
         "id": "psychonautwiki",
@@ -3258,12 +2724,6 @@ export const substances: SubstanceInfo[] = [
         "size": 813
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-AcO-MiPT.json",
-        "displayName": "Protest Kit",
-        "size": 5220
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-MiPT.md",
         "displayName": "PsychonautWiki",
@@ -3288,12 +2748,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-benzylpiperidine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-Benzylpiperidine.json",
-        "displayName": "Protest Kit",
-        "size": 3863
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Benzylpiperidine.md",
         "displayName": "TripSit Factsheets",
@@ -3312,12 +2766,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-cbc",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-CBC.json",
-        "displayName": "Protest Kit",
-        "size": 4147
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CBC.md",
         "displayName": "TripSit Factsheets",
@@ -3330,12 +2778,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-cic",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-CIC.json",
-        "displayName": "Protest Kit",
-        "size": 572
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CIC.md",
         "displayName": "TripSit Factsheets",
@@ -3347,12 +2789,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-CMA",
     "slug": "4-cma",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-CMA.json",
-        "displayName": "Protest Kit",
-        "size": 2845
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CMA.md",
@@ -3372,12 +2808,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-cmc",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-CMC.json",
-        "displayName": "Protest Kit",
-        "size": 4293
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CMC.md",
         "displayName": "TripSit Factsheets",
@@ -3395,12 +2825,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-Chlorodiazepam",
     "slug": "4-chlorodiazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-Chlorodiazepam.json",
-        "displayName": "Protest Kit",
-        "size": 2988
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Chlorodiazepam.md",
@@ -3420,12 +2844,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-emc",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-EMC.json",
-        "displayName": "Protest Kit",
-        "size": 4156
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-EMC.md",
         "displayName": "TripSit Factsheets",
@@ -3443,12 +2861,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-EPD",
     "slug": "4-epd",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-EPD.json",
-        "displayName": "Protest Kit",
-        "size": 3313
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-EPD.md",
@@ -3478,12 +2890,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-FA.md",
         "displayName": "Isomer Design",
         "size": 697
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FA.json",
-        "displayName": "Protest Kit",
-        "size": 5088
       },
       {
         "id": "psychonautwiki",
@@ -3516,12 +2922,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-fea",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FEA.json",
-        "displayName": "Protest Kit",
-        "size": 2866
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FEA.md",
         "displayName": "TripSit Factsheets",
@@ -3538,12 +2938,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-FMA.md",
         "displayName": "Isomer Design",
         "size": 767
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FMA.json",
-        "displayName": "Protest Kit",
-        "size": 5400
       },
       {
         "id": "psychonautwiki",
@@ -3570,12 +2964,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-fmc",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FMC.json",
-        "displayName": "Protest Kit",
-        "size": 4802
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FMC.md",
         "displayName": "TripSit Factsheets",
@@ -3594,12 +2982,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-fpm",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FPM.json",
-        "displayName": "Protest Kit",
-        "size": 983
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FPM.md",
         "displayName": "TripSit Factsheets",
@@ -3611,12 +2993,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-FPP",
     "slug": "4-fpp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-FPP.json",
-        "displayName": "Protest Kit",
-        "size": 1220
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FPP.md",
@@ -3636,12 +3012,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-fluorobutyrfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-Fluorobutyrfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3611
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Fluorobutyrfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -3660,12 +3030,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-fluoropentedrone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-Fluoropentedrone.json",
-        "displayName": "Protest Kit",
-        "size": 3005
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Fluoropentedrone.md",
         "displayName": "TripSit Factsheets",
@@ -3682,12 +3046,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-HO-DET.md",
         "displayName": "Isomer Design",
         "size": 10979
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-DET.json",
-        "displayName": "Protest Kit",
-        "size": 2874
       },
       {
         "id": "psychonautwiki",
@@ -3718,12 +3076,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-HO-DPT.md",
         "displayName": "Isomer Design",
         "size": 1081
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-DPT.json",
-        "displayName": "Protest Kit",
-        "size": 5527
       },
       {
         "id": "psychonautwiki",
@@ -3762,12 +3114,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5644
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-DiPT.json",
-        "displayName": "Protest Kit",
-        "size": 2655
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-DiPT.md",
         "displayName": "PsychonautWiki",
@@ -3796,12 +3142,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-HO-EPT.md",
         "displayName": "Isomer Design",
         "size": 816
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-EPT.json",
-        "displayName": "Protest Kit",
-        "size": 3528
       },
       {
         "id": "psychonautwiki",
@@ -3840,12 +3180,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-ho-mcpt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-MCPT.json",
-        "displayName": "Protest Kit",
-        "size": 682
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MCPT.md",
         "displayName": "TripSit Factsheets",
@@ -3874,12 +3208,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-HO-MET.md",
         "displayName": "Isomer Design",
         "size": 1323
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-MET.json",
-        "displayName": "Protest Kit",
-        "size": 3841
       },
       {
         "id": "psychonautwiki",
@@ -3912,12 +3240,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-ho-mpmi",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-MPMI.json",
-        "displayName": "Protest Kit",
-        "size": 2065
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MPMI.md",
         "displayName": "TripSit Factsheets",
@@ -3946,12 +3268,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-HO-MPT.md",
         "displayName": "Isomer Design",
         "size": 1780
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-MPT.json",
-        "displayName": "Protest Kit",
-        "size": 4549
       },
       {
         "id": "psychonautwiki",
@@ -3996,12 +3312,6 @@ export const substances: SubstanceInfo[] = [
         "size": 7053
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-HO-MiPT.json",
-        "displayName": "Protest Kit",
-        "size": 2535
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-MiPT.md",
         "displayName": "PsychonautWiki",
@@ -4044,12 +3354,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-mec",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MEC.json",
-        "displayName": "Protest Kit",
-        "size": 4757
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MEC.md",
         "displayName": "TripSit Factsheets",
@@ -4067,12 +3371,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-METHYLAMINOREX",
     "slug": "4-methylaminorex",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-METHYLAMINOREX.json",
-        "displayName": "Protest Kit",
-        "size": 1348
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md",
@@ -4092,12 +3390,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-mpd",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MPD.json",
-        "displayName": "Protest Kit",
-        "size": 851
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MPD.md",
         "displayName": "TripSit Factsheets",
@@ -4115,12 +3407,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4-MPM",
     "slug": "4-mpm",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MPM.json",
-        "displayName": "Protest Kit",
-        "size": 1930
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MPM.md",
@@ -4140,12 +3426,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-mta",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MTA.json",
-        "displayName": "Protest Kit",
-        "size": 2938
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MTA.md",
         "displayName": "TripSit Factsheets",
@@ -4164,12 +3444,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4-meo-butyrfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MeO-Butyrfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3645
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MeO-Butyrfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -4186,12 +3460,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 4-MeO-MiPT.md",
         "displayName": "Isomer Design",
         "size": 5571
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MeO-MiPT.json",
-        "displayName": "Protest Kit",
-        "size": 2118
       },
       {
         "id": "tripsit-factsheets",
@@ -4224,12 +3492,6 @@ export const substances: SubstanceInfo[] = [
         "size": 868
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-MeO-PCP.json",
-        "displayName": "Protest Kit",
-        "size": 5749
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-MeO-PCP.md",
         "displayName": "PsychonautWiki",
@@ -4258,12 +3520,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - 4-Methylmethylphenidate.md",
         "displayName": "Drug Users Bible",
         "size": 1184
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4-Methylmethylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 2797
       },
       {
         "id": "tripsit-factsheets",
@@ -4308,12 +3564,6 @@ export const substances: SubstanceInfo[] = [
         "size": 729
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4F-EPH.json",
-        "displayName": "Protest Kit",
-        "size": 3181
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4F-EPH.md",
         "displayName": "PsychonautWiki",
@@ -4350,12 +3600,6 @@ export const substances: SubstanceInfo[] = [
         "size": 884
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4F-MPH.json",
-        "displayName": "Protest Kit",
-        "size": 4110
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4F-MPH.md",
         "displayName": "PsychonautWiki",
@@ -4380,12 +3624,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "4f-neb",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4F-NEB.json",
-        "displayName": "Protest Kit",
-        "size": 2027
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-NEB.md",
         "displayName": "TripSit Factsheets",
@@ -4397,12 +3635,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4F-PHP",
     "slug": "4f-php",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4F-PHP.json",
-        "displayName": "Protest Kit",
-        "size": 3113
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-PHP.md",
@@ -4421,12 +3653,6 @@ export const substances: SubstanceInfo[] = [
     "name": "4F-PVP",
     "slug": "4f-pvp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 4F-PVP.json",
-        "displayName": "Protest Kit",
-        "size": 3146
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-PVP.md",
@@ -4450,12 +3676,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 5-APB.md",
         "displayName": "Isomer Design",
         "size": 727
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-APB.json",
-        "displayName": "Protest Kit",
-        "size": 4683
       },
       {
         "id": "psychonautwiki",
@@ -4482,12 +3702,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-apdb",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-APDB.json",
-        "displayName": "Protest Kit",
-        "size": 3923
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-APDB.md",
         "displayName": "TripSit Factsheets",
@@ -4505,12 +3719,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-APDI",
     "slug": "5-apdi",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-APDI.json",
-        "displayName": "Protest Kit",
-        "size": 2105
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-APDI.md",
@@ -4530,12 +3738,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-bpdi",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-BPDI.json",
-        "displayName": "Protest Kit",
-        "size": 1475
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-BPDI.md",
         "displayName": "TripSit Factsheets",
@@ -4547,12 +3749,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-Bromo-DMT",
     "slug": "5-bromo-dmt",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-Bromo-DMT.json",
-        "displayName": "Protest Kit",
-        "size": 3463
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-Bromo-DMT.md",
@@ -4572,12 +3768,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-dbfpv",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-DBFPV.json",
-        "displayName": "Protest Kit",
-        "size": 3779
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-DBFPV.md",
         "displayName": "TripSit Factsheets",
@@ -4595,12 +3785,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-EAPB",
     "slug": "5-eapb",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-EAPB.json",
-        "displayName": "Protest Kit",
-        "size": 2352
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-EAPB.md",
@@ -4638,12 +3822,6 @@ export const substances: SubstanceInfo[] = [
         "size": 768
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-Hydroxytryptophan.json",
-        "displayName": "Protest Kit",
-        "size": 2200
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-Hydroxytryptophan.md",
         "displayName": "PsychonautWiki",
@@ -4668,12 +3846,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-iai",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-IAI.json",
-        "displayName": "Protest Kit",
-        "size": 1460
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-IAI.md",
         "displayName": "TripSit Factsheets",
@@ -4691,12 +3863,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-IT",
     "slug": "5-it",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-IT.json",
-        "displayName": "Protest Kit",
-        "size": 2111
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-IT.md",
@@ -4728,12 +3894,6 @@ export const substances: SubstanceInfo[] = [
         "size": 752
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MAPB.json",
-        "displayName": "Protest Kit",
-        "size": 4960
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MAPB.md",
         "displayName": "PsychonautWiki",
@@ -4757,12 +3917,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-MAPDB",
     "slug": "5-mapdb",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MAPDB.json",
-        "displayName": "Protest Kit",
-        "size": 2044
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MAPDB.md",
@@ -4798,12 +3952,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 5-MeO-DALT.md",
         "displayName": "Isomer Design",
         "size": 3849
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-DALT.json",
-        "displayName": "Protest Kit",
-        "size": 5828
       },
       {
         "id": "psychonautwiki",
@@ -4848,12 +3996,6 @@ export const substances: SubstanceInfo[] = [
         "size": 18744
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-DMT.json",
-        "displayName": "Protest Kit",
-        "size": 5653
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DMT.md",
         "displayName": "PsychonautWiki",
@@ -4896,12 +4038,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-meo-dpt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-DPT.json",
-        "displayName": "Protest Kit",
-        "size": 4134
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DPT.md",
         "displayName": "TripSit Factsheets",
@@ -4930,12 +4066,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 5-MeO-DiBF.md",
         "displayName": "Isomer Design",
         "size": 825
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-DiBF.json",
-        "displayName": "Protest Kit",
-        "size": 5857
       },
       {
         "id": "psychonautwiki",
@@ -4974,12 +4104,6 @@ export const substances: SubstanceInfo[] = [
         "size": 8833
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-DiPT.json",
-        "displayName": "Protest Kit",
-        "size": 4626
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DiPT.md",
         "displayName": "PsychonautWiki",
@@ -5003,12 +4127,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-MeO-EiPT",
     "slug": "5-meo-eipt",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-EiPT.json",
-        "displayName": "Protest Kit",
-        "size": 4862
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 5-MeO-EiPT.md",
@@ -5034,12 +4152,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-meo-malt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-MALT.json",
-        "displayName": "Protest Kit",
-        "size": 4941
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-MALT.md",
         "displayName": "TripSit Factsheets",
@@ -5057,12 +4169,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-MeO-MET",
     "slug": "5-meo-met",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-MET.json",
-        "displayName": "Protest Kit",
-        "size": 4611
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-MET.md",
@@ -5100,12 +4206,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10300
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-MiPT.json",
-        "displayName": "Protest Kit",
-        "size": 5672
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-MiPT.md",
         "displayName": "PsychonautWiki",
@@ -5136,12 +4236,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-meo-nipt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-NIPT.json",
-        "displayName": "Protest Kit",
-        "size": 3440
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-NIPT.md",
         "displayName": "TripSit Factsheets",
@@ -5166,12 +4260,6 @@ export const substances: SubstanceInfo[] = [
         "size": 6653
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-PYR-T.json",
-        "displayName": "Protest Kit",
-        "size": 3919
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-PYR-T.md",
         "displayName": "TripSit Factsheets",
@@ -5183,12 +4271,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-MeO-αMT",
     "slug": "5-meo-mt",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-MeO-αMT.json",
-        "displayName": "Protest Kit",
-        "size": 4430
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-αMT.md",
@@ -5208,12 +4290,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "5-methylethylone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-Methylethylone.json",
-        "displayName": "Protest Kit",
-        "size": 4786
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-Methylethylone.md",
         "displayName": "TripSit Factsheets",
@@ -5231,12 +4307,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5-PPDI",
     "slug": "5-ppdi",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5-PPDI.json",
-        "displayName": "Protest Kit",
-        "size": 1484
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-PPDI.md",
@@ -5256,12 +4326,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3424
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5F-AKB48.json",
-        "displayName": "Protest Kit",
-        "size": 5654
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5F-AKB48.md",
         "displayName": "TripSit Factsheets",
@@ -5279,12 +4343,6 @@ export const substances: SubstanceInfo[] = [
     "name": "5F-PB-22",
     "slug": "5f-pb-22",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 5F-PB-22.json",
-        "displayName": "Protest Kit",
-        "size": 6159
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5F-PB-22.md",
@@ -5320,12 +4378,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - 6-APB.md",
         "displayName": "Isomer Design",
         "size": 727
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 6-APB.json",
-        "displayName": "Protest Kit",
-        "size": 4560
       },
       {
         "id": "psychonautwiki",
@@ -5364,12 +4416,6 @@ export const substances: SubstanceInfo[] = [
         "size": 740
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 6-APDB.json",
-        "displayName": "Protest Kit",
-        "size": 4900
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 6-APDB.md",
         "displayName": "PsychonautWiki",
@@ -5394,12 +4440,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "6-eapb",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 6-EAPB.json",
-        "displayName": "Protest Kit",
-        "size": 4330
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-EAPB.md",
         "displayName": "TripSit Factsheets",
@@ -5417,12 +4457,6 @@ export const substances: SubstanceInfo[] = [
     "name": "6-MAPB",
     "slug": "6-mapb",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 6-MAPB.json",
-        "displayName": "Protest Kit",
-        "size": 2549
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-MAPB.md",
@@ -5442,12 +4476,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "6-mddm",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 6-MDDM.json",
-        "displayName": "Protest Kit",
-        "size": 3735
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-MDDM.md",
         "displayName": "TripSit Factsheets",
@@ -5459,12 +4487,6 @@ export const substances: SubstanceInfo[] = [
     "name": "8-Chlorotheophylline",
     "slug": "8-chlorotheophylline",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - 8-Chlorotheophylline.json",
-        "displayName": "Protest Kit",
-        "size": 840
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 8-Chlorotheophylline.md",
@@ -5496,12 +4518,6 @@ export const substances: SubstanceInfo[] = [
         "size": 731
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - A-PHP.json",
-        "displayName": "Protest Kit",
-        "size": 6815
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - A-PHP.md",
         "displayName": "PsychonautWiki",
@@ -5526,12 +4542,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "a-pihp",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - A-PIHP.json",
-        "displayName": "Protest Kit",
-        "size": 2941
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - A-PIHP.md",
         "displayName": "TripSit Factsheets",
@@ -5554,12 +4564,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - A-PVP.md",
         "displayName": "Isomer Design",
         "size": 724
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - A-PVP.json",
-        "displayName": "Protest Kit",
-        "size": 7053
       },
       {
         "id": "psychonautwiki",
@@ -5592,12 +4596,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "ab-chminaca",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AB-CHMINACA.json",
-        "displayName": "Protest Kit",
-        "size": 3812
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AB-CHMINACA.md",
         "displayName": "TripSit Factsheets",
@@ -5616,12 +4614,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "ab-fubinaca",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AB-FUBINACA.json",
-        "displayName": "Protest Kit",
-        "size": 5772
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AB-FUBINACA.md",
         "displayName": "TripSit Factsheets",
@@ -5639,12 +4631,6 @@ export const substances: SubstanceInfo[] = [
     "name": "AH-7921",
     "slug": "ah-7921",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AH-7921.json",
-        "displayName": "Protest Kit",
-        "size": 3982
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - AH-7921.md",
@@ -5686,12 +4672,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - AL-LAD.md",
         "displayName": "Isomer Design",
         "size": 4510
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AL-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 4842
       },
       {
         "id": "psychonautwiki",
@@ -5736,12 +4716,6 @@ export const substances: SubstanceInfo[] = [
         "size": 814
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - ALD-52.json",
-        "displayName": "Protest Kit",
-        "size": 4726
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - ALD-52.md",
         "displayName": "PsychonautWiki",
@@ -5772,12 +4746,6 @@ export const substances: SubstanceInfo[] = [
         "size": 8089
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - ALEPH-2.json",
-        "displayName": "Protest Kit",
-        "size": 1598
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - ALEPH-2.md",
         "displayName": "TripSit Factsheets",
@@ -5802,12 +4770,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2502
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AM-2201.json",
-        "displayName": "Protest Kit",
-        "size": 1722
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AM-2201.md",
         "displayName": "TripSit Factsheets",
@@ -5830,12 +4792,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - AM-694.md",
         "displayName": "Drug Users Bible",
         "size": 1387
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AM-694.json",
-        "displayName": "Protest Kit",
-        "size": 671
       },
       {
         "id": "wikipedia",
@@ -5874,12 +4830,6 @@ export const substances: SubstanceInfo[] = [
         "size": 12737
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - AMT.json",
-        "displayName": "Protest Kit",
-        "size": 4527
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - AMT.md",
         "displayName": "PsychonautWiki",
@@ -5910,12 +4860,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "acetildenafil",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Acetildenafil.json",
-        "displayName": "Protest Kit",
-        "size": 1215
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Acetildenafil.md",
         "displayName": "TripSit Factsheets",
@@ -5944,12 +4888,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Acetylfentanyl.md",
         "displayName": "Isomer Design",
         "size": 744
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Acetylfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 5530
       },
       {
         "id": "psychonautwiki",
@@ -5988,12 +4926,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "acrylfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Acrylfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3869
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Acrylfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -6011,12 +4943,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Adinazolam",
     "slug": "adinazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Adinazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3452
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Adinazolam.md",
@@ -6054,12 +4980,6 @@ export const substances: SubstanceInfo[] = [
         "size": 720
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Adrafinil.json",
-        "displayName": "Protest Kit",
-        "size": 3157
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Adrafinil.md",
         "displayName": "PsychonautWiki",
@@ -6083,12 +5003,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Afloqualone",
     "slug": "afloqualone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Afloqualone.json",
-        "displayName": "Protest Kit",
-        "size": 3677
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Afloqualone.md",
@@ -6118,12 +5032,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Alcohol.md",
         "displayName": "Drug Users Bible",
         "size": 8400
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Alcohol.json",
-        "displayName": "Protest Kit",
-        "size": 6374
       },
       {
         "id": "saferparty",
@@ -6162,12 +5070,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3524
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Aleph.json",
-        "displayName": "Protest Kit",
-        "size": 1313
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aleph.md",
         "displayName": "TripSit Factsheets",
@@ -6185,12 +5087,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Allobarbital",
     "slug": "allobarbital",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Allobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 1377
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Allobarbital.md",
@@ -6216,12 +5112,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3321
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Allylescaline.json",
-        "displayName": "Protest Kit",
-        "size": 2271
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Allylescaline.md",
         "displayName": "PsychonautWiki",
@@ -6245,12 +5135,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Alpha-GPC",
     "slug": "alpha-gpc",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Alpha-GPC.json",
-        "displayName": "Protest Kit",
-        "size": 2123
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Alpha-GPC.md",
@@ -6292,12 +5176,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Alprazolam.md",
         "displayName": "Isomer Design",
         "size": 813
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Alprazolam.json",
-        "displayName": "Protest Kit",
-        "size": 5244
       },
       {
         "id": "psychonautwiki",
@@ -6342,12 +5220,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "amfecloral",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Amfecloral.json",
-        "displayName": "Protest Kit",
-        "size": 2712
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amfecloral.md",
         "displayName": "TripSit Factsheets",
@@ -6365,12 +5237,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Amfonelic acid",
     "slug": "amfonelic-acid",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Amfonelic acid.json",
-        "displayName": "Protest Kit",
-        "size": 2482
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amfonelic acid.md",
@@ -6390,12 +5256,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "aminorex",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Aminorex.json",
-        "displayName": "Protest Kit",
-        "size": 3183
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aminorex.md",
         "displayName": "TripSit Factsheets",
@@ -6414,12 +5274,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "aminotadalafil",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Aminotadalafil.json",
-        "displayName": "Protest Kit",
-        "size": 1136
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aminotadalafil.md",
         "displayName": "TripSit Factsheets",
@@ -6436,12 +5290,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Amobarbital.md",
         "displayName": "DrugBank",
         "size": 16179
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Amobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 3717
       },
       {
         "id": "tripsit-factsheets",
@@ -6484,12 +5332,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Amphetamine.md",
         "displayName": "Isomer Design",
         "size": 652
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Amphetamine.json",
-        "displayName": "Protest Kit",
-        "size": 3538
       },
       {
         "id": "psychonautwiki",
@@ -6552,12 +5394,6 @@ export const substances: SubstanceInfo[] = [
         "size": 662
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Aniracetam.json",
-        "displayName": "Protest Kit",
-        "size": 2625
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Aniracetam.md",
         "displayName": "PsychonautWiki",
@@ -6612,12 +5448,6 @@ export const substances: SubstanceInfo[] = [
         "size": 720
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Armodafinil.json",
-        "displayName": "Protest Kit",
-        "size": 3393
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Armodafinil.md",
         "displayName": "PsychonautWiki",
@@ -6642,12 +5472,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "ashwagandha",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ashwagandha.json",
-        "displayName": "Protest Kit",
-        "size": 1455
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ashwagandha.md",
         "displayName": "TripSit Factsheets",
@@ -6665,12 +5489,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Aspirin",
     "slug": "aspirin",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Aspirin.json",
-        "displayName": "Protest Kit",
-        "size": 1619
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aspirin.md",
@@ -6694,12 +5512,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Atomoxetine.md",
         "displayName": "DrugBank",
         "size": 31485
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Atomoxetine.json",
-        "displayName": "Protest Kit",
-        "size": 3471
       },
       {
         "id": "tripsit-factsheets",
@@ -6730,12 +5542,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Ayahuasca.md",
         "displayName": "Drug Users Bible",
         "size": 8627
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ayahuasca.json",
-        "displayName": "Protest Kit",
-        "size": 4243
       },
       {
         "id": "tripsit-factsheets",
@@ -6780,12 +5586,6 @@ export const substances: SubstanceInfo[] = [
         "size": 7985
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - BOD.json",
-        "displayName": "Protest Kit",
-        "size": 2171
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - BOD.md",
         "displayName": "TripSit Factsheets",
@@ -6803,12 +5603,6 @@ export const substances: SubstanceInfo[] = [
     "name": "BZP",
     "slug": "bzp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - BZP.json",
-        "displayName": "Protest Kit",
-        "size": 1491
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - BZP.md",
@@ -6844,12 +5638,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Baclofen.md",
         "displayName": "Isomer Design",
         "size": 688
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Baclofen.json",
-        "displayName": "Protest Kit",
-        "size": 3838
       },
       {
         "id": "psychonautwiki",
@@ -6912,12 +5700,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "barbital",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Barbital.json",
-        "displayName": "Protest Kit",
-        "size": 1016
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Barbital.md",
         "displayName": "TripSit Factsheets",
@@ -6935,12 +5717,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Bentazepam",
     "slug": "bentazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bentazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3455
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bentazepam.md",
@@ -6960,12 +5736,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "benzodioxole-fentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Benzodioxole-Fentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 2730
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Benzodioxole-Fentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -6982,12 +5752,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Benzydamine.md",
         "displayName": "DrugBank",
         "size": 28212
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Benzydamine.json",
-        "displayName": "Protest Kit",
-        "size": 3819
       },
       {
         "id": "tripsit-factsheets",
@@ -7050,12 +5814,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "bromadol",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bromadol.json",
-        "displayName": "Protest Kit",
-        "size": 3625
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromadol.md",
         "displayName": "TripSit Factsheets",
@@ -7078,12 +5836,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Bromantane.md",
         "displayName": "Isomer Design",
         "size": 692
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bromantane.json",
-        "displayName": "Protest Kit",
-        "size": 2645
       },
       {
         "id": "psychonautwiki",
@@ -7122,12 +5874,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3411
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bromazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3788
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Bromazepam.md",
         "displayName": "PsychonautWiki",
@@ -7151,12 +5897,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Bromazolam",
     "slug": "bromazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bromazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3411
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromazolam.md",
@@ -7186,12 +5926,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Bromo-DragonFLY.md",
         "displayName": "Isomer Design",
         "size": 799
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bromo-DragonFLY.json",
-        "displayName": "Protest Kit",
-        "size": 5052
       },
       {
         "id": "psychonautwiki",
@@ -7224,12 +5958,6 @@ export const substances: SubstanceInfo[] = [
         "size": 15123
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Brotizolam.json",
-        "displayName": "Protest Kit",
-        "size": 3932
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Brotizolam.md",
         "displayName": "TripSit Factsheets",
@@ -7247,12 +5975,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Buphedrone",
     "slug": "buphedrone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Buphedrone.json",
-        "displayName": "Protest Kit",
-        "size": 1771
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Buphedrone.md",
@@ -7288,12 +6010,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Buprenorphine.md",
         "displayName": "Isomer Design",
         "size": 834
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Buprenorphine.json",
-        "displayName": "Protest Kit",
-        "size": 6109
       },
       {
         "id": "psychonautwiki",
@@ -7342,12 +6058,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Bupropion.md",
         "displayName": "DrugBank",
         "size": 41806
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Bupropion.json",
-        "displayName": "Protest Kit",
-        "size": 1557
       },
       {
         "id": "thedrugclassroom",
@@ -7410,12 +6120,6 @@ export const substances: SubstanceInfo[] = [
         "size": 644
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Butylone.json",
-        "displayName": "Protest Kit",
-        "size": 5320
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Butylone.md",
         "displayName": "PsychonautWiki",
@@ -7440,12 +6144,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "butyrfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Butyrfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3471
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Butyrfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -7464,12 +6162,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "c30-nbome",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - C30-NBOMe.json",
-        "displayName": "Protest Kit",
-        "size": 2806
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - C30-NBOMe.md",
         "displayName": "TripSit Factsheets",
@@ -7481,12 +6173,6 @@ export const substances: SubstanceInfo[] = [
     "name": "CRL-40-940",
     "slug": "crl-40-940",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - CRL-40-940.json",
-        "displayName": "Protest Kit",
-        "size": 1415
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - CRL-40-940.md",
@@ -7505,12 +6191,6 @@ export const substances: SubstanceInfo[] = [
     "name": "CRL-40-941",
     "slug": "crl-40-941",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - CRL-40-941.json",
-        "displayName": "Protest Kit",
-        "size": 1355
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - CRL-40-941.md",
@@ -7560,12 +6240,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4003
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Caffeine.json",
-        "displayName": "Protest Kit",
-        "size": 7244
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Caffeine.md",
         "displayName": "Safer Party",
@@ -7595,12 +6269,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Cake",
     "slug": "cake",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cake.json",
-        "displayName": "Protest Kit",
-        "size": 1141
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cake.md",
@@ -7638,12 +6306,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "camazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Camazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3532
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Camazepam.md",
         "displayName": "TripSit Factsheets",
@@ -7678,12 +6340,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "NERVEWING - Cannabis Use Notes.md",
         "displayName": "NERVEWING",
         "size": 149
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cannabis.json",
-        "displayName": "Protest Kit",
-        "size": 2857
       },
       {
         "id": "psychonautwiki",
@@ -7752,12 +6408,6 @@ export const substances: SubstanceInfo[] = [
         "size": 736
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Carisoprodol.json",
-        "displayName": "Protest Kit",
-        "size": 1997
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Carisoprodol.md",
         "displayName": "PsychonautWiki",
@@ -7787,12 +6437,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Cathinone",
     "slug": "cathinone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cathinone.json",
-        "displayName": "Protest Kit",
-        "size": 862
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cathinone.md",
@@ -7914,12 +6558,6 @@ export const substances: SubstanceInfo[] = [
         "size": 8213
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Changa.json",
-        "displayName": "Protest Kit",
-        "size": 4175
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Changa.md",
         "displayName": "TripSit Factsheets",
@@ -7938,12 +6576,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "chloral-betaine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Chloral betaine.json",
-        "displayName": "Protest Kit",
-        "size": 1440
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloral betaine.md",
         "displayName": "TripSit Factsheets",
@@ -7961,12 +6593,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Chloral hydrate",
     "slug": "chloral-hydrate",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Chloral hydrate.json",
-        "displayName": "Protest Kit",
-        "size": 3659
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloral hydrate.md",
@@ -7992,12 +6618,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10077
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Chloroform.json",
-        "displayName": "Protest Kit",
-        "size": 853
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloroform.md",
         "displayName": "TripSit Factsheets",
@@ -8016,12 +6636,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "choline-bitartrate",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Choline_bitartrate.json",
-        "displayName": "Protest Kit",
-        "size": 2043
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Choline_bitartrate.md",
         "displayName": "PsychonautWiki",
@@ -8039,12 +6653,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Cinolazepam",
     "slug": "cinolazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cinolazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3531
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cinolazepam.md",
@@ -8068,12 +6676,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Citalopram.md",
         "displayName": "DrugBank",
         "size": 40573
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Citalopram.json",
-        "displayName": "Protest Kit",
-        "size": 3303
       },
       {
         "id": "tripsit-factsheets",
@@ -8106,12 +6708,6 @@ export const substances: SubstanceInfo[] = [
         "size": 915
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Citicoline.json",
-        "displayName": "Protest Kit",
-        "size": 2285
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Citicoline.md",
         "displayName": "PsychonautWiki",
@@ -8136,12 +6732,6 @@ export const substances: SubstanceInfo[] = [
         "size": 39728
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clobazam.json",
-        "displayName": "Protest Kit",
-        "size": 3763
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clobazam.md",
         "displayName": "TripSit Factsheets",
@@ -8159,12 +6749,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Clomethiazole",
     "slug": "clomethiazole",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clomethiazole.json",
-        "displayName": "Protest Kit",
-        "size": 1766
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clomethiazole.md",
@@ -8200,12 +6784,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Clonazepam.md",
         "displayName": "Isomer Design",
         "size": 814
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clonazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4418
       },
       {
         "id": "psychonautwiki",
@@ -8248,12 +6826,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Clonazolam.md",
         "displayName": "Isomer Design",
         "size": 897
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clonazolam.json",
-        "displayName": "Protest Kit",
-        "size": 4133
       },
       {
         "id": "psychonautwiki",
@@ -8304,12 +6876,6 @@ export const substances: SubstanceInfo[] = [
         "size": 670
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clonidine.json",
-        "displayName": "Protest Kit",
-        "size": 4754
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Clonidine.md",
         "displayName": "PsychonautWiki",
@@ -8334,12 +6900,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "cloniprazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cloniprazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3319
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cloniprazepam.md",
         "displayName": "TripSit Factsheets",
@@ -8358,12 +6918,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "clonitazene",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clonitazene.json",
-        "displayName": "Protest Kit",
-        "size": 3372
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clonitazene.md",
         "displayName": "TripSit Factsheets",
@@ -8381,12 +6935,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Clorazepate",
     "slug": "clorazepate",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clorazepate.json",
-        "displayName": "Protest Kit",
-        "size": 1688
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clorazepate.md",
@@ -8412,12 +6960,6 @@ export const substances: SubstanceInfo[] = [
         "size": 15761
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Clotiazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3567
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clotiazepam.md",
         "displayName": "TripSit Factsheets",
@@ -8435,12 +6977,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Cloxazolam",
     "slug": "cloxazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cloxazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3398
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cloxazolam.md",
@@ -8488,12 +7024,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Cocaine.md",
         "displayName": "Drug Users Bible",
         "size": 11002
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cocaine.json",
-        "displayName": "Protest Kit",
-        "size": 5459
       },
       {
         "id": "saferparty",
@@ -8556,12 +7086,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3938
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Codeine.json",
-        "displayName": "Protest Kit",
-        "size": 4708
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Codeine.md",
         "displayName": "Safer Party",
@@ -8598,12 +7122,6 @@ export const substances: SubstanceInfo[] = [
         "size": 791
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Coluracetam.json",
-        "displayName": "Protest Kit",
-        "size": 3743
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Coluracetam.md",
         "displayName": "PsychonautWiki",
@@ -8628,12 +7146,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "coronaridine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Coronaridine.json",
-        "displayName": "Protest Kit",
-        "size": 900
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Coronaridine.md",
         "displayName": "TripSit Factsheets",
@@ -8656,12 +7168,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Creatine.md",
         "displayName": "DrugBank",
         "size": 13530
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Creatine.json",
-        "displayName": "Protest Kit",
-        "size": 857
       },
       {
         "id": "psychonautwiki",
@@ -8688,12 +7194,6 @@ export const substances: SubstanceInfo[] = [
         "size": 789
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclazodone.json",
-        "displayName": "Protest Kit",
-        "size": 4044
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cyclazodone.md",
         "displayName": "PsychonautWiki",
@@ -8718,12 +7218,6 @@ export const substances: SubstanceInfo[] = [
         "size": 14984
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclizine.json",
-        "displayName": "Protest Kit",
-        "size": 1259
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclizine.md",
         "displayName": "TripSit Factsheets",
@@ -8742,12 +7236,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "cyclo-methiodrone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclo-Methiodrone.json",
-        "displayName": "Protest Kit",
-        "size": 1256
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclo-Methiodrone.md",
         "displayName": "TripSit Factsheets",
@@ -8764,12 +7252,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Cyclobenzaprine.md",
         "displayName": "DrugBank",
         "size": 29110
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclobenzaprine.json",
-        "displayName": "Protest Kit",
-        "size": 3778
       },
       {
         "id": "tripsit-factsheets",
@@ -8790,12 +7272,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "cyclopentyl-fentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclopentyl-Fentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 2866
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclopentyl-Fentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -8812,12 +7288,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Cyclopropylmescaline.md",
         "displayName": "Isomer Design",
         "size": 3812
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Cyclopropylmescaline.json",
-        "displayName": "Protest Kit",
-        "size": 3335
       },
       {
         "id": "tripsit-factsheets",
@@ -8837,12 +7307,6 @@ export const substances: SubstanceInfo[] = [
     "name": "D2PM",
     "slug": "d2pm",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - D2PM.json",
-        "displayName": "Protest Kit",
-        "size": 1247
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - D2PM.md",
@@ -8874,12 +7338,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4072
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DALT.json",
-        "displayName": "Protest Kit",
-        "size": 1967
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DALT.md",
         "displayName": "TripSit Factsheets",
@@ -8897,12 +7355,6 @@ export const substances: SubstanceInfo[] = [
     "name": "DB-MDBP",
     "slug": "db-mdbp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DB-MDBP.json",
-        "displayName": "Protest Kit",
-        "size": 578
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DB-MDBP.md",
@@ -8928,12 +7380,6 @@ export const substances: SubstanceInfo[] = [
         "size": 19027
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DET.json",
-        "displayName": "Protest Kit",
-        "size": 4746
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DET.md",
         "displayName": "PsychonautWiki",
@@ -8957,12 +7403,6 @@ export const substances: SubstanceInfo[] = [
     "name": "DMAA",
     "slug": "dmaa",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DMAA.json",
-        "displayName": "Protest Kit",
-        "size": 1376
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DMAA.md",
@@ -8998,12 +7438,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DMT.md",
         "displayName": "Isomer Design",
         "size": 28084
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DMT.json",
-        "displayName": "Protest Kit",
-        "size": 7936
       },
       {
         "id": "saferparty",
@@ -9066,12 +7500,6 @@ export const substances: SubstanceInfo[] = [
         "size": 6791
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOB.json",
-        "displayName": "Protest Kit",
-        "size": 4882
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOB.md",
         "displayName": "PsychonautWiki",
@@ -9126,12 +7554,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3262
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOC.json",
-        "displayName": "Protest Kit",
-        "size": 5755
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOC.md",
         "displayName": "PsychonautWiki",
@@ -9166,12 +7588,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DOET.md",
         "displayName": "Isomer Design",
         "size": 5418
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOET.json",
-        "displayName": "Protest Kit",
-        "size": 4012
       },
       {
         "id": "tripsit-factsheets",
@@ -9216,12 +7632,6 @@ export const substances: SubstanceInfo[] = [
         "size": 8991
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOI.json",
-        "displayName": "Protest Kit",
-        "size": 4509
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOI.md",
         "displayName": "PsychonautWiki",
@@ -9257,12 +7667,6 @@ export const substances: SubstanceInfo[] = [
     "name": "DOIP",
     "slug": "doip",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOIP.json",
-        "displayName": "Protest Kit",
-        "size": 3475
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOIP.md",
@@ -9304,12 +7708,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DOM.md",
         "displayName": "Isomer Design",
         "size": 16117
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOM.json",
-        "displayName": "Protest Kit",
-        "size": 4316
       },
       {
         "id": "psychonautwiki",
@@ -9360,12 +7758,6 @@ export const substances: SubstanceInfo[] = [
         "size": 521
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DON.json",
-        "displayName": "Protest Kit",
-        "size": 3967
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DON.md",
         "displayName": "TripSit Factsheets",
@@ -9388,12 +7780,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DOPR.md",
         "displayName": "Isomer Design",
         "size": 7588
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DOPR.json",
-        "displayName": "Protest Kit",
-        "size": 2224
       },
       {
         "id": "tripsit-factsheets",
@@ -9424,12 +7810,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DPT.md",
         "displayName": "Isomer Design",
         "size": 7765
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DPT.json",
-        "displayName": "Protest Kit",
-        "size": 4203
       },
       {
         "id": "psychonautwiki",
@@ -9492,12 +7872,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5741
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Datura.json",
-        "displayName": "Protest Kit",
-        "size": 2172
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Datura.md",
         "displayName": "TripSit Factsheets",
@@ -9522,12 +7896,6 @@ export const substances: SubstanceInfo[] = [
         "size": 1193
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dehydroxyfluorafinil.json",
-        "displayName": "Protest Kit",
-        "size": 1905
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dehydroxyfluorafinil.md",
         "displayName": "TripSit Factsheets",
@@ -9545,12 +7913,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Delorazepam",
     "slug": "delorazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Delorazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3853
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Delorazepam.md",
@@ -9576,12 +7938,6 @@ export const substances: SubstanceInfo[] = [
         "size": 855
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Deschloroetizolam.json",
-        "displayName": "Protest Kit",
-        "size": 4369
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Deschloroetizolam.md",
         "displayName": "PsychonautWiki",
@@ -9605,12 +7961,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Deschloroketamine",
     "slug": "deschloroketamine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Deschloroketamine.json",
-        "displayName": "Protest Kit",
-        "size": 8711
-      },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Deschloroketamine.md",
@@ -9642,12 +7992,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "desmethylflunitrazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Desmethylflunitrazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3515
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Desmethylflunitrazepam.md",
         "displayName": "TripSit Factsheets",
@@ -9678,12 +8022,6 @@ export const substances: SubstanceInfo[] = [
         "size": 776
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Desomorphine.json",
-        "displayName": "Protest Kit",
-        "size": 722
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Desomorphine.md",
         "displayName": "PsychonautWiki",
@@ -9706,12 +8044,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Desoxypipradrol.md",
         "displayName": "Isomer Design",
         "size": 864
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Desoxypipradrol.json",
-        "displayName": "Protest Kit",
-        "size": 3454
       },
       {
         "id": "psychonautwiki",
@@ -9750,12 +8082,6 @@ export const substances: SubstanceInfo[] = [
         "size": 23374
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dexmethylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 1495
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dexmethylphenidate.md",
         "displayName": "TripSit Factsheets",
@@ -9790,12 +8116,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Dextroamphetamine.md",
         "displayName": "DrugBank",
         "size": 21639
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dextroamphetamine.json",
-        "displayName": "Protest Kit",
-        "size": 4970
       },
       {
         "id": "psychonautwiki",
@@ -9858,12 +8178,6 @@ export const substances: SubstanceInfo[] = [
         "size": 763
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dextromethorphan.json",
-        "displayName": "Protest Kit",
-        "size": 9231
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Dextromethorphan.md",
         "displayName": "PsychonautWiki",
@@ -9906,12 +8220,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "dextromoramide",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dextromoramide.json",
-        "displayName": "Protest Kit",
-        "size": 3801
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dextromoramide.md",
         "displayName": "TripSit Factsheets",
@@ -9934,12 +8242,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Dextropropoxyphene.md",
         "displayName": "DrugBank",
         "size": 22567
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dextropropoxyphene.json",
-        "displayName": "Protest Kit",
-        "size": 5115
       },
       {
         "id": "tripsit-factsheets",
@@ -9970,12 +8272,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - DiPT.md",
         "displayName": "Isomer Design",
         "size": 7770
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - DiPT.json",
-        "displayName": "Protest Kit",
-        "size": 3106
       },
       {
         "id": "psychonautwiki",
@@ -10014,12 +8310,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5929
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diazepam.json",
-        "displayName": "Protest Kit",
-        "size": 5006
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Diazepam.md",
         "displayName": "Safer Party",
@@ -10044,12 +8334,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "dibutylone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dibutylone.json",
-        "displayName": "Protest Kit",
-        "size": 2528
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dibutylone.md",
         "displayName": "TripSit Factsheets",
@@ -10072,12 +8356,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Dichloropane.md",
         "displayName": "Isomer Design",
         "size": 758
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dichloropane.json",
-        "displayName": "Protest Kit",
-        "size": 3681
       },
       {
         "id": "psychonautwiki",
@@ -10110,12 +8388,6 @@ export const substances: SubstanceInfo[] = [
         "size": 854
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diclazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4203
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Diclazepam.md",
         "displayName": "PsychonautWiki",
@@ -10140,12 +8412,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "diclofensine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diclofensine.json",
-        "displayName": "Protest Kit",
-        "size": 1379
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diclofensine.md",
         "displayName": "TripSit Factsheets",
@@ -10163,12 +8429,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Diethyl ether",
     "slug": "diethyl-ether",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diethyl ether.json",
-        "displayName": "Protest Kit",
-        "size": 872
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diethyl ether.md",
@@ -10194,12 +8454,6 @@ export const substances: SubstanceInfo[] = [
         "size": 22168
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dihydrocodeine.json",
-        "displayName": "Protest Kit",
-        "size": 4116
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dihydrocodeine.md",
         "displayName": "TripSit Factsheets",
@@ -10217,12 +8471,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Dimemebfe",
     "slug": "dimemebfe",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dimemebfe.json",
-        "displayName": "Protest Kit",
-        "size": 3329
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimemebfe.md",
@@ -10248,12 +8496,6 @@ export const substances: SubstanceInfo[] = [
         "size": 20010
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dimenhydrinate.json",
-        "displayName": "Protest Kit",
-        "size": 3938
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimenhydrinate.md",
         "displayName": "TripSit Factsheets",
@@ -10271,12 +8513,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Dimethylone",
     "slug": "dimethylone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dimethylone.json",
-        "displayName": "Protest Kit",
-        "size": 2561
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimethylone.md",
@@ -10318,12 +8554,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Diphenhydramine.md",
         "displayName": "Isomer Design",
         "size": 701
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diphenhydramine.json",
-        "displayName": "Protest Kit",
-        "size": 4215
       },
       {
         "id": "psychonautwiki",
@@ -10374,12 +8604,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3712
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Diphenidine.json",
-        "displayName": "Protest Kit",
-        "size": 6352
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diphenidine.md",
         "displayName": "TripSit Factsheets",
@@ -10397,12 +8621,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Dipipanone",
     "slug": "dipipanone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Dipipanone.json",
-        "displayName": "Protest Kit",
-        "size": 4445
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dipipanone.md",
@@ -10428,12 +8646,6 @@ export const substances: SubstanceInfo[] = [
         "size": 20162
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Doxylamine.json",
-        "displayName": "Protest Kit",
-        "size": 3548
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Doxylamine.md",
         "displayName": "TripSit Factsheets",
@@ -10452,12 +8664,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "eflea",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - EFLEA.json",
-        "displayName": "Protest Kit",
-        "size": 597
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - EFLEA.md",
         "displayName": "TripSit Factsheets",
@@ -10474,12 +8680,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - EPT.md",
         "displayName": "Isomer Design",
         "size": 887
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - EPT.json",
-        "displayName": "Protest Kit",
-        "size": 3235
       },
       {
         "id": "psychonautwiki",
@@ -10518,12 +8718,6 @@ export const substances: SubstanceInfo[] = [
         "size": 653
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - ETH-CAT.json",
-        "displayName": "Protest Kit",
-        "size": 6271
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - ETH-CAT.md",
         "displayName": "PsychonautWiki",
@@ -10552,12 +8746,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - ETH-LAD.md",
         "displayName": "Isomer Design",
         "size": 5007
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - ETH-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 8151
       },
       {
         "id": "psychonautwiki",
@@ -10626,12 +8814,6 @@ export const substances: SubstanceInfo[] = [
         "size": 669
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ephedrine.json",
-        "displayName": "Protest Kit",
-        "size": 4675
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ephedrine.md",
         "displayName": "PsychonautWiki",
@@ -10674,12 +8856,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3021
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ephenidine.json",
-        "displayName": "Protest Kit",
-        "size": 4911
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ephenidine.md",
         "displayName": "TripSit Factsheets",
@@ -10704,12 +8880,6 @@ export const substances: SubstanceInfo[] = [
         "size": 674
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ephylone.json",
-        "displayName": "Protest Kit",
-        "size": 767
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ephylone.md",
         "displayName": "PsychonautWiki",
@@ -10732,12 +8902,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Escaline.md",
         "displayName": "Isomer Design",
         "size": 9298
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Escaline.json",
-        "displayName": "Protest Kit",
-        "size": 2536
       },
       {
         "id": "psychonautwiki",
@@ -10770,12 +8934,6 @@ export const substances: SubstanceInfo[] = [
         "size": 32512
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Escitalopram.json",
-        "displayName": "Protest Kit",
-        "size": 2795
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Escitalopram.md",
         "displayName": "TripSit Factsheets",
@@ -10798,12 +8956,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Estazolam.md",
         "displayName": "DrugBank",
         "size": 20011
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Estazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3732
       },
       {
         "id": "tripsit-factsheets",
@@ -10836,12 +8988,6 @@ export const substances: SubstanceInfo[] = [
         "size": 1290
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Eszopiclone.json",
-        "displayName": "Protest Kit",
-        "size": 2205
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Eszopiclone.md",
         "displayName": "PsychonautWiki",
@@ -10872,12 +9018,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "ethaqualone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethaqualone.json",
-        "displayName": "Protest Kit",
-        "size": 1528
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethaqualone.md",
         "displayName": "TripSit Factsheets",
@@ -10902,12 +9042,6 @@ export const substances: SubstanceInfo[] = [
         "size": 12318
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethchlorvynol.json",
-        "displayName": "Protest Kit",
-        "size": 1355
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethchlorvynol.md",
         "displayName": "TripSit Factsheets",
@@ -10925,12 +9059,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Ethketamine",
     "slug": "ethketamine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethketamine.json",
-        "displayName": "Protest Kit",
-        "size": 4027
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethketamine.md",
@@ -10954,12 +9082,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Ethylmorphine.md",
         "displayName": "Isomer Design",
         "size": 765
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethylmorphine.json",
-        "displayName": "Protest Kit",
-        "size": 4330
       },
       {
         "id": "psychonautwiki",
@@ -10996,12 +9118,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Ethylone.md",
         "displayName": "Isomer Design",
         "size": 644
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethylone.json",
-        "displayName": "Protest Kit",
-        "size": 2721
       },
       {
         "id": "psychonautwiki",
@@ -11046,12 +9162,6 @@ export const substances: SubstanceInfo[] = [
         "size": 847
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ethylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 3629
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ethylphenidate.md",
         "displayName": "PsychonautWiki",
@@ -11092,12 +9202,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Etizolam.md",
         "displayName": "Isomer Design",
         "size": 830
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Etizolam.json",
-        "displayName": "Protest Kit",
-        "size": 4827
       },
       {
         "id": "psychonautwiki",
@@ -11142,12 +9246,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "etodesnitazene",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Etodesnitazene.json",
-        "displayName": "Protest Kit",
-        "size": 2679
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Etodesnitazene.md",
         "displayName": "TripSit Factsheets",
@@ -11184,12 +9282,6 @@ export const substances: SubstanceInfo[] = [
         "size": 684
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - F-Phenibut.json",
-        "displayName": "Protest Kit",
-        "size": 4665
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - F-Phenibut.md",
         "displayName": "PsychonautWiki",
@@ -11207,12 +9299,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Fasoracetam",
     "slug": "fasoracetam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fasoracetam.json",
-        "displayName": "Protest Kit",
-        "size": 1515
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fasoracetam.md",
@@ -11236,12 +9322,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Fenethylline.md",
         "displayName": "Isomer Design",
         "size": 798
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fenethylline.json",
-        "displayName": "Protest Kit",
-        "size": 4096
       },
       {
         "id": "psychonautwiki",
@@ -11284,12 +9364,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Fentanyl.md",
         "displayName": "Isomer Design",
         "size": 724
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 6660
       },
       {
         "id": "psychonautwiki",
@@ -11340,12 +9414,6 @@ export const substances: SubstanceInfo[] = [
         "size": 854
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flualprazolam.json",
-        "displayName": "Protest Kit",
-        "size": 4893
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flualprazolam.md",
         "displayName": "PsychonautWiki",
@@ -11382,12 +9450,6 @@ export const substances: SubstanceInfo[] = [
         "size": 864
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flubromazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4293
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flubromazepam.md",
         "displayName": "PsychonautWiki",
@@ -11418,12 +9480,6 @@ export const substances: SubstanceInfo[] = [
         "size": 895
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flubromazolam.json",
-        "displayName": "Protest Kit",
-        "size": 4330
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flubromazolam.md",
         "displayName": "PsychonautWiki",
@@ -11447,12 +9503,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Fluclotizolam",
     "slug": "fluclotizolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fluclotizolam.json",
-        "displayName": "Protest Kit",
-        "size": 3556
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluclotizolam.md",
@@ -11488,12 +9538,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Flunitrazepam.md",
         "displayName": "Isomer Design",
         "size": 849
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flunitrazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4638
       },
       {
         "id": "psychonautwiki",
@@ -11538,12 +9582,6 @@ export const substances: SubstanceInfo[] = [
         "size": 872
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flunitrazolam.json",
-        "displayName": "Protest Kit",
-        "size": 4534
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flunitrazolam.md",
         "displayName": "PsychonautWiki",
@@ -11568,12 +9606,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "fluorolintane",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fluorolintane.json",
-        "displayName": "Protest Kit",
-        "size": 1537
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluorolintane.md",
         "displayName": "TripSit Factsheets",
@@ -11591,12 +9623,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Fluorophenibut",
     "slug": "fluorophenibut",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fluorophenibut.json",
-        "displayName": "Protest Kit",
-        "size": 3091
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluorophenibut.md",
@@ -11620,12 +9646,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Fluoxetine.md",
         "displayName": "DrugBank",
         "size": 33834
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fluoxetine.json",
-        "displayName": "Protest Kit",
-        "size": 2785
       },
       {
         "id": "tripsit-factsheets",
@@ -11652,12 +9672,6 @@ export const substances: SubstanceInfo[] = [
         "size": 20298
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flurazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3750
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flurazepam.md",
         "displayName": "TripSit Factsheets",
@@ -11676,12 +9690,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "flutazolam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flutazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3796
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flutazolam.md",
         "displayName": "TripSit Factsheets",
@@ -11699,12 +9707,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Flutoprazepam",
     "slug": "flutoprazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Flutoprazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3767
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flutoprazepam.md",
@@ -11728,12 +9730,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Fluvoxamine.md",
         "displayName": "DrugBank",
         "size": 19454
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Fluvoxamine.json",
-        "displayName": "Protest Kit",
-        "size": 626
       },
       {
         "id": "tripsit-factsheets",
@@ -11772,12 +9768,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "furanylfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Furanylfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 4237
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Furanylfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -11796,12 +9786,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "g-130",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - G-130.json",
-        "displayName": "Protest Kit",
-        "size": 648
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - G-130.md",
         "displayName": "TripSit Factsheets",
@@ -11819,12 +9803,6 @@ export const substances: SubstanceInfo[] = [
     "name": "GABA",
     "slug": "gaba",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - GABA.json",
-        "displayName": "Protest Kit",
-        "size": 1276
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - GABA.md",
@@ -11848,12 +9826,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - GBL.md",
         "displayName": "Isomer Design",
         "size": 607
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - GBL.json",
-        "displayName": "Protest Kit",
-        "size": 4573
       },
       {
         "id": "psychonautwiki",
@@ -11890,12 +9862,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - GHB.md",
         "displayName": "Drug Users Bible",
         "size": 6065
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - GHB.json",
-        "displayName": "Protest Kit",
-        "size": 4581
       },
       {
         "id": "saferparty",
@@ -11950,12 +9916,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Gabapentin.md",
         "displayName": "Isomer Design",
         "size": 641
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Gabapentin.json",
-        "displayName": "Protest Kit",
-        "size": 2060
       },
       {
         "id": "psychonautwiki",
@@ -12024,12 +9984,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "glaucine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Glaucine.json",
-        "displayName": "Protest Kit",
-        "size": 1348
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Glaucine.md",
         "displayName": "TripSit Factsheets",
@@ -12052,12 +10006,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Glutethimide.md",
         "displayName": "DrugBank",
         "size": 12393
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Glutethimide.json",
-        "displayName": "Protest Kit",
-        "size": 1482
       },
       {
         "id": "tripsit-factsheets",
@@ -12150,12 +10098,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "hdep-28",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - HDEP-28.json",
-        "displayName": "Protest Kit",
-        "size": 1861
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HDEP-28.md",
         "displayName": "TripSit Factsheets",
@@ -12178,12 +10120,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - HOT-2.md",
         "displayName": "Isomer Design",
         "size": 1518
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - HOT-2.json",
-        "displayName": "Protest Kit",
-        "size": 2115
       },
       {
         "id": "thedrugclassroom",
@@ -12216,12 +10152,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2046
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - HOT-7.json",
-        "displayName": "Protest Kit",
-        "size": 2097
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HOT-7.md",
         "displayName": "TripSit Factsheets",
@@ -12244,12 +10174,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - HUPERZINE-A.md",
         "displayName": "DrugBank",
         "size": 13990
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - HUPERZINE-A.json",
-        "displayName": "Protest Kit",
-        "size": 1800
       },
       {
         "id": "tripsit-factsheets",
@@ -12276,12 +10200,6 @@ export const substances: SubstanceInfo[] = [
         "size": 671
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - HXE.json",
-        "displayName": "Protest Kit",
-        "size": 6850
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - HXE.md",
         "displayName": "PsychonautWiki",
@@ -12304,12 +10222,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Halazepam.md",
         "displayName": "DrugBank",
         "size": 14058
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Halazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3733
       },
       {
         "id": "tripsit-factsheets",
@@ -12342,12 +10254,6 @@ export const substances: SubstanceInfo[] = [
         "size": 761
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Haloperidol.json",
-        "displayName": "Protest Kit",
-        "size": 2184
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Haloperidol.md",
         "displayName": "PsychonautWiki",
@@ -12370,12 +10276,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Halothane.md",
         "displayName": "DrugBank",
         "size": 15163
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Halothane.json",
-        "displayName": "Protest Kit",
-        "size": 2832
       },
       {
         "id": "tripsit-factsheets",
@@ -12420,12 +10320,6 @@ export const substances: SubstanceInfo[] = [
         "size": 800
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Heroin.json",
-        "displayName": "Protest Kit",
-        "size": 6356
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Heroin.md",
         "displayName": "PsychonautWiki",
@@ -12468,12 +10362,6 @@ export const substances: SubstanceInfo[] = [
         "size": 678
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Hexedrone.json",
-        "displayName": "Protest Kit",
-        "size": 3106
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hexedrone.md",
         "displayName": "PsychonautWiki",
@@ -12498,12 +10386,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "hexobarbital",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Hexobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 1308
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hexobarbital.md",
         "displayName": "TripSit Factsheets",
@@ -12522,12 +10404,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "homomazindol",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Homomazindol.json",
-        "displayName": "Protest Kit",
-        "size": 723
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Homomazindol.md",
         "displayName": "TripSit Factsheets",
@@ -12539,12 +10415,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Homosildenafil",
     "slug": "homosildenafil",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Homosildenafil.json",
-        "displayName": "Protest Kit",
-        "size": 1268
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Homosildenafil.md",
@@ -12618,12 +10488,6 @@ export const substances: SubstanceInfo[] = [
         "size": 744
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Hydrocodone.json",
-        "displayName": "Protest Kit",
-        "size": 4151
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hydrocodone.md",
         "displayName": "PsychonautWiki",
@@ -12672,12 +10536,6 @@ export const substances: SubstanceInfo[] = [
         "size": 779
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Hydromorphone.json",
-        "displayName": "Protest Kit",
-        "size": 6461
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hydromorphone.md",
         "displayName": "PsychonautWiki",
@@ -12714,12 +10572,6 @@ export const substances: SubstanceInfo[] = [
         "size": 30466
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Hydroxyzine.json",
-        "displayName": "Protest Kit",
-        "size": 3376
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hydroxyzine.md",
         "displayName": "TripSit Factsheets",
@@ -12750,12 +10602,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4852
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ibogaine.json",
-        "displayName": "Protest Kit",
-        "size": 2415
-      },
-      {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Ibogaine.md",
         "displayName": "The Drug Classroom",
@@ -12784,12 +10630,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Ibuprofen.md",
         "displayName": "DrugBank",
         "size": 48986
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ibuprofen.json",
-        "displayName": "Protest Kit",
-        "size": 1138
       },
       {
         "id": "tripsit-factsheets",
@@ -12834,12 +10674,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5816
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Indapex.json",
-        "displayName": "Protest Kit",
-        "size": 4135
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Indapex.md",
         "displayName": "TripSit Factsheets",
@@ -12851,12 +10685,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Indapyrophenidone",
     "slug": "indapyrophenidone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Indapyrophenidone.json",
-        "displayName": "Protest Kit",
-        "size": 1841
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Indapyrophenidone.md",
@@ -12912,12 +10740,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "isomethadone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Isomethadone.json",
-        "displayName": "Protest Kit",
-        "size": 3761
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isomethadone.md",
         "displayName": "TripSit Factsheets",
@@ -12936,12 +10758,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "isophenmetrazine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Isophenmetrazine.json",
-        "displayName": "Protest Kit",
-        "size": 1847
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isophenmetrazine.md",
         "displayName": "TripSit Factsheets",
@@ -12958,12 +10774,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Isopropylphenidate.md",
         "displayName": "Drug Users Bible",
         "size": 3898
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Isopropylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 4229
       },
       {
         "id": "thedrugclassroom",
@@ -13008,12 +10818,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4456
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Isoproscaline.json",
-        "displayName": "Protest Kit",
-        "size": 2018
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isoproscaline.md",
         "displayName": "TripSit Factsheets",
@@ -13038,12 +10842,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2739
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - JWH-018.json",
-        "displayName": "Protest Kit",
-        "size": 5202
-      },
-      {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - JWH-018.md",
         "displayName": "Wikipedia",
@@ -13062,12 +10860,6 @@ export const substances: SubstanceInfo[] = [
         "size": 1372
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - JWH-073.json",
-        "displayName": "Protest Kit",
-        "size": 2719
-      },
-      {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - JWH-073.md",
         "displayName": "Wikipedia",
@@ -13079,12 +10871,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Jenkem",
     "slug": "jenkem",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Jenkem.json",
-        "displayName": "Protest Kit",
-        "size": 743
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Jenkem.md",
@@ -13108,12 +10894,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Kanna.md",
         "displayName": "Drug Users Bible",
         "size": 3832
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Kanna.json",
-        "displayName": "Protest Kit",
-        "size": 2896
       },
       {
         "id": "thedrugclassroom",
@@ -13156,12 +10936,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "EROWID - Kava.md",
         "displayName": "Erowid",
         "size": 8906
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Kava.json",
-        "displayName": "Protest Kit",
-        "size": 1613
       },
       {
         "id": "psychonautwiki",
@@ -13224,12 +10998,6 @@ export const substances: SubstanceInfo[] = [
         "size": 904
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ketamine.json",
-        "displayName": "Protest Kit",
-        "size": 6831
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ketamine.md",
         "displayName": "PsychonautWiki",
@@ -13278,12 +11046,6 @@ export const substances: SubstanceInfo[] = [
         "size": 14262
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ketazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3492
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ketazolam.md",
         "displayName": "TripSit Factsheets",
@@ -13301,12 +11063,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Ketobemidone",
     "slug": "ketobemidone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ketobemidone.json",
-        "displayName": "Protest Kit",
-        "size": 3877
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ketobemidone.md",
@@ -13337,12 +11093,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Khat",
     "slug": "khat",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Khat.json",
-        "displayName": "Protest Kit",
-        "size": 1220
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Khat.md",
@@ -13386,12 +11136,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5933
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Kratom.json",
-        "displayName": "Protest Kit",
-        "size": 4356
-      },
-      {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Kratom.md",
         "displayName": "The Drug Classroom",
@@ -13422,12 +11166,6 @@ export const substances: SubstanceInfo[] = [
         "size": 779
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - LAE-32.json",
-        "displayName": "Protest Kit",
-        "size": 3262
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LAE-32.md",
         "displayName": "PsychonautWiki",
@@ -13456,12 +11194,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - HBWS.md",
         "displayName": "Drug Users Bible",
         "size": 1643
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - LSA.json",
-        "displayName": "Protest Kit",
-        "size": 5242
       },
       {
         "id": "tripsit-factsheets",
@@ -13512,12 +11244,6 @@ export const substances: SubstanceInfo[] = [
         "size": 33921
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - LSD.json",
-        "displayName": "Protest Kit",
-        "size": 5401
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LSD.md",
         "displayName": "PsychonautWiki",
@@ -13558,12 +11284,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - LSM-775.md",
         "displayName": "Isomer Design",
         "size": 811
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - LSM-775.json",
-        "displayName": "Protest Kit",
-        "size": 7721
       },
       {
         "id": "psychonautwiki",
@@ -13612,12 +11332,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - LSZ.md",
         "displayName": "Isomer Design",
         "size": 756
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - LSZ.json",
-        "displayName": "Protest Kit",
-        "size": 4872
       },
       {
         "id": "psychonautwiki",
@@ -13704,12 +11418,6 @@ export const substances: SubstanceInfo[] = [
         "size": 24902
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Librium.json",
-        "displayName": "Protest Kit",
-        "size": 3673
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Librium.md",
         "displayName": "TripSit Factsheets",
@@ -13740,12 +11448,6 @@ export const substances: SubstanceInfo[] = [
         "size": 776
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Lisdexamfetamine.json",
-        "displayName": "Protest Kit",
-        "size": 4710
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Lisdexamfetamine.md",
         "displayName": "PsychonautWiki",
@@ -13770,12 +11472,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "lithium",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Lithium.json",
-        "displayName": "Protest Kit",
-        "size": 18223
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lithium.md",
         "displayName": "TripSit Factsheets",
@@ -13793,12 +11489,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Loprazolam",
     "slug": "loprazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Loprazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3422
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Loprazolam.md",
@@ -13834,12 +11524,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Lorazepam.md",
         "displayName": "Isomer Design",
         "size": 818
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Lorazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4908
       },
       {
         "id": "psychonautwiki",
@@ -13878,12 +11562,6 @@ export const substances: SubstanceInfo[] = [
         "size": 13665
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Lormetazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3508
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lormetazepam.md",
         "displayName": "TripSit Factsheets",
@@ -13920,12 +11598,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4672
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MBDB.json",
-        "displayName": "Protest Kit",
-        "size": 1411
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - MBDB.md",
         "displayName": "Safer Party",
@@ -13949,12 +11621,6 @@ export const substances: SubstanceInfo[] = [
     "name": "MBZP",
     "slug": "mbzp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MBZP.json",
-        "displayName": "Protest Kit",
-        "size": 1331
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MBZP.md",
@@ -13984,12 +11650,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MCPP.md",
         "displayName": "Isomer Design",
         "size": 717
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MCPP.json",
-        "displayName": "Protest Kit",
-        "size": 2769
       },
       {
         "id": "psychonautwiki",
@@ -14032,12 +11692,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MDA.md",
         "displayName": "Isomer Design",
         "size": 12532
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDA.json",
-        "displayName": "Protest Kit",
-        "size": 8204
       },
       {
         "id": "psychonautwiki",
@@ -14106,12 +11760,6 @@ export const substances: SubstanceInfo[] = [
         "size": 669
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDAI.json",
-        "displayName": "Protest Kit",
-        "size": 5510
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDAI.md",
         "displayName": "PsychonautWiki",
@@ -14146,12 +11794,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MDEA.md",
         "displayName": "Isomer Design",
         "size": 10001
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDEA.json",
-        "displayName": "Protest Kit",
-        "size": 6906
       },
       {
         "id": "psychonautwiki",
@@ -14214,12 +11856,6 @@ export const substances: SubstanceInfo[] = [
         "size": 15279
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDMA.json",
-        "displayName": "Protest Kit",
-        "size": 1446
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDMA.md",
         "displayName": "PsychonautWiki",
@@ -14268,12 +11904,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2453
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDOH.json",
-        "displayName": "Protest Kit",
-        "size": 1569
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDOH.md",
         "displayName": "TripSit Factsheets",
@@ -14291,12 +11921,6 @@ export const substances: SubstanceInfo[] = [
     "name": "MDPA",
     "slug": "mdpa",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDPA.json",
-        "displayName": "Protest Kit",
-        "size": 1475
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDPA.md",
@@ -14332,12 +11956,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MDPV.md",
         "displayName": "Isomer Design",
         "size": 702
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MDPV.json",
-        "displayName": "Protest Kit",
-        "size": 5628
       },
       {
         "id": "psychonautwiki",
@@ -14394,12 +12012,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10584
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MEM.json",
-        "displayName": "Protest Kit",
-        "size": 3989
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MEM.md",
         "displayName": "TripSit Factsheets",
@@ -14430,12 +12042,6 @@ export const substances: SubstanceInfo[] = [
         "size": 753
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MET.json",
-        "displayName": "Protest Kit",
-        "size": 4520
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MET.md",
         "displayName": "PsychonautWiki",
@@ -14459,12 +12065,6 @@ export const substances: SubstanceInfo[] = [
     "name": "MK-801",
     "slug": "mk-801",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MK-801.json",
-        "displayName": "Protest Kit",
-        "size": 1630
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MK-801.md",
@@ -14490,12 +12090,6 @@ export const substances: SubstanceInfo[] = [
         "size": 749
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MPT.json",
-        "displayName": "Protest Kit",
-        "size": 3105
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MPT.md",
         "displayName": "PsychonautWiki",
@@ -14513,12 +12107,6 @@ export const substances: SubstanceInfo[] = [
     "name": "MT-45",
     "slug": "mt-45",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MT-45.json",
-        "displayName": "Protest Kit",
-        "size": 3982
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - MT-45.md",
@@ -14544,12 +12132,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "mxm",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MXM.json",
-        "displayName": "Protest Kit",
-        "size": 1583
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MXM.md",
         "displayName": "TripSit Factsheets",
@@ -14572,12 +12154,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MXiPr.md",
         "displayName": "Isomer Design",
         "size": 609
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MXiPr.json",
-        "displayName": "Protest Kit",
-        "size": 689
       },
       {
         "id": "psychonautwiki",
@@ -14676,12 +12252,6 @@ export const substances: SubstanceInfo[] = [
         "size": 38400
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Marinol.json",
-        "displayName": "Protest Kit",
-        "size": 3415
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Marinol.md",
         "displayName": "TripSit Factsheets",
@@ -14699,12 +12269,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Mebroqualone",
     "slug": "mebroqualone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mebroqualone.json",
-        "displayName": "Protest Kit",
-        "size": 2876
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mebroqualone.md",
@@ -14736,12 +12300,6 @@ export const substances: SubstanceInfo[] = [
         "size": 727
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Meclofenoxate.json",
-        "displayName": "Protest Kit",
-        "size": 2327
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Meclofenoxate.md",
         "displayName": "PsychonautWiki",
@@ -14766,12 +12324,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "meclonazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Meclonazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3636
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Meclonazepam.md",
         "displayName": "TripSit Factsheets",
@@ -14789,12 +12341,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Medazepam",
     "slug": "medazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Medazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3689
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Medazepam.md",
@@ -14850,12 +12396,6 @@ export const substances: SubstanceInfo[] = [
         "size": 16109
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Melatonin.json",
-        "displayName": "Protest Kit",
-        "size": 2266
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Melatonin.md",
         "displayName": "TripSit Factsheets",
@@ -14878,12 +12418,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Memantine.md",
         "displayName": "DrugBank",
         "size": 27727
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Memantine.json",
-        "displayName": "Protest Kit",
-        "size": 5965
       },
       {
         "id": "tripsit-factsheets",
@@ -14920,12 +12454,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Mephedrone.md",
         "displayName": "Isomer Design",
         "size": 668
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mephedrone.json",
-        "displayName": "Protest Kit",
-        "size": 5680
       },
       {
         "id": "psychonautwiki",
@@ -14988,12 +12516,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "mephtetramine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mephtetramine.json",
-        "displayName": "Protest Kit",
-        "size": 798
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mephtetramine.md",
         "displayName": "TripSit Factsheets",
@@ -15024,12 +12546,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3505
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mescaline.json",
-        "displayName": "Protest Kit",
-        "size": 4782
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Mescaline.md",
         "displayName": "Safer Party",
@@ -15054,12 +12570,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "metaclazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Metaclazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3404
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Metaclazepam.md",
         "displayName": "TripSit Factsheets",
@@ -15082,12 +12592,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Metaxalone.md",
         "displayName": "DrugBank",
         "size": 15308
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Metaxalone.json",
-        "displayName": "Protest Kit",
-        "size": 1326
       },
       {
         "id": "tripsit-factsheets",
@@ -15126,12 +12630,6 @@ export const substances: SubstanceInfo[] = [
         "size": 701
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methadone.json",
-        "displayName": "Protest Kit",
-        "size": 4447
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methadone.md",
         "displayName": "PsychonautWiki",
@@ -15168,12 +12666,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5826
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methallylescaline.json",
-        "displayName": "Protest Kit",
-        "size": 2755
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methallylescaline.md",
         "displayName": "PsychonautWiki",
@@ -15202,12 +12694,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Methamnetamine.md",
         "displayName": "Drug Users Bible",
         "size": 5358
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methamnetamine.json",
-        "displayName": "Protest Kit",
-        "size": 1505
       },
       {
         "id": "tripsit-factsheets",
@@ -15244,12 +12730,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Methamphetamine.md",
         "displayName": "Isomer Design",
         "size": 718
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methamphetamine.json",
-        "displayName": "Protest Kit",
-        "size": 9899
       },
       {
         "id": "psychonautwiki",
@@ -15312,12 +12792,6 @@ export const substances: SubstanceInfo[] = [
         "size": 688
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methaqualone.json",
-        "displayName": "Protest Kit",
-        "size": 5164
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methaqualone.md",
         "displayName": "PsychonautWiki",
@@ -15360,12 +12834,6 @@ export const substances: SubstanceInfo[] = [
         "size": 643
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methcathinone.json",
-        "displayName": "Protest Kit",
-        "size": 2847
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methcathinone.md",
         "displayName": "PsychonautWiki",
@@ -15389,12 +12857,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Methedrone",
     "slug": "methedrone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methedrone.json",
-        "displayName": "Protest Kit",
-        "size": 656
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methedrone.md",
@@ -15430,12 +12892,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Methiopropamine.md",
         "displayName": "Isomer Design",
         "size": 692
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methiopropamine.json",
-        "displayName": "Protest Kit",
-        "size": 5104
       },
       {
         "id": "psychonautwiki",
@@ -15498,12 +12954,6 @@ export const substances: SubstanceInfo[] = [
         "size": 14692
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methoxetamine.json",
-        "displayName": "Protest Kit",
-        "size": 5190
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methoxetamine.md",
         "displayName": "PsychonautWiki",
@@ -15546,12 +12996,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5929
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methoxphenidine.json",
-        "displayName": "Protest Kit",
-        "size": 4159
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxphenidine.md",
         "displayName": "TripSit Factsheets",
@@ -15569,12 +13013,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Methoxyacetyl-Fentanyl",
     "slug": "methoxyacetyl-fentanyl",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methoxyacetyl-Fentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3532
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxyacetyl-Fentanyl.md",
@@ -15594,12 +13032,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "methoxyketamine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methoxyketamine.json",
-        "displayName": "Protest Kit",
-        "size": 3649
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxyketamine.md",
         "displayName": "TripSit Factsheets",
@@ -15617,12 +13049,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Methoxypiperamide",
     "slug": "methoxypiperamide",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methoxypiperamide.json",
-        "displayName": "Protest Kit",
-        "size": 755
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxypiperamide.md",
@@ -15642,12 +13068,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "methylmethaqualone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methylmethaqualone.json",
-        "displayName": "Protest Kit",
-        "size": 2303
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylmethaqualone.md",
         "displayName": "TripSit Factsheets",
@@ -15665,12 +13085,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Methylmorphenate",
     "slug": "methylmorphenate",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methylmorphenate.json",
-        "displayName": "Protest Kit",
-        "size": 752
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylmorphenate.md",
@@ -15694,12 +13108,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Methylnaphthidate.md",
         "displayName": "Isomer Design",
         "size": 887
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methylnaphthidate.json",
-        "displayName": "Protest Kit",
-        "size": 2899
       },
       {
         "id": "psychonautwiki",
@@ -15756,12 +13164,6 @@ export const substances: SubstanceInfo[] = [
         "size": 640
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methylone.json",
-        "displayName": "Protest Kit",
-        "size": 5971
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methylone.md",
         "displayName": "PsychonautWiki",
@@ -15804,12 +13206,6 @@ export const substances: SubstanceInfo[] = [
         "size": 5844
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 4928
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Methylphenidate.md",
         "displayName": "Safer Party",
@@ -15846,12 +13242,6 @@ export const substances: SubstanceInfo[] = [
         "size": 12394
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Methyprylon.json",
-        "displayName": "Protest Kit",
-        "size": 3345
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methyprylon.md",
         "displayName": "TripSit Factsheets",
@@ -15874,12 +13264,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Metizolam.md",
         "displayName": "Isomer Design",
         "size": 879
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Metizolam.json",
-        "displayName": "Protest Kit",
-        "size": 4650
       },
       {
         "id": "psychonautwiki",
@@ -15906,12 +13290,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "mexamine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mexamine.json",
-        "displayName": "Protest Kit",
-        "size": 1408
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mexamine.md",
         "displayName": "TripSit Factsheets",
@@ -15929,12 +13307,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Mexazolam",
     "slug": "mexazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mexazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3659
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mexazolam.md",
@@ -15964,12 +13336,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Mexedrone.md",
         "displayName": "Isomer Design",
         "size": 640
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Mexedrone.json",
-        "displayName": "Protest Kit",
-        "size": 5409
       },
       {
         "id": "psychonautwiki",
@@ -16020,12 +13386,6 @@ export const substances: SubstanceInfo[] = [
         "size": 722
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MiPLA.json",
-        "displayName": "Protest Kit",
-        "size": 7331
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MiPLA.md",
         "displayName": "PsychonautWiki",
@@ -16054,12 +13414,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - MiPT.md",
         "displayName": "Isomer Design",
         "size": 6951
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - MiPT.json",
-        "displayName": "Protest Kit",
-        "size": 3442
       },
       {
         "id": "psychonautwiki",
@@ -16098,12 +13452,6 @@ export const substances: SubstanceInfo[] = [
         "size": 817
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Midazolam.json",
-        "displayName": "Protest Kit",
-        "size": 6665
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Midazolam.md",
         "displayName": "PsychonautWiki",
@@ -16138,12 +13486,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Moclobemide.md",
         "displayName": "DrugBank",
         "size": 20836
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Moclobemide.json",
-        "displayName": "Protest Kit",
-        "size": 3029
       },
       {
         "id": "tripsit-factsheets",
@@ -16188,12 +13530,6 @@ export const substances: SubstanceInfo[] = [
         "size": 750
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Modafinil.json",
-        "displayName": "Protest Kit",
-        "size": 3458
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Modafinil.md",
         "displayName": "PsychonautWiki",
@@ -16230,12 +13566,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "morpheridine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Morpheridine.json",
-        "displayName": "Protest Kit",
-        "size": 1160
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Morpheridine.md",
         "displayName": "TripSit Factsheets",
@@ -16264,12 +13594,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Morphine.md",
         "displayName": "Drug Users Bible",
         "size": 1562
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Morphine.json",
-        "displayName": "Protest Kit",
-        "size": 6616
       },
       {
         "id": "saferparty",
@@ -16380,12 +13704,6 @@ export const substances: SubstanceInfo[] = [
         "size": 28407
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - N-Acetylcysteine.json",
-        "displayName": "Protest Kit",
-        "size": 1994
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - N-Acetylcysteine.md",
         "displayName": "PsychonautWiki",
@@ -16414,12 +13732,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - N-Ethylhexedrone.md",
         "displayName": "Isomer Design",
         "size": 703
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - N-Ethylhexedrone.json",
-        "displayName": "Protest Kit",
-        "size": 4385
       },
       {
         "id": "psychonautwiki",
@@ -16476,12 +13788,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "neb",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - NEB.json",
-        "displayName": "Protest Kit",
-        "size": 2285
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - NEB.md",
         "displayName": "TripSit Factsheets",
@@ -16504,12 +13810,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - NEP.md",
         "displayName": "Isomer Design",
         "size": 680
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - NEP.json",
-        "displayName": "Protest Kit",
-        "size": 6403
       },
       {
         "id": "psychonautwiki",
@@ -16552,12 +13852,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - NM-2-AI.md",
         "displayName": "Isomer Design",
         "size": 693
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - NM-2-AI.json",
-        "displayName": "Protest Kit",
-        "size": 4768
       },
       {
         "id": "psychonautwiki",
@@ -16620,12 +13914,6 @@ export const substances: SubstanceInfo[] = [
         "size": 732
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Naloxone.json",
-        "displayName": "Protest Kit",
-        "size": 4994
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Naloxone.md",
         "displayName": "PsychonautWiki",
@@ -16643,12 +13931,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Naphyrone",
     "slug": "naphyrone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Naphyrone.json",
-        "displayName": "Protest Kit",
-        "size": 1102
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Naphyrone.md",
@@ -16674,12 +13956,6 @@ export const substances: SubstanceInfo[] = [
         "size": 46164
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Naproxen.json",
-        "displayName": "Protest Kit",
-        "size": 1205
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Naproxen.md",
         "displayName": "TripSit Factsheets",
@@ -16698,12 +13974,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "nefiracetam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nefiracetam.json",
-        "displayName": "Protest Kit",
-        "size": 1212
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nefiracetam.md",
         "displayName": "TripSit Factsheets",
@@ -16721,12 +13991,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Nicomorphine",
     "slug": "nicomorphine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nicomorphine.json",
-        "displayName": "Protest Kit",
-        "size": 3715
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nicomorphine.md",
@@ -16750,12 +14014,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Nicotine.md",
         "displayName": "DrugBank",
         "size": 31448
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nicotine.json",
-        "displayName": "Protest Kit",
-        "size": 7637
       },
       {
         "id": "saferparty",
@@ -16788,12 +14046,6 @@ export const substances: SubstanceInfo[] = [
         "size": 931
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nifoxipam.json",
-        "displayName": "Protest Kit",
-        "size": 4064
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Nifoxipam.md",
         "displayName": "PsychonautWiki",
@@ -16818,12 +14070,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "nimetazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nimetazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3653
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nimetazepam.md",
         "displayName": "TripSit Factsheets",
@@ -16842,12 +14088,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "nitemazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nitemazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3528
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitemazepam.md",
         "displayName": "TripSit Factsheets",
@@ -16865,12 +14105,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Nitracaine",
     "slug": "nitracaine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nitracaine.json",
-        "displayName": "Protest Kit",
-        "size": 1924
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitracaine.md",
@@ -16896,12 +14130,6 @@ export const substances: SubstanceInfo[] = [
         "size": 18572
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nitrazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4048
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitrazepam.md",
         "displayName": "TripSit Factsheets",
@@ -16919,12 +14147,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Nitrazolam",
     "slug": "nitrazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nitrazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3489
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitrazolam.md",
@@ -16972,12 +14194,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Nitrous.md",
         "displayName": "Isomer Design",
         "size": 542
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nitrous.json",
-        "displayName": "Protest Kit",
-        "size": 4524
       },
       {
         "id": "psychonautwiki",
@@ -17028,12 +14244,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3325
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Noopept.json",
-        "displayName": "Protest Kit",
-        "size": 3462
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Noopept.md",
         "displayName": "TripSit Factsheets",
@@ -17052,12 +14262,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "nordazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nordazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3700
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nordazepam.md",
         "displayName": "TripSit Factsheets",
@@ -17075,12 +14279,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Norflurazepam",
     "slug": "norflurazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Norflurazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3424
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Norflurazepam.md",
@@ -17106,12 +14304,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2462
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Nutmeg.json",
-        "displayName": "Protest Kit",
-        "size": 5403
-      },
-      {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nutmeg.md",
         "displayName": "Wikipedia",
@@ -17123,12 +14315,6 @@ export const substances: SubstanceInfo[] = [
     "name": "O-Desmethyltramadol",
     "slug": "o-desmethyltramadol",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - O-Desmethyltramadol.json",
-        "displayName": "Protest Kit",
-        "size": 6786
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - O-Desmethyltramadol.md",
@@ -17158,12 +14344,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - O-PCE.md",
         "displayName": "Isomer Design",
         "size": 751
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - O-PCE.json",
-        "displayName": "Protest Kit",
-        "size": 5158
       },
       {
         "id": "psychonautwiki",
@@ -17202,12 +14382,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2507
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Opium.json",
-        "displayName": "Protest Kit",
-        "size": 1664
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Opium.md",
         "displayName": "TripSit Factsheets",
@@ -17230,12 +14404,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Oxazepam.md",
         "displayName": "DrugBank",
         "size": 26263
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Oxazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3692
       },
       {
         "id": "saferparty",
@@ -17261,12 +14429,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Oxazolam",
     "slug": "oxazolam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Oxazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3353
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxazolam.md",
@@ -17296,12 +14458,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Oxiracetam.md",
         "displayName": "Isomer Design",
         "size": 680
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Oxiracetam.json",
-        "displayName": "Protest Kit",
-        "size": 2779
       },
       {
         "id": "psychonautwiki",
@@ -17350,12 +14506,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Oxycodone.md",
         "displayName": "Isomer Design",
         "size": 778
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Oxycodone.json",
-        "displayName": "Protest Kit",
-        "size": 6567
       },
       {
         "id": "psychonautwiki",
@@ -17418,12 +14568,6 @@ export const substances: SubstanceInfo[] = [
         "size": 780
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Oxymorphone.json",
-        "displayName": "Protest Kit",
-        "size": 5851
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Oxymorphone.md",
         "displayName": "PsychonautWiki",
@@ -17460,12 +14604,6 @@ export const substances: SubstanceInfo[] = [
         "size": 835
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PARGY-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 7559
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PARGY-LAD.md",
         "displayName": "PsychonautWiki",
@@ -17484,12 +14622,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pce",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PCE.json",
-        "displayName": "Protest Kit",
-        "size": 6486
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PCE.md",
         "displayName": "TripSit Factsheets",
@@ -17507,12 +14639,6 @@ export const substances: SubstanceInfo[] = [
     "name": "PCP",
     "slug": "pcp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PCP.json",
-        "displayName": "Protest Kit",
-        "size": 8700
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - PCP.md",
@@ -17537,12 +14663,6 @@ export const substances: SubstanceInfo[] = [
     "name": "PFBT",
     "slug": "pfbt",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PFBT.json",
-        "displayName": "Protest Kit",
-        "size": 3521
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PFBT.md",
@@ -17572,12 +14692,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - PMA.md",
         "displayName": "Isomer Design",
         "size": 4535
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PMA.json",
-        "displayName": "Protest Kit",
-        "size": 4819
       },
       {
         "id": "psychonautwiki",
@@ -17622,12 +14736,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3398
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PMMA.json",
-        "displayName": "Protest Kit",
-        "size": 4477
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PMMA.md",
         "displayName": "PsychonautWiki",
@@ -17645,12 +14753,6 @@ export const substances: SubstanceInfo[] = [
     "name": "PRE-084",
     "slug": "pre-084",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PRE-084.json",
-        "displayName": "Protest Kit",
-        "size": 844
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PRE-084.md",
@@ -17674,12 +14776,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - PRL-8-53.md",
         "displayName": "Drug Users Bible",
         "size": 1638
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PRL-8-53.json",
-        "displayName": "Protest Kit",
-        "size": 1923
       },
       {
         "id": "tripsit-factsheets",
@@ -17706,12 +14802,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3398
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PRO-LAD.json",
-        "displayName": "Protest Kit",
-        "size": 7763
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PRO-LAD.md",
         "displayName": "PsychonautWiki",
@@ -17736,12 +14826,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pst",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PST.json",
-        "displayName": "Protest Kit",
-        "size": 3189
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PST.md",
         "displayName": "TripSit Factsheets",
@@ -17759,12 +14843,6 @@ export const substances: SubstanceInfo[] = [
     "name": "PV-10",
     "slug": "pv-10",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PV-10.json",
-        "displayName": "Protest Kit",
-        "size": 572
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-10.md",
@@ -17784,12 +14862,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pv-8",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PV-8.json",
-        "displayName": "Protest Kit",
-        "size": 3987
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-8.md",
         "displayName": "TripSit Factsheets",
@@ -17802,12 +14874,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pv-9",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PV-9.json",
-        "displayName": "Protest Kit",
-        "size": 569
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-9.md",
         "displayName": "TripSit Factsheets",
@@ -17819,12 +14885,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Pagoclone",
     "slug": "pagoclone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pagoclone.json",
-        "displayName": "Protest Kit",
-        "size": 770
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pagoclone.md",
@@ -17856,12 +14916,6 @@ export const substances: SubstanceInfo[] = [
         "size": 34366
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Paracetamol.json",
-        "displayName": "Protest Kit",
-        "size": 1293
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Paracetamol.md",
         "displayName": "TripSit Factsheets",
@@ -17879,12 +14933,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Parafluorofentanyl",
     "slug": "parafluorofentanyl",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Parafluorofentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 3822
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Parafluorofentanyl.md",
@@ -17908,12 +14956,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Paroxetine.md",
         "displayName": "DrugBank",
         "size": 28899
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Paroxetine.json",
-        "displayName": "Protest Kit",
-        "size": 2783
       },
       {
         "id": "tripsit-factsheets",
@@ -17958,12 +15000,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10211
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pemoline.json",
-        "displayName": "Protest Kit",
-        "size": 1325
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pemoline.md",
         "displayName": "TripSit Factsheets",
@@ -17988,12 +15024,6 @@ export const substances: SubstanceInfo[] = [
         "size": 13652
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pentazocine.json",
-        "displayName": "Protest Kit",
-        "size": 4043
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pentazocine.md",
         "displayName": "TripSit Factsheets",
@@ -18016,12 +15046,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Pentedrone.md",
         "displayName": "Isomer Design",
         "size": 674
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pentedrone.json",
-        "displayName": "Protest Kit",
-        "size": 6721
       },
       {
         "id": "psychonautwiki",
@@ -18060,12 +15084,6 @@ export const substances: SubstanceInfo[] = [
         "size": 705
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pentobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 4185
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pentobarbital.md",
         "displayName": "PsychonautWiki",
@@ -18089,12 +15107,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Pentylone",
     "slug": "pentylone",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pentylone.json",
-        "displayName": "Protest Kit",
-        "size": 1989
-      },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pentylone.md",
@@ -18138,12 +15150,6 @@ export const substances: SubstanceInfo[] = [
         "size": 714
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pethidine.json",
-        "displayName": "Protest Kit",
-        "size": 4382
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pethidine.md",
         "displayName": "PsychonautWiki",
@@ -18167,12 +15173,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Phenazepam",
     "slug": "phenazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3699
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenazepam.md",
@@ -18198,12 +15198,6 @@ export const substances: SubstanceInfo[] = [
         "size": 11323
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenethylamine.json",
-        "displayName": "Protest Kit",
-        "size": 1283
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenethylamine.md",
         "displayName": "TripSit Factsheets",
@@ -18221,12 +15215,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Phenetrazine",
     "slug": "phenetrazine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenetrazine.json",
-        "displayName": "Protest Kit",
-        "size": 1701
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenetrazine.md",
@@ -18256,12 +15244,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Phenibut.md",
         "displayName": "Isomer Design",
         "size": 643
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenibut.json",
-        "displayName": "Protest Kit",
-        "size": 4148
       },
       {
         "id": "psychonautwiki",
@@ -18300,12 +15282,6 @@ export const substances: SubstanceInfo[] = [
         "size": 12808
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenmetrazine.json",
-        "displayName": "Protest Kit",
-        "size": 3305
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenmetrazine.md",
         "displayName": "TripSit Factsheets",
@@ -18334,12 +15310,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Phenobarbital.md",
         "displayName": "Isomer Design",
         "size": 702
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 3419
       },
       {
         "id": "psychonautwiki",
@@ -18372,12 +15342,6 @@ export const substances: SubstanceInfo[] = [
         "size": 28313
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phentermine.json",
-        "displayName": "Protest Kit",
-        "size": 3095
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phentermine.md",
         "displayName": "TripSit Factsheets",
@@ -18400,12 +15364,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Phenylpiracetam.md",
         "displayName": "Isomer Design",
         "size": 743
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Phenylpiracetam.json",
-        "displayName": "Protest Kit",
-        "size": 3247
       },
       {
         "id": "psychonautwiki",
@@ -18432,12 +15390,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pipt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - PiPT.json",
-        "displayName": "Protest Kit",
-        "size": 2418
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PiPT.md",
         "displayName": "TripSit Factsheets",
@@ -18462,12 +15414,6 @@ export const substances: SubstanceInfo[] = [
         "size": 1142
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Picamilon.json",
-        "displayName": "Protest Kit",
-        "size": 1427
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Picamilon.md",
         "displayName": "TripSit Factsheets",
@@ -18485,12 +15431,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Pinazepam",
     "slug": "pinazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pinazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3541
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pinazepam.md",
@@ -18552,12 +15492,6 @@ export const substances: SubstanceInfo[] = [
         "size": 622
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Piracetam.json",
-        "displayName": "Protest Kit",
-        "size": 2680
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Piracetam.md",
         "displayName": "PsychonautWiki",
@@ -18606,12 +15540,6 @@ export const substances: SubstanceInfo[] = [
         "size": 729
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pramiracetam.json",
-        "displayName": "Protest Kit",
-        "size": 2416
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pramiracetam.md",
         "displayName": "PsychonautWiki",
@@ -18640,12 +15568,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Prazepam.md",
         "displayName": "DrugBank",
         "size": 15317
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Prazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3877
       },
       {
         "id": "tripsit-factsheets",
@@ -18690,12 +15612,6 @@ export const substances: SubstanceInfo[] = [
         "size": 675
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pregabalin.json",
-        "displayName": "Protest Kit",
-        "size": 4982
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pregabalin.md",
         "displayName": "PsychonautWiki",
@@ -18738,12 +15654,6 @@ export const substances: SubstanceInfo[] = [
         "size": 764
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Prochlorperazine.json",
-        "displayName": "Protest Kit",
-        "size": 2151
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Prochlorperazine.md",
         "displayName": "PsychonautWiki",
@@ -18768,12 +15678,6 @@ export const substances: SubstanceInfo[] = [
         "size": 47970
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Progesterone.json",
-        "displayName": "Protest Kit",
-        "size": 2692
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Progesterone.md",
         "displayName": "PsychonautWiki",
@@ -18796,12 +15700,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Prolintane.md",
         "displayName": "Isomer Design",
         "size": 671
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Prolintane.json",
-        "displayName": "Protest Kit",
-        "size": 5458
       },
       {
         "id": "psychonautwiki",
@@ -18846,12 +15744,6 @@ export const substances: SubstanceInfo[] = [
         "size": 707
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Promethazine.json",
-        "displayName": "Protest Kit",
-        "size": 3393
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Promethazine.md",
         "displayName": "PsychonautWiki",
@@ -18882,12 +15774,6 @@ export const substances: SubstanceInfo[] = [
         "size": 22946
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Propofol.json",
-        "displayName": "Protest Kit",
-        "size": 1594
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propofol.md",
         "displayName": "TripSit Factsheets",
@@ -18905,12 +15791,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Propoxyphene",
     "slug": "propoxyphene",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Propoxyphene.json",
-        "displayName": "Protest Kit",
-        "size": 3447
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propoxyphene.md",
@@ -18934,12 +15814,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Propranolol.md",
         "displayName": "DrugBank",
         "size": 26358
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Propranolol.json",
-        "displayName": "Protest Kit",
-        "size": 1420
       },
       {
         "id": "tripsit-factsheets",
@@ -18978,12 +15852,6 @@ export const substances: SubstanceInfo[] = [
         "size": 644
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Propylhexedrine.json",
-        "displayName": "Protest Kit",
-        "size": 7982
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Propylhexedrine.md",
         "displayName": "PsychonautWiki",
@@ -19014,12 +15882,6 @@ export const substances: SubstanceInfo[] = [
         "size": 4023
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Propylphenidate.json",
-        "displayName": "Protest Kit",
-        "size": 1321
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propylphenidate.md",
         "displayName": "TripSit Factsheets",
@@ -19042,12 +15904,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Proscaline.md",
         "displayName": "Isomer Design",
         "size": 3215
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Proscaline.json",
-        "displayName": "Protest Kit",
-        "size": 2438
       },
       {
         "id": "psychonautwiki",
@@ -19073,12 +15929,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Pseudoephrine",
     "slug": "pseudoephrine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pseudoephrine.json",
-        "displayName": "Protest Kit",
-        "size": 3396
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pseudoephrine.md",
@@ -19108,12 +15958,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Psilocin.md",
         "displayName": "Isomer Design",
         "size": 13735
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Psilocin.json",
-        "displayName": "Protest Kit",
-        "size": 9203
       },
       {
         "id": "tripsit-factsheets",
@@ -19150,12 +15994,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "EROWID - Psilocybin_mushrooms.md",
         "displayName": "Erowid",
         "size": 45784
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Psilocybin_mushrooms.json",
-        "displayName": "Protest Kit",
-        "size": 8596
       },
       {
         "id": "psychonautwiki",
@@ -19212,12 +16050,6 @@ export const substances: SubstanceInfo[] = [
         "size": 867
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pyrazolam.json",
-        "displayName": "Protest Kit",
-        "size": 4503
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pyrazolam.md",
         "displayName": "PsychonautWiki",
@@ -19248,12 +16080,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pyrophenidone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Pyrophenidone.json",
-        "displayName": "Protest Kit",
-        "size": 2079
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pyrophenidone.md",
         "displayName": "TripSit Factsheets",
@@ -19270,12 +16096,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Quazepam.md",
         "displayName": "DrugBank",
         "size": 18966
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Quazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3544
       },
       {
         "id": "tripsit-factsheets",
@@ -19312,12 +16132,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Quetiapine.md",
         "displayName": "Isomer Design",
         "size": 753
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Quetiapine.json",
-        "displayName": "Protest Kit",
-        "size": 2287
       },
       {
         "id": "psychonautwiki",
@@ -19386,12 +16200,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "rilmazafone",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Rilmazafone.json",
-        "displayName": "Protest Kit",
-        "size": 3597
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Rilmazafone.md",
         "displayName": "TripSit Factsheets",
@@ -19428,12 +16236,6 @@ export const substances: SubstanceInfo[] = [
         "size": 835
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Risperidone.json",
-        "displayName": "Protest Kit",
-        "size": 2401
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Risperidone.md",
         "displayName": "PsychonautWiki",
@@ -19452,12 +16254,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "rolicyclidine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Rolicyclidine.json",
-        "displayName": "Protest Kit",
-        "size": 9040
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Rolicyclidine.md",
         "displayName": "TripSit Factsheets",
@@ -19475,12 +16271,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Ronlax",
     "slug": "ronlax",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Ronlax.json",
-        "displayName": "Protest Kit",
-        "size": 3513
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ronlax.md",
@@ -19504,12 +16294,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - SAM-e.md",
         "displayName": "DrugBank",
         "size": 19952
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - SAM-e.json",
-        "displayName": "Protest Kit",
-        "size": 2548
       },
       {
         "id": "psychonautwiki",
@@ -19576,12 +16360,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Salvia.md",
         "displayName": "Drug Users Bible",
         "size": 8595
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Salvia.json",
-        "displayName": "Protest Kit",
-        "size": 2528
       },
       {
         "id": "tripsit-factsheets",
@@ -19656,12 +16434,6 @@ export const substances: SubstanceInfo[] = [
         "size": 37478
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Scopolamine.json",
-        "displayName": "Protest Kit",
-        "size": 801
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Scopolamine.md",
         "displayName": "TripSit Factsheets",
@@ -19690,12 +16462,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Secobarbital.md",
         "displayName": "Isomer Design",
         "size": 724
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Secobarbital.json",
-        "displayName": "Protest Kit",
-        "size": 2965
       },
       {
         "id": "psychonautwiki",
@@ -19746,12 +16512,6 @@ export const substances: SubstanceInfo[] = [
         "size": 33876
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sertraline.json",
-        "displayName": "Protest Kit",
-        "size": 625
-      },
-      {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Sertraline.md",
         "displayName": "The Drug Classroom",
@@ -19800,12 +16560,6 @@ export const substances: SubstanceInfo[] = [
         "size": 41160
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sildenafil.json",
-        "displayName": "Protest Kit",
-        "size": 710
-      },
-      {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Sildenafil.md",
         "displayName": "Safer Party",
@@ -19834,12 +16588,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Sinicuichi.md",
         "displayName": "Drug Users Bible",
         "size": 1227
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sinicuichi.json",
-        "displayName": "Protest Kit",
-        "size": 985
       },
       {
         "id": "tripsit-factsheets",
@@ -19882,12 +16630,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Sonata.md",
         "displayName": "DrugBank",
         "size": 18580
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sonata.json",
-        "displayName": "Protest Kit",
-        "size": 3370
       },
       {
         "id": "tripsit-factsheets",
@@ -19938,12 +16680,6 @@ export const substances: SubstanceInfo[] = [
         "size": 824
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sufentanil.json",
-        "displayName": "Protest Kit",
-        "size": 4247
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Sufentanil.md",
         "displayName": "PsychonautWiki",
@@ -19967,12 +16703,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Sulbutiamine",
     "slug": "sulbutiamine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Sulbutiamine.json",
-        "displayName": "Protest Kit",
-        "size": 1210
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sulbutiamine.md",
@@ -20010,12 +16740,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "th-pvp",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - TH-PVP.json",
-        "displayName": "Protest Kit",
-        "size": 4159
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - TH-PVP.md",
         "displayName": "TripSit Factsheets",
@@ -20040,12 +16764,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3910
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - TMA.json",
-        "displayName": "Protest Kit",
-        "size": 662
-      },
-      {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - TMA.md",
         "displayName": "Wikipedia",
@@ -20068,12 +16786,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - TMA-2.md",
         "displayName": "Isomer Design",
         "size": 8688
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - TMA-2.json",
-        "displayName": "Protest Kit",
-        "size": 4940
       },
       {
         "id": "psychonautwiki",
@@ -20106,12 +16818,6 @@ export const substances: SubstanceInfo[] = [
         "size": 10760
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - TMA-6.json",
-        "displayName": "Protest Kit",
-        "size": 4934
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - TMA-6.md",
         "displayName": "PsychonautWiki",
@@ -20142,12 +16848,6 @@ export const substances: SubstanceInfo[] = [
         "size": 32014
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tadalafil.json",
-        "displayName": "Protest Kit",
-        "size": 1117
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tadalafil.md",
         "displayName": "TripSit Factsheets",
@@ -20170,12 +16870,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Tapentadol.md",
         "displayName": "DrugBank",
         "size": 24671
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tapentadol.json",
-        "displayName": "Protest Kit",
-        "size": 5180
       },
       {
         "id": "tripsit-factsheets",
@@ -20214,12 +16908,6 @@ export const substances: SubstanceInfo[] = [
         "size": 810
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Temazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4205
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Temazepam.md",
         "displayName": "PsychonautWiki",
@@ -20244,12 +16932,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "tetrahydrofuran-fentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tetrahydrofuran-Fentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 2873
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tetrahydrofuran-Fentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -20261,12 +16943,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Tetrazepam",
     "slug": "tetrazepam",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tetrazepam.json",
-        "displayName": "Protest Kit",
-        "size": 3468
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tetrazepam.md",
@@ -20285,12 +16961,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Theacrine",
     "slug": "theacrine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Theacrine.json",
-        "displayName": "Protest Kit",
-        "size": 3027
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Theacrine.md",
@@ -20314,12 +16984,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - Theanine.md",
         "displayName": "Drug Users Bible",
         "size": 3811
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Theanine.json",
-        "displayName": "Protest Kit",
-        "size": 2499
       },
       {
         "id": "psychonautwiki",
@@ -20346,12 +17010,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "theobromine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Theobromine.json",
-        "displayName": "Protest Kit",
-        "size": 1677
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Theobromine.md",
         "displayName": "TripSit Factsheets",
@@ -20374,12 +17032,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Thiopental.md",
         "displayName": "DrugBank",
         "size": 20845
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Thiopental.json",
-        "displayName": "Protest Kit",
-        "size": 1027
       },
       {
         "id": "tripsit-factsheets",
@@ -20406,12 +17058,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2880
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Thiopropamine.json",
-        "displayName": "Protest Kit",
-        "size": 3753
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Thiopropamine.md",
         "displayName": "TripSit Factsheets",
@@ -20434,12 +17080,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Tianeptine.md",
         "displayName": "Isomer Design",
         "size": 837
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tianeptine.json",
-        "displayName": "Protest Kit",
-        "size": 4965
       },
       {
         "id": "psychonautwiki",
@@ -20466,12 +17106,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "tiletamine",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tiletamine.json",
-        "displayName": "Protest Kit",
-        "size": 2549
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tiletamine.md",
         "displayName": "TripSit Factsheets",
@@ -20489,12 +17123,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Tilidine",
     "slug": "tilidine",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tilidine.json",
-        "displayName": "Protest Kit",
-        "size": 3594
-      },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Tilidine.md",
@@ -20532,12 +17160,6 @@ export const substances: SubstanceInfo[] = [
         "size": 638
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tizanidine.json",
-        "displayName": "Protest Kit",
-        "size": 2965
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Tizanidine.md",
         "displayName": "PsychonautWiki",
@@ -20562,12 +17184,6 @@ export const substances: SubstanceInfo[] = [
         "size": 164087
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tobacco.json",
-        "displayName": "Protest Kit",
-        "size": 674
-      },
-      {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tobacco.md",
         "displayName": "Wikipedia",
@@ -20579,12 +17195,6 @@ export const substances: SubstanceInfo[] = [
     "name": "Tolibut",
     "slug": "tolibut",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tolibut.json",
-        "displayName": "Protest Kit",
-        "size": 663
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tolibut.md",
@@ -20626,12 +17236,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "ISOMERDESIGN - Tramadol.md",
         "displayName": "Isomer Design",
         "size": 716
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Tramadol.json",
-        "displayName": "Protest Kit",
-        "size": 4749
       },
       {
         "id": "psychonautwiki",
@@ -20682,12 +17286,6 @@ export const substances: SubstanceInfo[] = [
         "size": 31178
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Trazodone.json",
-        "displayName": "Protest Kit",
-        "size": 1249
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Trazodone.md",
         "displayName": "TripSit Factsheets",
@@ -20710,12 +17308,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Triazolam.md",
         "displayName": "DrugBank",
         "size": 18016
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Triazolam.json",
-        "displayName": "Protest Kit",
-        "size": 3825
       },
       {
         "id": "tripsit-factsheets",
@@ -20760,12 +17352,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "troparil",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Troparil.json",
-        "displayName": "Protest Kit",
-        "size": 1622
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Troparil.md",
         "displayName": "TripSit Factsheets",
@@ -20796,12 +17382,6 @@ export const substances: SubstanceInfo[] = [
         "size": 800
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - U-47700.json",
-        "displayName": "Protest Kit",
-        "size": 5617
-      },
-      {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - U-47700.md",
         "displayName": "PsychonautWiki",
@@ -20826,12 +17406,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "u-49900",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - U-49900.json",
-        "displayName": "Protest Kit",
-        "size": 2838
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - U-49900.md",
         "displayName": "TripSit Factsheets",
@@ -20843,12 +17417,6 @@ export const substances: SubstanceInfo[] = [
     "name": "U-51754",
     "slug": "u-51754",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - U-51754.json",
-        "displayName": "Protest Kit",
-        "size": 4117
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - U-51754.md",
@@ -20910,12 +17478,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "valerylfentanyl",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Valerylfentanyl.json",
-        "displayName": "Protest Kit",
-        "size": 2911
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Valerylfentanyl.md",
         "displayName": "TripSit Factsheets",
@@ -20940,12 +17502,6 @@ export const substances: SubstanceInfo[] = [
         "size": 18968
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Viloxazine.json",
-        "displayName": "Protest Kit",
-        "size": 3179
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Viloxazine.md",
         "displayName": "TripSit Factsheets",
@@ -20963,12 +17519,6 @@ export const substances: SubstanceInfo[] = [
     "name": "W-15",
     "slug": "w-15",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - W-15.json",
-        "displayName": "Protest Kit",
-        "size": 3606
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - W-15.md",
@@ -21042,12 +17592,6 @@ export const substances: SubstanceInfo[] = [
         "size": 2868
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - YERBA-MATE.json",
-        "displayName": "Protest Kit",
-        "size": 1181
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - YERBA-MATE.md",
         "displayName": "TripSit Factsheets",
@@ -21070,12 +17614,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGUSERSBIBLE - YOPO.md",
         "displayName": "Drug Users Bible",
         "size": 4449
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - YOPO.json",
-        "displayName": "Protest Kit",
-        "size": 940
       },
       {
         "id": "tripsit-factsheets",
@@ -21114,12 +17652,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "zolazepam",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Zolazepam.json",
-        "displayName": "Protest Kit",
-        "size": 4796
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Zolazepam.md",
         "displayName": "TripSit Factsheets",
@@ -21142,12 +17674,6 @@ export const substances: SubstanceInfo[] = [
         "fileName": "DRUGBANK - Zolpidem.md",
         "displayName": "DrugBank",
         "size": 35510
-      },
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Zolpidem.json",
-        "displayName": "Protest Kit",
-        "size": 4466
       },
       {
         "id": "thedrugclassroom",
@@ -21186,12 +17712,6 @@ export const substances: SubstanceInfo[] = [
         "size": 3937
       },
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - Zopiclone.json",
-        "displayName": "Protest Kit",
-        "size": 4344
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Zopiclone.md",
         "displayName": "TripSit Factsheets",
@@ -21209,12 +17729,6 @@ export const substances: SubstanceInfo[] = [
     "name": "α-PBP",
     "slug": "pbp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - α-PBP.json",
-        "displayName": "Protest Kit",
-        "size": 1256
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - α-PBP.md",
@@ -21246,12 +17760,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "pvt",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - α-PVT.json",
-        "displayName": "Protest Kit",
-        "size": 1742
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - α-PVT.md",
         "displayName": "TripSit Factsheets",
@@ -21269,12 +17777,6 @@ export const substances: SubstanceInfo[] = [
     "name": "αET",
     "slug": "et",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - αET.json",
-        "displayName": "Protest Kit",
-        "size": 2133
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - αET.md",
@@ -21294,12 +17796,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "h-2c-b",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - βH-2C-B.json",
-        "displayName": "Protest Kit",
-        "size": 3627
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βH-2C-B.md",
         "displayName": "TripSit Factsheets",
@@ -21311,12 +17807,6 @@ export const substances: SubstanceInfo[] = [
     "name": "βk-2C-B",
     "slug": "k-2c-b",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - βk-2C-B.json",
-        "displayName": "Protest Kit",
-        "size": 4568
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-2C-B.md",
@@ -21336,12 +17826,6 @@ export const substances: SubstanceInfo[] = [
     "slug": "k-2c-i",
     "sources": [
       {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - βk-2C-I.json",
-        "displayName": "Protest Kit",
-        "size": 3803
-      },
-      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-2C-I.md",
         "displayName": "TripSit Factsheets",
@@ -21353,12 +17837,6 @@ export const substances: SubstanceInfo[] = [
     "name": "βk-IVP",
     "slug": "k-ivp",
     "sources": [
-      {
-        "id": "protestkit",
-        "fileName": "PROTESTKIT - βk-IVP.json",
-        "displayName": "Protest Kit",
-        "size": 3095
-      },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-IVP.md",

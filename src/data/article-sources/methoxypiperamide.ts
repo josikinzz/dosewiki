@@ -1,33 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxypiperamide";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Methoxypiperamide.json","displayName":"Protest Kit","size":755},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxypiperamide.md","displayName":"TripSit Factsheets","size":370},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxypiperamide.md","displayName":"Wikipedia","size":543}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxypiperamide.md","displayName":"TripSit Factsheets","size":370},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxypiperamide.md","displayName":"Wikipedia","size":543}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/methoxypiperamide",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Methoxypiperamide",
-  "name": "Methoxypiperamide",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Drug of the Piperazine class. The 4-Methoxy-α-keto analogue of Methylbenzylpiperazine. Seemingly inactive on its own. Was sold in tandem with Mephtetramine.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Methoxypiperamide
 *Source: TripSit Factsheets (tripsit.me)*
 

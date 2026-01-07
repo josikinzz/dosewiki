@@ -1,41 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Coronaridine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Coronaridine.json","displayName":"Protest Kit","size":900},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coronaridine.md","displayName":"TripSit Factsheets","size":265},{"id":"wikipedia","fileName":"WIKIPEDIA - Coronaridine.md","displayName":"Wikipedia","size":1299}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coronaridine.md","displayName":"TripSit Factsheets","size":265},{"id":"wikipedia","fileName":"WIKIPEDIA - Coronaridine.md","displayName":"Wikipedia","size":1299}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/coronaridine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Coronaridine",
-  "name": "Coronaridine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Alkaloid found in Tabernanthe iboga and related species. Persistently reduces the self-administration of Cocaine and Morphine in rats.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Coronaridine
 *Source: TripSit Factsheets (tripsit.me)*
 

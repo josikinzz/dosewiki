@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MeO-MiPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-MiPT.md","displayName":"Isomer Design","size":5571},{"id":"protestkit","fileName":"PROTESTKIT - 4-MeO-MiPT.json","displayName":"Protest Kit","size":2118},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-MiPT.md","displayName":"TripSit Factsheets","size":997},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-MiPT.md","displayName":"Wikipedia","size":3362}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-MiPT.md","displayName":"Isomer Design","size":5571},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-MiPT.md","displayName":"TripSit Factsheets","size":997},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-MiPT.md","displayName":"Wikipedia","size":3362}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-MeO-MiPT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=39*
@@ -32,88 +32,6 @@ The 4-methyl ether of psilocin, 4-MeO-DMT, is especially appealing, in that it i
 The bottom line is, that all of these intriguing compounds are largely strangers to us.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-meo-mipt",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4MeOMiPT.shtml",
-  "name": "4-MeO-MiPT",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A rare psychedelic tryptamine first synthesised by Alexander Shulgin, said to the be \\"little brother\\" of 5-MeO-MiPT. Said to be relatively mild with lighter visual effects than most tryptamines.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10mg"
-        },
-        {
-          "name": "Common",
-          "value": "10-20mg"
-        },
-        {
-          "name": "Strong",
-          "value": "20mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 7.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# 4-MeO-MiPT
 *Source: TripSit Factsheets (tripsit.me)*
 

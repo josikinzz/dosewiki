@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDOH";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDOH.md","displayName":"Isomer Design","size":2453},{"id":"protestkit","fileName":"PROTESTKIT - MDOH.json","displayName":"Protest Kit","size":1569},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDOH.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - MDOH.md","displayName":"Wikipedia","size":989}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDOH.md","displayName":"Isomer Design","size":2453},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDOH.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - MDOH.md","displayName":"Wikipedia","size":989}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MDOH
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=114*
@@ -26,68 +26,6 @@ This reminds me of my speculations in the discussion of both FLEA and the HOT co
 I would put my money on the likelihood of MDA going to MDOH if it should turn out that the two drugs interconvert in the body. And in that case, it would be MDOH, or another metabolite on down the line that is common to both MDA and MDOH, that is the factor intrinsic to the intoxication that is produced. Human metabolic studies are needed, and they have not yet been done.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/mdoh",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_MDOH.shtml",
-  "name": "MDOH",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An entactogen, stimulant and psychedelic first synthesised by Alexander Shulgin, MDOH is an analogue of MDA. Described as highly psychedelic, it is likely a serotonin releasing agent. It has not seen widespread use, perhaps due to a number of reported negative side effects such as urinary retention and a heavy comedown.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "80mg"
-        },
-        {
-          "name": "Light",
-          "value": "100-120mg"
-        },
-        {
-          "name": "Common",
-          "value": "120-150mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "150mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# MDOH
 *Source: TripSit Factsheets (tripsit.me)*
 

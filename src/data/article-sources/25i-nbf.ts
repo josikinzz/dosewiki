@@ -1,37 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "25I-NBF";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 25I-NBF.json","displayName":"Protest Kit","size":1034},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBF.md","displayName":"TripSit Factsheets","size":591},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBF.md","displayName":"Wikipedia","size":1100}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBF.md","displayName":"TripSit Factsheets","size":591},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBF.md","displayName":"Wikipedia","size":1100}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/25i-nbf",
-  "experiencesUrl": "https://www.reddit.com/search/?q=25I-NBF",
-  "name": "25I-NBF",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Is a derivate of the psychedelic 2C-I. Was sold breifly in a few countries before being banned. Based purely on the pharmacological evidence it'll be between 6-8x less potent than it's parent compound 25I-NBOMe.",
-  "reagents": "Marquis: Dark Green. | Mecke: Orange > Black. | Mandelin: Orange > Black. | Froehde: Orange > Black. | Liebermann: Orange > Black. | Ehrlich: No colour change. | Gallic Acid: Orange > Black.",
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 25I-NBF
 *Source: TripSit Factsheets (tripsit.me)*
 

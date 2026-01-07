@@ -1,69 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "CRL-40-940";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - CRL-40-940.json","displayName":"Protest Kit","size":1415},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-940.md","displayName":"TripSit Factsheets","size":559},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-940.md","displayName":"Wikipedia","size":3793}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-940.md","displayName":"TripSit Factsheets","size":559},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-940.md","displayName":"Wikipedia","size":3793}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/crl-40-940",
-  "experiencesUrl": "https://www.reddit.com/search/?q=CRL-40-940",
-  "name": "CRL-40-940",
-  "aliases": [
-    "bisfluoromodafinil",
-    "flmodafinil",
-    "lauflumide"
-  ],
-  "aliasesStr": "bisfluoromodafinil,flmodafinil,lauflumide",
-  "summary": "Bisfluoro analogue Modafinil. Has been sold online as a research chemical. Was patented in 2013. Is slightly more potent than Armodafinil.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "20-40mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-75mg"
-        },
-        {
-          "name": "Strong",
-          "value": "75-150mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# CRL-40-940
 *Source: TripSit Factsheets (tripsit.me)*
 

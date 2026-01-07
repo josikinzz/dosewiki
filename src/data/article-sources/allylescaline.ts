@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Allylescaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Allylescaline.md","displayName":"Isomer Design","size":3321},{"id":"protestkit","fileName":"PROTESTKIT - Allylescaline.json","displayName":"Protest Kit","size":2271},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Allylescaline.md","displayName":"PsychonautWiki","size":16988},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allylescaline.md","displayName":"TripSit Factsheets","size":868},{"id":"wikipedia","fileName":"WIKIPEDIA - Allylescaline.md","displayName":"Wikipedia","size":3756}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Allylescaline.md","displayName":"Isomer Design","size":3321},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Allylescaline.md","displayName":"PsychonautWiki","size":16988},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allylescaline.md","displayName":"TripSit Factsheets","size":868},{"id":"wikipedia","fileName":"WIKIPEDIA - Allylescaline.md","displayName":"Wikipedia","size":3756}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Allylescaline
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=2*
@@ -26,102 +26,6 @@ A suspension of 4.0 g LAH in 150 mL anhydrous THF under N2 was cooled to 0 Â°C
 As AL is one of the most potent 3,4,5-trisubstituted phenethylamines yet described, and since the corresponding amphetamines are of yet greater potency, it would be a good guess that 4-allyloxy-3,5-dimethoxyamphetamine (3C-AL) would be an interesting compound to explore. It could be made from syringaldehyde in reaction with allyl iodide, followed by the formation of a nitrostyrene with nitroethane, followed by reduction with aluminum hydride. It is, as of the present time, both unsynthesized and unexplored.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Allylescaline",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Allylescaline.shtml",
-  "name": "Allylescaline",
-  "aliases": [
-    "al"
-  ],
-  "aliasesStr": "al",
-  "summary": "Mescaline analogue with a much lower dose, that seems to rely heavily on colours.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "15 mg"
-        },
-        {
-          "name": "Light",
-          "value": "20 - 30 mg"
-        },
-        {
-          "name": "Common",
-          "value": "30 - 40 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "40 - 60 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "60 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.75 - 4.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# Allylescaline
 *Source: https://psychonautwiki.org/wiki/Allylescaline*
 

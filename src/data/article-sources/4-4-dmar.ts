@@ -1,77 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "4,4-DMAR";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 4,4-DMAR.json","displayName":"Protest Kit","size":1576},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4,4-DMAR.md","displayName":"The Drug Classroom","size":128189},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4,4-DMAR.md","displayName":"TripSit Factsheets","size":530},{"id":"wikipedia","fileName":"WIKIPEDIA - 4,4-DMAR.md","displayName":"Wikipedia","size":2091}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4,4-DMAR.md","displayName":"The Drug Classroom","size":128189},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4,4-DMAR.md","displayName":"TripSit Factsheets","size":530},{"id":"wikipedia","fileName":"WIKIPEDIA - 4,4-DMAR.md","displayName":"Wikipedia","size":2091}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4,4-dmar",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4,4-DMAR",
-  "name": "4,4-DMAR",
-  "aliases": [
-    "4,4-dmap",
-    "serotoni"
-  ],
-  "aliasesStr": "4,4-dmap,serotoni",
-  "summary": "Very closely related stimulant to Aminorex and Pemoline. Was sold as a designer drug for quite awhile under the brand name \\"Serotoni\\" has been linked to at least 31 deaths. It is a potent SNDRA.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "30-60mg"
-        },
-        {
-          "name": "Common",
-          "value": "60-120mg"
-        },
-        {
-          "name": "Strong",
-          "value": "120-200mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Insufflated",
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.08 - 0.25 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "thedrugclassroom": `# Serotonin Toxicity (Serotonin Syndrome)
 *Source: https://thedrugclassroom.com/video/serotonin-toxicity-serotonin-syndrome/*
 

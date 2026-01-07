@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Oxiracetam";
-export const sources = [{"id":"erowid","fileName":"EROWID - Oxiracetam.md","displayName":"Erowid","size":781},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Oxiracetam.md","displayName":"Isomer Design","size":680},{"id":"protestkit","fileName":"PROTESTKIT - Oxiracetam.json","displayName":"Protest Kit","size":2779},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Oxiracetam.md","displayName":"PsychonautWiki","size":13519},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxiracetam.md","displayName":"TripSit Factsheets","size":303},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxiracetam.md","displayName":"Wikipedia","size":2882}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Oxiracetam.md","displayName":"Erowid","size":781},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Oxiracetam.md","displayName":"Isomer Design","size":680},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Oxiracetam.md","displayName":"PsychonautWiki","size":13519},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxiracetam.md","displayName":"TripSit Factsheets","size":303},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxiracetam.md","displayName":"Wikipedia","size":2882}];
 export const contents: Record<string, string> = {
   "erowid": `# Oxiracetam
 *Source: https://erowid.org/smarts/oxiracetam/oxiracetam.shtml*
@@ -55,107 +55,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q415099](https://www.wikidata.org/wiki/Q415099)
 - [Oxiracetam](https://en.wikipedia.org/wiki/Oxiracetam)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Oxiracetam",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Oxiracetam",
-  "name": "Oxiracetam",
-  "aliases": [
-    "hydroxypiracetam",
-    "neuractiv",
-    "neuromet"
-  ],
-  "aliasesStr": "hydroxypiracetam,neuractiv,neuromet",
-  "summary": "Oxiracetam is a racetam nootropic, having a hydroxyl group being the only difference between this and Piracetam. It used as a nootropic, namely for increased cognitive function. It is usually used two to three times a day. This substance is normally taken with Choline, can cause headaches without the addition of Choline.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Racetams"
-    ],
-    "psychoactive": [
-      "Stimulants",
-      "Nootropic"
-    ]
-  },
-  "toxicity": [
-    "safe even when high doses are consumed for a long period of time",
-    "exact toxic dosage is unknown"
-  ],
-  "addictionPotential": "non-addictive with a low potential for abuse",
-  "tolerance": {
-    "full": "develops with prolonged and repeated use",
-    "half": "3 - 7 days",
-    "zero": "1 - 2 weeks"
-  },
-  "crossTolerances": [
-    "racetam",
-    "nootropic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "250 mg"
-        },
-        {
-          "name": "Light",
-          "value": "500 - 1200 mg"
-        },
-        {
-          "name": "Common",
-          "value": "1200 - 1800 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1800 - 2400 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "2400 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 10.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dream potentiation, Analysis enhancement, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Focus intensification, Auditory acuity enhancement",
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding",
-      "Stimulation"
-    ],
-    "Mental effects": [
-      "Thought connectivity",
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Dream potentiation",
-      "Analysis enhancement",
-      "Mindfulness",
-      "Wakefulness",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Color enhancement",
-      "Visual acuity enhancement",
-      "Auditory acuity enhancement"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Oxiracetam
 *Source: https://psychonautwiki.org/wiki/Oxiracetam*
 

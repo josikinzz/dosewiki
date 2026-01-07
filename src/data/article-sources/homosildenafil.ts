@@ -1,57 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Homosildenafil";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Homosildenafil.json","displayName":"Protest Kit","size":1268},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homosildenafil.md","displayName":"TripSit Factsheets","size":558},{"id":"wikipedia","fileName":"WIKIPEDIA - Homosildenafil.md","displayName":"Wikipedia","size":820}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homosildenafil.md","displayName":"TripSit Factsheets","size":558},{"id":"wikipedia","fileName":"WIKIPEDIA - Homosildenafil.md","displayName":"Wikipedia","size":820}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/homosildenafil",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Homosildenafil",
-  "name": "Homosildenafil",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An analogue of sildenafil (viagra) with similar effects. Has been missold in certain 'herbal' blends and dietary supplements for sexual potency. Little is known about the pharmacology or safety profile of this drug in humans, potentially less potent than sildenafil.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-25mg"
-        },
-        {
-          "name": "Common",
-          "value": "25-50mg"
-        },
-        {
-          "name": "Strong",
-          "value": "50-100mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "5.0 - 9.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Homosildenafil
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,70 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Aspirin";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Aspirin.json","displayName":"Protest Kit","size":1619},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aspirin.md","displayName":"TripSit Factsheets","size":1099},{"id":"wikipedia","fileName":"WIKIPEDIA - Aspirin.md","displayName":"Wikipedia","size":54826}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aspirin.md","displayName":"TripSit Factsheets","size":1099},{"id":"wikipedia","fileName":"WIKIPEDIA - Aspirin.md","displayName":"Wikipedia","size":54826}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/aspirin",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Aspirin",
-  "name": "Aspirin",
-  "aliases": [
-    "acetylsalicylate"
-  ],
-  "aliasesStr": "acetylsalicylate",
-  "summary": "A widely used anti-inflammatory and blood-thinner produced by acetylation of the naturally occurring salicyclic acid. Part of the nonsteroidal antiinflammatory class of drugs, a cyclooxygenase inhibitor. Very common over-the-counter pain reliever and fever reducer. Also used in smaller doses to lower risk of heart attack.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "50mg"
-        },
-        {
-          "name": "Light",
-          "value": "75mg-81mg"
-        },
-        {
-          "name": "Common",
-          "value": "325mg-650mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "1.6g"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "30.0 - 90.0 minutes"
-        }
-      ],
-      "bioavailability": "55.8-74%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Analgesia, Antipyresis, Anti-inflammation, Antiaggregation",
-  "categorized_effects": {
-    "Physical effects": [
-      "Analgesia",
-      "Antipyresis",
-      "Anti-inflammation"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": [
-      "Antiaggregation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# Aspirin
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDMA";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - MDMA.md","displayName":"Disregard Everything I Say","size":12273},{"id":"drugbank","fileName":"DRUGBANK - MDMA.md","displayName":"DrugBank","size":15690},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDMA.md","displayName":"Drug Users Bible","size":8319},{"id":"erowid","fileName":"EROWID - MDMA.md","displayName":"Erowid","size":42145},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDMA.md","displayName":"Isomer Design","size":15279},{"id":"protestkit","fileName":"PROTESTKIT - MDMA.json","displayName":"Protest Kit","size":1446},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDMA.md","displayName":"PsychonautWiki","size":107733},{"id":"saferparty","fileName":"SAFERPARTY - MDMA.md","displayName":"Safer Party","size":5632},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDMA.md","displayName":"The Drug Classroom","size":104459},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDMA.md","displayName":"TripSit Factsheets","size":3732},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDMA.md","displayName":"TripSit Wiki","size":10932},{"id":"wikipedia","fileName":"WIKIPEDIA - MDMA.md","displayName":"Wikipedia","size":57307}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - MDMA.md","displayName":"Disregard Everything I Say","size":12273},{"id":"drugbank","fileName":"DRUGBANK - MDMA.md","displayName":"DrugBank","size":15690},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDMA.md","displayName":"Drug Users Bible","size":8319},{"id":"erowid","fileName":"EROWID - MDMA.md","displayName":"Erowid","size":42145},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDMA.md","displayName":"Isomer Design","size":15279},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDMA.md","displayName":"PsychonautWiki","size":107733},{"id":"saferparty","fileName":"SAFERPARTY - MDMA.md","displayName":"Safer Party","size":5632},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDMA.md","displayName":"The Drug Classroom","size":104459},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDMA.md","displayName":"TripSit Factsheets","size":3732},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDMA.md","displayName":"TripSit Wiki","size":10932},{"id":"wikipedia","fileName":"WIKIPEDIA - MDMA.md","displayName":"Wikipedia","size":57307}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# MDMA
 *Source: https://disregardeverythingisay.com/post/35068026910/mdma-broken-down-and-described*
@@ -1607,71 +1607,6 @@ Does this make sense?
 The three carbon sticking out job gives rise to MDA and to MDMA and to many homologues that are interesting materials discussed at length in these Book II comments. This is the usual item of commerce, available from both domestic and foreign suppliers. But the four-carbon sticking out job will produce totally weird stuff without any apparent relationship to psychedelics, psychoactives or psychotropics whatsoever. I know of one chemical supply house which supplied the weird compound, and they never did acknowledge their unusual use of the term piperonyl. There is a simple difference of properties which might be of value. The three carbon (correct) ketone is an oil with a sassafras smell that is always yellow colored. The four carbon (incorrect) ketone has a weak terpene smell and is white and crystalline. There should be no difficulties in distinguishing these two compounds. But unprincipled charlatans can always add mineral oil and butter yellow to otherwise white solids to make them into yellow oils. Caveat emptor.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/tuinal",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Tuinal",
-  "name": "Tuinal",
-  "aliases": [
-    "beans",
-    "chirstmas-trees",
-    "jeebs",
-    "nawls",
-    "rainbows",
-    "tuinol"
-  ],
-  "aliasesStr": "beans,chirstmas-trees,jeebs,nawls,rainbows,tuinol",
-  "summary": "Brand name of a combination drug of two barbiturate salts (Secobarbital/Amobarbital) in equal amounts. It was introduced in the late 1940's.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "25-75mg"
-        },
-        {
-          "name": "Common",
-          "value": "75-150mg."
-        },
-        {
-          "name": "Strong",
-          "value": "150-300mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# MDMA
 *Source: https://psychonautwiki.org/wiki/MDMA*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-Me-DMT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Me-DMT.md","displayName":"Isomer Design","size":4439},{"id":"protestkit","fileName":"PROTESTKIT - 2-Me-DMT.json","displayName":"Protest Kit","size":785},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Me-DMT.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Me-DMT.md","displayName":"Wikipedia","size":2960}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Me-DMT.md","displayName":"Isomer Design","size":4439},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Me-DMT.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Me-DMT.md","displayName":"Wikipedia","size":2960}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-Me-DMT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=34*
@@ -32,32 +32,6 @@ The compound has also been synthesized from 3-methylindoleacetic acid via the et
 From the structure activity point of view, it seems that the methyl group on the indolic 2-position again allows oral activity of something that, without it, would not be. Here, the parent compound is DMT, and the other examples were 2-Me-DET and 5-MeO-TMT. But of these, 2-Me-DMT seems to be the most free of ânegativeâ side-effects, except for the sound distortion(and as for the sexual stimulation, there might be an occasional shaker manquÃ© amongst us who would consider that also as a negative). . And for the sexual stimulation, to the occasional shaker manquÃ© amongst us who would considered that also as a negative.
 
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/N-(2,6-Dimethylphenyl)-1-piperidineacetamide",
-  "experiencesUrl": "https://www.reddit.com/search/?q=N-(2,6-Dimethylphenyl)-1-piperidineacetamide",
-  "name": "N-(2,6-Dimethylphenyl)-1-piperidineacetamide",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 2-Me-DMT
 *Source: TripSit Factsheets (tripsit.me)*
 

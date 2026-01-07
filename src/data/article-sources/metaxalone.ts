@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Metaxalone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Metaxalone.md","displayName":"DrugBank","size":15308},{"id":"protestkit","fileName":"PROTESTKIT - Metaxalone.json","displayName":"Protest Kit","size":1326},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Metaxalone.md","displayName":"TripSit Factsheets","size":602},{"id":"wikipedia","fileName":"WIKIPEDIA - Metaxalone.md","displayName":"Wikipedia","size":1816}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Metaxalone.md","displayName":"DrugBank","size":15308},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Metaxalone.md","displayName":"TripSit Factsheets","size":602},{"id":"wikipedia","fileName":"WIKIPEDIA - Metaxalone.md","displayName":"Wikipedia","size":1816}];
 export const contents: Record<string, string> = {
   "drugbank": `# Metaxalone
 *Source: https://go.drugbank.com/drugs/DB00660*
@@ -965,66 +965,6 @@ predicted
 DeepCCS 1.0 (2019)
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/metaxalone",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Metaxalone.shtml",
-  "name": "Metaxalone",
-  "aliases": [
-    "skelaxin"
-  ],
-  "aliasesStr": "skelaxin",
-  "summary": "Muscle relaxant, that is used to relieve pain from general pain, and other musculoskeletal conditions.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "400-800mg."
-        },
-        {
-          "name": "Common",
-          "value": "800-1600mg."
-        },
-        {
-          "name": "Strong",
-          "value": "1600-2400mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Metaxalone
 *Source: TripSit Factsheets (tripsit.me)*
 

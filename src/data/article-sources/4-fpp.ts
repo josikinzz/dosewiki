@@ -1,61 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "4-FPP";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 4-FPP.json","displayName":"Protest Kit","size":1220},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FPP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FPP.md","displayName":"Wikipedia","size":2260}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FPP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FPP.md","displayName":"Wikipedia","size":2260}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-fpp",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4-FPP",
-  "name": "4-FPP",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A piperazine derivative that has been reported to have mild pyschedelic effects, and also empathogen qualities. It has been sold in many branded legal highs.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "20-40mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-80mg"
-        },
-        {
-          "name": "Strong",
-          "value": "80-150mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 4-FPP
 *Source: TripSit Factsheets (tripsit.me)*
 

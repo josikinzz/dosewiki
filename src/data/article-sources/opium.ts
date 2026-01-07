@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Opium";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Opium.md","displayName":"DrugBank","size":15520},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Opium.md","displayName":"Drug Users Bible","size":2507},{"id":"protestkit","fileName":"PROTESTKIT - Opium.json","displayName":"Protest Kit","size":1664},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Opium.md","displayName":"TripSit Factsheets","size":941},{"id":"wikipedia","fileName":"WIKIPEDIA - Opium.md","displayName":"Wikipedia","size":67584}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Opium.md","displayName":"DrugBank","size":15520},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Opium.md","displayName":"Drug Users Bible","size":2507},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Opium.md","displayName":"TripSit Factsheets","size":941},{"id":"wikipedia","fileName":"WIKIPEDIA - Opium.md","displayName":"Wikipedia","size":67584}];
 export const contents: Record<string, string> = {
   "drugbank": `# Opium
 *Source: https://go.drugbank.com/drugs/DB11130*
@@ -712,75 +712,6 @@ as lettuce is often promoted as a natural remedy for insomnia.
 There is something about lettuce
 \`\`\`
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/opium",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Opium.shtml",
-  "name": "Opium",
-  "aliases": [
-    "o"
-  ],
-  "aliasesStr": "o",
-  "summary": "Opium is a naturally occurring analgesic harvested as a latex from ripe Papaver somniferum (opium poppy) pods. The sap of the poppy plant primarily contains codeine and morphine with the amounts varying by plant, which can be made into a tea and consumed raw, or further processed.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "333-500mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Smoked",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "100mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, Dry Mouth, Mood lift, Itchiness, Relaxant, Constipation, Pupil constriction, Analgesia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dry Mouth",
-      "Itchiness",
-      "Relaxant",
-      "Constipation",
-      "Pupil constriction",
-      "Analgesia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "Mood lift"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Opium
 *Source: TripSit Factsheets (tripsit.me)*
 

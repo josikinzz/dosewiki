@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Creatine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Creatine.md","displayName":"DrugBank","size":13530},{"id":"protestkit","fileName":"PROTESTKIT - Creatine.json","displayName":"Protest Kit","size":857},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Creatine.md","displayName":"PsychonautWiki","size":13343},{"id":"wikipedia","fileName":"WIKIPEDIA - Creatine.md","displayName":"Wikipedia","size":18226}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Creatine.md","displayName":"DrugBank","size":13530},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Creatine.md","displayName":"PsychonautWiki","size":13343},{"id":"wikipedia","fileName":"WIKIPEDIA - Creatine.md","displayName":"Wikipedia","size":18226}];
 export const contents: Record<string, string> = {
   "drugbank": `# Creatine
 *Source: https://go.drugbank.com/drugs/DB00148*
@@ -900,32 +900,6 @@ Sodium- and chloride-dependent creatine transporter 1
 70522.17 Da
 
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Creatine_(N-Carbamimidoyl-N-methylglycine,_Methylguanidoacetic_acid)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Creatine+(N-Carbamimidoyl-N-methylglycine,+Methylguanidoacetic+acid)",
-  "name": "Creatine (N-Carbamimidoyl-N-methylglycine, Methylguanidoacetic acid)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Creatine
 *Source: https://psychonautwiki.org/wiki/Creatine*
 

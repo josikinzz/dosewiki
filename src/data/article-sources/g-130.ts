@@ -1,33 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "G-130";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - G-130.json","displayName":"Protest Kit","size":648},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - G-130.md","displayName":"TripSit Factsheets","size":230},{"id":"wikipedia","fileName":"WIKIPEDIA - G-130.md","displayName":"Wikipedia","size":645}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - G-130.md","displayName":"TripSit Factsheets","size":230},{"id":"wikipedia","fileName":"WIKIPEDIA - G-130.md","displayName":"Wikipedia","size":645}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/g-130",
-  "experiencesUrl": "https://www.reddit.com/search/?q=G-130",
-  "name": "G-130",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Stimulant that is related to Phenmetrazine. Nearly no information on dose or effects.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# G-130
 *Source: TripSit Factsheets (tripsit.me)*
 

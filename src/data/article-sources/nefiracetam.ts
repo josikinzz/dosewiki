@@ -1,59 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Nefiracetam";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Nefiracetam.json","displayName":"Protest Kit","size":1212},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nefiracetam.md","displayName":"TripSit Factsheets","size":603},{"id":"wikipedia","fileName":"WIKIPEDIA - Nefiracetam.md","displayName":"Wikipedia","size":1845}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nefiracetam.md","displayName":"TripSit Factsheets","size":603},{"id":"wikipedia","fileName":"WIKIPEDIA - Nefiracetam.md","displayName":"Wikipedia","size":1845}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/nefiracetam",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Nefiracetam",
-  "name": "Nefiracetam",
-  "aliases": [
-    "nerfiracetam"
-  ],
-  "aliasesStr": "nerfiracetam",
-  "summary": "Nootropic compound of the racetam family. Seems to enhance both GABAergic and cholinergic signalling. Long term use appears to be neuroprotective. Fat soluble.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "150-450mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Nefiracetam
 *Source: TripSit Factsheets (tripsit.me)*
 

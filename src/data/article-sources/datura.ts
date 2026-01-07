@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Datura";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Datura.md","displayName":"Disregard Everything I Say","size":4421},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Datura.md","displayName":"Drug Users Bible","size":5741},{"id":"protestkit","fileName":"PROTESTKIT - Datura.json","displayName":"Protest Kit","size":2172},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Datura.md","displayName":"TripSit Factsheets","size":934},{"id":"wikipedia","fileName":"WIKIPEDIA - Datura.md","displayName":"Wikipedia","size":17342}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Datura.md","displayName":"Disregard Everything I Say","size":4421},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Datura.md","displayName":"Drug Users Bible","size":5741},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Datura.md","displayName":"TripSit Factsheets","size":934},{"id":"wikipedia","fileName":"WIKIPEDIA - Datura.md","displayName":"Wikipedia","size":17342}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Datura
 *Source: https://disregardeverythingisay.com/post/34795202116/datura-broken-down-and-described*
@@ -149,86 +149,6 @@ T+4:00 “The swim passed as standard. I find myself maybe a little more self-
 reflective than usual and possibly more neutral in mood. Apart from this I
 now feel normal. The self-
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Datura",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Datura.shtml",
-  "name": "Datura",
-  "aliases": [
-    "jimson weed"
-  ],
-  "aliasesStr": "jimson weed",
-  "summary": "A family of plants containing various Tropane alkaloids. Produces long-lasting deliriant effects including very realistic and often unpleasant hallucinations along with short-term amnesia. Datura plants are toxic to humans, and potency varies greatly from plant-to-plant, making the drug extremely difficult to dose safely. Not typically regarded as recreational.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Deliriant"
-    ]
-  },
-  "toxicity": [
-    "toxic dosage is unknown"
-  ],
-  "addictionPotential": "mildly addictive with a high potential for adverse side effects such as psychosis",
-  "tolerance": {
-    "full": "with repeated use",
-    "half": "3 - 7 days",
-    "zero": "1 - 2 weeks"
-  },
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": null,
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 2.0 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "1.0 - 2.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "5.0 - 12.0 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "2.0 - 3.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 18.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "6.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "surreal interactions with world, hallucinations, dry mouth, nausea, fear, anxiety, amnesia, difficulty breathing, confusion, delirium",
-  "categorized_effects": {
-    "Physical effects": [
-      "dry mouth",
-      "nausea",
-      "difficulty breathing",
-      "delirium"
-    ],
-    "Mental effects": [
-      "surreal interactions with world",
-      "fear",
-      "anxiety",
-      "amnesia",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "hallucinations"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Datura
 *Source: TripSit Factsheets (tripsit.me)*
 

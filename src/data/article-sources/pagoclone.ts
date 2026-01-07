@@ -1,33 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Pagoclone";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Pagoclone.json","displayName":"Protest Kit","size":770},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pagoclone.md","displayName":"The Drug Classroom","size":40444},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pagoclone.md","displayName":"TripSit Factsheets","size":376},{"id":"wikipedia","fileName":"WIKIPEDIA - Pagoclone.md","displayName":"Wikipedia","size":3093}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pagoclone.md","displayName":"The Drug Classroom","size":40444},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pagoclone.md","displayName":"TripSit Factsheets","size":376},{"id":"wikipedia","fileName":"WIKIPEDIA - Pagoclone.md","displayName":"Wikipedia","size":3093}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/pagoclone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Pagoclone",
-  "name": "Pagoclone",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An anxiolytic drug related to zopiclone with no sedative or hypnotic qualities. Has been investigated as a possible alcohol replacement. Related in structure and effect to Zopiclone and Zolpidem.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "thedrugclassroom": `# Pagoclone
 *Source: https://thedrugclassroom.com/video/pagoclone/*
 

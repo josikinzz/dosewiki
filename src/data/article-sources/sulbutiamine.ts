@@ -1,59 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Sulbutiamine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Sulbutiamine.json","displayName":"Protest Kit","size":1210},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sulbutiamine.md","displayName":"TripSit Factsheets","size":489},{"id":"wikipedia","fileName":"WIKIPEDIA - Sulbutiamine.md","displayName":"Wikipedia","size":3335}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sulbutiamine.md","displayName":"TripSit Factsheets","size":489},{"id":"wikipedia","fileName":"WIKIPEDIA - Sulbutiamine.md","displayName":"Wikipedia","size":3335}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/sulbutiamine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Sulbutiamine",
-  "name": "Sulbutiamine",
-  "aliases": [
-    "arcalion",
-    "bisibuthiamine",
-    "enerion",
-    "sulbut",
-    "youvitan"
-  ],
-  "aliasesStr": "arcalion,bisibuthiamine,enerion,sulbut,youvitan",
-  "summary": "A thiamine derivative nootropic and stimulant drug. Caution should be used as sulbutiamine reduces dopamine output over time with consistant usage.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "200-400mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 10.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Sulbutiamine
 *Source: TripSit Factsheets (tripsit.me)*
 

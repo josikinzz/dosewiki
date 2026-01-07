@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pemoline";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pemoline.md","displayName":"DrugBank","size":10211},{"id":"protestkit","fileName":"PROTESTKIT - Pemoline.json","displayName":"Protest Kit","size":1325},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pemoline.md","displayName":"TripSit Factsheets","size":487},{"id":"wikipedia","fileName":"WIKIPEDIA - Pemoline.md","displayName":"Wikipedia","size":10281}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pemoline.md","displayName":"DrugBank","size":10211},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pemoline.md","displayName":"TripSit Factsheets","size":487},{"id":"wikipedia","fileName":"WIKIPEDIA - Pemoline.md","displayName":"Wikipedia","size":10281}];
 export const contents: Record<string, string> = {
   "drugbank": `# Pemoline
 *Source: https://go.drugbank.com/drugs/DB01230*
@@ -734,64 +734,6 @@ predicted
 DeepCCS 1.0 (2019)
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/pemoline",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Pemoline",
-  "name": "Pemoline",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A stimulant of the 4-oxazolidinone class. Was used as a medication for ADHD and Narcolepsy, yet was pulled from most markets due to liver failures among children.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-40mg"
-        },
-        {
-          "name": "Strong",
-          "value": "40-80mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Pemoline
 *Source: TripSit Factsheets (tripsit.me)*
 

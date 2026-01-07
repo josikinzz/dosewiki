@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Kava";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Kava.md","displayName":"DrugBank","size":7684},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kava.md","displayName":"Drug Users Bible","size":7683},{"id":"erowid","fileName":"EROWID - Kava.md","displayName":"Erowid","size":8906},{"id":"protestkit","fileName":"PROTESTKIT - Kava.json","displayName":"Protest Kit","size":1613},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Kava.md","displayName":"PsychonautWiki","size":18923},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Kava.md","displayName":"TripSit Factsheets","size":430},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Kava.md","displayName":"TripSit Wiki","size":4857},{"id":"wikipedia","fileName":"WIKIPEDIA - Kava.md","displayName":"Wikipedia","size":36932}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Kava.md","displayName":"DrugBank","size":7684},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kava.md","displayName":"Drug Users Bible","size":7683},{"id":"erowid","fileName":"EROWID - Kava.md","displayName":"Erowid","size":8906},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Kava.md","displayName":"PsychonautWiki","size":18923},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Kava.md","displayName":"TripSit Factsheets","size":430},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Kava.md","displayName":"TripSit Wiki","size":4857},{"id":"wikipedia","fileName":"WIKIPEDIA - Kava.md","displayName":"Wikipedia","size":36932}];
 export const contents: Record<string, string> = {
   "drugbank": `# Kava
 *Source: https://go.drugbank.com/drugs/DB01322*
@@ -862,68 +862,6 @@ See also [NIH's Kava Chemistry & Toxicology Executive Summary](https://erowid.or
 **Created by Erowid - Unknown**
  
 Content & design © 1995-2025 Erowid.org. Permission required before publicly reproducing Erowid info.`,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/kava",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Kava.shtml",
-  "name": "Kava",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Tropical evergreen shrub with large heart-shaped leaves and woody stems. Its thick roots are mashed or ground and made into a cold and bitter-tasting beverage used similarly to alcohol. It has a long history of ritual and recreational use in Pacific Polynesia and is now a common herbal product, used widely by those in certain societies as part of a 'Kava Culture.'",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "50-70mg"
-        },
-        {
-          "name": "Common",
-          "value": "70-150mg"
-        },
-        {
-          "name": "Strong",
-          "value": "150-200mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "300mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "9.0 - 18.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Kava
 *Source: https://psychonautwiki.org/wiki/Kava*
 

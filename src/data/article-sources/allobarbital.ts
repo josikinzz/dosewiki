@@ -1,65 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Allobarbital";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Allobarbital.json","displayName":"Protest Kit","size":1377},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allobarbital.md","displayName":"TripSit Factsheets","size":616},{"id":"wikipedia","fileName":"WIKIPEDIA - Allobarbital.md","displayName":"Wikipedia","size":898}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allobarbital.md","displayName":"TripSit Factsheets","size":616},{"id":"wikipedia","fileName":"WIKIPEDIA - Allobarbital.md","displayName":"Wikipedia","size":898}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/allobarbital",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Allobarbital",
-  "name": "Allobarbital",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Is a barbiturate that was first made in 1912. It was primilary used as an anticonvulsant. Yet it has pretty much been outclassed by a newer generation of safer ones. Still in use in Poland.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "500-1000mg"
-        },
-        {
-          "name": "Common",
-          "value": "1000-1500mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1500-2000mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 10.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Allobarbital
 *Source: TripSit Factsheets (tripsit.me)*
 

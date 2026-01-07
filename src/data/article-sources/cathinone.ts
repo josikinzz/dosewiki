@@ -1,41 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Cathinone";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Cathinone.json","displayName":"Protest Kit","size":862},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cathinone.md","displayName":"PsychonautWiki","size":1468},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Cathinone.md","displayName":"The Drug Classroom","size":50067},{"id":"wikipedia","fileName":"WIKIPEDIA - Cathinone.md","displayName":"Wikipedia","size":13135}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cathinone.md","displayName":"PsychonautWiki","size":1468},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Cathinone.md","displayName":"The Drug Classroom","size":50067},{"id":"wikipedia","fileName":"WIKIPEDIA - Cathinone.md","displayName":"Wikipedia","size":13135}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Cathinone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Cathinone",
-  "name": "Cathinone",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Cathinone
 *Source: https://psychonautwiki.org/wiki/Cathinone*
 

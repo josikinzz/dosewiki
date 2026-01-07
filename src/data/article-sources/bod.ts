@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "BOD";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - BOD.md","displayName":"Isomer Design","size":7985},{"id":"protestkit","fileName":"PROTESTKIT - BOD.json","displayName":"Protest Kit","size":2171},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BOD.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - BOD.md","displayName":"Wikipedia","size":6846}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - BOD.md","displayName":"Isomer Design","size":7985},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BOD.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - BOD.md","displayName":"Wikipedia","size":6846}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# BOD
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=14*
@@ -36,92 +36,6 @@ A parallel chemistry to all of this follows the addition of sodium ethoxide (rat
 Two synonyms, two definitions, and an expression of admiration. The word norepinephrine  is synonymous with noradrenalin, and the word epinephrine  is synonymous with adrenalin. The distinctions are that the first in each case is American and the second British. And the term âchiralâ indicates a potential asymmetry in a molecule that would allow eventual separation into two optical isomers. The term âracemicâ refers to a mixture of these two isomers which has not yet been separated into the individual components. A racemic mixture is called a racemate and, from the point of view of the human animal (which is completely asymmetric), must be considered as a mixture of two structurally identical but optically mirror-image isomers, which can be potentially separated and which will certainly have different pharmacologies. And the admiration? This is directed to the explorer who ventured close enough to an octopus to locate its salivary glands and to discover a phenethylamine there!
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/bod",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_BOD.shtml",
-  "name": "BOD",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Beta-methoxy analogue of 2C-D, seems to be more \\"mild\\" than the likes of 2C-X and DOX compounds. Is 50/50 whether the body load is barely there, or overpowering the experience.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "12-15mg"
-        },
-        {
-          "name": "Light",
-          "value": "15-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-30mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "30-40mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 2.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "8.0 - 14.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "3.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# BOD
 *Source: TripSit Factsheets (tripsit.me)*
 

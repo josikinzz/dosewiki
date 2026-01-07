@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Meclofenoxate";
-export const sources = [{"id":"erowid","fileName":"EROWID - Meclofenoxate.md","displayName":"Erowid","size":826},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Meclofenoxate.md","displayName":"Isomer Design","size":727},{"id":"protestkit","fileName":"PROTESTKIT - Meclofenoxate.json","displayName":"Protest Kit","size":2327},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Meclofenoxate.md","displayName":"PsychonautWiki","size":9027},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Meclofenoxate.md","displayName":"TripSit Factsheets","size":297},{"id":"wikipedia","fileName":"WIKIPEDIA - Meclofenoxate.md","displayName":"Wikipedia","size":1354}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Meclofenoxate.md","displayName":"Erowid","size":826},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Meclofenoxate.md","displayName":"Isomer Design","size":727},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Meclofenoxate.md","displayName":"PsychonautWiki","size":9027},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Meclofenoxate.md","displayName":"TripSit Factsheets","size":297},{"id":"wikipedia","fileName":"WIKIPEDIA - Meclofenoxate.md","displayName":"Wikipedia","size":1354}];
 export const contents: Record<string, string> = {
   "erowid": `# Meclofenoxate
 *Source: https://www.erowid.org/smarts/meclofenoxate/*
@@ -56,96 +56,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q421147](https://www.wikidata.org/wiki/Q421147)
 - [Meclofenoxate](https://en.wikipedia.org/wiki/Meclofenoxate)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Meclofenoxate",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Meclofenoxate",
-  "name": "Meclofenoxate",
-  "aliases": [
-    "centrophenoxine",
-    "lucidril"
-  ],
-  "aliasesStr": "centrophenoxine,lucidril",
-  "summary": "Cholinergic compound with a DMAE compotent. Is thought to help in reversing some signs of aging. Naturally found substance, most notably in fish.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Cholinergic"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": [
-    "extremely low toxicity"
-  ],
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "50 mg"
-        },
-        {
-          "name": "Light",
-          "value": "50 - 200 mg"
-        },
-        {
-          "name": "Common",
-          "value": "400 - 800 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "800 - 1000 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "600 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "4.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Motivation enhancement, Memory enhancement, Nausea, Headache, Dizziness, Dream potentiation, Mindfulness, Depression, Bodily control enhancement, Stimulation, Wakefulness, Visual acuity enhancement, Anxiety suppression, Teeth grinding, Muscle tension, Body odor alteration, Focus intensification, Olfactory intensification, Stamina intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Nausea",
-      "Headache",
-      "Dizziness",
-      "Bodily control enhancement",
-      "Stimulation",
-      "Teeth grinding",
-      "Muscle tension",
-      "Body odor alteration",
-      "Stamina intensification"
-    ],
-    "Mental effects": [
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Dream potentiation",
-      "Mindfulness",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Visual acuity enhancement",
-      "Olfactory intensification"
-    ],
-    "Uncategorized effects": [
-      "Depression"
-    ]
-  }
-}`,
   "psychonautwiki": `# Meclofenoxate
 *Source: https://psychonautwiki.org/wiki/Meclofenoxate*
 

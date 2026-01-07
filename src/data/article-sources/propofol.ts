@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propofol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propofol.md","displayName":"DrugBank","size":22946},{"id":"protestkit","fileName":"PROTESTKIT - Propofol.json","displayName":"Protest Kit","size":1594},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propofol.md","displayName":"TripSit Factsheets","size":1413},{"id":"wikipedia","fileName":"WIKIPEDIA - Propofol.md","displayName":"Wikipedia","size":16494}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propofol.md","displayName":"DrugBank","size":22946},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propofol.md","displayName":"TripSit Factsheets","size":1413},{"id":"wikipedia","fileName":"WIKIPEDIA - Propofol.md","displayName":"Wikipedia","size":16494}];
 export const contents: Record<string, string> = {
   "drugbank": `# Propofol
 *Source: https://go.drugbank.com/drugs/DB00818*
@@ -1514,67 +1514,6 @@ ATP-dependent translocase ABCB1
 Current data available supporting this enzyme action are in vitro studies.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/propofol",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Propofol",
-  "name": "Propofol",
-  "aliases": [
-    "diprivan",
-    "milk-of-amnesia"
-  ],
-  "aliasesStr": "diprivan,milk-of-amnesia",
-  "summary": "A very short acting sedative that is usually given at the start of general anesthesia, and for maintenance of the prior. It should never be used outside of a medical setting. With that in mind, if you do plan to use this drug recreational, please have a very experienced friend with you that has the skills to insert a cannula, and monitor you very closely.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Intravenous",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-30mg"
-        },
-        {
-          "name": "Common",
-          "value": "30-60mg"
-        },
-        {
-          "name": "Strong",
-          "value": "60-100mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.0 - 0.03 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "0.17 - 0.33 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 3.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Propofol
 *Source: TripSit Factsheets (tripsit.me)*
 

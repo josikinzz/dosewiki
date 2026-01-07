@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-Hydroxytryptophan";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - 5-Hydroxytryptophan.md","displayName":"DrugBank","size":17210},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5-Hydroxytryptophan.md","displayName":"Drug Users Bible","size":3733},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-Hydroxytryptophan.md","displayName":"Isomer Design","size":768},{"id":"protestkit","fileName":"PROTESTKIT - 5-Hydroxytryptophan.json","displayName":"Protest Kit","size":2200},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-Hydroxytryptophan.md","displayName":"PsychonautWiki","size":18759},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-Hydroxytryptophan.md","displayName":"TripSit Factsheets","size":1123},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-Hydroxytryptophan.md","displayName":"Wikipedia","size":6819}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - 5-Hydroxytryptophan.md","displayName":"DrugBank","size":17210},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5-Hydroxytryptophan.md","displayName":"Drug Users Bible","size":3733},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-Hydroxytryptophan.md","displayName":"Isomer Design","size":768},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-Hydroxytryptophan.md","displayName":"PsychonautWiki","size":18759},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-Hydroxytryptophan.md","displayName":"TripSit Factsheets","size":1123},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-Hydroxytryptophan.md","displayName":"Wikipedia","size":6819}];
 export const contents: Record<string, string> = {
   "drugbank": `# Oxitriptan
 *Source: https://go.drugbank.com/drugs/DB02959*
@@ -1076,93 +1076,6 @@ only afterwards. Wait at least 12 hours following the last dose in the case of M
 - [Q238544](https://www.wikidata.org/wiki/Q238544)
 - [5-Hydroxytryptophan](https://en.wikipedia.org/wiki/5-Hydroxytryptophan)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/5-Hydroxytryptophan",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Tryptophan.shtml",
-  "name": "5-HTP",
-  "aliases": [
-    "5-hydroxytryptophan",
-    "5htp",
-    "and triptum",
-    "cincofarm",
-    "l-tryptophan",
-    "levothym",
-    "levotonine",
-    "oxitriptan",
-    "oxyfan",
-    "telesol",
-    "tript-oh",
-    "tryptophan"
-  ],
-  "aliasesStr": "5-hydroxytryptophan,5htp,and triptum,cincofarm,l-tryptophan,levothym,levotonine,oxitriptan,oxyfan,telesol,tript-oh,tryptophan",
-  "summary": "The precursor to serotonin. In some countries it is sold OTC as a supplement for mood stabilisation and insomnia. It is frequently used as a recovery supplement following the use of MDMA or any other drug that depletes serotonin. Do not mix this drug with anything serotonergic, as this can cause serotonin syndrome.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines",
-      "Amino acid"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "25 mg"
-        },
-        {
-          "name": "Light",
-          "value": "50 - 100 mg"
-        },
-        {
-          "name": "Common",
-          "value": "100 - 300 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "300 - 500 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "500 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "sleep aid, antidepressant, appetite suppressant, nausea, mood stabilising",
-  "categorized_effects": {
-    "Physical effects": [
-      "sleep aid",
-      "appetite suppressant",
-      "nausea"
-    ],
-    "Mental effects": [
-      "antidepressant",
-      "mood stabilising"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# 5-Hydroxytryptophan
 *Source: https://psychonautwiki.org/wiki/5-Hydroxytryptophan*
 

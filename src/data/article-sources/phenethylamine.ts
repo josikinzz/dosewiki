@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenethylamine";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenethylamine.md","displayName":"Isomer Design","size":11323},{"id":"protestkit","fileName":"PROTESTKIT - Phenethylamine.json","displayName":"Protest Kit","size":1283},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenethylamine.md","displayName":"TripSit Factsheets","size":563},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenethylamine.md","displayName":"Wikipedia","size":13176}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenethylamine.md","displayName":"Isomer Design","size":11323},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenethylamine.md","displayName":"TripSit Factsheets","size":563},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenethylamine.md","displayName":"Wikipedia","size":13176}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Phenethylamine
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=142*
@@ -50,58 +50,6 @@ And there is one more obvious remaining methylation pattern. What about phenethy
 This is as good a place as any to discuss two or three simple compounds, phenethylamines, with only one substituent on the benzene ring. The 2-carbon analog of 4-MA, is 4-methoxyphenethylamine, or MPEA. This is a kissing cousin to DMPEA, of such fame in the search for a urine factor that could be related to schizophrenia. And the end results of the search for this compound in the urine of mentally ill patients are as controversial as they were for DMPEA. There has been no confirmed relationship to the diagnosis. And efforts to see if it is centrally active were failuresâat dosages of up to 400 milligrams in man, there was no activity. The 4-chloro-analogue is 4-chlorophenethylamine (4-Cl-PEA) and it has actually been pushed up to even higher levels (to 500 milligrams dosage, orally) and it is also without activity. A passing bit of charming trivia. A positional isomer of MPEA is 3-methoxyphenethylamine (3-MPEA) and, although there are no reported human trials with this, it has been graced with an Edgewood Arsenal code number, vis., EA-1302.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/phenethylamine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Phenethylamine",
-  "name": "Phenethylamine",
-  "aliases": [
-    "pea"
-  ],
-  "aliasesStr": "pea",
-  "summary": "Organic compound, which is a name of a class of chemicals that are quite well known for psychoactive and/or stimulant effects. Normally not used as a supplement as it is rapidly broken down into inactive compounds. Is found in many foods.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "300-500mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "1.0 - 4.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "0.17 - 1.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Phenethylamine
 *Source: TripSit Factsheets (tripsit.me)*
 

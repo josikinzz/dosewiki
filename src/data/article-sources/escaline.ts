@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Escaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Escaline.md","displayName":"Isomer Design","size":9298},{"id":"protestkit","fileName":"PROTESTKIT - Escaline.json","displayName":"Protest Kit","size":2536},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Escaline.md","displayName":"PsychonautWiki","size":20709},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Escaline.md","displayName":"TripSit Factsheets","size":743},{"id":"wikipedia","fileName":"WIKIPEDIA - Escaline.md","displayName":"Wikipedia","size":2511}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Escaline.md","displayName":"Isomer Design","size":9298},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Escaline.md","displayName":"PsychonautWiki","size":20709},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Escaline.md","displayName":"TripSit Factsheets","size":743},{"id":"wikipedia","fileName":"WIKIPEDIA - Escaline.md","displayName":"Wikipedia","size":2511}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Escaline
 *Source: http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=72*
@@ -48,104 +48,6 @@ And if a drug has been initially developed (and initially named) as a phenethyla
 Thus, â2-Câ implies that a known amphetamine drug has been shortened to a phenethylamine, and â3-Câ inplies that a known phenethylamine has been lengthened to an amphetamine. A great number of the former have been made and have proven to be most rewarding. Only a few of the latter are known, but most of them will eventually prove to be potent psychedelics.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Escaline",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Escaline.shtml",
-  "name": "Escaline",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "First synthesised in the 50s, this uncommon drug was reexamined by David Nichols in the 1990s. It is an analogue of mescaline which is roughly six times more potent, and is thus a powerful psychedelic phenethylamine. Subjective effects may include stimulation and hallucinations.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "20 mg"
-        },
-        {
-          "name": "Light",
-          "value": "30 - 50 mg"
-        },
-        {
-          "name": "Common",
-          "value": "50 - 100 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "100 - 150 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "150 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.5 - 2.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "3.0 - 5.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# Escaline
 *Source: https://psychonautwiki.org/wiki/Escaline*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Citicoline";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Citicoline.md","displayName":"DrugBank","size":14428},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Citicoline.md","displayName":"Isomer Design","size":915},{"id":"protestkit","fileName":"PROTESTKIT - Citicoline.json","displayName":"Protest Kit","size":2285},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Citicoline.md","displayName":"PsychonautWiki","size":19511},{"id":"wikipedia","fileName":"WIKIPEDIA - Citicoline.md","displayName":"Wikipedia","size":6050}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Citicoline.md","displayName":"DrugBank","size":14428},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Citicoline.md","displayName":"Isomer Design","size":915},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Citicoline.md","displayName":"PsychonautWiki","size":19511},{"id":"wikipedia","fileName":"WIKIPEDIA - Citicoline.md","displayName":"Wikipedia","size":6050}];
 export const contents: Record<string, string> = {
   "drugbank": `# Citicoline
 *Source: https://go.drugbank.com/drugs/DB12153*
@@ -1044,107 +1044,6 @@ LicC protein
 - [Q126615061](https://www.wikidata.org/wiki/Q126615061)
 - [Citicoline](https://en.wikipedia.org/wiki/Citicoline)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Citicoline",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Citicoline",
-  "name": "Citicoline",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Ammonium salt"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": [
-    "extremely low toxicity"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "50 mg"
-        },
-        {
-          "name": "Light",
-          "value": "100 - 250 mg"
-        },
-        {
-          "name": "Common",
-          "value": "250 - 1000 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1000 - 2000 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "2000 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 2.0 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "2.0 - 3.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "2.5 - 3.5 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "30.0 - 40.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "58.0 - 74.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "40.0 - 60.0 hours"
-        }
-      ],
-      "bioavailability": "98%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Memory enhancement, Headache, Dream potentiation, Mindfulness, Stimulation, Wakefulness, Appetite suppression, Pain relief, Visual acuity enhancement, Addiction suppression, Body odor alteration, Focus intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Headache",
-      "Stimulation",
-      "Appetite suppression",
-      "Pain relief",
-      "Body odor alteration"
-    ],
-    "Mental effects": [
-      "Memory enhancement",
-      "Dream potentiation",
-      "Mindfulness",
-      "Wakefulness",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Visual acuity enhancement"
-    ],
-    "Uncategorized effects": [
-      "Addiction suppression"
-    ]
-  }
-}`,
   "psychonautwiki": `# Citicoline
 *Source: https://psychonautwiki.org/wiki/Citicoline*
 

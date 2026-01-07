@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fluvoxamine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Fluvoxamine.md","displayName":"DrugBank","size":19454},{"id":"protestkit","fileName":"PROTESTKIT - Fluvoxamine.json","displayName":"Protest Kit","size":626},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluvoxamine.md","displayName":"TripSit Factsheets","size":134},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluvoxamine.md","displayName":"Wikipedia","size":12109}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Fluvoxamine.md","displayName":"DrugBank","size":19454},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluvoxamine.md","displayName":"TripSit Factsheets","size":134},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluvoxamine.md","displayName":"Wikipedia","size":12109}];
 export const contents: Record<string, string> = {
   "drugbank": `# Fluvoxamine
 *Source: https://go.drugbank.com/drugs/DB00176*
@@ -1126,35 +1126,6 @@ Bile salt export pump
 146405.83 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/fluvoxamine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Fluvoxamine",
-  "name": "Fluvoxamine",
-  "aliases": [
-    "faverin",
-    "luvox"
-  ],
-  "aliasesStr": "faverin,luvox",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Fluvoxamine
 *Source: TripSit Factsheets (tripsit.me)*
 

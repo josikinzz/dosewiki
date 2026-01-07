@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aniracetam";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Aniracetam.md","displayName":"Drug Users Bible","size":1032},{"id":"erowid","fileName":"EROWID - Aniracetam.md","displayName":"Erowid","size":3680},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aniracetam.md","displayName":"Isomer Design","size":662},{"id":"protestkit","fileName":"PROTESTKIT - Aniracetam.json","displayName":"Protest Kit","size":2625},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Aniracetam.md","displayName":"PsychonautWiki","size":16558},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aniracetam.md","displayName":"TripSit Factsheets","size":356},{"id":"wikipedia","fileName":"WIKIPEDIA - Aniracetam.md","displayName":"Wikipedia","size":3319}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Aniracetam.md","displayName":"Drug Users Bible","size":1032},{"id":"erowid","fileName":"EROWID - Aniracetam.md","displayName":"Erowid","size":3680},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aniracetam.md","displayName":"Isomer Design","size":662},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Aniracetam.md","displayName":"PsychonautWiki","size":16558},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aniracetam.md","displayName":"TripSit Factsheets","size":356},{"id":"wikipedia","fileName":"WIKIPEDIA - Aniracetam.md","displayName":"Wikipedia","size":3319}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Aniracetam (+ Citicoline)
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -192,99 +192,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q417630](https://www.wikidata.org/wiki/Q417630)
 - [Aniracetam](https://en.wikipedia.org/wiki/Aniracetam)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Aniracetam",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Aniracetam.shtml",
-  "name": "Aniracetam",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An anxiolytic nootropic which modulates the AMPA receptor. Significantly more potent than racetam. May have positive effects on memory and cognition. Little recreational value. Sold in Europe as a prescription drug, but not approved by the FDA in the US.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Racetams"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": "non-addictive with a low potential for abuse",
-  "tolerance": {
-    "full": "develops with prolonged and repeated use",
-    "half": "3 - 7 days",
-    "zero": "1 - 2 weeks"
-  },
-  "crossTolerances": [
-    "racetam",
-    "nootropic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "350 mg"
-        },
-        {
-          "name": "Light",
-          "value": "500 - 1200 mg"
-        },
-        {
-          "name": "Common",
-          "value": "1200 - 1800 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1800 - 2400 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "2400 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.75 - 1.5 hours"
-        },
-        {
-          "name": "Total",
-          "value": "3.0 - 5.0 hours"
-        }
-      ],
-      "bioavailability": "8.6-11.4%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dream potentiation, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Anxiety suppression, Creativity enhancement, Lowered latent Inhibition, Focus intensification, Auditory acuity enhancement, Tactile intensification, Olfactory intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Stimulation"
-    ],
-    "Mental effects": [
-      "Thought connectivity",
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Dream potentiation",
-      "Mindfulness",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Creativity enhancement",
-      "Lowered latent Inhibition",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Color enhancement",
-      "Visual acuity enhancement",
-      "Auditory acuity enhancement",
-      "Tactile intensification",
-      "Olfactory intensification"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Aniracetam
 *Source: https://psychonautwiki.org/wiki/Aniracetam*
 

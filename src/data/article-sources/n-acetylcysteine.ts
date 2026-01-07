@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "N-Acetylcysteine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - N-Acetylcysteine.md","displayName":"DrugBank","size":28407},{"id":"protestkit","fileName":"PROTESTKIT - N-Acetylcysteine.json","displayName":"Protest Kit","size":1994},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - N-Acetylcysteine.md","displayName":"PsychonautWiki","size":23154},{"id":"wikipedia","fileName":"WIKIPEDIA - N-Acetylcysteine.md","displayName":"Wikipedia","size":14378}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - N-Acetylcysteine.md","displayName":"DrugBank","size":28407},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - N-Acetylcysteine.md","displayName":"PsychonautWiki","size":23154},{"id":"wikipedia","fileName":"WIKIPEDIA - N-Acetylcysteine.md","displayName":"Wikipedia","size":14378}];
 export const contents: Record<string, string> = {
   "drugbank": `# Acetylcysteine
 *Source: https://go.drugbank.com/drugs/DB06151*
@@ -1719,91 +1719,6 @@ Solute carrier family 22 member 6
 61815.78 Da
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/N-Acetylcysteine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=N-Acetylcysteine",
-  "name": "N-Acetylcysteine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Cysteine"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "100 mg"
-        },
-        {
-          "name": "Light",
-          "value": "400 - 600 mg"
-        },
-        {
-          "name": "Common",
-          "value": "600 - 1000 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1000 - 1500 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "1500 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 1.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "3.0 - 6.0 hours"
-        }
-      ],
-      "bioavailability": "4%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Motivation enhancement, Dehydration, Nausea, Headache, Itchiness, Bronchodilation, Rejuvenation, Mindfulness, Appetite suppression, Cough suppression, Increased blood pressure, Anxiety suppression, Addiction suppression, Nose bleeds, Focus intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dehydration",
-      "Nausea",
-      "Headache",
-      "Itchiness",
-      "Bronchodilation",
-      "Appetite suppression",
-      "Cough suppression",
-      "Increased blood pressure",
-      "Nose bleeds"
-    ],
-    "Mental effects": [
-      "Motivation enhancement",
-      "Rejuvenation",
-      "Mindfulness",
-      "Anxiety suppression",
-      "Focus intensification"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": [
-      "Addiction suppression"
-    ]
-  }
-}`,
   "psychonautwiki": `# N-Acetylcysteine
 *Source: https://psychonautwiki.org/wiki/N-Acetylcysteine*
 

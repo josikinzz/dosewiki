@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propylphenidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Propylphenidate.md","displayName":"Drug Users Bible","size":4023},{"id":"protestkit","fileName":"PROTESTKIT - Propylphenidate.json","displayName":"Protest Kit","size":1321},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylphenidate.md","displayName":"TripSit Factsheets","size":441},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylphenidate.md","displayName":"Wikipedia","size":460}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Propylphenidate.md","displayName":"Drug Users Bible","size":4023},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylphenidate.md","displayName":"TripSit Factsheets","size":441},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylphenidate.md","displayName":"Wikipedia","size":460}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# PPH
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -97,70 +97,6 @@ market it may have found a niche as part of a combination or blend, but I doubt 
 it would have ever been a big hitter in terms of popularity. It isn’t a chemical I would
 ever have made a habit of using.
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/propylphenidate",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Propylphenidate",
-  "name": "Propylphenidate",
-  "aliases": [
-    "pph"
-  ],
-  "aliasesStr": "pph",
-  "summary": "Propylphenidate is a short acting stimulant.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "15-25mg"
-        },
-        {
-          "name": "Common",
-          "value": "25-60mg"
-        },
-        {
-          "name": "Strong",
-          "value": "60-100mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "100mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.42 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "1.5 - 3.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Propylphenidate
 *Source: TripSit Factsheets (tripsit.me)*
 

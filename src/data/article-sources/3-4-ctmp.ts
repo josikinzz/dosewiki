@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3,4-CTMP";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3,4-CTMP.md","displayName":"Drug Users Bible","size":1470},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3,4-CTMP.md","displayName":"Isomer Design","size":915},{"id":"protestkit","fileName":"PROTESTKIT - 3,4-CTMP.json","displayName":"Protest Kit","size":2644},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3,4-CTMP.md","displayName":"PsychonautWiki","size":36139},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3,4-CTMP.md","displayName":"TripSit Factsheets","size":1097},{"id":"wikipedia","fileName":"WIKIPEDIA - 3,4-CTMP.md","displayName":"Wikipedia","size":2749}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3,4-CTMP.md","displayName":"Drug Users Bible","size":1470},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3,4-CTMP.md","displayName":"Isomer Design","size":915},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3,4-CTMP.md","displayName":"PsychonautWiki","size":36139},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3,4-CTMP.md","displayName":"TripSit Factsheets","size":1097},{"id":"wikipedia","fileName":"WIKIPEDIA - 3,4-CTMP.md","displayName":"Wikipedia","size":2749}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 3,4-CTMP
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -62,104 +62,6 @@ By and large, it now appears to have faded into the annals of history.
 - [3,4-Dichloromethylphenidate](https://en.wikipedia.org/wiki/3,4-Dichloromethylphenidate)
 - [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/3,4-CTMP",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_34Dichloromethylphenidate.shtml",
-  "name": "3,4-CTMP",
-  "aliases": [
-    "3,4-dichloromethylphenidate",
-    "34ctmp"
-  ],
-  "aliasesStr": "3,4-dichloromethylphenidate,34ctmp",
-  "summary": "A strong stimulant, NDRI and analogue of methylphenidate. Has increased in popularity in recent years. Said to be seven times more potent than methylphenidate but with a slower onset, however discrimination studies have found it to be more addictive than cocaine.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenidates"
-    ],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "< 2 mg"
-        },
-        {
-          "name": "Light",
-          "value": "2 - 4 mg"
-        },
-        {
-          "name": "Common",
-          "value": "4 - 6 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "6 - 8 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "8 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 2.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 18.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, increased energy/alertness, decreased need for sleep, increased sociability, mood lift, increased sexuality, excessive talking, decreased appetite, weight loss, sweating, disturbed sleep patterns, bruxism, visual and auditory hallucinations, itchiness, aggressiveness, moodiness.",
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding",
-      "increased energy/alertness",
-      "decreased need for sleep",
-      "decreased appetite",
-      "weight loss",
-      "sweating",
-      "bruxism",
-      "itchiness"
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "increased sociability",
-      "mood lift",
-      "excessive talking",
-      "disturbed sleep patterns",
-      "aggressiveness"
-    ],
-    "Sensory effects": [
-      "increased sexuality",
-      "visual and auditory hallucinations"
-    ],
-    "Uncategorized effects": [
-      "moodiness."
-    ]
-  }
-}`,
   "psychonautwiki": `# 3,4-CTMP
 *Source: https://psychonautwiki.org/wiki/3,4-CTMP*
 

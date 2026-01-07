@@ -1,68 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "CRL-40-941";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - CRL-40-941.json","displayName":"Protest Kit","size":1355},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-941.md","displayName":"TripSit Factsheets","size":507},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-941.md","displayName":"Wikipedia","size":1341}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-941.md","displayName":"TripSit Factsheets","size":507},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-941.md","displayName":"Wikipedia","size":1341}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/crl-40-941",
-  "experiencesUrl": "https://www.reddit.com/search/?q=CRL-40-941",
-  "name": "CRL-40-941",
-  "aliases": [
-    "fladrafinil",
-    "fluoromodafinil"
-  ],
-  "aliasesStr": "fladrafinil,fluoromodafinil",
-  "summary": "A substance closely related to Adrafinil and Modafinil. It is the bis(p-fluoro) ring derivative of Adrafinil.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "50-100mg"
-        },
-        {
-          "name": "Common",
-          "value": "100-250mg"
-        },
-        {
-          "name": "Strong",
-          "value": "250-350mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 14.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 10.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# CRL-40-941
 *Source: TripSit Factsheets (tripsit.me)*
 

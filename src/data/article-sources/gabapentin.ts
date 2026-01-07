@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Gabapentin";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Gabapentin.md","displayName":"DrugBank","size":35186},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Gabapentin.md","displayName":"Drug Users Bible","size":3752},{"id":"erowid","fileName":"EROWID - Gabapentin.md","displayName":"Erowid","size":3226},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Gabapentin.md","displayName":"Isomer Design","size":641},{"id":"protestkit","fileName":"PROTESTKIT - Gabapentin.json","displayName":"Protest Kit","size":2060},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Gabapentin.md","displayName":"PsychonautWiki","size":31798},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Gabapentin.md","displayName":"The Drug Classroom","size":3650},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Gabapentin.md","displayName":"TripSit Factsheets","size":461},{"id":"wikipedia","fileName":"WIKIPEDIA - Gabapentin.md","displayName":"Wikipedia","size":31556}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Gabapentin.md","displayName":"DrugBank","size":35186},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Gabapentin.md","displayName":"Drug Users Bible","size":3752},{"id":"erowid","fileName":"EROWID - Gabapentin.md","displayName":"Erowid","size":3226},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Gabapentin.md","displayName":"Isomer Design","size":641},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Gabapentin.md","displayName":"PsychonautWiki","size":31798},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Gabapentin.md","displayName":"The Drug Classroom","size":3650},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Gabapentin.md","displayName":"TripSit Factsheets","size":461},{"id":"wikipedia","fileName":"WIKIPEDIA - Gabapentin.md","displayName":"Wikipedia","size":31556}];
 export const contents: Record<string, string> = {
   "drugbank": `# Gabapentin
 *Source: https://go.drugbank.com/drugs/DB00996*
@@ -2078,97 +2078,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q410352](https://www.wikidata.org/wiki/Q410352)
 - [Gabapentin](https://en.wikipedia.org/wiki/Gabapentin)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Gabapentin",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Gabapentin",
-  "name": "Gabapentin",
-  "aliases": [
-    "gabarone",
-    "gralise",
-    "neurontin"
-  ],
-  "aliasesStr": "gabarone,gralise,neurontin",
-  "summary": "An analogue of GABA also known as Neurontin, originally developed to treat epilepsy. Commonly prescribed for neuropathic pain, it also has pronounced anxiolytic effects leading to its use in treating anxiety disorders.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Gabapentinoids"
-    ],
-    "psychoactive": [
-      "Depressant"
-    ]
-  },
-  "toxicity": [
-    "low toxicity"
-  ],
-  "addictionPotential": null,
-  "tolerance": {
-    "full": "with prolonged continuous usage",
-    "half": null,
-    "zero": "7-14 days"
-  },
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "200 mg"
-        },
-        {
-          "name": "Light",
-          "value": "200 - 900 mg"
-        },
-        {
-          "name": "Common",
-          "value": "900 - 1500 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1500 - 2400 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "2400 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 2.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "2.0 - 3.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 10.0 hours"
-        }
-      ],
-      "bioavailability": "27% - 60%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
-  "categorized_effects": {
-    "Physical effects": [
-      "increased seizure risk",
-      "Sedative",
-      "Muscle Relaxant",
-      "Dystaxia"
-    ],
-    "Mental effects": [
-      "Anxiolytic",
-      "Amnesia"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": [
-      "Hypnotic."
-    ]
-  }
-}`,
   "psychonautwiki": `# Gabapentin
 *Source: https://psychonautwiki.org/wiki/Gabapentin*
 

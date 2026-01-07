@@ -1,69 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "3-MeOMC";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 3-MeOMC.json","displayName":"Protest Kit","size":1310},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeOMC.md","displayName":"TripSit Factsheets","size":405},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeOMC.md","displayName":"Wikipedia","size":1486}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeOMC.md","displayName":"TripSit Factsheets","size":405},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeOMC.md","displayName":"Wikipedia","size":1486}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/3-meomc",
-  "experiencesUrl": "https://www.reddit.com/search/?q=3-MeOMC",
-  "name": "3-MeOMC",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A cathinone that has a short history of human use.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Insufflated",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "25-50mg"
-        },
-        {
-          "name": "Common",
-          "value": "50-100mg"
-        },
-        {
-          "name": "Strong",
-          "value": "100-150mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.33 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 7.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 3-MeOMC
 *Source: TripSit Factsheets (tripsit.me)*
 

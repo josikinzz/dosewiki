@@ -1,67 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-DPT";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 4-AcO-DPT.json","displayName":"Protest Kit","size":1373},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DPT.md","displayName":"TripSit Factsheets","size":663},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DPT.md","displayName":"Wikipedia","size":835}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DPT.md","displayName":"TripSit Factsheets","size":663},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DPT.md","displayName":"Wikipedia","size":835}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-aco-dpt",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4-AcO-DPT",
-  "name": "4-AcO-DPT",
-  "aliases": [
-    "4acodpt"
-  ],
-  "aliasesStr": "4acodpt",
-  "summary": "Research chemical of the Tryptamine class. First noted being sold in 2012, yet never recieved much attention. Conflicting reports. Doesn't dissolve well at all in nearly all solutions it was tested in.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Insufflated",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-15mg"
-        },
-        {
-          "name": "Common",
-          "value": "15-25mg"
-        },
-        {
-          "name": "Strong",
-          "value": "25-35mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.08 - 0.17 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 4-AcO-DPT
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tadalafil";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Tadalafil.md","displayName":"DrugBank","size":32014},{"id":"protestkit","fileName":"PROTESTKIT - Tadalafil.json","displayName":"Protest Kit","size":1117},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tadalafil.md","displayName":"TripSit Factsheets","size":327},{"id":"wikipedia","fileName":"WIKIPEDIA - Tadalafil.md","displayName":"Wikipedia","size":12949}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Tadalafil.md","displayName":"DrugBank","size":32014},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tadalafil.md","displayName":"TripSit Factsheets","size":327},{"id":"wikipedia","fileName":"WIKIPEDIA - Tadalafil.md","displayName":"Wikipedia","size":12949}];
 export const contents: Record<string, string> = {
   "drugbank": `# Tadalafil
 *Source: https://go.drugbank.com/drugs/DB00820*
@@ -1727,56 +1727,6 @@ Cytochrome P450 3A4
 57342.67 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/cialis",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Tadalafil",
-  "name": "Tadalafil",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Tadalafil, a PDE5 inhibitor used to combat erectile disfunction. Dangerous in combination with other drugs which lower blood pressure.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "2.5-5mg"
-        },
-        {
-          "name": "Common",
-          "value": "5-10mg"
-        },
-        {
-          "name": "Strong",
-          "value": "10-20mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Tadalafil
 *Source: TripSit Factsheets (tripsit.me)*
 

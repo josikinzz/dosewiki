@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Eszopiclone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Eszopiclone.md","displayName":"DrugBank","size":24339},{"id":"erowid","fileName":"EROWID - Eszopiclone.md","displayName":"Erowid","size":1290},{"id":"protestkit","fileName":"PROTESTKIT - Eszopiclone.json","displayName":"Protest Kit","size":2205},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Eszopiclone.md","displayName":"PsychonautWiki","size":18817},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Eszopiclone.md","displayName":"The Drug Classroom","size":1641},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Eszopiclone.md","displayName":"TripSit Factsheets","size":414},{"id":"wikipedia","fileName":"WIKIPEDIA - Eszopiclone.md","displayName":"Wikipedia","size":12056}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Eszopiclone.md","displayName":"DrugBank","size":24339},{"id":"erowid","fileName":"EROWID - Eszopiclone.md","displayName":"Erowid","size":1290},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Eszopiclone.md","displayName":"PsychonautWiki","size":18817},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Eszopiclone.md","displayName":"The Drug Classroom","size":1641},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Eszopiclone.md","displayName":"TripSit Factsheets","size":414},{"id":"wikipedia","fileName":"WIKIPEDIA - Eszopiclone.md","displayName":"Wikipedia","size":12056}];
 export const contents: Record<string, string> = {
   "drugbank": `# Eszopiclone
 *Source: https://go.drugbank.com/drugs/DB00402*
@@ -1365,99 +1365,6 @@ The DEA proposed moving zopiclone to Schedule IV classification (referenced in a
 - Zolpidem (Ambien)
 - Benzodiazepines
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Eszopiclone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Eszopiclone",
-  "name": "Eszopiclone",
-  "aliases": [
-    "eszop",
-    "lunesta"
-  ],
-  "aliasesStr": "eszop,lunesta",
-  "summary": "The d-isomer of Zopiclone, this drug is a potent hypnotic 'Z' drug often used to treat insomnia. High doses may cause amnesia, delirium and lowered inhibitions. Should not be combined with any depressants. Limited recreational value.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Cyclopyrrolone"
-    ],
-    "psychoactive": [
-      "Hallucinogens",
-      "Depressant",
-      "Hypnotic"
-    ]
-  },
-  "toxicity": [
-    "low toxicity",
-    "potentially lethal when mixed with depressants like benzodiazepines, alcohol or opioids"
-  ],
-  "addictionPotential": "extremely physically and psychologically addictive",
-  "tolerance": {
-    "full": "within a couple of weeks of daily use",
-    "half": null,
-    "zero": "7 - 14 days"
-  },
-  "crossTolerances": [
-    "benzodiazepines"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": ".5 mg"
-        },
-        {
-          "name": "Light",
-          "value": "1 - 1.5 mg"
-        },
-        {
-          "name": "Common",
-          "value": "2 - 3 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "4 - 5 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "6 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.33 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 8.0 hours"
-        }
-      ],
-      "bioavailability": "52 - 80%"
-    }
-  ],
-  "interactions": null,
-  "effects": "anxiolytic, sedative, muscle relaxant, amnesia, dystaxia, hypnotic",
-  "categorized_effects": {
-    "Physical effects": [
-      "sedative",
-      "muscle relaxant",
-      "dystaxia",
-      "hypnotic"
-    ],
-    "Mental effects": [
-      "anxiolytic",
-      "amnesia"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Eszopiclone
 *Source: https://psychonautwiki.org/wiki/Eszopiclone*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Trazodone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Trazodone.md","displayName":"DrugBank","size":31178},{"id":"protestkit","fileName":"PROTESTKIT - Trazodone.json","displayName":"Protest Kit","size":1249},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Trazodone.md","displayName":"TripSit Factsheets","size":516},{"id":"wikipedia","fileName":"WIKIPEDIA - Trazodone.md","displayName":"Wikipedia","size":31774}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Trazodone.md","displayName":"DrugBank","size":31178},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Trazodone.md","displayName":"TripSit Factsheets","size":516},{"id":"wikipedia","fileName":"WIKIPEDIA - Trazodone.md","displayName":"Wikipedia","size":31774}];
 export const contents: Record<string, string> = {
   "drugbank": `# Trazodone
 *Source: https://go.drugbank.com/drugs/DB00656*
@@ -1671,60 +1671,6 @@ ATP-dependent translocase ABCB1
 141477.255 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/trazodone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Trazodone",
-  "name": "Trazodone",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A novel antidepressant of the SARI class, a serotonin antagonist and reuptake inhibitor. Often used to treat depression and anxiety. It has anxiolytic and hypnotic effects.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "25-50mg"
-        },
-        {
-          "name": "Common",
-          "value": "50-100mg"
-        },
-        {
-          "name": "Strong",
-          "value": "100-150mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 10.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Trazodone
 *Source: TripSit Factsheets (tripsit.me)*
 

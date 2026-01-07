@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOPR";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOPR.md","displayName":"Isomer Design","size":7588},{"id":"protestkit","fileName":"PROTESTKIT - DOPR.json","displayName":"Protest Kit","size":2224},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOPR.md","displayName":"TripSit Factsheets","size":1168},{"id":"wikipedia","fileName":"WIKIPEDIA - DOPR.md","displayName":"Wikipedia","size":3203}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOPR.md","displayName":"Isomer Design","size":7588},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOPR.md","displayName":"TripSit Factsheets","size":1168},{"id":"wikipedia","fileName":"WIKIPEDIA - DOPR.md","displayName":"Wikipedia","size":3203}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DOPR
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=71*
@@ -34,92 +34,6 @@ But this is all with the n-propyl compound. There is a rich collection of misinf
 A fascinating red herring had been drawn across all of these exacting lines by a strange visitor to this research project. An olive-faced M.D., Ph.D., passed through this confusing scene briefly, and when he left, a small supply of DOPR left with him. He promptly published in an obscure journal some animal behavioral responses which he ascribed to the isopropyl analogue, DOIP. But what he had studied could only have been DOPR since DOIP, at that time, had not yet been synthesized either by me, or by either of the other two active synthesists of that moment. It was not yet a known material. We all made it some time later, but by that time our olive-face had disappeared. There is a magnificent French phrase that applies here as nowhere else; Il a foutu le camp. Its idiomatic meaning is equivalent to our, âHe took off,â or âHe split the scene,â but the literal translation is, âHe fucked the camp.â
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/dopr",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_DOPR.shtml",
-  "name": "DOPR",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A rare psychedelic amphetamine of the same class as DOM. This is a powerful and potent psychedelic with all the effects you would expect from an amphetamine. Described by Shulgin as a 'heavy duty psychedelic'. Analogue of 2C-P.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "1.25mg"
-        },
-        {
-          "name": "Light",
-          "value": "2.5mg"
-        },
-        {
-          "name": "Common",
-          "value": "2.5-3.5mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "3.5-5mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.5 - 4.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "18.0 - 30.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# DOPR
 *Source: TripSit Factsheets (tripsit.me)*
 

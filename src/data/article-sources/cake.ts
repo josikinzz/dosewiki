@@ -1,66 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Cake";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Cake.json","displayName":"Protest Kit","size":1141},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cake.md","displayName":"PsychonautWiki","size":5512},{"id":"wikipedia","fileName":"WIKIPEDIA - Cake.md","displayName":"Wikipedia","size":14318}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cake.md","displayName":"PsychonautWiki","size":5512},{"id":"wikipedia","fileName":"WIKIPEDIA - Cake.md","displayName":"Wikipedia","size":14318}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Cake",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Cake",
-  "name": "Cake",
-  "aliases": [
-    "caky",
-    "cokoo"
-  ],
-  "aliasesStr": "caky,cokoo",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Depressant"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "30 g"
-        },
-        {
-          "name": "Light",
-          "value": "30 - 65 g"
-        },
-        {
-          "name": "Common",
-          "value": "65 - 100 g"
-        },
-        {
-          "name": "Strong",
-          "value": "100 - 300 g"
-        },
-        {
-          "name": "Heavy",
-          "value": "300 g +"
-        }
-      ],
-      "duration": [],
-      "bioavailability": "90%"
-    }
-  ],
-  "interactions": null,
-  "effects": "",
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Cake
 *Source: https://psychonautwiki.org/wiki/Cake*
 

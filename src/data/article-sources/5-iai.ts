@@ -1,54 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "5-IAI";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 5-IAI.json","displayName":"Protest Kit","size":1460},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-IAI.md","displayName":"TripSit Factsheets","size":729},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-IAI.md","displayName":"Wikipedia","size":3285}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-IAI.md","displayName":"TripSit Factsheets","size":729},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-IAI.md","displayName":"Wikipedia","size":3285}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/5-iai",
-  "experiencesUrl": "https://www.reddit.com/search/?q=5-IAI",
-  "name": "5-IAI",
-  "aliases": [
-    "5iai"
-  ],
-  "aliasesStr": "5iai",
-  "summary": "A monoamine triple releaser first synthesised by David Nichols, possesses similar properties to MDMA. Probably neurotoxic in humans, however the extent of this is unclear.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": "Euphoria, increased energy/alertness, Decreased need for sleep, Increased sociability, mood lift, increase sexuality, Excessive talking, Decreased appetite, Weight loss, Sweating, Distrubed sleep patterns, Bruxia, Visual and audiotory hallucinations itchiness, agressiveness, moodiness.",
-  "categorized_effects": {
-    "Physical effects": [
-      "increased energy/alertness",
-      "Decreased need for sleep",
-      "Decreased appetite",
-      "Weight loss",
-      "Sweating",
-      "Bruxia"
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "Increased sociability",
-      "mood lift",
-      "Excessive talking",
-      "Distrubed sleep patterns",
-      "agressiveness"
-    ],
-    "Sensory effects": [
-      "increase sexuality",
-      "Visual and audiotory hallucinations itchiness"
-    ],
-    "Uncategorized effects": [
-      "moodiness."
-    ]
-  }
-}`,
   "tripsit-factsheets": `# 5-IAI
 *Source: TripSit Factsheets (tripsit.me)*
 

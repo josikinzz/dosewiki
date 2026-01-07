@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "YERBA-MATE";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YERBA-MATE.md","displayName":"Drug Users Bible","size":2868},{"id":"protestkit","fileName":"PROTESTKIT - YERBA-MATE.json","displayName":"Protest Kit","size":1181},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YERBA-MATE.md","displayName":"TripSit Factsheets","size":478},{"id":"wikipedia","fileName":"WIKIPEDIA - YERBA-MATE.md","displayName":"Wikipedia","size":14823}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YERBA-MATE.md","displayName":"Drug Users Bible","size":2868},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YERBA-MATE.md","displayName":"TripSit Factsheets","size":478},{"id":"wikipedia","fileName":"WIKIPEDIA - YERBA-MATE.md","displayName":"Wikipedia","size":14823}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Yerba Mate
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -64,56 +64,6 @@ Overall, if expectations are not set unreasonably high, this provides a positive
 experience, and is one which I may repeat given the correct circumstance in the
 future.
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/yerba-mate",
-  "experiencesUrl": "https://www.reddit.com/search/?q=YERBA-MATE",
-  "name": "YERBA-MATE",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Is marketed for its ability to suppress appetite and burn fat. Yet only with high doses. It has a quite high ratio of caffeine. It has anti-inflammatory properties.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "1000-1500mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# YERBA-MATE
 *Source: TripSit Factsheets (tripsit.me)*
 

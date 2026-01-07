@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dexmethylphenidate";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Dexmethylphenidate.md","displayName":"DrugBank","size":23374},{"id":"protestkit","fileName":"PROTESTKIT - Dexmethylphenidate.json","displayName":"Protest Kit","size":1495},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dexmethylphenidate.md","displayName":"TripSit Factsheets","size":618},{"id":"wikipedia","fileName":"WIKIPEDIA - Dexmethylphenidate.md","displayName":"Wikipedia","size":16507}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Dexmethylphenidate.md","displayName":"DrugBank","size":23374},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dexmethylphenidate.md","displayName":"TripSit Factsheets","size":618},{"id":"wikipedia","fileName":"WIKIPEDIA - Dexmethylphenidate.md","displayName":"Wikipedia","size":16507}];
 export const contents: Record<string, string> = {
   "drugbank": `# Dexmethylphenidate
 *Source: https://go.drugbank.com/drugs/DB06701*
@@ -1435,70 +1435,6 @@ Carboxylesterase
 1908.25 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/focalin",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Dexmethylphenidate",
-  "name": "Dexmethylphenidate",
-  "aliases": [
-    "dextromethylphenidate"
-  ],
-  "aliasesStr": "dextromethylphenidate",
-  "summary": "The psychoactive isomer of methylphenidate, mostly used to treat ADHD. Twice as potent as methylphenidate, and is said to have cleaner psychostimulant effects with fewer side effects.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-30mg"
-        },
-        {
-          "name": "Strong",
-          "value": "30-40mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "40-50mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.75 - 1.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "9.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Dexmethylphenidate
 *Source: TripSit Factsheets (tripsit.me)*
 

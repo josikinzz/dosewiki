@@ -1,69 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "4-METHYLAMINOREX";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 4-METHYLAMINOREX.json","displayName":"Protest Kit","size":1348},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md","displayName":"TripSit Factsheets","size":474},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-METHYLAMINOREX.md","displayName":"Wikipedia","size":8874}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md","displayName":"TripSit Factsheets","size":474},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-METHYLAMINOREX.md","displayName":"Wikipedia","size":8874}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/4-methylaminorex",
-  "experiencesUrl": "https://www.reddit.com/search/?q=4-METHYLAMINOREX",
-  "name": "4-METHYLAMINOREX",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A very potent stimulant that has quite a long duration of action at around 16 hours.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "1mg"
-        },
-        {
-          "name": "Light",
-          "value": "1-5mg"
-        },
-        {
-          "name": "Common",
-          "value": "5-10mg"
-        },
-        {
-          "name": "Strong",
-          "value": "10-15mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.08 - 0.25 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "14.0 - 18.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 4-METHYLAMINOREX
 *Source: TripSit Factsheets (tripsit.me)*
 

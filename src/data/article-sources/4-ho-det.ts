@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-DET";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DET.md","displayName":"Isomer Design","size":10979},{"id":"protestkit","fileName":"PROTESTKIT - 4-HO-DET.json","displayName":"Protest Kit","size":2874},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DET.md","displayName":"PsychonautWiki","size":22941},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DET.md","displayName":"TripSit Factsheets","size":842},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DET.md","displayName":"Wikipedia","size":6442}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DET.md","displayName":"Isomer Design","size":10979},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DET.md","displayName":"PsychonautWiki","size":22941},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DET.md","displayName":"TripSit Factsheets","size":842},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DET.md","displayName":"Wikipedia","size":6442}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-HO-DET
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=16*
@@ -44,121 +44,6 @@ At a banquet associated with an international conference on the study of conscio
 One final comment. When you read a paper or listen to a lecture offered by a researcher of impeccable qualifications, take a moment to look about you to see who is along side you in the audience that is being addressed. Who else is reading his paper? Who else is hearing his lecture? How might the presentation be tailored to fit the interests of the recipients? The identification and recognition of your neighbors should play a role in your evaluation and acceptance of the presentation.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/4-HO-DET",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_4HODET.shtml",
-  "name": "4-HO-DET",
-  "aliases": [
-    "4-hydroxy-det",
-    "4hodet",
-    "cz-74",
-    "ethocin"
-  ],
-  "aliasesStr": "4-hydroxy-det,4hodet,cz-74,ethocin",
-  "summary": "A rare compound first produced by Albert Hoffman, also known as ethocin. Structurally related to 4-HO-MET (metocin) and psilocin (4-HO-DMT), this drug has similar psychedelic effects but little recorded human usage. Probably similar to mushrooms. Potentially stimulating.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "5 mg"
-        },
-        {
-          "name": "Light",
-          "value": "10 - 15 mg"
-        },
-        {
-          "name": "Common",
-          "value": "20 - 30 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "30 - 45 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "45 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.75 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "2.5 - 3.5 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "1.5 - 2.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "5.0 - 7.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# 4-HO-DET
 *Source: https://psychonautwiki.org/wiki/4-HO-DET*
 

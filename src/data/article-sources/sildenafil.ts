@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sildenafil";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Sildenafil.md","displayName":"DrugBank","size":41160},{"id":"protestkit","fileName":"PROTESTKIT - Sildenafil.json","displayName":"Protest Kit","size":710},{"id":"saferparty","fileName":"SAFERPARTY - Sildenafil.md","displayName":"Safer Party","size":688},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sildenafil.md","displayName":"TripSit Factsheets","size":541},{"id":"wikipedia","fileName":"WIKIPEDIA - Sildenafil.md","displayName":"Wikipedia","size":23617}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Sildenafil.md","displayName":"DrugBank","size":41160},{"id":"saferparty","fileName":"SAFERPARTY - Sildenafil.md","displayName":"Safer Party","size":688},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sildenafil.md","displayName":"TripSit Factsheets","size":541},{"id":"wikipedia","fileName":"WIKIPEDIA - Sildenafil.md","displayName":"Wikipedia","size":23617}];
 export const contents: Record<string, string> = {
   "drugbank": `# Sildenafil
 *Source: https://go.drugbank.com/drugs/DB00203*
@@ -2693,32 +2693,6 @@ ATP-dependent translocase ABCB1
 141477.255 Da
 
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Sildenafil_(Viagra)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Sildenafil+(Viagra)",
-  "name": "Sildenafil (Viagra)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "saferparty": `# Viagra
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bromantane";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Bromantane.md","displayName":"Isomer Design","size":692},{"id":"protestkit","fileName":"PROTESTKIT - Bromantane.json","displayName":"Protest Kit","size":2645},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Bromantane.md","displayName":"PsychonautWiki","size":19589},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromantane.md","displayName":"TripSit Factsheets","size":384},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromantane.md","displayName":"Wikipedia","size":11314}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Bromantane.md","displayName":"Isomer Design","size":692},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Bromantane.md","displayName":"PsychonautWiki","size":19589},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromantane.md","displayName":"TripSit Factsheets","size":384},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromantane.md","displayName":"Wikipedia","size":11314}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Bromantane
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=744*
@@ -25,103 +25,6 @@ export const contents: Record<string, string> = {
 - [Q385533](https://www.wikidata.org/wiki/Q385533)
 - [Bromantane](https://en.wikipedia.org/wiki/Bromantane)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Bromantane",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Bromantane",
-  "name": "Bromantane",
-  "aliases": [
-    "bromantan",
-    "ladasten"
-  ],
-  "aliasesStr": "bromantan,ladasten",
-  "summary": "An unusual stimulant and anxiolytic drug with dopamine and serotonin reuptake inhibition properties. Infamously used as a doping agent in the 1996 Olympics. There are some concerns it may exacerbate the underlying causes of Alzheimer's disease.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Adamantanes"
-    ],
-    "psychoactive": [
-      "Stimulants",
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "< 10 mg"
-        },
-        {
-          "name": "Light",
-          "value": "10 - 50 mg"
-        },
-        {
-          "name": "Common",
-          "value": "50 - 100 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "100 - 200 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "200 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 10.0 hours"
-        }
-      ],
-      "bioavailability": "42%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Motivation enhancement, Memory enhancement, Dehydration, Vasoconstriction, Thought acceleration, Analysis enhancement, Cognitive euphoria, Stimulation, Wakefulness, Increased blood pressure, Muscle relaxation, Anxiety suppression, Increased music appreciation, Teeth grinding, Focus intensification, Tactile intensification, Stamina intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding",
-      "Dehydration",
-      "Stimulation",
-      "Muscle relaxation",
-      "Stamina intensification"
-    ],
-    "Mental effects": [
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Thought acceleration",
-      "Analysis enhancement",
-      "Cognitive euphoria",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Increased music appreciation",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Tactile intensification"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Bromantane
 *Source: https://psychonautwiki.org/wiki/Bromantane*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PRL-8-53";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - PRL-8-53.md","displayName":"Drug Users Bible","size":1638},{"id":"protestkit","fileName":"PROTESTKIT - PRL-8-53.json","displayName":"Protest Kit","size":1923},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRL-8-53.md","displayName":"TripSit Factsheets","size":828},{"id":"wikipedia","fileName":"WIKIPEDIA - PRL-8-53.md","displayName":"Wikipedia","size":2237}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - PRL-8-53.md","displayName":"Drug Users Bible","size":1638},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRL-8-53.md","displayName":"TripSit Factsheets","size":828},{"id":"wikipedia","fileName":"WIKIPEDIA - PRL-8-53.md","displayName":"Wikipedia","size":2237}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# PRL-8-53
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -53,92 +53,6 @@ Additional commentary is therefore not justified.
 
 ### 3. A BOTANICAL JOURNEY
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/prl-8-53",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_PRL853.shtml",
-  "name": "PRL-8-53",
-  "aliases": [
-    "prl853"
-  ],
-  "aliasesStr": "prl853",
-  "summary": "A nootropic research chemical first synthesized in the 70s. One study shows a drastic improvement in mid-term memory among users, but otherwise it is severely lacking in information surrounding it. It has no recreational potential.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "2-3mg"
-        },
-        {
-          "name": "Light",
-          "value": "3-5mg"
-        },
-        {
-          "name": "Common",
-          "value": "5-10mg"
-        },
-        {
-          "name": "Strong",
-          "value": "10-20mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Insufflated",
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Sublingual",
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "3.0 - 5.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# PRL-8-53
 *Source: TripSit Factsheets (tripsit.me)*
 

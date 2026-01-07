@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ephylone";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ephylone.md","displayName":"Isomer Design","size":674},{"id":"protestkit","fileName":"PROTESTKIT - Ephylone.json","displayName":"Protest Kit","size":767},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ephylone.md","displayName":"PsychonautWiki","size":31278},{"id":"wikipedia","fileName":"WIKIPEDIA - Ephylone.md","displayName":"Wikipedia","size":1942}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ephylone.md","displayName":"Isomer Design","size":674},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ephylone.md","displayName":"PsychonautWiki","size":31278},{"id":"wikipedia","fileName":"WIKIPEDIA - Ephylone.md","displayName":"Wikipedia","size":1942}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Ephylone
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=6764*
@@ -25,32 +25,6 @@ export const contents: Record<string, string> = {
 - [Q55624327](https://www.wikidata.org/wiki/Q55624327)
 - [N-Ethylpentylone](https://en.wikipedia.org/wiki/N-Ethylpentylone)
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Ephylone_(bk-EBDP,_k-EBDP,_bk-ethyl-K)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Ephylone+(bk-EBDP,+k-EBDP,+bk-ethyl-K)",
-  "name": "Ephylone (bk-EBDP, k-EBDP, bk-ethyl-K)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Ephylone
 *Source: https://psychonautwiki.org/wiki/Ephylone*
 

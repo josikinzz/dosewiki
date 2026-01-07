@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methallylescaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methallylescaline.md","displayName":"Isomer Design","size":5826},{"id":"protestkit","fileName":"PROTESTKIT - Methallylescaline.json","displayName":"Protest Kit","size":2755},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methallylescaline.md","displayName":"PsychonautWiki","size":20747},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methallylescaline.md","displayName":"TripSit Factsheets","size":875},{"id":"wikipedia","fileName":"WIKIPEDIA - Methallylescaline.md","displayName":"Wikipedia","size":4552}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methallylescaline.md","displayName":"Isomer Design","size":5826},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methallylescaline.md","displayName":"PsychonautWiki","size":20747},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methallylescaline.md","displayName":"TripSit Factsheets","size":875},{"id":"wikipedia","fileName":"WIKIPEDIA - Methallylescaline.md","displayName":"Wikipedia","size":4552}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Methallylescaline
 *Source: http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=99*
@@ -42,118 +42,6 @@ One additional compound was suggested by these parallels. Each of these three dr
 The name methallylescaline actually is completely unsound. There is no union of a methallyl with an escaline. What is really there is not an escaline at all, but rather a mescaline with a 2-propene attached to the methyl of the methoxy on the 4-position. There is no way of naming the thing in that manner, so the only logical solution is to take off the methyl entirely, and then put the methallyl on in its place. The name of this would then be 4-methylallyldesmethylmescaline. That would have received the abbreviation MAD which would have been even more difficult to deal with. MAL is preferable.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Methallylescaline",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Methallylescaline.shtml",
-  "name": "Methallylescaline",
-  "aliases": [
-    "mal"
-  ],
-  "aliasesStr": "mal",
-  "summary": "Mescaline analogue first synthesised by Alexander Shulgin, derived from and less potent than allylescaline. A psychedelic phenethylamine which causes stimulation, euphoria and hallucinatory experiences.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "toxic dose is unknown"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "5 mg"
-        },
-        {
-          "name": "Light",
-          "value": "15 - 25 mg"
-        },
-        {
-          "name": "Common",
-          "value": "25 - 40 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "40 - 60 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "60 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 1.0 hours"
-        },
-        {
-          "name": "Come up",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "3.0 - 5.0 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "4.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# Methallylescaline
 *Source: https://psychonautwiki.org/wiki/Methallylescaline*
 

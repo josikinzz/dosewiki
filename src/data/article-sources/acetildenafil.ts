@@ -1,61 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Acetildenafil";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Acetildenafil.json","displayName":"Protest Kit","size":1215},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Acetildenafil.md","displayName":"TripSit Factsheets","size":409},{"id":"wikipedia","fileName":"WIKIPEDIA - Acetildenafil.md","displayName":"Wikipedia","size":1550}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Acetildenafil.md","displayName":"TripSit Factsheets","size":409},{"id":"wikipedia","fileName":"WIKIPEDIA - Acetildenafil.md","displayName":"Wikipedia","size":1550}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/acetildenafil",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Acetildenafil",
-  "name": "Acetildenafil",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An RC analogue of sildenafil (viagra) often missold as a hidden ingredient in many 'natural' sexual potency blends and supplements.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "5-15mg"
-        },
-        {
-          "name": "Common",
-          "value": "15-30mg"
-        },
-        {
-          "name": "Strong",
-          "value": "30-40mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 7.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Acetildenafil
 *Source: TripSit Factsheets (tripsit.me)*
 

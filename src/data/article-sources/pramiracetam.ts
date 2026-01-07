@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pramiracetam";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pramiracetam.md","displayName":"DrugBank","size":8234},{"id":"erowid","fileName":"EROWID - Pramiracetam.md","displayName":"Erowid","size":859},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pramiracetam.md","displayName":"Isomer Design","size":729},{"id":"protestkit","fileName":"PROTESTKIT - Pramiracetam.json","displayName":"Protest Kit","size":2416},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pramiracetam.md","displayName":"PsychonautWiki","size":11817},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pramiracetam.md","displayName":"TripSit Factsheets","size":275},{"id":"wikipedia","fileName":"WIKIPEDIA - Pramiracetam.md","displayName":"Wikipedia","size":1691}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pramiracetam.md","displayName":"DrugBank","size":8234},{"id":"erowid","fileName":"EROWID - Pramiracetam.md","displayName":"Erowid","size":859},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pramiracetam.md","displayName":"Isomer Design","size":729},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pramiracetam.md","displayName":"PsychonautWiki","size":11817},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pramiracetam.md","displayName":"TripSit Factsheets","size":275},{"id":"wikipedia","fileName":"WIKIPEDIA - Pramiracetam.md","displayName":"Wikipedia","size":1691}];
 export const contents: Record<string, string> = {
   "drugbank": `# Pramiracetam
 *Source: https://go.drugbank.com/drugs/DB13247*
@@ -618,99 +618,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q415746](https://www.wikidata.org/wiki/Q415746)
 - [Pramiracetam](https://en.wikipedia.org/wiki/Pramiracetam)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Pramiracetam",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Pramiracetam",
-  "name": "Pramiracetam",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A CNS stimulant that is a nootropic, that belongs to the racetam family of compounds. Much more potent than Piracetam while appearing to work on similar mechanisms.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Racetams"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": [
-    "exact toxic dosage is unknown"
-  ],
-  "addictionPotential": "not addictive with a low potential for abuse",
-  "tolerance": {
-    "full": "develops with prolonged and repeated use",
-    "half": "3 - 7 days",
-    "zero": "1 - 2 weeks"
-  },
-  "crossTolerances": [
-    "racetam",
-    "nootropic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "100 mg"
-        },
-        {
-          "name": "Light",
-          "value": "250 - 500 mg"
-        },
-        {
-          "name": "Common",
-          "value": "500 - 800 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "800 - 1200 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "1200 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Total",
-          "value": "4.0 - 7.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Emotion suppression, Headache, Dream potentiation, Mindfulness, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Anxiety suppression, Focus intensification, Auditory acuity enhancement, Tactile intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Headache",
-      "Stimulation"
-    ],
-    "Mental effects": [
-      "Thought connectivity",
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Emotion suppression",
-      "Dream potentiation",
-      "Mindfulness",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Color enhancement",
-      "Visual acuity enhancement",
-      "Auditory acuity enhancement",
-      "Tactile intensification"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Pramiracetam
 *Source: https://psychonautwiki.org/wiki/Pramiracetam*
 

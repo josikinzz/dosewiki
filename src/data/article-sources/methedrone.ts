@@ -1,35 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Methedrone";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Methedrone.json","displayName":"Protest Kit","size":656},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methedrone.md","displayName":"TripSit Factsheets","size":258},{"id":"wikipedia","fileName":"WIKIPEDIA - Methedrone.md","displayName":"Wikipedia","size":11811}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methedrone.md","displayName":"TripSit Factsheets","size":258},{"id":"wikipedia","fileName":"WIKIPEDIA - Methedrone.md","displayName":"Wikipedia","size":11811}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/methedrone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Methedrone",
-  "name": "Methedrone",
-  "aliases": [
-    "bk-pmma"
-  ],
-  "aliasesStr": "bk-pmma",
-  "summary": "BK-PMMA Closely related to PMMA and others. Stimulant.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Methedrone
 *Source: TripSit Factsheets (tripsit.me)*
 

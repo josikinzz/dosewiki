@@ -1,68 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "α-PBP";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - α-PBP.json","displayName":"Protest Kit","size":1256},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PBP.md","displayName":"TripSit Factsheets","size":432},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PBP.md","displayName":"Wikipedia","size":568}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PBP.md","displayName":"TripSit Factsheets","size":432},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PBP.md","displayName":"Wikipedia","size":568}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/α-pbp",
-  "experiencesUrl": "https://www.reddit.com/search/?q=α-PBP",
-  "name": "α-PBP",
-  "aliases": [
-    "a-pbp",
-    "alpha-pbp"
-  ],
-  "aliasesStr": "a-pbp,alpha-pbp",
-  "summary": "Stimulant that is the homologue between α-PPP and α-PVP.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "10-25mg"
-        },
-        {
-          "name": "Common",
-          "value": "25-50mg"
-        },
-        {
-          "name": "Strong",
-          "value": "50mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.58 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 4.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# α-PBP
 *Source: TripSit Factsheets (tripsit.me)*
 

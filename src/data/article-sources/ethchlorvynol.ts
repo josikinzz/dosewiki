@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethchlorvynol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ethchlorvynol.md","displayName":"DrugBank","size":12318},{"id":"protestkit","fileName":"PROTESTKIT - Ethchlorvynol.json","displayName":"Protest Kit","size":1355},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethchlorvynol.md","displayName":"TripSit Factsheets","size":550},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethchlorvynol.md","displayName":"Wikipedia","size":4150}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ethchlorvynol.md","displayName":"DrugBank","size":12318},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethchlorvynol.md","displayName":"TripSit Factsheets","size":550},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethchlorvynol.md","displayName":"Wikipedia","size":4150}];
 export const contents: Record<string, string> = {
   "drugbank": `# Ethchlorvynol
 *Source: https://go.drugbank.com/drugs/DB00189*
@@ -748,67 +748,6 @@ Gamma-aminobutyric acid receptor subunit beta-2
 59149.895 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/placdyl",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Ethchlorvynol",
-  "name": "Ethchlorvynol",
-  "aliases": [
-    "ethchlorvnol",
-    "placidyl"
-  ],
-  "aliasesStr": "ethchlorvnol,placidyl",
-  "summary": "Sedative Hypnotic medication made in the 50's. It was used for short term help for insomnia (No longer than two weeks)",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "100-200mg"
-        },
-        {
-          "name": "Common",
-          "value": "200-500mg"
-        },
-        {
-          "name": "Strong",
-          "value": "500-750mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 9.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Ethchlorvynol
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aleph";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aleph.md","displayName":"Isomer Design","size":3524},{"id":"protestkit","fileName":"PROTESTKIT - Aleph.json","displayName":"Protest Kit","size":1313},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aleph.md","displayName":"TripSit Factsheets","size":493},{"id":"wikipedia","fileName":"WIKIPEDIA - Aleph.md","displayName":"Wikipedia","size":13184}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aleph.md","displayName":"Isomer Design","size":3524},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aleph.md","displayName":"TripSit Factsheets","size":493},{"id":"wikipedia","fileName":"WIKIPEDIA - Aleph.md","displayName":"Wikipedia","size":13184}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Aleph
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=3*
@@ -26,67 +26,6 @@ The 5 milligram experiment, briefly quoted from above, is the stuff of Chapter 1
 As it stands, ALEPH remains relatively unexplored. Its two positional isomers are entered here as ORTHO-DOT and META-DOT. Three higher homologues have been more thoroughly looked at, and the generic name ALEPH (the first letter of the Hebrew alphabet) was given this group on the basis that they might have extraordinary properties in common. But the real treasure came in the exploring of the 2-carbon homologues, the compounds that make up the 2C-T family. Here, there proved to be much less uncertainty as to reasonable dosages, and much more richness in the subjective nature of the experience.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/aleph",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Aleph",
-  "name": "Aleph",
-  "aliases": [
-    "dot",
-    "para-dot"
-  ],
-  "aliasesStr": "dot,para-dot",
-  "summary": "The first sulphur-containing Phenethylamine to have been evaluated for CNS activity for Stimulant or Psychedelic purposes.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "2-4mg"
-        },
-        {
-          "name": "Common",
-          "value": "4-6mg"
-        },
-        {
-          "name": "Strong",
-          "value": "6-12mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 10.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Aleph
 *Source: TripSit Factsheets (tripsit.me)*
 

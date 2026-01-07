@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "YOPO";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YOPO.md","displayName":"Drug Users Bible","size":4449},{"id":"protestkit","fileName":"PROTESTKIT - YOPO.json","displayName":"Protest Kit","size":940},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YOPO.md","displayName":"TripSit Factsheets","size":424},{"id":"wikipedia","fileName":"WIKIPEDIA - YOPO.md","displayName":"Wikipedia","size":1474}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YOPO.md","displayName":"Drug Users Bible","size":4449},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YOPO.md","displayName":"TripSit Factsheets","size":424},{"id":"wikipedia","fileName":"WIKIPEDIA - YOPO.md","displayName":"Wikipedia","size":1474}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Yopo
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -90,39 +90,6 @@ ceremonies, and similar threats to the waxy monkey frog (Phyllomedusa bicolour).
 I would strongly urge that these issues are taken seriously. For these reasons I will
 not be pursuing either of these avenues.
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/yopo",
-  "experiencesUrl": "https://www.reddit.com/search/?q=YOPO",
-  "name": "YOPO",
-  "aliases": [
-    "\\"anadenanthera",
-    "anadenanthera"
-  ],
-  "aliasesStr": "\\"anadenanthera,anadenanthera",
-  "summary": "Anadenanthera peregrina, also known as yopo, is a perennial tree native to the Caribbean and South America. It is an entheogen containing 5-MeO-DMT and DMT, and is used in healing ceremonies and rituals. It is also a source of dietary calcium.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# YOPO
 *Source: TripSit Factsheets (tripsit.me)*
 

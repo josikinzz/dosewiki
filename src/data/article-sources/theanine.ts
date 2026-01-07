@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Theanine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Theanine.md","displayName":"Drug Users Bible","size":3811},{"id":"protestkit","fileName":"PROTESTKIT - Theanine.json","displayName":"Protest Kit","size":2499},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Theanine.md","displayName":"PsychonautWiki","size":21975},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theanine.md","displayName":"TripSit Factsheets","size":494},{"id":"wikipedia","fileName":"WIKIPEDIA - Theanine.md","displayName":"Wikipedia","size":7438}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Theanine.md","displayName":"Drug Users Bible","size":3811},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Theanine.md","displayName":"PsychonautWiki","size":21975},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theanine.md","displayName":"TripSit Factsheets","size":494},{"id":"wikipedia","fileName":"WIKIPEDIA - Theanine.md","displayName":"Wikipedia","size":7438}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# L-Theanine
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -84,104 +84,6 @@ is higher in theanine content than other teas, from my experiences above I can
 certainly see why it would lend itself to this. Mindfulness, calmness and alertness are
 indeed words that align well with what was a gentle and pleasing sojourn.
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Theanine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Theanine",
-  "name": "Theanine",
-  "aliases": [
-    "l-theanine",
-    "l-γ-glutamylethylamide and n5-ethyl-l-glutamine"
-  ],
-  "aliasesStr": "l-theanine,l-γ-glutamylethylamide and n5-ethyl-l-glutamine",
-  "summary": "An Amino acid that is structural similar to Glutamine. Most report it as a relaxing agent without much sedation. Most commonly found tea. Usually mixed with Caffeine.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": [
-    "extremely low toxicity"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "after prolonged and repeated usage",
-    "half": "5 days",
-    "zero": "10 days"
-  },
-  "crossTolerances": [],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "50 mg"
-        },
-        {
-          "name": "Light",
-          "value": "75 - 175 mg"
-        },
-        {
-          "name": "Common",
-          "value": "175 - 300 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "300 - 500 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "500 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "1.0 - 3.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "3.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "6.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Motivation enhancement, Memory enhancement, Headache, Spontaneous bodily sensations, Analysis enhancement, Mindfulness, Stimulation, Sedation, Muscle relaxation, Anxiety suppression, Addiction suppression, Thought organization, Focus intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Headache",
-      "Stimulation",
-      "Sedation",
-      "Muscle relaxation"
-    ],
-    "Mental effects": [
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Analysis enhancement",
-      "Mindfulness",
-      "Anxiety suppression",
-      "Thought organization",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Spontaneous bodily sensations"
-    ],
-    "Uncategorized effects": [
-      "Addiction suppression"
-    ]
-  }
-}`,
   "psychonautwiki": `# Theanine
 *Source: https://psychonautwiki.org/wiki/Theanine*
 

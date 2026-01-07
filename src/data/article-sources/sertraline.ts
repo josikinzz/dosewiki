@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sertraline";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Sertraline.md","displayName":"DrugBank","size":33876},{"id":"protestkit","fileName":"PROTESTKIT - Sertraline.json","displayName":"Protest Kit","size":625},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Sertraline.md","displayName":"The Drug Classroom","size":50127},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sertraline.md","displayName":"TripSit Factsheets","size":134},{"id":"wikipedia","fileName":"WIKIPEDIA - Sertraline.md","displayName":"Wikipedia","size":30832}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Sertraline.md","displayName":"DrugBank","size":33876},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Sertraline.md","displayName":"The Drug Classroom","size":50127},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sertraline.md","displayName":"TripSit Factsheets","size":134},{"id":"wikipedia","fileName":"WIKIPEDIA - Sertraline.md","displayName":"Wikipedia","size":30832}];
 export const contents: Record<string, string> = {
   "drugbank": `# Sertraline
 *Source: https://go.drugbank.com/drugs/DB01104*
@@ -1733,35 +1733,6 @@ ATP-dependent translocase ABCB1
 Binds but does not produce a change in protein secondary structure
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/sertraline",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Sertraline",
-  "name": "Sertraline",
-  "aliases": [
-    "lustral",
-    "zoloft"
-  ],
-  "aliasesStr": "lustral,zoloft",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "thedrugclassroom": `# Sertraline
 *Source: https://thedrugclassroom.com/video/sertraline/*
 

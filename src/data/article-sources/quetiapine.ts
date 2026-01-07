@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Quetiapine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Quetiapine.md","displayName":"DrugBank","size":34436},{"id":"erowid","fileName":"EROWID - Quetiapine.md","displayName":"Erowid","size":2337},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Quetiapine.md","displayName":"Isomer Design","size":753},{"id":"protestkit","fileName":"PROTESTKIT - Quetiapine.json","displayName":"Protest Kit","size":2287},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Quetiapine.md","displayName":"PsychonautWiki","size":35444},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Quetiapine.md","displayName":"The Drug Classroom","size":73865},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Quetiapine.md","displayName":"TripSit Factsheets","size":447},{"id":"wikipedia","fileName":"WIKIPEDIA - Quetiapine.md","displayName":"Wikipedia","size":20071}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Quetiapine.md","displayName":"DrugBank","size":34436},{"id":"erowid","fileName":"EROWID - Quetiapine.md","displayName":"Erowid","size":2337},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Quetiapine.md","displayName":"Isomer Design","size":753},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Quetiapine.md","displayName":"PsychonautWiki","size":35444},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Quetiapine.md","displayName":"The Drug Classroom","size":73865},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Quetiapine.md","displayName":"TripSit Factsheets","size":447},{"id":"wikipedia","fileName":"WIKIPEDIA - Quetiapine.md","displayName":"Wikipedia","size":20071}];
 export const contents: Record<string, string> = {
   "drugbank": `# Quetiapine
 *Source: https://go.drugbank.com/drugs/DB01224*
@@ -1966,102 +1966,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q408535](https://www.wikidata.org/wiki/Q408535)
 - [Quetiapine](https://en.wikipedia.org/wiki/Quetiapine)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Quetiapine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Quetiapine",
-  "name": "Quetiapine",
-  "aliases": [
-    "seroquel"
-  ],
-  "aliasesStr": "seroquel",
-  "summary": "An atypical antipsychotic medication under the brand name Seroquel. Also used to treat insomnia and mood swings. This drug is very sedating and can stop/slow down psychedelic drug trips. Infrequently abused.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Dibenzothiazepine"
-    ],
-    "psychoactive": [
-      "Antipsychotic"
-    ]
-  },
-  "toxicity": [
-    "low toxicity"
-  ],
-  "addictionPotential": "moderately physically and psychologically addictive",
-  "tolerance": {
-    "full": "within a week of continuous use",
-    "half": null,
-    "zero": "7 - 14 days"
-  },
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "10 mg"
-        },
-        {
-          "name": "Light",
-          "value": "25 - 50 mg"
-        },
-        {
-          "name": "Common",
-          "value": "50 - 150 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "150 - 300 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "300 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "1.5 - 6.0 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "6.0 - 7.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 24.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "24.0 - 48.0 hours"
-        }
-      ],
-      "bioavailability": "100% - 100%"
-    }
-  ],
-  "interactions": null,
-  "effects": "sedation, dizziness, fatigue, constipation, dry mouth, headache, appetite change, increased blood pressure",
-  "categorized_effects": {
-    "Physical effects": [
-      "sedation",
-      "dizziness",
-      "fatigue",
-      "constipation",
-      "dry mouth",
-      "headache",
-      "appetite change",
-      "increased blood pressure"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Quetiapine
 *Source: https://psychonautwiki.org/wiki/Quetiapine*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "HOT-2";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-2.md","displayName":"Isomer Design","size":1518},{"id":"protestkit","fileName":"PROTESTKIT - HOT-2.json","displayName":"Protest Kit","size":2115},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - HOT-2.md","displayName":"The Drug Classroom","size":2047},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-2.md","displayName":"TripSit Factsheets","size":1173},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-2.md","displayName":"Wikipedia","size":1795}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-2.md","displayName":"Isomer Design","size":1518},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - HOT-2.md","displayName":"The Drug Classroom","size":2047},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-2.md","displayName":"TripSit Factsheets","size":1173},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-2.md","displayName":"Wikipedia","size":1795}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# HOT-2
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=87*
@@ -22,94 +22,6 @@ export const contents: Record<string, string> = {
 
 ## EXTENSIONS AND COMMENTARY
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/hot-2",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_HOT2.shtml",
-  "name": "HOT-2",
-  "aliases": [
-    "hot2"
-  ],
-  "aliasesStr": "hot2",
-  "summary": "A rather rare psychedelic phenylethylamine that is the hydroxylated version and prodrug for 2C-T-2.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "8mg"
-        },
-        {
-          "name": "Light",
-          "value": "10-12mg"
-        },
-        {
-          "name": "Common",
-          "value": "12-15mg"
-        },
-        {
-          "name": "Strong",
-          "value": "15-20mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "thedrugclassroom": `# HOT-2
 *Source: https://thedrugclassroom.com/video/hot-2/*
 

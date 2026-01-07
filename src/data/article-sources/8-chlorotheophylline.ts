@@ -1,45 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "8-Chlorotheophylline";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 8-Chlorotheophylline.json","displayName":"Protest Kit","size":840},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 8-Chlorotheophylline.md","displayName":"PsychonautWiki","size":2222},{"id":"wikipedia","fileName":"WIKIPEDIA - 8-Chlorotheophylline.md","displayName":"Wikipedia","size":965}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 8-Chlorotheophylline.md","displayName":"PsychonautWiki","size":2222},{"id":"wikipedia","fileName":"WIKIPEDIA - 8-Chlorotheophylline.md","displayName":"Wikipedia","size":965}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/8-Chlorotheophylline",
-  "experiencesUrl": "https://www.reddit.com/search/?q=8-Chlorotheophylline",
-  "name": "8-Chlorotheophylline",
-  "aliases": [
-    "8-ctp"
-  ],
-  "aliasesStr": "8-ctp",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Xanthines"
-    ],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": "",
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# 8-Chlorotheophylline
 *Source: https://psychonautwiki.org/wiki/8-Chlorotheophylline*
 

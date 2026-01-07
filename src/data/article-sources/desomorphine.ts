@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Desomorphine";
-export const sources = [{"id":"erowid","fileName":"EROWID - Desomorphine.md","displayName":"Erowid","size":15445},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Desomorphine.md","displayName":"Isomer Design","size":776},{"id":"protestkit","fileName":"PROTESTKIT - Desomorphine.json","displayName":"Protest Kit","size":722},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Desomorphine.md","displayName":"PsychonautWiki","size":30893},{"id":"wikipedia","fileName":"WIKIPEDIA - Desomorphine.md","displayName":"Wikipedia","size":9835}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Desomorphine.md","displayName":"Erowid","size":15445},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Desomorphine.md","displayName":"Isomer Design","size":776},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Desomorphine.md","displayName":"PsychonautWiki","size":30893},{"id":"wikipedia","fileName":"WIKIPEDIA - Desomorphine.md","displayName":"Wikipedia","size":9835}];
 export const contents: Record<string, string> = {
   "erowid": `# Desomorphine
 *Source: https://erowid.org/chemicals/desomorphine/desomorphine.shtml*
@@ -234,32 +234,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q422163](https://www.wikidata.org/wiki/Q422163)
 - [Desomorphine](https://en.wikipedia.org/wiki/Desomorphine)
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Desomorphine_(Krokodil)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Desomorphine+(Krokodil)",
-  "name": "Desomorphine (Krokodil)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Desomorphine
 *Source: https://psychonautwiki.org/wiki/Desomorphine*
 

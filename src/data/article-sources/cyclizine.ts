@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclizine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Cyclizine.md","displayName":"DrugBank","size":14984},{"id":"protestkit","fileName":"PROTESTKIT - Cyclizine.json","displayName":"Protest Kit","size":1259},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclizine.md","displayName":"TripSit Factsheets","size":798},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclizine.md","displayName":"Wikipedia","size":4434}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Cyclizine.md","displayName":"DrugBank","size":14984},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclizine.md","displayName":"TripSit Factsheets","size":798},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclizine.md","displayName":"Wikipedia","size":4434}];
 export const contents: Record<string, string> = {
   "drugbank": `# Cyclizine
 *Source: https://go.drugbank.com/drugs/DB01176*
@@ -865,56 +865,6 @@ Albumin
 69365.94 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/cyclizine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Cyclizine",
-  "name": "Cyclizine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "First generation antihistamine and anticholinergic drug used to combat nausea and vomiting. Causes drowsiness. Like most antihistamines in high doses it induces delirium and vivid realistic hallucinations. Probably uncomfortable and not enjoyable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "25-50mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "14.0 - 14.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Cyclizine
 *Source: TripSit Factsheets (tripsit.me)*
 

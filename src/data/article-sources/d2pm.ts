@@ -1,67 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "D2PM";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - D2PM.json","displayName":"Protest Kit","size":1247},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - D2PM.md","displayName":"The Drug Classroom","size":9118},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - D2PM.md","displayName":"TripSit Factsheets","size":580},{"id":"wikipedia","fileName":"WIKIPEDIA - D2PM.md","displayName":"Wikipedia","size":802}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - D2PM.md","displayName":"The Drug Classroom","size":9118},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - D2PM.md","displayName":"TripSit Factsheets","size":580},{"id":"wikipedia","fileName":"WIKIPEDIA - D2PM.md","displayName":"Wikipedia","size":802}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/d2pm",
-  "experiencesUrl": "https://www.reddit.com/search/?q=D2PM",
-  "name": "D2PM",
-  "aliases": [
-    "diphenylprolinol"
-  ],
-  "aliasesStr": "diphenylprolinol",
-  "summary": "An NDRI, which is reported as being rather lackluster.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "15-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-35mg"
-        },
-        {
-          "name": "Strong",
-          "value": "35-50mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "2.0 - 5.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "thedrugclassroom": `# Diphenylprolinol (D2PM)
 *Source: https://thedrugclassroom.com/video/diphenylprolinol-d2pm/*
 

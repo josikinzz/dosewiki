@@ -1,35 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Mephtetramine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Mephtetramine.json","displayName":"Protest Kit","size":798},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mephtetramine.md","displayName":"TripSit Factsheets","size":416},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephtetramine.md","displayName":"Wikipedia","size":2625}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mephtetramine.md","displayName":"TripSit Factsheets","size":416},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephtetramine.md","displayName":"Wikipedia","size":2625}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/mephtetramine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Mephtetramine",
-  "name": "Mephtetramine",
-  "aliases": [
-    "mtta"
-  ],
-  "aliasesStr": "mtta",
-  "summary": "Has a Phenpropylamine backbone like Methylphenidate. Seems barely active past negative physical effects. Only reports that include activity past the prior were mixing it with another substance.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Mephtetramine
 *Source: TripSit Factsheets (tripsit.me)*
 

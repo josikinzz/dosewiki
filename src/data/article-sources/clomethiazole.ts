@@ -1,78 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Clomethiazole";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Clomethiazole.json","displayName":"Protest Kit","size":1766},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clomethiazole.md","displayName":"TripSit Factsheets","size":771},{"id":"wikipedia","fileName":"WIKIPEDIA - Clomethiazole.md","displayName":"Wikipedia","size":3803}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clomethiazole.md","displayName":"TripSit Factsheets","size":771},{"id":"wikipedia","fileName":"WIKIPEDIA - Clomethiazole.md","displayName":"Wikipedia","size":3803}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/clomethiazole",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Clomethiazole",
-  "name": "Clomethiazole",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Structurally related to Thiamine (vitamin B1), but with binding potential at the GABAa site, which causes it to produce effects most like those of a barbiturate: an effective sedative and hypnotic. Originally developed by Hoffman-LaRoche in the 1930s, it has seen use as a treatment for acute alcohol withdrawal.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "100mg"
-        },
-        {
-          "name": "Light",
-          "value": "100-150mg"
-        },
-        {
-          "name": "Common",
-          "value": "150-200mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "200mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.67 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 16.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
-  "categorized_effects": {
-    "Physical effects": [
-      "Sedative",
-      "Muscle Relaxant",
-      "Dystaxia"
-    ],
-    "Mental effects": [
-      "Anxiolytic",
-      "Amnesia"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": [
-      "Hypnotic."
-    ]
-  }
-}`,
   "tripsit-factsheets": `# Clomethiazole
 *Source: TripSit Factsheets (tripsit.me)*
 

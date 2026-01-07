@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Glutethimide";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Glutethimide.md","displayName":"DrugBank","size":12393},{"id":"protestkit","fileName":"PROTESTKIT - Glutethimide.json","displayName":"Protest Kit","size":1482},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glutethimide.md","displayName":"TripSit Factsheets","size":555},{"id":"wikipedia","fileName":"WIKIPEDIA - Glutethimide.md","displayName":"Wikipedia","size":4210}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Glutethimide.md","displayName":"DrugBank","size":12393},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glutethimide.md","displayName":"TripSit Factsheets","size":555},{"id":"wikipedia","fileName":"WIKIPEDIA - Glutethimide.md","displayName":"Wikipedia","size":4210}];
 export const contents: Record<string, string> = {
   "drugbank": `# Glutethimide
 *Source: https://go.drugbank.com/drugs/DB01437*
@@ -789,69 +789,6 @@ Cholesterol side-chain cleavage enzyme, mitochondrial
 60101.87 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/glutethimide",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Glutethimide",
-  "name": "Glutethimide",
-  "aliases": [
-    "doriden",
-    "elrodorm",
-    "glimid",
-    "noxyron"
-  ],
-  "aliasesStr": "doriden,elrodorm,glimid,noxyron",
-  "summary": "Is a hypnotic sedative that was introduced in 1954, as a \\"safe\\" alternative to barbiturates to treat insomnia. Anecdotally long term use has had effects similar to withdrawal, while still on a stable dose of the drug.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "250mg"
-        },
-        {
-          "name": "Common",
-          "value": "500mg"
-        },
-        {
-          "name": "Strong",
-          "value": "750mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "2.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Glutethimide
 *Source: TripSit Factsheets (tripsit.me)*
 

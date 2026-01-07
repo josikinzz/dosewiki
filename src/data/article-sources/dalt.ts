@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DALT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DALT.md","displayName":"Isomer Design","size":4072},{"id":"protestkit","fileName":"PROTESTKIT - DALT.json","displayName":"Protest Kit","size":1967},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DALT.md","displayName":"TripSit Factsheets","size":724},{"id":"wikipedia","fileName":"WIKIPEDIA - DALT.md","displayName":"Wikipedia","size":1318}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DALT.md","displayName":"Isomer Design","size":4072},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DALT.md","displayName":"TripSit Factsheets","size":724},{"id":"wikipedia","fileName":"WIKIPEDIA - DALT.md","displayName":"Wikipedia","size":1318}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DALT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=57*
@@ -24,87 +24,6 @@ Most listed potencies are based on the generalization that the activity of DALT 
 So, the early and only discovery report of DALT mentioned neither the synthetic preparation, the dosage taken, the route of administration, nor the effects observed. It merely stated that the activity had been found. I have explored it up to 42 milligrams, I was to a +1 in an hour, back to baseline at the fourth hour, and there was nothing that caught my fancy.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/dalt",
-  "experiencesUrl": "https://www.reddit.com/search/?q=DALT",
-  "name": "DALT",
-  "aliases": [
-    "diallyltryptamine",
-    "n,n-diallyltryptamine"
-  ],
-  "aliasesStr": "diallyltryptamine,n,n-diallyltryptamine",
-  "summary": "Psychedelic drug of the tryptamine class.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "20-40mg"
-        },
-        {
-          "name": "Common",
-          "value": "40-60mg"
-        },
-        {
-          "name": "Strong",
-          "value": "60mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# DALT
 *Source: TripSit Factsheets (tripsit.me)*
 

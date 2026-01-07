@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Picamilon";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Picamilon.md","displayName":"Drug Users Bible","size":1142},{"id":"protestkit","fileName":"PROTESTKIT - Picamilon.json","displayName":"Protest Kit","size":1427},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Picamilon.md","displayName":"TripSit Factsheets","size":714},{"id":"wikipedia","fileName":"WIKIPEDIA - Picamilon.md","displayName":"Wikipedia","size":2567}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Picamilon.md","displayName":"Drug Users Bible","size":1142},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Picamilon.md","displayName":"TripSit Factsheets","size":714},{"id":"wikipedia","fileName":"WIKIPEDIA - Picamilon.md","displayName":"Wikipedia","size":2567}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Picamilon
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -33,64 +33,6 @@ traction.
 
 Like phenibut, it could be worth pursuing further research at a later date.
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/picamilon",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Picamilon.shtml",
-  "name": "Picamilon",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "An analogue of GABA that does pass the brain blood barrier, which is then hydrolyzed into GABA and Niacin. In which the GABA could produce an anxiolytic effect. The Niacin as a vasodilator. And is usually used as part of a nootropic stack.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "40-80mg"
-        },
-        {
-          "name": "Common",
-          "value": "80-140mg"
-        },
-        {
-          "name": "Strong",
-          "value": "140-250mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Picamilon
 *Source: TripSit Factsheets (tripsit.me)*
 

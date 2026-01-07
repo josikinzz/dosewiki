@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bupropion";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Bupropion.md","displayName":"DrugBank","size":41806},{"id":"protestkit","fileName":"PROTESTKIT - Bupropion.json","displayName":"Protest Kit","size":1557},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Bupropion.md","displayName":"The Drug Classroom","size":35269},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bupropion.md","displayName":"TripSit Factsheets","size":529},{"id":"wikipedia","fileName":"WIKIPEDIA - Bupropion.md","displayName":"Wikipedia","size":33206}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Bupropion.md","displayName":"DrugBank","size":41806},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Bupropion.md","displayName":"The Drug Classroom","size":35269},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bupropion.md","displayName":"TripSit Factsheets","size":529},{"id":"wikipedia","fileName":"WIKIPEDIA - Bupropion.md","displayName":"Wikipedia","size":33206}];
 export const contents: Record<string, string> = {
   "drugbank": `# Bupropion
 *Source: https://go.drugbank.com/drugs/DB01156*
@@ -1658,65 +1658,6 @@ Solute carrier family 22 member 2
 Information in the literature is limited regarding this enzyme action, however the product monograph suggests it is a minor substrate of CYP2C9.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/bupropion",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Bupropion",
-  "name": "Bupropion",
-  "aliases": [
-    "amfebutamone",
-    "wellbutrin",
-    "zyban"
-  ],
-  "aliasesStr": "amfebutamone,wellbutrin,zyban",
-  "summary": "A frequently prescribed atypical antidepressant. Occasionally prescribed as an aid to smoking cessation. May lower seizure threshold in predisposed individuals. Poorly understood mechanism of action, probably an NDRI. Avoid combination with other drugs.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Metabolites",
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "20.0 - 37.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    },
-    {
-      "name": "Parent",
-      "duration": [
-        {
-          "name": "Duration",
-          "value": "11.0 - 21.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Mild - moderate increase in motor activity and agitation/excitement",
-  "categorized_effects": {
-    "Physical effects": [
-      "Mild - moderate increase in motor activity and agitation/excitement"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "thedrugclassroom": `# Bupropion
 *Source: https://thedrugclassroom.com/video/bupropion/*
 

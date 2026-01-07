@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methamnetamine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methamnetamine.md","displayName":"Drug Users Bible","size":5358},{"id":"protestkit","fileName":"PROTESTKIT - Methamnetamine.json","displayName":"Protest Kit","size":1505},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methamnetamine.md","displayName":"TripSit Factsheets","size":604},{"id":"wikipedia","fileName":"WIKIPEDIA - Methamnetamine.md","displayName":"Wikipedia","size":791}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methamnetamine.md","displayName":"Drug Users Bible","size":5358},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methamnetamine.md","displayName":"TripSit Factsheets","size":604},{"id":"wikipedia","fileName":"WIKIPEDIA - Methamnetamine.md","displayName":"Wikipedia","size":791}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# MNA
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -167,72 +167,6 @@ the following year, further opportunities to sample it didn’t materialize.
 [Note: The image above (left) is a partial screenshot as taken from the website of
 popular vendor Chemical Wire, circa 2016.]
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/methamnetamine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Methamnetamine",
-  "name": "Methamnetamine",
-  "aliases": [
-    "methylnaphetamine",
-    "mnt",
-    "n-methyl-pal-287"
-  ],
-  "aliasesStr": "methylnaphetamine,mnt,n-methyl-pal-287",
-  "summary": "A selective serotonin releaser, which also shows some light psychedelic activity. Almost always taken with a stimulant, to cause euphoric effects.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "60-80mg"
-        },
-        {
-          "name": "Common",
-          "value": "80-120mg"
-        },
-        {
-          "name": "Strong",
-          "value": "120-150mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "150mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "3.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Methamnetamine
 *Source: TripSit Factsheets (tripsit.me)*
 

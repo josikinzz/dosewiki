@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Progesterone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Progesterone.md","displayName":"DrugBank","size":47970},{"id":"protestkit","fileName":"PROTESTKIT - Progesterone.json","displayName":"Protest Kit","size":2692},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Progesterone.md","displayName":"PsychonautWiki","size":17173},{"id":"wikipedia","fileName":"WIKIPEDIA - Progesterone.md","displayName":"Wikipedia","size":34510}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Progesterone.md","displayName":"DrugBank","size":47970},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Progesterone.md","displayName":"PsychonautWiki","size":17173},{"id":"wikipedia","fileName":"WIKIPEDIA - Progesterone.md","displayName":"Wikipedia","size":34510}];
 export const contents: Record<string, string> = {
   "drugbank": `# Progesterone
 *Source: https://go.drugbank.com/drugs/DB00396*
@@ -2275,131 +2275,6 @@ Solute carrier organic anion transporter family member 1B3
 Data regarding this transporter activity are limited to in vitro studies.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Progesterone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Progesterone",
-  "name": "Progesterone",
-  "aliases": [
-    "p4",
-    "pregnenedione"
-  ],
-  "aliasesStr": "p4,pregnenedione",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Steroid"
-    ],
-    "psychoactive": [
-      "Depressant"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "100 mg"
-        },
-        {
-          "name": "Light",
-          "value": "100 - 200 mg"
-        },
-        {
-          "name": "Common",
-          "value": "200 - 400 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "400 - 600 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "600 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "4.0 - 6.0 hours"
-        }
-      ],
-      "bioavailability": "10%"
-    },
-    {
-      "name": "Rectal",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "100 mg"
-        },
-        {
-          "name": "Light",
-          "value": "100 - 200 mg"
-        },
-        {
-          "name": "Common",
-          "value": "200 - 400 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "400 - 600 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "600 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Total",
-          "value": "8.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "6.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Dizziness, Physical euphoria, Increased libido, Mindfulness, Thought deceleration, Sedation, Motor control loss, Pain relief, Anxiety suppression, Increased bodily temperature, Amnesia, Sleepiness, Breast growth",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dizziness",
-      "Physical euphoria",
-      "Sedation",
-      "Motor control loss",
-      "Pain relief",
-      "Increased bodily temperature",
-      "Sleepiness",
-      "Breast growth"
-    ],
-    "Mental effects": [
-      "Mindfulness",
-      "Thought deceleration",
-      "Anxiety suppression",
-      "Amnesia"
-    ],
-    "Sensory effects": [
-      "Increased libido"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Progesterone
 *Source: https://psychonautwiki.org/wiki/Progesterone*
 

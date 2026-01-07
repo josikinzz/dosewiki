@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AM-694";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-694.md","displayName":"Drug Users Bible","size":1387},{"id":"protestkit","fileName":"PROTESTKIT - AM-694.json","displayName":"Protest Kit","size":671},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-694.md","displayName":"Wikipedia","size":912}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-694.md","displayName":"Drug Users Bible","size":1387},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-694.md","displayName":"Wikipedia","size":912}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# AM-694
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -37,32 +37,6 @@ Finally, some recent reports suggest that AM-694 may metabolise into the highly
 toxic fluoroacetic acid when consumed orally. This RoA should therefore be strictly
 avoided.
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/AM-694",
-  "experiencesUrl": "https://www.reddit.com/search/?q=AM-694",
-  "name": "AM-694",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "wikipedia": `# AM-694
 *Source: https://en.wikipedia.org/wiki/AM-694*
 

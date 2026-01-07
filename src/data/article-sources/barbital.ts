@@ -1,53 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Barbital";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Barbital.json","displayName":"Protest Kit","size":1016},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Barbital.md","displayName":"TripSit Factsheets","size":421},{"id":"wikipedia","fileName":"WIKIPEDIA - Barbital.md","displayName":"Wikipedia","size":4762}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Barbital.md","displayName":"TripSit Factsheets","size":421},{"id":"wikipedia","fileName":"WIKIPEDIA - Barbital.md","displayName":"Wikipedia","size":4762}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/barbital",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Barbital",
-  "name": "Barbital",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "The first commercially available barbiturate. Was used commonly as a sleeping aid until the 1950s.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "650-970mg."
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 0.5 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "6.0 - 12.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Barbital
 *Source: TripSit Factsheets (tripsit.me)*
 

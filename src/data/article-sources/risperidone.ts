@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Risperidone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Risperidone.md","displayName":"DrugBank","size":35512},{"id":"erowid","fileName":"EROWID - Risperidone.md","displayName":"Erowid","size":1086},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Risperidone.md","displayName":"Isomer Design","size":835},{"id":"protestkit","fileName":"PROTESTKIT - Risperidone.json","displayName":"Protest Kit","size":2401},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Risperidone.md","displayName":"PsychonautWiki","size":7971},{"id":"wikipedia","fileName":"WIKIPEDIA - Risperidone.md","displayName":"Wikipedia","size":15058}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Risperidone.md","displayName":"DrugBank","size":35512},{"id":"erowid","fileName":"EROWID - Risperidone.md","displayName":"Erowid","size":1086},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Risperidone.md","displayName":"Isomer Design","size":835},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Risperidone.md","displayName":"PsychonautWiki","size":7971},{"id":"wikipedia","fileName":"WIKIPEDIA - Risperidone.md","displayName":"Wikipedia","size":15058}];
 export const contents: Record<string, string> = {
   "drugbank": `# Risperidone
 *Source: https://go.drugbank.com/drugs/DB00734*
@@ -2052,107 +2052,6 @@ This medication should only be used under direct medical supervision. Consult he
 - [Q412443](https://www.wikidata.org/wiki/Q412443)
 - [Risperidone](https://en.wikipedia.org/wiki/Risperidone)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Risperidone",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Risperidone",
-  "name": "Risperidone",
-  "aliases": [
-    "risperdal"
-  ],
-  "aliasesStr": "risperdal",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Benzisoxazole"
-    ],
-    "psychoactive": [
-      "Antipsychotic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "0.25 mg"
-        },
-        {
-          "name": "Light",
-          "value": "0.5 - 1 mg"
-        },
-        {
-          "name": "Common",
-          "value": "1 - 3 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "3 - 6 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "6 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.33 - 1.0 hours"
-        },
-        {
-          "name": "Peak",
-          "value": "2.0 - 8.0 hours"
-        },
-        {
-          "name": "Offset",
-          "value": "2.0 - 4.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "12.0 - 20.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "12.0 - 24.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Emotion suppression, Dizziness, Nausea suppression, Thought deceleration, Sedation, Motor control loss, Increased heart rate, Anxiety suppression, Amnesia, Sleepiness, Decreased libido, Focus suppression, Apathy, Appetite intensification, Analysis depression, Creativity depression, Language depression, Motivation depression",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dizziness",
-      "Nausea suppression",
-      "Sedation",
-      "Motor control loss",
-      "Increased heart rate",
-      "Sleepiness",
-      "Appetite intensification"
-    ],
-    "Mental effects": [
-      "Emotion suppression",
-      "Thought deceleration",
-      "Anxiety suppression",
-      "Amnesia",
-      "Focus suppression",
-      "Apathy",
-      "Analysis depression",
-      "Creativity depression",
-      "Language depression",
-      "Motivation depression"
-    ],
-    "Sensory effects": [
-      "Decreased libido"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Risperidone
 *Source: https://psychonautwiki.org/wiki/Risperidone*
 

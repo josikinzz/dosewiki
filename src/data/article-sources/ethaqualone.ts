@@ -1,76 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethaqualone";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Ethaqualone.json","displayName":"Protest Kit","size":1528},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethaqualone.md","displayName":"TripSit Factsheets","size":735},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethaqualone.md","displayName":"Wikipedia","size":1605}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethaqualone.md","displayName":"TripSit Factsheets","size":735},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethaqualone.md","displayName":"Wikipedia","size":1605}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/ethaqualone",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Etaqualone.shtml",
-  "name": "Ethaqualone",
-  "aliases": [
-    "etaqualone"
-  ],
-  "aliasesStr": "etaqualone",
-  "summary": "Analogue of Methaqualone that was mostly marketed in France. Slightly weaker and shorter acting than the prior.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "100-175mg"
-        },
-        {
-          "name": "Common",
-          "value": "175-300mg"
-        },
-        {
-          "name": "Strong",
-          "value": "300-450mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 6.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Anxiolytic, Sedative, Muscle Relaxant, Amnesia, Dystaxia, Hypnotic.",
-  "categorized_effects": {
-    "Physical effects": [
-      "Sedative",
-      "Muscle Relaxant",
-      "Dystaxia"
-    ],
-    "Mental effects": [
-      "Anxiolytic",
-      "Amnesia"
-    ],
-    "Sensory effects": [],
-    "Uncategorized effects": [
-      "Hypnotic."
-    ]
-  }
-}`,
   "tripsit-factsheets": `# Ethaqualone
 *Source: TripSit Factsheets (tripsit.me)*
 

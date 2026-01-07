@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Proscaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Proscaline.md","displayName":"Isomer Design","size":3215},{"id":"protestkit","fileName":"PROTESTKIT - Proscaline.json","displayName":"Protest Kit","size":2438},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Proscaline.md","displayName":"PsychonautWiki","size":15584},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Proscaline.md","displayName":"TripSit Factsheets","size":653},{"id":"wikipedia","fileName":"WIKIPEDIA - Proscaline.md","displayName":"Wikipedia","size":3262}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Proscaline.md","displayName":"Isomer Design","size":3215},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Proscaline.md","displayName":"PsychonautWiki","size":15584},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Proscaline.md","displayName":"TripSit Factsheets","size":653},{"id":"wikipedia","fileName":"WIKIPEDIA - Proscaline.md","displayName":"Wikipedia","size":3262}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Proscaline
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=140*
@@ -28,104 +28,6 @@ A solution of 4.7 g 3,5-dimethoxy-4-n-propoxyphenylacetonitrile in 20 mL THF was
 The amphetamine homologue of proscaline, 3,5-dimethoxy-4-n-propoxyamphetamine is an unexplored compound. Its synthesis could not be achieved in parallel to the description given for P. Rather, the propylation of syringaldehyde to give 3,5-dimethoxy-4-n-propoxybenzaldehyde, followed by coupling with nitroethane and the reduction of the formed nitrostyrene with lithium aluminum hydride would be the logical process. Following the reasoning given under E, the initials for this base would be 3C-P, and I would guess it would be active, and a psychedelic, in the 20 to 40 milligram range.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Proscaline",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Proscaline",
-  "name": "Proscaline",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A very uncommon psychedelic stimulant and phenethylamine and analogue on mescaline with similar effects. Roughly 5-7 times more potent than mescaline by weight.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": [
-    "no negative health effects attributed to trying this drug"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "almost immediately after ingestion",
-    "half": "3 days",
-    "zero": "7 days"
-  },
-  "crossTolerances": [
-    "psychedelic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "10 mg"
-        },
-        {
-          "name": "Light",
-          "value": "15 - 30 mg"
-        },
-        {
-          "name": "Common",
-          "value": "30 - 40 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "40 - 60 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "60 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 12.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "3.0 - 5.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "psychonautwiki": `# Proscaline
 *Source: https://psychonautwiki.org/wiki/Proscaline*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Scopolamine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Scopolamine.md","displayName":"DrugBank","size":37478},{"id":"protestkit","fileName":"PROTESTKIT - Scopolamine.json","displayName":"Protest Kit","size":801},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Scopolamine.md","displayName":"TripSit Factsheets","size":535},{"id":"wikipedia","fileName":"WIKIPEDIA - Scopolamine.md","displayName":"Wikipedia","size":17517}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Scopolamine.md","displayName":"DrugBank","size":37478},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Scopolamine.md","displayName":"TripSit Factsheets","size":535},{"id":"wikipedia","fileName":"WIKIPEDIA - Scopolamine.md","displayName":"Wikipedia","size":17517}];
 export const contents: Record<string, string> = {
   "drugbank": `# Scopolamine
 *Source: https://go.drugbank.com/drugs/DB00747*
@@ -1755,36 +1755,6 @@ Cytochrome P450 3A4
 The likely metabolism of scopolamine by CYP3A4 is based on in vitro drug metabolism studies and in vivo pharmacokinetic studies using the known CYP3A4 inhibitor grapefruit juice.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/scopolamine",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Scopolamine.shtml",
-  "name": "Scopolamine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "The main active compound in datura, medium and high doses have serious side effects and cause extremely unpleasant deleriant hallucinations. Avoid it.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Benzodiazepines"
-    ],
-    "psychoactive": [
-      "Depressant"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Scopolamine
 *Source: TripSit Factsheets (tripsit.me)*
 

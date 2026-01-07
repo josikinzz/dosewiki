@@ -1,65 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "GABA";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - GABA.json","displayName":"Protest Kit","size":1276},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GABA.md","displayName":"TripSit Factsheets","size":548},{"id":"wikipedia","fileName":"WIKIPEDIA - GABA.md","displayName":"Wikipedia","size":13594}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GABA.md","displayName":"TripSit Factsheets","size":548},{"id":"wikipedia","fileName":"WIKIPEDIA - GABA.md","displayName":"Wikipedia","size":13594}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/gaba",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_GABA.shtml",
-  "name": "GABA",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Gamma-Aminobutyric Acid. Supplement used in calming some down. Does not pass the brain blood barrier.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "200-400mg"
-        },
-        {
-          "name": "Common",
-          "value": "400-800mg"
-        },
-        {
-          "name": "Strong",
-          "value": "800-1600mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.25 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "5.0 - 8.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 2.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# GABA
 *Source: TripSit Factsheets (tripsit.me)*
 

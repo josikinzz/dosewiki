@@ -1,71 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Theobromine";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Theobromine.json","displayName":"Protest Kit","size":1677},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theobromine.md","displayName":"TripSit Factsheets","size":670},{"id":"wikipedia","fileName":"WIKIPEDIA - Theobromine.md","displayName":"Wikipedia","size":5307}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theobromine.md","displayName":"TripSit Factsheets","size":670},{"id":"wikipedia","fileName":"WIKIPEDIA - Theobromine.md","displayName":"Wikipedia","size":5307}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/theobromine",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Theobromine",
-  "name": "Theobromine",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Theobromine is the principal bitter alkaloid of the cacao bean. It has been used in various pharmaceutical products as vasodilator, diuretic and as heart stimulant. Theobromine is consumed in cocoa, chocolate and in various forms of chocolate-based foods. It is also present in small amounts in green coffee beans, tea, mate and the kola nut.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "100-200mg"
-        },
-        {
-          "name": "Common",
-          "value": "200-300mg"
-        },
-        {
-          "name": "Strong",
-          "value": "300-600mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "600mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "2.0 - 3.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "30.0 - 40.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "elevated heart rate, vasodilation, sweating, trembling, headaches",
-  "categorized_effects": {
-    "Physical effects": [
-      "elevated heart rate",
-      "vasodilation",
-      "sweating",
-      "trembling",
-      "headaches"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Theobromine
 *Source: TripSit Factsheets (tripsit.me)*
 

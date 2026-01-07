@@ -1,59 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Khat";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Khat.json","displayName":"Protest Kit","size":1220},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Khat.md","displayName":"TripSit Factsheets","size":452},{"id":"wikipedia","fileName":"WIKIPEDIA - Khat.md","displayName":"Wikipedia","size":36587}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Khat.md","displayName":"TripSit Factsheets","size":452},{"id":"wikipedia","fileName":"WIKIPEDIA - Khat.md","displayName":"Wikipedia","size":36587}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/khat",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Khat",
-  "name": "Khat",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A shrub whose leaves contain Cathinone and Cathine, they are mostly chewed for the stimulant effect they provide. Very long history of human use.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.25 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "0.5 - 2.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 10.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Khat
 *Source: TripSit Factsheets (tripsit.me)*
 

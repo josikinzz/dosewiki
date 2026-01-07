@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AM-2201";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-2201.md","displayName":"Drug Users Bible","size":2502},{"id":"protestkit","fileName":"PROTESTKIT - AM-2201.json","displayName":"Protest Kit","size":1722},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AM-2201.md","displayName":"TripSit Factsheets","size":559},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-2201.md","displayName":"Wikipedia","size":1291}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-2201.md","displayName":"Drug Users Bible","size":2502},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AM-2201.md","displayName":"TripSit Factsheets","size":559},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-2201.md","displayName":"Wikipedia","size":1291}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# AM-2201
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -68,83 +68,6 @@ This was one of the cannabinoids which was central to the surge of addiction
 amongst the homeless in British cities circa 2017
 \`\`\`
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/am-2201",
-  "experiencesUrl": "https://www.reddit.com/search/?q=AM-2201",
-  "name": "AM-2201",
-  "aliases": [
-    "am2201"
-  ],
-  "aliasesStr": "am2201",
-  "summary": "A synthetic cannabanoid that is very potent. Active doses start at around 250ug's. Please be cautious with this substance. It has also been noted that it can cause convulsions.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Vapourized",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "250-500ug"
-        },
-        {
-          "name": "Common",
-          "value": "500-1000ug"
-        },
-        {
-          "name": "Strong",
-          "value": "1000-2000ug"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 3.0 minutes"
-        },
-        {
-          "name": "Duration",
-          "value": "30.0 - 90.0 minutes"
-        },
-        {
-          "name": "After effects",
-          "value": "15.0 - 60.0 minutes"
-        }
-      ]
-    },
-    {
-      "name": "Oral",
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "15.0 - 30.0 minutes"
-        },
-        {
-          "name": "Duration",
-          "value": "60.0 - 180.0 minutes"
-        },
-        {
-          "name": "After effects",
-          "value": "15.0 - 60.0 minutes"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# AM-2201
 *Source: TripSit Factsheets (tripsit.me)*
 

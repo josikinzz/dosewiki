@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Piracetam";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Piracetam.md","displayName":"DrugBank","size":19676},{"id":"erowid","fileName":"EROWID - Piracetam.md","displayName":"Erowid","size":8132},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Piracetam.md","displayName":"Isomer Design","size":622},{"id":"protestkit","fileName":"PROTESTKIT - Piracetam.json","displayName":"Protest Kit","size":2680},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Piracetam.md","displayName":"PsychonautWiki","size":16728},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Piracetam.md","displayName":"TripSit Factsheets","size":453},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Piracetam.md","displayName":"TripSit Wiki","size":5564},{"id":"wikipedia","fileName":"WIKIPEDIA - Piracetam.md","displayName":"Wikipedia","size":7309}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Piracetam.md","displayName":"DrugBank","size":19676},{"id":"erowid","fileName":"EROWID - Piracetam.md","displayName":"Erowid","size":8132},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Piracetam.md","displayName":"Isomer Design","size":622},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Piracetam.md","displayName":"PsychonautWiki","size":16728},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Piracetam.md","displayName":"TripSit Factsheets","size":453},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Piracetam.md","displayName":"TripSit Wiki","size":5564},{"id":"wikipedia","fileName":"WIKIPEDIA - Piracetam.md","displayName":"Wikipedia","size":7309}];
 export const contents: Record<string, string> = {
   "drugbank": `# Piracetam
 *Source: https://go.drugbank.com/drugs/DB09210*
@@ -1121,107 +1121,6 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 - [Q410069](https://www.wikidata.org/wiki/Q410069)
 - [Piracetam](https://en.wikipedia.org/wiki/Piracetam)
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Piracetam",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Piracetam.shtml",
-  "name": "Piracetam",
-  "aliases": [
-    "biotropil",
-    "breinox",
-    "geratam",
-    "lucetam",
-    "noostan",
-    "nootropil",
-    "oikamid"
-  ],
-  "aliasesStr": "biotropil,breinox,geratam,lucetam,noostan,nootropil,oikamid",
-  "summary": "A racetam nootropic claimed by many to have cognitive benefits however this has never been strongly supported in healthy individuals. Prescribed in the UK as a treatment for myoclonus. Potentially an ampakine. One of the first popular 'nootropics.'",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Racetams"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": "not addictive with a low potential for abuse",
-  "tolerance": {
-    "full": "develops with prolonged and repeated use",
-    "half": "3 - 7 days",
-    "zero": "1 - 2 weeks"
-  },
-  "crossTolerances": [
-    "racetam",
-    "nootropic"
-  ],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "0.25 - 0.5g"
-        },
-        {
-          "name": "Light",
-          "value": "0.5 - 2g"
-        },
-        {
-          "name": "Common",
-          "value": "2 - 3g"
-        },
-        {
-          "name": "Strong",
-          "value": "3 - 5g"
-        },
-        {
-          "name": "Heavy",
-          "value": "5g +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 1.5 hours"
-        },
-        {
-          "name": "Total",
-          "value": "4.0 - 8.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Headache, Dream potentiation, Mindfulness, Anxiety, Irritability, Stimulation, Wakefulness, Color enhancement, Visual acuity enhancement, Anxiety suppression, Muscle twitching, Focus intensification, Auditory acuity enhancement, Tactile intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Headache",
-      "Stimulation",
-      "Muscle twitching"
-    ],
-    "Mental effects": [
-      "Thought connectivity",
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Dream potentiation",
-      "Mindfulness",
-      "Anxiety",
-      "Irritability",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Color enhancement",
-      "Visual acuity enhancement",
-      "Auditory acuity enhancement",
-      "Tactile intensification"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# Piracetam
 *Source: https://psychonautwiki.org/wiki/Piracetam*
 

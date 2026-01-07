@@ -1,73 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "Troparil";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - Troparil.json","displayName":"Protest Kit","size":1622},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Troparil.md","displayName":"TripSit Factsheets","size":691},{"id":"wikipedia","fileName":"WIKIPEDIA - Troparil.md","displayName":"Wikipedia","size":2805}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Troparil.md","displayName":"TripSit Factsheets","size":691},{"id":"wikipedia","fileName":"WIKIPEDIA - Troparil.md","displayName":"Wikipedia","size":2805}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/troparil",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Troparil",
-  "name": "Troparil",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A stimulant and dopamine reuptake inhibitor developed in the 1970s, it is frequently used in scientific research but has seen little usage outside of the lab. Similar effects to cocaine, though much longer and without any local anaesthetic action. Probably hard on the nose.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": [
-      "Stimulants"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "15-20mg"
-        },
-        {
-          "name": "Common",
-          "value": "20-30mg"
-        },
-        {
-          "name": "Strong",
-          "value": "30-60mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.17 - 0.17 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "0.75 - 1.17 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 2.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [
-      "vasoconstriction",
-      "temporary erectile dysfunction",
-      "increased heart rate",
-      "increased blood pressure",
-      "teeth grinding"
-    ],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Troparil
 *Source: TripSit Factsheets (tripsit.me)*
 

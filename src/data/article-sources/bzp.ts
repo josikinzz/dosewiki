@@ -1,69 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "BZP";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - BZP.json","displayName":"Protest Kit","size":1491},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BZP.md","displayName":"TripSit Factsheets","size":623},{"id":"wikipedia","fileName":"WIKIPEDIA - BZP.md","displayName":"Wikipedia","size":13234}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BZP.md","displayName":"TripSit Factsheets","size":623},{"id":"wikipedia","fileName":"WIKIPEDIA - BZP.md","displayName":"Wikipedia","size":13234}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/bzp",
-  "experiencesUrl": "https://www.reddit.com/search/?q=BZP",
-  "name": "BZP",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A stimulant that was sold as \\"legal ecstasy\\" in the late 2000s, and was one of the first drugs widely marketed as a \\"research chemical.\\" It has a much less favourable effect profile and has fallen out of popularity greatly since it was banned in many countries.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Light",
-          "value": "40-70mg"
-        },
-        {
-          "name": "Common",
-          "value": "70-100mg"
-        },
-        {
-          "name": "Strong",
-          "value": "100-130mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "130mg+"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.5 - 0.75 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "2.0 - 4.0 hours"
-        }
-      ]
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# BZP
 *Source: TripSit Factsheets (tripsit.me)*
 

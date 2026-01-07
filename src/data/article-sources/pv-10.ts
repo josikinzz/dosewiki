@@ -1,33 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "PV-10";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - PV-10.json","displayName":"Protest Kit","size":572},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PV-10.md","displayName":"TripSit Factsheets","size":130},{"id":"wikipedia","fileName":"WIKIPEDIA - PV-10.md","displayName":"Wikipedia","size":5551}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PV-10.md","displayName":"TripSit Factsheets","size":130},{"id":"wikipedia","fileName":"WIKIPEDIA - PV-10.md","displayName":"Wikipedia","size":5551}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/pv-10",
-  "experiencesUrl": "https://www.reddit.com/search/?q=PV-10",
-  "name": "PV-10",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Inactive.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# PV-10
 *Source: TripSit Factsheets (tripsit.me)*
 

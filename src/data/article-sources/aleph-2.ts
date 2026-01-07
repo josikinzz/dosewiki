@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "ALEPH-2";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - ALEPH-2.md","displayName":"Isomer Design","size":8089},{"id":"protestkit","fileName":"PROTESTKIT - ALEPH-2.json","displayName":"Protest Kit","size":1598},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ALEPH-2.md","displayName":"TripSit Factsheets","size":832},{"id":"wikipedia","fileName":"WIKIPEDIA - ALEPH-2.md","displayName":"Wikipedia","size":1988}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - ALEPH-2.md","displayName":"Isomer Design","size":8089},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ALEPH-2.md","displayName":"TripSit Factsheets","size":832},{"id":"wikipedia","fileName":"WIKIPEDIA - ALEPH-2.md","displayName":"Wikipedia","size":1988}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# ALEPH-2
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=4*
@@ -38,60 +38,6 @@ ALEPH-5 was to be the cyclohexylthio analogue (2,5-dimethoxy-4-cyclohexylthioamp
 The remaining members of this family, ALEPH-4, ALEPH-6, and ALEPH-7 have actually been prepared and they have all been entered here in Book II, under their own names.
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/aleph-2",
-  "experiencesUrl": "https://www.reddit.com/search/?q=ALEPH-2",
-  "name": "ALEPH-2",
-  "aliases": [
-    "aleph2",
-    "dot-2",
-    "dot2"
-  ],
-  "aliasesStr": "aleph2,dot-2,dot2",
-  "summary": "A very rare Phenethylamine, also known as DOT-2, it is the DOx analogue of 2C-T-2. Very little human use recorded. Described as being quite long and highly visual. Likely to be potent, with a reported threshold dose of 3mg.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted phenethylamines"
-    ],
-    "psychoactive": [
-      "Psychedelic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": "Euphoria, empathy, insight, brightened colour, Closed/Open eye visuals, enhanced tactile sensation, mental/physical stimulation, decreased appetite, pupil dilation, restlessness, change in perception, ego softening, sweating/chills, muscle tension, confusion, insomnia.",
-  "categorized_effects": {
-    "Physical effects": [
-      "decreased appetite",
-      "pupil dilation",
-      "sweating/chills",
-      "muscle tension",
-      "insomnia."
-    ],
-    "Mental effects": [
-      "Euphoria",
-      "empathy",
-      "insight",
-      "restlessness",
-      "ego softening",
-      "confusion"
-    ],
-    "Sensory effects": [
-      "brightened colour",
-      "Closed/Open eye visuals",
-      "enhanced tactile sensation",
-      "change in perception"
-    ],
-    "Uncategorized effects": [
-      "mental/physical stimulation"
-    ]
-  }
-}`,
   "tripsit-factsheets": `# ALEPH-2
 *Source: TripSit Factsheets (tripsit.me)*
 

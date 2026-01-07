@@ -1,33 +1,7 @@
 // Auto-generated - do not edit
 export const substanceName = "2-NMC";
-export const sources = [{"id":"protestkit","fileName":"PROTESTKIT - 2-NMC.json","displayName":"Protest Kit","size":572},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-NMC.md","displayName":"TripSit Factsheets","size":119},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-NMC.md","displayName":"Wikipedia","size":644}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-NMC.md","displayName":"TripSit Factsheets","size":119},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-NMC.md","displayName":"Wikipedia","size":644}];
 export const contents: Record<string, string> = {
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/2-nmc",
-  "experiencesUrl": "https://www.reddit.com/search/?q=2-NMC",
-  "name": "2-NMC",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "Inactive.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# 2-NMC
 *Source: TripSit Factsheets (tripsit.me)*
 

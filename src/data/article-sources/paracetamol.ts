@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Paracetamol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paracetamol.md","displayName":"DrugBank","size":34366},{"id":"protestkit","fileName":"PROTESTKIT - Paracetamol.json","displayName":"Protest Kit","size":1293},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paracetamol.md","displayName":"TripSit Factsheets","size":652},{"id":"wikipedia","fileName":"WIKIPEDIA - Paracetamol.md","displayName":"Wikipedia","size":33478}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paracetamol.md","displayName":"DrugBank","size":34366},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paracetamol.md","displayName":"TripSit Factsheets","size":652},{"id":"wikipedia","fileName":"WIKIPEDIA - Paracetamol.md","displayName":"Wikipedia","size":33478}];
 export const contents: Record<string, string> = {
   "drugbank": `# Acetaminophen
 *Source: https://go.drugbank.com/drugs/DB00316*
@@ -1901,60 +1901,6 @@ ATP-dependent translocase ABCB1
 141477.255 Da
 
 `,
-  "protestkit": `{
-  "url": "https://drugs.tripsit.me/apap",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Acetaminophen.shtml",
-  "name": "Paracetamol",
-  "aliases": [
-    "acetaminophen",
-    "tylenol"
-  ],
-  "aliasesStr": "acetaminophen,tylenol",
-  "summary": "A common, over the counter, fever reducer and painkiller. It is mixed with many common opiates. Can cause liver damage and failure in higher doses. No recreational value.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Common",
-          "value": "200-500mg"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.0 - 1.0 hours"
-        },
-        {
-          "name": "Duration",
-          "value": "4.0 - 6.0 hours"
-        },
-        {
-          "name": "After effects",
-          "value": "1.0 - 2.0 hours"
-        }
-      ],
-      "bioavailability": "70-90%"
-    }
-  ],
-  "interactions": null,
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Paracetamol
 *Source: TripSit Factsheets (tripsit.me)*
 

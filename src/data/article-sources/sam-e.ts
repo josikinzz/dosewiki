@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "SAM-e";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - SAM-e.md","displayName":"DrugBank","size":19952},{"id":"protestkit","fileName":"PROTESTKIT - SAM-e.json","displayName":"Protest Kit","size":2548},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - SAM-e.md","displayName":"PsychonautWiki","size":14843},{"id":"wikipedia","fileName":"WIKIPEDIA - SAM-e.md","displayName":"Wikipedia","size":10300}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - SAM-e.md","displayName":"DrugBank","size":19952},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - SAM-e.md","displayName":"PsychonautWiki","size":14843},{"id":"wikipedia","fileName":"WIKIPEDIA - SAM-e.md","displayName":"Wikipedia","size":10300}];
 export const contents: Record<string, string> = {
   "drugbank": `# Ademetionine
 *Source: https://go.drugbank.com/drugs/DB00118*
@@ -1388,103 +1388,6 @@ Cytochrome P450 2E1
 S-Adenosylmethionine is a substrate to the enzyme
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/SAM-e",
-  "experiencesUrl": "https://www.reddit.com/search/?q=SAM-e",
-  "name": "SAM-e",
-  "aliases": [
-    "methylguanidoacetic acid",
-    "s-adenosyl methionine"
-  ],
-  "aliasesStr": "methylguanidoacetic acid,s-adenosyl methionine",
-  "summary": null,
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Nitrogenous organic acid"
-    ],
-    "psychoactive": [
-      "Nootropic"
-    ]
-  },
-  "toxicity": null,
-  "addictionPotential": "not habit-forming with a low potential for abuse",
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "200 mg"
-        },
-        {
-          "name": "Light",
-          "value": "400 - 800 mg"
-        },
-        {
-          "name": "Common",
-          "value": "800 - 1200 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "1200 - 1600 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "1600 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "1.67 - 3.0 hours"
-        },
-        {
-          "name": "Total",
-          "value": "8.0 - 12.0 hours"
-        }
-      ],
-      "bioavailability": "2-10%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Thought connectivity, Motivation enhancement, Memory enhancement, Dehydration, Headache, Stomach cramp, Rejuvenation, Analysis enhancement, Mindfulness, Cognitive euphoria, Irritability, Bodily control enhancement, Stimulation, Wakefulness, Appetite suppression, Pain relief, Anxiety suppression, Thought organization, Diarrhea, Mania, Muscle twitching, Focus intensification, Tactile intensification, Stamina intensification",
-  "categorized_effects": {
-    "Physical effects": [
-      "Dehydration",
-      "Headache",
-      "Stomach cramp",
-      "Bodily control enhancement",
-      "Stimulation",
-      "Appetite suppression",
-      "Pain relief",
-      "Diarrhea",
-      "Muscle twitching",
-      "Stamina intensification"
-    ],
-    "Mental effects": [
-      "Thought connectivity",
-      "Motivation enhancement",
-      "Memory enhancement",
-      "Rejuvenation",
-      "Analysis enhancement",
-      "Mindfulness",
-      "Cognitive euphoria",
-      "Irritability",
-      "Wakefulness",
-      "Anxiety suppression",
-      "Thought organization",
-      "Mania",
-      "Focus intensification"
-    ],
-    "Sensory effects": [
-      "Tactile intensification"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# SAM-e
 *Source: https://psychonautwiki.org/wiki/SAM-e*
 

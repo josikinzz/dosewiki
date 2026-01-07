@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tobacco";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Tobacco.md","displayName":"Drug Users Bible","size":164087},{"id":"protestkit","fileName":"PROTESTKIT - Tobacco.json","displayName":"Protest Kit","size":674},{"id":"wikipedia","fileName":"WIKIPEDIA - Tobacco.md","displayName":"Wikipedia","size":43413}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Tobacco.md","displayName":"Drug Users Bible","size":164087},{"id":"wikipedia","fileName":"WIKIPEDIA - Tobacco.md","displayName":"Wikipedia","size":43413}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Tobacco
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -3961,32 +3961,6 @@ Brief History of Drugs: From the Stone Age to the Stoned Age
 
 LSD My Problem Child:
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/Tobacco",
-  "experiencesUrl": "https://www.reddit.com/search/?q=Tobacco",
-  "name": "Tobacco",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "wikipedia": `# Tobacco
 *Source: https://en.wikipedia.org/wiki/Tobacco*
 

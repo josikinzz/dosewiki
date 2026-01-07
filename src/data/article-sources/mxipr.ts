@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MXiPr";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MXiPr.md","displayName":"Isomer Design","size":609},{"id":"protestkit","fileName":"PROTESTKIT - MXiPr.json","displayName":"Protest Kit","size":689},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MXiPr.md","displayName":"PsychonautWiki","size":25716},{"id":"wikipedia","fileName":"WIKIPEDIA - MXiPr.md","displayName":"Wikipedia","size":586}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MXiPr.md","displayName":"Isomer Design","size":609},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MXiPr.md","displayName":"PsychonautWiki","size":25716},{"id":"wikipedia","fileName":"WIKIPEDIA - MXiPr.md","displayName":"Wikipedia","size":586}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MXiPr
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=14059*
@@ -23,32 +23,6 @@ export const contents: Record<string, string> = {
 - [163192824](https://pubchem.ncbi.nlm.nih.gov/compound/163192824)
 - [Q107177557](https://www.wikidata.org/wiki/Q107177557)
 `,
-  "protestkit": `{
-  "url": "https://en.wikipedia.org/wiki/MXiPr_(MXiP)",
-  "experiencesUrl": "https://www.reddit.com/search/?q=MXiPr+(MXiP)",
-  "name": "MXiPr (MXiP)",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "This is an obscure substance with no entry in PsychoanutWiki or TripSit. Reliable data is unavailable.",
-  "reagents": null,
-  "classes": {
-    "chemical": [],
-    "psychoactive": []
-  },
-  "toxicity": null,
-  "addictionPotential": null,
-  "tolerance": null,
-  "crossTolerances": null,
-  "roas": [],
-  "interactions": [],
-  "effects": null,
-  "categorized_effects": {
-    "Physical effects": [],
-    "Mental effects": [],
-    "Sensory effects": [],
-    "Uncategorized effects": []
-  }
-}`,
   "psychonautwiki": `# MXiPr
 *Source: https://psychonautwiki.org/wiki/MXiPr*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Melatonin";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Melatonin.md","displayName":"DrugBank","size":27002},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Melatonin.md","displayName":"Isomer Design","size":16109},{"id":"protestkit","fileName":"PROTESTKIT - Melatonin.json","displayName":"Protest Kit","size":2266},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Melatonin.md","displayName":"TripSit Factsheets","size":770},{"id":"wikipedia","fileName":"WIKIPEDIA - Melatonin.md","displayName":"Wikipedia","size":24621}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Melatonin.md","displayName":"DrugBank","size":27002},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Melatonin.md","displayName":"Isomer Design","size":16109},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Melatonin.md","displayName":"TripSit Factsheets","size":770},{"id":"wikipedia","fileName":"WIKIPEDIA - Melatonin.md","displayName":"Wikipedia","size":24621}];
 export const contents: Record<string, string> = {
   "drugbank": `# Melatonin
 *Source: https://go.drugbank.com/drugs/DB01065*
@@ -1235,92 +1235,6 @@ A few words are needed here concerning the neurotransmitter serotonin. It is the
 It is my quiet hope that the psychedelic drugs will give us that guidance towards the understanding of the mind. They just might let us see that trail through the dark forest where most of the people who search choose to follow the lighted path.
 
 `,
-  "protestkit": `{
-  "url": "https://psychonautwiki.org/wiki/Melatonin",
-  "experiencesUrl": "https://www.erowid.org/experiences/subs/exp_Melatonin.shtml",
-  "name": "Melatonin",
-  "aliases": [],
-  "aliasesStr": "",
-  "summary": "A naturally occurring hormone produced in the body, which promotes sleep at certain times in the day based on the circadian rhythm. It is also commonly available as a drug to treat insomnia and promote a proper sleep cycle. It can be used to promote sleepfulness at the tail-end of drug experiences, though it is not particularly hypnotic.",
-  "reagents": null,
-  "classes": {
-    "chemical": [
-      "Substituted tryptamines"
-    ],
-    "psychoactive": [
-      "Oneirogen"
-    ]
-  },
-  "toxicity": [
-    "extremely low toxicity"
-  ],
-  "addictionPotential": "not habit-forming",
-  "tolerance": {
-    "full": "after prolonged and repeated usage",
-    "half": "7 days",
-    "zero": "14 days"
-  },
-  "crossTolerances": [],
-  "roas": [
-    {
-      "name": "Oral",
-      "dosage": [
-        {
-          "name": "Threshold",
-          "value": "0.25 mg"
-        },
-        {
-          "name": "Light",
-          "value": "0.5 - 1 mg"
-        },
-        {
-          "name": "Common",
-          "value": "1 - 3 mg"
-        },
-        {
-          "name": "Strong",
-          "value": "3 - 6 mg"
-        },
-        {
-          "name": "Heavy",
-          "value": "6 mg +"
-        }
-      ],
-      "duration": [
-        {
-          "name": "Onset",
-          "value": "0.08 - 0.33 hours"
-        },
-        {
-          "name": "Total",
-          "value": "6.0 - 10.0 hours"
-        }
-      ],
-      "bioavailability": "15% - 15%"
-    }
-  ],
-  "interactions": null,
-  "effects": "Headache, Physical euphoria, Dream potentiation, Irritability, Sedation, Muscle relaxation, Depersonalization, Sleepiness, Decreased libido, Anxiety Suppression or Anxiety",
-  "categorized_effects": {
-    "Physical effects": [
-      "Headache",
-      "Physical euphoria",
-      "Sedation",
-      "Muscle relaxation",
-      "Sleepiness"
-    ],
-    "Mental effects": [
-      "Dream potentiation",
-      "Irritability",
-      "Depersonalization",
-      "Anxiety Suppression or Anxiety"
-    ],
-    "Sensory effects": [
-      "Decreased libido"
-    ],
-    "Uncategorized effects": []
-  }
-}`,
   "tripsit-factsheets": `# Melatonin
 *Source: TripSit Factsheets (tripsit.me)*
 
