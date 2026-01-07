@@ -36,6 +36,7 @@ import {
 import {
   MODEL_OPTIONS,
   estimateTokens,
+  estimateTokensFromCharCount,
   streamCompletion,
   validateApiKey,
 } from "../../../../utils/openrouter";
@@ -212,17 +213,24 @@ export const GeneratorTab = memo(function GeneratorTab({
     return substance?.sources ?? [];
   }, [selectedSubstanceSlug]);
 
-  // Token estimation
+  // Token estimation - use actual text when available for accuracy
   const totalTokenEstimate = useMemo(() => {
-    let total = generatorPrompt.length;
+    let total = estimateTokens(generatorPrompt);
     for (const sourceId of selectedSourceIds) {
-      const source = availableSources.find((s) => s.id === sourceId);
-      if (source) {
-        total += source.size;
+      const content = substanceModule?.contents[sourceId];
+      if (content) {
+        // Use actual content for accurate estimation
+        total += estimateTokens(content);
+      } else {
+        // Fall back to char count estimation if content not loaded
+        const source = availableSources.find((s) => s.id === sourceId);
+        if (source) {
+          total += estimateTokensFromCharCount(source.size);
+        }
       }
     }
-    return estimateTokens(total);
-  }, [selectedSourceIds, availableSources, generatorPrompt]);
+    return total;
+  }, [selectedSourceIds, availableSources, generatorPrompt, substanceModule]);
 
   const selectedModelInfo = useMemo(
     () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS[0],
@@ -572,7 +580,10 @@ export const GeneratorTab = memo(function GeneratorTab({
                     {source.displayName}
                   </span>
                   <span className="block text-xs text-white/40">
-                    ~{estimateTokens(source.size).toLocaleString()} tokens
+                    ~{(substanceModule?.contents[source.id]
+                      ? estimateTokens(substanceModule.contents[source.id])
+                      : estimateTokensFromCharCount(source.size)
+                    ).toLocaleString()} tokens
                   </span>
                 </div>
               </label>
@@ -806,7 +817,7 @@ export const GeneratorTab = memo(function GeneratorTab({
         />
         <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-white/40">
           <span>{generatorPrompt.length.toLocaleString()} characters</span>
-          <span>~{estimateTokens(generatorPrompt.length).toLocaleString()} tokens</span>
+          <span>~{estimateTokens(generatorPrompt).toLocaleString()} tokens</span>
           {isPromptDirty && (
             <span className="text-amber-300">Unsaved changes</span>
           )}
