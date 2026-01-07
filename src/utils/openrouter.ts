@@ -1,4 +1,5 @@
 // OpenRouter API utilities for Article Generator
+import { estimateTokenCount } from "tokenx";
 
 export interface StreamCallbacks {
   onChunk: (chunk: string) => void;
@@ -31,7 +32,19 @@ export const ERROR_MESSAGES: Record<number, string> = {
   503: "Model temporarily unavailable. Try a different model.",
 };
 
-export function estimateTokens(charCount: number): number {
+/**
+ * Estimate tokens from actual text using tokenx library.
+ * More accurate than character-based estimation (~94% accuracy).
+ */
+export function estimateTokens(text: string): number {
+  return estimateTokenCount(text);
+}
+
+/**
+ * Estimate tokens from character count (fallback when text isn't available).
+ * Uses simple heuristic: ~4 characters per token.
+ */
+export function estimateTokensFromCharCount(charCount: number): number {
   return Math.ceil(charCount / 4);
 }
 
