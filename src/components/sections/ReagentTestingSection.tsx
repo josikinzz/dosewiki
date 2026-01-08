@@ -64,12 +64,43 @@ function isValidReagentResult(result: unknown): result is ReagentResult {
 }
 
 /**
+ * Build a darkened and desaturated CSS gradient string for the label section.
+ */
+function getDarkenedGradient(result: ReagentResult): string {
+  const colors = result.colors || [];
+  if (!result.isReacting || colors.length === 0) {
+    return "#2a2a2a"; // Darker neutral gray for no reaction
+  }
+  // Darken and desaturate each color
+  const mutedHexColors = colors.map(c => {
+    const hex = c.hex || getReagentColorHex(c.id);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // Calculate grayscale value
+    const gray = (r + g + b) / 3;
+    // Blend towards gray (desaturate by 50%) then darken
+    const desatFactor = 0.5; // 50% desaturation
+    const darkFactor = 0.4;  // 60% darker
+    const newR = Math.round((r * (1 - desatFactor) + gray * desatFactor) * darkFactor);
+    const newG = Math.round((g * (1 - desatFactor) + gray * desatFactor) * darkFactor);
+    const newB = Math.round((b * (1 - desatFactor) + gray * desatFactor) * darkFactor);
+    return `rgb(${newR},${newG},${newB})`;
+  });
+  if (mutedHexColors.length === 1) {
+    return mutedHexColors[0];
+  }
+  return `linear-gradient(to right, ${mutedHexColors.join(", ")})`;
+}
+
+/**
  * Single reagent result row - gradient bar design with glassmorphic edges.
  */
 function ReagentRow({ result }: { result: ReagentResult }) {
   const reagentKey = result.reagent || "";
   const displayName = getReagentDisplayName(reagentKey);
   const barGradient = getBadgeGradient(result);
+  const darkenedGradient = getDarkenedGradient(result);
   const shortName = getReagentShortName(reagentKey);
   const hintText = result.hint || (!result.isReacting ? "No reaction" : "");
 
@@ -77,7 +108,6 @@ function ReagentRow({ result }: { result: ReagentResult }) {
     <article
       className="relative flex h-12 items-center overflow-hidden rounded-xl transition hover:ring-fuchsia-400/50"
       style={{
-        background: barGradient,
         boxShadow: `
           inset 0 1px 0 rgba(255,255,255,0.25),
           inset 0 -1px 0 rgba(0,0,0,0.3),
@@ -85,34 +115,47 @@ function ReagentRow({ result }: { result: ReagentResult }) {
         `,
       }}
     >
-      {/* Glassmorphic overlay for depth on spectrum */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-xl"
-        style={{
-          background: "linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 40%, rgba(0,0,0,0.15) 100%)",
-          borderTop: "1px solid rgba(255,255,255,0.2)",
-          borderBottom: "1px solid rgba(0,0,0,0.25)",
-        }}
-      />
-
-      {/* Left label section */}
+      {/* Left label section - darkened gradient */}
       <div
         className="relative z-10 flex h-full flex-shrink-0 flex-col justify-center px-4"
         style={{
-          background: "rgba(0,0,0,0.55)",
+          background: darkenedGradient,
           boxShadow: "inset -1px 0 0 rgba(255,255,255,0.1), 2px 0 4px rgba(0,0,0,0.3)",
         }}
       >
-        <span className="text-sm font-semibold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+        {/* Glassmorphic overlay for left section */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 40%, rgba(0,0,0,0.2) 100%)",
+            borderTop: "1px solid rgba(255,255,255,0.15)",
+            borderBottom: "1px solid rgba(0,0,0,0.3)",
+          }}
+        />
+        <span className="relative text-sm font-semibold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
           {displayName}
           <span className="ml-1.5 font-normal text-white/50">({shortName})</span>
         </span>
         {hintText && (
-          <span className="text-xs text-white/70 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">{hintText}</span>
+          <span className="relative text-xs text-white/70 drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">{hintText}</span>
         )}
       </div>
 
-      {/* Right side is just the gradient spectrum - no text */}
+      {/* Right spectrum section */}
+      <div
+        className="relative flex-1 h-full"
+        style={{ background: barGradient }}
+      >
+        {/* Glassmorphic overlay for depth on spectrum */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 40%, rgba(0,0,0,0.15) 100%)",
+            borderTop: "1px solid rgba(255,255,255,0.2)",
+            borderBottom: "1px solid rgba(0,0,0,0.25)",
+          }}
+        />
+      </div>
     </article>
   );
 }
@@ -129,7 +172,7 @@ function LoadingSkeleton() {
           Reagent Testing
         </h2>
       </div>
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 space-y-3">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -173,7 +216,7 @@ export function ReagentTestingSection({
         </p>
       </div>
 
-      <div className="scrollbar-always-visible mt-6 max-h-[400px] space-y-2 overflow-y-scroll rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
+      <div className="scrollbar-always-visible mt-6 max-h-[400px] space-y-3 overflow-y-scroll rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
         {data.reagents
           .filter(isValidReagentResult)
           .sort((a, b) => {
@@ -188,7 +231,7 @@ export function ReagentTestingSection({
       </div>
 
       {/* Attribution footer */}
-      <div className="mt-6 flex items-center justify-end gap-2 border-t border-white/10 pt-4">
+      <div className="mt-4 flex items-center justify-end gap-2">
         <span className="text-xs text-white/50">Powered by</span>
         <a
           href="https://protestkit.eu"
