@@ -4,17 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
+    "predev": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
+    "prebuild": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
     "build": "vite build",
-    "prebuild:inline": "node scripts/generateEmbedLogo.mjs && node scripts/buildCompressedArticles.mjs && node scripts/buildSocialSharePages.mjs && node scripts/buildArticleSources.mjs",
+    "prebuild:inline": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
     "build:inline": "vite build --mode inline --outDir dist-inline",
     "preview": "vite preview",
-    "export:dose-table": "node scripts/exportDoseSpreadsheet.mjs",
-    "generate:smiles": "node scripts/generateSmilesMap.mjs",
-    "merge:articles": "node scripts/merge-articles-json.mjs",
-    "generate:manifest": "node scripts/generateArticleManifest.mjs"
+    "export:dose-table": "node scripts/data/exportDoseSpreadsheet.mjs",
+    "generate:smiles": "node scripts/data/generateSmilesMap.mjs",
+    "merge:articles": "node scripts/data/merge-articles-json.mjs",
+    "generate:manifest": "node scripts/build/generateArticleManifest.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

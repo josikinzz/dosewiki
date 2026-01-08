@@ -1,7 +1,7 @@
 /**
  * Manual chemical class index dataset loader.
  */
-import rawManualConfig from "./chemicalIndexManual.json";
+import rawManualConfig from "./indexes/chemicalIndexManual.json";
 import {
   parseManualConfig,
   type ManualIndexConfig,
@@ -12,7 +12,7 @@ import {
   type ManualSectionLinkType,
   type NormalizedManualCategoryDefinition,
   type NormalizedManualCategorySection,
-} from "./manualIndexLoader";
+} from "./builders/manualIndexLoader";
 
 export type ManualChemicalIndexConfig = ManualIndexConfig;
 export type NormalizedManualChemicalIndexConfig = NormalizedManualIndexConfig;

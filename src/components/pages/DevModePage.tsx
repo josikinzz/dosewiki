@@ -30,7 +30,7 @@ import {
   effectSummaries,
   mechanismIndexGroups,
   substanceRecords,
-} from "../../data/library";
+} from "../../data/builders/library";
 import type articlesSource from "../../data/articles";
 import {
   useCallback,
@@ -52,8 +52,8 @@ import {
   type ArticleFrequency,
   type ChangeLogEntry,
   type ChangeLogArticleSummary,
-} from "../../data/changeLog";
-import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/changelog";
+} from "../../data/changelog/changeLog";
+import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/data/changelog";
 import { DiffPreview } from "../common/DiffPreview";
 import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
 import {
@@ -62,17 +62,17 @@ import {
   buildArticleFromDraft,
   createEmptyArticleDraftForm,
   hydrateArticleDraftForm,
-} from "../../utils/articleDraftForm";
-import { IndexLayoutTab } from "../sections/dev-tools/index-layout/IndexLayoutTab";
-import { AboutEditorTab } from "../sections/dev-tools/about/AboutEditorTab";
-import { LayoutLabTab } from "../sections/dev-tools/layout-lab/LayoutLabTab";
+} from "../../utils/forms/articleDraftForm";
+import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
+import { AboutEditorTab } from "../dev/tools/about/AboutEditorTab";
+import { LayoutLabTab } from "../dev/tools/layout-lab/LayoutLabTab";
 import { slugify } from "../../utils/slug";
 import { viewToHash } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
 import { DevCommitCard } from "../dev/DevCommitCard";
-import { TagEditorTab } from "../dev/TagEditorTab";
-import { ProfileEditorTab } from "../dev/ProfileEditorTab";
-import { GeneratorTab } from "../sections/dev-tools/generator/GeneratorTab";
+import { TagEditorTab } from "../dev/tags";
+import { ProfileEditorTab } from "../dev/profile";
+import { GeneratorTab } from "../dev/tools/generator/GeneratorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
 import { SectionCard } from "../common/SectionCard";
@@ -85,7 +85,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArticleDraftFormFields } from "../sections/ArticleDraftFormFields";
+import { ArticleDraftFormFields } from "../dev/forms/ArticleDraftFormFields";
 import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 

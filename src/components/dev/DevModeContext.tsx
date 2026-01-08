@@ -1,16 +1,16 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
 import articlesSource from "../../data/articles";
-import psychoactiveIndexManualSource from "../../data/psychoactiveIndexManual.json";
-import chemicalIndexManualSource from "../../data/chemicalIndexManual.json";
-import mechanismIndexManualSource from "../../data/mechanismIndexManual.json";
+import psychoactiveIndexManualSource from "../../data/indexes/psychoactiveIndexManual.json";
+import chemicalIndexManualSource from "../../data/indexes/chemicalIndexManual.json";
+import mechanismIndexManualSource from "../../data/indexes/mechanismIndexManual.json";
 import {
   aboutMarkdown as aboutMarkdownSource,
   aboutSubtitleMarkdown as aboutSubtitleSource,
   aboutFounderKeys as aboutFounderKeysSource,
   normalizeFounderKeys,
-} from "../../data/about";
-import { systemPrompt as generatorPromptSource } from "../../data/article-sources/prompt";
+} from "../../data/content/about";
+import { systemPrompt as generatorPromptSource } from "../../data/config/generatorPrompt";
 import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
 import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";

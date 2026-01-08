@@ -11,7 +11,7 @@ import {
   type MouseEvent,
 } from "react";
 
-import type { TagOption } from "../../data/tagOptions";
+import type { TagOption } from "../../data/config/tagOptions";
 import { Button } from "@/components/ui/button";
 
 const collapseWhitespace = (value: string): string => value.replace(/\s+/g, " ").trim();

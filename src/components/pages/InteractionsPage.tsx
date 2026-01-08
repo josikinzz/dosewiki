@@ -7,7 +7,7 @@ import {
   CircleSlash,
 } from "lucide-react";
 
-import type { SubstanceRecord } from "../../data/contentBuilder";
+import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import type { InteractionGroup, InteractionTarget } from "../../types/content";
 import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";

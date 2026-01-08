@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
-import type { DosageCategoryGroup, EffectDetail } from "../../data/library";
+import type { DosageCategoryGroup, EffectDetail } from "../../data/builders/library";
 
 interface EffectDetailPageProps {
   detail: EffectDetail;

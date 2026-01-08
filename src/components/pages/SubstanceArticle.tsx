@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Edit3, Leaf, MessageSquarePlus, Wrench } from "lucide-react";
 
-import type { SubstanceRecord } from "../../data/contentBuilder";
+import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { RouteKey } from "../../types/content";

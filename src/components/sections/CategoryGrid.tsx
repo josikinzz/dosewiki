@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { DosageCategoryGroup } from "../../data/library";
+import type { DosageCategoryGroup } from "../../data/builders/library";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
 

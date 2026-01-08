@@ -59,7 +59,7 @@ export function viewToHash(view: AppView): string {
 
 export function parseHash(
   hashValue: string | undefined,
-  defaultSlug: string,
+  defaultSlug: string | null,
   defaultView: AppView = { type: "substances" },
 ): AppView {
   const resolveDefault = () => defaultView;
@@ -142,7 +142,10 @@ export function parseHash(
         if (slug) {
           return { type: "substance", slug };
         }
-        return { type: "substance", slug: defaultSlug };
+        if (defaultSlug) {
+          return { type: "substance", slug: defaultSlug };
+        }
+        return resolveDefault();
       case "contributors": {
         if (slug) {
           try {

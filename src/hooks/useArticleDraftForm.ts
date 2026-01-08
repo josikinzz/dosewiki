@@ -15,8 +15,8 @@ import {
   createEmptyRouteEntry,
   ensureNormalizedTagList,
   joinNormalizedValues,
-} from "../utils/articleDraftForm";
-import { tokenizeTagString } from "../utils/tagDelimiters";
+} from "../utils/forms/articleDraftForm";
+import { tokenizeTagString } from "../utils/data/tagDelimiters";
 
 type MutationCallback = () => void;
 

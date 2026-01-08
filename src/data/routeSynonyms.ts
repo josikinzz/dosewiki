@@ -1,4 +1,4 @@
-import routeSynonymData from "./routeSynonyms.json" assert { type: "json" };
+import routeSynonymData from "./mappings/routeSynonyms.json" assert { type: "json" };
 
 export type CanonicalRoute = (typeof routeSynonymData.canonicalRoutes)[number];
 

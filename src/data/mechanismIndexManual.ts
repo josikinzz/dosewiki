@@ -1,7 +1,7 @@
 /**
  * Manual mechanism of action index dataset loader.
  */
-import rawManualConfig from "./mechanismIndexManual.json";
+import rawManualConfig from "./indexes/mechanismIndexManual.json";
 import {
   parseManualConfig,
   type ManualIndexConfig,
@@ -12,7 +12,7 @@ import {
   type ManualSectionLinkType,
   type NormalizedManualCategoryDefinition,
   type NormalizedManualCategorySection,
-} from "./manualIndexLoader";
+} from "./builders/manualIndexLoader";
 
 export type ManualMechanismIndexConfig = ManualIndexConfig;
 export type NormalizedManualMechanismIndexConfig = NormalizedManualIndexConfig;

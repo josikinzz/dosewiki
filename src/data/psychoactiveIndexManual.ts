@@ -1,7 +1,7 @@
 /**
  * Manual psychoactive index dataset loader.
  */
-import rawManualConfig from "./psychoactiveIndexManual.json";
+import rawManualConfig from "./indexes/psychoactiveIndexManual.json";
 import {
   getManualCategoryByKey as getManualCategoryByKeyFromConfig,
   parseManualConfig,
@@ -13,7 +13,7 @@ import {
   type NormalizedManualCategoryDefinition,
   type NormalizedManualCategorySection,
   type NormalizedManualIndexConfig,
-} from "./manualIndexLoader";
+} from "./builders/manualIndexLoader";
 
 export type ManualPsychoactiveIndexConfig = ManualIndexConfig;
 export type NormalizedManualPsychoactiveIndexConfig = NormalizedManualIndexConfig;

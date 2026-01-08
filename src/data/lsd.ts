@@ -1,5 +1,6 @@
 import articles from "./articles";
-import { buildSubstanceRecord, slugifyDrugName } from "./contentBuilder";
+import { buildSubstanceRecord, slugifyDrugName } from "./builders/contentBuilder";
+import type { SubstanceRecord } from "../types/content";
 
 const LSD_KEY = "LSD";
 
@@ -18,12 +19,8 @@ const lsdRecord = articles
 
     const derivedSlug = slugifyDrugName(record.name, `article-${record.id ?? "unknown"}`);
     return derivedSlug === LSD_KEY.toLowerCase();
-  });
+  }) ?? null;
 
-if (!lsdRecord) {
-  throw new Error(`Unable to locate ${LSD_KEY} content in articles.json`);
-}
-
-export const lsdContent = lsdRecord.content;
-export const lsdSlug = lsdRecord.slug;
-export const lsdMetadata = lsdRecord;
+export const lsdContent = lsdRecord?.content ?? null;
+export const lsdSlug = lsdRecord?.slug ?? null;
+export const lsdMetadata: SubstanceRecord | null = lsdRecord;

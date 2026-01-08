@@ -1,5 +1,5 @@
 import type { InteractionGroup, InteractionTarget } from "../types/content";
-import type { SubstanceRecord } from "../data/contentBuilder";
+import type { SubstanceRecord } from "../data/builders/contentBuilder";
 
 const SEVERITY_ORDER: InteractionGroup["severity"][] = ["danger", "unsafe", "caution"];
 const SEVERITY_SCORE: Record<InteractionGroup["severity"], number> = {

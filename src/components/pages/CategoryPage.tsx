@@ -1,8 +1,8 @@
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
-import type { CategoryDetail } from "../../data/library";
+import type { CategoryDetail } from "../../data/builders/library";
 
 interface CategoryPageProps {
   detail: CategoryDetail;

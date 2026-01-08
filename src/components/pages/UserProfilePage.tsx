@@ -5,7 +5,7 @@ import { ExternalLink, FileText, Link2, Sparkles, UserRound } from "lucide-react
 
 import { SectionCard } from "../common/SectionCard";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
-import type { ChangeLogEntry } from "../../data/changeLog";
+import type { ChangeLogEntry } from "../../data/changelog/changeLog";
 
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;

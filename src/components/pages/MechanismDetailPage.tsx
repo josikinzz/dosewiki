@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { Cog } from "lucide-react";
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { DosageCategoryGroup, MechanismDetail } from "../../data/library";
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/library";
+import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";
+import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/builders/library";
 
 interface MechanismDetailPageProps {
   detail: MechanismDetail;

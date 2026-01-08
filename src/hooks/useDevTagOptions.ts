@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
 import type { TagOption } from "../data/tagOptions";
-import { tokenizeTagField } from "../utils/tagDelimiters";
-import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/tagRegistry";
+import { tokenizeTagField } from "../utils/data/tagDelimiters";
+import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
 import { useDevMode } from "../components/dev/DevModeContext";
 
 export interface DevTagOptionsResult {

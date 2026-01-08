@@ -4,7 +4,7 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { Info } from "lucide-react";
 
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import {
@@ -13,8 +13,8 @@ import {
   chemicalClassIndexGroups,
   mechanismIndexGroups,
   substanceRecords,
-} from "../../data/library";
-import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "../../data/about";
+} from "../../data/builders/library";
+import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "../../data/content/about";
 import { getProfileByKey } from "../../data/userProfiles";
 
 const markdownComponents = {

@@ -25,9 +25,9 @@ import {
   getMechanismSummary,
   getChemicalClassDetail,
   getPsychoactiveClassDetail,
-} from "./data/library";
+} from "./data/builders/library";
 import { lsdMetadata } from "./data/lsd";
-import { querySearch } from "./data/search";
+import { querySearch } from "./data/builders/search";
 import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
 import { parseHash, viewToHash } from "./utils/routing";
@@ -36,8 +36,9 @@ import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
 import { SubstanceArticle } from "./components/pages/SubstanceArticle";
 
-const DEFAULT_SLUG = lsdMetadata.slug;
-const DEFAULT_RECORD = substanceBySlug.get(DEFAULT_SLUG) ?? lsdMetadata;
+const firstSubstance = substanceRecords[0] ?? null;
+const DEFAULT_SLUG = lsdMetadata?.slug ?? firstSubstance?.slug ?? null;
+const DEFAULT_RECORD = DEFAULT_SLUG ? substanceBySlug.get(DEFAULT_SLUG) ?? null : null;
 const DEFAULT_VIEW: AppView = { type: "substances" };
 const HARM_REDUCTION_DISMISS_KEY = "dosewiki:harmReductionBannerDismissed";
 
@@ -51,27 +52,39 @@ export default function App() {
     return window.localStorage.getItem(HARM_REDUCTION_DISMISS_KEY) === "true";
   });
 
-  const isInvalidSubstanceView = view.type === "substance" && !substanceBySlug.has(view.slug);
+  const isInvalidSubstanceView = view.type === "substance" &&
+    (DEFAULT_SLUG === null || !substanceBySlug.has(view.slug));
 
   useEffect(() => {
     if (!isInvalidSubstanceView) {
       return;
     }
 
-    const fallbackView: AppView = { type: "substance", slug: DEFAULT_SLUG };
-    setView(fallbackView);
+    if (DEFAULT_SLUG) {
+      const fallbackView: AppView = { type: "substance", slug: DEFAULT_SLUG };
+      setView(fallbackView);
 
-    if (typeof window !== "undefined") {
-      const fallbackHash = viewToHash(fallbackView);
-      if (window.location.hash !== fallbackHash) {
-        window.history.replaceState(null, "", fallbackHash);
+      if (typeof window !== "undefined") {
+        const fallbackHash = viewToHash(fallbackView);
+        if (window.location.hash !== fallbackHash) {
+          window.history.replaceState(null, "", fallbackHash);
+        }
+      }
+    } else {
+      // No substances exist - redirect to index
+      setView({ type: "substances" });
+      if (typeof window !== "undefined" && window.location.hash !== "#/substances") {
+        window.history.replaceState(null, "", "#/substances");
       }
     }
   }, [isInvalidSubstanceView]);
 
   const effectiveView = useMemo<AppView>(() => {
     if (isInvalidSubstanceView) {
-      return { type: "substance", slug: DEFAULT_SLUG };
+      if (DEFAULT_SLUG) {
+        return { type: "substance", slug: DEFAULT_SLUG };
+      }
+      return { type: "substances" };
     }
     return view;
   }, [isInvalidSubstanceView, view]);
@@ -146,8 +159,8 @@ export default function App() {
   );
 
   const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : DEFAULT_SLUG;
-  const activeRecord = substanceBySlug.get(activeSlug) ?? DEFAULT_RECORD;
-  const content = activeRecord.content;
+  const activeRecord = activeSlug ? substanceBySlug.get(activeSlug) ?? null : null;
+  const content = activeRecord?.content ?? null;
 
   const handleInteractionSelectionChange = useCallback(
     (primarySlug: string, secondarySlug: string) => {
@@ -188,10 +201,10 @@ export default function App() {
       return;
     }
 
-    const storedRoute = routePreferencesRef.current.get(activeSlug);
+    const storedRoute = activeSlug ? routePreferencesRef.current.get(activeSlug) : undefined;
     const validStoredRoute = storedRoute && content.routes[storedRoute] ? storedRoute : undefined;
 
-    if (!validStoredRoute && storedRoute) {
+    if (!validStoredRoute && storedRoute && activeSlug) {
       routePreferencesRef.current.delete(activeSlug);
     }
 
@@ -206,7 +219,7 @@ export default function App() {
 
   const handleRouteChange = useCallback(
     (nextRoute: RouteKey) => {
-      if (!content || !content.routes[nextRoute]) {
+      if (!content || !content.routes[nextRoute] || !activeSlug) {
         return;
       }
 
@@ -420,7 +433,7 @@ export default function App() {
             />
           );
         })()
-      ) : (
+      ) : activeRecord && content ? (
         (() => {
           const harmReductionBannerNode = isBannerDismissed
             ? null
@@ -444,7 +457,16 @@ export default function App() {
             />
           );
         })()
-        )}
+      ) : (
+        <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+          <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+            <p className="text-lg font-semibold text-white">No substances in database.</p>
+            <p className="mt-2 text-sm text-white/70">
+              Use DevMode to generate and add new articles.
+            </p>
+          </div>
+        </main>
+      )}
 
         <Footer />
       </div>

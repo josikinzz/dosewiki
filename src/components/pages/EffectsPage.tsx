@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Sparkles } from "lucide-react";
-import type { EffectSummary } from "../../data/library";
-import { PageHeader } from "../sections/PageHeader";
+import type { EffectSummary } from "../../data/builders/library";
+import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
 

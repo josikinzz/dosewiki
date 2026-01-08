@@ -1,7 +1,7 @@
 ﻿import { memo, useCallback } from "react";
 import { Search } from "lucide-react";
-import { PageHeader } from "../sections/PageHeader";
-import type { SearchMatch } from "../../data/search";
+import { PageHeader } from "../layout/PageHeader";
+import type { SearchMatch } from "../../data/builders/search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

@@ -1,15 +1,15 @@
 import { memo, useMemo, useState } from "react";
 import { BrainCircuit, Cog, FlaskConical, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { Button } from "@/components/ui/button";
-import type { DosageCategoryGroup } from "../../data/library";
+import type { DosageCategoryGroup } from "../../data/builders/library";
 import {
   chemicalClassIndexGroups,
   mechanismIndexGroups,
   substanceRecords,
-} from "../../data/library";
+} from "../../data/builders/library";
 
 type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 

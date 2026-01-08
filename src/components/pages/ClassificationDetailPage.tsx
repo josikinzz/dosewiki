@@ -1,10 +1,10 @@
 import { BrainCircuit, Hexagon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { PageHeader } from "../sections/PageHeader";
+import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
-import type { ClassificationDetail } from "../../data/library";
+import type { ClassificationDetail } from "../../data/builders/library";
 
 type ClassificationMeta = {
   label: string;

@@ -1,7 +1,8 @@
 import { Buffer } from "node:buffer";
 
-export const REPO_OWNER = "josikinzz";
-export const REPO_NAME = "dosewiki";
+// TODO: Update these values to your new private repository
+export const REPO_OWNER = "YOUR_GITHUB_USERNAME";
+export const REPO_NAME = "YOUR_REPO_NAME";
 export const TARGET_BRANCH = "main";
 export const USER_AGENT = "dose.wiki-dev-editor";
 

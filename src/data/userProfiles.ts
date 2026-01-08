@@ -1,9 +1,9 @@
-import userProfilesSource from "./userProfiles.json";
+import userProfilesSource from "./config/userProfiles.json";
 import {
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
-} from "./changeLog";
+} from "./changelog/changeLog";
 
 /**
  * Shapes persisted in src/data/userProfiles.json.
