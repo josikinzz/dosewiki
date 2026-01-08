@@ -75,6 +75,17 @@ export default defineConfig(({ mode }) => {
       fs: {
         allow: ['..'],
       },
+      proxy: {
+        '/api/reagent-proxy': {
+          target: 'https://protestkit.eu',
+          changeOrigin: true,
+          rewrite: (path) => {
+            const url = new URL(path, 'http://localhost');
+            const substance = url.searchParams.get('substance') || '';
+            return `/api/v1/${substance}`;
+          },
+        },
+      },
     },
     publicDir: 'public',
   };

@@ -19,6 +19,7 @@ import { ToleranceSection } from "../sections/ToleranceSection";
 import { AddictionCard } from "../sections/AddictionCard";
 import { NotesSection } from "../sections/NotesSection";
 import { CitationsSection } from "../sections/CitationsSection";
+import { ReagentTestingSection } from "../sections/ReagentTestingSection";
 import {
   extractInfoSectionBuckets,
   buildHeroVariantLines,
@@ -265,6 +266,7 @@ export function SubstanceArticle({
             ) : null}
 
             <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
+            <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
             <AddictionCard summary={content.addictionSummary} />
             <InteractionsSection interactions={content.interactions} />
             <ToleranceSection tolerance={content.tolerance} />
@@ -318,6 +320,7 @@ export function SubstanceArticle({
                     ) : null}
 
                     <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
+                    <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
                     <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
                     <ToleranceSection tolerance={content.tolerance} />
                     <AddictionCard summary={content.addictionSummary} />

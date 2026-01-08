@@ -109,6 +109,30 @@
     overflow-wrap: anywhere;
     word-break: break-word;
   }
+
+  .scrollbar-always-visible {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(217, 70, 239, 0.5) rgba(255, 255, 255, 0.1);
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-thumb {
+    background: rgba(217, 70, 239, 0.5);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-always-visible::-webkit-scrollbar-thumb:hover {
+    background: rgba(217, 70, 239, 0.7);
+  }
 }
 
 @layer components {

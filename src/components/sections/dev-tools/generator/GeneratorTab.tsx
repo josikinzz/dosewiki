@@ -66,6 +66,34 @@ interface GeneratorTabProps {
 
 const normalizeWhitespace = (value: string) => value.replace(/\r\n/g, "\n");
 
+// DXM-specific section markers in the prompt
+const DXM_SECTION_START = "**Special: DXM Plateau Dosing**";
+const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to `null`.";
+
+/**
+ * Strips the DXM-specific plateau dosing section from the prompt.
+ * Used when a non-DXM substance is selected.
+ */
+function stripDxmSection(prompt: string): string {
+  const startIdx = prompt.indexOf(DXM_SECTION_START);
+  if (startIdx === -1) return prompt;
+
+  const endIdx = prompt.indexOf(DXM_SECTION_END);
+  if (endIdx === -1) return prompt;
+
+  // Find the end of the line after the end marker
+  const endOfSection = prompt.indexOf("\n", endIdx + DXM_SECTION_END.length);
+  if (endOfSection === -1) return prompt;
+
+  // Remove the section including any leading newlines
+  let sectionStart = startIdx;
+  while (sectionStart > 0 && prompt[sectionStart - 1] === "\n") {
+    sectionStart--;
+  }
+
+  return prompt.slice(0, sectionStart) + "\n" + prompt.slice(endOfSection + 1);
+}
+
 export const GeneratorTab = memo(function GeneratorTab({
   generatorPrompt,
   originalGeneratorPrompt,
@@ -233,6 +261,13 @@ export const GeneratorTab = memo(function GeneratorTab({
     return Math.min((totalTokenEstimate / selectedModelInfo.contextWindow) * 100, 100);
   }, [totalTokenEstimate, selectedModelInfo.contextWindow]);
 
+  // Check if selected substance is DXM (for conditional prompt inclusion)
+  const isDxm = useMemo(() => {
+    if (!selectedSubstanceSlug) return false;
+    const slug = selectedSubstanceSlug.toLowerCase();
+    return slug === "dxm" || slug === "dextromethorphan";
+  }, [selectedSubstanceSlug]);
+
   // Load substance module when selection changes
   useEffect(() => {
     if (!selectedSubstanceSlug) {
@@ -323,6 +358,9 @@ export const GeneratorTab = memo(function GeneratorTab({
       .map(({ source, content }) => `## Source: ${source}\n\n${content}`)
       .join("\n\n---\n\n");
 
+    // Strip DXM-specific section if not generating for DXM
+    const effectivePrompt = isDxm ? generatorPrompt : stripDxmSection(generatorPrompt);
+
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
@@ -330,7 +368,7 @@ export const GeneratorTab = memo(function GeneratorTab({
       await streamCompletion(
         apiKey,
         selectedModel,
-        generatorPrompt,
+        effectivePrompt,
         userMessage,
         {
           onChunk: (chunk) => {
@@ -359,6 +397,7 @@ export const GeneratorTab = memo(function GeneratorTab({
     selectedModel,
     availableSources,
     generatorPrompt,
+    isDxm,
   ]);
 
   // Cancel generation
@@ -598,9 +637,16 @@ export const GeneratorTab = memo(function GeneratorTab({
             </div>
             {/* Labels */}
             <div className="flex items-center justify-between text-xs">
-              <span className="text-white/60">
-                ~{totalTokenEstimate.toLocaleString()} / {selectedModelInfo.contextWindow.toLocaleString()} tokens
-              </span>
+              <div className="flex items-center gap-3 text-white/60">
+                <span>
+                  ~{totalTokenEstimate.toLocaleString()} / {selectedModelInfo.contextWindow.toLocaleString()} tokens
+                </span>
+                {selectedSubstanceSlug && (
+                  <span className={isDxm ? "text-fuchsia-300" : "text-white/40"}>
+                    {isDxm ? "DXM plateau dosing included" : "DXM plateau dosing excluded"}
+                  </span>
+                )}
+              </div>
               <span className={`font-medium ${
                 contextUsagePercent >= 80
                   ? "text-red-400"
@@ -847,7 +893,7 @@ export const GeneratorTab = memo(function GeneratorTab({
       {promptHasChanges && (
         <SectionCard delay={0.4}>
           <h3 className="mb-3 text-sm font-medium text-white/70">Prompt Changes</h3>
-          <DiffPreview markdown={promptDiff} />
+          <DiffPreview diffText={promptDiff} />
         </SectionCard>
       )}
     </div>

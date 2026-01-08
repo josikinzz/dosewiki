@@ -22,6 +22,9 @@ const getLineStyle = (line: string) => {
 };
 
 const DiffPreviewComponent = ({ diffText, className }: DiffPreviewProps) => {
+  if (!diffText) {
+    return null;
+  }
   const normalized = diffText.replace(/\r\n/g, "\n");
   const lines = normalized.split("\n");
 
