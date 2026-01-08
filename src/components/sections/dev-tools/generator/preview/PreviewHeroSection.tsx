@@ -1,16 +1,29 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Eye, FlaskConical, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import moleculeMappings from "@/data/moleculeSvgMappings.json";
 import type { GeneratedArticle } from "../../../../../types/generatorSchema";
 
 interface PreviewHeroSectionProps {
   article: GeneratedArticle;
 }
 
+// Get molecule URL by matching article title
+function getMoleculeUrl(title: string): string | null {
+  if (!title.trim()) return null;
+  const normalizedTitle = title.toLowerCase().trim();
+  const match = moleculeMappings.mappings.find(
+    (m) => m.articleTitle.toLowerCase() === normalizedTitle
+  );
+  return match ? `/molecules/${encodeURI(match.filename)}` : null;
+}
+
 export const PreviewHeroSection = memo(function PreviewHeroSection({
   article,
 }: PreviewHeroSectionProps) {
   const { title, identification, classification, summary, index_categories } = article;
+
+  const moleculeUrl = useMemo(() => getMoleculeUrl(title), [title]);
 
   const hasTitle = title.trim().length > 0;
   const hasIdentification =
@@ -35,6 +48,15 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         <Eye className="h-3 w-3" />
         Preview
       </div>
+
+      {/* Molecule SVG - floated right for text wrapping */}
+      {moleculeUrl && (
+        <img
+          src={moleculeUrl}
+          alt={`${title} molecule structure`}
+          className="float-right ml-4 mb-2 h-32 w-32 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-48 md:w-48"
+        />
+      )}
 
       {/* Title */}
       {hasTitle && (

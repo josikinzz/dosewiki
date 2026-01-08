@@ -43,10 +43,11 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
         Effects vary widely by individual, dose, and context.
       </p>
 
-      <div className="space-y-6">
-        {/* Sensory Effects */}
+      {/* 3-column masonry layout */}
+      <div className="[column-gap:1.5rem] columns-1 md:columns-3">
+        {/* Sensory Effects Card */}
         {hasSensory && (
-          <div>
+          <div className="mb-4 break-inside-avoid rounded-xl border border-white/10 bg-white/5 p-4 last:mb-0">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
               <Eye className="h-4 w-4 text-fuchsia-200" />
               Sensory
@@ -75,9 +76,9 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
           </div>
         )}
 
-        {/* Cognitive Effects */}
+        {/* Cognitive Effects Card */}
         {hasCognitive && (
-          <div>
+          <div className="mb-4 break-inside-avoid rounded-xl border border-white/10 bg-white/5 p-4 last:mb-0">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
               <Brain className="h-4 w-4 text-fuchsia-200" />
               Cognitive
@@ -92,9 +93,9 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
           </div>
         )}
 
-        {/* Physical Effects */}
+        {/* Physical Effects Card */}
         {hasPhysical && (
-          <div>
+          <div className="mb-4 break-inside-avoid rounded-xl border border-white/10 bg-white/5 p-4 last:mb-0">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
               <Hand className="h-4 w-4 text-fuchsia-200" />
               Physical
