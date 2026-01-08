@@ -84,6 +84,7 @@ function normalizeArticle(raw: Record<string, unknown>): GeneratedArticle {
     dosage: normalizeDosage(raw.dosage),
     duration: normalizeDuration(raw.duration),
     subjective_effects: normalizeSubjectiveEffects(raw.subjective_effects),
+    comparisons: normalizeComparisons(raw.comparisons),
     pharmacology: normalizePharmacology(raw.pharmacology),
     interactions: normalizeInteractions(raw.interactions),
     reagent_testing: normalizeReagentTesting(raw.reagent_testing),
@@ -246,8 +247,15 @@ function normalizeDuration(raw: unknown): GeneratedArticle["duration"] {
 function normalizeSubjectiveEffects(raw: unknown): GeneratedArticle["subjective_effects"] {
   const obj = getObject(raw);
   const sensory = getObject(obj.sensory);
+  const notes = getObject(obj.notes);
 
   return {
+    notes: {
+      overview: getString(notes.overview),
+      sensory: getString(notes.sensory),
+      cognitive: getString(notes.cognitive),
+      physical: getString(notes.physical),
+    },
     sensory: {
       visual: getStringArray(sensory.visual),
       auditory: getStringArray(sensory.auditory),
@@ -359,6 +367,30 @@ function normalizeCitations(raw: unknown): GeneratedArticle["citations"] {
     return {
       name: getString(obj.name),
       url: getString(obj.url),
+    };
+  });
+}
+
+function normalizeComparisons(raw: unknown): GeneratedArticle["comparisons"] {
+  // Handle both formats:
+  // 1. comparisons: [...] (flat array - preferred)
+  // 2. comparisons: { items: [...] } (legacy nested format)
+  let items: unknown[] = [];
+
+  if (Array.isArray(raw)) {
+    items = raw;
+  } else {
+    const obj = getObject(raw);
+    if (Array.isArray(obj.items)) {
+      items = obj.items;
+    }
+  }
+
+  return items.map((item) => {
+    const itemObj = getObject(item);
+    return {
+      drug: getString(itemObj.drug),
+      comparison: getString(itemObj.comparison),
     };
   });
 }

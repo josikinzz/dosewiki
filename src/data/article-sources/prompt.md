@@ -148,6 +148,11 @@ duration:
           unit: hours
 
 subjective_effects:
+  notes:
+    overview: ""
+    sensory: ""
+    cognitive: ""
+    physical: ""
   sensory:
     visual: []
     auditory: []
@@ -157,6 +162,8 @@ subjective_effects:
     multisensory: []
   cognitive: []
   physical: []
+
+comparisons: []
 
 pharmacology:
   mechanism_of_action: []
@@ -359,9 +366,18 @@ stages:
 
 ### Subjective Effects
 
-Use PsychonautWiki's taxonomy with Title Case.
+Use PsychonautWiki's taxonomy with Title Case for effect index terms.
 
-**Sensory** (object with subsections):
+**Notes** (qualitative descriptions displayed above effect tags):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `notes.overview` | `string` | 2-4 sentences describing the overall subjective experience of the drug. This serves as the introductory paragraph for the subjective effects section. Include characteristic qualities, intensity curve, and any unique phenomenological features. |
+| `notes.sensory` | `string` | 1-2 sentences describing the qualitative nature of sensory effects. Describe what visual/auditory/tactile distortions feel like, how intense they are, and any distinctive characteristics. |
+| `notes.cognitive` | `string` | 1-2 sentences describing the cognitive/mental state. Include headspace clarity vs confusion, emotional tone, thought patterns, and any notable cognitive features. |
+| `notes.physical` | `string` | 1-2 sentences describing physical sensations and body load. Include comfort level, stimulation/sedation balance, and any distinctive physical characteristics. |
+
+**Sensory** (object with subsections - effect index terms):
 - `visual`: Color enhancement, Pattern recognition enhancement, Tracers, Drifting, Geometry, etc.
 - `auditory`: Auditory enhancement, Auditory distortion, etc.
 - `tactile`: Tactile enhancement, Bodily pressures, etc.
@@ -369,11 +385,33 @@ Use PsychonautWiki's taxonomy with Title Case.
 - `gustatory`: Gustatory enhancement, etc.
 - `multisensory`: Synaesthesia, etc.
 
-**Cognitive** (array):
+**Cognitive** (array - effect index terms):
 Euphoria, Anxiety, Time distortion, Thought acceleration, Empathy enhancement, Analysis enhancement, etc.
 
-**Physical** (array):
+**Physical** (array - effect index terms):
 Stimulation, Sedation, Nausea, Pupil dilation, Increased heart rate, Muscle tension, etc.
+
+### Comparisons
+
+When sources draw explicit comparisons to other drugs, capture them here as an array of comparison objects.
+
+Each comparison object:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `drug` | `string` | Name of the drug being compared to |
+| `comparison` | `string` | Description of the comparison (how effects relate, similarities, differences) |
+
+Example:
+```yaml
+comparisons:
+  - drug: "LSD"
+    comparison: "Similar visual geometry but with a warmer, more emotionally open headspace and shorter duration"
+  - drug: "MDMA"
+    comparison: "Shares the empathogenic effects but with added psychedelic visuals and longer duration"
+```
+
+**Important:** Only include comparisons that are explicitly stated in source materials. Do not infer comparisons. Leave `comparisons: []` if no explicit comparisons are found in the sources.
 
 ### Pharmacology
 
@@ -1063,6 +1101,9 @@ Immunomodulator
 - [ ] Every dosage route has matching duration entry
 - [ ] All duration stages present (empty string if unknown)
 - [ ] Subjective effects use Title Case and PsychonautWiki terminology
+- [ ] Subjective effects `notes.overview` provides qualitative intro (2-4 sentences)
+- [ ] Sensory/cognitive/physical notes provide brief qualitative descriptions
+- [ ] `comparisons.items` only contains explicit source comparisons (or empty)
 - [ ] Interactions include TripSit combination data
 - [ ] `reagent_testing` is `{}` if no data available
 - [ ] All toxicity/harm fields addressed or left empty

@@ -54,7 +54,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         <img
           src={moleculeUrl}
           alt={`${title} molecule structure`}
-          className="float-right ml-4 mb-2 h-32 w-32 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-48 md:w-48"
+          className="float-right ml-6 mb-3 h-40 w-40 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-56 md:w-56"
         />
       )}
 
@@ -90,6 +90,12 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
               {identification.cas_number}
             </p>
           )}
+          {identification.alternative_names && identification.alternative_names.length > 0 && (
+            <p className="text-sm text-white/60">
+              <span className="font-medium text-white/80">Also known as:</span>{" "}
+              {identification.alternative_names.join(", ")}
+            </p>
+          )}
           {identification.molecular_formula && (
             <p className="text-sm text-white/60">
               <span className="font-medium text-white/80">Formula:</span>{" "}
@@ -104,6 +110,14 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
               <span className="font-medium text-white/80">SMILES:</span>{" "}
               <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-white/70">
                 {identification.smiles}
+              </code>
+            </p>
+          )}
+          {identification.inchi_key && (
+            <p className="text-sm text-white/60">
+              <span className="font-medium text-white/80">InChI Key:</span>{" "}
+              <code className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-xs text-white/70">
+                {identification.inchi_key}
               </code>
             </p>
           )}

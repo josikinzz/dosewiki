@@ -1,4 +1,5 @@
 import { memo } from "react";
+import Masonry from "react-masonry-css";
 import {
   ArrowDownWideNarrow,
   ArrowUpWideNarrow,
@@ -9,6 +10,11 @@ import {
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+
+const MASONRY_BREAKPOINTS = {
+  default: 2,
+  640: 1,
+};
 
 interface PreviewToleranceSectionProps {
   article: GeneratedArticle;
@@ -41,7 +47,11 @@ export const PreviewToleranceSection = memo(function PreviewToleranceSection({
         Tolerance
       </h2>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <Masonry
+        breakpointCols={MASONRY_BREAKPOINTS}
+        className="flex w-full gap-4"
+        columnClassName="flex flex-col gap-4"
+      >
         {TOLERANCE_ITEMS.map(({ key, label, icon: Icon }) => {
           const value = tolerance[key as keyof typeof tolerance];
           if (typeof value !== "string" || value.trim().length === 0) return null;
@@ -79,7 +89,7 @@ export const PreviewToleranceSection = memo(function PreviewToleranceSection({
             </div>
           </div>
         )}
-      </div>
+      </Masonry>
     </SectionCard>
   );
 });

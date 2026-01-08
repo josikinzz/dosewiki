@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Clock, Pill } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { GeneratedArticle, DosageRoute, DurationRoute, DoseRange, DurationStage } from "../../../../../types/generatorSchema";
 
 interface PreviewDosageDurationCardProps {
@@ -51,17 +52,20 @@ const DURATION_STAGES = [
   { key: "total_duration", label: "Total" },
 ] as const;
 
-function DosageRouteCard({ route }: { route: DosageRoute }) {
+function DosagePanel({ route }: { route: DosageRoute }) {
   const hasNotes = route.notes.trim().length > 0;
   const hasBioavailability = route.bioavailability.trim().length > 0;
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="font-semibold text-white">{capitalizeRoute(route.route)}</h4>
+        <h4 className="flex items-center gap-2 font-semibold text-white">
+          <Pill className="h-4 w-4 text-fuchsia-200" />
+          Dosage
+        </h4>
         {hasBioavailability && (
           <span className="text-xs text-white/50">
-            Bioavailability: {route.bioavailability}
+            Bio: {route.bioavailability}
           </span>
         )}
       </div>
@@ -87,10 +91,13 @@ function DosageRouteCard({ route }: { route: DosageRoute }) {
   );
 }
 
-function DurationRouteCard({ route }: { route: DurationRoute }) {
+function DurationPanel({ route }: { route: DurationRoute }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-      <h4 className="mb-3 font-semibold text-white">{capitalizeRoute(route.route)}</h4>
+      <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+        <Clock className="h-4 w-4 text-fuchsia-200" />
+        Duration
+      </h4>
       <div className="space-y-2">
         {DURATION_STAGES.map(({ key, label }) => {
           const stage = route.stages[key as keyof typeof route.stages];
@@ -112,6 +119,15 @@ export const PreviewDosageDurationCard = memo(function PreviewDosageDurationCard
   article,
 }: PreviewDosageDurationCardProps) {
   const { dosage, duration } = article;
+
+  // Collect unique routes from both dosage and duration
+  const allRoutes = useMemo(() => {
+    const routeSet = new Set<string>();
+    dosage.routes.forEach(r => routeSet.add(r.route));
+    duration.routes.forEach(r => routeSet.add(r.route));
+    return Array.from(routeSet);
+  }, [dosage, duration]);
+
   const hasDosage = dosage.routes.length > 0;
   const hasDuration = duration.routes.length > 0;
 
@@ -119,45 +135,44 @@ export const PreviewDosageDurationCard = memo(function PreviewDosageDurationCard
     return null;
   }
 
+  const defaultRoute = allRoutes[0] || "oral";
+
   return (
     <SectionCard delay={0}>
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Dosage Column */}
-        {hasDosage && (
-          <div>
-            <h3 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-              <IconBadge icon={Pill} label="Dosage" />
-              Dosage
-            </h3>
-            <div className="space-y-4">
-              {dosage.routes.map((route, idx) => (
-                <DosageRouteCard key={`${route.route}-${idx}`} route={route} />
-              ))}
-            </div>
-          </div>
-        )}
+      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+        <IconBadge icon={Pill} label="Dosage & Duration" />
+        Dosage & Duration
+      </h2>
 
-        {/* Duration Column */}
-        {hasDuration && (
-          <div>
-            <h3 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-              <IconBadge icon={Clock} label="Duration" />
-              Duration
-            </h3>
-            <div className="space-y-4">
-              {duration.routes.map((route, idx) => (
-                <DurationRouteCard key={`${route.route}-${idx}`} route={route} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <Tabs defaultValue={defaultRoute} className="w-full">
+        <TabsList className="mb-4 flex-wrap">
+          {allRoutes.map(route => (
+            <TabsTrigger key={route} value={route}>
+              {capitalizeRoute(route)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {allRoutes.map(route => {
+          const dosageForRoute = dosage.routes.find(r => r.route === route);
+          const durationForRoute = duration.routes.find(r => r.route === route);
+
+          return (
+            <TabsContent key={route} value={route}>
+              <div className="grid gap-4 md:grid-cols-2 items-start">
+                {dosageForRoute && <DosagePanel route={dosageForRoute} />}
+                {durationForRoute && <DurationPanel route={durationForRoute} />}
+              </div>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
 
       {/* Plateau Dosing (DXM-specific) */}
       {dosage.plateau_dosing && (
         <div className="mt-6 border-t border-white/10 pt-6">
           <h4 className="mb-3 font-semibold text-white">DXM Plateau Dosing</h4>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-start">
             {(["first_plateau", "second_plateau", "third_plateau", "fourth_plateau"] as const).map((key, idx) => {
               const plateau = dosage.plateau_dosing![key];
               if (!plateau || (plateau.min === null && plateau.max === null)) return null;

@@ -106,11 +106,26 @@ export interface SensoryEffects {
   multisensory: string[];
 }
 
+// Notes for each subjective effects category
+export interface SubjectiveEffectsNotes {
+  overview: string;
+  sensory: string;
+  cognitive: string;
+  physical: string;
+}
+
 // Subjective effects section
 export interface SubjectiveEffects {
+  notes: SubjectiveEffectsNotes;
   sensory: SensoryEffects;
   cognitive: string[];
   physical: string[];
+}
+
+// Drug comparison entry
+export interface DrugComparison {
+  drug: string;
+  comparison: string;
 }
 
 // Pharmacology section
@@ -192,6 +207,7 @@ export interface GeneratedArticle {
   dosage: Dosage;
   duration: Duration;
   subjective_effects: SubjectiveEffects;
+  comparisons: DrugComparison[];
   pharmacology: Pharmacology;
   interactions: Interactions;
   reagent_testing: Record<string, string>;

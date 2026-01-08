@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { TestTubeDiagonal } from "lucide-react";
+import { ExternalLink, TestTubeDiagonal } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { GeneratedArticle } from "../../../../../types/generatorSchema";
@@ -314,9 +314,19 @@ export const PreviewReagentSection = memo(function PreviewReagentSection({
         ))}
       </div>
 
-      <p className="mt-4 text-xs text-white/50">
-        {entries.length} reagent{entries.length !== 1 ? "s" : ""} tested
-      </p>
+      {/* Attribution footer */}
+      <div className="mt-4 flex items-center justify-end gap-2">
+        <span className="text-xs text-white/50">Powered by</span>
+        <a
+          href="https://protestkit.eu"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-fuchsia-200 transition hover:text-fuchsia-100"
+        >
+          ProtestKit.eu
+        </a>
+        <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
+      </div>
     </SectionCard>
   );
 });

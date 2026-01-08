@@ -55,8 +55,8 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
         Interactions
       </h2>
 
-      {/* 3-column masonry layout */}
-      <div className="[column-gap:1rem] columns-1 md:columns-3">
+      {/* 3-column grid layout */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 items-start">
         {INTERACTION_CATEGORIES.map(({ key, label, icon: Icon, borderClass, bgClass, iconClass }) => {
           const items = interactions[key as keyof typeof interactions];
           if (items.length === 0) return null;
@@ -64,7 +64,7 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
           return (
             <div
               key={key}
-              className={`mb-4 break-inside-avoid rounded-xl border p-4 last:mb-0 ${borderClass} ${bgClass}`}
+              className={`rounded-xl border p-4 ${borderClass} ${bgClass}`}
             >
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
                 <Icon className={`h-5 w-5 ${iconClass}`} />

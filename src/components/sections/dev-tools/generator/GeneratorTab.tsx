@@ -490,7 +490,10 @@ export const GeneratorTab = memo(function GeneratorTab({
               <SelectContent>
                 {MODEL_OPTIONS.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
-                    {m.label}
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">{m.label}</span>
+                      <span className="text-xs text-white/50">{m.description}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

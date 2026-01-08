@@ -12,16 +12,14 @@ export interface ModelOption {
   label: string;
   contextWindow: number;
   provider: string;
+  description: string;
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
-  { id: "google/gemini-3-pro-preview", label: "Gemini 3 Pro (Recommended)", contextWindow: 1000000, provider: "google" },
-  { id: "google/gemini-3-flash-preview", label: "Gemini 3 Flash", contextWindow: 1000000, provider: "google" },
-  { id: "deepseek/deepseek-v3.2", label: "DeepSeek V3.2", contextWindow: 128000, provider: "deepseek" },
-  { id: "x-ai/grok-4.1-fast", label: "Grok 4.1 Fast", contextWindow: 2000000, provider: "x-ai" },
-  { id: "moonshotai/kimi-k2-thinking", label: "Kimi K2 Thinking", contextWindow: 256000, provider: "moonshotai" },
-  { id: "anthropic/claude-haiku-4.5", label: "Claude Haiku 4.5", contextWindow: 200000, provider: "anthropic" },
-  { id: "anthropic/claude-opus-4.5", label: "Claude Opus 4.5", contextWindow: 200000, provider: "anthropic" },
+  { id: "anthropic/claude-opus-4.5", label: "Claude Opus 4.5", contextWindow: 200000, provider: "anthropic", description: "Undoubtedly the best model, if the articles fit into its 200k context window." },
+  { id: "google/gemini-3-pro-preview", label: "Gemini 3 Pro", contextWindow: 1000000, provider: "google", description: "The best model if Opus 4.5 runs out of context." },
+  { id: "google/gemini-3-flash-preview", label: "Gemini 3 Flash", contextWindow: 1000000, provider: "google", description: "The best model for quickly and cheaply experimenting." },
+  { id: "x-ai/grok-4.1-fast", label: "Grok 4.1 Fast", contextWindow: 2000000, provider: "x-ai", description: "We use this model if the others are overly censored." },
 ];
 
 export const ERROR_MESSAGES: Record<number, string> = {

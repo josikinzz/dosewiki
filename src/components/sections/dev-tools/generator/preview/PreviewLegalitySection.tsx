@@ -1,8 +1,15 @@
 import { memo } from "react";
+import Masonry from "react-masonry-css";
 import { Globe, Scale } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+
+const MASONRY_BREAKPOINTS = {
+  default: 3,
+  1024: 2,
+  640: 1,
+};
 
 interface PreviewLegalitySectionProps {
   article: GeneratedArticle;
@@ -84,7 +91,11 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
       {hasCountries && (
         <div>
           <h3 className="mb-3 text-sm font-semibold text-white">By Country</h3>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Masonry
+            breakpointCols={MASONRY_BREAKPOINTS}
+            className="flex w-full gap-3"
+            columnClassName="flex flex-col gap-3"
+          >
             {countries.map(([code, info]) => (
               <div
                 key={code}
@@ -100,7 +111,7 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
                 )}
               </div>
             ))}
-          </div>
+          </Masonry>
         </div>
       )}
     </SectionCard>

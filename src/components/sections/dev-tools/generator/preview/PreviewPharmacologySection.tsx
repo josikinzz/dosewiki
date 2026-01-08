@@ -1,8 +1,14 @@
 import { memo } from "react";
+import Masonry from "react-masonry-css";
 import { Beaker, Brain } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+
+const MASONRY_BREAKPOINTS = {
+  default: 2,
+  768: 1,
+};
 
 interface PreviewPharmacologySectionProps {
   article: GeneratedArticle;
@@ -34,7 +40,11 @@ export const PreviewPharmacologySection = memo(function PreviewPharmacologySecti
         Pharmacology
       </h2>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <Masonry
+        breakpointCols={MASONRY_BREAKPOINTS}
+        className="flex w-full gap-4"
+        columnClassName="flex flex-col gap-4"
+      >
         {/* Mechanism of Action */}
         {hasMoA && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -110,7 +120,7 @@ export const PreviewPharmacologySection = memo(function PreviewPharmacologySecti
             )}
           </div>
         )}
-      </div>
+      </Masonry>
     </SectionCard>
   );
 });
