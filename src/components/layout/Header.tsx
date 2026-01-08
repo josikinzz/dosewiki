@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FlaskConical, Info, Menu, X } from "lucide-react";
+import { FlaskConical, Info, Menu, Wrench, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
@@ -15,9 +15,11 @@ interface HeaderProps {
 
 export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
+  const devView: AppView = { type: "dev", tab: "generator" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
     { label: "Substance Index", view: substancesView, icon: FlaskConical },
+    { label: "Dev Tools", view: devView, icon: Wrench },
   ];
   const aboutHash = viewToHash(aboutView);
   const isAboutActive = currentView.type === "about";
@@ -30,6 +32,10 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
         currentView.type === "substance" ||
         currentView.type === "mechanism"
       );
+    }
+
+    if (itemView.type === "dev") {
+      return currentView.type === "dev";
     }
 
     return itemView.type === currentView.type;
