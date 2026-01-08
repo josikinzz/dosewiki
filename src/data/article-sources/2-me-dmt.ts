@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-Me-DMT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Me-DMT.md","displayName":"Isomer Design","size":4439},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Me-DMT.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Me-DMT.md","displayName":"Wikipedia","size":2960}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Me-DMT.md","displayName":"Isomer Design","size":4439,"tokens":1175},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Me-DMT.md","displayName":"TripSit Factsheets","size":1067,"tokens":290},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Me-DMT.md","displayName":"Wikipedia","size":2960,"tokens":884}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-Me-DMT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=34*

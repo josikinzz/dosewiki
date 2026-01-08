@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Paracetamol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paracetamol.md","displayName":"DrugBank","size":34366},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paracetamol.md","displayName":"TripSit Factsheets","size":652},{"id":"wikipedia","fileName":"WIKIPEDIA - Paracetamol.md","displayName":"Wikipedia","size":33478}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paracetamol.md","displayName":"DrugBank","size":34366,"tokens":9003},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paracetamol.md","displayName":"TripSit Factsheets","size":652,"tokens":173},{"id":"wikipedia","fileName":"WIKIPEDIA - Paracetamol.md","displayName":"Wikipedia","size":33478,"tokens":7896}];
 export const contents: Record<string, string> = {
   "drugbank": `# Acetaminophen
 *Source: https://go.drugbank.com/drugs/DB00316*

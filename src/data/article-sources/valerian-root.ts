@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Valerian_Root";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Valerian_Root.md","displayName":"Drug Users Bible","size":3861},{"id":"wikipedia","fileName":"WIKIPEDIA - Valerian_Root.md","displayName":"Wikipedia","size":8278}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Valerian_Root.md","displayName":"Drug Users Bible","size":3861,"tokens":1007},{"id":"wikipedia","fileName":"WIKIPEDIA - Valerian_Root.md","displayName":"Wikipedia","size":8278,"tokens":2053}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Valerian Root
 *Source: Drug Users Bible by Dominic Milton Trott*

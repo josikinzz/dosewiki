@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pentylone";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pentylone.md","displayName":"The Drug Classroom","size":6176},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentylone.md","displayName":"TripSit Factsheets","size":616},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentylone.md","displayName":"Wikipedia","size":754}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pentylone.md","displayName":"The Drug Classroom","size":5090,"tokens":1331},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentylone.md","displayName":"TripSit Factsheets","size":616,"tokens":171},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentylone.md","displayName":"Wikipedia","size":754,"tokens":219}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Pentylone
 *Source: https://thedrugclassroom.com/video/pentylone/*
@@ -196,22 +196,7 @@ Clonic convulsions observed in 3/7 mice at 8 hours after 100 mg/kg IP.
 
 ## Test Videos
 
----
-
-## References
-
-**(2015)** [Discriminative and locomotor effects of five synthetic cathinones in rats and mice](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4361374/)
-
-**(2014)** [Monoamine transporter and receptor interaction profiles of a new series of designer cathinones.](https://www.ncbi.nlm.nih.gov/pubmed/24275046)
-
-**(2013)** [Case Report of Cathinone-Like Designer Drug Intoxication Psychosis and Addiction With Serum Identification](https://www.researchgate.net/publication/236462759_Case_Report_of_Cathinone-Like_Designer_Drug_Intoxication_Psychosis_and_Addiction_With_Serum_Identification)
-
-**(2012)** [Mass, NMR and IR spectroscopic characterization of pentedrone and pentylone and identification of their isocathinone by-products.](https://www.ncbi.nlm.nih.gov/pubmed/22115724)
-
-**(2011)** [Analysis of NRG ‘legal highs’ in the UK: identification and formation of novel cathinones.](https://www.ncbi.nlm.nih.gov/pubmed/21960541)
-
-**(2011)** [Cathinone derivatives: a review of their chemistry, pharmacology and toxicology.](https://www.ncbi.nlm.nih.gov/pubmed/21755607)
-`,
+---`,
   "tripsit-factsheets": `# Pentylone
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDAI";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - MDAI.md","displayName":"Disregard Everything I Say","size":7660},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDAI.md","displayName":"Drug Users Bible","size":2995},{"id":"erowid","fileName":"EROWID - MDAI.md","displayName":"Erowid","size":6750},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDAI.md","displayName":"Isomer Design","size":669},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDAI.md","displayName":"PsychonautWiki","size":29961},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDAI.md","displayName":"TripSit Factsheets","size":479},{"id":"wikipedia","fileName":"WIKIPEDIA - MDAI.md","displayName":"Wikipedia","size":7252}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - MDAI.md","displayName":"Disregard Everything I Say","size":7660,"tokens":1924},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDAI.md","displayName":"Drug Users Bible","size":2995,"tokens":756},{"id":"erowid","fileName":"EROWID - MDAI.md","displayName":"Erowid","size":6750,"tokens":1973},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDAI.md","displayName":"Isomer Design","size":359,"tokens":143},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDAI.md","displayName":"PsychonautWiki","size":21607,"tokens":5852},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDAI.md","displayName":"TripSit Factsheets","size":479,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - MDAI.md","displayName":"Wikipedia","size":7252,"tokens":1815}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# MDAI
 *Source: https://disregardeverythingisay.com/post/94033561694/mdai-broken-down-and-described*
@@ -304,16 +304,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`NC1Cc2c(C1)cc1c(c2)OCO1\`
 
-**InChI:** \`InChI=1S/C10H11NO2/c11-8-1-6-3-9-10(13-5-12-9)4-7(6)2-8/h3-4,8H,1-2,5,11H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [111694](https://www.chemspider.com/Chemical-Structure.111694.html/)
-- [125558](https://pubchem.ncbi.nlm.nih.gov/compound/125558)
-- [Q6715120](https://www.wikidata.org/wiki/Q6715120)
-- [MDAI](https://en.wikipedia.org/wiki/MDAI)
-`,
+**InChI:** \`InChI=1S/C10H11NO2/c11-8-1-6-3-9-10(13-5-12-9)4-7(6)2-8/h3-4,8H,1-2,5,11H2\``,
   "psychonautwiki": `# MDAI
 *Source: https://psychonautwiki.org/wiki/MDAI*
 
@@ -476,30 +467,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 
 ### Discussion
 
-- [The Big & Dandy MDAI Thread (Bluelight)](http://www.bluelight.org/vb/threads/434331-The-Big-amp-Dandy-MDAI-Thread)
-
-## References
-1. ↑ Johnson, M. P., Conarty, P. F., Nichols, D. E. (23 July 1991). "[3H]monoamine releasing and uptake inhibition properties of 3,4-methylenedioxymethamphetamine and p-chloroamphetamine analogues".*European Journal of Pharmacology*.**200**(1): 9–16.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(91)90659-e](//doi.org/10.1016%2F0014-2999%2891%2990659-e).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-2. ↑ Nichols, D. E., Brewster, W. K., Johnson, M. P., Oberlender, R., Riggs, R. M. (February 1990). "Nonneurotoxic tetralin and indan analogues of 3,4-(methylenedioxy)amphetamine (MDA)".*Journal of Medicinal Chemistry*.**33**(2): 703–710.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00164a037](//doi.org/10.1021%2Fjm00164a037).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-3. ↑ Nichols, D. E., Johnson, M. P., Oberlender, R. (January 1991). "5-Iodo-2-aminoindan, a nonneurotoxic analogue of p-iodoamphetamine".*Pharmacology, Biochemistry, and Behavior*.**38**(1): 135–139.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0091-3057(91)90601-w](//doi.org/10.1016%2F0091-3057%2891%2990601-w).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-4. ↑ MP, J., SP, F., ((R, O.)), DE, N. (1 May 1991). "Synthesis and pharmacological examination of 1-(3-methoxy-4-methylphenyl)-2-aminopropane and 5-methoxy-6-methyl-2-aminoindan: similarities to 3,4-(methylenedioxy)methamphetamine (MDMA)".*Journal of Medicinal Chemistry*.**34**(5): 1662–1668.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/JM00109A020](//doi.org/10.1021%2FJM00109A020).
-5. ↑ Johnson, M. P., Huang, X. M., Nichols, D. E. (December 1991). "Serotonin neurotoxicity in rats after combined treatment with a dopaminergic agent followed by a nonneurotoxic 3,4-methylenedioxymethamphetamine (MDMA) analogue".*Pharmacology, Biochemistry, and Behavior*.**40**(4): 915–922.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0091-3057(91)90106-c](//doi.org/10.1016%2F0091-3057%2891%2990106-c).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-6. ↑ Nichols, D. E., Marona-Lewicka, D., Huang, X., Johnson, M. P. (1993). "Novel serotonergic agents".*Drug Design and Discovery*.**9**(3–4): 299–312.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1055-9612](//www.worldcat.org/issn/1055-9612).
-7. ↑ Sprague, J. E., Johnson, M. P., Schmidt, C. J., Nichols, D. E. (25 October 1996). "Studies on the mechanism of p-chloroamphetamine neurotoxicity".*Biochemical Pharmacology*.**52**(8): 1271–1277.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0006-2952(96)00482-0](//doi.org/10.1016%2F0006-2952%2896%2900482-0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0006-2952](//www.worldcat.org/issn/0006-2952).
-8. ↑ Cozzi, N. V., Frescas, S., Marona-Lewicka, D., Huang, X., Nichols, D. E. (March 1998). "Indan analogs of fenfluramine and norfenfluramine have reduced neurotoxic potential".*Pharmacology, Biochemistry, and Behavior*.**59**(3): 709–715.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0091-3057(97)00557-1](//doi.org/10.1016%2Fs0091-3057%2897%2900557-1).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-9. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-10. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-11. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-12. ↑ 关于印发《非药用类麻醉药品和精神药品列管办法》的通知 | [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html)
-13. ↑ "Lists of euphoriant substances subject to control in Denmark". The Danish Medicines Agency. September 2015. | [http://laegemiddelstyrelsen.dk/en/licensing/company-authorisations-and-registrations/euphoriant-substances/lists](http://laegemiddelstyrelsen.dk/en/licensing/company-authorisations-and-registrations/euphoriant-substances/lists)
-14. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 15, 2019.
-15. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 15, 2019.
-16. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 15, 2019.
-17. ↑ ["新たに指定された指定薬物の名称"](https://www.mhlw.go.jp/stf/houdou/2r985200000312nw-att/2r985200000312pd.pdf) (PDF, in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved on May 2, 2022.
-18. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-19. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-20. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-21. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075533 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.048 seconds CPU time usage: 0.361 seconds Real time usage: 0.747 seconds Preprocessor visited node count: 1818/1000000 Post‐expand include size: 128162/2097152 bytes Template argument size: 15567/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 24702/5000000 bytes Lua time usage: 0.280/7 seconds Lua virtual size: 8.58 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 594.308 1 -total 39.96% 237.459 10 Template:Cite_journal 21.41% 127.261 4 Template:Citation_needed 13.08% 77.759 1 Template:Fix 12.18% 72.383 2 Template:Category_handler 9.89% 58.802 1 Template:SubstanceBox/MDAI 9.33% 55.460 1 Template:SubstanceBox 8.65% 51.398 4 Template:Cite_web 5.12% 30.424 1 Template:Effects/base 4.48% 26.606 1 Template:Effect_list`,
+- [The Big & Dandy MDAI Thread (Bluelight)](http://www.bluelight.org/vb/threads/434331-The-Big-amp-Dandy-MDAI-Thread)`,
   "tripsit-factsheets": `# MDAI
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mdai*
 

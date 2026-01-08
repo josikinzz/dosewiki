@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Flubromazepam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flubromazepam.md","displayName":"Isomer Design","size":864},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flubromazepam.md","displayName":"PsychonautWiki","size":28032},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flubromazepam.md","displayName":"TripSit Factsheets","size":451},{"id":"wikipedia","fileName":"WIKIPEDIA - Flubromazepam.md","displayName":"Wikipedia","size":904}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flubromazepam.md","displayName":"Isomer Design","size":442,"tokens":182},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flubromazepam.md","displayName":"PsychonautWiki","size":19972,"tokens":5235},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flubromazepam.md","displayName":"TripSit Factsheets","size":451,"tokens":132},{"id":"wikipedia","fileName":"WIKIPEDIA - Flubromazepam.md","displayName":"Wikipedia","size":904,"tokens":242}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Flubromazepam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3040*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`O=C1CN=C(c2c(N1)ccc(c2)Br)c1ccccc1F\`
 
-**InChI:** \`InChI=1S/C15H10BrFN2O/c16-9-5-6-13-11(7-9)15(18-8-14(20)19-13)10-3-1-2-4-12(10)17/h1-7H,8H2,(H,19,20)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [10441497](https://www.chemspider.com/Chemical-Structure.10441497.html/)
-- [12947024](https://pubchem.ncbi.nlm.nih.gov/compound/12947024)
-- [Q15408403](https://www.wikidata.org/wiki/Q15408403)
-- [Flubromazepam](https://en.wikipedia.org/wiki/Flubromazepam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C15H10BrFN2O/c16-9-5-6-13-11(7-9)15(18-8-14(20)19-13)10-3-1-2-4-12(10)17/h1-7H,8H2,(H,19,20)\``,
   "psychonautwiki": `# Flubromazepam
 *Source: https://psychonautwiki.org/wiki/Flubromazepam*
 
@@ -171,32 +161,7 @@ Symptoms of a benzodiazepine overdose may include severe [thought deceleration](
 ## External links
 
 - [Flubromazepam (Wikipedia)](https://en.wikipedia.org/wiki/Flubromazepam)
-- [Flubromazepam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3040)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Earl, R., Henryk, S. L.,[Amino substituted benzophenone oximes and derivatives thereof](https://patents.google.com/patent/US3136815A/en)
-3. ↑ 3.0 3.1 Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-4. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-5. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-6. ↑ McLean, M. J., Macdonald, R. L. (February 1988). "Benzodiazepines, but not beta carbolines, limit high frequency repetitive firing of action potentials of spinal cord neurons in cell culture".*The Journal of Pharmacology and Experimental Therapeutics*.**244**(2): 789–795.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-7. ↑ Saïas, T., Gallarda, T. (September 2008). "Paradoxical aggressive reactions to benzodiazepine use: a review".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-8. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-9. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-10. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-11. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-12. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-13. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-14. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-15. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-15.html)
-16. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-17. ↑ ["Dreißigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl115s1992.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2015 Teil I. Nr. 45*(in German). Bundesanzeiger Verlag. November 20, 2015. Retrieved December 29, 2019.
-18. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-19. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-20. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-21. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)
-22. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)
-23. ↑ [18VAC110-20-322. Placement of chemicals in Schedule I.](https://law.lis.virginia.gov/admincode/title18/agency110/chapter20/section322/)NewPP limit report Cached time: 20251218075430 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.035 seconds CPU time usage: 0.384 seconds Real time usage: 0.825 seconds Preprocessor visited node count: 1890/1000000 Post‐expand include size: 124785/2097152 bytes Template argument size: 16985/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 28541/5000000 bytes Lua time usage: 0.350/7 seconds Lua virtual size: 8.82 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 689.003 1 -total 30.36% 209.186 12 Template:Cite_journal 19.04% 131.211 6 Template:Citation 13.63% 93.877 1 Template:Effects/base 13.29% 91.552 1 Template:Effect_list 12.96% 89.296 2 Template:Effect_column 11.16% 76.893 1 Template:Headerpanel 10.92% 75.235 4 Template:Effect_panel 10.70% 73.744 1 Template:Effects/physical 10.49% 72.301 1 Template:DepressantOD`,
+- [Flubromazepam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3040)`,
   "tripsit-factsheets": `# Flubromazepam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/flubromazepam*
 

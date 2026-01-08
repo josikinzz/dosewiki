@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Chloral betaine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloral betaine.md","displayName":"TripSit Factsheets","size":577},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloral betaine.md","displayName":"Wikipedia","size":511}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloral betaine.md","displayName":"TripSit Factsheets","size":577,"tokens":158},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloral betaine.md","displayName":"Wikipedia","size":511,"tokens":135}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Chloral betaine
 *Source: TripSit Factsheets (tripsit.me)*

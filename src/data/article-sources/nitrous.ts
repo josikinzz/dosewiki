@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nitrous";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Nitrous.md","displayName":"Disregard Everything I Say","size":13722},{"id":"drugbank","fileName":"DRUGBANK - Nitrous.md","displayName":"DrugBank","size":11684},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Nitrous.md","displayName":"Drug Users Bible","size":1505},{"id":"erowid","fileName":"EROWID - Nitrous.md","displayName":"Erowid","size":24111},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Nitrous.md","displayName":"Isomer Design","size":542},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Nitrous.md","displayName":"PsychonautWiki","size":46480},{"id":"saferparty","fileName":"SAFERPARTY - Nitrous.md","displayName":"Safer Party","size":1337},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Nitrous.md","displayName":"The Drug Classroom","size":92643},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitrous.md","displayName":"TripSit Factsheets","size":2124},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Nitrous.md","displayName":"TripSit Wiki","size":3609},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitrous.md","displayName":"Wikipedia","size":35407}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Nitrous.md","displayName":"Disregard Everything I Say","size":13722,"tokens":3301},{"id":"drugbank","fileName":"DRUGBANK - Nitrous.md","displayName":"DrugBank","size":11684,"tokens":2937},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Nitrous.md","displayName":"Drug Users Bible","size":1505,"tokens":387},{"id":"erowid","fileName":"EROWID - Nitrous.md","displayName":"Erowid","size":24111,"tokens":6282},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Nitrous.md","displayName":"Isomer Design","size":228,"tokens":76},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Nitrous.md","displayName":"PsychonautWiki","size":34119,"tokens":8911},{"id":"saferparty","fileName":"SAFERPARTY - Nitrous.md","displayName":"Safer Party","size":1337,"tokens":323},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Nitrous.md","displayName":"The Drug Classroom","size":78347,"tokens":19649},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitrous.md","displayName":"TripSit Factsheets","size":2124,"tokens":557},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Nitrous.md","displayName":"TripSit Wiki","size":3609,"tokens":958},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitrous.md","displayName":"Wikipedia","size":35407,"tokens":8690}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Nitrous
 *Source: https://disregardeverythingisay.com/post/76500383493/nitrous-oxide-broken-down-and-described*
@@ -1364,16 +1364,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`O=N#N\`
 
-**InChI:** \`InChI=1S/N2O/c1-2-3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [923](https://www.chemspider.com/Chemical-Structure.923.html/)
-- [948](https://pubchem.ncbi.nlm.nih.gov/compound/948)
-- [Q905750](https://www.wikidata.org/wiki/Q905750)
-- [Nitrous oxide](https://en.wikipedia.org/wiki/Nitrous_oxide)
-`,
+**InChI:** \`InChI=1S/N2O/c1-2-3\``,
   "psychonautwiki": `# Nitrous
 *Source: https://psychonautwiki.org/wiki/Nitrous*
 
@@ -1660,46 +1651,7 @@ It is important not to overcharge your whipped cream dispenser.
 ## Literature
 
 - Sheldin, M., Wallechinsky, D., Salyer, S. Laughing Gas: Nitrous Oxide. Ronin Publishing, 1993
-- Humphry Davy. Researches Clinical and Philosophical, Chiefly Concerning Nitrous Oxide, 2010
-
-## References
-1. ↑ Flippo, T. S. (1 December 1993).["Neurologic Degeneration Associated With Nitrous Oxide Anesthesia in Patients With Vitamin B12 Deficiency"](http://archsurg.jamanetwork.com/article.aspx?doi=10.1001/archsurg.1993.01420240099018).*Archives of Surgery*.**128**(12): 1391.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archsurg.1993.01420240099018](//doi.org/10.1001%2Farchsurg.1993.01420240099018).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0004-0010](//www.worldcat.org/issn/0004-0010).
-2. ↑ Campdesuner, V; Teklie, Y; Alkayali, T; Pierce, D; George, J (9 July 2020).["Nitrous Oxide-Induced Vitamin B12 Deficiency Resulting in Myelopathy"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC7366039).*Cureus*.**12**(7): e9088.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.7759/cureus.9088](//doi.org/10.7759%2Fcureus.9088).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[7366039](//www.ncbi.nlm.nih.gov/pmc/articles/PMC7366039).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[32685323](//www.ncbi.nlm.nih.gov/pubmed/32685323).
-3. ↑ Tarendash, A. S. (July 2001).*Let’s Review: Chemistry, the Physical Setting*. Barrons Educational Series.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780764116643](http://en.wikipedia.org/wiki/Special:BookSources/9780764116643).
-4. ↑ Keys, T. E. (1 September 1941).["THE DEVELOPMENT OF ANESTHESIA"](https://pubs.asahq.org/anesthesiology/article/2/5/552/17582/THE-DEVELOPMENT-OF-ANESTHESIA).*Anesthesiology*.**2**(5): 552–574.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/00000542-194109000-00008](//doi.org/10.1097%2F00000542-194109000-00008).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-3022](//www.worldcat.org/issn/0003-3022).
-5. ↑ 5.0 5.1 Erving, H. W. (May 1933). "The Discoverer of Anæsthesia: Dr. Horace Wells of Hartford".*The Yale Journal of Biology and Medicine*.**5**(5): 421–430.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0044-0086](//www.worldcat.org/issn/0044-0086).
-6. ↑ Goerig, M., Schulte am Esch, J. (1 September 2001).["History of nitrous oxide—with special reference to its early use in Germany"](https://www.sciencedirect.com/science/article/pii/S152168960190165X).*Best Practice & Research Clinical Anaesthesiology*.**15**(3): 313–338.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1053/bean.2001.0165](//doi.org/10.1053%2Fbean.2001.0165).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1521-6896](//www.worldcat.org/issn/1521-6896).
-7. ↑ Priestley, J., Johnson, J., Adams, J., John Adams Library (Boston Public Library) BRL (1775).[Experiments and observations on different kinds of air / by Joseph Priestly, LL.D.F.R.S](http://archive.org/details/experimentsobser01prie). London : Printed for J. Johnson ...
-8. ↑ 8.0 8.1 8.2 Boyle, H. E. G. (27 January 1934).["NITROUS OXIDE: HISTORY AND DEVELOPMENT"](https://www.bmj.com/lookup/doi/10.1136/bmj.1.3812.153).*BMJ*.**1**(3812): 153–155.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1136/bmj.1.3812.153](//doi.org/10.1136%2Fbmj.1.3812.153).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0959-8138](//www.worldcat.org/issn/0959-8138).
-9. ↑ Hardman, J. G., Hopkins, P. M., Struys, M. M. R. F., eds. (2017).*Oxford textbook of anaesthesia*. Oxford textbooks in anaesthesia. Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780199642045](http://en.wikipedia.org/wiki/Special:BookSources/9780199642045).
-10. ↑ ["The Consumers Union on Licit and Illicit Drugs"](http://www.jstor.org/stable/3957382?origin=crossref).*Science News*.**102**(23): 357. 2 December 1972.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2307/3957382](//doi.org/10.2307%2F3957382).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0036-8423](//www.worldcat.org/issn/0036-8423).
-11. ↑ Desai, S., Desai, M., Pandav, C. (1 December 2007).["The Discovery of Modern Anaesthesia – Contributions of Davy, Clarke, Long, Wells and Morton"](https://escholarship.umassmed.edu/anesthesiology_pubs/157).*Anesthesiology and Perioperative Medicine Publications*.**51**(6).
-12. ↑ 12.0 12.1 Miller, A. H. (1 July 1941).["TECHNICAL DEVELOPMENT OF GAS ANESTHESIA"](https://pubs.asahq.org/anesthesiology/article/2/4/398/17588/TECHNICAL-DEVELOPMENT-OF-GAS-ANESTHESIA).*Anesthesiology*.**2**(4): 398–409.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/00000542-194107000-00004](//doi.org/10.1097%2F00000542-194107000-00004).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-3022](//www.worldcat.org/issn/0003-3022).
-13. ↑ Sneader, W. (2005).*Drug discovery: a history (Part 1: Legacy of the past, chapter 8: systematic medicine)*. Wiley.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780471899792](http://en.wikipedia.org/wiki/Special:BookSources/9780471899792).
-14. ↑ World Health Organization (2017),[WHO model list of essential medicines, 20th list (March 2017, amended August 2017)](https://apps.who.int/iris/handle/10665/273826), World Health Organization, retrieved 24 August 2017
-15. ↑ [Nitrous Oxide](http://www.chm.bris.ac.uk/motm/n2o/n2oc.htm)
-16. ↑ 16.0 16.1 Yamakura, T., Harris, R. A. (1 October 2000).["Effects of Gaseous Anesthetics Nitrous Oxide and Xenon on Ligand-gated Ion Channels"](https://pubs.asahq.org/anesthesiology/article/93/4/1095/38687/Effects-of-Gaseous-Anesthetics-Nitrous-Oxide-and).*Anesthesiology*.**93**(4): 1095–1101.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/00000542-200010000-00034](//doi.org/10.1097%2F00000542-200010000-00034).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-3022](//www.worldcat.org/issn/0003-3022).
-17. ↑ Emmanouil, D. E., Quock, R. M. (2007). "Advances in understanding the actions of nitrous oxide".*Anesthesia Progress*.**54**(1): 9–18.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2344/0003-3006(2007)54[9:AIUTAO]2.0.CO;2](//doi.org/10.2344%2F0003-3006%282007%2954%5B9%3AAIUTAO%5D2.0.CO%3B2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-3006](//www.worldcat.org/issn/0003-3006).
-18. ↑ Mennerick, S., Jevtovic-Todorovic, V., Todorovic, S. M., Shen, W., Olney, J. W., Zorumski, C. F. (1 December 1998). "Effect of nitrous oxide on excitatory and inhibitory synaptic transmission in hippocampal cultures".*The Journal of Neuroscience: The Official Journal of the Society for Neuroscience*.**18**(23): 9716–9726.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-19. ↑ Gruss, M., Bushell, T. J., Bright, D. P., Lieb, W. R., Mathie, A., Franks, N. P. (February 2004). "Two-pore-domain K+ channels are a novel target for the anesthetic gases xenon, nitrous oxide, and cyclopropane".*Molecular Pharmacology*.**65**(2): 443–452.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/mol.65.2.443](//doi.org/10.1124%2Fmol.65.2.443).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0026-895X](//www.worldcat.org/issn/0026-895X).
-20. ↑ Evans EB, Evans MR (November 2021). "Nangs, balloons and crackers: Recreational nitrous oxide neurotoxicity".*Aust J Gen Pract*(Review).**50**(11): 834–838.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.31128/AJGP-10-20-5668](//doi.org/10.31128%2FAJGP-10-20-5668).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[34713284](//www.ncbi.nlm.nih.gov/pubmed/34713284). Unknown parameter |s2cid= ignored ( [help](/w/index.php?title=Help:CS1_errors&action=edit&redlink=1) )
-21. ↑ Weimann, J. (March 2003).["Toxicity of nitrous oxide"](https://linkinghub.elsevier.com/retrieve/pii/S1521689602902648).*Best Practice & Research Clinical Anaesthesiology*.**17**(1): 47–61.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1053/bean.2002.0264](//doi.org/10.1053%2Fbean.2002.0264).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1521-6896](//www.worldcat.org/issn/1521-6896).
-22. ↑ Ok-Ad5515 (2021),[Warning about Nitrous Oxide](https://www.reddit.com/r/Drugs/comments/lkcykd/warning_about_nitrous_oxide/)
-23. ↑ [https://pubmed.ncbi.nlm.nih.gov/3537624/](https://pubmed.ncbi.nlm.nih.gov/3537624/)
-24. ↑ [http://www.erowid.org/chemicals/nitrous/nitrous_health.shtml](http://www.erowid.org/chemicals/nitrous/nitrous_health.shtml)
-25. ↑ [https://www.dancewizensw.org.au/filtering-nangs](https://www.dancewizensw.org.au/filtering-nangs)
-26. ↑ [http://www.erowid.org/chemicals/nitrous/nitrous_article2.shtml](http://www.erowid.org/chemicals/nitrous/nitrous_article2.shtml)
-27. ↑ [https://www.independent.co.uk/news/world/woman-whipped-cream-canister-explosion-emilie-lada-skull-crack-award-ps990000-french-court-model-death-a7880461.html](https://www.independent.co.uk/news/world/woman-whipped-cream-canister-explosion-emilie-lada-skull-crack-award-ps990000-french-court-model-death-a7880461.html)
-28. ↑ BtMG | [http://www.gesetze-im-internet.de/btmg_1981/BtMG.pdf](http://www.gesetze-im-internet.de/btmg_1981/BtMG.pdf)
-29. ↑ NpSG | [https://www.gesetze-im-internet.de/npsg/NpSG.pdf](https://www.gesetze-im-internet.de/npsg/NpSG.pdf)
-30. ↑ [§ 2 AMG - Einzelnorm](https://www.gesetze-im-internet.de/amg_1976/__2.html)
-31. ↑ Anlage 1 AMVV | [https://www.bfarm.de/SharedDocs/Downloads/DE/Arzneimittel/Pharmakovigilanz/Gremien/Verschreibungspflicht/liste_stoffe_zubereitungen.pdf;jsessionid=B4E9C9724EA80BC179A1B9384A42240D.2_cid354?__blob=publicationFile&v=25](https://www.bfarm.de/SharedDocs/Downloads/DE/Arzneimittel/Pharmakovigilanz/Gremien/Verschreibungspflicht/liste_stoffe_zubereitungen.pdf;jsessionid=B4E9C9724EA80BC179A1B9384A42240D.2_cid354?__blob=publicationFile&v=25)
-32. ↑ Rankin, Jennifer (2022-11-15).["Dutch to ban laughing gas over fears for health and road safety"](https://www.theguardian.com/society/2022/nov/15/dutch-to-ban-laughing-gas-over-fears-for-health-and-road-safety).*The Guardian*(in English).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0261-3077](//www.worldcat.org/issn/0261-3077). Retrieved 2023-10-20.
-33. ↑ ["Opium act (drugs)"](https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/customs/safety_health_economy_and_environment/safety/opium_act_drugs/opium_act_drugs#:~:text=You%20are%20not%20allowed%20to,these%20licences%20for%20the%20Netherlands.).*www.belastingdienst.nl*(in English). Retrieved 2023-10-20.
-34. ↑ Nyheter, S. V. T. (4 June 2025).["Ny lag: 18-årsgräns för köp av lustgas"](https://www.svt.se/nyheter/inrikes/forsaljning-av-lustgas-till-minderariga-forbjuds).*SVT Nyheter*(in Swedish).
-35. ↑ [https://www.legislation.gov.uk/uksi/2023/1091/made](https://www.legislation.gov.uk/uksi/2023/1091/made)
-36. ↑ "US Nitrous Oxide Laws (alphabetically) Based on a search of online free legal databases. Conducted May 2002" - [http://www.cognitiveliberty.org/dll/N20_state_laws.htm](http://www.cognitiveliberty.org/dll/N20_state_laws.htm)
-37. ↑ [California Code, Penal Code - PEN § 381b](https://codes.findlaw.com/ca/penal-code/pen-sect-381b.html)NewPP limit report Cached time: 20251218075654 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.046 seconds CPU time usage: 0.475 seconds Real time usage: 0.977 seconds Preprocessor visited node count: 2417/1000000 Post‐expand include size: 182099/2097152 bytes Template argument size: 30178/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 42240/5000000 bytes Lua time usage: 0.390/7 seconds Lua virtual size: 8.74 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 802.320 1 -total 38.92% 312.281 15 Template:Cite_journal 13.43% 107.733 3 Template:Citation_needed 7.67% 61.512 4 Template:Cite_book 7.66% 61.448 1 Template:Fix 7.31% 58.628 5 Template:Citation 7.13% 57.229 1 Template:SubstanceBox/Nitrous 7.10% 56.968 2 Template:Category_handler 6.59% 52.912 1 Template:SubstanceBox 4.42% 35.452 1 Template:Effects/base`,
+- Humphry Davy. Researches Clinical and Philosophical, Chiefly Concerning Nitrous Oxide, 2010`,
   "saferparty": `# Nitrous
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
@@ -3022,204 +2974,7 @@ Case 16
 - Had continued improvement and was discharged after 15 days with basically normal cognition, affect, and no hallucinations or delusions.
 - Normal on discharge and during five month follow-up
 
----
-
-## References
-
-**(2016)** [Up: The rise of nitrous oxide abuse. An international survey of contemporary nitrous oxide use.](https://www.ncbi.nlm.nih.gov/pubmed/26912510)
-
-**(2016)** [Nitrous oxide-induced slow and delta oscillations.](https://www.ncbi.nlm.nih.gov/pubmed/26118489)
-
-**(2016)** [Nitrous oxide in modern anaesthetic practice](https://academic.oup.com/bjaed/article/16/3/87/2897753/Nitrous-oxide-in-modern-anaesthetic-practice)
-
-**(2016)** [Potential Pathways Involved in the Rapid Antidepressant Effects of Nitrous Oxide](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5116381/)
-
-**(2016)** [The increasing recreational use of nitrous oxide: history revisited](https://academic.oup.com/bja/article/116/3/321/2566058/The-increasing-recreational-use-of-nitrous-oxide)
-
-**(2016)** [The Subjective Response to Nitrous Oxide is a Potential Pharmaco-Endophenotype for Alcohol Use Disorder: A Preliminary Study with Heavy Drinkers.](https://www.ncbi.nlm.nih.gov/pubmed/27401180)
-
-**(2016)** [Nitrous Oxide, From the Operating Room to the Emergency Department](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4819505/)
-
-**(2016)** [Neurologic, psychiatric, and other medical manifestations of nitrous oxide abuse: A systematic review of the case literature.](https://www.ncbi.nlm.nih.gov/pubmed/27037733)
-
-**(2015)** [Subacute combined degeneration of the spinal cord in a patient abusing nitrous oxide and self-medicating with cyanocobalamin.](https://www.ncbi.nlm.nih.gov/pubmed/25987690)
-
-**(2015)** [Treatment-Resistant Major Depression: Rationale for NMDA Receptors as Targets and Nitrous Oxide as Therapy.](https://www.ncbi.nlm.nih.gov/pubmed/26696909)
-
-**(2015)** [Recreational nitrous oxide use: Prevalence and risks.](https://www.ncbi.nlm.nih.gov/pubmed/26496821)
-
-**(2015)** [N-Methyl-d-Aspartate Receptor Channel Blocker–Like Discriminative Stimulus Effects of Nitrous Oxide Gas](http://jpet.aspetjournals.org/content/352/1/156)
-
-**(2015)** [Nitrous Oxide for Treatment-Resistant Major Depression: A Proof-of-Concept Trial.](https://www.ncbi.nlm.nih.gov/pubmed/25577164)
-
-**(2015)** [Nitrous Oxide for the Treatment of Chronic Low Back Pain.](https://www.ncbi.nlm.nih.gov/pubmed/26484463)
-
-**(2015)** [Death from Nitrous Oxide.](https://www.ncbi.nlm.nih.gov/pubmed/26258592)
-
-**(2015)** [Nitrous Oxide Abuse and Vitamin B12 Action in a 20-Year-Old Woman: A Case Report.](https://www.ncbi.nlm.nih.gov/pubmed/26489675)
-
-**(2015)** [Combination of Nitrous Oxide with Isoflurane or Scopolamine for Treatment-resistant Major Depression](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4423157/)
-
-**(2015)** [Nitrous Oxide and Serious Long-term Morbidity and Mortality in the Evaluation of Nitrous Oxide in the Gas Mixture for Anaesthesia (ENIGMA)-II Trial](http://anesthesiology.pubs.asahq.org/article.aspx?articleid=2466534)
-
-**(2015)** [A Case Report on the Anxiolytic Properties of Nitrous Oxide during Labor](http://onlinelibrary.wiley.com/doi/10.1111/1552-6909.12522/pdf)
-
-**(2014)** [κ-Opioid receptor mediates the antinociceptive effect of nitrous oxide in mice.](https://www.ncbi.nlm.nih.gov/pubmed/25086587)
-
-**(2014)** [Nitrous oxide induced myeloneuropathy: a case report.](https://www.ncbi.nlm.nih.gov/pubmed/23996222)
-
-**(2014)** [Nitrous oxide for the management of labor pain: a systematic review.](https://www.ncbi.nlm.nih.gov/pubmed/24356165)
-
-**(2014)** [The effect of nitrous oxide anesthesia on early postoperative opioid consumption and pain.](https://www.ncbi.nlm.nih.gov/pubmed/24310050)
-
-**(2014)** [Nitrous oxide myelopathy in a pediatric patient.](https://www.ncbi.nlm.nih.gov/pubmed/24694883)
-
-**(2014)** [The effects of xenon and nitrous oxide gases on alcohol relapse.](https://www.ncbi.nlm.nih.gov/pubmed/24118055)
-
-**(2014)** [Nitrous Oxide (N2O)-Induced Acute Psychosis.](https://www.ncbi.nlm.nih.gov/pubmed/25373825)
-
-**(2014)** [Does anaesthesia with nitrous oxide affect mortality or cardiovascular morbidity? A systematic review with meta-analysis and trial sequential analysis.](https://www.ncbi.nlm.nih.gov/pubmed/24408738)
-
-**(2014)** [Do we need to know whether nitrous oxide harms patients?](http://www.thelancet.com/journals/lancet/article/PIIS0140-6736(14)61061-8/fulltext?rss%3Dyes)
-
-**(2014)** [The Neurotoxicity of Nitrous Oxide: The Facts and “Putative” Mechanisms](http://www.mdpi.com/2076-3425/4/1/73)
-
-**(2014)** [Psychosis and low cyanocobalamin in a patient abusing nitrous oxide and cannabis.](https://www.ncbi.nlm.nih.gov/pubmed/24367897)
-
-**(2014)** [The safety of addition of nitrous oxide to general anaesthesia in at-risk patients having major non-cardiac surgery (ENIGMA-II): a randomised, single-blind trial](http://thelancet.com/journals/lancet/article/PIIS0140-6736(14)60893-X/abstract)
-
-**(2013)** [Recreational nitrous oxide abuse-induced vitamin B12 deficiency in a patient presenting with hyperpigmentation of the skin.](https://www.ncbi.nlm.nih.gov/pubmed/23898268)
-
-**(2013)** [Horace Wells’ “Humbug Affair” occurred at Massachusetts General Hospital? Humbug!](https://www.ncbi.nlm.nih.gov/pubmed/23962966)
-
-**(2013)** [Horace Wells’ Demonstration of Nitrous Oxide in Boston](http://anesthesiology.pubs.asahq.org/article.aspx?articleid=1918086)
-
-**(2013)** [Modulation of Functional EEG Networks by the NMDA Antagonist Nitrous Oxide](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0056434)
-
-**(2013)** [Nitrous oxide: are we still in equipoise? A qualitative review of current controversies.](https://www.ncbi.nlm.nih.gov/pubmed/23801743)
-
-**(2011)** [Severe myeloneuropathy from acute high-dose nitrous oxide (N2O) abuse.](https://www.ncbi.nlm.nih.gov/pubmed/20605391)
-
-**(2011)** [Safety and risks of nitrous oxide labor analgesia: a review.](https://www.ncbi.nlm.nih.gov/pubmed/22060215)
-
-**(2011)** [Subacute Combined Degeneration Caused by Nitrous Oxide Intoxication: Case Reports](http://www.ant-tnsjournal.com/Mag_Files/20-2/8.c_2_9928.pdf)
-
-**(2010)** [Systematic review: the use of nitrous oxide gas for lower gastrointestinal endoscopy.](https://www.ncbi.nlm.nih.gov/pubmed/20491748)
-
-**(2010)** [Association between nitrous oxide and the incidence of postoperative nausea and vomiting in adults: a systematic review and meta-analysis.](https://www.ncbi.nlm.nih.gov/pubmed/20151955)
-
-**(2010)** [Peripheral neuropathy following nitrous oxide abuse.](https://www.ncbi.nlm.nih.gov/pubmed/20152009)
-
-**(2008)** [Nitrous oxide-antinociception is mediated by opioid receptors and nitric oxide in the periaqueductal gray region of the midbrain.](https://www.ncbi.nlm.nih.gov/pubmed/17683915)
-
-**(2008)** [Inhalational conscious sedation with nitrous oxide enhances the cardiac parasympathetic component of heart rate variability.](https://www.ncbi.nlm.nih.gov/pubmed/19000603)
-
-**(2008)** [Effect of nitrous oxide on neurologic and neuropsychological function after intracranial aneurysm surgery.](https://www.ncbi.nlm.nih.gov/pubmed/18362587)
-
-**(2007)** [Psychotropic analgesic nitrous oxide for alcoholic withdrawal states.](https://www.ncbi.nlm.nih.gov/pubmed/17443576)
-
-**(2007)** [Nitrous oxide (N2O) pre- and postsynaptically attenuates NMDA receptor-mediated neurotransmission in the amygdala.](https://www.ncbi.nlm.nih.gov/pubmed/17123554)
-
-**(2006)** [Nitrous oxide “whippit” abuse presenting with cobalamin responsive psychosis.](https://www.ncbi.nlm.nih.gov/pubmed/18072118)
-
-**(2005)** [Potentially neuroprotective and therapeutic properties of nitrous oxide and xenon.](https://www.ncbi.nlm.nih.gov/pubmed/16179534)
-
-**(2005)** [Comparison of remifentanil and nitrous oxide in labour analgesia.](https://www.ncbi.nlm.nih.gov/pubmed/15777291)
-
-**(2004)** [Two-pore-domain K+ channels are a novel target for the anesthetic gases xenon, nitrous oxide, and cyclopropane.](https://www.ncbi.nlm.nih.gov/pubmed/14742687)
-
-**(2004)** [Toxicity after intermittent inhalation of nitrous oxide for analgesia](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC420294/)
-
-**(2004)** [Nitrous oxide “whippit” abuse presenting as clinical B12 deficiency and ataxia.](https://www.ncbi.nlm.nih.gov/pubmed/15011232)
-
-**(2004)** [A review of the risks and benefits of nitrous oxide in current anaesthetic practice.](https://www.ncbi.nlm.nih.gov/pubmed/15957712)
-
-**(2004)** [Enlarged double-blind randomised trial of benzodiazepines against psychotropic analgesic nitrous oxide for alcohol withdrawal.](https://www.ncbi.nlm.nih.gov/pubmed/15236821)
-
-**(2003)** [Toxicity of nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/12751548)
-
-**(2003)** [Nitrous oxide has no effect in the treatment of alcohol withdrawal syndrome: a double-blind placebo-controlled randomized trial.](https://www.ncbi.nlm.nih.gov/pubmed/12640227)
-
-**(2003)** [Nitrous oxide-oxygen: a new look at a very old technique.](https://www.ncbi.nlm.nih.gov/pubmed/12839232)
-
-**(2003)** [Prolonged exposure to inhalational anesthetic nitrous oxide kills neurons in adult rat brain.](https://www.ncbi.nlm.nih.gov/pubmed/14622904)
-
-**(2003)** [Reduction of Ischemic Brain Damage by Nitrous Oxide and Xenon](http://journals.sagepub.com/doi/abs/10.1097/01.WCB.0000087342.31689.18)
-
-**(2002)** [Nitrous oxide for relief of labor pain: a systematic review.](https://www.ncbi.nlm.nih.gov/pubmed/12011877)
-
-**(2002)** [Neurobiology of nitrous oxide-induced antinociceptive effects.](https://www.ncbi.nlm.nih.gov/pubmed/11936558)
-
-**(2001)** [Nitrous oxide and vitamin B12](http://adc.bmj.com/content/85/6/510.7)
-
-**(2001)** [A comparative evaluation of the neurotoxic properties of ketamine and nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/11259788)
-
-**(2001)** [Efficacy and safety of nitrous oxide in alleviating pain and anxiety during painful procedures](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1718795/)
-
-**(2000)** [Recent advances in understanding the actions and toxicity of nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/10781114)
-
-**(2000)** [Acute neurologic decompensation in an infant with cobalamin deficiency exposed to nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/10969273)
-
-**(1998)** [Nitrous oxide (laughing gas) is an NMDA antagonist, neuroprotectant and neurotoxin.](https://www.ncbi.nlm.nih.gov/pubmed/9546794)
-
-**(1998)** [Myelopathy caused by nitrous oxide toxicity.](https://www.ncbi.nlm.nih.gov/pubmed/9613506)
-
-**(1996)** [Severe combined degeneration of the spinal cord after nitrous oxide anaesthesia in a vegetarian.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1073874/)
-
-**(1996)** [Frostbite of the face after recreational misuse of nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/8634126)
-
-**(1995)** [Nitrous oxide and spontaneous abortion in female dental assistants.](https://www.ncbi.nlm.nih.gov/pubmed/7900720)
-
-**(1995)** [Accidental death by nitrous oxide inhalation.](https://www.ncbi.nlm.nih.gov/pubmed/7797187)
-
-**(1993)** [Neurologic degeneration associated with nitrous oxide anesthesia in patients with vitamin B12 deficiency.](https://www.ncbi.nlm.nih.gov/pubmed/8250714)
-
-**(1992)** [Reduced Fertility among Women Employed as Dental Assistants Exposed to High Levels of Nitrous Oxide](http://www.nejm.org/doi/full/10.1056/NEJM199210013271405#t=article)
-
-**(1992)** [Nitrous oxide abuse in perspective.](https://www.ncbi.nlm.nih.gov/pubmed/1516075)
-
-**(1990)** [Mediation of nitrous oxide analgesia in mice by spinal and supraspinal kappa-opioid receptors.](https://www.ncbi.nlm.nih.gov/pubmed/2157601)
-
-**(1990)** [Clinical pharmacology of nitrous oxide: an argument for its continued use.](https://www.ncbi.nlm.nih.gov/pubmed/2240627)
-
-**(1990)** [Analgesic nitrous oxide for alcohol withdrawal: a critical appraisal after 10 years’ use.](https://www.ncbi.nlm.nih.gov/pubmed/2217011)
-
-**(1989)** [Suicide by nitrous oxide poisoning.](https://www.ncbi.nlm.nih.gov/pubmed/2589295)
-
-**(1988)** [Dental anesthetic death. An unusual autoerotic episode.](https://www.ncbi.nlm.nih.gov/pubmed/3354528)
-
-**(1987)** [Clinical aspects of the interaction between nitrous oxide and vitamin B12.](https://www.ncbi.nlm.nih.gov/pubmed/3548788)
-
-**(1986)** [Is nitrous oxide a dangerous anesthetic for vitamin B12-deficient subjects?](https://www.ncbi.nlm.nih.gov/pubmed/3951096)
-
-**(1986)** [Adverse effects of nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/3537624)
-
-**(1985)** [Tolerance to nitrous oxide in volunteers.](https://www.ncbi.nlm.nih.gov/pubmed/4061009)
-
-**(1984)** [Nitrous oxide and the dental patient: a review of adverse reactions](http://jada.ada.org/article/S0002-8177(84)82023-1/abstract)
-
-**(1983)** [Subacute toxic delirium following nitrous oxide abuse.](https://www.ncbi.nlm.nih.gov/pubmed/6860185)
-
-**(1983)** [Nitrous oxide analgesia for refractory pain in the terminally ill.](https://www.ncbi.nlm.nih.gov/pubmed/6864950)
-
-**(1983)** [Drug abuse by anesthesia personnel.](https://www.ncbi.nlm.nih.gov/pubmed/6601467)
-
-**(1980)** [Paradoxical effect of naloxone on nitrous oxide analgesia in man.](https://www.ncbi.nlm.nih.gov/pubmed/6243567)
-
-**(1980)** [Nitrous Oxide Sedation and Sexual Phenomena](http://jada.ada.org/article/S0002-8177(80)11017-5/abstract)
-
-**(1980)** [Neuropathy after nitrous oxide abuse.](https://www.ncbi.nlm.nih.gov/pubmed/6253695)
-
-**(1980)** [Cobalamins and nitrous oxide: a review.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1146285/)
-
-**(1979)** [Abuse of nitrous oxide.](https://www.ncbi.nlm.nih.gov/pubmed/571232)
-
-**(1965)** [A history of nitrous oxide and oxygen anesthesia Part 2: Davy’s researches in relation to inhalation anesthesia](https://www.ncbi.nlm.nih.gov/pubmed/5323380)
-
-**(1965)** [A history of nitrous oxide and oxygen anesthesia Part 1: Joseph Priestley to Humphry Davy](https://oup.silverchair-cdn.com/oup/backfile/Content_public/Journal/bja/37/10/10.1093/bja/37.10.790/2/37-10-790.pdf?Expires=1489001407&Signature=LJfbNMum2GrOdjuqIvgAfdZ855ZKxwXP6IcLwNDtlrc7wtAgMSTCOkyjuMs7u0o8kS8iJ3rjPApG7zyI9ZKhN-sl0jSgwcvw7G4lLoP4G1pwlgCcZbPazWVVyOC4L8GfYnmXPQSV9mkVMi9EveYlWT9cWk2njvIs8cKaUOLmhs2hxLON6MhL1ab4Ek~8e8bjZ6VaY0u6wNtLIX1YUINYB49o2-SVn72IqPsGpthJYf5EpAV2LJmqt1p219qD5aYfGm13UnbvuPPc0-cd3Pszto0xj~Ospj~IRUQu6NY0~398ryMrXmNsZb0AD~r-hq4-iXlQlOVyIao0vIS~pmunMg__&Key-Pair-Id=APKAIUCZBIA4LVPAVW3Q)
-
-**(1934)** [Nitrous oxide: History and development](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2444118/)
-`,
+---`,
   "tripsit-factsheets": `# N2O
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/nitrous*
 

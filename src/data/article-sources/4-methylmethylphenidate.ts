@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-Methylmethylphenidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-Methylmethylphenidate.md","displayName":"Drug Users Bible","size":1184},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Methylmethylphenidate.md","displayName":"TripSit Factsheets","size":1014},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Methylmethylphenidate.md","displayName":"Wikipedia","size":1383}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-Methylmethylphenidate.md","displayName":"Drug Users Bible","size":1184,"tokens":296},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Methylmethylphenidate.md","displayName":"TripSit Factsheets","size":1014,"tokens":269},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Methylmethylphenidate.md","displayName":"Wikipedia","size":1383,"tokens":332}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 4-Me-TMP
 *Source: Drug Users Bible by Dominic Milton Trott*

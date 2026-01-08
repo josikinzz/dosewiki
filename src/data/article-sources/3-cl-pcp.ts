@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-Cl-PCP";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-Cl-PCP.md","displayName":"Isomer Design","size":620},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-Cl-PCP.md","displayName":"PsychonautWiki","size":23375},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-Cl-PCP.md","displayName":"Wikipedia","size":492}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-Cl-PCP.md","displayName":"Isomer Design","size":416,"tokens":168},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-Cl-PCP.md","displayName":"PsychonautWiki","size":19263,"tokens":5304},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-Cl-PCP.md","displayName":"Wikipedia","size":492,"tokens":131}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 3-Cl-PCP
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=9088*
@@ -17,14 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`Clc1cccc(c1)C1(CCCCC1)N1CCCCC1\`
 
-**InChI:** \`InChI=1S/C17H24ClN/c18-16-9-7-8-15(14-16)17(10-3-1-4-11-17)19-12-5-2-6-13-19/h7-9,14H,1-6,10-13H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [125502037](https://pubchem.ncbi.nlm.nih.gov/compound/125502037)
-- [Q107311702](https://www.wikidata.org/wiki/Q107311702)
-`,
+**InChI:** \`InChI=1S/C17H24ClN/c18-16-9-7-8-15(14-16)17(10-3-1-4-11-17)19-12-5-2-6-13-19/h7-9,14H,1-6,10-13H2\``,
   "psychonautwiki": `# 3-Cl-PCP
 *Source: https://psychonautwiki.org/wiki/3-Cl-PCP*
 
@@ -187,15 +180,7 @@ It is strongly recommended that one use [harm reduction practices](https://psych
 ## External links
 
 - [3-Cl-PCP (Wikipedia)](https://en.wikipedia.org/wiki/3-Chloro-PCP)
-- [3-Cl-PCP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=9088)
-
-## References
-1. ↑ [https://www.policija.si/apps/nfl_response_web/0_Analytical_Reports_final/3Cl-PCP-ID-2201-20_report.pdf](https://www.policija.si/apps/nfl_response_web/0_Analytical_Reports_final/3Cl-PCP-ID-2201-20_report.pdf)
-2. ↑ Catalani, V., Arillotta, D., Corkery, J. M., Guirguis, A., Vento, A., Schifano, F. (9 February 2021).["Identifying New/Emerging Psychoactive Substances at the Time of COVID-19; A Web-Based Approach"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7900492/).*Frontiers in Psychiatry*.**11**: 632405.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.3389/fpsyt.2020.632405](//doi.org/10.3389%2Ffpsyt.2020.632405).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1664-0640](//www.worldcat.org/issn/1664-0640).
-3. ↑ Fusar-Poli, P., Crippa, J. A., Bhattacharyya, S., Borgwardt, S. J., Allen, P., Martin-Santos, R., Seal, M., Surguladze, S. A., O’Carrol, C., Atakan, Z., Zuardi, A. W., McGuire, P. K. (1 January 2009).["Distinct Effects of Δ9-Tetrahydrocannabinol and Cannabidiol on Neural Activation During Emotional Processing"](https://jamanetwork.com/journals/jamapsychiatry/fullarticle/482939).*Archives of General Psychiatry*.**66**(1): 95.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archgenpsychiatry.2008.519](//doi.org/10.1001%2Farchgenpsychiatry.2008.519).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-4. ↑ Doyle, O. M., De Simoni, S., Schwarz, A. J., Brittain, C., O’Daly, O. G., Williams, S. C. R., Mehta, M. A. (April 2013).["Quantifying the Attenuation of the Ketamine Pharmacological Magnetic Resonance Imaging Response in Humans: A Validation Using Antipsychotic and Glutamatergic Agents"](http://jpet.aspetjournals.org/lookup/doi/10.1124/jpet.112.201665).*Journal of Pharmacology and Experimental Therapeutics*.**345**(1): 151–160.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/jpet.112.201665](//doi.org/10.1124%2Fjpet.112.201665).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-5. ↑ Gisselgård, J., Anda, L. G., Brønnick, K., Langeveld, J., Velden Hegelstad, W. ten, Joa, I., Johannessen, J. O., Larsen, T. K. (March 2014).["Verbal working memory deficits predict levels of auditory hallucination in first-episode psychosis"](https://linkinghub.elsevier.com/retrieve/pii/S0920996413006968).*Schizophrenia Research*.**153**(1–3): 38–41.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.schres.2013.12.018](//doi.org/10.1016%2Fj.schres.2013.12.018).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0920-9964](//www.worldcat.org/issn/0920-9964).
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075003 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.035 seconds CPU time usage: 0.267 seconds Real time usage: 0.544 seconds Preprocessor visited node count: 1044/1000000 Post‐expand include size: 78082/2097152 bytes Template argument size: 13944/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9543/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.07 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 0Transclusion expansion time report (%,ms,calls,template) 100.00% 416.284 1 -total 43.46% 180.929 4 Template:Cite_journal 25.39% 105.683 4 Template:Citation_needed 13.27% 55.225 1 Template:Fix 12.13% 50.507 2 Template:Category_handler 8.43% 35.089 1 Template:SubstanceBox/3-Cl-PCP 8.01% 33.334 1 Template:SubstanceBox 5.64% 23.488 2 Template:Further 5.42% 22.552 1 Template:Effects/base 4.83% 20.118 1 Template:Effect_list`,
+- [3-Cl-PCP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=9088)`,
   "wikipedia": `# 3-Chloro-PCP
 *Source: https://en.wikipedia.org/wiki/3-Chloro-PCP*
 

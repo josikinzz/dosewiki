@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Morpheridine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Morpheridine.md","displayName":"TripSit Factsheets","size":469},{"id":"wikipedia","fileName":"WIKIPEDIA - Morpheridine.md","displayName":"Wikipedia","size":1116}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Morpheridine.md","displayName":"TripSit Factsheets","size":469,"tokens":124},{"id":"wikipedia","fileName":"WIKIPEDIA - Morpheridine.md","displayName":"Wikipedia","size":1116,"tokens":266}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Morpheridine
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-Fluorodeschloroketamine";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Fluorodeschloroketamine.md","displayName":"Isomer Design","size":859},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-Fluorodeschloroketamine.md","displayName":"PsychonautWiki","size":24247},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Fluorodeschloroketamine.md","displayName":"TripSit Factsheets","size":570},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Fluorodeschloroketamine.md","displayName":"Wikipedia","size":5275}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Fluorodeschloroketamine.md","displayName":"Isomer Design","size":384,"tokens":150},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-Fluorodeschloroketamine.md","displayName":"PsychonautWiki","size":19563,"tokens":5251},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Fluorodeschloroketamine.md","displayName":"TripSit Factsheets","size":570,"tokens":164},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Fluorodeschloroketamine.md","displayName":"Wikipedia","size":5275,"tokens":1336}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-Fluorodeschloroketamine
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=981*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CNC1(CCCCC1=O)c1ccccc1F\`
 
-**InChI:** \`InChI=1S/C13H16FNO/c1-15-13(9-5-4-8-12(13)16)10-6-2-3-7-11(10)14/h2-3,6-7,15H,4-5,8-9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [43515873](https://www.chemspider.com/Chemical-Structure.43515873.html/)
-- [13771618](https://pubchem.ncbi.nlm.nih.gov/compound/13771618)
-- [Q23796153](https://www.wikidata.org/wiki/Q23796153)
-- [2-Fluorodeschloroketamine](https://en.wikipedia.org/wiki/2-Fluorodeschloroketamine)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C13H16FNO/c1-15-13(9-5-4-8-12(13)16)10-6-2-3-7-11(10)14/h2-3,6-7,15H,4-5,8-9H2,1H3\``,
   "psychonautwiki": `# 2-Fluorodeschloroketamine
 *Source: https://psychonautwiki.org/wiki/2-Fluorodeschloroketamine*
 
@@ -219,23 +209,7 @@ All of these, however, can easily be avoided by simply not using 2-Fluorodeschlo
 
 - [2-Fluorodeschloroketamine (Wikipedia)](https://en.wikipedia.org/wiki/2-Fluorodeschloroketamine)
 - [2-Fluorodeschloroketamine (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=981)
-- [The Big & Dandy 2-Fluoroketamine Thread (Bluelight)](http://www.bluelight.org/vb/threads/776753-The-Big-amp-Dandy-2-Fluoroketamine-Thread)
-
-## References
-1. ↑ Moghimi, A., Rahmani, S., Zare, R., Sadeghzadeh, M. (18 July 2014).["Synthesis of 2-(2-Fluorophenyl)-2-methylamino-Cyclohexanone as a New Ketamine Derivative"](https://doi.org/10.1080/00397911.2014.885053).*Synthetic Communications*.**44**(14): 2021–2028.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/00397911.2014.885053](//doi.org/10.1080%2F00397911.2014.885053).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0039-7911](//www.worldcat.org/issn/0039-7911).
-2. ↑ The Big & Dandy 2-Fluoroketamine Thread | [http://www.bluelight.org/vb/threads/776753-The-Big-amp-Dandy-2-Fluoroketamine-Thread](http://www.bluelight.org/vb/threads/776753-The-Big-amp-Dandy-2-Fluoroketamine-Thread)
-3. ↑ Peltoniemi, M. A., Saari, T. I., Hagelberg, N. M., Laine, K., Neuvonen, P. J., Olkkola, K. T. (June 2012). "S-ketamine concentrations are greatly increased by grapefruit juice".*European Journal of Clinical Pharmacology*.**68**(6): 979–986.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00228-012-1214-9](//doi.org/10.1007%2Fs00228-012-1214-9).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1432-1041](//www.worldcat.org/issn/1432-1041).
-4. ↑ [RIS - Neue-Psychoaktive-Substanzen-Verordnung - Bundesrecht konsolidiert, Fassung vom 21.07.2022](https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20007642)
-5. ↑ Controlled Drugs and Substances Act (S.C. 1996, c. 19) | [http://laws-lois.justice.gc.ca/PDF/C-38.8.pdf](http://laws-lois.justice.gc.ca/PDF/C-38.8.pdf)
-6. ↑ [https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch](https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch)
-7. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-9. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-10. ↑ MINISTERO DELLA SALUTE, DECRETO 13 marzo 2020 [https://www.gazzettaufficiale.it/eli/id/2020/03/30/20A01820/sg](https://www.gazzettaufficiale.it/eli/id/2020/03/30/20A01820/sg)
-11. ↑ [http://www.vm.gov.lv/images/userfiles/metodiskas_vadlinijas_080914.doc](http://www.vm.gov.lv/images/userfiles/metodiskas_vadlinijas_080914.doc)
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ ["Cumhurbaşkanı Kararı: Karar Sayısı: 1335"](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)(PDF).*Resmî Gazete, Sayı: 30837*(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published July 20, 2019). July 19, 2020.
-14. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218074853 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.064 seconds CPU time usage: 0.276 seconds Real time usage: 0.527 seconds Preprocessor visited node count: 1608/1000000 Post‐expand include size: 112588/2097152 bytes Template argument size: 12126/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 13505/5000000 bytes Lua time usage: 0.170/7 seconds Lua virtual size: 7.18 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 387.353 1 -total 27.25% 105.539 2 Template:Cite_journal 22.70% 87.935 5 Template:Cite_web 13.98% 54.134 2 Template:Further 11.67% 45.207 1 Template:SubstanceBox/2-FDCK 10.48% 40.586 1 Template:SubstanceBox 8.47% 32.793 1 Template:Effects/base 7.55% 29.257 1 Template:Effect_list 6.66% 25.790 2 Template:Citation 6.59% 25.519 2 Template:Effect_column`,
+- [The Big & Dandy 2-Fluoroketamine Thread (Bluelight)](http://www.bluelight.org/vb/threads/776753-The-Big-amp-Dandy-2-Fluoroketamine-Thread)`,
   "tripsit-factsheets": `# 2-FDCK
 *Source: TripSit Factsheets (tripsit.me)*
 

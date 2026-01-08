@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "St._John's_Wort";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - St._John's_Wort.md","displayName":"Drug Users Bible","size":3068},{"id":"wikipedia","fileName":"WIKIPEDIA - St._John's_Wort.md","displayName":"Wikipedia","size":25805}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - St._John's_Wort.md","displayName":"Drug Users Bible","size":3068,"tokens":805},{"id":"wikipedia","fileName":"WIKIPEDIA - St._John's_Wort.md","displayName":"Wikipedia","size":25805,"tokens":6340}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# St. John's Wort
 *Source: Drug Users Bible by Dominic Milton Trott*

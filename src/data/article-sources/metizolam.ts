@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Metizolam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Metizolam.md","displayName":"Isomer Design","size":879},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Metizolam.md","displayName":"PsychonautWiki","size":26843},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Metizolam.md","displayName":"TripSit Factsheets","size":431},{"id":"wikipedia","fileName":"WIKIPEDIA - Metizolam.md","displayName":"Wikipedia","size":340}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Metizolam.md","displayName":"Isomer Design","size":465,"tokens":189},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Metizolam.md","displayName":"PsychonautWiki","size":19806,"tokens":5098},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Metizolam.md","displayName":"TripSit Factsheets","size":431,"tokens":129},{"id":"wikipedia","fileName":"WIKIPEDIA - Metizolam.md","displayName":"Wikipedia","size":340,"tokens":84}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Metizolam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3051*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCc1cc2c(s1)n1cnnc1CN=C2c1ccccc1Cl\`
 
-**InChI:** \`InChI=1S/C16H13ClN4S/c1-2-10-7-12-15(11-5-3-4-6-13(11)17)18-8-14-20-19-9-21(14)16(12)22-10/h3-7,9H,2,8H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [59207712](https://www.chemspider.com/Chemical-Structure.59207712.html/)
-- [12434325](https://pubchem.ncbi.nlm.nih.gov/compound/12434325)
-- [Q21098977](https://www.wikidata.org/wiki/Q21098977)
-- [Metizolam](https://en.wikipedia.org/wiki/Metizolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C16H13ClN4S/c1-2-10-7-12-15(11-5-3-4-6-13(11)17)18-8-14-20-19-9-21(14)16(12)22-10/h3-7,9H,2,8H2,1H3\``,
   "psychonautwiki": `# Metizolam
 *Source: https://psychonautwiki.org/wiki/Metizolam*
 
@@ -168,29 +158,7 @@ Metizolam is currently a grey area compound within most parts of the world. This
 - [Metizolam (Wikipedia)](https://en.wikipedia.org/wiki/Desmethyletizolam)
 - [Metizolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3051)
 - [Metizolam (Bluelight)](http://www.bluelight.org/vb/threads/769635-Novel-Thienodiazepine-Metizolam)
-- [Metizolam (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-Metizolam)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Weber, K.-H., Bauer, A., Langbein, A., Daniel, H. (20 September 1978).["Heteroaromaten mit anellierten Siebenringen, III. Umwandlung von Thienotriazolooxazepinen in Diazepine"](https://onlinelibrary.wiley.com/doi/10.1002/jlac.197819780806).*Justus Liebigs Annalen der Chemie*.**1978**(8): 1257–1265.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/jlac.197819780806](//doi.org/10.1002%2Fjlac.197819780806).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0075-4617](//www.worldcat.org/issn/0075-4617).
-3. ↑ Nakanishi, M., Tahara, T., Araki, K., Shiroki, M.,[Triazolothienodiazepine compounds](https://patents.google.com/patent/US3904641/en)
-4. ↑ Kitajima, H., Ehara, S., Sato, H., Moriwaki, M., Onishi, K.,[Thienylazole compound and thienotriazolodiazepine compound](https://patents.google.com/patent/CA2191756A1/en)
-5. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-6. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-7. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989).["Differential regulation of γ‐aminobutyric acid receptor channels by diazepam and phenobarbital"](https://onlinelibrary.wiley.com/doi/10.1002/ana.410250302).*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-8. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-9. ↑ Mancuso, C. E., Tanzi, M. G., Gabay, M. (September 2004).["Paradoxical Reactions to Benzodiazepines: Literature Review and Treatment Options"](http://doi.wiley.com/10.1592/phco.24.13.1177.38089).*Pharmacotherapy*.**24**(9): 1177–1185.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1592/phco.24.13.1177.38089](//doi.org/10.1592%2Fphco.24.13.1177.38089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0277-0008](//www.worldcat.org/issn/0277-0008).
-10. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/product/identifier/S0955603600001240/type/journal_article).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-11. ↑ Bond, A. J. (1998).["Drug-Induced Behavioural Disinhibition: Incidence, Mechanisms and Therapeutic Implications"](http://link.springer.com/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1172-7047](//www.worldcat.org/issn/1172-7047).
-12. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-13. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-15.html)
-14. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-15. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-16. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-17. ↑ (in Swedish) Folkhälsomyndigheten. | [https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2016/januari/31-nya-substanser-klassas-som-narkotika-eller-halsofarlig-vara/](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2016/januari/31-nya-substanser-klassas-som-narkotika-eller-halsofarlig-vara/)
-18. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-19. ↑ ["Karar Sayısı: 2016/9019"](https://resmigazete.gov.tr/eskiler/2016/08/20160803-15.pdf)(PDF).*Resmî Gazete, Sayı: 29790*(in Turkish). June 22, 2016.
-20. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075618 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.029 seconds CPU time usage: 0.375 seconds Real time usage: 0.770 seconds Preprocessor visited node count: 1748/1000000 Post‐expand include size: 83488/2097152 bytes Template argument size: 7021/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 23540/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 644.267 1 -total 23.35% 150.460 9 Template:Cite_journal 19.51% 125.685 5 Template:Citation 13.27% 85.464 2 Template:Citation_needed 11.49% 74.025 1 Template:Fix 11.29% 72.740 1 Template:Headerpanel 10.81% 69.631 1 Template:DepressantOD 10.72% 69.077 2 Template:Category_handler 10.39% 66.917 5 Template:Cite_web 10.31% 66.402 1 Template:SubstanceBox/Metizolam`,
+- [Metizolam (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-Metizolam)`,
   "tripsit-factsheets": `# Metizolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/metizolam*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Passion_Flower";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Passion_Flower.md","displayName":"Drug Users Bible","size":1447},{"id":"wikipedia","fileName":"WIKIPEDIA - Passion_Flower.md","displayName":"Wikipedia","size":17942}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Passion_Flower.md","displayName":"Drug Users Bible","size":1447,"tokens":346},{"id":"wikipedia","fileName":"WIKIPEDIA - Passion_Flower.md","displayName":"Wikipedia","size":17942,"tokens":4468}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Passion Flower
 *Source: Drug Users Bible by Dominic Milton Trott*

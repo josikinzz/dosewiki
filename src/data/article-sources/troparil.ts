@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Troparil";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Troparil.md","displayName":"TripSit Factsheets","size":691},{"id":"wikipedia","fileName":"WIKIPEDIA - Troparil.md","displayName":"Wikipedia","size":2805}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Troparil.md","displayName":"TripSit Factsheets","size":691,"tokens":186},{"id":"wikipedia","fileName":"WIKIPEDIA - Troparil.md","displayName":"Wikipedia","size":2805,"tokens":668}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Troparil
 *Source: TripSit Factsheets (tripsit.me)*

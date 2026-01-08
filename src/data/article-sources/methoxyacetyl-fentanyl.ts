@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxyacetyl-Fentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxyacetyl-Fentanyl.md","displayName":"TripSit Factsheets","size":430},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxyacetyl-Fentanyl.md","displayName":"Wikipedia","size":1035}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxyacetyl-Fentanyl.md","displayName":"TripSit Factsheets","size":430,"tokens":127},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxyacetyl-Fentanyl.md","displayName":"Wikipedia","size":1035,"tokens":235}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Methoxyacetyl-Fentanyl
 *Source: TripSit Factsheets (tripsit.me)*

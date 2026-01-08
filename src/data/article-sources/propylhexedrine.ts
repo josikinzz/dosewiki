@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propylhexedrine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propylhexedrine.md","displayName":"DrugBank","size":11892},{"id":"erowid","fileName":"EROWID - Propylhexedrine.md","displayName":"Erowid","size":2556},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Propylhexedrine.md","displayName":"Isomer Design","size":644},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Propylhexedrine.md","displayName":"PsychonautWiki","size":34234},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylhexedrine.md","displayName":"TripSit Factsheets","size":749},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylhexedrine.md","displayName":"Wikipedia","size":15614}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Propylhexedrine.md","displayName":"DrugBank","size":11892,"tokens":2913},{"id":"erowid","fileName":"EROWID - Propylhexedrine.md","displayName":"Erowid","size":2556,"tokens":686},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Propylhexedrine.md","displayName":"Isomer Design","size":322,"tokens":120},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Propylhexedrine.md","displayName":"PsychonautWiki","size":27605,"tokens":7322},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylhexedrine.md","displayName":"TripSit Factsheets","size":749,"tokens":251},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylhexedrine.md","displayName":"Wikipedia","size":15614,"tokens":3707}];
 export const contents: Record<string, string> = {
   "drugbank": `# Propylhexedrine
 *Source: https://go.drugbank.com/drugs/DB06714*
@@ -708,16 +708,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CNC(CC1CCCCC1)C\`
 
-**InChI:** \`InChI=1S/C10H21N/c1-9(11-2)8-10-6-4-3-5-7-10/h9-11H,3-8H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [7277](https://www.chemspider.com/Chemical-Structure.7277.html/)
-- [7558](https://pubchem.ncbi.nlm.nih.gov/compound/7558)
-- [Q408704](https://www.wikidata.org/wiki/Q408704)
-- [Propylhexedrine](https://en.wikipedia.org/wiki/Propylhexedrine)
-`,
+**InChI:** \`InChI=1S/C10H21N/c1-9(11-2)8-10-6-4-3-5-7-10/h9-11H,3-8H2,1-2H3\``,
   "psychonautwiki": `# Propylhexedrine
 *Source: https://psychonautwiki.org/wiki/Propylhexedrine*
 
@@ -895,24 +886,7 @@ Like with the abuse of methamphetamine, propylhexedrine abuse can result in a st
 
 - [Propylhexedrine (Wikipedia)](http://en.wikipedia.org/wiki/Propylhexedrine)
 - [Propylhexedrine (Erowid Vault)](https://erowid.org/pharms/propylhexedrine/)
-- [Propylhexedrine (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=12167)
-
-## References
-1. ↑ 1.0 1.1 Winslow, B. T., Voorhees, K. I., Pehl, K. A. (15 October 2007). "Methamphetamine abuse".*American Family Physician*.**76**(8): 1169–1174.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0002-838X](//www.worldcat.org/issn/0002-838X).
-2. ↑ PubChem,[Propylhexedrine](https://pubchem.ncbi.nlm.nih.gov/compound/7558)
-3. ↑ 3.0 3.1 Midha, K. K., Beckett, A. H., Saunders, A. (January 1974).["Identification of the Major Metabolites of Propylhexedrine in vivo (in man) and in vitro (in guinea pig and rabbit)"](http://www.tandfonline.com/doi/full/10.1080/00498257409169765).*Xenobiotica*.**4**(10): 627–635.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/00498257409169765](//doi.org/10.1080%2F00498257409169765).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0049-8254](//www.worldcat.org/issn/0049-8254).
-4. ↑ Pérez-Mañá, C., Castells, X., Torrens, M., Capellà, D., Farre, M. (2 September 2013). "Efficacy of psychostimulant drugs for amphetamine abuse or dependence".*The Cochrane Database of Systematic Reviews*(9): CD009695.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD009695.pub2](//doi.org/10.1002%2F14651858.CD009695.pub2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1469-493X](//www.worldcat.org/issn/1469-493X).
-5. ↑ Amphetamines, By Patrick G. O’Connor, MD, MPH, Yale University School of Medicine | [http://www.merckmanuals.com/home/special_subjects/drug_use_and_abuse/amphetamines.html](http://www.merckmanuals.com/home/special_subjects/drug_use_and_abuse/amphetamines.html)
-6. ↑ 6.0 6.1 Srisurapanont, M., Jarusuraisin, N., Kittirattanapaiboon, P. (2001). "Treatment for amphetamine dependence and abuse".*The Cochrane Database of Systematic Reviews*(4): CD003022.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003022](//doi.org/10.1002%2F14651858.CD003022).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1469-493X](//www.worldcat.org/issn/1469-493X).
-7. ↑ 7.0 7.1 7.2 7.3 Shoptaw, S. J., Kao, U., Heinzerling, K., Ling, W. (15 April 2009). "Treatment for amphetamine withdrawal".*The Cochrane Database of Systematic Reviews*(2): CD003021.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003021.pub2](//doi.org/10.1002%2F14651858.CD003021.pub2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1469-493X](//www.worldcat.org/issn/1469-493X).
-8. ↑ National Institute on Drug Abuse,[Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts)
-9. ↑ 9.0 9.1 9.2 Shoptaw, S. J., Kao, U., Ling, W. W. (8 October 2008). "The Cochrane Database of Systematic Reviews (Complete Reviews)". In The Cochrane Collaboration.[Treatment for amphetamine psychosis](https://doi.wiley.com/10.1002/14651858.CD003026.pub2). John Wiley & Sons, Ltd. pp. CD003026.pub2.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub2](//doi.org/10.1002%2F14651858.CD003026.pub2). }}
-10. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-11. ↑ Adderall Prescription info | [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-12. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-13. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-14. ↑ ["Anlage 1 AMVV"](https://www.gesetze-im-internet.de/amvv/anlage_1.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075749 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.048 seconds CPU time usage: 0.344 seconds Real time usage: 0.723 seconds Preprocessor visited node count: 1969/1000000 Post‐expand include size: 141693/2097152 bytes Template argument size: 23137/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 20178/5000000 bytes Lua time usage: 0.270/7 seconds Lua virtual size: 8.12 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 581.028 1 -total 35.39% 205.650 7 Template:Cite_journal 18.06% 104.939 8 Template:Citation_needed 10.92% 63.444 1 Template:SubstanceBox/Propylhexedrine 10.17% 59.101 1 Template:SubstanceBox 9.83% 57.122 1 Template:Fix 9.25% 53.773 2 Template:Category_handler 6.40% 37.184 2 Template:Citation 6.17% 35.859 2 Template:Cite_book 4.58% 26.583 2 Template:Cite_web`,
+- [Propylhexedrine (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=12167)`,
   "tripsit-factsheets": `# Propylhexedrine
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/propylhexedrine*
 

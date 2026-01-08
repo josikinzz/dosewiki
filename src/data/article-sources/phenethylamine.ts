@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenethylamine";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenethylamine.md","displayName":"Isomer Design","size":11323},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenethylamine.md","displayName":"TripSit Factsheets","size":563},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenethylamine.md","displayName":"Wikipedia","size":13176}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenethylamine.md","displayName":"Isomer Design","size":11323,"tokens":2841},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenethylamine.md","displayName":"TripSit Factsheets","size":563,"tokens":148},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenethylamine.md","displayName":"Wikipedia","size":13176,"tokens":3236}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Phenethylamine
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=142*

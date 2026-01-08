@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fasoracetam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fasoracetam.md","displayName":"TripSit Factsheets","size":1281},{"id":"wikipedia","fileName":"WIKIPEDIA - Fasoracetam.md","displayName":"Wikipedia","size":3891}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fasoracetam.md","displayName":"TripSit Factsheets","size":1281,"tokens":325},{"id":"wikipedia","fileName":"WIKIPEDIA - Fasoracetam.md","displayName":"Wikipedia","size":3891,"tokens":943}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Fasoracetam
 *Source: TripSit Factsheets (tripsit.me)*

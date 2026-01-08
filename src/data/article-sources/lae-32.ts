@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "LAE-32";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - LAE-32.md","displayName":"Isomer Design","size":779},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LAE-32.md","displayName":"PsychonautWiki","size":7164},{"id":"wikipedia","fileName":"WIKIPEDIA - LAE-32.md","displayName":"Wikipedia","size":752}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - LAE-32.md","displayName":"Isomer Design","size":455,"tokens":204},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LAE-32.md","displayName":"PsychonautWiki","size":6112,"tokens":1620},{"id":"wikipedia","fileName":"WIKIPEDIA - LAE-32.md","displayName":"Wikipedia","size":752,"tokens":202}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# LAE-32
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5311*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)c[nH]3\`
 
-**InChI:** \`InChI=1S/C18H21N3O/c1-3-19-18(22)12-7-14-13-5-4-6-15-17(13)11(9-20-15)8-16(14)21(2)10-12/h4-7,9,12,16,20H,3,8,10H2,1-2H3,(H,19,22)/t12-,16-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [19975296](https://www.chemspider.com/Chemical-Structure.19975296.html/)
-- [12304966](https://pubchem.ncbi.nlm.nih.gov/compound/12304966)
-- [Q63395385](https://www.wikidata.org/wiki/Q63395385)
-- [LAE-32](https://en.wikipedia.org/wiki/LAE-32)
-`,
+**InChI:** \`InChI=1S/C18H21N3O/c1-3-19-18(22)12-7-14-13-5-4-6-15-17(13)11(9-20-15)8-16(14)21(2)10-12/h4-7,9,12,16,20H,3,8,10H2,1-2H3,(H,19,22)/t12-,16-/m1/s1\``,
   "psychonautwiki": `# LAE-32
 *Source: https://psychonautwiki.org/wiki/LAE-32*
 
@@ -102,10 +93,7 @@ LAE-32 is not explicitly illegal in any nation, but it is possibly illegal to po
 
 - [LAE-32 (Wikipedia)](https://en.wikipedia.org/wiki/LAE-32)
 - [Project MKULTRA: LSD and LAE-32 (Imgur images of declassified CIA MKULTRA documents)](https://imgur.com/a/Y4CTo)
-- [LAE-32 (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5311)
-
-## References
-NewPP limit report Cached time: 20251218075510 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.012 seconds CPU time usage: 0.180 seconds Real time usage: 0.284 seconds Preprocessor visited node count: 962/1000000 Post‐expand include size: 33227/2097152 bytes Template argument size: 2580/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 0/5000000 bytes Lua time usage: 0.040/7 seconds Lua virtual size: 5.44 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 211.961 1 -total 45.55% 96.548 2 Template:Citation_needed 28.04% 59.437 1 Template:Fix 26.35% 55.843 2 Template:Category_handler 25.56% 54.186 1 Template:SubstanceBox/LAE-32 24.45% 51.833 1 Template:SubstanceBox 8.28% 17.546 1 Template:Further 7.68% 16.277 1 Template:Effects/base 6.41% 13.583 1 Template:Effect_list 5.07% 10.749 2 Template:Effect_column`,
+- [LAE-32 (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5311)`,
   "wikipedia": `# LAE-32
 *Source: https://en.wikipedia.org/wiki/LAE-32*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Desmethylflunitrazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Desmethylflunitrazepam.md","displayName":"TripSit Factsheets","size":583},{"id":"wikipedia","fileName":"WIKIPEDIA - Desmethylflunitrazepam.md","displayName":"Wikipedia","size":330}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Desmethylflunitrazepam.md","displayName":"TripSit Factsheets","size":583,"tokens":161},{"id":"wikipedia","fileName":"WIKIPEDIA - Desmethylflunitrazepam.md","displayName":"Wikipedia","size":330,"tokens":84}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Desmethylflunitrazepam
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pentazocine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pentazocine.md","displayName":"DrugBank","size":13652},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentazocine.md","displayName":"TripSit Factsheets","size":679},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentazocine.md","displayName":"Wikipedia","size":5884}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pentazocine.md","displayName":"DrugBank","size":13652,"tokens":3403},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentazocine.md","displayName":"TripSit Factsheets","size":679,"tokens":178},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentazocine.md","displayName":"Wikipedia","size":5884,"tokens":1388}];
 export const contents: Record<string, string> = {
   "drugbank": `# Pentazocine
 *Source: https://go.drugbank.com/drugs/DB00652*

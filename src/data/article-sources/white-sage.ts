@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "White_Sage";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - White_Sage.md","displayName":"Drug Users Bible","size":3336},{"id":"wikipedia","fileName":"WIKIPEDIA - White_Sage.md","displayName":"Wikipedia","size":4044}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - White_Sage.md","displayName":"Drug Users Bible","size":3336,"tokens":850},{"id":"wikipedia","fileName":"WIKIPEDIA - White_Sage.md","displayName":"Wikipedia","size":4044,"tokens":950}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# White Sage
 *Source: Drug Users Bible by Dominic Milton Trott*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MeO-DMT";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 5-MeO-DMT.md","displayName":"Disregard Everything I Say","size":12983},{"id":"erowid","fileName":"EROWID - 5-MeO-DMT.md","displayName":"Erowid","size":30433},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-DMT.md","displayName":"Isomer Design","size":18744},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MeO-DMT.md","displayName":"PsychonautWiki","size":40386},{"id":"saferparty","fileName":"SAFERPARTY - 5-MeO-DMT.md","displayName":"Safer Party","size":3116},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 5-MeO-DMT.md","displayName":"The Drug Classroom","size":5247},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-DMT.md","displayName":"TripSit Factsheets","size":833},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 5-MeO-DMT.md","displayName":"TripSit Wiki","size":3904},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-DMT.md","displayName":"Wikipedia","size":25671}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 5-MeO-DMT.md","displayName":"Disregard Everything I Say","size":12983,"tokens":3465},{"id":"erowid","fileName":"EROWID - 5-MeO-DMT.md","displayName":"Erowid","size":30433,"tokens":8655},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-DMT.md","displayName":"Isomer Design","size":18744,"tokens":4918},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MeO-DMT.md","displayName":"PsychonautWiki","size":29472,"tokens":8261},{"id":"saferparty","fileName":"SAFERPARTY - 5-MeO-DMT.md","displayName":"Safer Party","size":3116,"tokens":759},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 5-MeO-DMT.md","displayName":"The Drug Classroom","size":1565,"tokens":460},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-DMT.md","displayName":"TripSit Factsheets","size":833,"tokens":265},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 5-MeO-DMT.md","displayName":"TripSit Wiki","size":3904,"tokens":1030},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-DMT.md","displayName":"Wikipedia","size":25671,"tokens":6881}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 5-MeO-DMT
 *Source: https://disregardeverythingisay.com/post/98109177114/5-meo-dmt-broken-down-and-described*
@@ -935,32 +935,7 @@ Deaths from 5-MeO-DMT are rare. However, as a powerful [monoamine](https://psych
 
 ### Books
 
-- Oroc, J. (2009). Tryptamine Palace: 5-MeO-DMT and the Sonoran Desert Toad. Simon and Schuster.
-
-## References
-1. ↑ Barsuglia, J.; Davis, A. K.; Palmer, R.; Lancelotta, R.; Windham-Herman, A.-M.; Peterson, K.; Polanco, M.; Grant, Robert; Griffiths, R. R. (2018).["Intensity of Mystical Experiences Occasioned by 5-MeO-DMT and Comparison With a Prior Psilocybin Study"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC6292276).*Frontiers in Psychology*.**9**: 2459.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.3389/fpsyg.2018.02459](//doi.org/10.3389%2Ffpsyg.2018.02459).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1664-1078](//www.worldcat.org/issn/1664-1078).[OCLC](http://en.wikipedia.org/wiki/OCLC)[701805890](//www.worldcat.org/oclc/701805890).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[6292276](//www.ncbi.nlm.nih.gov/pmc/articles/PMC6292276).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[30574112](//www.ncbi.nlm.nih.gov/pubmed/30574112).
-2. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#38. 5-MeO-DMT"](https://erowid.org/library/books_online/tihkal/tihkal38.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-3. ↑ 3.0 3.1 Shen, H.-W.; Jiang, X.-L.; Winter, J. C.; Yu, A.-M. (2010).["Psychedelic 5-Methoxy-N,N-dimethyltryptamine: Metabolism, Pharmacokinetics, Drug Interactions, and Pharmacological Actions"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3028383).*Current Drug Metabolism*.**11**(8): 659–666.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920010794233495](//doi.org/10.2174%2F138920010794233495).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1875-5453](//www.worldcat.org/issn/1875-5453).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).[OCLC](http://en.wikipedia.org/wiki/OCLC)[55201006](//www.worldcat.org/oclc/55201006).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[3028383](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3028383).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[20942780](//www.ncbi.nlm.nih.gov/pubmed/20942780).
-4. ↑ Krebs-Thomson, K.; Ruiz, E. M.; Masten, V.; Buell, M.; Geyer, M. A. (2006). "The roles of 5-HT1Aand 5-HT2receptors in the effects of 5-MeO-DMT on locomotor activity and prepulse inhibition in rats".*Psychopharmacology*.**189**(3): 319–329.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00213-006-0566-1](//doi.org/10.1007%2Fs00213-006-0566-1).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1432-2072](//www.worldcat.org/issn/1432-2072).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).[OCLC](http://en.wikipedia.org/wiki/OCLC)[2409222](//www.worldcat.org/oclc/2409222).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[17013638](//www.ncbi.nlm.nih.gov/pubmed/17013638).
-5. ↑ 5.0 5.1 Nagai, F.; Nonaka, R.; Satoh, K.; Kamimura, H. (2007). "The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain".*European Journal of Pharmacology*.**559**(2–3): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1879-0712](//www.worldcat.org/issn/1879-0712).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01568459](//www.worldcat.org/oclc/01568459).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[17223101](//www.ncbi.nlm.nih.gov/pubmed/17223101).
-6. ↑ Ott, Jonathan (2001). "Pharmepéna-Psychonautics: Human Intranasal, Sublingual and Oral Pharmacology of 5-Methoxy-N, N-Dimethyl-Tryptamine".*Journal of Psychoactive Drugs*.**33**(4): 403–407.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/02791072.2001.10399925](//doi.org/10.1080%2F02791072.2001.10399925).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[2159-9777](//www.worldcat.org/issn/2159-9777).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0279-1072](//www.worldcat.org/issn/0279-1072).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[11824699](//www.ncbi.nlm.nih.gov/pubmed/11824699).
-7. ↑ ["5-MeO-DMT (5-Methoxydimethyltryptamine): Health"](https://erowid.org/chemicals/5meo_dmt/5meo_dmt_health.shtml). Erowid. September 2, 2010. Retrieved September 29, 2020.
-8. ↑ Brush, D. E.; Bird, S. B.; Boyer, E. W. (2004). "Monoamine oxidase inhibitor poisoning resulting from Internet misinformation on illicit substances".*Journal of Toxicology: Clinical Toxicology*.**42**(2): 191–195.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1081/clt-120030949](//doi.org/10.1081%2Fclt-120030949).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1556-9519](//www.worldcat.org/issn/1556-9519).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-3650](//www.worldcat.org/issn/1556-3650).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[15214625](//www.ncbi.nlm.nih.gov/pubmed/15214625).
-9. ↑ Sklerov, J.; Levine, B.; Moore, K. A.; King, T.; Fowler, D. (2005). "A fatal intoxication following the ingestion of 5-methoxy-N,N-dimethyltryptamine in an ayahuasca preparation".*Journal of Analytical Toxicology*.**29**(8): 838–841.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/29.8.838](//doi.org/10.1093%2Fjat%2F29.8.838).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1945-2403](//www.worldcat.org/issn/1945-2403).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0146-4760](//www.worldcat.org/issn/0146-4760).[OCLC](http://en.wikipedia.org/wiki/OCLC)[02942106](//www.worldcat.org/oclc/02942106).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16356341](//www.ncbi.nlm.nih.gov/pubmed/16356341).
-10. ↑ [https://www.legislation.gov.au/Details/F2016L01071/Html/Text#_Toc454279736](https://www.legislation.gov.au/Details/F2016L01071/Html/Text#_Toc454279736)
-11. ↑ ["RESOLUÇÃO DA DIRETORIA COLEGIADA - RDC N° 130, DE 2 DE DEZEMBRO DE 2016"](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)(in Portuguese). Agência Nacional de Vigilância Sanitária (ANVISA) [Brazilian Health Regulatory Agency (ANVISA)]. December 5, 2016.
-12. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](https://web.archive.org/web/20170906191704/http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). 国家食品药品监督管理总局 [China Food and Drug Administration (CFDA)]. September 27, 2015. Archived from[the original](http://www.sfda.gov.cn/WS01/CL0056/130753.html)on September 6, 2017. Retrieved August 19, 2020.
-13. ↑ [https://www.zakonyprolidi.cz/cs/2013-463](https://www.zakonyprolidi.cz/cs/2013-463)
-14. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: Anlage I"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-15. ↑ ["Vierzehnte Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl100s1414b.pdf%27%5D#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl100s1414b.pdf%27%5D__1576702069328).*Bundesgesetzblatt Jahrgang 2000 Teil I Nr. 44*(in German). Bundesanzeiger Verlag (published September 30, 2000). September 27, 2000. pp. 1414–1415.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095). Retrieved December 18, 2019.
-16. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: § 29"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-17. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-18. ↑ ["List 1 Controlled substances]"](https://web.archive.org/web/20210414060533/https://wetten.overheid.nl/BWBR0001941/2013-07-01)(in Dutch). Archived from[the original](https://wetten.overheid.nl/BWBR0001941/2013-07-01#LijstI)on April 14, 2021. Retrieved November 11, 2021.
-19. ↑ [OUG 6 10/02/2010 - Portal Legislativ](https://legislatie.just.ro/Public/DetaliiDocumentAfis/116209)
-20. ↑ ["Svensk författningssamling Förordning om ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](http://www.notisum.se/rnp/sls/sfs/20040696.pdf)(PDF)(in Swedish) (published September 7, 2004). August 19, 2004. SFS 2004:696.
-21. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-22. ↑ Bakanlar Kurulu Kararı Karar Sayısı : 2013/4827 | [https://free-ankara.org/wp-content/uploads/2017/09/BKK_2013_4827_28688.pdf](https://free-ankara.org/wp-content/uploads/2017/09/BKK_2013_4827_28688.pdf)
-23. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075133 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.074 seconds CPU time usage: 0.429 seconds Real time usage: 0.855 seconds Preprocessor visited node count: 2505/1000000 Post‐expand include size: 179909/2097152 bytes Template argument size: 20720/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 32575/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.33 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 688.902 1 -total 57.05% 392.990 1 Template:Reflist 26.35% 181.497 7 Template:Cite_journal 19.29% 132.892 11 Template:Cite_web 18.97% 130.715 12 Template:Citation_needed 11.86% 81.722 1 Template:Fix 11.02% 75.925 2 Template:Category_handler 6.41% 44.140 1 Template:SubstanceBox/5-MeO-DMT 6.03% 41.538 1 Template:SubstanceBox 4.66% 32.120 1 Template:Effects/base`,
+- Oroc, J. (2009). Tryptamine Palace: 5-MeO-DMT and the Sonoran Desert Toad. Simon and Schuster.`,
   "saferparty": `# 5-MeO-DMT
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
@@ -1087,50 +1062,7 @@ Onset: 00:10 – 00:15
 
 ## Test Results
 
----
-
-## References
-
-**(2014)** [The natural hallucinogen 5-MeO-DMT, component of Ayahuasca, disrupts cortical function in rats: reversal by antipsychotic drugs.](https://www.ncbi.nlm.nih.gov/pubmed/24650558)
-
-**(2012)** [A critical review of reports of endogenous psychedelic N, N-dimethyltryptamines in humans: 1955-2010.](https://www.ncbi.nlm.nih.gov/pubmed/22371425)
-
-**(2012)** [Behavioral effects of α,α,β,β-tetradeutero-5-MeO-DMT in rats: comparison with 5-MeO-DMT administered in combination with a monoamine oxidase inhibitor.](https://www.ncbi.nlm.nih.gov/pubmed/22222861)
-
-**(2011)** [Psychedelic 5-Methoxy-N,N-dimethyltryptamine: Metabolism, Pharmacokinetics, Drug Interactions, and Pharmacological Actions](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3028383/)
-
-**(2011)** [Enhanced effects of amphetamine but reduced effects of the hallucinogen, 5-MeO-DMT, on locomotor activity in 5-HT(1A) receptor knockout mice: implications for schizophrenia.](https://www.ncbi.nlm.nih.gov/pubmed/21501627)
-
-**(2007)** [The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain.](https://www.ncbi.nlm.nih.gov/pubmed/17223101)
-
-**(2006)** [The roles of 5-HT1A and 5-HT2 receptors in the effects of 5-MeO-DMT on locomotor activity and prepulse inhibition in rats.](https://www.ncbi.nlm.nih.gov/pubmed/17013638)
-
-**(2006)** [A demand for clarity regarding a case report on the ingestion of 5-methoxy-N, N-dimethyltryptamine (5-MeO-DMT) in an Ayahuasca preparation.](https://www.ncbi.nlm.nih.gov/pubmed/16872575)
-
-**(2005)** [A fatal intoxication following the ingestion of 5-methoxy-N,N-dimethyltryptamine in an ayahuasca preparation.](https://www.ncbi.nlm.nih.gov/pubmed/16356341)
-
-**(2004)** [Monoamine oxidase inhibitor poisoning resulting from Internet misinformation on illicit substances.](https://www.ncbi.nlm.nih.gov/pubmed/15214625)
-
-**(2001)** [Pharmepéna-Psychonautics: Human intranasal, sublingual and oral pharmacology of 5-methoxy-N,N-dimethyl-tryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/11824699)
-
-**(1997)** [Suppressive Effect of Mitragynine on the 5-Methoxy-N,N-dimethyltryptamine-Induced Head-Twitch Response in Mice](http://www.sciencedirect.com/science/article/pii/S0091305796003140)
-
-**(1987)** [In vivo metabolism of 5-methoxy-N,N-dimethyltryptamine and N,N-dimethyltryptamine in the rat.](https://www.ncbi.nlm.nih.gov/pubmed/3472526)
-
-**(1987)** [Serotonin receptor subtype mediation of the interoceptive discriminative stimuli induced by 5-methoxy-N,N-dimethyltryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/3122248)
-
-**(1985)** [Subtypes of the 5-HT receptor mediating the behavioural responses to 5-methoxy-N,N-dimethyltryptamine in the rat.](https://www.ncbi.nlm.nih.gov/pubmed/2935408)
-
-**(1976)** [Biogenesis of 5-methoxy-N,N-dimethyltryptamine in human pineal gland](http://onlinelibrary.wiley.com/doi/10.1111/j.1471-4159.1976.tb04456.x/abstract)
-
-**(1972)** [Effects of 5-methoxy-N,N-dimethyltryptamine on central monoamine neurons](http://www.sciencedirect.com/science/article/pii/0014299972900738)
-
-**(1972)** [Biosynthesis and turnover of N,N-dimethyltryptamine and 5-methoxy-N,N-dimethyltryptamine in Phalaris tuberosa](http://www.sciencedirect.com/science/article/pii/S0031942200865115)
-
-**(1968)** [Structure-activity relationships among 5-methoxy-N:N-dimethyltryptamine, 4-hydroxy-N:N-dimethyltryptamine (psilocin) and other substituted tryptamines](http://www.sciencedirect.com/science/article/pii/0024320568902002)
-
-**(1959)** [Indole Alkaloids of Acer saccharinum (the Silver Maple), Dictyoloma incanescens, Piptadenia colubrina, and Mimosa hostilis](http://pubs.acs.org/doi/abs/10.1021/jo01091a032)
-`,
+---`,
   "tripsit-factsheets": `# 5-MeO-DMT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/5-meo-dmt*
 

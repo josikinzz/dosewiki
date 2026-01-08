@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-AI";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 2-AI.md","displayName":"Drug Users Bible","size":3112},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-AI.md","displayName":"TripSit Factsheets","size":1199},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-AI.md","displayName":"Wikipedia","size":1686}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 2-AI.md","displayName":"Drug Users Bible","size":3112,"tokens":773},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-AI.md","displayName":"TripSit Factsheets","size":1199,"tokens":325},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-AI.md","displayName":"Wikipedia","size":1686,"tokens":493}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 2-AI
 *Source: Drug Users Bible by Dominic Milton Trott*

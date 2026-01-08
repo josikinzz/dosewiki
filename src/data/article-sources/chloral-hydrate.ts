@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Chloral hydrate";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloral hydrate.md","displayName":"TripSit Factsheets","size":781},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloral hydrate.md","displayName":"Wikipedia","size":11274}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Chloral hydrate.md","displayName":"TripSit Factsheets","size":781,"tokens":206},{"id":"wikipedia","fileName":"WIKIPEDIA - Chloral hydrate.md","displayName":"Wikipedia","size":11274,"tokens":2963}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Chloral hydrate
 *Source: TripSit Factsheets (tripsit.me)*

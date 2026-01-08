@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AB-CHMINACA";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AB-CHMINACA.md","displayName":"TripSit Factsheets","size":512},{"id":"wikipedia","fileName":"WIKIPEDIA - AB-CHMINACA.md","displayName":"Wikipedia","size":1061}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AB-CHMINACA.md","displayName":"TripSit Factsheets","size":512,"tokens":141},{"id":"wikipedia","fileName":"WIKIPEDIA - AB-CHMINACA.md","displayName":"Wikipedia","size":1061,"tokens":277}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# AB-CHMINACA
 *Source: TripSit Factsheets (tripsit.me)*

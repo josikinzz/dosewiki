@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methylnaphthidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methylnaphthidate.md","displayName":"Drug Users Bible","size":2603},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methylnaphthidate.md","displayName":"Isomer Design","size":887},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methylnaphthidate.md","displayName":"PsychonautWiki","size":20205},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methylnaphthidate.md","displayName":"The Drug Classroom","size":3187},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylnaphthidate.md","displayName":"TripSit Factsheets","size":503},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylnaphthidate.md","displayName":"Wikipedia","size":1054}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methylnaphthidate.md","displayName":"Drug Users Bible","size":2603,"tokens":652},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methylnaphthidate.md","displayName":"Isomer Design","size":458,"tokens":186},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methylnaphthidate.md","displayName":"PsychonautWiki","size":16422,"tokens":4403},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methylnaphthidate.md","displayName":"The Drug Classroom","size":2996,"tokens":774},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylnaphthidate.md","displayName":"TripSit Factsheets","size":503,"tokens":156},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylnaphthidate.md","displayName":"Wikipedia","size":1054,"tokens":289}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# HDMP-28
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -89,17 +89,7 @@ online source of a number of niche research chemicals
 
 **SMILES:** \`COC(=O)C(c1ccc2c(c1)cccc2)C1CCCCN1\`
 
-**InChI:** \`InChI=1S/C18H21NO2/c1-21-18(20)17(16-8-4-5-11-19-16)15-10-9-13-6-2-3-7-14(13)12-15/h2-3,6-7,9-10,12,16-17,19H,4-5,8,11H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [24818258](https://www.chemspider.com/Chemical-Structure.24818258.html/)
-- [49823708](https://pubchem.ncbi.nlm.nih.gov/compound/49823708)
-- [Q27289683](https://www.wikidata.org/wiki/Q27289683)
-- [HDMP-28](https://en.wikipedia.org/wiki/HDMP-28)
-- [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
-`,
+**InChI:** \`InChI=1S/C18H21NO2/c1-21-18(20)17(16-8-4-5-11-19-16)15-10-9-13-6-2-3-7-14(13)12-15/h2-3,6-7,9-10,12,16-17,19H,4-5,8,11H2,1H3\``,
   "psychonautwiki": `# Methylnaphthidate
 *Source: https://psychonautwiki.org/wiki/Methylnaphthidate*
 
@@ -239,17 +229,7 @@ While generally considered less recreational, methylnaphthidate has potential fo
 
 - [HDMP-28 (Wikipedia)](https://en.wikipedia.org/wiki/HDMP-28)
 - [HDMP-28 (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=10861)
-- [HDMP-28 (Bluelight)](http://bluelight.org/vb/threads/492618-HDMP-28-or-methylnaphthidate)
-
-## References
-1. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-2. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-3. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 24, 2019.
-4. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 24, 2019.
-5. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 24, 2019.
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-7. ↑ ["Karar Sayısı : 2016/8548"](https://www.resmigazete.gov.tr/eskiler/2016/03/20160308-4.pdf)(PDF)(in Turkish). Resmi Gazete. Retrieved January 15, 2020.
-8. ↑ The Misuse of Drugs Act 1971 (Amendment) Order 2017 (Legislation.gov.uk) | [http://www.legislation.gov.uk/uksi/2017/634/made](http://www.legislation.gov.uk/uksi/2017/634/made)NewPP limit report Cached time: 20251218075613 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.059 seconds CPU time usage: 0.316 seconds Real time usage: 0.600 seconds Preprocessor visited node count: 1634/1000000 Post‐expand include size: 106597/2097152 bytes Template argument size: 9369/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10108/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 8.16 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 455.879 1 -total 29.27% 133.452 2 Template:Citation_needed 19.79% 90.206 2 Template:Cite_journal 18.74% 85.417 5 Template:Cite_web 18.25% 83.180 1 Template:Fix 16.69% 76.099 2 Template:Category_handler 13.10% 59.720 1 Template:SubstanceBox/Methylnaphthidate 12.35% 56.317 1 Template:SubstanceBox 5.40% 24.600 1 Template:Effects/base 4.63% 21.115 1 Template:Effect_list`,
+- [HDMP-28 (Bluelight)](http://bluelight.org/vb/threads/492618-HDMP-28-or-methylnaphthidate)`,
   "thedrugclassroom": `# HDMP-28
 *Source: https://thedrugclassroom.com/video/hdmp-28/*
 
@@ -388,12 +368,7 @@ Due to this lack of information, it’s best to use the drug at the lowest possi
 
 ## Test Results
 
----
-
-## References
-
-**(2003)** [The reinforcing efficacy of psychostimulants in rhesus monkeys: the role of pharmacokinetics and pharmacodynamics.](https://www.ncbi.nlm.nih.gov/pubmed/12954808)
-`,
+---`,
   "tripsit-factsheets": `# HDMP-28
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/hdmp-28*
 

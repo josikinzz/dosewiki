@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "HXE";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HXE.md","displayName":"Isomer Design","size":671},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - HXE.md","displayName":"PsychonautWiki","size":19994},{"id":"wikipedia","fileName":"WIKIPEDIA - HXE.md","displayName":"Wikipedia","size":377}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HXE.md","displayName":"Isomer Design","size":390,"tokens":159},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - HXE.md","displayName":"PsychonautWiki","size":18487,"tokens":4983},{"id":"wikipedia","fileName":"WIKIPEDIA - HXE.md","displayName":"Wikipedia","size":377,"tokens":99}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# HXE
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=7505&name=HXE*
@@ -15,15 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC1(CCCCC1=O)c1cccc(c1)O\`
 
-**InChI:** \`InChI=1S/C14H19NO2/c1-2-15-14(9-4-3-8-13(14)17)11-6-5-7-12(16)10-11/h5-7,10,15-16H,2-4,8-9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [112747181](https://www.chemspider.com/Chemical-Structure.112747181.html/)
-- [163192347](https://pubchem.ncbi.nlm.nih.gov/compound/163192347)
-- [Q107353623](https://www.wikidata.org/wiki/Q107353623)
-`,
+**InChI:** \`InChI=1S/C14H19NO2/c1-2-15-14(9-4-3-8-13(14)17)11-6-5-7-12(16)10-11/h5-7,10,15-16H,2-4,8-9H2,1H3\``,
   "psychonautwiki": `# HXE
 *Source: https://psychonautwiki.org/wiki/HXE*
 
@@ -223,12 +215,7 @@ HXE presents cross-tolerance with all [dissociatives](https://psychonautwiki.org
 
 ## External links
 
-- [HXE (Isomerdesign)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=7505&name=HXE)
-
-## References
-1. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-Please see the [citation formatting guide](https://psychonautwiki.org/wiki/Citation_formatting_guide) if you need assistance properly formatting citations.
-NewPP limit report Cached time: 20251218075455 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.063 seconds CPU time usage: 0.279 seconds Real time usage: 0.471 seconds Preprocessor visited node count: 1920/1000000 Post‐expand include size: 169058/2097152 bytes Template argument size: 32492/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 1294/5000000 bytes Lua time usage: 0.090/7 seconds Lua virtual size: 6.4 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 348.318 1 -total 37.93% 132.119 3 Template:Citation_needed 23.15% 80.627 1 Template:Fix 22.74% 79.203 1 Template:SubstanceBox/HXE 21.60% 75.246 2 Template:Category_handler 21.32% 74.259 1 Template:SubstanceBox 18.33% 63.856 1 Template:Cite_web 7.77% 27.064 1 Template:Effects/base 6.99% 24.362 1 Template:Effect_list 6.22% 21.667 2 Template:Effect_column`,
+- [HXE (Isomerdesign)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=7505&name=HXE)`,
   "wikipedia": `# Hydroxetamine
 *Source: https://en.wikipedia.org/wiki/Hydroxetamine*
 

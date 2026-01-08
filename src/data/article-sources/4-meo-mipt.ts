@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MeO-MiPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-MiPT.md","displayName":"Isomer Design","size":5571},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-MiPT.md","displayName":"TripSit Factsheets","size":997},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-MiPT.md","displayName":"Wikipedia","size":3362}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-MiPT.md","displayName":"Isomer Design","size":5571,"tokens":1517},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-MiPT.md","displayName":"TripSit Factsheets","size":997,"tokens":283},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-MiPT.md","displayName":"Wikipedia","size":3362,"tokens":909}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-MeO-MiPT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=39*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "BK-2C-B";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - BK-2C-B.md","displayName":"Drug Users Bible","size":7214},{"id":"wikipedia","fileName":"WIKIPEDIA - BK-2C-B.md","displayName":"Wikipedia","size":1989}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - BK-2C-B.md","displayName":"Drug Users Bible","size":7214,"tokens":1815},{"id":"wikipedia","fileName":"WIKIPEDIA - BK-2C-B.md","displayName":"Wikipedia","size":1989,"tokens":550}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# BK-2C-B
 *Source: Drug Users Bible by Dominic Milton Trott*

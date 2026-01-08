@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Clorazepate";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clorazepate.md","displayName":"TripSit Factsheets","size":757},{"id":"wikipedia","fileName":"WIKIPEDIA - Clorazepate.md","displayName":"Wikipedia","size":9108}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clorazepate.md","displayName":"TripSit Factsheets","size":757,"tokens":199},{"id":"wikipedia","fileName":"WIKIPEDIA - Clorazepate.md","displayName":"Wikipedia","size":9108,"tokens":2133}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Clorazepate
 *Source: TripSit Factsheets (tripsit.me)*

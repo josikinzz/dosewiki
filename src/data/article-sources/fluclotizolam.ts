@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fluclotizolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluclotizolam.md","displayName":"TripSit Factsheets","size":706},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluclotizolam.md","displayName":"Wikipedia","size":281}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluclotizolam.md","displayName":"TripSit Factsheets","size":706,"tokens":188},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluclotizolam.md","displayName":"Wikipedia","size":281,"tokens":68}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Fluclotizolam
 *Source: TripSit Factsheets (tripsit.me)*

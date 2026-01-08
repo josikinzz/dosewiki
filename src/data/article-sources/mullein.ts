@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mullein";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mullein.md","displayName":"Drug Users Bible","size":3433},{"id":"wikipedia","fileName":"WIKIPEDIA - Mullein.md","displayName":"Wikipedia","size":1428}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mullein.md","displayName":"Drug Users Bible","size":3433,"tokens":861},{"id":"wikipedia","fileName":"WIKIPEDIA - Mullein.md","displayName":"Wikipedia","size":1428,"tokens":398}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Mullein
 *Source: Drug Users Bible by Dominic Milton Trott*

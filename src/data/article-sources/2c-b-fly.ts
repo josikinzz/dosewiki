@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2C-B-FLY";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 2C-B-FLY.md","displayName":"Drug Users Bible","size":2731},{"id":"erowid","fileName":"EROWID - 2C-B-FLY.md","displayName":"Erowid","size":6981},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2C-B-FLY.md","displayName":"Isomer Design","size":783},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2C-B-FLY.md","displayName":"PsychonautWiki","size":31898},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-B-FLY.md","displayName":"TripSit Factsheets","size":776},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-B-FLY.md","displayName":"Wikipedia","size":5685}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 2C-B-FLY.md","displayName":"Drug Users Bible","size":2731,"tokens":694},{"id":"erowid","fileName":"EROWID - 2C-B-FLY.md","displayName":"Erowid","size":6981,"tokens":1883},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2C-B-FLY.md","displayName":"Isomer Design","size":378,"tokens":161},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2C-B-FLY.md","displayName":"PsychonautWiki","size":26903,"tokens":7624},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-B-FLY.md","displayName":"TripSit Factsheets","size":776,"tokens":224},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-B-FLY.md","displayName":"Wikipedia","size":5685,"tokens":1574}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 2C-B-FLY
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -166,17 +166,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`NCCc1c2OCCc2c(c2c1CCO2)Br\`
 
-**InChI:** \`InChI=1S/C12H14BrNO2/c13-10-9-3-6-15-11(9)7(1-4-14)8-2-5-16-12(8)10/h1-6,14H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8441352](https://www.chemspider.com/Chemical-Structure.8441352.html/)
-- [10265873](https://pubchem.ncbi.nlm.nih.gov/compound/10265873)
-- [Q4633042](https://www.wikidata.org/wiki/Q4633042)
-- [2C-B-FLY](https://en.wikipedia.org/wiki/2C-B-FLY)
-- [Substituted benzofuran](https://en.wikipedia.org/wiki/Substituted_benzofuran)
-`,
+**InChI:** \`InChI=1S/C12H14BrNO2/c13-10-9-3-6-15-11(9)7(1-4-14)8-2-5-16-12(8)10/h1-6,14H2\``,
   "psychonautwiki": `# 2C-B-FLY
 *Source: https://psychonautwiki.org/wiki/2C-B-FLY*
 
@@ -380,27 +370,7 @@ If 2C-B-FLY does have suspected MAO-altering effects, this could indicate that 2
 
 ## Literature
 
-- Greene, S. L. (2013). Benzofurans and benzodifurans. In Novel Psychoactive Substances (pp. 383-392). [https://doi.org/10.1016/B978-0-12-415816-0.00016-X](https://doi.org/10.1016/B978-0-12-415816-0.00016-X)
-
-## References
-1. ↑ [Erowid 2C-B-Fly Vaults : 2C-B-FLY](https://erowid.org/chemicals/2cb_fly/2cb_fly_info1.shtml)
-2. ↑ [Erowid 2C-B-Fly Vault: Death Reports 2009](https://www.erowid.org/chemicals/2cb_fly/2cb_fly_death1.shtml)
-3. ↑ ["An Interview with Ann Shulgin on Psychedelics and Self-Discovery"](https://maps.org/news-letters/v17n2/v17n2_annshulgin-23.pdf)(PDF).*MAPS*.**17**(2): 23–24. 2007.
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-5. ↑ Gallardo-Godoy, A., Fierro, A., McLean, T. H., Castillo, M., Cassels, B. K., Reyes-Parada, M., Nichols, D. E. (1 April 2005).["Sulfur-Substituted α-Alkyl Phenethylamines as Selective and Reversible MAO-A Inhibitors: Biological Activities, CoMFA Analysis, and Active Site Modeling"](https://pubs.acs.org/doi/10.1021/jm0493109).*Journal of Medicinal Chemistry*.**48**(7): 2407–2419.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm0493109](//doi.org/10.1021%2Fjm0493109).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-6. ↑ Controlled Drugs and Substances Act (S.C. 1996, c. 19) | [http://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html#h-28](http://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html#h-28)
-7. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-9. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-10. ↑ ["Wykaz substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](https://sip.lex.pl/akty-prawne/dzu-dziennik-ustaw/wykaz-substancji-psychotropowych-srodkow-odurzajacych-oraz-nowych-18747849)(in Polish). Retrieved 5 June, 2024.
-11. ↑ [Nyhetsarkiv — Folkhälsomyndigheten](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/)
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-14. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-15. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-16. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-17. ↑ Drug control: Highlights of P.L. 99-570, Anti Drug Abuse Act of 1986: (drug-related provisions only) (1986). bill.
-18. ↑ " [Controlled Substances: by CSA Schedule](https://www.deadiversion.usdoj.gov/schedules/orangebook/e_cs_sched.pdf#page=1) " (PDF). U.S. Department of Justice. November 18, 2021. p. 1.NewPP limit report Cached time: 20251218074929 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.056 seconds CPU time usage: 0.374 seconds Real time usage: 0.755 seconds Preprocessor visited node count: 1856/1000000 Post‐expand include size: 140847/2097152 bytes Template argument size: 23983/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 16913/5000000 bytes Lua time usage: 0.280/7 seconds Lua virtual size: 8.52 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 604.851 1 -total 21.38% 129.331 5 Template:Citation 18.56% 112.240 4 Template:Citation_needed 16.23% 98.192 2 Template:Fix 15.93% 96.332 1 Template:DangerousInteractions/Psychedelics 15.30% 92.568 4 Template:Category_handler 14.16% 85.659 5 Template:Cite_web 13.18% 79.704 3 Template:Cite_journal 10.69% 64.688 2 Template:Further 8.48% 51.315 1 Template:SubstanceBox/2C-B-FLY`,
+- Greene, S. L. (2013). Benzofurans and benzodifurans. In Novel Psychoactive Substances (pp. 383-392). [https://doi.org/10.1016/B978-0-12-415816-0.00016-X](https://doi.org/10.1016/B978-0-12-415816-0.00016-X)`,
   "tripsit-factsheets": `# 2C-B-FLY
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/2c-b-fly*
 

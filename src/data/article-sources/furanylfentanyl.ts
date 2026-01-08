@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Furanylfentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Furanylfentanyl.md","displayName":"TripSit Factsheets","size":822},{"id":"wikipedia","fileName":"WIKIPEDIA - Furanylfentanyl.md","displayName":"Wikipedia","size":1984}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Furanylfentanyl.md","displayName":"TripSit Factsheets","size":822,"tokens":219},{"id":"wikipedia","fileName":"WIKIPEDIA - Furanylfentanyl.md","displayName":"Wikipedia","size":1984,"tokens":468}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Furanylfentanyl
 *Source: TripSit Factsheets (tripsit.me)*

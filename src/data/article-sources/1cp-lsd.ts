@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "1cP-LSD";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 1cP-LSD.md","displayName":"Drug Users Bible","size":6385},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1cP-LSD.md","displayName":"Isomer Design","size":800},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1cP-LSD.md","displayName":"PsychonautWiki","size":40885},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1cP-LSD.md","displayName":"TripSit Factsheets","size":382},{"id":"wikipedia","fileName":"WIKIPEDIA - 1cP-LSD.md","displayName":"Wikipedia","size":1300}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 1cP-LSD.md","displayName":"Drug Users Bible","size":6385,"tokens":1585},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1cP-LSD.md","displayName":"Isomer Design","size":470,"tokens":218},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1cP-LSD.md","displayName":"PsychonautWiki","size":33101,"tokens":9001},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1cP-LSD.md","displayName":"TripSit Factsheets","size":382,"tokens":116},{"id":"wikipedia","fileName":"WIKIPEDIA - 1cP-LSD.md","displayName":"Wikipedia","size":1300,"tokens":359}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 1cP-LSD
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -160,16 +160,7 @@ However, I will certainly enjoy testing the remaining 3.25 blotters in my stash.
 
 **SMILES:** \`CCN(C(=O)[C@H]1CN(C)[C@H]2C(=C1)c1cccc3c1c(C2)cn3C(=O)C1CC1)CC\`
 
-**InChI:** \`InChI=1S/C24H29N3O2/c1-4-26(5-2)23(28)17-11-19-18-7-6-8-20-22(18)16(12-21(19)25(3)13-17)14-27(20)24(29)15-9-10-15/h6-8,11,14-15,17,21H,4-5,9-10,12-13H2,1-3H3/t17-,21-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [107450612](https://www.chemspider.com/Chemical-Structure.107450612.html/)
-- [155884675](https://pubchem.ncbi.nlm.nih.gov/compound/155884675)
-- [Q88200590](https://www.wikidata.org/wiki/Q88200590)
-- [1cP-LSD](https://en.wikipedia.org/wiki/1cP-LSD)
-`,
+**InChI:** \`InChI=1S/C24H29N3O2/c1-4-26(5-2)23(28)17-11-19-18-7-6-8-20-22(18)16(12-21(19)25(3)13-17)14-27(20)24(29)15-9-10-15/h6-8,11,14-15,17,21H,4-5,9-10,12-13H2,1-3H3/t17-,21-/m1/s1\``,
   "psychonautwiki": `# 1cP-LSD
 *Source: https://psychonautwiki.org/wiki/1cP-LSD*
 
@@ -393,27 +384,7 @@ Tolerance to the effects of 1cP-LSD is built almost immediately after ingestion.
 
 - APA formatted reference
 
-Please see the [citation formatting guide](https://psychonautwiki.org/wiki/Citation_formatting_guide) if you need assistance properly formatting citations. -->
-
-## References
-1. ↑ 1.0 1.1 Brandt, Simon D.; Kavanagh, Pierce V.; Westphal, Folker; Stratford, Alexander; Odland, Anna U.; Klein, Adam K.; Dowling, Geraldine; Dempster, Nicola M.; Wallach, Jason; Passie, Torsten; Halberstadt, Adam L. (March 16, 2020). "Return of the lysergamides. Part VI: Analytical and behavioural characterization of 1‐cyclopropanoyl‐d‐lysergic acid diethylamide (1CP‐LSD)".*Drug Testing and Analysis*.**12**(6): 812–826.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2789](//doi.org/10.1002%2Fdta.2789).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1942-7611](//www.worldcat.org/issn/1942-7611).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).[OCLC](http://en.wikipedia.org/wiki/OCLC)[231680670](//www.worldcat.org/oclc/231680670).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[32180350](//www.ncbi.nlm.nih.gov/pubmed/32180350).
-2. ↑ ["1cP-LSD"](https://trends.google.com/trends/explore?date=all&q=1cp-lsd). Google Trends. Retrieved July 14, 2020.
-3. ↑ Marona-Lewicka, D., Thisted, R. A., Nichols, D. E. (July 2005). "Distinct temporal phases in the behavioral pharmacology of LSD: dopamine D2 receptor-mediated effects in the rat and implications for psychosis".*Psychopharmacology*.**180**(3): 427–435.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00213-005-2183-9](//doi.org/10.1007%2Fs00213-005-2183-9).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).
-4. ↑ 4.0 4.1 Nichols, D. E. (February 2004).["Hallucinogens"](https://linkinghub.elsevier.com/retrieve/pii/S0163725803001657).*Pharmacology & Therapeutics*.**101**(2): 131–181.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pharmthera.2003.11.002](//doi.org/10.1016%2Fj.pharmthera.2003.11.002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0163-7258](//www.worldcat.org/issn/0163-7258).
-5. ↑ Chen, Q., Tesmer, J. J. G. (January 2017).["A Receptor on Acid"](https://linkinghub.elsevier.com/retrieve/pii/S0092867417300600).*Cell*.**168**(3): 339–341.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.cell.2017.01.012](//doi.org/10.1016%2Fj.cell.2017.01.012).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0092-8674](//www.worldcat.org/issn/0092-8674).
-6. ↑ University of North Carolina Health Care (2017),[This is LSD attached to a brain cell serotonin receptor (Update)](https://phys.org/news/2017-01-lsd-brain-cell-serotonin-receptor.html)
-7. ↑ Armstrong, B. D., Paik, E., Chhith, S., Lelievre, V., Waschek, J. A., Howard, S. G. (September 2004).["Potentiation of (DL)-3,4-methylenedioxymethamphetamine (MDMA)-induced toxicity by the serotonin 2A receptior partial agonist d-lysergic acid diethylamide (LSD), and the protection of same by the serotonin 2A/2C receptor antagonist MDL 11,939"](https://onlinelibrary.wiley.com/doi/10.1002/nrc.20023).*Neuroscience Research Communications*.**35**(2): 83–95.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/nrc.20023](//doi.org/10.1002%2Fnrc.20023).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-6609](//www.worldcat.org/issn/0893-6609).
-8. ↑ Gudelsky, G. A., Yamamoto, B. K., Frank Nash, J. (November 1994).["Potentiation of 3,4-methylenedioxymethamphetamine-induced dopamine release and serotonin neurotoxicity by 5-HT2 receptor agonists"](https://linkinghub.elsevier.com/retrieve/pii/0014299994906696).*European Journal of Pharmacology*.**264**(3): 325–330.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(94)90669-6](//doi.org/10.1016%2F0014-2999%2894%2990669-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-9. ↑ Capela, J. P., Fernandes, E., Remião, F., Bastos, M. L., Meisel, A., Carvalho, F. (July 2007). "Ecstasy induces apoptosis via 5-HT(2A)-receptor stimulation in cortical neurons".*Neurotoxicology*.**28**(4): 868–875.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.neuro.2007.04.005](//doi.org/10.1016%2Fj.neuro.2007.04.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0161-813X](//www.worldcat.org/issn/0161-813X).
-10. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-11. ↑ ["Nařízení vlády č. 463/2013 Sb. Nařízení vlády o seznamech návykových látek"](https://www.zakonyprolidi.cz/cs/2013-463)(in Czech). Zákony pro lidi. December 18, 2013. 178/2013.
-12. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved September 16, 2021.
-13. ↑ ["Zweite Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl121s2231.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2021 Teil I Nr. 38*(in German). Bundesanzeiger Verlag. July 2, 2021. pp. 2231–2243. Retrieved September 16, 2021.
-14. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved September 16, 2021.
-15. ↑ ["指定薬物を指定する省令が公布されました"](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/oshirase/20210122-1.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved March 25, 2021.
-16. ↑ ["Tjugotre ämnen föreslås klassas som narkotika eller hälsofarlig vara"](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2019/december/tjugotre-amnen-foreslas-klassas-som-narkotika-eller-halsofarlig-vara/)[Twenty-three substances are proposed to be classified as drugs or dangerous goods] (in Swedish). Folkhälsomyndigheten [Public Health Agency of Sweden]. December 18, 2019. Retrieved July 14, 2020.
-17. ↑ ERDOĞAN, R. T. (2020),[CUMHURBAŞKANI KARARI](https://mevzuat.gov.tr/MevzuatMetin/20.5.2307.pdf)(PDF), Resmî Gazete
-18. ↑ ["Psychoactive Substances Act 2016"](http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted). legislation.gov.uk. Retrieved July 14, 2020.NewPP limit report Cached time: 20251218074702 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.059 seconds CPU time usage: 0.445 seconds Real time usage: 0.914 seconds Preprocessor visited node count: 2050/1000000 Post‐expand include size: 192139/2097152 bytes Template argument size: 35519/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 25363/5000000 bytes Lua time usage: 0.350/7 seconds Lua virtual size: 8.4 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 751.620 1 -total 25.74% 193.496 8 Template:Cite_journal 22.08% 165.959 8 Template:Cite_web 20.28% 152.432 7 Template:Citation_needed 12.67% 95.214 2 Template:Fix 11.73% 88.189 4 Template:Category_handler 9.95% 74.807 1 Template:SubstanceBox/1cP-LSD 9.43% 70.905 1 Template:SubstanceBox 5.16% 38.759 2 Template:Further 3.51% 26.360 1 Template:Effects/base`,
+Please see the [citation formatting guide](https://psychonautwiki.org/wiki/Citation_formatting_guide) if you need assistance properly formatting citations. -->`,
   "tripsit-factsheets": `# 1CP-LSD
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/1cp-lsd*
 

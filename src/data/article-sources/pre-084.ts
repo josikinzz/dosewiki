@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PRE-084";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRE-084.md","displayName":"TripSit Factsheets","size":440},{"id":"wikipedia","fileName":"WIKIPEDIA - PRE-084.md","displayName":"Wikipedia","size":297}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRE-084.md","displayName":"TripSit Factsheets","size":440,"tokens":115},{"id":"wikipedia","fileName":"WIKIPEDIA - PRE-084.md","displayName":"Wikipedia","size":297,"tokens":82}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# PRE-084
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mephenaqualone";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Mephenaqualone.md","displayName":"PsychonautWiki","size":8213},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephenaqualone.md","displayName":"Wikipedia","size":933}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Mephenaqualone.md","displayName":"PsychonautWiki","size":7047,"tokens":1860},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephenaqualone.md","displayName":"Wikipedia","size":933,"tokens":224}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# Mephenaqualone
 *Source: https://psychonautwiki.org/wiki/Mephenaqualone*
@@ -79,10 +79,7 @@ Abrupt discontinuation of mephenaqualone after prolonged use can lead to withdra
 ## External links
 
 - [(eve-rave)](https://eve-rave.ch/Forum/viewtopic.php?t=79958)
-- [(Reddit German)](https://www.reddit.com/r/drogen/comments/1d5wiof/meine_dritte_erfahrung_mit_mephenaqualone/)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)NewPP limit report Cached time: 20251218075550 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.034 seconds CPU time usage: 0.251 seconds Real time usage: 0.431 seconds Preprocessor visited node count: 1044/1000000 Post‐expand include size: 53931/2097152 bytes Template argument size: 6046/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 862/5000000 bytes Lua time usage: 0.090/7 seconds Lua virtual size: 6.53 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 338.126 1 -total 25.51% 86.249 2 Template:Citation_needed 22.63% 76.518 1 Template:DepressantOD 22.62% 76.478 1 Template:Fix 21.34% 72.142 1 Template:Citation 21.33% 72.134 2 Template:Category_handler 21.30% 72.005 1 Template:GenericPanel/warning 19.97% 67.509 1 Template:GenericPanel 19.31% 65.303 1 Template:SubstanceBox/Mephenaqualone 18.24% 61.676 1 Template:SubstanceBox`,
+- [(Reddit German)](https://www.reddit.com/r/drogen/comments/1d5wiof/meine_dritte_erfahrung_mit_mephenaqualone/)`,
   "wikipedia": `# Mecloqualone
 *Source: https://en.wikipedia.org/wiki/Mecloqualone*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Lithium";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Lithium.md","displayName":"TripSit Factsheets","size":2820},{"id":"wikipedia","fileName":"WIKIPEDIA - Lithium.md","displayName":"Wikipedia","size":49804}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Lithium.md","displayName":"TripSit Factsheets","size":2820,"tokens":683},{"id":"wikipedia","fileName":"WIKIPEDIA - Lithium.md","displayName":"Wikipedia","size":49804,"tokens":12311}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Lithium
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Isopropylphenidine";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Isopropylphenidine.md","displayName":"Wikipedia","size":1391}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Isopropylphenidine.md","displayName":"Wikipedia","size":1391,"tokens":351}];
 export const contents: Record<string, string> = {
   "wikipedia": `# NPDPA
 *Source: https://en.wikipedia.org/wiki/NPDPA*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDPV";
-export const sources = [{"id":"erowid","fileName":"EROWID - MDPV.md","displayName":"Erowid","size":27769},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDPV.md","displayName":"Isomer Design","size":702},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDPV.md","displayName":"PsychonautWiki","size":36379},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDPV.md","displayName":"TripSit Factsheets","size":947},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDPV.md","displayName":"TripSit Wiki","size":3827},{"id":"wikipedia","fileName":"WIKIPEDIA - MDPV.md","displayName":"Wikipedia","size":13657}];
+export const sources = [{"id":"erowid","fileName":"EROWID - MDPV.md","displayName":"Erowid","size":27769,"tokens":8123},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDPV.md","displayName":"Isomer Design","size":342,"tokens":145},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDPV.md","displayName":"PsychonautWiki","size":26930,"tokens":7145},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDPV.md","displayName":"TripSit Factsheets","size":947,"tokens":340},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDPV.md","displayName":"TripSit Wiki","size":3827,"tokens":1035},{"id":"wikipedia","fileName":"WIKIPEDIA - MDPV.md","displayName":"Wikipedia","size":13657,"tokens":3390}];
 export const contents: Record<string, string> = {
   "erowid": `# MDPV
 *Source: https://erowid.org/chemicals/mdpv/mdpv.shtml*
@@ -432,16 +432,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCCC(C(=O)c1ccc2c(c1)OCO2)N1CCCC1\`
 
-**InChI:** \`InChI=1S/C16H21NO3/c1-2-5-13(17-8-3-4-9-17)16(18)12-6-7-14-15(10-12)20-11-19-14/h6-7,10,13H,2-5,8-9,11H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [16788110](https://www.chemspider.com/Chemical-Structure.16788110.html/)
-- [20111961](https://pubchem.ncbi.nlm.nih.gov/compound/20111961)
-- [Q417010](https://www.wikidata.org/wiki/Q417010)
-- [Methylenedioxypyrovalerone](https://en.wikipedia.org/wiki/Methylenedioxypyrovalerone)
-`,
+**InChI:** \`InChI=1S/C16H21NO3/c1-2-5-13(17-8-3-4-9-17)16(18)12-6-7-14-15(10-12)20-11-19-14/h6-7,10,13H,2-5,8-9,11H2,1H3\``,
   "psychonautwiki": `# MDPV
 *Source: https://psychonautwiki.org/wiki/MDPV*
 
@@ -648,40 +639,7 @@ In September 2014, the European Council decided that MDPV shall be subjected by 
 
 ### Discussion
 
-- [MDPV Megathread (Bluelight)](http://www.bluelight.org/vb/threads/278421-MDPV-Megathread)
-
-## References
-1. ↑ 1.00 1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 ["MDPV: EMCDDA–Europol Joint Report on a new psychoactive substance: MDPV (3,4-methylenedioxypyrovalerone)"](http://www.emcdda.europa.eu/system/files/publications/819/TDAS14001ENN_466653.pdf)(PDF). European Monitoring Centre for Drugs and Drug Addiction. Retrieved December 27, 2019.
-2. ↑ ["Monkey dust "epidemic" causing drug users to experience violent hallucinations"](https://www.newsweek.com/what-monkey-dust-bath-salt-mpvd-drug-causing-epidemic-violent-hallucinations-1068295).*Newsweek*(in English). 10 August 2018. Retrieved 17 August 2018.
-3. ↑ 3.0 3.1 Koppe, H., Ludwig, G., Zeile, K.,[1-(3’,4’-methylenedioxy-phenyl)-2-pyrrolidino-alkanones-(1)](https://patents.google.com/patent/US3478050/en)
-4. ↑ MDPV Summary | [http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1](http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1)
-5. ↑ [MDPV - TripSit wiki](https://wiki.tripsit.me/wiki/MDPV)
-6. ↑ [https://www.deadiversion.usdoj.gov/drug_chem_info/mdpv.pdf](https://www.deadiversion.usdoj.gov/drug_chem_info/mdpv.pdf)
-7. ↑ [http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1](http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1)
-8. ↑ [MDPV - Erowid Exp - “Personal Research Comedown Guide”](https://erowid.org/experiences/exp.php?ID=98601)
-9. ↑ [MDPV - Erowid Exp - “Seemingly Real Paranoid Hallucination Hell”](https://erowid.org/experiences/exp.php?ID=91741)
-10. ↑ [MDPV - Erowid Exp - “Psychosis”](https://www.erowid.org/experiences/exp.php?ID=78382)
-11. ↑ Watterson LR, Kufahl PR, Nemirovsky NE, Sewalia K, Grabenauer M, Thomas BF, et al. (March 2014).["Potent rewarding and reinforcing effects of the synthetic cathinone 3,4-methylenedioxypyrovalerone (MDPV)"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3473160).*Addiction Biology*.**19**(2): 165–74.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1369-1600.2012.00474.x](//doi.org/10.1111%2Fj.1369-1600.2012.00474.x).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[3473160](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3473160).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[22784198](//www.ncbi.nlm.nih.gov/pubmed/22784198).
-12. ↑ Coppola M, Mondola R (January 2012). "3,4-methylenedioxypyrovalerone (MDPV): chemistry, pharmacology and toxicology of a new designer drug of abuse marketed online".*Toxicology Letters*.**208**(1): 12–5.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.toxlet.2011.10.002](//doi.org/10.1016%2Fj.toxlet.2011.10.002).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[22008731](//www.ncbi.nlm.nih.gov/pubmed/22008731).
-13. ↑ Studies concerning MDPV hospitalization, pages 19 to 25. | [http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1](http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1)
-14. ↑ MDPV In-vivo statistics | [http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1](http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1)
-15. ↑ Wyman, J. F., Lavins, E. S., Engelhart, D., Armstrong, E. J., Snell, K. D., Boggs, P. D., Taylor, S. M., Norris, R. N., Miller, F. P. (1 April 2013).["Postmortem Tissue Distribution of MDPV Following Lethal Intoxication by "Bath Salts""](https://academic.oup.com/jat/article-lookup/doi/10.1093/jat/bkt001).*Journal of Analytical Toxicology*.**37**(3): 182–185.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bkt001](//doi.org/10.1093%2Fjat%2Fbkt001).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0146-4760](//www.worldcat.org/issn/0146-4760).
-16. ↑ Baselt, R. C. (2014).*Disposition of toxic drugs and chemicals in man*(Tenth edition ed.). Biomedical Publications.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780962652394](http://en.wikipedia.org/wiki/Special:BookSources/9780962652394). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-17. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-18. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-19. ↑ ["Council Implementing Decision on subjecting 25I-NBOMe, AH-7921, MDPV and methoxetamine to control measures"](https://op.europa.eu/o/opportal-service/download-handler?identifier=025bb164-4937-11e4-a0cb-01aa75ed71a1&format=pdfa1a&language=en&productionSystem=cellar&part=).*Official Journal of the European Union*. Office for Official Publications of the European Communites (published October 1, 2014). September 25, 2014. pp. 22–26.[OCLC](http://en.wikipedia.org/wiki/OCLC)[52224955](//www.worldcat.org/oclc/52224955). L 287.
-20. ↑ [Media Statements - Emerging drug, MDPV banned in WA](https://www.mediastatements.wa.gov.au/Pages/Barnett/2012/02/Emerging-drug,-MDPV-banned-in-WA.aspx)
-21. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-22. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-23. ↑ News ·, C. B. C.,[“Bath salts” drug ingredient banned in Canada](https://www.cbc.ca/news/politics/bath-salts-drug-ingredient-banned-in-canada-1.1174926), CBC News
-24. ↑ Finlex: huumausaineina pidettävistä aineista, valmisteista ja kasveista annetun valtioneuvoston asetuksen liitteen IV muuttamisesta | [http://www.finlex.fi/fi/laki/alkup/2010/20100596](http://www.finlex.fi/fi/laki/alkup/2010/20100596)
-25. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-26. ↑ ["Sechsundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl112s1639.pdf)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-27. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-28. ↑ Hovrätten skärper straff i MDPV-dom | [http://www.nt.se/nyheter/?articleid=6057819](http://www.nt.se/nyheter/?articleid=6057819)
-29. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-30. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-31. ↑ News, A. B. C.,[House Votes to Ban “Spice,” “Bath Salts”](https://abcnews.go.com/Blotter/house-votes-ban-fake-marijuana-fake-cocaine/story?id=15116235)NewPP limit report Cached time: 20251218075543 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.045 seconds CPU time usage: 0.429 seconds Real time usage: 0.918 seconds Preprocessor visited node count: 2188/1000000 Post‐expand include size: 147499/2097152 bytes Template argument size: 22123/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 34401/5000000 bytes Lua time usage: 0.380/7 seconds Lua virtual size: 8.43 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 764.488 1 -total 17.93% 137.111 5 Template:Cite_journal 17.53% 134.023 6 Template:Cite_web 17.32% 132.419 9 Template:Citation 17.06% 130.451 6 Template:Citation_needed 10.42% 79.694 1 Template:Fix 9.74% 74.431 2 Template:Category_handler 6.98% 53.390 1 Template:SubstanceBox/MDPV 6.58% 50.299 1 Template:SubstanceBox 4.58% 35.028 1 Template:Effects/base`,
+- [MDPV Megathread (Bluelight)](http://www.bluelight.org/vb/threads/278421-MDPV-Megathread)`,
   "tripsit-factsheets": `# MDPV
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mdpv*
 

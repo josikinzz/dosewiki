@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenmetrazine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Phenmetrazine.md","displayName":"DrugBank","size":12808},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenmetrazine.md","displayName":"TripSit Factsheets","size":652},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenmetrazine.md","displayName":"Wikipedia","size":8156}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Phenmetrazine.md","displayName":"DrugBank","size":12808,"tokens":3146},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenmetrazine.md","displayName":"TripSit Factsheets","size":652,"tokens":164},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenmetrazine.md","displayName":"Wikipedia","size":8156,"tokens":1991}];
 export const contents: Record<string, string> = {
   "drugbank": `# Phenmetrazine
 *Source: https://go.drugbank.com/drugs/DB00830*

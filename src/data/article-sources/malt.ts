@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MALT";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - MALT.md","displayName":"Wikipedia","size":2921}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - MALT.md","displayName":"Wikipedia","size":2921,"tokens":736}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Mucosa-associated lymphoid tissue
 *Source: https://en.wikipedia.org/wiki/Mucosa-associated_lymphoid_tissue*

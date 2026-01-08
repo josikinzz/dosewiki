@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Green_Tea";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Green_Tea.md","displayName":"Drug Users Bible","size":1559},{"id":"wikipedia","fileName":"WIKIPEDIA - Green_Tea.md","displayName":"Wikipedia","size":25345}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Green_Tea.md","displayName":"Drug Users Bible","size":1559,"tokens":385},{"id":"wikipedia","fileName":"WIKIPEDIA - Green_Tea.md","displayName":"Wikipedia","size":25345,"tokens":6584}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Green Tea
 *Source: Drug Users Bible by Dominic Milton Trott*

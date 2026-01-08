@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MPM";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MPM.md","displayName":"TripSit Factsheets","size":652},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MPM.md","displayName":"Wikipedia","size":474}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MPM.md","displayName":"TripSit Factsheets","size":652,"tokens":181},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MPM.md","displayName":"Wikipedia","size":474,"tokens":125}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-MPM
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mephtetramine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mephtetramine.md","displayName":"TripSit Factsheets","size":416},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephtetramine.md","displayName":"Wikipedia","size":2625}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mephtetramine.md","displayName":"TripSit Factsheets","size":416,"tokens":100},{"id":"wikipedia","fileName":"WIKIPEDIA - Mephtetramine.md","displayName":"Wikipedia","size":2625,"tokens":625}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Mephtetramine
 *Source: TripSit Factsheets (tripsit.me)*

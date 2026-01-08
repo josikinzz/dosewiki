@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Doxylamine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Doxylamine.md","displayName":"DrugBank","size":20162},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Doxylamine.md","displayName":"TripSit Factsheets","size":572},{"id":"wikipedia","fileName":"WIKIPEDIA - Doxylamine.md","displayName":"Wikipedia","size":10998}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Doxylamine.md","displayName":"DrugBank","size":20162,"tokens":5179},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Doxylamine.md","displayName":"TripSit Factsheets","size":572,"tokens":149},{"id":"wikipedia","fileName":"WIKIPEDIA - Doxylamine.md","displayName":"Wikipedia","size":10998,"tokens":2699}];
 export const contents: Record<string, string> = {
   "drugbank": `# Doxylamine
 *Source: https://go.drugbank.com/drugs/DB00366*

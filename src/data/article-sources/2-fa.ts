@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-FA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FA.md","displayName":"Isomer Design","size":693},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FA.md","displayName":"PsychonautWiki","size":32103},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FA.md","displayName":"TripSit Factsheets","size":876},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FA.md","displayName":"Wikipedia","size":1741}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FA.md","displayName":"Isomer Design","size":353,"tokens":135},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FA.md","displayName":"PsychonautWiki","size":24232,"tokens":6481},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FA.md","displayName":"TripSit Factsheets","size":876,"tokens":253},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FA.md","displayName":"Wikipedia","size":1741,"tokens":505}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-FA
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2129*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CC(Cc1ccccc1F)N\`
 
-**InChI:** \`InChI=1S/C9H12FN/c1-7(11)6-8-4-2-3-5-9(8)10/h2-5,7H,6,11H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [108441](https://www.chemspider.com/Chemical-Structure.108441.html/)
-- [121531](https://pubchem.ncbi.nlm.nih.gov/compound/121531)
-- [Q4029768](https://www.wikidata.org/wiki/Q4029768)
-- [2-Fluoroamphetamine](https://en.wikipedia.org/wiki/2-Fluoroamphetamine)
-`,
+**InChI:** \`InChI=1S/C9H12FN/c1-7(11)6-8-4-2-3-5-9(8)10/h2-5,7H,6,11H2,1H3\``,
   "psychonautwiki": `# 2-FA
 *Source: https://psychonautwiki.org/wiki/2-FA*
 
@@ -214,30 +205,7 @@ Abuse of compounds within the amphetamine chemical class at high dosages for pro
 ## External links
 
 - [2-FA (Wikipedia)](https://en.wikipedia.org/wiki/2-Fluoroamphetamine)
-- [2-FA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2129)
-
-## References
-1. ↑ Rösner, P., Quednow, B., Girreser, U., Junge, T. (10 March 2005). "Isomeric fluoro-methoxy-phenylalkylamines: a new series of controlled-substance analogues (designer drugs)".*Forensic Science International*.**148**(2–3): 143–156.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2004.05.003](//doi.org/10.1016%2Fj.forsciint.2004.05.003).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-2. ↑ Camilleri, A., Johnston, M. R., Brennan, M., Davis, S., Caldicott, D. G. E. (15 April 2010). "Chemical analysis of four capsules containing the controlled substance analogues 4-methylmethcathinone, 2-fluoromethamphetamine, alpha-phthalimidopropiophenone and N-ethylcathinone".*Forensic Science International*.**197**(1–3): 59–66.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2009.12.048](//doi.org/10.1016%2Fj.forsciint.2009.12.048).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1872-6283](//www.worldcat.org/issn/1872-6283).
-3. ↑ Smart, B. E. (1 June 2001).["Fluorine substituent effects (on bioactivity)"](https://www.sciencedirect.com/science/article/pii/S002211390100375X).*Journal of Fluorine Chemistry*.**109**(1): 3–11.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0022-1139(01)00375-X](//doi.org/10.1016%2FS0022-1139%2801%2900375-X).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-1139](//www.worldcat.org/issn/0022-1139).
-4. ↑ 4.0 4.1 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-5. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-6. ↑ [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-7. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-8. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-9. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-10. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-11. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-12. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-13. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-14. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-15. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-16. ↑ [Misuse of Drugs Act 1975 No 116 (as at 01 July 2022), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-17. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-18. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-19. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-20. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-21. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I)NewPP limit report Cached time: 20251218074848 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.053 seconds CPU time usage: 0.357 seconds Real time usage: 0.787 seconds Preprocessor visited node count: 2041/1000000 Post‐expand include size: 120013/2097152 bytes Template argument size: 11454/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 26209/5000000 bytes Lua time usage: 0.330/7 seconds Lua virtual size: 8.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 650.580 1 -total 32.08% 208.707 7 Template:Cite_journal 19.34% 125.842 1 Template:Citation_needed 12.47% 81.130 5 Template:Cite_web 11.85% 77.125 1 Template:Fix 11.08% 72.071 2 Template:Category_handler 9.86% 64.168 6 Template:Citation 6.08% 39.544 1 Template:SubstanceBox/2-FA 5.66% 36.824 1 Template:SubstanceBox 4.32% 28.096 1 Template:Effects/base`,
+- [2-FA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2129)`,
   "tripsit-factsheets": `# 2-FA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/2-fa*
 

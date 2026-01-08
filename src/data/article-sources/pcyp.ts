@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "α-PCYP";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - α-PCYP.md","displayName":"Wikipedia","size":518}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - α-PCYP.md","displayName":"Wikipedia","size":518,"tokens":132}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Α-PCYP
 *Source: https://en.wikipedia.org/wiki/%CE%91-PCYP*

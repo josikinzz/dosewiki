@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cebil";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Cebil.md","displayName":"Drug Users Bible","size":1501},{"id":"wikipedia","fileName":"WIKIPEDIA - Cebil.md","displayName":"Wikipedia","size":4805}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Cebil.md","displayName":"Drug Users Bible","size":1501,"tokens":368},{"id":"wikipedia","fileName":"WIKIPEDIA - Cebil.md","displayName":"Wikipedia","size":4805,"tokens":1236}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Cebil
 *Source: Drug Users Bible by Dominic Milton Trott*

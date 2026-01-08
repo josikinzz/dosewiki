@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-DiPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-DiPT.md","displayName":"Erowid","size":7244},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-DiPT.md","displayName":"Isomer Design","size":823},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-DiPT.md","displayName":"PsychonautWiki","size":32265},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DiPT.md","displayName":"TripSit Factsheets","size":821},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DiPT.md","displayName":"Wikipedia","size":2617}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-DiPT.md","displayName":"Erowid","size":7244,"tokens":2148},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-DiPT.md","displayName":"Isomer Design","size":485,"tokens":209},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-DiPT.md","displayName":"PsychonautWiki","size":28555,"tokens":7819},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DiPT.md","displayName":"TripSit Factsheets","size":821,"tokens":239},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DiPT.md","displayName":"Wikipedia","size":2617,"tokens":736}];
 export const contents: Record<string, string> = {
   "erowid": `# 4-AcO-DiPT
 *Source: https://erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt.shtml*
@@ -136,16 +136,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CC(=O)Oc1cccc2c1c(CCN(C(C)C)C(C)C)c[nH]2\`
 
-**InChI:** \`InChI=1S/C18H26N2O2/c1-12(2)20(13(3)4)10-9-15-11-19-16-7-6-8-17(18(15)16)22-14(5)21/h6-8,11-13,19H,9-10H2,1-5H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106240](https://www.chemspider.com/Chemical-Structure.21106240.html/)
-- [24801868](https://pubchem.ncbi.nlm.nih.gov/compound/24801868)
-- [Q3491199](https://www.wikidata.org/wiki/Q3491199)
-- [4-Acetoxy-DIPT](https://en.wikipedia.org/wiki/4-Acetoxy-DIPT)
-`,
+**InChI:** \`InChI=1S/C18H26N2O2/c1-12(2)20(13(3)4)10-9-15-11-19-16-7-6-8-17(18(15)16)22-14(5)21/h6-8,11-13,19H,9-10H2,1-5H3\``,
   "psychonautwiki": `# 4-AcO-DiPT
 *Source: https://psychonautwiki.org/wiki/4-AcO-DiPT*
 
@@ -316,23 +307,7 @@ Tolerance to the effects of 4-AcO-DiPT is built almost immediately after ingesti
 - [4-AcO-DiPT (Wikipedia)](https://en.wikipedia.org/wiki/4-Acetoxy-DiPT)
 - [4-AcO-DiPT (Erowid Vault)](https://erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt.shtml)
 - [4-AcO-DiPT (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=5369)
-- [4-AcO-DiPT (Bluelight)](http://www.bluelight.org/vb/threads/554553-The-Big-amp-Dandy-4-AcO-DiPT-Thread)
-
-## References
-1. ↑ 1.0 1.1 [Erowid 4-Acetoxy-DiPT Vault](https://erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt.shtml), Erowid
-2. ↑ 2.0 2.1 2.2 2.3 2.4 2.5 [Erowid 4-Acetoxy-DiPT Vaults : Primer](https://www.erowid.org/chemicals/4_acetoxy_dipt/4_acetoxy_dipt_primer.shtml), Erowid, 1999
-3. ↑ Shulgin, A., Shulgin, A. (1991),[Erowid Online Books : “TIHKAL” - #17 4-HO-DIPT](https://www.erowid.org/library/books_online/tihkal/tihkal17.shtml)
-4. ↑ [4-Acetoxy-N,N-diisopropyltryptamine](https://pubchem.ncbi.nlm.nih.gov/compound/24801868), National Center for Biotechnology Information. PubChem Compound Database, retrieved 2 May 2017
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-6. ↑ Sundheds- og Ældreministeriet,[Bekendtgørelse om euforiserende stoffer](https://www.retsinformation.dk/Forms/R0710.aspx?id=137169)
-7. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](https://www.bundesgesundheitsministerium.de/fileadmin/Dateien/3_Downloads/Gesetze_und_Verordnungen/GuV/N/NPS_BtM_RegV_Bgbl.pdf)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 10, 2019.
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-9. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-10. ↑ [ホーム > 政策について > 分野別の政策一覧 > 健康・医療 > 医薬品・医療機器 > 薬物乱用防止に関する情報](https://www.mhlw.go.jp/bunya/iyakuhin/yakubuturanyou/scheduled-drug/list.html)(in Japanese)
-11. ↑ [Svensk författningssamling](http://www.notisum.se/rnp/sls/sfs/20050026.pdf)(PDF)(in Swedish)
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I/paragraph/3)
-14. ↑ [Misuse of Drugs Act 1971](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I#reference-M_F_c7632653-ddad-4420-f307-e3da1e36d30e)NewPP limit report Cached time: 20251218075038 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.05 seconds CPU time usage: 0.393 seconds Real time usage: 0.813 seconds Preprocessor visited node count: 1785/1000000 Post‐expand include size: 164520/2097152 bytes Template argument size: 31166/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15343/5000000 bytes Lua time usage: 0.310/7 seconds Lua virtual size: 8.75 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 672.670 1 -total 36.61% 246.282 9 Template:Citation 21.84% 146.888 6 Template:Citation_needed 13.63% 91.706 2 Template:Fix 12.71% 85.500 4 Template:Category_handler 11.05% 74.348 1 Template:SubstanceBox/4-AcO-DiPT 10.44% 70.221 1 Template:SubstanceBox 9.96% 66.979 4 Template:Cite_web 5.19% 34.910 1 Template:Effects/base 4.67% 31.437 1 Template:Effect_list`,
+- [4-AcO-DiPT (Bluelight)](http://www.bluelight.org/vb/threads/554553-The-Big-amp-Dandy-4-AcO-DiPT-Thread)`,
   "tripsit-factsheets": `# 4-AcO-DiPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-aco-dipt*
 

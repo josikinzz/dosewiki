@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDPA";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDPA.md","displayName":"TripSit Factsheets","size":661}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDPA.md","displayName":"TripSit Factsheets","size":661,"tokens":173}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# MDPA
 *Source: TripSit Factsheets (tripsit.me)*

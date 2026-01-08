@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PFBT";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PFBT.md","displayName":"TripSit Factsheets","size":562},{"id":"wikipedia","fileName":"WIKIPEDIA - PFBT.md","displayName":"Wikipedia","size":958}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PFBT.md","displayName":"TripSit Factsheets","size":562,"tokens":152},{"id":"wikipedia","fileName":"WIKIPEDIA - PFBT.md","displayName":"Wikipedia","size":958,"tokens":265}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# PFBT
 *Source: TripSit Factsheets (tripsit.me)*

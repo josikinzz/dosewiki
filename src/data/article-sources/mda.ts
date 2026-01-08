@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDA";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDA.md","displayName":"Drug Users Bible","size":5938},{"id":"erowid","fileName":"EROWID - MDA.md","displayName":"Erowid","size":12977},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDA.md","displayName":"Isomer Design","size":12532},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDA.md","displayName":"PsychonautWiki","size":49453},{"id":"saferparty","fileName":"SAFERPARTY - MDA.md","displayName":"Safer Party","size":1233},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDA.md","displayName":"The Drug Classroom","size":4474},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDA.md","displayName":"TripSit Factsheets","size":536},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDA.md","displayName":"TripSit Wiki","size":6935},{"id":"wikipedia","fileName":"WIKIPEDIA - MDA.md","displayName":"Wikipedia","size":13040}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - MDA.md","displayName":"Drug Users Bible","size":5938,"tokens":1499},{"id":"erowid","fileName":"EROWID - MDA.md","displayName":"Erowid","size":12977,"tokens":3519},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDA.md","displayName":"Isomer Design","size":12532,"tokens":3314},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MDA.md","displayName":"PsychonautWiki","size":38075,"tokens":10251},{"id":"saferparty","fileName":"SAFERPARTY - MDA.md","displayName":"Safer Party","size":1233,"tokens":317},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDA.md","displayName":"The Drug Classroom","size":975,"tokens":252},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDA.md","displayName":"TripSit Factsheets","size":536,"tokens":165},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - MDA.md","displayName":"TripSit Wiki","size":6935,"tokens":1819},{"id":"wikipedia","fileName":"WIKIPEDIA - MDA.md","displayName":"Wikipedia","size":13040,"tokens":3305}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# MDA
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -671,40 +671,7 @@ Internationally, MDA is part of the the Convention on Psychotropic Substances of
 
 ## Literature
 
-- Green, A.J., Mechan, A.O., Elliott, J.M., O'shea, E., & Colado, M.I. (2003). The pharmacology and clinical pharmacology of 3,4-methylenedioxymethamphetamine (MDMA, "ecstasy"). Pharmacological Reviews, 55 3, 463-508. [https://doi.org/10.1124/pr.55.3.3](https://doi.org/10.1124/pr.55.3.3)
-
-## References
-1. ↑ 1.0 1.1 Mannich, C., Jacobsohn, W., Mannich, C. (January 1910).["Über Oxyphenyl‐alkylamine und Dioxyphenyl‐alkylamine"](https://onlinelibrary.wiley.com/doi/10.1002/cber.19100430126).*Berichte der deutschen chemischen Gesellschaft*.**43**(1): 189–197.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/cber.19100430126](//doi.org/10.1002%2Fcber.19100430126).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0365-9496](//www.worldcat.org/issn/0365-9496).
-2. ↑ Schoenfeld, Eugene. "Hippocrates". Berkeley Barb November 24-30, 1967: 7 (Independent Voices) | [http://voices.revealdigital.com/cgi-bin/independentvoices?a=d&d=BFBJFGD19671124.1.7](http://voices.revealdigital.com/cgi-bin/independentvoices?a=d&d=BFBJFGD19671124.1.7)
-3. ↑
-4. ↑ [\$700,000 Awarded to Estate of Army Drug Test Victim](https://www.latimes.com/archives/la-xpm-1987-05-06-mn-2486-story.html), 1987
-5. ↑ "Methylenedioxy Amphetamine (MDA)." Microgram. Bureau of Drug Abuse Control. Feb 1968. 1(5):4-5 (Erowid.org) | [https://erowid.org/library/periodicals/microgram/microgram_1968_02_v01n05.pdf](https://erowid.org/library/periodicals/microgram/microgram_1968_02_v01n05.pdf)
-6. ↑ Power, Mike (2 May 2013).*Drugs 2.0: The Web Revolution That's Changing How the World Gets High*. Portobello Books Ltd.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9781846274596](http://en.wikipedia.org/wiki/Special:BookSources/9781846274596).
-7. ↑ Naranjo, C., Shulgin, A. T., Sargent, T. (1967).["Evaluation of 3,4-Methylenedioxyamphetamine (MDA) as an Adjunct to Psychotherapy"](https://www.karger.com/Article/FullText/137100).*Pharmacology*.**17**(4): 359–364.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1159/000137100](//doi.org/10.1159%2F000137100).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0031-7012](//www.worldcat.org/issn/0031-7012).
-8. ↑ Yensen, R., Di Leo, F. B., Rhead, J. C., Richards, W. A., Soskin, R. A., Turek, B., Kurland, A. A. (October 1976). "MDA-assisted psychotherapy with neurotic outpatients: a pilot study".*The Journal of Nervous and Mental Disease*.**163**(4): 233–245.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/00005053-197610000-00002](//doi.org/10.1097%2F00005053-197610000-00002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3018](//www.worldcat.org/issn/0022-3018). }}
-9. ↑ Baggott, M. J., Siegrist, J. D., Galloway, G. P., Robertson, L. C., Coyle, J. R., Mendelson, J. E. (2 December 2010).["Investigating the Mechanisms of Hallucinogen-Induced Visions Using 3,4-Methylenedioxyamphetamine (MDA): A Randomized Controlled Trial in Humans"](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0014074).*PLOS ONE*.**5**(12): e14074.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pone.0014074](//doi.org/10.1371%2Fjournal.pone.0014074).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-6203](//www.worldcat.org/issn/1932-6203).
-10. ↑ Lewin, A. H., Miller, G. M., Gilmour, B. (1 December 2011). "Trace amine-associated receptor 1 is a stereoselective binding site for compounds in the amphetamine class".*Bioorganic & Medicinal Chemistry*.**19**(23): 7044–7048.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmc.2011.10.007](//doi.org/10.1016%2Fj.bmc.2011.10.007).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1464-3391](//www.worldcat.org/issn/1464-3391).
-11. ↑ Wallach, J. V. (January 2009). "Endogenous hallucinogens as ligands of the trace amine receptors: a possible role in sensory perception".*Medical Hypotheses*.**72**(1): 91–94.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.mehy.2008.07.052](//doi.org/10.1016%2Fj.mehy.2008.07.052).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0306-9877](//www.worldcat.org/issn/0306-9877).
-12. ↑ Giovanni, G. D., Matteo, V. D., Esposito, E. (11 November 2008).*Serotonin-Dopamine Interaction: Experimental Evidence and Therapeutic Relevance*. Elsevier.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780444532350](http://en.wikipedia.org/wiki/Special:BookSources/9780444532350).
-13. ↑ Rothman, R. B., Baumann, M. H. (May 2009). "Serotonergic drugs and valvular heart disease".*Expert Opinion on Drug Safety*.**8**(3): 317–329.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1517/14740330902931524](//doi.org/10.1517%2F14740330902931524).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1744-764X](//www.worldcat.org/issn/1744-764X).
-14. ↑ Nash, J. F., Roth, B. L., Brodkin, J. D., Nichols, D. E., Gudelsky, G. A. (15 August 1994). "Effect of the R(-) and S(+) isomers of MDA and MDMA on phosphatidyl inositol turnover in cultured cells expressing 5-HT2A or 5-HT2C receptors".*Neuroscience Letters*.**177**(1–2): 111–115.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(94)90057-4](//doi.org/10.1016%2F0304-3940%2894%2990057-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-15. ↑ Ray, T. S. (2 February 2010). "Psychedelics and the human receptorome".*PloS One*.**5**(2): e9019.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pone.0009019](//doi.org/10.1371%2Fjournal.pone.0009019).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-6203](//www.worldcat.org/issn/1932-6203).
-16. ↑ Johnson, M. P., Hoffman, A. J., Nichols, D. E. (December 1986).["Effects of enantiomers of MDA, MDMA and related analogues on [3H]serotonin and [3H]dopamine release from superfused rat brain slices"](https://linkinghub.elsevier.com/retrieve/pii/0014299986906151).*European Journal of Pharmacology*.**132**(2–3): 269–276.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(86)90615-1](//doi.org/10.1016%2F0014-2999%2886%2990615-1).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-17. ↑ The History Channel documented details of his death here [http://www.youtube.com/watch?v=ySw-0uY4CUA](http://www.youtube.com/watch?v=ySw-0uY4CUA) See minute 2:38 onward.
-18. ↑ [https://web.archive.org/web/20130518010439/http://www.drogen-info-berlin.de/htm/mda.html](https://web.archive.org/web/20130518010439/http://www.drogen-info-berlin.de/htm/mda.html)
-19. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-20. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-21. ↑ ["CONVENTION ON PSYCHOTROPIC SUBSTANCES 1971"](http://www.emcdda.europa.eu/system/files/attachments/10451/convention_1971_en.pdf)(PDF). United Nations. Retrieved December 15, 2019.
-22. ↑ ["Criminal Code Regulations 2019"](https://www.legislation.gov.au/Details/F2019L00561). Office of Parliamentary Counsel. Retrieved December 15, 2019.
-23. ↑ ["Controlled Drugs and Substances Act - SCHEDULE I"](https://www.laws-lois.justice.gc.ca/eng/acts/C-38.8/page-13.html#docCont). Government of Canada. Retrieved December 15, 2019.
-24. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-25. ↑ ["Erste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl184s1081.pdf%27%5D__1576029878276)(in German). Bundesanzeiger Verlag. Retrieved December 15, 2019.
-26. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 15, 2019.
-27. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 15, 2019.
-28. ↑ [Resolution of the Government of the Russian Federation](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347)
-29. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-30. ↑ Koninkrijksrelaties, M. van B. Z. en,[Opiumwet](https://wetten.overheid.nl/BWBR0001941/2020-01-01)
-31. ↑ Passie, T., Benzenhöfer, U. (June 2016). "The History of MDMA as an Underground Drug in the United States, 1960-1979".*Journal of Psychoactive Drugs*.**48**(2): 67–75.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/02791072.2015.1128580](//doi.org/10.1080%2F02791072.2015.1128580).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0279-1072](//www.worldcat.org/issn/0279-1072).NewPP limit report Cached time: 20251218075530 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.049 seconds CPU time usage: 0.416 seconds Real time usage: 0.932 seconds Preprocessor visited node count: 2263/1000000 Post‐expand include size: 241122/2097152 bytes Template argument size: 46476/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 36007/5000000 bytes Lua time usage: 0.410/7 seconds Lua virtual size: 8.61 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 812.557 1 -total 63.34% 514.670 1 Template:Reflist 38.04% 309.124 13 Template:Cite_journal 14.92% 121.256 7 Template:Citation_needed 11.01% 89.456 7 Template:Cite_web 8.87% 72.111 1 Template:Fix 8.20% 66.600 2 Template:Category_handler 7.43% 60.348 1 Template:SubstanceBox/MDA 7.05% 57.285 1 Template:SubstanceBox 6.03% 48.970 4 Template:Citation`,
+- Green, A.J., Mechan, A.O., Elliott, J.M., O'shea, E., & Colado, M.I. (2003). The pharmacology and clinical pharmacology of 3,4-methylenedioxymethamphetamine (MDMA, "ecstasy"). Pharmacological Reviews, 55 3, 463-508. [https://doi.org/10.1124/pr.55.3.3](https://doi.org/10.1124/pr.55.3.3)`,
   "saferparty": `# MDA
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
@@ -779,48 +746,7 @@ Onset: 00:20 – 01:00 (for most people)
 
 ## Test Results
 
----
-
-## References
-
-**(2010)** [Investigating the Mechanisms of Hallucinogen-Induced Visions Using 3,4-Methylenedioxyamphetamine (MDA): A Randomized Controlled Trial in Humans](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2996283/)
-
-**(2006)** [Effects of (+/-)3,4-methylenedioxymethamphetamine, (+/-)3,4-methylenedioxyamphetamine and methamphetamine on temperature and activity in rhesus macaques.](https://www.ncbi.nlm.nih.gov/pubmed/16876329)
-
-**(2005)** [Serotonergic neurotoxic metabolites of ecstasy identified in rat brain.](https://www.ncbi.nlm.nih.gov/pubmed/15634943)
-
-**(2004)** [The role of metabolism in 3,4-(+)-methylenedioxyamphetamine and 3,4-(+)-methylenedioxymethamphetamine (ecstasy) toxicity.](https://www.ncbi.nlm.nih.gov/pubmed/15228153)
-
-**(2001)** [An exploration of the history and controversies surrounding MDMA and MDA.](https://www.ncbi.nlm.nih.gov/pubmed/11718314)
-
-**(1997)** [2,5-Bis-(glutathion-S-yl)-alpha-methyldopamine, a putative metabolite of (+/-)-3,4-methylenedioxyamphetamine, decreases brain serotonin concentrations.](https://www.ncbi.nlm.nih.gov/pubmed/9128836)
-
-**(1996)** [Distribution of 3,4-methylenedioxymethamphetamine (MDMA) and 3,4-methylenedioxyamphetamine (MDA) stereoisomers in a fatal poisoning.](https://www.ncbi.nlm.nih.gov/pubmed/9022274)
-
-**(1995)** [The hyperthermic and neurotoxic effects of ‘Ecstasy’ (MDMA) and 3,4 methylenedioxyamphetamine (MDA) in the Dark Agouti (DA) rat, a model of the CYP2D6 poor metabolizer phenotype.](https://www.ncbi.nlm.nih.gov/pubmed/7582557)
-
-**(1994)** [Effect of the R(-) and S(+) isomers of MDA and MDMA on phosphatidyl inositol turnover in cultured cells expressing 5-HT2A or 5-HT2C receptors.](https://www.ncbi.nlm.nih.gov/pubmed/7824160)
-
-**(1991)** [3,4-Methylenedioxyamphetamine (MDA) analogues exhibit differential effects on synaptosomal release of 3H-dopamine and 3H-5-hydroxytryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/1829838)
-
-**(1988)** [Methylenedioxyamphetamine (MDA) and methylenedioxymethamphetamine (MDMA) cause selective ablation of serotonergic axon terminals in forebrain: immunocytochemical evidence for neurotoxicity.](https://www.ncbi.nlm.nih.gov/pubmed/2457659)
-
-**(1987)** [3,4-Methylenedioxymethamphetamine and 3,4-methylenedioxyamphetamine destroy serotonin terminals in rat brain: quantification of neurodegeneration by measurement of [3H]paroxetine-labeled serotonin uptake sites.](https://www.ncbi.nlm.nih.gov/pubmed/2443644)
-
-**(1986)** [The effects of 3,4-methylenedioxymethamphetamine (MDMA) and 3,4-methylenedioxyamphetamine (MDA) on monoaminergic systems in the rat brain.](https://www.ncbi.nlm.nih.gov/pubmed/2875893)
-
-**(1986)** [Ecstacy: a review of MDMA and MDA.](https://www.ncbi.nlm.nih.gov/pubmed/2881902)
-
-**(1981)** [Methylenedioxyamphetamine: Clinical Description of Overdose, Death, and Review of Pharmacology](http://archinte.jamanetwork.com/article.aspx?articleid=601496)
-
-**(1974)** [Methylenedioxyamphetamine (MDA)–Subjective Effects](http://www.tandfonline.com/doi/abs/10.1080/02791072.1974.10471499?journalCode=ujpd19)
-
-**(1973)** [The properties of 3,4-methylenedioxyamphetamine (MDA). I. A review of the literature.](https://www.ncbi.nlm.nih.gov/pubmed/4575537)
-
-**(1972)** [A Fatal Case Involving Methylenedioxyamphetamine](http://www.tandfonline.com/doi/abs/10.3109/15563657208990502?journalCode=ictx18)
-
-**(1967)** [Evaluation of 3,4-methylenedioxyamphetamine (MDA) as an adjunct to psychotherapy.](https://www.ncbi.nlm.nih.gov/pubmed/5631047)
-`,
+---`,
   "tripsit-factsheets": `# MDA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mda*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Adrafinil";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Adrafinil.md","displayName":"DrugBank","size":5890},{"id":"erowid","fileName":"EROWID - Adrafinil.md","displayName":"Erowid","size":6196},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Adrafinil.md","displayName":"Isomer Design","size":720},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Adrafinil.md","displayName":"PsychonautWiki","size":11208},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Adrafinil.md","displayName":"TripSit Factsheets","size":837},{"id":"wikipedia","fileName":"WIKIPEDIA - Adrafinil.md","displayName":"Wikipedia","size":8634}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Adrafinil.md","displayName":"DrugBank","size":5890,"tokens":1460},{"id":"erowid","fileName":"EROWID - Adrafinil.md","displayName":"Erowid","size":6196,"tokens":1676},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Adrafinil.md","displayName":"Isomer Design","size":398,"tokens":155},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Adrafinil.md","displayName":"PsychonautWiki","size":7728,"tokens":2058},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Adrafinil.md","displayName":"TripSit Factsheets","size":837,"tokens":221},{"id":"wikipedia","fileName":"WIKIPEDIA - Adrafinil.md","displayName":"Wikipedia","size":8634,"tokens":2144}];
 export const contents: Record<string, string> = {
   "drugbank": `# Adrafinil
 *Source: https://go.drugbank.com/drugs/DB08925*
@@ -523,16 +523,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`ONC(=O)CS(=O)C(c1ccccc1)c1ccccc1\`
 
-**InChI:** \`InChI=1S/C15H15NO3S/c17-14(16-18)11-20(19)15(12-7-3-1-4-8-12)13-9-5-2-6-10-13/h1-10,15,18H,11H2,(H,16,17)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [2297976](https://www.chemspider.com/Chemical-Structure.2297976.html/)
-- [3033226](https://pubchem.ncbi.nlm.nih.gov/compound/3033226)
-- [Q366482](https://www.wikidata.org/wiki/Q366482)
-- [Adrafinil](https://en.wikipedia.org/wiki/Adrafinil)
-`,
+**InChI:** \`InChI=1S/C15H15NO3S/c17-14(16-18)11-20(19)15(12-7-3-1-4-8-12)13-9-5-2-6-10-13/h1-10,15,18H,11H2,(H,16,17)\``,
   "psychonautwiki": `# Adrafinil
 *Source: https://psychonautwiki.org/wiki/Adrafinil*
 
@@ -636,14 +627,7 @@ Unlike [modafinil](https://psychonautwiki.org/wiki/Modafinil) , adrafinil is leg
 - [Adrafinil (Wikipedia)](https://en.wikipedia.org/wiki/Adrafinil)
 - [Adrafinil (Erowid Vault)](https://erowid.org/smarts/adrafinil/)
 - [Adrafinil (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=2835)
-- [Adrafinil (Examine)](https://examine.com/supplements/adrafinil/)
-
-## References
-1. ↑ Milgram, N. W., Callahan, H., Siwak, C. (7 June 2006).["Adrafinil: A Novel Vigilance Promoting Agent"](https://onlinelibrary.wiley.com/doi/10.1111/j.1527-3458.1999.tb00100.x).*CNS Drug Reviews*.**5**(3): 193–212.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1527-3458.1999.tb00100.x](//doi.org/10.1111%2Fj.1527-3458.1999.tb00100.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1080-563X](//www.worldcat.org/issn/1080-563X).
-2. ↑ Duteil, J., Rambert, F. A., Pessonnier, J., Gombert, R., Assous, E. (26 October 1979). "A possibe alpha-adrenergic mechanism for drug (CRL 40028)-induced hyperactivity".*European Journal of Pharmacology*.**59**(1–2): 121–123.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(79)90033-5](//doi.org/10.1016%2F0014-2999%2879%2990033-5).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-3. ↑ Burnat, P., Robles, F., Do, B. (20 March 1998). "High-performance liquid chromatographic determination of modafinil and its two metabolites in human plasma using solid-phase extraction".*Journal of Chromatography. B, Biomedical Sciences and Applications*.**706**(2): 295–304.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0378-4347(97)00550-1](//doi.org/10.1016%2Fs0378-4347%2897%2900550-1).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1387-2273](//www.worldcat.org/issn/1387-2273).
-4. ↑ Banerjee, D., Vitiello, M. V., Grunstein, R. R. (1 October 2004).["Pharmacotherapy for excessive daytime sleepiness"](https://www.sciencedirect.com/science/article/pii/S1087079204000243).*Sleep Medicine Reviews*.**8**(5): 339–354.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.smrv.2004.03.002](//doi.org/10.1016%2Fj.smrv.2004.03.002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1087-0792](//www.worldcat.org/issn/1087-0792).
-5. ↑ Ballas, C. A., Kim, D., Baldassano, C. F., Hoeh, N. (July 2002). "Modafinil: past, present and future".*Expert Review of Neurotherapeutics*.**2**(4): 449–457.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1586/14737175.2.4.449](//doi.org/10.1586%2F14737175.2.4.449).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1744-8360](//www.worldcat.org/issn/1744-8360).NewPP limit report Cached time: 20251218075153 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.04 seconds CPU time usage: 0.267 seconds Real time usage: 0.459 seconds Preprocessor visited node count: 1158/1000000 Post‐expand include size: 59287/2097152 bytes Template argument size: 4041/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 7587/5000000 bytes Lua time usage: 0.120/7 seconds Lua virtual size: 7.71 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 357.412 1 -total 34.47% 123.204 5 Template:Cite_journal 31.13% 111.272 2 Template:Citation_needed 18.69% 66.800 1 Template:SubstanceBox/Adrafinil 17.55% 62.733 1 Template:SubstanceBox 16.87% 60.294 1 Template:Fix 15.60% 55.742 2 Template:Category_handler 5.86% 20.958 1 Template:Effects/base 4.89% 17.489 1 Template:Effect_list 3.87% 13.837 2 Template:Effect_column`,
+- [Adrafinil (Examine)](https://examine.com/supplements/adrafinil/)`,
   "tripsit-factsheets": `# Adrafinil
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/adrafinil*
 

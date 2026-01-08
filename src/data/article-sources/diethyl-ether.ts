@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Diethyl ether";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diethyl ether.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diethyl ether.md","displayName":"Wikipedia","size":4156}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diethyl ether.md","displayName":"TripSit Factsheets","size":689,"tokens":176},{"id":"wikipedia","fileName":"WIKIPEDIA - Diethyl ether.md","displayName":"Wikipedia","size":4156,"tokens":1036}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Diethyl ether
 *Source: TripSit Factsheets (tripsit.me)*

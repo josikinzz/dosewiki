@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nefiracetam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nefiracetam.md","displayName":"TripSit Factsheets","size":603},{"id":"wikipedia","fileName":"WIKIPEDIA - Nefiracetam.md","displayName":"Wikipedia","size":1845}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nefiracetam.md","displayName":"TripSit Factsheets","size":603,"tokens":165},{"id":"wikipedia","fileName":"WIKIPEDIA - Nefiracetam.md","displayName":"Wikipedia","size":1845,"tokens":456}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nefiracetam
 *Source: TripSit Factsheets (tripsit.me)*

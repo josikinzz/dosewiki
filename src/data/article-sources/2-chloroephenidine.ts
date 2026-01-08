@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-Chloroephenidine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Chloroephenidine.md","displayName":"TripSit Factsheets","size":634}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-Chloroephenidine.md","displayName":"TripSit Factsheets","size":634,"tokens":170}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 2-Chloroephenidine
 *Source: TripSit Factsheets (tripsit.me)*

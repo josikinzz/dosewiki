@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethaqualone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethaqualone.md","displayName":"TripSit Factsheets","size":735},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethaqualone.md","displayName":"Wikipedia","size":1605}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethaqualone.md","displayName":"TripSit Factsheets","size":735,"tokens":189},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethaqualone.md","displayName":"Wikipedia","size":1605,"tokens":385}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Ethaqualone
 *Source: TripSit Factsheets (tripsit.me)*

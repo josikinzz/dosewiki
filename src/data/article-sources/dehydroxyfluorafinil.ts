@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dehydroxyfluorafinil";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Dehydroxyfluorafinil.md","displayName":"Drug Users Bible","size":1193},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dehydroxyfluorafinil.md","displayName":"TripSit Factsheets","size":526},{"id":"wikipedia","fileName":"WIKIPEDIA - Dehydroxyfluorafinil.md","displayName":"Wikipedia","size":682}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Dehydroxyfluorafinil.md","displayName":"Drug Users Bible","size":1193,"tokens":295},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dehydroxyfluorafinil.md","displayName":"TripSit Factsheets","size":526,"tokens":152},{"id":"wikipedia","fileName":"WIKIPEDIA - Dehydroxyfluorafinil.md","displayName":"Wikipedia","size":682,"tokens":178}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Modafiendz
 *Source: Drug Users Bible by Dominic Milton Trott*

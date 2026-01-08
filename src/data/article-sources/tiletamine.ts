@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tiletamine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tiletamine.md","displayName":"TripSit Factsheets","size":844},{"id":"wikipedia","fileName":"WIKIPEDIA - Tiletamine.md","displayName":"Wikipedia","size":1509}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tiletamine.md","displayName":"TripSit Factsheets","size":844,"tokens":223},{"id":"wikipedia","fileName":"WIKIPEDIA - Tiletamine.md","displayName":"Wikipedia","size":1509,"tokens":365}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Tiletamine
 *Source: TripSit Factsheets (tripsit.me)*

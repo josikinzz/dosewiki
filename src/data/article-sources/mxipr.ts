@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MXiPr";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MXiPr.md","displayName":"Isomer Design","size":609},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MXiPr.md","displayName":"PsychonautWiki","size":25716},{"id":"wikipedia","fileName":"WIKIPEDIA - MXiPr.md","displayName":"Wikipedia","size":586}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MXiPr.md","displayName":"Isomer Design","size":405,"tokens":171},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MXiPr.md","displayName":"PsychonautWiki","size":22934,"tokens":6144},{"id":"wikipedia","fileName":"WIKIPEDIA - MXiPr.md","displayName":"Wikipedia","size":586,"tokens":162}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MXiPr
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=14059*
@@ -15,14 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`COc1cccc(c1)C1(CCCCC1=O)NC(C)C\`
 
-**InChI:** \`InChI=1S/C16H23NO2/c1-12(2)17-16(10-5-4-9-15(16)18)13-7-6-8-14(11-13)19-3/h6-8,11-12,17H,4-5,9-10H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [163192824](https://pubchem.ncbi.nlm.nih.gov/compound/163192824)
-- [Q107177557](https://www.wikidata.org/wiki/Q107177557)
-`,
+**InChI:** \`InChI=1S/C16H23NO2/c1-12(2)17-16(10-5-4-9-15(16)18)13-7-6-8-14(11-13)19-3/h6-8,11-12,17H,4-5,9-10H2,1-3H3\``,
   "psychonautwiki": `# MXiPr
 *Source: https://psychonautwiki.org/wiki/MXiPr*
 
@@ -231,17 +224,7 @@ All of these, however, can easily be avoided by simply not using MXiPr on a dail
 
 ### Discussion
 
-- [Bluelight - The Big & Dandy 3-MeO-2′-oxo-PCiPr (MXiPr) Thread](https://www.bluelight.org/xf/threads/the-big-dandy-3-meo-2%E2%80%B2-oxo-pcipr-mxipr-thread.889817/)
-
-## References
-1. ↑ MXiPr - Explore - Google Trends | [https://www.google.com/trends/explore?date=all&q=MXiPr](https://www.google.com/trends/explore?date=all&q=MXiPr)
-2. ↑ MXiPr - Explore - Google Trends | [https://www.google.com/trends/explore?date=all&q=MXiPr](https://www.google.com/trends/explore?date=all&q=MXiPr)
-3. ↑ [Explore MXiP PiHKAL · info](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=14059)
-4. ↑ 4.0 4.1 4.2 earlgreygreen (2021),[MXiPR consistently gives seizures at higher dosages administered IM](https://www.reddit.com/r/researchchemicals/comments/la97rf/mxipr_consistently_gives_seizures_at_higher/)
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ [Amendment of Minister for Human Capacities Decree No 55/2014 of 30 December 2014 on substances or groups of compounds classified as new psychoactive substances, 2021/225/HU](https://ec.europa.eu/growth/tools-databases/tris/index.cfm/en/search/?trisaction=search.detail&year=2021&num=225&dLang=EN)NewPP limit report Cached time: 20251218075635 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.061 seconds CPU time usage: 0.332 seconds Real time usage: 0.596 seconds Preprocessor visited node count: 1631/1000000 Post‐expand include size: 148000/2097152 bytes Template argument size: 27399/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 7365/5000000 bytes Lua time usage: 0.150/7 seconds Lua virtual size: 7.68 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 454.478 1 -total 27.88% 126.729 4 Template:Citation_needed 19.66% 89.371 2 Template:Citation 17.17% 78.017 1 Template:Fix 15.90% 72.278 2 Template:Category_handler 12.19% 55.396 3 Template:Cite_web 11.45% 52.060 1 Template:SubstanceBox/MXiPr 10.68% 48.536 1 Template:SubstanceBox 8.24% 37.458 1 Template:Effects/base 7.48% 34.016 1 Template:Effect_list`,
+- [Bluelight - The Big & Dandy 3-MeO-2′-oxo-PCiPr (MXiPr) Thread](https://www.bluelight.org/xf/threads/the-big-dandy-3-meo-2%E2%80%B2-oxo-pcipr-mxipr-thread.889817/)`,
   "wikipedia": `# Methoxisopropamine
 *Source: https://en.wikipedia.org/wiki/Methoxisopropamine*
 

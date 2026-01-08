@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Glutethimide";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Glutethimide.md","displayName":"DrugBank","size":12393},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glutethimide.md","displayName":"TripSit Factsheets","size":555},{"id":"wikipedia","fileName":"WIKIPEDIA - Glutethimide.md","displayName":"Wikipedia","size":4210}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Glutethimide.md","displayName":"DrugBank","size":12393,"tokens":3043},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glutethimide.md","displayName":"TripSit Factsheets","size":555,"tokens":150},{"id":"wikipedia","fileName":"WIKIPEDIA - Glutethimide.md","displayName":"Wikipedia","size":4210,"tokens":1095}];
 export const contents: Record<string, string> = {
   "drugbank": `# Glutethimide
 *Source: https://go.drugbank.com/drugs/DB01437*

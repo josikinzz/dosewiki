@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mexamine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexamine.md","displayName":"TripSit Factsheets","size":613},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexamine.md","displayName":"Wikipedia","size":5277}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexamine.md","displayName":"TripSit Factsheets","size":613,"tokens":150},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexamine.md","displayName":"Wikipedia","size":5277,"tokens":1466}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Mexamine
 *Source: TripSit Factsheets (tripsit.me)*

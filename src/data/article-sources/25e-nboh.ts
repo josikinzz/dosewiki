@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25E-NBOH";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25E-NBOH.md","displayName":"Isomer Design","size":743},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25E-NBOH.md","displayName":"PsychonautWiki","size":25028},{"id":"wikipedia","fileName":"WIKIPEDIA - 25E-NBOH.md","displayName":"Wikipedia","size":746}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25E-NBOH.md","displayName":"Isomer Design","size":417,"tokens":174},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25E-NBOH.md","displayName":"PsychonautWiki","size":21112,"tokens":5669},{"id":"wikipedia","fileName":"WIKIPEDIA - 25E-NBOH.md","displayName":"Wikipedia","size":746,"tokens":195}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 25E-NBOH
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=1255*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`COc1cc(CC)c(cc1CCNCc1ccccc1O)OC\`
 
-**InChI:** \`InChI=1S/C19H25NO3/c1-4-14-11-19(23-3)15(12-18(14)22-2)9-10-20-13-16-7-5-6-8-17(16)21/h5-8,11-12,20-21H,4,9-10,13H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [95668952](https://www.chemspider.com/Chemical-Structure.95668952.html/)
-- [135391539](https://pubchem.ncbi.nlm.nih.gov/compound/135391539)
-- [Q101892826](https://www.wikidata.org/wiki/Q101892826)
-- [25-NB](https://en.wikipedia.org/wiki/25-NB)
-`,
+**InChI:** \`InChI=1S/C19H25NO3/c1-4-14-11-19(23-3)15(12-18(14)22-2)9-10-20-13-16-7-5-6-8-17(16)21/h5-8,11-12,20-21H,4,9-10,13H2,1-3H3\``,
   "psychonautwiki": `# 25E-NBOH
 *Source: https://psychonautwiki.org/wiki/25E-NBOH*
 
@@ -181,16 +172,7 @@ Tolerance to the effects of 25E-NBOH is built almost immediately after ingestion
 ## External links
 
 - [25E-NBOH (Wikipedia)](https://en.wikipedia.org/wiki/25E-NBOH)
-- [25E-NBOH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1255)
-
-## References
-1. ↑ Hansen, M. (2010).["Design and Synthesis of Selective Serotonin Receptor Agonists for Positron Emission Tomography Imaging of the Brain"](http://rgdoi.net/10.13140/RG.2.2.33671.14245).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.13140/RG.2.2.33671.14245](//doi.org/10.13140%2FRG.2.2.33671.14245).
-2. ↑ 2.0 2.1 Ettrup, A., Hansen, M., Santini, M. A., Paine, J., Gillings, N., Palner, M., Lehel, S., Herth, M. M., Madsen, J., Kristensen, J., Begtrup, M., Knudsen, G. M. (April 2011).["Radiosynthesis and in vivo evaluation of a series of substituted 11C-phenethylamines as 5-HT2A agonist PET tracers"](http://link.springer.com/10.1007/s00259-010-1686-8).*European Journal of Nuclear Medicine and Molecular Imaging*.**38**(4): 681–693.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00259-010-1686-8](//doi.org/10.1007%2Fs00259-010-1686-8).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1619-7070](//www.worldcat.org/issn/1619-7070).
-3. ↑ 3.0 3.1 Machado, Y., Coelho Neto, J., Lordeiro, R. A., Alves, R. B., Piccin, E. (January 2020).["Identification of new NBOH drugs in seized blotter papers: 25B-NBOH, 25C-NBOH, and 25E-NBOH"](http://link.springer.com/10.1007/s11419-019-00509-7).*Forensic Toxicology*.**38**(1): 203–215.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s11419-019-00509-7](//doi.org/10.1007%2Fs11419-019-00509-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1860-8965](//www.worldcat.org/issn/1860-8965).
-4. ↑ European Monitoring Centre for Drugs and Drug Addiction., European Union Agency for Law Enforcement Cooperation. (2017).[EMCDDA–Europol 2016 annual report on the implementation of Council Decision 2005/387/JHA: in accordance with Article 10 of Council Decision 2005/387/JHA on the information exchange, risk assessment and control of new psychoactive substances](https://data.europa.eu/doi/10.2810/430586). Publications Office.
-5. ↑ Hansen, M., Phonekeo, K., Paine, J. S., Leth-Petersen, S., Begtrup, M., Bräuner-Osborne, H., Kristensen, J. L. (19 March 2014).["Synthesis and Structure–Activity Relationships of N -Benzyl Phenethylamines as 5-HT 2A/2C Agonists"](https://pubs.acs.org/doi/10.1021/cn400216u).*ACS Chemical Neuroscience*.**5**(3): 243–249.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/cn400216u](//doi.org/10.1021%2Fcn400216u).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1948-7193](//www.worldcat.org/issn/1948-7193).
-6. ↑ Drug control: Highlights of P.L. 99-570, Anti Drug Abuse Act of 1986: (drug-related provisions only) (1986). bill.
-7. ↑ " [Controlled Substances: by CSA Schedule](https://www.deadiversion.usdoj.gov/schedules/orangebook/e_cs_sched.pdf#page=1) " (PDF). U.S. Department of Justice. August 21, 2019. p. 1.NewPP limit report Cached time: 20251218074914 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.272 seconds Real time usage: 0.551 seconds Preprocessor visited node count: 713/1000000 Post‐expand include size: 103755/2097152 bytes Template argument size: 26244/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9403/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 7.9 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 0Transclusion expansion time report (%,ms,calls,template) 100.00% 419.808 1 -total 40.96% 171.943 4 Template:Cite_journal 33.54% 140.823 1 Template:Effects/base 32.95% 138.310 1 Template:Effect_list 32.28% 135.516 2 Template:Effect_column 27.22% 114.288 1 Template:Effects/physical 26.80% 112.496 6 Template:Effect_panel 25.97% 109.021 4 Template:Citation_needed 14.89% 62.523 1 Template:Fix 14.14% 59.341 2 Template:Category_handler`,
+- [25E-NBOH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1255)`,
   "wikipedia": `# 25E-NBOH
 *Source: https://en.wikipedia.org/wiki/25E-NBOH*
 

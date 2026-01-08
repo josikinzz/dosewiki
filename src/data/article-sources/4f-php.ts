@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4F-PHP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4F-PHP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - 4F-PHP.md","displayName":"Wikipedia","size":475}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4F-PHP.md","displayName":"TripSit Factsheets","size":454,"tokens":131},{"id":"wikipedia","fileName":"WIKIPEDIA - 4F-PHP.md","displayName":"Wikipedia","size":475,"tokens":120}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4F-PHP
 *Source: TripSit Factsheets (tripsit.me)*

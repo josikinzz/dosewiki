@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MiPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - MiPT.md","displayName":"Erowid","size":2153},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MiPT.md","displayName":"Isomer Design","size":6951},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MiPT.md","displayName":"PsychonautWiki","size":14889},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MiPT.md","displayName":"TripSit Factsheets","size":1145},{"id":"wikipedia","fileName":"WIKIPEDIA - MiPT.md","displayName":"Wikipedia","size":3901}];
+export const sources = [{"id":"erowid","fileName":"EROWID - MiPT.md","displayName":"Erowid","size":2153,"tokens":586},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MiPT.md","displayName":"Isomer Design","size":6951,"tokens":1897},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MiPT.md","displayName":"PsychonautWiki","size":11489,"tokens":3107},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MiPT.md","displayName":"TripSit Factsheets","size":1145,"tokens":414},{"id":"wikipedia","fileName":"WIKIPEDIA - MiPT.md","displayName":"Wikipedia","size":3901,"tokens":1022}];
 export const contents: Record<string, string> = {
   "erowid": `# MiPT
 *Source: https://www.erowid.org/chemicals/mipt/mipt.shtml*
@@ -226,17 +226,7 @@ Due to its relative obscurity, the possession and sale of MiPT is unscheduled in
 
 ### Discussion
 
-- [The Big & Dandy MiPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/323760)
-
-## References
-1. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#47. MIPT"](https://erowid.org/library/books_online/tihkal/tihkal47.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-3. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-5. ↑ ["Folkhälsomyndigheten föreslår att 20 ämnen klassas som narkotika eller hälsofarlig vara"](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2019/maj/folkhalsomyndigheten-foreslar-att-20-amnen-klassas-som-narkotika-eller-halsofarlig-vara/)(in Swedish). Folkhälsomyndigheten [Public Health Agency]. May 15, 2019.
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-7. ↑ ["Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.
-8. ↑ ["Orange Book - List of Controlled Substances and Regulated Chemicals"](https://www.deadiversion.usdoj.gov/schedules/orangebook/orangebook.pdf)(PDF). Drug Enforcement Adminitration. Retrieved September 17, 2023.NewPP limit report Cached time: 20251218075627 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.029 seconds CPU time usage: 0.296 seconds Real time usage: 0.564 seconds Preprocessor visited node count: 1250/1000000 Post‐expand include size: 68706/2097152 bytes Template argument size: 8977/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9451/5000000 bytes Lua time usage: 0.160/7 seconds Lua virtual size: 8.2 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 457.279 1 -total 23.75% 108.595 1 Template:Effects/base 23.00% 105.164 1 Template:Effect_list 22.21% 101.551 2 Template:Effect_column 18.98% 86.793 1 Template:Effects/physical 18.78% 85.876 7 Template:Cite_web 18.34% 83.843 4 Template:Effect_panel 18.00% 82.289 1 Template:Cite_book 17.50% 80.017 2 Template:Citation_needed 15.39% 70.389 1 Template:SubstanceBox/MiPT`,
+- [The Big & Dandy MiPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/323760)`,
   "tripsit-factsheets": `# MiPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mipt*
 

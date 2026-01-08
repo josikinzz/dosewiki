@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Indapex";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Indapex.md","displayName":"Isomer Design","size":5816},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Indapex.md","displayName":"TripSit Factsheets","size":1044}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Indapex.md","displayName":"Isomer Design","size":5816,"tokens":1465},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Indapex.md","displayName":"TripSit Factsheets","size":1044,"tokens":294}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Indapex
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=45*

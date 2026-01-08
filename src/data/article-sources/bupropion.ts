@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bupropion";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Bupropion.md","displayName":"DrugBank","size":41806},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Bupropion.md","displayName":"The Drug Classroom","size":35269},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bupropion.md","displayName":"TripSit Factsheets","size":529},{"id":"wikipedia","fileName":"WIKIPEDIA - Bupropion.md","displayName":"Wikipedia","size":33206}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Bupropion.md","displayName":"DrugBank","size":41806,"tokens":10395},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Bupropion.md","displayName":"The Drug Classroom","size":27536,"tokens":6915},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bupropion.md","displayName":"TripSit Factsheets","size":529,"tokens":132},{"id":"wikipedia","fileName":"WIKIPEDIA - Bupropion.md","displayName":"Wikipedia","size":33206,"tokens":8143}];
 export const contents: Record<string, string> = {
   "drugbank": `# Bupropion
 *Source: https://go.drugbank.com/drugs/DB01156*
@@ -2359,120 +2359,7 @@ Case 7
 - Post mortem 
 - Blood: 7.6 ug/mL
 
----
-
-## References
-
-**(2016)** [Bupropion: a systematic review and meta-analysis of effectiveness as an antidepressant.](https://www.ncbi.nlm.nih.gov/pubmed/27141292)
-
-**(2015)** [Bupropion injection resulting in tissue necrosis and psychosis: previously undocumented complications of intravenous bupropion use disorder.](https://www.ncbi.nlm.nih.gov/pubmed/25822212)
-
-**(2014)** [Bupropion abuse and overdose](http://www.cmaj.ca/content/186/13/1015)
-
-**(2014)** [Intravenous Administration and Abuse of Bupropion: A Case Report and a Review of the Literature](http://journals.lww.com/journaladdictionmedicine/Abstract/2014/07000/Intravenous_Administration_and_Abuse_of_Bupropion_.10.aspx)
-
-**(2014)** [Efficacy of interventions to combat tobacco addiction: Cochrane update of 2013 reviews.](https://www.ncbi.nlm.nih.gov/pubmed/24995905)
-
-**(2013)** [Additional evidence of the abuse potential of bupropion.](https://www.ncbi.nlm.nih.gov/pubmed/23771197)
-
-**(2013)** [Pharmacological interventions for smoking cessation: an overview and network meta-analysis.](https://www.ncbi.nlm.nih.gov/pubmed/23728690)
-
-**(2013)** [Intravenous bupropion: a previously undocumented method of abuse of a commonly prescribed antidepressant agent.](https://www.ncbi.nlm.nih.gov/pubmed/23519045)
-
-**(2013)** [Intranasal bupropion abuse: case report.](https://www.ncbi.nlm.nih.gov/pubmed/23414507)
-
-**(2012)** [Bupropion and its main metabolite reverse nicotine chronic tolerance in the mouse.](https://www.ncbi.nlm.nih.gov/pubmed/22589419)
-
-**(2012)** [Comparisons of high-dose and combination nicotine replacement therapy, varenicline, and bupropion for smoking cessation: a systematic review and multiple treatment meta-analysis.](https://www.ncbi.nlm.nih.gov/pubmed/22860882)
-
-**(2010)** [Bupropion sustained release treatment decreases craving for video games and cue-induced brain activity in patients with Internet video game addiction.](https://www.ncbi.nlm.nih.gov/pubmed/20695685)
-
-**(2010)** [Effects of Hydroxymetabolites of Bupropion on Nicotine Dependence Behavior in Mice](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2939668/)
-
-**(2009)** [Incidence and onset of delayed seizures after overdoses of extended-release bupropion.](https://www.ncbi.nlm.nih.gov/pubmed/19857406)
-
-**(2008)** [A fatal case of bupropion (Zyban) overdose.](https://www.ncbi.nlm.nih.gov/pubmed/18334106)
-
-**(2008)** [Fatal bupropion overdose with post mortem blood concentrations.](https://www.ncbi.nlm.nih.gov/pubmed/19291469)
-
-**(2008)** [Bupropion: a review of its use in the management of major depressive disorder.](https://www.ncbi.nlm.nih.gov/pubmed/18370448)
-
-**(2008)** [Serious adverse reactions of bupropion for smoking cessation: analysis of the French Pharmacovigilance Database from 2001 to 2004.](https://www.ncbi.nlm.nih.gov/pubmed/18840021)
-
-**(2008)** [Bupropion for the treatment of methamphetamine dependence.](https://www.ncbi.nlm.nih.gov/pubmed/17581531)
-
-**(2007)** [Involvement of nitric oxide (NO) signaling pathway in the antidepressant action of bupropion, a dopamine reuptake inhibitor.](https://www.ncbi.nlm.nih.gov/pubmed/17509558)
-
-**(2007)** [Extended-release bupropion induced grand mal seizures.](https://www.ncbi.nlm.nih.gov/pubmed/17956996)
-
-**(2007)** [A fatal case of bupropion (Zyban) hepatotoxicity with autoimmune features: Case report](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2008202/)
-
-**(2007)** [Stereoselective analysis of hydroxybupropion and application to drug interaction studies.](https://www.ncbi.nlm.nih.gov/pubmed/17167747)
-
-**(2007)** [Bupropion efficacy for smoking cessation is influenced by the DRD2 Taq1A polymorphism: analysis of pooled data from two clinical trials.](https://www.ncbi.nlm.nih.gov/pubmed/18058343)
-
-**(2007)** [Fatigue as a core symptom in major depressive disorder: overview and the role of bupropion.](https://www.ncbi.nlm.nih.gov/pubmed/17939764)
-
-**(2006)** [Bupropion for the treatment of nicotine withdrawal and craving.](https://www.ncbi.nlm.nih.gov/pubmed/16831112)
-
-**(2006)** [Bupropion for smokers hospitalized with acute cardiovascular disease.](https://www.ncbi.nlm.nih.gov/pubmed/17145253)
-
-**(2006)** [Bupropion: pharmacology and therapeutic applications.](https://www.ncbi.nlm.nih.gov/pubmed/17009913)
-
-**(2006)** [Bupropion-SR, Sertraline, or Venlafaxine-XR after Failure of SSRIs for Depression](http://www.nejm.org/doi/full/10.1056/nejmoa052963#t=article)
-
-**(2006)** [Use of bupropion in combination with serotonin reuptake inhibitors.](https://www.ncbi.nlm.nih.gov/pubmed/16165100)
-
-**(2006)** [Review of the pharmacology and clinical profile of bupropion, an antidepressant and tobacco use cessation agent.](https://www.ncbi.nlm.nih.gov/pubmed/17227286)
-
-**(2005)** [How does bupropion work as a smoking cessation aid?](https://www.ncbi.nlm.nih.gov/pubmed/16109583)
-
-**(2005)** [Tolerance does not develop to the decrease in nicotine self-administration produced by repeated bupropion administration.](https://www.ncbi.nlm.nih.gov/pubmed/16298725)
-
-**(2005)** [Inhibition of CYP2D6 activity by bupropion.](https://www.ncbi.nlm.nih.gov/pubmed/15876900)
-
-**(2005)** [Acute psychosis following sustained release bupropion overdose.](https://www.ncbi.nlm.nih.gov/pubmed/15610958)
-
-**(2004)** [Intentional bupropion overdoses.](https://www.ncbi.nlm.nih.gov/pubmed/15261357)
-
-**(2004)** [Bupropion insufflation in a teenager.](https://www.ncbi.nlm.nih.gov/pubmed/15142406)
-
-**(2004)** [Effectiveness of bupropion as an aid to stopping smoking before elective surgery: a randomised controlled trial.](https://www.ncbi.nlm.nih.gov/pubmed/15479310)
-
-**(2003)** [Bupropion poisoning: a case series.](https://www.ncbi.nlm.nih.gov/pubmed/12526723)
-
-**(2002)** [Acute Psychosis after Administration of Bupropion Hydrochloride (Zyban™)](http://www.antidepressantsfacts.com/zyban-acute-psychosis.htm)
-
-**(2002)** [Bupropion exposures: clinical manifestations and medical outcome.](https://www.ncbi.nlm.nih.gov/pubmed/12426011)
-
-**(2002)** [Seizure Induced by Insufflation of Bupropion](http://www.nejm.org/doi/full/10.1056/NEJM200209193471222#t=article)
-
-**(2002)** [Bupropion treatment for cocaine abuse and adult attention-deficit/hyperactivity disorder.](https://www.ncbi.nlm.nih.gov/pubmed/11916368)
-
-**(2002)** [Recreational bupropion abuse in a teenager](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1874291/)
-
-**(2001)** [Bupropion for weight loss: an investigation of efficacy and tolerability in overweight and obese women.](https://www.ncbi.nlm.nih.gov/pubmed/11557835)
-
-**(2001)** [Bupropion overdose in an adolescent.](https://www.ncbi.nlm.nih.gov/pubmed/11334088)
-
-**(2001)** [A controlled clinical trial of bupropion for attention deficit hyperactivity disorder in adults.](https://www.ncbi.nlm.nih.gov/pubmed/11156812)
-
-**(2000)** [Bupropion is a nicotinic antagonist.](https://www.ncbi.nlm.nih.gov/pubmed/10991997)
-
-**(2000)** [Cardiotoxicity associated with bupropion overdose.](https://www.ncbi.nlm.nih.gov/pubmed/10613954)
-
-**(1999)** [A Controlled Trial of Sustained-Release Bupropion, a Nicotine Patch, or Both for Smoking Cessation](http://www.nejm.org/doi/full/10.1056/nejm199903043400903#t=article)
-
-**(1998)** [ECG conduction delays associated with massive bupropion overdose.](https://www.ncbi.nlm.nih.gov/pubmed/9776964)
-
-**(1997)** [Fatal bupropion overdose.](https://www.ncbi.nlm.nih.gov/pubmed/9140330)
-
-**(1993)** [Three fatal drug overdoses involving bupropion.](https://www.ncbi.nlm.nih.gov/pubmed/8309220)
-
-**(1985)** [Bupropion–an antidepressant without sexual pathophysiological action.](https://www.ncbi.nlm.nih.gov/pubmed/3919069)
-
-**(1985)** [Psychoses associated with bupropion treatment.](https://www.ncbi.nlm.nih.gov/pubmed/3934991)
-`,
+---`,
   "tripsit-factsheets": `# Bupropion
 *Source: TripSit Factsheets (tripsit.me)*
 

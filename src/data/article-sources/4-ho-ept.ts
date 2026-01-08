@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-EPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-EPT.md","displayName":"Isomer Design","size":816},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-EPT.md","displayName":"PsychonautWiki","size":17018},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-EPT.md","displayName":"TripSit Factsheets","size":322},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-EPT.md","displayName":"Wikipedia","size":1568}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-EPT.md","displayName":"Isomer Design","size":439,"tokens":184},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-EPT.md","displayName":"PsychonautWiki","size":13837,"tokens":3823},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-EPT.md","displayName":"TripSit Factsheets","size":322,"tokens":104},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-EPT.md","displayName":"Wikipedia","size":1568,"tokens":450}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-HO-EPT
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5770*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCN(CCc1c[nH]c2c1c(O)ccc2)CC\`
 
-**InChI:** \`InChI=1S/C15H22N2O/c1-3-9-17(4-2)10-8-12-11-16-13-6-5-7-14(18)15(12)13/h5-7,11,16,18H,3-4,8-10H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [138454310](https://pubchem.ncbi.nlm.nih.gov/compound/138454310)
-- [Q55602807](https://www.wikidata.org/wiki/Q55602807)
-- [4-HO-EPT](https://en.wikipedia.org/wiki/4-HO-EPT)
-- [List of substituted tryptamines](https://en.wikipedia.org/wiki/Substituted_tryptamine#List_of_substituted_tryptamines)
-`,
+**InChI:** \`InChI=1S/C15H22N2O/c1-3-9-17(4-2)10-8-12-11-16-13-6-5-7-14(18)15(12)13/h5-7,11,16,18H,3-4,8-10H2,1-2H3\``,
   "psychonautwiki": `# 4-HO-EPT
 *Source: https://psychonautwiki.org/wiki/4-HO-EPT*
 
@@ -167,17 +158,7 @@ Due to its relative obscurity, the possession and sale of 4-HO-EPT is unschedule
 
 - [4-HO-EPT (Wikipedia)](https://en.wikipedia.org/wiki/4-HO-EPT)
 - [4-HO-EPT (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=5770)
-- [4-HO-EPT (Bluelight)](http://www.bluelight.org/vb/threads/805165-The-Small-amp-Handy-4-HO-EPT-Thread)
-
-## References
-1. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-3. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075100 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.039 seconds CPU time usage: 0.266 seconds Real time usage: 0.585 seconds Preprocessor visited node count: 1465/1000000 Post‐expand include size: 77212/2097152 bytes Template argument size: 8144/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9135/5000000 bytes Lua time usage: 0.220/7 seconds Lua virtual size: 8.22 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 479.231 1 -total 27.48% 131.680 4 Template:Citation_needed 24.06% 115.287 7 Template:Cite_web 16.52% 79.193 2 Template:Fix 15.68% 75.131 4 Template:Category_handler 15.36% 73.621 1 Template:Cite_journal 11.58% 55.472 1 Template:SubstanceBox/4-HO-EPT 10.98% 52.614 1 Template:SubstanceBox 5.95% 28.531 1 Template:DangerousInteractions/Psychedelics 5.64% 27.021 1 Template:Effects/base`,
+- [4-HO-EPT (Bluelight)](http://www.bluelight.org/vb/threads/805165-The-Small-amp-Handy-4-HO-EPT-Thread)`,
   "tripsit-factsheets": `# 4-HO-EPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-ho-ept*
 

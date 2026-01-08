@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "α-PBP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PBP.md","displayName":"TripSit Factsheets","size":432},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PBP.md","displayName":"Wikipedia","size":568}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PBP.md","displayName":"TripSit Factsheets","size":432,"tokens":130},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PBP.md","displayName":"Wikipedia","size":568,"tokens":157}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# α-PBP
 *Source: TripSit Factsheets (tripsit.me)*

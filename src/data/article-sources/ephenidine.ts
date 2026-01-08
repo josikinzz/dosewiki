@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ephenidine";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Ephenidine.md","displayName":"Disregard Everything I Say","size":12701},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ephenidine.md","displayName":"Drug Users Bible","size":3021},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ephenidine.md","displayName":"TripSit Factsheets","size":632},{"id":"wikipedia","fileName":"WIKIPEDIA - Ephenidine.md","displayName":"Wikipedia","size":1706}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Ephenidine.md","displayName":"Disregard Everything I Say","size":12701,"tokens":3205},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ephenidine.md","displayName":"Drug Users Bible","size":3021,"tokens":732},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ephenidine.md","displayName":"TripSit Factsheets","size":632,"tokens":171},{"id":"wikipedia","fileName":"WIKIPEDIA - Ephenidine.md","displayName":"Wikipedia","size":1706,"tokens":432}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Ephenidine
 *Source: https://disregardeverythingisay.com/post/122960970124/ephenidine-broken-down-and-described*

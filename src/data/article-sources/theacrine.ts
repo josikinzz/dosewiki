@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Theacrine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theacrine.md","displayName":"TripSit Factsheets","size":472},{"id":"wikipedia","fileName":"WIKIPEDIA - Theacrine.md","displayName":"Wikipedia","size":1556}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theacrine.md","displayName":"TripSit Factsheets","size":472,"tokens":124},{"id":"wikipedia","fileName":"WIKIPEDIA - Theacrine.md","displayName":"Wikipedia","size":1556,"tokens":392}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Theacrine
 *Source: TripSit Factsheets (tripsit.me)*

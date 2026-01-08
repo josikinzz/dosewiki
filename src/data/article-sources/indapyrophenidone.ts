@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Indapyrophenidone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Indapyrophenidone.md","displayName":"TripSit Factsheets","size":519},{"id":"wikipedia","fileName":"WIKIPEDIA - Indapyrophenidone.md","displayName":"Wikipedia","size":395}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Indapyrophenidone.md","displayName":"TripSit Factsheets","size":519,"tokens":144},{"id":"wikipedia","fileName":"WIKIPEDIA - Indapyrophenidone.md","displayName":"Wikipedia","size":395,"tokens":101}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Indapyrophenidone
 *Source: TripSit Factsheets (tripsit.me)*

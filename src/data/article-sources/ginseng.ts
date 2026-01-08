@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ginseng";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ginseng.md","displayName":"Drug Users Bible","size":3787},{"id":"wikipedia","fileName":"WIKIPEDIA - Ginseng.md","displayName":"Wikipedia","size":13313}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ginseng.md","displayName":"Drug Users Bible","size":3787,"tokens":970},{"id":"wikipedia","fileName":"WIKIPEDIA - Ginseng.md","displayName":"Wikipedia","size":13313,"tokens":3411}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Ginseng
 *Source: Drug Users Bible by Dominic Milton Trott*

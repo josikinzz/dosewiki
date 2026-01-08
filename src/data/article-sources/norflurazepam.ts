@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Norflurazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Norflurazepam.md","displayName":"TripSit Factsheets","size":589},{"id":"wikipedia","fileName":"WIKIPEDIA - Norflurazepam.md","displayName":"Wikipedia","size":1016}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Norflurazepam.md","displayName":"TripSit Factsheets","size":589,"tokens":157},{"id":"wikipedia","fileName":"WIKIPEDIA - Norflurazepam.md","displayName":"Wikipedia","size":1016,"tokens":262}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Norflurazepam
 *Source: TripSit Factsheets (tripsit.me)*

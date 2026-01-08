@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ketazolam";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ketazolam.md","displayName":"DrugBank","size":14262},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ketazolam.md","displayName":"TripSit Factsheets","size":555},{"id":"wikipedia","fileName":"WIKIPEDIA - Ketazolam.md","displayName":"Wikipedia","size":2131}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ketazolam.md","displayName":"DrugBank","size":14262,"tokens":3548},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ketazolam.md","displayName":"TripSit Factsheets","size":555,"tokens":151},{"id":"wikipedia","fileName":"WIKIPEDIA - Ketazolam.md","displayName":"Wikipedia","size":2131,"tokens":506}];
 export const contents: Record<string, string> = {
   "drugbank": `# Ketazolam
 *Source: https://go.drugbank.com/drugs/DB01587*

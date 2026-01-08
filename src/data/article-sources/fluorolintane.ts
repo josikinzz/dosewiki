@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fluorolintane";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluorolintane.md","displayName":"TripSit Factsheets","size":592},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluorolintane.md","displayName":"Wikipedia","size":395}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluorolintane.md","displayName":"TripSit Factsheets","size":592,"tokens":157},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluorolintane.md","displayName":"Wikipedia","size":395,"tokens":99}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Fluorolintane
 *Source: TripSit Factsheets (tripsit.me)*

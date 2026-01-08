@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nifoxipam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Nifoxipam.md","displayName":"Isomer Design","size":931},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Nifoxipam.md","displayName":"PsychonautWiki","size":29342},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nifoxipam.md","displayName":"TripSit Factsheets","size":476},{"id":"wikipedia","fileName":"WIKIPEDIA - Nifoxipam.md","displayName":"Wikipedia","size":374}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Nifoxipam.md","displayName":"Isomer Design","size":521,"tokens":212},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Nifoxipam.md","displayName":"PsychonautWiki","size":20233,"tokens":5270},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nifoxipam.md","displayName":"TripSit Factsheets","size":476,"tokens":136},{"id":"wikipedia","fileName":"WIKIPEDIA - Nifoxipam.md","displayName":"Wikipedia","size":374,"tokens":93}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Nifoxipam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3043*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`OC1N=C(c2c(NC1=O)ccc(c2)N(=O)=O)c1ccccc1F\`
 
-**InChI:** \`InChI=1S/C15H10FN3O4/c16-11-4-2-1-3-9(11)13-10-7-8(19(22)23)5-6-12(10)17-14(20)15(21)18-13/h1-7,15,21H,(H,17,20)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [2319383](https://www.chemspider.com/Chemical-Structure.2319383.html/)
-- [3058221](https://pubchem.ncbi.nlm.nih.gov/compound/3058221)
-- [Q20743749](https://www.wikidata.org/wiki/Q20743749)
-- [Nifoxipam](https://en.wikipedia.org/wiki/Nifoxipam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C15H10FN3O4/c16-11-4-2-1-3-9(11)13-10-7-8(19(22)23)5-6-12(10)17-14(20)15(21)18-13/h1-7,15,21H,(H,17,20)\``,
   "psychonautwiki": `# Nifoxipam
 *Source: https://psychonautwiki.org/wiki/Nifoxipam*
 
@@ -171,34 +161,7 @@ Nifoxipam is currently a gray area compound within most parts of the world. This
 ## External links
 
 - [Nifoxipam (Wikipedia)](https://en.wikipedia.org/wiki/Nifoxipam)
-- [Nifoxipam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3043)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Newer Unregulated Drugs (KFx) | [http://www.kfx.org.uk/drug_facts/drug_facts_images_and_pdfs/researchchemicals_4.2015.pdf](http://www.kfx.org.uk/drug_facts/drug_facts_images_and_pdfs/researchchemicals_4.2015.pdf)
-3. ↑ Meyer, M. R., Bergstrand, M. P., Helander, A., Beck, O. (1 May 2016).["Identification of main human urinary metabolites of the designer nitrobenzodiazepines clonazolam, meclonazepam, and nifoxipam by nano-liquid chromatography-high-resolution mass spectrometry for drug testing purposes"](https://doi.org/10.1007/s00216-016-9439-6).*Analytical and Bioanalytical Chemistry*.**408**(13): 3571–3591.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00216-016-9439-6](//doi.org/10.1007%2Fs00216-016-9439-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1618-2650](//www.worldcat.org/issn/1618-2650).
-4. ↑ 4.0 4.1 Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-5. ↑ C Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-6. ↑ Kilicarslan, T., Haining, R. L., Rettie, A. E., Busto, U., Tyndale, R. F., Sellers, E. M. (1 April 2001).["Flunitrazepam Metabolism by Cytochrome P450s 2C19 and 3A4"](https://dmd.aspetjournals.org/content/29/4/460).*Drug Metabolism and Disposition*.**29**(4): 460–465.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0090-9556](//www.worldcat.org/issn/0090-9556).
-7. ↑ Malanciuc, C., Aramă, C., Şaramet, I., Monciu, C.-M., Nedelcu, A., Davila, C. (2009).["Analytical characterization of flunitrazepam"](https://farmaciajournal.com/arhiva/20092/issue22009art04.pdf)(PDF).*Farmacia*.**57**: 167–83.
-8. ↑ Posselt, K. D., Wagener, H. H. P. D. M., Gruber, K. D.,[Pharmaceutical composition containing 5-(2-fluorophenyl)-1,3-dihydro-3-hydroxy-7-nitro- or 5-(2-fluorophenyl)-1,3-dihydro-3-hydroxy-1-methyl-7-nitro-2H-1,4-benzodiazepin-2-one and process for their preparation](https://patents.google.com/patent/EP0158267A2/en)
-9. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-10. ↑ McLean, M. J., Macdonald, R. L. (February 1988). "Benzodiazepines, but not beta carbolines, limit high frequency repetitive firing of action potentials of spinal cord neurons in cell culture".*The Journal of Pharmacology and Experimental Therapeutics*.**244**(2): 789–795.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-11. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-12. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-13. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-14. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-15. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-16. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-17. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-18. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-15.html)
-19. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-20. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-21. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-22. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-23. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-24. ↑ ["Karar Sayısı: 2016/9019"](https://resmigazete.gov.tr/eskiler/2016/08/20160803-15.pdf)(PDF).*Resmî Gazete, Sayı: 29790*(in Turkish). June 22, 2016.
-25. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075650 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.032 seconds CPU time usage: 0.415 seconds Real time usage: 0.877 seconds Preprocessor visited node count: 2018/1000000 Post‐expand include size: 126248/2097152 bytes Template argument size: 15874/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 31765/5000000 bytes Lua time usage: 0.360/7 seconds Lua virtual size: 8.42 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 762.177 1 -total 59.28% 451.788 1 Template:Reflist 30.75% 234.386 14 Template:Cite_journal 16.24% 123.781 5 Template:Citation 11.18% 85.211 1 Template:Citation_needed 10.00% 76.216 1 Template:Headerpanel 9.87% 75.229 1 Template:Fix 9.43% 71.907 1 Template:DepressantOD 9.30% 70.856 2 Template:Category_handler 8.96% 68.272 1 Template:GenericPanel/warning`,
+- [Nifoxipam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3043)`,
   "tripsit-factsheets": `# Nifoxipam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/nifoxipam*
 

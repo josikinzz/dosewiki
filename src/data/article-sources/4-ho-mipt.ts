@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-MiPT";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md","displayName":"Disregard Everything I Say","size":12047},{"id":"erowid","fileName":"EROWID - 4-HO-MiPT.md","displayName":"Erowid","size":5911},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MiPT.md","displayName":"Isomer Design","size":7053},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MiPT.md","displayName":"PsychonautWiki","size":36164},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MiPT.md","displayName":"TripSit Factsheets","size":785},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 4-HO-MiPT.md","displayName":"TripSit Wiki","size":1543},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MiPT.md","displayName":"Wikipedia","size":6242}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md","displayName":"Disregard Everything I Say","size":12047,"tokens":3319},{"id":"erowid","fileName":"EROWID - 4-HO-MiPT.md","displayName":"Erowid","size":5911,"tokens":1707},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MiPT.md","displayName":"Isomer Design","size":7053,"tokens":1866},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MiPT.md","displayName":"PsychonautWiki","size":29635,"tokens":8150},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MiPT.md","displayName":"TripSit Factsheets","size":785,"tokens":236},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 4-HO-MiPT.md","displayName":"TripSit Wiki","size":1402,"tokens":372},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MiPT.md","displayName":"Wikipedia","size":6242,"tokens":1694}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 4-HO-MiPT
 *Source: https://disregardeverythingisay.com/post/92506586004/4-ho-mipt-broken-down-and-described*
@@ -481,26 +481,7 @@ Tolerance to the effects of 4-HO-MiPT is built almost immediately after ingestio
 
 ### Discussion
 
-- [4-HO-MiPT (Bluelight)](http://www.bluelight.org/vb/threads/154051-The-Big-amp-Dandy-4-HO-MiPT-Thread-Part-1)
-
-## References
-1. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin)(1980).[Pharmacology Notes II (The Shulgin Lab Books)](https://erowid.org/library/books_online/shulgin_labbooks/shulgin_pharmacology_notebook9_searchable.pdf)(PDF). Lafayette, CA: Erowid. p. 312.
-2. ↑ 2.0 2.1 [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#22. 4-HO-MiPT"](https://erowid.org/library/books_online/tihkal/tihkal22.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-3. ↑ Repke, D. B.; Ferguson, W. J.; Bates, D. K. (1981). "Psilocin analogs II. Synthesis of 3-[2-(dialkylamino)ethyl]-, 3-[2-(N-methyl-N-alkylamino)ethyl]-, and 3-[2-(cycloalkylamino)ethyl]indol-4-ols".*Journal of Heterocyclic Chemistry*.**18**(1): 175–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/jhet.5570180131](//doi.org/10.1002%2Fjhet.5570180131).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-152X](//www.worldcat.org/issn/0022-152X).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1783072](//www.worldcat.org/oclc/1783072).
-4. ↑ Repke, D. B.; Grotjahn, D. B.;[Shulgin, A. T.](https://psychonautwiki.org/wiki/Alexander_Shulgin)(1985). "Psychotomimetic N-methyl-N-isopropyltryptamines. Effects of variation of aromatic oxygen substituents".*Journal of Medicinal Chemistry*.**28**(7): 892–896.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00145a007](//doi.org/10.1021%2Fjm00145a007).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1520-4804](//www.worldcat.org/issn/1520-4804).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).[OCLC](http://en.wikipedia.org/wiki/OCLC)[39480771](//www.worldcat.org/oclc/39480771).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[4009612](//www.ncbi.nlm.nih.gov/pubmed/4009612).
-5. ↑ "4-HO-MiPT". *Psychedelic Science Review* . 6 January 2020.
-6. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-7. ↑ ["Lista de substâncias sujeitas a controle especial no Brasil"](http://portal.anvisa.gov.br/lista-de-substancias-sujeitas-a-controle-especial)(in Portuguese). Agência Nacional de Vigilância Sanitária (ANVISA) [Brazilian Health Regulatory Agency]. Retrieved August 27, 2020.
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-9. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-10. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-11. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-12. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-13. ↑ ["危険ドラッグの成分１６物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000078803.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-14. ↑ ["Rozporządzenie Ministra zdrowia z dnia 21 sierpnia 2019 r. zmieniające rozporządzenie w sprawie wykazu substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](http://prawo.sejm.gov.pl/isap.nsf/download.xsp/WDU20190001745/O/D20191745.pdf)(PDF)(in Polish). Sejm Rzeczypospolitej Polskiej [Sejm of the Republic of Poland]. August 21, 2019.
-15. ↑ ["Svensk författningssamling Förordning om ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](http://www.notisum.se/rnp/sls/sfs/20050733.pdf)(PDF)(in Swedish) (published October 18, 2005). October 6, 2005. SFS 2005:733.
-16. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-17. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075105 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.058 seconds CPU time usage: 0.414 seconds Real time usage: 0.768 seconds Preprocessor visited node count: 1915/1000000 Post‐expand include size: 175544/2097152 bytes Template argument size: 32476/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 20688/5000000 bytes Lua time usage: 0.240/7 seconds Lua virtual size: 8.57 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 608.925 1 -total 23.01% 140.085 5 Template:Citation_needed 22.31% 135.858 11 Template:Cite_web 14.71% 89.554 2 Template:Cite_book 13.99% 85.196 2 Template:Fix 13.12% 79.886 4 Template:Category_handler 9.65% 58.771 1 Template:SubstanceBox/4-HO-MiPT 9.13% 55.592 1 Template:SubstanceBox 7.47% 45.495 1 Template:Effects/base 6.89% 41.936 3 Template:Cite_journal`,
+- [4-HO-MiPT (Bluelight)](http://www.bluelight.org/vb/threads/154051-The-Big-amp-Dandy-4-HO-MiPT-Thread-Part-1)`,
   "tripsit-factsheets": `# 4-HO-MiPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-ho-mipt*
 
@@ -597,11 +578,7 @@ Check out our [Drug Combinations](https://wiki.tripsit.me/wiki/Drug_Combinations
 
 ## Legal status
 
-Class A under the Misuse of Drugs Act in the UK[1]
-
-## References
-
-- ↑ [http://www.legislation.gov.uk/uksi/1977/1243/contents/made](http://www.legislation.gov.uk/uksi/1977/1243/contents/made)`,
+Class A under the Misuse of Drugs Act in the UK[1]`,
   "wikipedia": `# 4-HO-MiPT
 *Source: https://en.wikipedia.org/wiki/4-HO-MiPT*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Indian_Warrior";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Indian_Warrior.md","displayName":"Wikipedia","size":952}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Indian_Warrior.md","displayName":"Wikipedia","size":952,"tokens":230}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Pedicularis densiflora
 *Source: https://en.wikipedia.org/wiki/Pedicularis_densiflora*

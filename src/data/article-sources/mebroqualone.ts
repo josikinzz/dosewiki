@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mebroqualone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mebroqualone.md","displayName":"TripSit Factsheets","size":631},{"id":"wikipedia","fileName":"WIKIPEDIA - Mebroqualone.md","displayName":"Wikipedia","size":662}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mebroqualone.md","displayName":"TripSit Factsheets","size":631,"tokens":179},{"id":"wikipedia","fileName":"WIKIPEDIA - Mebroqualone.md","displayName":"Wikipedia","size":662,"tokens":159}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Mebroqualone
 *Source: TripSit Factsheets (tripsit.me)*

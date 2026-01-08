@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-APDI";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-APDI.md","displayName":"TripSit Factsheets","size":950},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-APDI.md","displayName":"Wikipedia","size":1631}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-APDI.md","displayName":"TripSit Factsheets","size":950,"tokens":242},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-APDI.md","displayName":"Wikipedia","size":1631,"tokens":408}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 5-APDI
 *Source: TripSit Factsheets (tripsit.me)*

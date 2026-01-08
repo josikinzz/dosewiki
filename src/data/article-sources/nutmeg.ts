@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nutmeg";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Nutmeg.md","displayName":"Drug Users Bible","size":2462},{"id":"wikipedia","fileName":"WIKIPEDIA - Nutmeg.md","displayName":"Wikipedia","size":13746}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Nutmeg.md","displayName":"Drug Users Bible","size":2462,"tokens":642},{"id":"wikipedia","fileName":"WIKIPEDIA - Nutmeg.md","displayName":"Wikipedia","size":13746,"tokens":3345}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Nutmeg
 *Source: Drug Users Bible by Dominic Milton Trott*

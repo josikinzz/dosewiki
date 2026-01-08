@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-FMA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-FMA.md","displayName":"Isomer Design","size":767},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-FMA.md","displayName":"PsychonautWiki","size":37108},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FMA.md","displayName":"TripSit Factsheets","size":765},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FMA.md","displayName":"Wikipedia","size":2015}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-FMA.md","displayName":"Isomer Design","size":413,"tokens":158},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-FMA.md","displayName":"PsychonautWiki","size":26822,"tokens":7203},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FMA.md","displayName":"TripSit Factsheets","size":765,"tokens":243},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FMA.md","displayName":"Wikipedia","size":2015,"tokens":499}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-FMA
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2133*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CNC(Cc1ccc(cc1)F)C\`
 
-**InChI:** \`InChI=1S/C10H14FN/c1-8(12-2)7-9-3-5-10(11)6-4-9/h3-6,8,12H,7H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [9919721](https://www.chemspider.com/Chemical-Structure.9919721.html/)
-- [11745017](https://pubchem.ncbi.nlm.nih.gov/compound/11745017)
-- [Q4637132](https://www.wikidata.org/wiki/Q4637132)
-- [4-Fluoromethamphetamine](https://en.wikipedia.org/wiki/4-Fluoromethamphetamine)
-`,
+**InChI:** \`InChI=1S/C10H14FN/c1-8(12-2)7-9-3-5-10(11)6-4-9/h3-6,8,12H,7H2,1-2H3\``,
   "psychonautwiki": `# 4-FMA
 *Source: https://psychonautwiki.org/wiki/4-FMA*
 
@@ -215,38 +206,7 @@ Abuse of compounds within the amphetamine chemical class at high dosages for pro
 
 ### Discussion
 
-- [4-fluoromethamphetamine (Bluelight)](http://www.bluelight.org/vb/threads/356585-4-fluoromethamphetamine)
-
-## References
-1. ↑ Nagashima, M., Seto, T., Takahashi, M., Suzuki, J., Yasuda, I. (2006). "Spectrum Data of the 3rd Governor-designated Drugs and the Analyses of Uncontrolled Drugs Purchased".*Annu. Rep. Tokyo Metr. Inst. Public Health*.**57**: 109–113.
-2. ↑ Nagai, F., Nonaka, R., Satoh Hisashi Kamimura, K. (22 March 2007). "The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain".*European Journal of Pharmacology*.**559**(2–3): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-3. ↑ Rösner, P., Quednow, B., Girreser, U., Junge, T. (10 March 2005). "Isomeric fluoro-methoxy-phenylalkylamines: a new series of controlled-substance analogues (designer drugs)".*Forensic Science International*.**148**(2–3): 143–156.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2004.05.003](//doi.org/10.1016%2Fj.forsciint.2004.05.003).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-4. ↑ [https://www.drugs-test.nl/nieuws-detail/?bericht=92](https://www.drugs-test.nl/nieuws-detail/?bericht=92)
-5. ↑ [(Annual Report 2018, section: 4-FA)](https://www.drugs-test.nl/publicaties-dims/jaarberichten)
-6. ↑ Rickli, A., Hoener, M. C., Liechti, M. E. (March 2015). "Monoamine transporter and receptor interaction profiles of novel psychoactive substances: para-halogenated amphetamines and pyrovalerone cathinones".*European Neuropsychopharmacology: The Journal of the European College of Neuropsychopharmacology*.**25**(3): 365–376.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.euroneuro.2014.12.012](//doi.org/10.1016%2Fj.euroneuro.2014.12.012).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1873-7862](//www.worldcat.org/issn/1873-7862).
-7. ↑ Fuller, R. W., Baker, J. C., Perry, K. W., Molloy, B. B. (1 October 1975).["Comparison of 4-chloro-, 4-bromo- and 4-fluoroamphetamine in rats: Drug levels in brain and effects on brain serotonin metabolism"](https://www.sciencedirect.com/science/article/pii/0028390875900994).*Neuropharmacology*.**14**(10): 739–746.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0028-3908(75)90099-4](//doi.org/10.1016%2F0028-3908%2875%2990099-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-8. ↑ Nagai, F., Nonaka, R., Satoh Hisashi Kamimura, K. (22 March 2007).["The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain"](https://www.sciencedirect.com/science/article/pii/S0014299906013811).*European Journal of Pharmacology*.**559**(2): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-9. ↑ Cherner, M., Bousman, C., Everall, I., Barron, D., Letendre, S., Vaida, F., Atkinson, J. H., Heaton, R., Grant, I., Group, T. H. (September 2010).["Cytochrome P450-2D6 extensive metabolizers are more vulnerable to methamphetamine-associated neurocognitive impairment: Preliminary findings"](https://www.cambridge.org/core/journals/journal-of-the-international-neuropsychological-society/article/abs/cytochrome-p4502d6-extensive-metabolizers-are-more-vulnerable-to-methamphetamineassociated-neurocognitive-impairment-preliminary-findings/FB5B886545B54DEEE32FBDDFEF3F4D04).*Journal of the International Neuropsychological Society*.**16**(5): 890–901.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1017/S1355617710000779](//doi.org/10.1017%2FS1355617710000779).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1469-7661](//www.worldcat.org/issn/1469-7661).
-10. ↑ peskypenguins (2016),[4-FMA short response](https://www.reddit.com/r/researchchemicals/comments/57fpu3/4fma_short_response/)
-11. ↑ [Voor mentale gezondheid](https://www.trimbos.nl/)
-12. ↑ [Vergiftigingen.info - Home](https://www.vergiftigingen.info)
-13. ↑ [https://psychonautwiki.org/wiki/File:Behandeling-4-fa-intoxicatie.pdf](https://psychonautwiki.org/wiki/File:Behandeling-4-fa-intoxicatie.pdf)
-14. ↑ 14.0 14.1 14.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-15. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-16. ↑ [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-17. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-18. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-19. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-20. ↑ 20.0 20.1 [Poisons Standard February 2021](https://www.legislation.gov.au/Details/F2021C00098/)
-21. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-22. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-23. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-24. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-25. ↑ ["Sechsundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl112s1639.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-26. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-27. ↑ [Misuse of Drugs Act 1975 No 116 (as at 01 July 2022), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-28. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-29. ↑ Tabella delle sostanze stupefacenti e psicotrope (in italian), Tabella 1, pagina 3NewPP limit report Cached time: 20251218075051 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.043 seconds CPU time usage: 0.408 seconds Real time usage: 0.827 seconds Preprocessor visited node count: 2192/1000000 Post‐expand include size: 158382/2097152 bytes Template argument size: 18016/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 34636/5000000 bytes Lua time usage: 0.310/7 seconds Lua virtual size: 8.96 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 695.855 1 -total 29.83% 207.572 11 Template:Cite_journal 15.60% 108.529 1 Template:Opinion 12.08% 84.051 2 Template:Fix 11.63% 80.933 5 Template:Cite_web 11.27% 78.402 3 Template:Category_handler 9.55% 66.432 8 Template:Citation 9.02% 62.782 1 Template:SubstanceBox/4-FMA 8.37% 58.228 1 Template:SubstanceBox 4.39% 30.563 9 Template:Citation_needed`,
+- [4-fluoromethamphetamine (Bluelight)](http://www.bluelight.org/vb/threads/356585-4-fluoromethamphetamine)`,
   "tripsit-factsheets": `# 4-FMA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-fma*
 

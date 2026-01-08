@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "F-Phenibut";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - F-Phenibut.md","displayName":"Isomer Design","size":684},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - F-Phenibut.md","displayName":"PsychonautWiki","size":21839},{"id":"wikipedia","fileName":"WIKIPEDIA - F-Phenibut.md","displayName":"Wikipedia","size":829}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - F-Phenibut.md","displayName":"Isomer Design","size":350,"tokens":141},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - F-Phenibut.md","displayName":"PsychonautWiki","size":17253,"tokens":4705},{"id":"wikipedia","fileName":"WIKIPEDIA - F-Phenibut.md","displayName":"Wikipedia","size":829,"tokens":232}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# F-Phenibut
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=628*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`NCC(c1ccc(cc1)F)CC(=O)O\`
 
-**InChI:** \`InChI=1S/C10H12FNO2/c11-9-3-1-7(2-4-9)8(6-12)5-10(13)14/h1-4,8H,5-6,12H2,(H,13,14)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [93547](https://www.chemspider.com/Chemical-Structure.93547.html/)
-- [103611](https://pubchem.ncbi.nlm.nih.gov/compound/103611)
-- [Q48835922](https://www.wikidata.org/wiki/Q48835922)
-- [4-Fluorophenibut](https://en.wikipedia.org/wiki/4-Fluorophenibut)
-`,
+**InChI:** \`InChI=1S/C10H12FNO2/c11-9-3-1-7(2-4-9)8(6-12)5-10(13)14/h1-4,8H,5-6,12H2,(H,13,14)\``,
   "psychonautwiki": `# F-Phenibut
 *Source: https://psychonautwiki.org/wiki/F-Phenibut*
 
@@ -150,20 +141,7 @@ F-Phenibut presents cross-tolerance with all [GABAgenic](https://psychonautwiki.
 ## External links
 
 - [4-Fluorophenibut (Wikipedia)](https://en.wikipedia.org/wiki/4-Fluorophenibut)
-- [F-Phenibut (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=628)
-
-## References
-1. ↑ Wyllie, E., Cascino, G. D., Gidal, B. E., Goodkin, H. P. (17 February 2012).*Wyllie’s Treatment of Epilepsy: Principles and Practice*. Lippincott Williams & Wilkins.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9781451153484](http://en.wikipedia.org/wiki/Special:BookSources/9781451153484).
-2. ↑ 2.0 2.1 Lapin, I. (7 June 2006).["Phenibut (β-Phenyl-GABA): A Tranquilizer and Nootropic Drug"](https://onlinelibrary.wiley.com/doi/10.1111/j.1527-3458.2001.tb00211.x).*CNS Drug Reviews*.**7**(4): 471–481.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1527-3458.2001.tb00211.x](//doi.org/10.1111%2Fj.1527-3458.2001.tb00211.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1080-563X](//www.worldcat.org/issn/1080-563X).
-3. ↑ Benzon, H., Rathmell, J. P., Wu, C. L., Turk, D., Argoff, C. E., Hurley, R. W. (11 September 2013).*Practical Management of Pain E-Book*. Elsevier Health Sciences.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780323170802](http://en.wikipedia.org/wiki/Special:BookSources/9780323170802).
-4. ↑ Dambrova, M., Zvejniece, L., Liepinsh, E., Cirule, H., Zharkova, O., Veinberg, G., Kalvinsh, I. (31 March 2008). "Comparative pharmacological activity of optical isomers of phenibut".*European Journal of Pharmacology*.**583**(1): 128–134.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2008.01.015](//doi.org/10.1016%2Fj.ejphar.2008.01.015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-5. ↑ Shulgina, G. I. (December 1986). "On neurotransmitter mechanisms of reinforcement and internal inhibition".*The Pavlovian Journal of Biological Science*.**21**(4): 129–140.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF02734511](//doi.org/10.1007%2FBF02734511).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0093-2213](//www.worldcat.org/issn/0093-2213).
-6. ↑ Irie, T., Yamazaki, D., Kikura-Hanajiri, R. (5 October 2020).["F-phenibut (β-(4-Fluorophenyl)-GABA), a potent GABAB receptor agonist, activates an outward-rectifying K+ current and suppresses the generation of action potentials in mouse cerebellar Purkinje cells"](https://www.sciencedirect.com/science/article/pii/S001429992030529X).*European Journal of Pharmacology*.**884**: 173437.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2020.173437](//doi.org/10.1016%2Fj.ejphar.2020.173437).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-7. ↑ Group, D. W. (25 February 2015).*Encyclopedia of Mind Enhancing Foods, Drugs and Nutritional Substances, 2d ed*. McFarland.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780786441426](http://en.wikipedia.org/wiki/Special:BookSources/9780786441426).
-8. ↑ [Anlage I BtMG - Einzelnorm](http://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)
-9. ↑ [§ 2 AMG - Einzelnorm](https://www.gesetze-im-internet.de/amg_1976/__2.html)
-10. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-11. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075420 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.039 seconds CPU time usage: 0.301 seconds Real time usage: 0.643 seconds Preprocessor visited node count: 1380/1000000 Post‐expand include size: 82038/2097152 bytes Template argument size: 9637/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 12740/5000000 bytes Lua time usage: 0.240/7 seconds Lua virtual size: 8.58 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 525.728 1 -total 23.02% 121.004 3 Template:Citation_needed 21.76% 114.406 3 Template:Cite_book 17.24% 90.624 4 Template:Cite_journal 13.94% 73.296 1 Template:Fix 12.97% 68.194 2 Template:Category_handler 9.95% 52.314 1 Template:SubstanceBox/F-Phenibut 9.37% 49.260 1 Template:SubstanceBox 6.74% 35.412 3 Template:Citation 4.23% 22.227 1 Template:Further`,
+- [F-Phenibut (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=628)`,
   "wikipedia": `# 4-Fluorophenibut
 *Source: https://en.wikipedia.org/wiki/4-Fluorophenibut*
 

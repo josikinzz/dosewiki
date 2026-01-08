@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Allylescaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Allylescaline.md","displayName":"Isomer Design","size":3321},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Allylescaline.md","displayName":"PsychonautWiki","size":16988},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allylescaline.md","displayName":"TripSit Factsheets","size":868},{"id":"wikipedia","fileName":"WIKIPEDIA - Allylescaline.md","displayName":"Wikipedia","size":3756}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Allylescaline.md","displayName":"Isomer Design","size":3321,"tokens":876},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Allylescaline.md","displayName":"PsychonautWiki","size":13828,"tokens":3712},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allylescaline.md","displayName":"TripSit Factsheets","size":868,"tokens":247},{"id":"wikipedia","fileName":"WIKIPEDIA - Allylescaline.md","displayName":"Wikipedia","size":3756,"tokens":913}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Allylescaline
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=2*
@@ -168,17 +168,7 @@ Tolerance to the effects of allylescaline is built almost immediately after inge
 ## External links
 
 - [Allylescaline (Wikipedia)](https://en.wikipedia.org/wiki/Allylescaline)
-- [Allylescaline (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=2)
-
-## References
-1. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1991).["#2. AL"](https://erowid.org/library/books_online/pihkal/pihkal002.shtml).*[PiHKAL: A Chemical Love Story](https://psychonautwiki.org/wiki/PiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0963009605](http://en.wikipedia.org/wiki/Special:BookSources/0963009605).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1166889264](//www.worldcat.org/oclc/1166889264).
-2. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: Anlage I"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-3. ↑ ["Neunte Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl197s0065.pdf)(PDF).*Bundesgesetzblatt Jahrgang 1997 Teil I Nr. 5*(in German). Bundesanzeiger Verlag (published January 31, 1997). January 28, 1997. p. 65.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-4. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: § 29"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["危険ドラッグの成分１６物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000078803.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-6. ↑ "31 nya ämnen kan klassas som narkotika eller hälsofarlig vara" (in Swedish). Folkhälsomyndigheten
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Psychoactive Substances Act 2016"](http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted). UK Government. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075200 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.213 seconds Real time usage: 0.409 seconds Preprocessor visited node count: 1153/1000000 Post‐expand include size: 80582/2097152 bytes Template argument size: 12639/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 7936/5000000 bytes Lua time usage: 0.140/7 seconds Lua virtual size: 7.74 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 339.280 1 -total 26.79% 90.909 5 Template:Cite_web 22.23% 75.436 1 Template:Cite_book 18.06% 61.273 2 Template:Further 13.57% 46.056 1 Template:SubstanceBox/Allylescaline 12.22% 41.444 1 Template:SubstanceBox 7.28% 24.704 1 Template:Effects/base 6.39% 21.667 1 Template:Effect_list 5.45% 18.475 2 Template:Effect_column 4.99% 16.925 1 Template:Experience_reports`,
+- [Allylescaline (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=2)`,
   "tripsit-factsheets": `# Allylescaline
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/allylescaline*
 

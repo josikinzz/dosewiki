@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-FEA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FEA.md","displayName":"Isomer Design","size":592},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FEA.md","displayName":"PsychonautWiki","size":24237},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FEA.md","displayName":"TripSit Factsheets","size":194},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FEA.md","displayName":"Wikipedia","size":1069}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FEA.md","displayName":"Isomer Design","size":372,"tokens":144},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FEA.md","displayName":"PsychonautWiki","size":19527,"tokens":5298},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FEA.md","displayName":"TripSit Factsheets","size":194,"tokens":61},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FEA.md","displayName":"Wikipedia","size":1069,"tokens":303}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-FEA
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2299*
@@ -17,14 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC(Cc1ccccc1F)C\`
 
-**InChI:** \`InChI=1S/C11H16FN/c1-3-13-9(2)8-10-6-4-5-7-11(10)12/h4-7,9,13H,3,8H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [14677938](https://www.chemspider.com/Chemical-Structure.14677938.html/)
-- [20027466](https://pubchem.ncbi.nlm.nih.gov/compound/20027466)
-`,
+**InChI:** \`InChI=1S/C11H16FN/c1-3-13-9(2)8-10-6-4-5-7-11(10)12/h4-7,9,13H,3,8H2,1-2H3\``,
   "psychonautwiki": `# 2-FEA
 *Source: https://psychonautwiki.org/wiki/2-FEA*
 
@@ -198,21 +191,7 @@ Tolerance to many of the effects of 2-FEA develops with prolonged and repeated u
 
 ## External links
 
-- [3-FEA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2299)
-
-## References
-1. ↑ Tessel, R. E., Woods, J. H. (May 1978). "Substituted N-ethylamphetamine self injection responding in the rhesus monkey: structure-activity relationships".*The Journal of Pharmacology and Experimental Therapeutics*.**205**(2): 274–281.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-2. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-3. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-4. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-5. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-6. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-7. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-8. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-9. ↑ [Misuse of Drugs Act 1975 No 116 (as at 01 July 2022), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-10. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-11. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-12. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I)NewPP limit report Cached time: 20251218074851 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.042 seconds CPU time usage: 0.315 seconds Real time usage: 0.599 seconds Preprocessor visited node count: 1615/1000000 Post‐expand include size: 122398/2097152 bytes Template argument size: 16785/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14620/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.57 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 485.691 1 -total 30.07% 146.041 1 Template:Effects/base 29.48% 143.204 1 Template:Effect_list 28.84% 140.065 2 Template:Effect_column 26.19% 127.201 1 Template:Effects/physical 25.70% 124.827 4 Template:Effect_panel 25.00% 121.442 3 Template:Citation_needed 19.25% 93.497 3 Template:Cite_journal 15.53% 75.431 1 Template:Fix 14.55% 70.645 2 Template:Category_handler`,
+- [3-FEA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2299)`,
   "tripsit-factsheets": `# 2-FEA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/2-fea*
 

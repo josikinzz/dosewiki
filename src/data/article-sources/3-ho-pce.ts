@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-HO-PCE";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-HO-PCE.md","displayName":"Isomer Design","size":676},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-HO-PCE.md","displayName":"PsychonautWiki","size":23690},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-HO-PCE.md","displayName":"TripSit Factsheets","size":378},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-HO-PCE.md","displayName":"Wikipedia","size":2280}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-HO-PCE.md","displayName":"Isomer Design","size":397,"tokens":158},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-HO-PCE.md","displayName":"PsychonautWiki","size":19846,"tokens":5424},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-HO-PCE.md","displayName":"TripSit Factsheets","size":378,"tokens":119},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-HO-PCE.md","displayName":"Wikipedia","size":2280,"tokens":656}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 3-HO-PCE
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=968*
@@ -17,15 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC1(CCCCC1)c1cccc(c1)O\`
 
-**InChI:** \`InChI=1S/C14H21NO/c1-2-15-14(9-4-3-5-10-14)12-7-6-8-13(16)11-12/h6-8,11,15-16H,2-5,9-10H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [81367248](https://www.chemspider.com/Chemical-Structure.81367248.html/)
-- [137332171](https://pubchem.ncbi.nlm.nih.gov/compound/137332171)
-- [Q126606830](https://www.wikidata.org/wiki/Q126606830)
-`,
+**InChI:** \`InChI=1S/C14H21NO/c1-2-15-14(9-4-3-5-10-14)12-7-6-8-13(16)11-12/h6-8,11,15-16H,2-5,9-10H2,1H3\``,
   "psychonautwiki": `# 3-HO-PCE
 *Source: https://psychonautwiki.org/wiki/3-HO-PCE*
 
@@ -210,19 +202,7 @@ In terms of its long-term health effects when used repeatedly and excessively fo
 
 ## Literature
 
-- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-
-## References
-1. ↑ 1.0 1.1 Morris, H., Wallach, J. (July 2014).["From PCP to MXE: a comprehensive review of the non-medical use of dissociative drugs: PCP to MXE"](https://onlinelibrary.wiley.com/doi/10.1002/dta.1620).*Drug Testing and Analysis*.**6**(7–8): 614–632.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1620](//doi.org/10.1002%2Fdta.1620).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-2. ↑ 2.0 2.1 2.2 Kalir, A., Maayani, S., Rehavi, M., Elkavets, R., Pri-Bar, I., Buchman, O., Sokolovsky, M. (20 June 1978).["ChemInform Abstract: STRUCTURE-ACTIVITY RELATIONSHIP OF SOME PHENCYCLIDINE DERIVATIVES- IN VIVO STUDIES IN MICE"](https://onlinelibrary.wiley.com/doi/10.1002/chin.197825192).*Chemischer Informationsdienst*.**9**(25).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/chin.197825192](//doi.org/10.1002%2Fchin.197825192).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0009-2975](//www.worldcat.org/issn/0009-2975).
-3. ↑ " [(ACMD) Methoxetamine Report (2012)](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/119087/methoxetamine2012.pdf) " (PDF). UK Home Office. 2012-10-18. p. 14. Retrieved 2015-06-24.
-4. ↑ 3-HO-PCE (Tripsit) | [https://wiki.tripsit.me/wiki/3-HO-PCE](https://wiki.tripsit.me/wiki/3-HO-PCE)
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ Cumhurbaşkanı Kararı CK Karar Sayısı : 1335 | [https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)
-10. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218075015 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.039 seconds CPU time usage: 0.278 seconds Real time usage: 0.502 seconds Preprocessor visited node count: 1390/1000000 Post‐expand include size: 88717/2097152 bytes Template argument size: 13350/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10920/5000000 bytes Lua time usage: 0.140/7 seconds Lua virtual size: 8.59 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 382.796 1 -total 19.33% 73.979 2 Template:Cite_journal 17.50% 66.984 1 Template:SubstanceBox/3-HO-PCE 16.31% 62.450 1 Template:SubstanceBox 15.71% 60.137 4 Template:Cite_web 15.58% 59.634 1 Template:Distinguish 14.40% 55.106 1 Template:Hatnote 12.11% 46.338 1 Template:Citation_needed 10.29% 39.384 1 Template:Fix 9.57% 36.641 2 Template:Category_handler`,
+- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)`,
   "tripsit-factsheets": `# 3-HO-PCE
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3-ho-pce*
 

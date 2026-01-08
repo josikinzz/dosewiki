@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "NSI-189";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - NSI-189.md","displayName":"Drug Users Bible","size":941},{"id":"wikipedia","fileName":"WIKIPEDIA - NSI-189.md","displayName":"Wikipedia","size":10206}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - NSI-189.md","displayName":"Drug Users Bible","size":941,"tokens":238},{"id":"wikipedia","fileName":"WIKIPEDIA - NSI-189.md","displayName":"Wikipedia","size":10206,"tokens":2496}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# NSI-189
 *Source: Drug Users Bible by Dominic Milton Trott*

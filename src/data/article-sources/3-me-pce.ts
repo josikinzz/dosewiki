@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-Me-PCE";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 3-Me-PCE.md","displayName":"Wikipedia","size":701}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 3-Me-PCE.md","displayName":"Wikipedia","size":701,"tokens":185}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 3-Me-PCE
 *Source: https://en.wikipedia.org/wiki/3-Me-PCE*

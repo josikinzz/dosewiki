@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Prolintane";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Prolintane.md","displayName":"Isomer Design","size":671},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Prolintane.md","displayName":"PsychonautWiki","size":22166},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Prolintane.md","displayName":"TripSit Factsheets","size":429},{"id":"wikipedia","fileName":"WIKIPEDIA - Prolintane.md","displayName":"Wikipedia","size":703}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Prolintane.md","displayName":"Isomer Design","size":353,"tokens":142},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Prolintane.md","displayName":"PsychonautWiki","size":18401,"tokens":4906},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Prolintane.md","displayName":"TripSit Factsheets","size":429,"tokens":131},{"id":"wikipedia","fileName":"WIKIPEDIA - Prolintane.md","displayName":"Wikipedia","size":703,"tokens":187}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Prolintane
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2121*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCC(N1CCCC1)Cc1ccccc1\`
 
-**InChI:** \`InChI=1S/C15H23N/c1-2-8-15(16-11-6-7-12-16)13-14-9-4-3-5-10-14/h3-5,9-10,15H,2,6-8,11-13H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [13930](https://www.chemspider.com/Chemical-Structure.13930.html/)
-- [14592](https://pubchem.ncbi.nlm.nih.gov/compound/14592)
-- [Q1653730](https://www.wikidata.org/wiki/Q1653730)
-- [Prolintane](https://en.wikipedia.org/wiki/Prolintane)
-`,
+**InChI:** \`InChI=1S/C15H23N/c1-2-8-15(16-11-6-7-12-16)13-14-9-4-3-5-10-14/h3-5,9-10,15H,2,6-8,11-13H2,1H3\``,
   "psychonautwiki": `# Prolintane
 *Source: https://psychonautwiki.org/wiki/Prolintane*
 
@@ -168,16 +159,7 @@ User reports indicate that chronic abuse or single overdose exposure of prolinta
 
 - [Prolintane (Wikipedia)](https://en.wikipedia.org/wiki/prolintane)
 - [Prolintane (Erowid Vault)](https://erowid.org/chemicals/Prolintane/Prolintane.shtml)
-- [Prolintane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2121)
-
-## References
-1. ↑ 1.0 1.1 [New tertiary amines and their salts and process for their preparation](https://patents.google.com/patent/GB807835A/en)
-2. ↑ 2.0 2.1 2.2 Moody, D. E. (1 January 2013).["Medical Toxicology of Drug Abuse: Synthesized Chemicals and Psychoactive Plants"](http://academic.oup.com/jat/article/37/1/50/747669/Medical-Toxicology-of-Drug-Abuse-Synthesized).*Journal of Analytical Toxicology*.**37**(1): 50–50.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bks088](//doi.org/10.1093%2Fjat%2Fbks088).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1945-2403](//www.worldcat.org/issn/1945-2403).
-3. ↑ [http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1](http://www.who.int/medicines/areas/quality_safety/4_13_Review.pdf?ua=1)
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-5. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-6. ↑ ["Anlage 1 AMVV"](https://www.gesetze-im-internet.de/amvv/anlage_1.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075744 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.291 seconds Real time usage: 0.523 seconds Preprocessor visited node count: 1365/1000000 Post‐expand include size: 89511/2097152 bytes Template argument size: 11045/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9812/5000000 bytes Lua time usage: 0.130/7 seconds Lua virtual size: 7.68 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 426.249 1 -total 29.22% 124.549 1 Template:Citation_needed 17.78% 75.772 1 Template:Fix 16.99% 72.412 1 Template:SubstanceBox/Prolintane 16.42% 69.983 2 Template:Category_handler 15.95% 68.007 1 Template:SubstanceBox 13.79% 58.786 1 Template:Citation 10.20% 43.498 3 Template:Cite_journal 6.48% 27.638 2 Template:Cite_web 5.97% 25.442 1 Template:Effects/base`,
+- [Prolintane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2121)`,
   "tripsit-factsheets": `# Prolintane
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/prolintane*
 

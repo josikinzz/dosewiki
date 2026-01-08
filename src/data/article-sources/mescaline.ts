@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mescaline";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Mescaline.md","displayName":"Disregard Everything I Say","size":177},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mescaline.md","displayName":"Drug Users Bible","size":3505},{"id":"saferparty","fileName":"SAFERPARTY - Mescaline.md","displayName":"Safer Party","size":2853},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mescaline.md","displayName":"TripSit Factsheets","size":2983},{"id":"wikipedia","fileName":"WIKIPEDIA - Mescaline.md","displayName":"Wikipedia","size":31062}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Mescaline.md","displayName":"Disregard Everything I Say","size":177,"tokens":46},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mescaline.md","displayName":"Drug Users Bible","size":3505,"tokens":871},{"id":"saferparty","fileName":"SAFERPARTY - Mescaline.md","displayName":"Safer Party","size":2853,"tokens":684},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mescaline.md","displayName":"TripSit Factsheets","size":2983,"tokens":800},{"id":"wikipedia","fileName":"WIKIPEDIA - Mescaline.md","displayName":"Wikipedia","size":31062,"tokens":7826}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Mescaline
 *Source: https://disregardeverythingisay.com/post/19649209808/simple-mescaline-brewing-technique*

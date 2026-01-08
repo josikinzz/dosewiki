@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-FMA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FMA.md","displayName":"Isomer Design","size":776},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FMA.md","displayName":"PsychonautWiki","size":32272},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 2-FMA.md","displayName":"The Drug Classroom","size":8397},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FMA.md","displayName":"TripSit Factsheets","size":702},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FMA.md","displayName":"Wikipedia","size":1607}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-FMA.md","displayName":"Isomer Design","size":420,"tokens":159},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-FMA.md","displayName":"PsychonautWiki","size":25217,"tokens":6762},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 2-FMA.md","displayName":"The Drug Classroom","size":7176,"tokens":1916},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2-FMA.md","displayName":"TripSit Factsheets","size":702,"tokens":197},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-FMA.md","displayName":"Wikipedia","size":1607,"tokens":406}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2-FMA
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2131*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CNC(Cc1ccccc1F)C\`
 
-**InChI:** \`InChI=1S/C10H14FN/c1-8(12-2)7-9-5-3-4-6-10(9)11/h3-6,8,12H,7H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [23900072](https://www.chemspider.com/Chemical-Structure.23900072.html/)
-- [24257263](https://pubchem.ncbi.nlm.nih.gov/compound/24257263)
-- [Q4596881](https://www.wikidata.org/wiki/Q4596881)
-- [2-Fluoromethamphetamine](https://en.wikipedia.org/wiki/2-Fluoromethamphetamine)
-`,
+**InChI:** \`InChI=1S/C10H14FN/c1-8(12-2)7-9-5-3-4-6-10(9)11/h3-6,8,12H,7H2,1-2H3\``,
   "psychonautwiki": `# 2-FMA
 *Source: https://psychonautwiki.org/wiki/2-FMA*
 
@@ -237,29 +228,7 @@ The use of compounds in the amphetamine class at high dosages for prolonged peri
 ## External links
 
 - [2-Fluoromethamphetamine (Wikipedia)](https://en.wikipedia.org/wiki/2-Fluoromethamphetamine)
-- [2-FMA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2131)
-
-## References
-1. ↑ Camilleri, A., Johnston, M. R., Brennan, M., Davis, S., Caldicott, D. G. E. (April 2010).["Chemical analysis of four capsules containing the controlled substance analogues 4-methylmethcathinone, 2-fluoromethamphetamine, α-phthalimidopropiophenone and N-ethylcathinone"](https://linkinghub.elsevier.com/retrieve/pii/S0379073809005490).*Forensic Science International*.**197**(1–3): 59–66.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2009.12.048](//doi.org/10.1016%2Fj.forsciint.2009.12.048).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-2. ↑ [Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts), National Institute on Drug Abuse
-3. ↑ 3.0 3.1 3.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-4. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-5. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-6. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-7. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-8. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-9. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-10. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-11. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-12. ↑ ["Achtundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl114s1999.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-13. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-14. ↑ [Misuse of Drugs Act 1975 No 116 (as at 01 July 2022), Public Act – New Zealand Legislation](http://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html#DLM436576)
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-16. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-17. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-18. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-19. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I)
-20. ↑ [Про внесення змін до переліку наркотичних засобів, психотропних речовин і прекурсорів](https://zakon.rada.gov.ua/go/600-2019-%D0%BF)NewPP limit report Cached time: 20251218074856 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.078 seconds CPU time usage: 0.412 seconds Real time usage: 0.812 seconds Preprocessor visited node count: 2141/1000000 Post‐expand include size: 175060/2097152 bytes Template argument size: 19670/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 25022/5000000 bytes Lua time usage: 0.290/7 seconds Lua virtual size: 8.82 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 642.045 1 -total 23.60% 151.509 5 Template:Cite_journal 23.21% 149.013 1 Template:Effects/base 22.83% 146.600 1 Template:Effect_list 22.42% 143.940 2 Template:Effect_column 20.19% 129.658 1 Template:Effects/physical 19.89% 127.714 4 Template:Effect_panel 19.38% 124.446 3 Template:Citation_needed 13.78% 88.487 8 Template:Citation 12.91% 82.891 5 Template:Cite_web`,
+- [2-FMA (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2131)`,
   "thedrugclassroom": `# 2-Fluoromethamphetamine (2-FMA)
 *Source: https://thedrugclassroom.com/video/2-fluoromethamphetamine-2-fma/*
 
@@ -462,22 +431,7 @@ Other stimulants, psychedelics, MAOIs, and tramadol.
 
 ## Test Videos
 
----
-
-## References
-
-**(2016)** [A Snapshot on NPS in Italy: Distribution of Drugs in Seized Materials Analysed in an Italian Forensic Laboratory in the Period 2013-2015](https://www.researchgate.net/publication/292678063_A_Snapshot_on_NPS_in_Italy_Distribution_of_Drugs_in_Seized_Materials_Analysed_in_an_Italian_Forensic_Laboratory_in_the_Period_2013-2015)
-
-**(2014)** [New phenethylamines in Europe.](https://www.ncbi.nlm.nih.gov/pubmed/24574327)
-
-**(2014)** [Detectability of new psychoactive substances, ‘legal highs’, in CEDIA, EMIT, and KIMS immunochemical screening assays for drugs of abuse.](https://www.ncbi.nlm.nih.gov/pubmed/24665024)
-
-**(2014)** [Lethal poisonings with AH-7921 in combination with other substances.](https://www.ncbi.nlm.nih.gov/pubmed/25216892)
-
-**(2010)** [Chemical analysis of four capsules containing the controlled substance analogues 4-methylmethcathinone, 2-fluoromethamphetamine, alpha-phthalimidopropiophenone and N-ethylcathinone.](https://www.ncbi.nlm.nih.gov/pubmed/20074881)
-
-**(2005)** [Isomeric Fluoro-methoxy-phenylalkylamines: a new series of controlled-substance analogues (designer drugs)](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.670.7372&rep=rep1&type=pdf)
-`,
+---`,
   "tripsit-factsheets": `# 2-FMA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/2-fma*
 

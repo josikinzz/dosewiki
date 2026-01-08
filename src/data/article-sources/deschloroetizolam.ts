@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Deschloroetizolam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Deschloroetizolam.md","displayName":"Isomer Design","size":855},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Deschloroetizolam.md","displayName":"PsychonautWiki","size":25055},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Deschloroetizolam.md","displayName":"TripSit Factsheets","size":499},{"id":"wikipedia","fileName":"WIKIPEDIA - Deschloroetizolam.md","displayName":"Wikipedia","size":479}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Deschloroetizolam.md","displayName":"Isomer Design","size":433,"tokens":185},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Deschloroetizolam.md","displayName":"PsychonautWiki","size":18414,"tokens":4789},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Deschloroetizolam.md","displayName":"TripSit Factsheets","size":499,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - Deschloroetizolam.md","displayName":"Wikipedia","size":479,"tokens":118}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Deschloroetizolam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3037*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCc1cc2c(s1)n1c(CN=C2c2ccccc2)nnc1C\`
 
-**InChI:** \`InChI=1S/C17H16N4S/c1-3-13-9-14-16(12-7-5-4-6-8-12)18-10-15-20-19-11(2)21(15)17(14)22-13/h4-9H,3,10H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [722596](https://www.chemspider.com/Chemical-Structure.722596.html/)
-- [827322](https://pubchem.ncbi.nlm.nih.gov/compound/827322)
-- [Q18206487](https://www.wikidata.org/wiki/Q18206487)
-- [Deschloroetizolam](https://en.wikipedia.org/wiki/Deschloroetizolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C17H16N4S/c1-3-13-9-14-16(12-7-5-4-6-8-12)18-10-15-20-19-11(2)21(15)17(14)22-13/h4-9H,3,10H2,1-2H3\``,
   "psychonautwiki": `# Deschloroetizolam
 *Source: https://psychonautwiki.org/wiki/Deschloroetizolam*
 
@@ -154,28 +144,7 @@ Deschloroetizolam is a grey area compound within most parts of the world. This m
 
 - [Deschloroetizolam (Wikipedia)](https://en.wikipedia.org/wiki/Deschloroetizolam)
 - [Deschloroetizolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3037)
-- [Deschloroetizolam (UKCR)](https://www.ukchemicalresearch.org/Thread-Deschloroetizolam)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Kitajima, H., Ehara, S., Sato, H., Moriwaki, M., Onishi, K.,[Thienylazole compound and thienotriazolodiazepine compound](https://patents.google.com/patent/EP0776892A4/en)
-3. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-4. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-5. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-6. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-7. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-8. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-9. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-10. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-11. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-12. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-15.html)
-13. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-14. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-15. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-16. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-17. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-18. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)
-19. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075310 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.037 seconds CPU time usage: 0.353 seconds Real time usage: 0.639 seconds Preprocessor visited node count: 1657/1000000 Post‐expand include size: 105546/2097152 bytes Template argument size: 11179/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 23431/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 7.39 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 522.865 1 -total 24.02% 125.568 9 Template:Cite_journal 22.75% 118.949 5 Template:Citation 13.05% 68.227 1 Template:DepressantOD 12.62% 65.978 1 Template:SubstanceBox/Deschloroetizolam 12.28% 64.189 1 Template:GenericPanel/warning 11.87% 62.071 1 Template:SubstanceBox 11.58% 60.540 1 Template:GenericPanel 9.26% 48.411 4 Template:Cite_web 5.79% 30.278 1 Template:Effects/base`,
+- [Deschloroetizolam (UKCR)](https://www.ukchemicalresearch.org/Thread-Deschloroetizolam)`,
   "tripsit-factsheets": `# Deschloroetizolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/deschloroetizolam*
 

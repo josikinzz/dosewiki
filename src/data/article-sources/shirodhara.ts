@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Shirodhara";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Shirodhara.md","displayName":"Drug Users Bible","size":4282},{"id":"wikipedia","fileName":"WIKIPEDIA - Shirodhara.md","displayName":"Wikipedia","size":35613}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Shirodhara.md","displayName":"Drug Users Bible","size":4282,"tokens":1108},{"id":"wikipedia","fileName":"WIKIPEDIA - Shirodhara.md","displayName":"Wikipedia","size":35613,"tokens":8921}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Shirodhara
 *Source: Drug Users Bible by Dominic Milton Trott*

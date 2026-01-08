@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pseudoephrine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pseudoephrine.md","displayName":"TripSit Factsheets","size":691},{"id":"wikipedia","fileName":"WIKIPEDIA - Pseudoephrine.md","displayName":"Wikipedia","size":14188}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pseudoephrine.md","displayName":"TripSit Factsheets","size":691,"tokens":185},{"id":"wikipedia","fileName":"WIKIPEDIA - Pseudoephrine.md","displayName":"Wikipedia","size":14188,"tokens":3324}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Pseudoephrine
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Etodesnitazene";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Etodesnitazene.md","displayName":"TripSit Factsheets","size":107},{"id":"wikipedia","fileName":"WIKIPEDIA - Etodesnitazene.md","displayName":"Wikipedia","size":1083}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Etodesnitazene.md","displayName":"TripSit Factsheets","size":107,"tokens":29},{"id":"wikipedia","fileName":"WIKIPEDIA - Etodesnitazene.md","displayName":"Wikipedia","size":1083,"tokens":260}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Etodesnitazene
 *Source: TripSit Factsheets (tripsit.me)*

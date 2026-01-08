@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Grayanotoxin";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Grayanotoxin.md","displayName":"PsychonautWiki","size":18469},{"id":"wikipedia","fileName":"WIKIPEDIA - Grayanotoxin.md","displayName":"Wikipedia","size":9110}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Grayanotoxin.md","displayName":"PsychonautWiki","size":11119,"tokens":2981},{"id":"wikipedia","fileName":"WIKIPEDIA - Grayanotoxin.md","displayName":"Wikipedia","size":9110,"tokens":2131}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# Grayanotoxin
 *Source: https://psychonautwiki.org/wiki/Grayanotoxin*
@@ -129,37 +129,7 @@ It is strongly recommended that one use [harm reduction practices](https://psych
 
 - APA formatted reference
 
-Please see the [citation formatting guide](https://psychonautwiki.org/wiki/Citation_formatting_guide) if you need assistance properly formatting citations.
-
-## References
-1. ↑ "Monotropa uniflora Indian Pipe". *Plants for a Future* . Retrieved 2022-08-13.
-2. ↑ 2.0 2.1 Ullah S, Khan SU, Saleh TA, Fahad S. Mad honey: uses, intoxicating/poisoning effects, diagnosis, and treatment. RSC Adv. 2018 May 22;8(33):18635-18646. doi: 10.1039/c8ra01924j. PMID: 35541133; PMCID: PMC9080652
-3. ↑ "Grayanotoxins". *Foodborne Pathogenic Microorganisms and Natural Toxins Handbook* . US FDA. 2012. Retrieved August 7, 2015.
-4. ↑ Shrestha TM, Nepal G, Shing YK, Shrestha L. Cardiovascular, psychiatric, and neurological phenomena seen in mad honey disease: A clinical case report. Clin Case Rep. 2018 Oct 22;6(12):2355-2357. doi: 10.1002/ccr3.1889. PMID: 30564328; PMCID: PMC6293183.
-5. ↑ 5.0 5.1 5.2 5.3 5.4 5.5 5.6 Gunduz A, Turedi S, Russell RM, Ayaz FA. Clinical review of grayanotoxin/mad honey poisoning past and present. Clin Toxicol (Phila). 2008 Jun;46(5):437-42. doi: 10.1080/15563650701666306. PMID: 18568799.
-6. ↑ Jansen SA, Kleerekooper I, Hofman ZL, Kappen IF, Stary-Weinzinger A, van der Heyden MA. Grayanotoxin poisoning: 'mad honey disease' and beyond. Cardiovasc Toxicol. 2012 Sep;12(3):208-15. doi: 10.1007/s12012-012-9162-2. PMID: 22528814; PMCID: PMC3404272.
-7. ↑ Yuki T, Yamaoka K, Yakehiro M, Seyama I. State-dependent action of grayanotoxin I on Na(+) channels in frog ventricular myocytes. J Physiol. 2001 Aug 1;534(Pt 3):777-90. doi: 10.1111/j.1469-7793.2001.00777.x. PMID: 11483708; PMCID: PMC2278746.
-8. ↑ 8.0 8.1 8.2 Kim SE, Shin MC, Akaike N, Kim CJ. Presynaptic effects of grayanotoxin III on excitatory and inhibitory nerve terminals in rat ventromedial hypothalamic neurons. Neurotoxicology. 2010 Mar;31(2):230-8. doi: 10.1016/j.neuro.2009.12.006. Epub 2009 Dec 28. PMID: 20038438.
-9. ↑ Pischon H, Petrick A, Müller M, Köster N, Pietsch J, Mundhenk L. Grayanotoxin I Intoxication in Pet Pigs. *Veterinary Pathology* . 2018;55(6):896-899. doi:10.1177/0300985818789482
-10. ↑ Ohgaki T, Uchida S, Meguri H, Ogita K, Yoneda Y. Preventive action of quisqualic acid against grayanotoxin-induced suppression of locomotor activity in mice. Neuropharmacology. 1988 Oct;27(10):1045-53. doi: 10.1016/0028-3908(88)90066-4. PMID: 3070432.
-11. ↑ Ohgaki T, Meguri H, Ogita K, Yoneda Y. Tetrodotoxin-insensitive central depression by grayanotoxin-III in mice. Brain Res. 1987 Nov 10;425(2):364-8. doi: 10.1016/0006-8993(87)90521-x. PMID: 2448007.
-12. ↑ Shrestha TM, Nepal G, Shing YK, Shrestha L. Cardiovascular, psychiatric, and neurological phenomena seen in mad honey disease: A clinical case report. Clin Case Rep. 2018 Oct 22;6(12):2355- 2357. doi: 10.1002/ccr3.1889. PMID: 30564328; PMCID: PMC6293183.
-13. ↑ Gunduz A, Eraydin I, Turkmen S, Kalkan OF, Turedi S, Eryigit U, Ayar A. Analgesic effects of mad honey (grayanotoxin) in mice models of acute pain and painful diabetic neuropathy. Hum Exp Toxicol. 2014 Feb;33(2):130-5. doi: 10.1177/0960327113482693. Epub 2013 Apr 12. PMID: 23584354.
-14. ↑ Ullah S, Khan SU, Saleh TA, Fahad S. Mad honey: uses, intoxicating/poisoning effects, diagnosis, and treatment. RSC Adv. 2018 May 22;8(33):18635-18646. doi: 10.1039/c8ra01924j. PMID: 35541133; PMCID: PMC9080652.
-15. ↑ Ohgaki T, Uchida S, Meguri H, Ogita K, Yoneda Y. Preventive action of quisqualic acid against grayanotoxin-induced suppression of locomotor activity in mice. Neuropharmacology. 1988 Oct;27(10):1045-53. doi: 10.1016/0028-3908(88)90066-4. PMID: 3070432.
-16. ↑ Jansen SA, Kleerekooper I, Hofman ZL, Kappen IF, Stary-Weinzinger A, van der Heyden MA. Grayanotoxin poisoning: 'mad honey disease' and beyond. Cardiovasc Toxicol. 2012 Sep;12(3):208-15. doi: 10.1007/s12012-012-9162-2. PMID: 22528814; PMCID: PMC3404272.
-17. ↑ Jansen SA, Kleerekooper I, Hofman ZL, Kappen IF, Stary-Weinzinger A, van der Heyden MA. Grayanotoxin poisoning: 'mad honey disease' and beyond. Cardiovasc Toxicol. 2012 Sep;12(3):208-15. doi: 10.1007/s12012-012-9162-2. PMID: 22528814; PMCID: PMC3404272.
-18. ↑ Setareh-Shenas S, Kaplin S, Bania TC, Kornberg R. A Rare Case of Mad Honey Disease: A Reversible Cause of Complete Heart Block. JACC Case Rep. 2019 Nov 13;1(4):579-582. doi: 10.1016/j.jaccas.2019.09.015. PMID: 34316883; PMCID: PMC8288791.
-19. ↑ Roy, Saurav & Biswas, Soumya & Ghosh, Saikat & Roy, Pragyan. (2019). The Himalayan hallucinogenic honey and its future prospects and proposed uses. 10.13140/RG.2.2.29254.63041.
-20. ↑ Setareh-Shenas S, Kaplin S, Bania TC, Kornberg R. A Rare Case of Mad Honey Disease: A Reversible Cause of Complete Heart Block. JACC Case Rep. 2019 Nov 13;1(4):579-582. doi: 10.1016/j.jaccas.2019.09.015. PMID: 34316883; PMCID: PMC8288791.
-21. ↑ Shrestha TM, Nepal G, Shing YK, Shrestha L. Cardiovascular, psychiatric, and neurological phenomena seen in mad honey disease: A clinical case report. Clin Case Rep. 2018 Oct 22;6(12):2355-2357. doi: 10.1002/ccr3.1889. PMID: 30564328; PMCID: PMC6293183.
-22. ↑ Jansen SA, Kleerekooper I, Hofman ZL, Kappen IF, Stary-Weinzinger A, van der Heyden MA. Grayanotoxin poisoning: 'mad honey disease' and beyond. Cardiovasc Toxicol. 2012 Sep;12(3):208-15. doi: 10.1007/s12012-012-9162-2. PMID: 22528814; PMCID: PMC3404272.
-23. ↑ Ullah S, Khan SU, Saleh TA, Fahad S. Mad honey: uses, intoxicating/poisoning effects, diagnosis, and treatment. RSC Adv. 2018 May 22;8(33):18635-18646. doi: 10.1039/c8ra01924j. PMID: 35541133; PMCID: PMC9080652.
-24. ↑ Jansen SA, Kleerekooper I, Hofman ZL, Kappen IF, Stary-Weinzinger A, van der Heyden MA. Grayanotoxin poisoning: 'mad honey disease' and beyond. Cardiovasc Toxicol. 2012 Sep;12(3):208-15. doi: 10.1007/s12012-012-9162-2. PMID: 22528814; PMCID: PMC3404272.
-25. ↑ Shrestha TM, Nepal G, Shing YK, Shrestha L. Cardiovascular, psychiatric, and neurological phenomena seen in mad honey disease: A clinical case report. Clin Case Rep. 2018 Oct 22;6(12):2355-2357. doi: 10.1002/ccr3.1889. PMID: 30564328; PMCID: PMC6293183.
-26. ↑ Ullah S, Khan SU, Saleh TA, Fahad S. Mad honey: uses, intoxicating/poisoning effects, diagnosis, and treatment. RSC Adv. 2018 May 22;8(33):18635-18646. doi: 10.1039/c8ra01924j. PMID: 35541133; PMCID: PMC9080652.
-27. ↑ Wickes Felter, Harvey; Uri Lloyd, John (1898). King's American dispensatory (19th 3rd rev ed.). Ohio Valley Co. p. 1277.
-28. ↑ Demircan A, Keles A, Bildik F, Aygelcel G, Dogan NO, Gomez HF. Mad honey sex: Therapeutic misadventures from an ancient biological weapon. An Emerg Med 2009; 54: 824-9NewPP limit report Cached time: 20251218075446 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.199 seconds Real time usage: 0.256 seconds Preprocessor visited node count: 1247/1000000 Post‐expand include size: 77661/2097152 bytes Template argument size: 12729/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 13387/5000000 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 169.670 1 -total 44.78% 75.978 1 Talk:SubstanceBox/Grayanotoxin 42.19% 71.589 1 Template:SubstanceBox 23.95% 40.629 1 Template:Effects/base 22.49% 38.163 1 Template:Effect_list 21.00% 35.623 2 Template:Effect_column 12.03% 20.409 4 Template:Effect_panel 9.23% 15.655 1 Template:Effects/physical 4.07% 6.903 1 Template:Effects/visual 3.83% 6.498 1 Template:Effects/cognitive`,
+Please see the [citation formatting guide](https://psychonautwiki.org/wiki/Citation_formatting_guide) if you need assistance properly formatting citations.`,
   "wikipedia": `# Grayanotoxin
 *Source: https://en.wikipedia.org/wiki/Grayanotoxin*
 

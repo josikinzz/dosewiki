@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "CRL-40-941";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-941.md","displayName":"TripSit Factsheets","size":507},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-941.md","displayName":"Wikipedia","size":1341}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - CRL-40-941.md","displayName":"TripSit Factsheets","size":507,"tokens":144},{"id":"wikipedia","fileName":"WIKIPEDIA - CRL-40-941.md","displayName":"Wikipedia","size":1341,"tokens":335}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# CRL-40-941
 *Source: TripSit Factsheets (tripsit.me)*

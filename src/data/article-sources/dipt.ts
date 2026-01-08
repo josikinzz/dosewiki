@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DiPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - DiPT.md","displayName":"Erowid","size":6016},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DiPT.md","displayName":"Isomer Design","size":7770},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DiPT.md","displayName":"PsychonautWiki","size":19118},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DiPT.md","displayName":"TripSit Factsheets","size":851},{"id":"wikipedia","fileName":"WIKIPEDIA - DiPT.md","displayName":"Wikipedia","size":16008}];
+export const sources = [{"id":"erowid","fileName":"EROWID - DiPT.md","displayName":"Erowid","size":6016,"tokens":1739},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DiPT.md","displayName":"Isomer Design","size":7770,"tokens":2091},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DiPT.md","displayName":"PsychonautWiki","size":14356,"tokens":3833},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DiPT.md","displayName":"TripSit Factsheets","size":851,"tokens":240},{"id":"wikipedia","fileName":"WIKIPEDIA - DiPT.md","displayName":"Wikipedia","size":16008,"tokens":4062}];
 export const contents: Record<string, string> = {
   "erowid": `# DiPT
 *Source: https://www.erowid.org/chemicals/dipt/*
@@ -335,23 +335,7 @@ Tolerance to the effects of DiPT is built almost immediately after ingestion. Af
 
 ### Discussion
 
-- [The Big & Dandy DiPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/61887)
-
-## References
-1. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin).[Pharmacology Notes I (The Shulgin Lab Books)](https://erowid.org/library/books_online/shulgin_labbooks/shulgin_labbook1_searchable.pdf)(PDF). Erowid. p. 177.
-2. ↑ [Shulgin, A. T.](https://psychonautwiki.org/wiki/Alexander_Shulgin); Carter, M. F. (1980). "N, N-Diisopropyltryptamine (DIPT) and 5-methoxy-N,N-diisopropyltryptamine (5-MeO-DIPT). Two orally active tryptamine analogs with CNS activity".*Communications in psychopharmacology*.**4**(5): 363–369.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0145-5699](//www.worldcat.org/issn/0145-5699).[OCLC](http://en.wikipedia.org/wiki/OCLC)[3012956](//www.worldcat.org/oclc/3012956).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[6949674](//www.ncbi.nlm.nih.gov/pubmed/6949674).
-3. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-4. ↑ 4.0 4.1 Shulgin & Shulgin 1997 , p. 403–406.
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-9. ↑ ["Schedule 1 Class A controlled drugs"](http://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html#DLM436576).*"Reprint as at 13 August 2019: Misuse of Drugs Act 1975"*. Parliamentary Counsel Office. Retrieved January 7, 2020.
-10. ↑ ["Folkhälsomyndigheten föreslår att 20 ämnen klassas som narkotika eller hälsofarlig vara"](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2019/maj/folkhalsomyndigheten-foreslar-att-20-amnen-klassas-som-narkotika-eller-halsofarlig-vara/)(in Swedish). Folkhälsomyndigheten [Public Health Agency]. May 15, 2019.
-11. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-12. ↑ ["Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.
-13. ↑ [https://www.law.cornell.edu/uscode/text/21/813](https://www.law.cornell.edu/uscode/text/21/813)
-14. ↑ ["The 2015 Florida Statutes - Chapter 893"](http://leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/0893.html). The Florida Legislature. Retrieved July 18, 2020.NewPP limit report Cached time: 20251218075335 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.056 seconds CPU time usage: 0.366 seconds Real time usage: 0.651 seconds Preprocessor visited node count: 1800/1000000 Post‐expand include size: 115341/2097152 bytes Template argument size: 13857/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15179/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 8.76 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 490.467 1 -total 26.21% 128.543 4 Template:Citation_needed 15.76% 77.290 9 Template:Cite_web 15.62% 76.623 1 Template:Fix 15.16% 74.352 1 Template:SubstanceBox/DiPT 14.50% 71.133 2 Template:Category_handler 14.42% 70.733 1 Template:SubstanceBox 13.49% 66.156 2 Template:Cite_book 11.46% 56.204 1 Template:Effects/base 10.73% 52.606 1 Template:Effect_list`,
+- [The Big & Dandy DiPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/61887)`,
   "tripsit-factsheets": `# DiPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/dipt*
 

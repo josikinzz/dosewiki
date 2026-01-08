@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-METHYLAMINOREX";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md","displayName":"TripSit Factsheets","size":474},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-METHYLAMINOREX.md","displayName":"Wikipedia","size":8874}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md","displayName":"TripSit Factsheets","size":474,"tokens":136},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-METHYLAMINOREX.md","displayName":"Wikipedia","size":8874,"tokens":2353}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-METHYLAMINOREX
 *Source: TripSit Factsheets (tripsit.me)*

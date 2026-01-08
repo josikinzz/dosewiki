@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25C-NBOH";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25C-NBOH.md","displayName":"Isomer Design","size":733},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25C-NBOH.md","displayName":"PsychonautWiki","size":30410},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25C-NBOH.md","displayName":"TripSit Factsheets","size":680},{"id":"wikipedia","fileName":"WIKIPEDIA - 25C-NBOH.md","displayName":"Wikipedia","size":781}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25C-NBOH.md","displayName":"Isomer Design","size":411,"tokens":170},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25C-NBOH.md","displayName":"PsychonautWiki","size":25570,"tokens":6894},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25C-NBOH.md","displayName":"TripSit Factsheets","size":680,"tokens":188},{"id":"wikipedia","fileName":"WIKIPEDIA - 25C-NBOH.md","displayName":"Wikipedia","size":781,"tokens":211}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 25C-NBOH
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=1252*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`COc1cc(Cl)c(cc1CCNCc1ccccc1O)OC\`
 
-**InChI:** \`InChI=1S/C17H20ClNO3/c1-21-16-10-14(18)17(22-2)9-12(16)7-8-19-11-13-5-3-4-6-15(13)20/h3-6,9-10,19-20H,7-8,11H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [58191432](https://www.chemspider.com/Chemical-Structure.58191432.html/)
-- [125181419](https://pubchem.ncbi.nlm.nih.gov/compound/125181419)
-- [25C-NBOH](https://en.wikipedia.org/wiki/25C-NBOH)
-- [25-NB](https://en.wikipedia.org/wiki/25-NB)
-`,
+**InChI:** \`InChI=1S/C17H20ClNO3/c1-21-16-10-14(18)17(22-2)9-12(16)7-8-19-11-13-5-3-4-6-15(13)20/h3-6,9-10,19-20H,7-8,11H2,1-2H3\``,
   "psychonautwiki": `# 25C-NBOH
 *Source: https://psychonautwiki.org/wiki/25C-NBOH*
 
@@ -227,23 +218,7 @@ Tolerance to the effects of 25C-NBOH is built almost immediately after ingestion
 ## External links
 
 - [25C-NBOH (Wikipedia)](https://en.wikipedia.org/wiki/25C-NBOH)
-- [25C-NBOH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1252)
-
-## References
-1. ↑ 1.0 1.1 1.2 [Erowid 2C-C-NBOMe (25C-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2cc_nbome/2cc_nbome_death.shtml)
-2. ↑ Hansen, M. (2010).*Design and synthesis of selective serotonin receptor agonists for positron emission tomography imaging of the brain: PhD thesis*. Faculty of Pharmaceutical Sciences, University of Copenhagen.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9788792719003](http://en.wikipedia.org/wiki/Special:BookSources/9788792719003).
-3. ↑ 3.0 3.1 [Erowid 25I-NBOMe (2C-I-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2ci_nbome/2ci_nbome_death.shtml)
-4. ↑ 4.0 4.1 [Erowid NBOMe (Other or Unknown NBOMe-Compound) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/nbome/nbome_death.shtml)
-5. ↑ Silva, M. E., Heim, R., Strasser, A., Elz, S., Dove, S. (January 2011).["Theoretical studies on the interaction of partial agonists with the 5-HT2A receptor"](http://link.springer.com/10.1007/s10822-010-9400-2).*Journal of Computer-Aided Molecular Design*.**25**(1): 51–66.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s10822-010-9400-2](//doi.org/10.1007%2Fs10822-010-9400-2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0920-654X](//www.worldcat.org/issn/0920-654X).
-6. ↑ Hansen, M., Phonekeo, K., Paine, J. S., Leth-Petersen, S., Begtrup, M., Bräuner-Osborne, H., Kristensen, J. L. (19 March 2014).["Synthesis and Structure–Activity Relationships of N -Benzyl Phenethylamines as 5-HT 2A/2C Agonists"](https://pubs.acs.org/doi/10.1021/cn400216u).*ACS Chemical Neuroscience*.**5**(3): 243–249.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/cn400216u](//doi.org/10.1021%2Fcn400216u).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1948-7193](//www.worldcat.org/issn/1948-7193).
-7. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-8. ↑ List of controlled substances: Portaria SVS/MS nº 344 (Portuguese) | [http://portal.anvisa.gov.br/lista-de-substancias-sujeitas-a-controle-especial](http://portal.anvisa.gov.br/lista-de-substancias-sujeitas-a-controle-especial)
-9. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-10. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-11. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-12. ↑ [https://lakemedelsverket.se/upload/lvfs/HSLF_FS_2015_12.pdf](https://lakemedelsverket.se/upload/lvfs/HSLF_FS_2015_12.pdf)
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ [Misuse of Drugs Act 1971 (S.I. 2014/1106)](https://www.legislation.gov.uk/uksi/2014/1106/made), London: The Stationery Office Limited, 2014, retrieved 5 July 2017NewPP limit report Cached time: 20251218074905 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.055 seconds CPU time usage: 0.339 seconds Real time usage: 0.693 seconds Preprocessor visited node count: 1735/1000000 Post‐expand include size: 169215/2097152 bytes Template argument size: 35332/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15635/5000000 bytes Lua time usage: 0.240/7 seconds Lua virtual size: 8.61 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 539.101 1 -total 25.85% 139.372 4 Template:Citation_needed 18.17% 97.970 4 Template:Citation 16.12% 86.913 2 Template:Fix 15.07% 81.246 4 Template:Category_handler 13.47% 72.633 3 Template:Cite_journal 9.54% 51.419 4 Template:Cite_web 9.28% 50.053 1 Template:SubstanceBox/25C-NBOH 8.70% 46.907 1 Template:SubstanceBox 5.11% 27.552 1 Template:Effects/base`,
+- [25C-NBOH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1252)`,
   "tripsit-factsheets": `# 25C-NBOH
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/25c-nboh*
 

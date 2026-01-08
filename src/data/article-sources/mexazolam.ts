@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mexazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexazolam.md","displayName":"TripSit Factsheets","size":647},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexazolam.md","displayName":"Wikipedia","size":2250}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexazolam.md","displayName":"TripSit Factsheets","size":647,"tokens":181},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexazolam.md","displayName":"Wikipedia","size":2250,"tokens":555}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Mexazolam
 *Source: TripSit Factsheets (tripsit.me)*

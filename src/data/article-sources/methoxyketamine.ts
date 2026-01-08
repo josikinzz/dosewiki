@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxyketamine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxyketamine.md","displayName":"TripSit Factsheets","size":738},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxyketamine.md","displayName":"Wikipedia","size":583}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxyketamine.md","displayName":"TripSit Factsheets","size":738,"tokens":204},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxyketamine.md","displayName":"Wikipedia","size":583,"tokens":146}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Methoxyketamine
 *Source: TripSit Factsheets (tripsit.me)*

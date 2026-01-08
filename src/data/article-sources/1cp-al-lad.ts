@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "1cP-AL-LAD";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1cP-AL-LAD.md","displayName":"Isomer Design","size":685},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1cP-AL-LAD.md","displayName":"PsychonautWiki","size":36380},{"id":"wikipedia","fileName":"WIKIPEDIA - 1cP-AL-LAD.md","displayName":"Wikipedia","size":468}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1cP-AL-LAD.md","displayName":"Isomer Design","size":481,"tokens":230},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1cP-AL-LAD.md","displayName":"PsychonautWiki","size":32163,"tokens":8794},{"id":"wikipedia","fileName":"WIKIPEDIA - 1cP-AL-LAD.md","displayName":"Wikipedia","size":468,"tokens":138}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 1cP-AL-LAD
 *Source: http://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=11396&name=1cP-AL-LAD*
@@ -15,14 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`C=CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)C1CC1)C(=O)N(CC)CC\`
 
-**InChI:** \`InChI=1S/C26H31N3O2/c1-4-12-28-15-19(25(30)27(5-2)6-3)13-21-20-8-7-9-22-24(20)18(14-23(21)28)16-29(22)26(31)17-10-11-17/h4,7-9,13,16-17,19,23H,1,5-6,10-12,14-15H2,2-3H3/t19-,23-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [162368406](https://pubchem.ncbi.nlm.nih.gov/compound/162368406)
-- [1cP-AL-LAD](https://en.wikipedia.org/wiki/1cP-AL-LAD)
-`,
+**InChI:** \`InChI=1S/C26H31N3O2/c1-4-12-28-15-19(25(30)27(5-2)6-3)13-21-20-8-7-9-22-24(20)18(14-23(21)28)16-29(22)26(31)17-10-11-17/h4,7-9,13,16-17,19,23H,1,5-6,10-12,14-15H2,2-3H3/t19-,23-/m1/s1\``,
   "psychonautwiki": `# 1cP-AL-LAD
 *Source: https://psychonautwiki.org/wiki/1cP-AL-LAD*
 
@@ -231,15 +224,7 @@ The LD 50 of 1cP-AL-LAD is unknown. Adverse psychological reactions are common e
 
 ## External links
 
-- [1cP-AL-LAD (Isomer Design)](http://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=11396&name=1cP-AL-LAD)
-
-## References
-1. ↑ Armstrong, B. D.; Paik, E.; Chhith, S.; Lelievre, V.; Waschek, J. A.; Howard, S. G. (2004). "Potentiation of (DL)‐3,4‐methylenedioxymethamphetamine (MDMA)‐induced toxicity by the serotonin 2A receptior partial agonist d‐lysergic acid diethylamide (LSD), and the protection of same by the serotonin 2A/2C receptor antagonist MDL 11,939".*Neuroscience Research Communications*.**35**(2): 83–95.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/nrc.20023](//doi.org/10.1002%2Fnrc.20023).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1520-6769](//www.worldcat.org/issn/1520-6769).
-2. ↑ Gudelsky, Gary A.; Yamamoto, Bryan; Nash, J. Frank (1994). "Potentiation of 3,4-methylenedioxymethamphetamine-induced dopamine release and serotonin neurotoxicity by 5-HT2 receptor agonists".*European Journal of Pharmacology*.**264**(3): 325–330.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(94)90669-6](//doi.org/10.1016%2F0014-2999%2894%2990669-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-3. ↑ Capela, J. P.; Fernandes, E.; Remião, F.; Bastos, M. L.; Meisel, A.; Carvalho, F. (2007). "Ecstasy induces apoptosis via 5-HT2A-receptor stimulation in cortical neurons".*Neurotoxicology*.**28**(4): 868–875.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.neuro.2007.04.005](//doi.org/10.1016%2Fj.neuro.2007.04.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0161-813X](//www.worldcat.org/issn/0161-813X).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[17572501](//www.ncbi.nlm.nih.gov/pubmed/17572501).
-4. ↑ Passie, T.; Halpern, J. H.; Stichtenoth, D. O.; Emrich, H. M.; Hintzen, A.["The Pharmacology of Lysergic Acid Diethylamide: A Review"](https://web.archive.org/web/20130501033627/http://www.maps.org/w3pb/new/2008/2008_Passie_23067_1.pdf)(PDF).*CNS Neuroscience & Therapeutics*.**14**: 295–314.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1755-5949.2008.00059.x](//doi.org/10.1111%2Fj.1755-5949.2008.00059.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1755-5930](//www.worldcat.org/issn/1755-5930). Archived from[the original](http://www.maps.org/w3pb/new/2008/2008_Passie_23067_1.pdf)(PDF)on May 1, 2013. Retrieved January 1, 2020.
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel,psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien: Änderung vom 2. November 2015"](https://www.admin.ch/opc/de/official-compilation/2015/5093.pdf)(PDF)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218074700 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.06 seconds CPU time usage: 0.340 seconds Real time usage: 0.650 seconds Preprocessor visited node count: 1635/1000000 Post‐expand include size: 163269/2097152 bytes Template argument size: 33894/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9926/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 8.08 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 502.616 1 -total 39.15% 196.782 1 Template:Reflist 32.03% 161.007 5 Template:Cite_journal 27.98% 140.642 7 Template:Citation_needed 17.75% 89.217 2 Template:Fix 16.63% 83.571 4 Template:Category_handler 11.53% 57.948 1 Template:SubstanceBox/1cP-AL-LAD 10.92% 54.878 1 Template:SubstanceBox 7.13% 35.831 1 Template:Effects/base 6.44% 32.392 1 Template:Effect_list`,
+- [1cP-AL-LAD (Isomer Design)](http://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=11396&name=1cP-AL-LAD)`,
   "wikipedia": `# 1cP-AL-LAD
 *Source: https://en.wikipedia.org/wiki/1cP-AL-LAD*
 

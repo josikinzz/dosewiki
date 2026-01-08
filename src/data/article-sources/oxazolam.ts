@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Oxazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxazolam.md","displayName":"TripSit Factsheets","size":383},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxazolam.md","displayName":"Wikipedia","size":242}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxazolam.md","displayName":"TripSit Factsheets","size":383,"tokens":108},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxazolam.md","displayName":"Wikipedia","size":242,"tokens":65}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Oxazolam
 *Source: TripSit Factsheets (tripsit.me)*

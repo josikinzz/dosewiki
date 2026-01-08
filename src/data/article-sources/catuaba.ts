@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Catuaba";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Catuaba.md","displayName":"Drug Users Bible","size":3889},{"id":"wikipedia","fileName":"WIKIPEDIA - Catuaba.md","displayName":"Wikipedia","size":1652}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Catuaba.md","displayName":"Drug Users Bible","size":3889,"tokens":973},{"id":"wikipedia","fileName":"WIKIPEDIA - Catuaba.md","displayName":"Wikipedia","size":1652,"tokens":417}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Catuaba
 *Source: Drug Users Bible by Dominic Milton Trott*

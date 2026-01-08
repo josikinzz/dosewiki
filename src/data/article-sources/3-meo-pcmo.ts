@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-MeO-PCMo";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 3-MeO-PCMo.md","displayName":"Disregard Everything I Say","size":11966},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-MeO-PCMo.md","displayName":"Drug Users Bible","size":3488},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCMo.md","displayName":"Isomer Design","size":828},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCMo.md","displayName":"PsychonautWiki","size":23634},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCMo.md","displayName":"TripSit Factsheets","size":443},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCMo.md","displayName":"Wikipedia","size":492}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 3-MeO-PCMo.md","displayName":"Disregard Everything I Say","size":11966,"tokens":3120},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-MeO-PCMo.md","displayName":"Drug Users Bible","size":3488,"tokens":911},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCMo.md","displayName":"Isomer Design","size":381,"tokens":155},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCMo.md","displayName":"PsychonautWiki","size":19380,"tokens":5197},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCMo.md","displayName":"TripSit Factsheets","size":443,"tokens":139},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCMo.md","displayName":"Wikipedia","size":492,"tokens":148}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 3-MeO-PCMo
 *Source: https://disregardeverythingisay.com/post/124626788304/3-meo-pcmo-broken-down-and-described*
@@ -295,17 +295,7 @@ will probably dissuade me from experimenting further.
 
 **SMILES:** \`COc1cccc(c1)C1(CCCCC1)N1CCOCC1\`
 
-**InChI:** \`InChI=1S/C17H25NO2/c1-19-16-7-5-6-15(14-16)17(8-3-2-4-9-17)18-10-12-20-13-11-18/h5-7,14H,2-4,8-13H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [58191437](https://www.chemspider.com/Chemical-Structure.58191437.html/)
-- [132605908](https://pubchem.ncbi.nlm.nih.gov/compound/132605908)
-- [Q20707030](https://www.wikidata.org/wiki/Q20707030)
-- [3-MeO-PCMo](https://en.wikipedia.org/wiki/3-MeO-PCMo)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C17H25NO2/c1-19-16-7-5-6-15(14-16)17(8-3-2-4-9-17)18-10-12-20-13-11-18/h5-7,14H,2-4,8-13H2,1H3\``,
   "psychonautwiki": `# 3-MeO-PCMo
 *Source: https://psychonautwiki.org/wiki/3-MeO-PCMo*
 
@@ -478,19 +468,7 @@ All of these, however, can easily be avoided by simply not using 3-MeO-PCMo on a
 - [3-MeO-PCMo (Wikipedia)](http://en.wikipedia.org/wiki/3-MeO-PCMo)
 - [3-MeO-PCMo (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=970)
 - [3-MeO-PCMo (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-3-MeO-PCMo)
-- [3-MeO-PCMo (Bluelight)](http://www.bluelight.org/vb/threads/758083-Novel-dissociative-3-MeO-PCMo)
-
-## References
-1. ↑ Su, T. P., Wu, X. Z., Cone, E. J., Shukla, K., Gund, T. M., Dodge, A. L., Parish, D. W. (November 1991). "Sigma compounds derived from phencyclidine: identification of PRE-084, a new, selective sigma ligand".*The Journal of Pharmacology and Experimental Therapeutics*.**259**(2): 543–550.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-2. ↑ Ahmadi, A., Khalili, M., Hajikhani, R., Naserbakht, M. (April 2011). "New morpholine analogues of phencyclidine: chemical synthesis and pain perception in rats".*Pharmacology, Biochemistry, and Behavior*.**98**(2): 227–233.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pbb.2010.12.019](//doi.org/10.1016%2Fj.pbb.2010.12.019).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1873-5177](//www.worldcat.org/issn/1873-5177).
-3. ↑ Ahmadi, A., Khalili, M., Hajikhani, R., Naserbakht, M. (2011). "Synthesis and determination of acute and chronic pain activities of 1-[1-(4-methylphenyl) (cyclohexyl)] morpholine as a new phencyclidine derivative in rats".*Arzneimittel-Forschung*.**61**(2): 92–97.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1055/s-0031-1296173](//doi.org/10.1055%2Fs-0031-1296173).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0004-4172](//www.worldcat.org/issn/0004-4172).
-4. ↑ Overton, D. A., Shen, C. F., Ke, G. Y., Gazdick, L. P. (1989). "Discriminable effects of phencyclidine analogs evaluated by multiple drug (PCP versus OTHER) discrimination training".*Psychopharmacology*.**97**(4): 514–520.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF00439557](//doi.org/10.1007%2FBF00439557).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-10. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218075023 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.032 seconds CPU time usage: 0.251 seconds Real time usage: 0.493 seconds Preprocessor visited node count: 1295/1000000 Post‐expand include size: 100880/2097152 bytes Template argument size: 14095/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 12327/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 7.34 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 390.104 1 -total 36.02% 140.509 4 Template:Cite_journal 16.30% 63.572 2 Template:Further 13.69% 53.420 4 Template:Cite_web 12.38% 48.299 1 Template:SubstanceBox/3-MeO-PCMo 11.67% 45.530 1 Template:SubstanceBox 6.26% 24.407 1 Template:Effects/base 5.51% 21.487 1 Template:Effect_list 5.29% 20.634 2 Template:Citation 4.71% 18.372 2 Template:Effect_column`,
+- [3-MeO-PCMo (Bluelight)](http://www.bluelight.org/vb/threads/758083-Novel-dissociative-3-MeO-PCMo)`,
   "tripsit-factsheets": `# 3-MeO-PCMO
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3-meo-pcmo*
 

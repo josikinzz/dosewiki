@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenazepam.md","displayName":"TripSit Factsheets","size":758},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenazepam.md","displayName":"Wikipedia","size":8685}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenazepam.md","displayName":"TripSit Factsheets","size":758,"tokens":197},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenazepam.md","displayName":"Wikipedia","size":8685,"tokens":2229}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Phenazepam
 *Source: TripSit Factsheets (tripsit.me)*

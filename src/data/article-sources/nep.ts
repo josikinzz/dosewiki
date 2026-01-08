@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "NEP";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - NEP.md","displayName":"Isomer Design","size":680},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - NEP.md","displayName":"PsychonautWiki","size":31034},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - NEP.md","displayName":"The Drug Classroom","size":29771},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - NEP.md","displayName":"TripSit Factsheets","size":465},{"id":"wikipedia","fileName":"WIKIPEDIA - NEP.md","displayName":"Wikipedia","size":533}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - NEP.md","displayName":"Isomer Design","size":342,"tokens":140},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - NEP.md","displayName":"PsychonautWiki","size":23017,"tokens":6245},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - NEP.md","displayName":"The Drug Classroom","size":29771,"tokens":7156},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - NEP.md","displayName":"TripSit Factsheets","size":465,"tokens":143},{"id":"wikipedia","fileName":"WIKIPEDIA - NEP.md","displayName":"Wikipedia","size":533,"tokens":164}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# NEP
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=638*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCC(C(=O)c1ccccc1)NCC\`
 
-**InChI:** \`InChI=1S/C13H19NO/c1-3-8-12(14-4-2)13(15)11-9-6-5-7-10-11/h5-7,9-10,12,14H,3-4,8H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [178126](https://www.chemspider.com/Chemical-Structure.178126.html/)
-- [205593](https://pubchem.ncbi.nlm.nih.gov/compound/205593)
-- [Q27274342](https://www.wikidata.org/wiki/Q27274342)
-- [N-Ethylpentedrone](https://en.wikipedia.org/wiki/N-Ethylpentedrone)
-`,
+**InChI:** \`InChI=1S/C13H19NO/c1-3-8-12(14-4-2)13(15)11-9-6-5-7-10-11/h5-7,9-10,12,14H,3-4,8H2,1-2H3\``,
   "psychonautwiki": `# NEP
 *Source: https://psychonautwiki.org/wiki/NEP*
 
@@ -211,28 +202,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 ## External links
 
 - [N-Ethylpentedrone (Wikipedia)](https://en.wikipedia.org/wiki/N-Ethylpentedrone)
-- [NEP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=638)
-
-## References
-1. ↑ 1.0 1.1 1.2 Duart-Castells, L., Nadal-Gratacós, N., Muralter, M., Puster, B., Berzosa, X., Estrada-Tejedor, R., Niello, M., Bhat, S., Pubill, D., Camarasa, J., Sitte, H. H., Escubedo, E., López-Arnau, R. (March 2021).["Role of amino terminal substitutions in the pharmacological, rewarding and psychostimulant profiles of novel synthetic cathinones"](https://linkinghub.elsevier.com/retrieve/pii/S0028390821000290).*Neuropharmacology*.**186**: 108475.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.neuropharm.2021.108475](//doi.org/10.1016%2Fj.neuropharm.2021.108475).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-2. ↑ Liu, C., Jia, W., Li, T., Hua, Z., Qian, Z. (August 2017).["Identification and analytical characterization of nine synthetic cathinone derivatives N -ethylhexedrone, 4-Cl-pentedrone, 4-Cl- α -EAPP, propylone, N -ethylnorpentylone, 6-MeO-bk-MDMA, α -PiHP, 4-Cl- α -PHP, and 4-F- α -PHP: Identification of nine synthetic cathinones"](https://onlinelibrary.wiley.com/doi/10.1002/dta.2136).*Drug Testing and Analysis*.**9**(8): 1162–1171.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2136](//doi.org/10.1002%2Fdta.2136).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-3. ↑ 3.0 3.1 3.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-4. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-6. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-7. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-8. ↑ New blanket ban on synthetic illegal drugs is approved (Portuguese) | [http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil](http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil)
-9. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-10. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-11. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-12. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-13. ↑ ["指定薬物一覧"](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/dl/meisho.pdf)(PDF)(in Japanese). Ministry of Health, Labour and Welfare. Retrieved December 27, 2019.
-14. ↑ ["Svensk författningssamling: Förordningom ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](https://svenskforfattningssamling.se/sites/default/files/sfs/2019-10/SFS2019-612.pdf)(PDF)(in Swedish). Thomson Förlag. Retrieved December 27, 2019.
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-16. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-17. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-18. ↑ [21 U.S. Code § 813 - Treatment of controlled substance analogues](https://www.law.cornell.edu/uscode/text/21/813)
-19. ↑NewPP limit report Cached time: 20251218075647 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.065 seconds CPU time usage: 0.387 seconds Real time usage: 0.811 seconds Preprocessor visited node count: 2293/1000000 Post‐expand include size: 145678/2097152 bytes Template argument size: 11960/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 25392/5000000 bytes Lua time usage: 0.320/7 seconds Lua virtual size: 8.66 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 650.993 1 -total 29.01% 188.869 6 Template:Cite_journal 15.77% 102.670 6 Template:Cite_web 12.45% 81.031 1 Template:Citation_needed 10.83% 70.524 1 Template:Fix 10.64% 69.279 1 Template:Further 10.14% 66.003 2 Template:Category_handler 9.19% 59.853 1 Template:SubstanceBox/NEP 8.64% 56.269 1 Template:SubstanceBox 6.89% 44.876 4 Template:Citation`,
+- [NEP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=638)`,
   "thedrugclassroom": `# N-Ethylpentedrone (NEP)
 *Source: https://thedrugclassroom.com/video/n-ethylpentedrone-nep/*
 

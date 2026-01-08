@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MeO-Butyrfentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-Butyrfentanyl.md","displayName":"TripSit Factsheets","size":575}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-Butyrfentanyl.md","displayName":"TripSit Factsheets","size":575,"tokens":150}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-MeO-Butyrfentanyl
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Isoproscaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Isoproscaline.md","displayName":"Isomer Design","size":4456},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isoproscaline.md","displayName":"TripSit Factsheets","size":738},{"id":"wikipedia","fileName":"WIKIPEDIA - Isoproscaline.md","displayName":"Wikipedia","size":1653}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Isoproscaline.md","displayName":"Isomer Design","size":4456,"tokens":1208},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isoproscaline.md","displayName":"TripSit Factsheets","size":738,"tokens":198},{"id":"wikipedia","fileName":"WIKIPEDIA - Isoproscaline.md","displayName":"Wikipedia","size":1653,"tokens":424}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Isoproscaline
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=92*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-MeO-PCE";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCE.md","displayName":"Isomer Design","size":872},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCE.md","displayName":"PsychonautWiki","size":32014},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCE.md","displayName":"TripSit Factsheets","size":501},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCE.md","displayName":"Wikipedia","size":1512}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCE.md","displayName":"Isomer Design","size":429,"tokens":174},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCE.md","displayName":"PsychonautWiki","size":27021,"tokens":7512},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCE.md","displayName":"TripSit Factsheets","size":501,"tokens":157},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCE.md","displayName":"Wikipedia","size":1512,"tokens":406}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 3-MeO-PCE
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=966*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC1(CCCCC1)c1cccc(c1)OC\`
 
-**InChI:** \`InChI=1S/C15H23NO/c1-3-16-15(10-5-4-6-11-15)13-8-7-9-14(12-13)17-2/h7-9,12,16H,3-6,10-11H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [58191438](https://www.chemspider.com/Chemical-Structure.58191438.html/)
-- [57461569](https://pubchem.ncbi.nlm.nih.gov/compound/57461569)
-- [Q20707021](https://www.wikidata.org/wiki/Q20707021)
-- [3-MeO-PCE](https://en.wikipedia.org/wiki/3-MeO-PCE)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C15H23NO/c1-3-16-15(10-5-4-6-11-15)13-8-7-9-14(12-13)17-2/h7-9,12,16H,3-6,10-11H2,1-2H3\``,
   "psychonautwiki": `# 3-MeO-PCE
 *Source: https://psychonautwiki.org/wiki/3-MeO-PCE*
 
@@ -267,26 +257,7 @@ All of these, however, can easily be avoided by simply not using 3-MeO-PCE on a 
 
 ## Literature
 
-- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-
-## References
-1. ↑ 1.0 1.1 3-MeO-PCE Psychosis (PsychonautWiki) | [https://psychonautwiki.org/wiki/3-MeO-PCE#Toxicity_and_harm_potential](https://psychonautwiki.org/wiki/3-MeO-PCE#Toxicity_and_harm_potential)
-2. ↑ 3-MeO-PCE - Explore - Google Trends | [https://www.google.com/trends/explore?date=all&q=3-MeO-PCE](https://www.google.com/trends/explore?date=all&q=3-MeO-PCE)
-3. ↑ Wallach, J., Colestock, T., Cicali, B., Elliott, S. P., Kavanagh, P. V., Adejare, A., Dempster, N. M., Brandt, S. D. (August 2016). "Syntheses and analytical characterizations of N-alkyl-arylcyclohexylamines".*Drug Testing and Analysis*.**8**(8): 801–815.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1861](//doi.org/10.1002%2Fdta.1861).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7611](//www.worldcat.org/issn/1942-7611).
-4. ↑ De Paoli, G., Brandt, S. D., Wallach, J., Archer, R. P., Pounder, D. J. (1 June 2013).["From the Street to the Laboratory: Analytical Profiles of Methoxetamine, 3-Methoxyeticyclidine and 3-Methoxyphencyclidine and their Determination in Three Biological Matrices"](https://academic.oup.com/jat/article-lookup/doi/10.1093/jat/bkt023).*Journal of Analytical Toxicology*.**37**(5): 277–283.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bkt023](//doi.org/10.1093%2Fjat%2Fbkt023).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0146-4760](//www.worldcat.org/issn/0146-4760).
-5. ↑ [nsddb.eu](http://nsddb.eu/substance/296/)
-6. ↑ Roth, B. L., Gibbons, S., Arunotayanun, W., Huang, X.-P., Setola, V., Treble, R., Iversen, L. (22 March 2018).["Correction: The Ketamine Analogue Methoxetamine and 3- and 4-Methoxy Analogues of Phencyclidine Are High Affinity and Selective Ligands for the Glutamate NMDA Receptor"](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0194984).*PLOS ONE*.**13**(3): e0194984.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pone.0194984](//doi.org/10.1371%2Fjournal.pone.0194984).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-6203](//www.worldcat.org/issn/1932-6203).
-7. ↑ 3-MeO-PCE (TripSit) | [https://wiki.tripsit.me/wiki/3-MeO-PCE](https://wiki.tripsit.me/wiki/3-MeO-PCE)
-8. ↑ [https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch](https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch)
-9. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-10. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-11. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-14. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-15. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)
-a
-NewPP limit report Cached time: 20251218075020 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.078 seconds CPU time usage: 0.329 seconds Real time usage: 0.657 seconds Preprocessor visited node count: 1907/1000000 Post‐expand include size: 169441/2097152 bytes Template argument size: 28159/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15478/5000000 bytes Lua time usage: 0.230/7 seconds Lua virtual size: 8.34 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 490.757 1 -total 26.68% 130.916 3 Template:Cite_journal 14.22% 69.765 4 Template:Cite_web 13.22% 64.870 1 Template:SubstanceBox/3-MeO-PCE 12.56% 61.619 1 Template:SubstanceBox 11.86% 58.186 2 Template:Further 10.59% 51.995 3 Template:Citation_needed 9.26% 45.432 1 Template:Fix 8.81% 43.236 3 Template:Citation 8.75% 42.929 2 Template:Category_handler`,
+- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)`,
   "tripsit-factsheets": `# 3-MeO-PCE
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3-meo-pce*
 

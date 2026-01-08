@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "α-PVT";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PVT.md","displayName":"TripSit Factsheets","size":480},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PVT.md","displayName":"Wikipedia","size":965}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - α-PVT.md","displayName":"TripSit Factsheets","size":480,"tokens":132},{"id":"wikipedia","fileName":"WIKIPEDIA - α-PVT.md","displayName":"Wikipedia","size":965,"tokens":252}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# α-PVT
 *Source: TripSit Factsheets (tripsit.me)*

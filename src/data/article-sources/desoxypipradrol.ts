@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Desoxypipradrol";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Desoxypipradrol.md","displayName":"Isomer Design","size":864},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Desoxypipradrol.md","displayName":"PsychonautWiki","size":31673},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Desoxypipradrol.md","displayName":"The Drug Classroom","size":3163},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Desoxypipradrol.md","displayName":"TripSit Factsheets","size":1047},{"id":"wikipedia","fileName":"WIKIPEDIA - Desoxypipradrol.md","displayName":"Wikipedia","size":4281}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Desoxypipradrol.md","displayName":"Isomer Design","size":431,"tokens":165},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Desoxypipradrol.md","displayName":"PsychonautWiki","size":25338,"tokens":6743},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Desoxypipradrol.md","displayName":"The Drug Classroom","size":1861,"tokens":478},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Desoxypipradrol.md","displayName":"TripSit Factsheets","size":1047,"tokens":302},{"id":"wikipedia","fileName":"WIKIPEDIA - Desoxypipradrol.md","displayName":"Wikipedia","size":4281,"tokens":1090}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Desoxypipradrol
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=557*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`C1CCC(NC1)C(c1ccccc1)c1ccccc1\`
 
-**InChI:** \`InChI=1S/C18H21N/c1-3-9-15(10-4-1)18(16-11-5-2-6-12-16)17-13-7-8-14-19-17/h1-6,9-12,17-19H,7-8,13-14H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [141045](https://www.chemspider.com/Chemical-Structure.141045.html/)
-- [160506](https://pubchem.ncbi.nlm.nih.gov/compound/160506)
-- [Q414480](https://www.wikidata.org/wiki/Q414480)
-- [Desoxypipradrol](https://en.wikipedia.org/wiki/Desoxypipradrol)
-- [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
-`,
+**InChI:** \`InChI=1S/C18H21N/c1-3-9-15(10-4-1)18(16-11-5-2-6-12-16)17-13-7-8-14-19-17/h1-6,9-12,17-19H,7-8,13-14H2\``,
   "psychonautwiki": `# Desoxypipradrol
 *Source: https://psychonautwiki.org/wiki/Desoxypipradrol*
 
@@ -207,26 +197,7 @@ User reports indicate that chronic abuse or single exposure overdose of desoxypi
 ## External links
 
 - [Desoxypipradrol (Wikipedia)](http://en.wikipedia.org/wiki/Desoxypipradrol)
-- [Desoxypipradrol (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=557)
-
-## References
-1. ↑ Ferris, R. M., Tang, F. L. (September 1979). "Comparison of the effects of the isomers of amphetamine, methylphenidate and deoxypipradrol on the uptake of l-[3H]norepinephrine and [3H]dopamine by synaptic vesicles from rat whole brain, striatum and hypothalamus".*The Journal of Pharmacology and Experimental Therapeutics*.**210**(3): 422–428.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-2. ↑ Baselt, R. C. (2014).*Disposition of toxic drugs and chemicals in man*(Tenth edition ed.). Biomedical Publications.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780962652394](http://en.wikipedia.org/wiki/Special:BookSources/9780962652394). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-4. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-5. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. September 27, 2015. Retrieved October 1, 2015.
-6. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-7. ↑ ["Achtundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl114s1999.pdf)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 25, 2019.
-8. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-9. ↑ Resolution of the Government of the Russian Federation | [https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347)
-10. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-11. ↑ [Import ban on psychoactive drug](https://www.gov.uk/government/news/import-ban-on-psychoactive-drug)
-12. ↑ ["ACMD advice on 'Ivory Wave'"](http://www.homeoffice.gov.uk/publications/alcohol-drugs/drugs/acmd1/advice-ivory-wave?view=Standard&pubID=840140)(PDF). UK Home Office. January 27, 2012. Retrieved March 11, 2012.
-13. ↑ ["The Misuse of Drugs Act 1971 (Amendment) Order 2012"](http://www.legislation.gov.uk/ukdsi/2012/9780111520857/memorandum/contents)(PDF). UK Home Office. January 27, 2012. Retrieved March 11, 2012.
-14. ↑ ["Government accepts ACMD's advice to schedule D2PM, 2-DPMP and phenzepam"](http://www.homeoffice.gov.uk/publications/alcohol-drugs/drugs/2-dpmp-compounds/D2PM?view=Binary)(PDF). UK Home Office. January 27, 2012. Retrieved March 11, 2012.
-15. ↑ ["ACMD letter on further advice on the classification of two steroidal substances - February 2012"](http://www.homeoffice.gov.uk/publications/agencies-public-bodies/acmd1/acmd-steroids-advice-2012?view=Standard&pubID=1007793)(PDF). UK Home Office. February 14, 2012. Retrieved March 18, 2012.
-16. ↑ ["Draft Misuse of Drugs Act 1971 (Amendment) Order 2012"](http://www.publications.parliament.uk/pa/cm201012/cmgeneral/deleg1/120423/120423s01.htm). UK Home Office. April 23, 2012. Retrieved May 4, 2012.
-17. ↑ 17.0 17.1 ["A Change to the Misuse of Drugs Act 1971: control of pipradrol-related compounds and phenazepam"](http://homeoffice.gov.uk/about-us/corporate-publications-strategy/home-office-circulars/circulars-2012/014-2012/). UK Home Office. June 7, 2012. Retrieved July 30, 2012.NewPP limit report Cached time: 20251218075318 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.068 seconds CPU time usage: 0.379 seconds Real time usage: 0.689 seconds Preprocessor visited node count: 2193/1000000 Post‐expand include size: 155026/2097152 bytes Template argument size: 22860/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 20958/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.57 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 518.840 1 -total 27.78% 144.113 1 Template:Effects/base 27.18% 141.029 1 Template:Effect_list 26.58% 137.912 2 Template:Effect_column 26.03% 135.056 11 Template:Cite_web 24.77% 128.501 1 Template:Effects/physical 24.25% 125.808 4 Template:Effect_panel 23.65% 122.714 2 Template:Citation_needed 15.78% 81.889 3 Template:Cite_journal 14.53% 75.405 1 Template:Fix`,
+- [Desoxypipradrol (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=557)`,
   "thedrugclassroom": `# 2-DPMP (Desoxypipradrol)
 *Source: https://thedrugclassroom.com/video/2-dpmp-desoxypipradrol/*
 
@@ -274,28 +245,7 @@ Onset: 01:00 – 02:00
 
 ---
 
----
-
-## References
-
-**(2014)** [Designer psychostimulants: Pharmacology and differences](http://www.sciencedirect.com/science/article/pii/S0028390814000227)
-
-**(2012)** [Use and acute toxicity associated with the novel psychoactive substances diphenylprolinol (D2PM) and desoxypipradrol (2-DPMP)](http://www.tandfonline.com/doi/abs/10.3109/15563650.2012.716158)
-
-**(2012)** [Neurochemical profiles of some novel psychoactive substances](http://www.sciencedirect.com/science/article/pii/S0014299912010114)
-
-**(2012)** [Research chemicals marketed as legal highs: The case of pipradrol derivatives](http://www.sciencedirect.com/science/article/pii/S0378427412011113)
-
-**(2012)** [‘Ivory wave’ toxicity in recreational drug users; integration of clinical and poisons information services to manage legal high poisoning](http://www.tandfonline.com/doi/abs/10.3109/15563650.2011.647992)
-
-**(2012)** [2-DPMP (desoxypipradrol, 2-benzhydrylpiperidine, 2-phenylmethylpiperidine) and D2PM (diphenyl-2-pyrrolidin-2-yl-methanol, diphenylprolinol): A preliminary review](http://www.sciencedirect.com/science/article/pii/S0278584612001236)
-
-**(2011)** [Desoxypipradrol is more potent than cocaine on evoked dopamine efflux in the nucleus accumbens](http://jop.sagepub.com/content/26/7/1036.short)
-
----
-
-## Test Results
-`,
+---`,
   "tripsit-factsheets": `# 2-DPMP
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/2-dpmp*
 

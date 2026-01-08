@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tetrahydrofuran-Fentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tetrahydrofuran-Fentanyl.md","displayName":"TripSit Factsheets","size":405}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tetrahydrofuran-Fentanyl.md","displayName":"TripSit Factsheets","size":405,"tokens":105}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Tetrahydrofuran-Fentanyl
 *Source: TripSit Factsheets (tripsit.me)*

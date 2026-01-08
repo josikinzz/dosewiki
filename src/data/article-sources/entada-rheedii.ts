@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Entada_Rheedii";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Entada_Rheedii.md","displayName":"Drug Users Bible","size":3768},{"id":"wikipedia","fileName":"WIKIPEDIA - Entada_Rheedii.md","displayName":"Wikipedia","size":1883}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Entada_Rheedii.md","displayName":"Drug Users Bible","size":3768,"tokens":951},{"id":"wikipedia","fileName":"WIKIPEDIA - Entada_Rheedii.md","displayName":"Wikipedia","size":1883,"tokens":457}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Entada Rheedii
 *Source: Drug Users Bible by Dominic Milton Trott*

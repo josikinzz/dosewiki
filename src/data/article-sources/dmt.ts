@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DMT";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - DMT.md","displayName":"Disregard Everything I Say","size":17653},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - DMT.md","displayName":"Drug Users Bible","size":8261},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DMT.md","displayName":"Isomer Design","size":28084},{"id":"saferparty","fileName":"SAFERPARTY - DMT.md","displayName":"Safer Party","size":4136},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DMT.md","displayName":"The Drug Classroom","size":38463},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DMT.md","displayName":"TripSit Factsheets","size":3281},{"id":"wikipedia","fileName":"WIKIPEDIA - DMT.md","displayName":"Wikipedia","size":60864}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - DMT.md","displayName":"Disregard Everything I Say","size":17653,"tokens":4256},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - DMT.md","displayName":"Drug Users Bible","size":8261,"tokens":2045},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DMT.md","displayName":"Isomer Design","size":28084,"tokens":7461},{"id":"saferparty","fileName":"SAFERPARTY - DMT.md","displayName":"Safer Party","size":4136,"tokens":994},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DMT.md","displayName":"The Drug Classroom","size":27332,"tokens":7154},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DMT.md","displayName":"TripSit Factsheets","size":3281,"tokens":881},{"id":"wikipedia","fileName":"WIKIPEDIA - DMT.md","displayName":"Wikipedia","size":60864,"tokens":15152}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# DMT
 *Source: https://disregardeverythingisay.com/post/21660249429/dmt-broken-down-and-described*
@@ -1121,138 +1121,7 @@ Stimulants, other psychedelics, and tramadol when using DMT by itself (not ayahu
 
 ## Test Videos
 
----
-
-## References
-
-**(2016)** [Inhibition of alpha oscillations through serotonin-2A receptor activation underlies the visual effects of ayahuasca in humans.](https://www.ncbi.nlm.nih.gov/pubmed/27039035)
-
-**(2016)** [A Model for the Application of Target-Controlled Intravenous Infusion for a Prolonged Immersive DMT Psychedelic Experience](http://journal.frontiersin.org/article/10.3389/fphar.2016.00211/full)
-
-**(2016)** [Exploring the therapeutic potential of Ayahuasca: acute intake increases mindfulness-related capacities.](https://www.ncbi.nlm.nih.gov/pubmed/26612618)
-
-**(2016)** [Neuropharmacology of N,N-dimethyltryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/27126737)
-
-**(2016)** [Dimethyltryptamine (DMT): a biochemical Swiss Army knife in neuroinflammation and neuroprotection?](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4828992/)
-
-**(2016)** [The Endogenous Hallucinogen and Trace Amine N,N-Dimethyltryptamine (DMT) Displays Potent Protective Effects against Hypoxia via Sigma-1 Receptor Activation in Human Primary iPSC-Derived Cortical Neurons and Microglia-Like Immune Cells](http://journal.frontiersin.org/article/10.3389/fnins.2016.00423/full)
-
-**(2015)** [N,N-Dimethyltryptamine-Induced Psychosis.](https://www.ncbi.nlm.nih.gov/pubmed/26166234)
-
-**(2015)** [Ritualistic Use of Ayahuasca versus Street Use of Similar Substances Seized by the Police: A Key Factor Involved in the Potential for Intoxications and Overdose?](https://www.ncbi.nlm.nih.gov/pubmed/25950593)
-
-**(2015)** [On the transmethylation hypothesis: stress, N,N-dimethyltryptamine, and positive symptoms of psychosis.](https://www.ncbi.nlm.nih.gov/pubmed/25362533)
-
-**(2015)** [The Role of 5-HT2A, 5-HT2C and mGlu2 Receptors in the Behavioral Effects of Tryptamine Hallucinogens N,N-Dimethyltryptamine and N,N-Diisopropyltryptamine in Rats and Mice](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4282596/)
-
-**(2015)** [New World Tryptamine Hallucinogens and the Neuroscience of Ayahuasca.](https://www.ncbi.nlm.nih.gov/pubmed/25655746)
-
-**(2014)** [N, N-Dimethyltryptamine and biological reductive accounts for religious and spiritual experiences](http://digitalcommons.liberty.edu/cgi/viewcontent.cgi?article=1006&context=symp_grad)
-
-**(2014)** [Psychedelic N,N-Dimethyltryptamine and 5-Methoxy-N,N-Dimethyltryptamine Modulate Innate and Adaptive Inflammatory Responses through the Sigma-1 Receptor of Human Monocyte-Derived Dendritic Cells](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0106533)
-
-**(2014)** [Noncompetitive inhibition of indolethylamine-N-methyltransferase by N,N-dimethyltryptamine and N,N-dimethylaminopropyltryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/24730580)
-
-**(2013)** [A possibly sigma-1 receptor mediated role of dimethyltryptamine in tissue protection, regeneration, and immunity.A possibly sigma-1 receptor mediated role of dimethyltryptamine in tissue protection, regeneration, and immunity.](https://www.ncbi.nlm.nih.gov/pubmed/23619992)
-
-**(2013)** [Building Alien Worlds— The Neuropsychological and Evolutionary Implications of the Astonishing Psychoactive Effects of N,N-Dimethyltryptamine (DMT)](https://www.researchgate.net/publication/277281153_ESSAY_Building_Alien_Worlds-_The_Neuropsychological_and_Evolutionary_Implications_of_the_Astonishing_Psychoactive_Effects_of_NN-Dimethyltryptamine_DMT)
-
-**(2013)** [Dimethyltryptamine (DMT): Prevalence, user characteristics and abuse liability in a large global sample](http://journals.sagepub.com/doi/abs/10.1177/0269881113513852)
-
-**(2013)** [LC/MS/MS analysis of the endogenous dimethyltryptamine hallucinogens, their precursors, and major metabolites in rat pineal gland microdialysate.](https://www.ncbi.nlm.nih.gov/pubmed/23881860)
-
-**(2012)** [A critical review of reports of endogenous psychedelic N, N-dimethyltryptamines in humans: 1955-2010.](https://www.ncbi.nlm.nih.gov/pubmed/22371425)
-
-**(2012)** [Does N,N-Dimethyltryptamine (DMT) Adequately Explain Near-Death Experiences?](https://www.academia.edu/18868446/Does_N_N-Dimethyltryptamine_DMT_Adequately_Explain_Near-Death_Experiences)
-
-**(2012)** [Personality, Psychopathology, Life Attitudes and Neuropsychological Performance among Ritual Users of Ayahuasca: A Longitudinal Study](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0042421)
-
-**(2012)** [Seeing with the eyes shut: neural basis of enhanced imagery following Ayahuasca ingestion.](https://www.ncbi.nlm.nih.gov/pubmed/21922603)
-
-**(2012)** [Recreational use of naturally occurring dimethyltryptamine – contributing to psychosis?](http://journals.sagepub.com/doi/full/10.1177/0004867412462749)
-
-**(2011)** [Discarnate entities and dimethyltryptamine (DMT): Psychopharmacology, phenomenology and ontology](https://www.researchgate.net/publication/258051832_Discarnate_entities_and_dimethyltryptamine_DMT_Psychopharmacology_phenomenology_and_ontology)
-
-**(2010)** [Assessment of addiction severity among ritual users of ayahuasca.](https://www.ncbi.nlm.nih.gov/pubmed/20554400)
-
-**(2010)** [Dimethyltryptamine (DMT): subjective effects and patterns of use among Australian recreational users.](https://www.ncbi.nlm.nih.gov/pubmed/20570058)
-
-**(2010)** [The Hallucinogen N,N-Dimethyltryptamine (DMT) Is an Endogenous Sigma-1 Receptor Regulator](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2947205/)
-
-**(2009)** [Dimethyltryptamine (DMT) a Psychedelic](https://link.springer.com/chapter/10.1007%2F978-90-481-2448-0_35)
-
-**(2009)** [When the endogenous hallucinogenic trace amine N,N-dimethyltryptamine meets the sigma-1 receptor.](https://www.ncbi.nlm.nih.gov/pubmed/19278957)
-
-**(2009)** [Gas chromatographic analysis of dimethyltryptamine and beta-carboline alkaloids in ayahuasca, an Amazonian psychoactive plant beverage.](https://www.ncbi.nlm.nih.gov/pubmed/19140116)
-
-**(2009)** [Dimethyltryptamine and other hallucinogenic tryptamines exhibit substrate behavior at the serotonin uptake transporter and the vesicle monoamine transporter.](https://www.ncbi.nlm.nih.gov/pubmed/19756361)
-
-**(2008)** [Identification of N,N-dimethyltryptamine and beta-carbolines in psychotropic ayahuasca beverage.](https://www.ncbi.nlm.nih.gov/pubmed/18506697)
-
-**(2008)** [Phenomenology of N,N-Dimethyltryptamine Use: A Thematic Analysis](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.583.1262&rep=rep1&type=pdf)
-
-**(2007)** [Ayahuasca in the treatment of Addictions](http://www.takiwasi.com/docs/arti_ing/ayahuasca_in_treatment_addictions.pdf)
-
-**(2007)** [Risk assessment of ritual use of oral dimethyltryptamine (DMT) and harmala alkaloids.](https://www.ncbi.nlm.nih.gov/pubmed/17207120)
-
-**(2007)** [Effects of ayahuasca on psychometric measures of anxiety, panic-like and hopelessness in Santo Daime members.](https://www.ncbi.nlm.nih.gov/pubmed/17532158)
-
-**(2006)** [The globalization of ayahuasca: Harm reduction or benefit maximization?](http://www.sciencedirect.com/science/article/pii/S0955395906002283)
-
-**(2005)** [Altered states of consciousness and short-term psychological after-effects induced by the first time ritual use of ayahuasca in an urban context in Brazil.](https://www.ncbi.nlm.nih.gov/pubmed/16149333)
-
-**(2005)** [Ayahuasca in adolescence: a preliminary psychiatric assessment.](https://www.ncbi.nlm.nih.gov/pubmed/16149324)
-
-**(2005)** [Report on psychoactive drug use among adolescents using ayahuasca within a religious context.](https://www.ncbi.nlm.nih.gov/pubmed/16149326)
-
-**(2005)** [Psychological effects of (S)-ketamine and N,N-dimethyltryptamine (DMT): a double-blind, cross-over study in healthy volunteers.](https://www.ncbi.nlm.nih.gov/pubmed/16342002)
-
-**(2005)** [Drug tourism or spiritual healing? Ayahuasca seekers in Amazonia.](https://www.ncbi.nlm.nih.gov/pubmed/16149335)
-
-**(2005)** [Endogenous psychoactive tryptamines reconsidered: an anxiolytic role for dimethyltryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/15780487)
-
-**(2005)** [Ayahuasca in adolescence: a neuropsychological assessment.](https://www.ncbi.nlm.nih.gov/pubmed/16149323)
-
-**(2003)** [Human pharmacology of ayahuasca: subjective and cardiovascular effects, monoamine metabolite excretion, and pharmacokinetics.](https://www.ncbi.nlm.nih.gov/pubmed/12660312)
-
-**(2002)** [Determination of N,N-dimethyltryptamine and beta-carboline alkaloids in human plasma following oral administration of Ayahuasca.](https://www.ncbi.nlm.nih.gov/pubmed/12361741)
-
-**(2001)** [Subjective effects and tolerability of the South American psychoactive beverage Ayahuasca in healthy volunteers.](https://www.ncbi.nlm.nih.gov/pubmed/11292011)
-
-**(1999)** [Pharmahuasca: human pharmacology of oral DMT plus harmine.](https://www.ncbi.nlm.nih.gov/pubmed/10438001)
-
-**(1998)** [Agonist properties of N,N-dimethyltryptamine at serotonin 5-HT2A and 5-HT2C receptors.](https://www.ncbi.nlm.nih.gov/pubmed/9768567)
-
-**(1996)** [Human psychopharmacology of N,N-dimethyltryptamine.](https://www.ncbi.nlm.nih.gov/pubmed/8788488)
-
-**(1996)** [Quantitation of N,N-dimethyltryptamine and harmala alkaloids in human plasma after oral dosing with ayahuasca.](https://www.ncbi.nlm.nih.gov/pubmed/8889686)
-
-**(1996)** [Differential Tolerance to Biological and Subjective Effects of Four Closely Spaced Doses of N,N-Dimethyltryptamine in Humans](http://www.maps.org/research-archive/w3pb/1996/1996_Strassman_22710_1.pdf)
-
-**(1994)** [Dose-Response Study of N,N-Dimethyltryptamine in Humans: II. Subjective Effects and Preliminary Results of a New Rating Scale](http://www.maps.org/research-archive/w3pb/1994/1994_Strassman_22714_1.pdf)
-
-**(1994)** [Dose-response study of N,N-dimethyltryptamine in humans. I. Neuroendocrine, autonomic, and cardiovascular effects.](https://www.ncbi.nlm.nih.gov/pubmed/8297216)
-
-**(1991)** [Differential interactions of dimethyltryptamine (DMT) with 5-HT1A and 5-HT2 receptors.](https://www.ncbi.nlm.nih.gov/pubmed/1828347)
-
-**(1989)** [Sociopsychotherapeutic functions of ayahuasca healing in Amazonia.](https://www.ncbi.nlm.nih.gov/pubmed/2656954)
-
-**(1981)** [N, N-dimethyltryptamine: an endogenous hallucinogen.](https://www.ncbi.nlm.nih.gov/pubmed/6792104)
-
-**(1976)** [Dimethyltryptamine levels in blood of schizophrenic patients and control subjects.](https://www.ncbi.nlm.nih.gov/pubmed/803203)
-
-**(1976)** [DMT & TMA-2](http://www.tandfonline.com/doi/abs/10.1080/02791072.1976.10471846)
-
-**(1973)** [The effects of N,N-dimethyltryptamine on operant behavior in squirrel monkeys](https://link.springer.com/article/10.1007/BF00422642)
-
-**(1972)** [“Ayahuasca,” the South American Hallucinogenic Drink: An Ethnobotanical and Chemical Investigation](https://www.jstor.org/stable/4253328?seq=1#page_scan_tab_contents)
-
-**(1970)** [Effects of psilocybin, dimethyltryptamine and various lysergic acid derivatives on photically-induced epilepsy in the baboon (Papio papio).](https://www.ncbi.nlm.nih.gov/pubmed/4992165)
-
-**(1964)** [The effect of N,N-Dimethyltryptamine in human subjects tolerance to lysergic acid diethylamide](https://www.ncbi.nlm.nih.gov/pubmed/14138757)
-
-**(1958)** [Dimethyltryptamine Experiments with Psychotics](http://bjp.rcpsych.org/content/104/435/445)
-`,
+---`,
   "tripsit-factsheets": `# DMT
 *Source: TripSit Factsheets (tripsit.me)*
 

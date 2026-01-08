@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "1D-LSD";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 1D-LSD.md","displayName":"Wikipedia","size":997}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 1D-LSD.md","displayName":"Wikipedia","size":997,"tokens":284}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 1D-LSD
 *Source: https://en.wikipedia.org/wiki/1D-LSD*

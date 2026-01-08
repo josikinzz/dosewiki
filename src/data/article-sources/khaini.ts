@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Khaini";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Khaini.md","displayName":"Drug Users Bible","size":3604}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Khaini.md","displayName":"Drug Users Bible","size":3604,"tokens":912}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Khaini
 *Source: Drug Users Bible by Dominic Milton Trott*

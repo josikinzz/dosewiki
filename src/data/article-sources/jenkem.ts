@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Jenkem";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Jenkem.md","displayName":"TripSit Factsheets","size":124},{"id":"wikipedia","fileName":"WIKIPEDIA - Jenkem.md","displayName":"Wikipedia","size":8097}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Jenkem.md","displayName":"TripSit Factsheets","size":124,"tokens":33},{"id":"wikipedia","fileName":"WIKIPEDIA - Jenkem.md","displayName":"Wikipedia","size":8097,"tokens":2171}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Jenkem
 *Source: TripSit Factsheets (tripsit.me)*

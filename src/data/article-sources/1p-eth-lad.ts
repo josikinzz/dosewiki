@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "1P-ETH-LAD";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 1P-ETH-LAD.md","displayName":"Drug Users Bible","size":1217},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1P-ETH-LAD.md","displayName":"Isomer Design","size":836},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1P-ETH-LAD.md","displayName":"PsychonautWiki","size":26335},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1P-ETH-LAD.md","displayName":"TripSit Factsheets","size":404},{"id":"wikipedia","fileName":"WIKIPEDIA - 1P-ETH-LAD.md","displayName":"Wikipedia","size":1200}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 1P-ETH-LAD.md","displayName":"Drug Users Bible","size":1217,"tokens":318},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 1P-ETH-LAD.md","displayName":"Isomer Design","size":502,"tokens":225},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 1P-ETH-LAD.md","displayName":"PsychonautWiki","size":21705,"tokens":5962},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1P-ETH-LAD.md","displayName":"TripSit Factsheets","size":404,"tokens":126},{"id":"wikipedia","fileName":"WIKIPEDIA - 1P-ETH-LAD.md","displayName":"Wikipedia","size":1200,"tokens":328}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 1P-ETH-LAD
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -46,16 +46,7 @@ log is not
 
 **SMILES:** \`CCN1C[C@@H](C=C2[C@H]1Cc1cn(c3c1c2ccc3)C(=O)CC)C(=O)N(CC)CC\`
 
-**InChI:** \`InChI=1S/C24H31N3O2/c1-5-22(28)27-15-16-13-21-19(18-10-9-11-20(27)23(16)18)12-17(14-26(21)8-4)24(29)25(6-2)7-3/h9-12,15,17,21H,5-8,13-14H2,1-4H3/t17-,21-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [52085137](https://www.chemspider.com/Chemical-Structure.52085137.html/)
-- [119025859](https://pubchem.ncbi.nlm.nih.gov/compound/119025859)
-- [Q27279820](https://www.wikidata.org/wiki/Q27279820)
-- [1P-ETH-LAD](https://en.wikipedia.org/wiki/1P-ETH-LAD)
-`,
+**InChI:** \`InChI=1S/C24H31N3O2/c1-5-22(28)27-15-16-13-21-19(18-10-9-11-20(27)23(16)18)12-17(14-26(21)8-4)24(29)25(6-2)7-3/h9-12,15,17,21H,5-8,13-14H2,1-4H3/t17-,21-/m1/s1\``,
   "psychonautwiki": `# 1P-ETH-LAD
 *Source: https://psychonautwiki.org/wiki/1P-ETH-LAD*
 
@@ -235,20 +226,7 @@ It is unclear in many countries whether this compound is legal or not and one sh
 
 ### Discussion
 
-- [The Small & Handy 1P-ETH-LAD Thread (Bluelight)](https://www.bluelight.org/xf/threads/781221)
-
-## References
-1. ↑ ["1P-ETH-LAD (Google Trends)"](https://trends.google.com/trends/explore?date=all&q=1P-ETH-LAD). Retrieved January 1, 2020.
-2. ↑ [Nichols, David E.](https://psychonautwiki.org/wiki/David_E._Nichols)(2017). "Chemistry and Structure–Activity Relationships of Psychedelics". In Halberstadt, Adam L.; Vollenweider, Franz X.;[Nichols, David E.](https://psychonautwiki.org/wiki/David_E._Nichols)*Behavioral Neurobiology of Psychedelic Drugs*. pp. 1–43.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/7854_2017_475](//doi.org/10.1007%2F7854_2017_475).[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[978-3-662-55878-2](http://en.wikipedia.org/wiki/Special:BookSources/978-3-662-55878-2).
-3. ↑ Brandt, S. D.; Kavanagh, P. V.; Westphal, F.; Elliott, S. P.; Wallach, J.; Stratford, A.;[Nichols, D. E.](https://psychonautwiki.org/wiki/David_E._Nichols); Halberstadt, A. L. (2017). "Return of the lysergamides. Part III: Analytical characterization of N6‐ethyl‐6‐norlysergic acid diethylamide (ETH‐LAD) and 1‐propionyl ETH‐LAD (1P–ETH‐LAD)".*Drug Testing and Analysis*.**9**(10): 1641–1649.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2196](//doi.org/10.1002%2Fdta.2196).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7611](//www.worldcat.org/issn/1942-7611).
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-5. ↑ ["Precursor Control Regulations (SOR/2002-359) - SCHEDULE"](https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-359/page-17.html). Government of Canada. Retrieved January 1, 2020.
-6. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-7. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-8. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-9. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-10. ↑ ["Cumhurbaşkanı Kararı: Karar Sayısı: 1335"](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)(PDF).*Resmî Gazete, Sayı: 30837*(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published July 20, 2019). July 19, 2020.
-11. ↑ ["Psychoactive Substances Act 2016"](http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted). UK Government. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218074836 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.047 seconds CPU time usage: 0.352 seconds Real time usage: 0.687 seconds Preprocessor visited node count: 1650/1000000 Post‐expand include size: 121465/2097152 bytes Template argument size: 19871/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 13335/5000000 bytes Lua time usage: 0.230/7 seconds Lua virtual size: 8.61 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 560.096 1 -total 29.67% 166.166 8 Template:Cite_web 18.38% 102.963 3 Template:Citation_needed 16.13% 90.362 1 Template:DangerousInteractions/Psychedelics 15.77% 88.350 2 Template:Fix 14.76% 82.675 4 Template:Category_handler 12.71% 71.215 1 Template:SubstanceBox/1P-ETH-LAD 12.19% 68.266 2 Template:Further 11.91% 66.681 1 Template:SubstanceBox 8.82% 49.408 2 Template:Cite_journal`,
+- [The Small & Handy 1P-ETH-LAD Thread (Bluelight)](https://www.bluelight.org/xf/threads/781221)`,
   "tripsit-factsheets": `# 1P-ETH-LAD
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/1p-eth-lad*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aminorex";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aminorex.md","displayName":"TripSit Factsheets","size":493},{"id":"wikipedia","fileName":"WIKIPEDIA - Aminorex.md","displayName":"Wikipedia","size":4649}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aminorex.md","displayName":"TripSit Factsheets","size":493,"tokens":131},{"id":"wikipedia","fileName":"WIKIPEDIA - Aminorex.md","displayName":"Wikipedia","size":4649,"tokens":1213}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Aminorex
 *Source: TripSit Factsheets (tripsit.me)*

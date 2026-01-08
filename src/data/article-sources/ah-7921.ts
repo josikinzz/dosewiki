@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AH-7921";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - AH-7921.md","displayName":"The Drug Classroom","size":10360},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AH-7921.md","displayName":"TripSit Factsheets","size":687},{"id":"wikipedia","fileName":"WIKIPEDIA - AH-7921.md","displayName":"Wikipedia","size":4862}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - AH-7921.md","displayName":"The Drug Classroom","size":8538,"tokens":2232},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AH-7921.md","displayName":"TripSit Factsheets","size":687,"tokens":186},{"id":"wikipedia","fileName":"WIKIPEDIA - AH-7921.md","displayName":"Wikipedia","size":4862,"tokens":1229}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# AH-7921
 *Source: https://thedrugclassroom.com/video/ah-7921/*
@@ -265,30 +265,7 @@ Etizolam, phenazepam, diazepam, and oxazepam were all also detected.
 
 Peripheral blood: 0.33 mg/L
 
----
-
-## References
-
-**(2016)** [Metabolic characterization of AH-7921, a synthetic opioid designer drug: in vitro metabolic stability assessment and metabolite identification, evaluation of in silico prediction, and in vivo confirmation.](https://www.ncbi.nlm.nih.gov/pubmed/26331297)
-
-**(2015)** [AH-7921: the list of new psychoactive opioids is expanded](https://link.springer.com/article/10.1007/s11419-015-0271-z)
-
-**(2015)** [AH-7921: A new synthetic opioid of abuse](http://onlinelibrary.wiley.com/doi/10.1111/dar.12216/pdf)
-
-**(2014)** [A Fatality Involving AH-7921](http://jat.oxfordjournals.org/content/early/2014/02/11/jat.bku011.full.pdf)
-
-**(2014)** [Report on the risk assessment of 3,4-dichloro-N-{[1-(dimethylamino)cyclohexyl]methyl}benzamide (AH-7921) in the framework of the Council Decision on new psychoactive substances](http://www.emcdda.europa.eu/publications/risk-assessment/AH-7921)
-
-**(2014)** [Lethal poisonings with AH-7921 in combination with other substances.](https://www.ncbi.nlm.nih.gov/pubmed/25216892)
-
-**(2014)** [Fatal Intoxications Associated with the Designer Opioid AH-7921](http://jat.oxfordjournals.org/content/38/8/599.full)
-
-**(2013)** [Two new-type cannabimimetic quinolinyl carboxylates, QUPIC and QUCHIC, two new cannabimimetic carboxamide derivatives, ADB-FUBINACA and ADBICA, and five synthetic cannabinoids detected with a thiophene derivative α-PVT and an opioid receptor agonist AH-7921 identified in illegal products](https://link.springer.com/article/10.1007/s11419-013-0182-9)
-
-**(1983)** [Determination of receptors that mediate opiate side effects in the mouse.](https://www.ncbi.nlm.nih.gov/pubmed/6317119)
-
-**(1974)** [1-(3,4-Dichlorobenzamidomethyl)cyclohexyldimethylamine and related compounds as potential analgesics.](https://www.ncbi.nlm.nih.gov/pubmed/4416926)
-`,
+---`,
   "tripsit-factsheets": `# AH-7921
 *Source: TripSit Factsheets (tripsit.me)*
 

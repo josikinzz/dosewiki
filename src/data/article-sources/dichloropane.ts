@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dichloropane";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Dichloropane.md","displayName":"Isomer Design","size":758},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Dichloropane.md","displayName":"PsychonautWiki","size":29219},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dichloropane.md","displayName":"TripSit Factsheets","size":515},{"id":"wikipedia","fileName":"WIKIPEDIA - Dichloropane.md","displayName":"Wikipedia","size":740}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Dichloropane.md","displayName":"Isomer Design","size":481,"tokens":212},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Dichloropane.md","displayName":"PsychonautWiki","size":21907,"tokens":5741},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dichloropane.md","displayName":"TripSit Factsheets","size":515,"tokens":161},{"id":"wikipedia","fileName":"WIKIPEDIA - Dichloropane.md","displayName":"Wikipedia","size":740,"tokens":217}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Dichloropane
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2970*
@@ -15,15 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`COC(=O)[C@@H]1C2CCC(N2C)C[C@@H]1c1ccc(c(c1)Cl)Cl\`
 
-**InChI:** \`InChI=1S/C16H19Cl2NO2/c1-19-10-4-6-14(19)15(16(20)21-2)11(8-10)9-3-5-12(17)13(18)7-9/h3,5,7,10-11,14-15H,4,6,8H2,1-2H3/t10?,11-,14?,15+/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8172162](https://www.chemspider.com/Chemical-Structure.8172162.html/)
-- [9996581](https://pubchem.ncbi.nlm.nih.gov/compound/9996581)
-- [Dichloropane](https://en.wikipedia.org/wiki/Dichloropane)
-`,
+**InChI:** \`InChI=1S/C16H19Cl2NO2/c1-19-10-4-6-14(19)15(16(20)21-2)11(8-10)9-3-5-12(17)13(18)7-9/h3,5,7,10-11,14-15H,4,6,8H2,1-2H3/t10?,11-,14?,15+/m1/s1\``,
   "psychonautwiki": `# Dichloropane
 *Source: https://psychonautwiki.org/wiki/Dichloropane*
 
@@ -192,23 +184,7 @@ Due to its very brief history of human usage, little is known about dichloropane
 ## External links
 
 - [Dichloropane (Wikipedia)](http://en.wikipedia.org/wiki/Dichloropane)
-- [Dichloropane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2970)
-
-## References
-1. ↑ 1.0 1.1 1.2 Carroll, F. I., Blough, B. E., Nie, Z., Kuhar, M. J., Howell, L. L., Navarro, H. A. (1 April 2005).["Synthesis and Monoamine Transporter Binding Properties of 3β-(3',4'-Disubstituted phenyl)tropane-2β-carboxylic Acid Methyl Esters"](https://pubs.acs.org/doi/10.1021/jm040185a).*Journal of Medicinal Chemistry*.**48**(8): 2767–2771.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm040185a](//doi.org/10.1021%2Fjm040185a).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-2. ↑ 2.0 2.1 Ranaldi, R., Anderson, K. G., Ivy Carroll, F., Woolverton, W. L. (1 December 2000).["Reinforcing and discriminative stimulus effects of RTI 111, a 3-phenyltropane analog, in rhesus monkeys: interaction with methamphetamine"](https://doi.org/10.1007/s002130000602).*Psychopharmacology*.**153**(1): 103–110.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s002130000602](//doi.org/10.1007%2Fs002130000602).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1432-2072](//www.worldcat.org/issn/1432-2072).
-3. ↑ Carroll, F. I., Mascarella, S. W., Kuzemko, M. A., Gao, Y., Abraham, P., Lewin, A. H., Boja, J. W., Kuhar, M. J. (September 1994).["Synthesis, Ligand Binding, and QSAR (CoMFA and Classical) Study of 3.beta.-(3'-Substituted phenyl)-, 3.beta.-(4'-Substituted phenyl)-, and 3.beta.-(3',4'-Disubstituted phenyl)tropane-2.beta.-carboxylic Acid Methyl Esters"](https://pubs.acs.org/doi/abs/10.1021/jm00044a007).*Journal of Medicinal Chemistry*.**37**(18): 2865–2873.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00044a007](//doi.org/10.1021%2Fjm00044a007).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-4. ↑ Carroll, F. I., Kotian, P., Dehghani, A., Gray, J. L., Kuzemko, M. A., Parham, K. A., Abraham, P., Lewin, A. H., Boja, J. W., Kuhar, M. J. (January 1995).["Cocaine and 3.beta.-(4'-Substituted phenyl)tropane-2.beta.-carboxylic Acid Ester and Amide Analogs. New High-Affinity and Selective Compounds for the Dopamine Transporter"](https://pubs.acs.org/doi/abs/10.1021/jm00002a020).*Journal of Medicinal Chemistry*.**38**(2): 379–388.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00002a020](//doi.org/10.1021%2Fjm00002a020).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-5. ↑ Carroll, F. I., Blough, B. E., Nie, Z., Kuhar, M. J., Howell, L. L., Navarro, H. A. (1 April 2005).["Synthesis and Monoamine Transporter Binding Properties of 3β-(3',4'-Disubstituted phenyl)tropane-2β-carboxylic Acid Methyl Esters"](https://pubs.acs.org/doi/10.1021/jm040185a).*Journal of Medicinal Chemistry*.**48**(8): 2767–2771.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm040185a](//doi.org/10.1021%2Fjm040185a).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-6. ↑ O’Leary, M. E., Hancox, J. C. (28 January 2010).["Role of voltage-gated sodium, potassium and calcium channels in the development of cocaine-associated cardiac arrhythmias: Voltage-gated ion channels and cocaine-induced arrhythmia"](https://onlinelibrary.wiley.com/doi/10.1111/j.1365-2125.2010.03629.x).*British Journal of Clinical Pharmacology*.**69**(5): 427–442.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1365-2125.2010.03629.x](//doi.org/10.1111%2Fj.1365-2125.2010.03629.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0306-5251](//www.worldcat.org/issn/0306-5251).
-7. ↑ ["Cocaine-Related Cardiomyopathy: Overview, Cardiac Effects of Cocaine, Epidemiology"](https://emedicine.medscape.com/article/152535-overview). 16 October 2021.
-8. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-9. ↑ ["BtMG - Gesetz über den Verkehr mit Betäubungsmitteln"](https://www.gesetze-im-internet.de/btmg_1981/BJNR106810981.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-10. ↑ ["NpSG - Neue-psychoaktive-Stoffe-Gesetz"](https://www.gesetze-im-internet.de/npsg/BJNR261510016.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-11. ↑ ["§ 2 AMG"](https://www.gesetze-im-internet.de/amg_1976/__2.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-12. ↑ Prof. Dr. Helmut Pollähne (July 11, 2014).["Cannabinoide Kräutermischungen vor dem EuGH: Legal Highs bleiben legal"](https://www.lto.de/recht/hintergruende/h/eugh-urteil-c35813-c18114-legal-highs-kein-arzneimittel-strafbar-amg-btmg/)[Cannabinoid herbal mixtures at the ECJ: Legal highs stay legal] (in German). LTO. Retrieved December 28, 2019.
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ ["Cumhurbaşkanı Kararı: Karar Sayısı: 1335"](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)(PDF).*Resmî Gazete, Sayı: 30837*(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published July 20, 2019). July 19, 2020.NewPP limit report Cached time: 20251218075327 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.06 seconds CPU time usage: 0.360 seconds Real time usage: 0.762 seconds Preprocessor visited node count: 1871/1000000 Post‐expand include size: 146912/2097152 bytes Template argument size: 18558/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 22135/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.52 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 614.395 1 -total 39.35% 241.774 8 Template:Cite_journal 20.86% 128.158 1 Template:Effects/base 20.37% 125.165 1 Template:Effect_list 19.85% 121.978 2 Template:Effect_column 18.11% 111.238 1 Template:Effects/physical 17.67% 108.569 3 Template:Effect_panel 17.11% 105.137 6 Template:Citation_needed 13.59% 83.470 5 Template:Cite_web 9.79% 60.139 1 Template:SubstanceBox/Dichloropane`,
+- [Dichloropane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2970)`,
   "tripsit-factsheets": `# RTI-111
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/rti-111*
 

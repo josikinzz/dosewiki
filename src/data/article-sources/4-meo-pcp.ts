@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-MeO-PCP";
-export const sources = [{"id":"erowid","fileName":"EROWID - 4-MeO-PCP.md","displayName":"Erowid","size":11116},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-PCP.md","displayName":"Isomer Design","size":868},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-MeO-PCP.md","displayName":"PsychonautWiki","size":20964},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-PCP.md","displayName":"TripSit Factsheets","size":498},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-PCP.md","displayName":"Wikipedia","size":2446}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 4-MeO-PCP.md","displayName":"Erowid","size":11116,"tokens":3058},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-MeO-PCP.md","displayName":"Isomer Design","size":427,"tokens":171},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-MeO-PCP.md","displayName":"PsychonautWiki","size":17430,"tokens":4781},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-MeO-PCP.md","displayName":"TripSit Factsheets","size":498,"tokens":155},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-MeO-PCP.md","displayName":"Wikipedia","size":2446,"tokens":642}];
 export const contents: Record<string, string> = {
   "erowid": `# 4-MeO-PCP
 *Source: https://www.erowid.org/chemicals/4meo_pcp/*
@@ -268,17 +268,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`COc1ccc(cc1)C1(CCCCC1)N1CCCCC1\`
 
-**InChI:** \`InChI=1S/C18H27NO/c1-20-17-10-8-16(9-11-17)18(12-4-2-5-13-18)19-14-6-3-7-15-19/h8-11H,2-7,12-15H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [10526416](https://www.chemspider.com/Chemical-Structure.10526416.html/)
-- [15100753](https://pubchem.ncbi.nlm.nih.gov/compound/15100753)
-- [Q2159639](https://www.wikidata.org/wiki/Q2159639)
-- [4-MeO-PCP](https://en.wikipedia.org/wiki/4-MeO-PCP)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C18H27NO/c1-20-17-10-8-16(9-11-17)18(12-4-2-5-13-18)19-14-6-3-7-15-19/h8-11H,2-7,12-15H2,1H3\``,
   "psychonautwiki": `# 4-MeO-PCP
 *Source: https://psychonautwiki.org/wiki/4-MeO-PCP*
 
@@ -477,18 +467,7 @@ All of these, however, can easily be avoided by simply not using 4-MeO-PCP on a 
 
 ## Literature
 
-- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-
-## References
-1. ↑ 1.0 1.1 1.2 1.3 1.4 Morris, H., Wallach, J. (July 2014).["From PCP to MXE: a comprehensive review of the non-medical use of dissociative drugs: PCP to MXE"](https://onlinelibrary.wiley.com/doi/10.1002/dta.1620).*Drug Testing and Analysis*.**6**(7–8): 614–632.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1620](//doi.org/10.1002%2Fdta.1620).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-2. ↑ New drugs coming our way - what are they and how do we detect them? | [http://www.emcdda.europa.eu/attachements.cfm/att_78745_EN_4_King.pps](http://www.emcdda.europa.eu/attachements.cfm/att_78745_EN_4_King.pps)
-3. ↑ 3.0 3.1 Roth, B. L., Gibbons, S., Arunotayanun, W., Huang, X.-P., Setola, V., Treble, R., Iversen, L. (19 March 2013).["The Ketamine Analogue Methoxetamine and 3- and 4-Methoxy Analogues of Phencyclidine Are High Affinity and Selective Ligands for the Glutamate NMDA Receptor"](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0059334).*PLOS ONE*.**8**(3): e59334.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pone.0059334](//doi.org/10.1371%2Fjournal.pone.0059334).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-6203](//www.worldcat.org/issn/1932-6203).
-4. ↑ [NpSG - Neue-psychoaktive-Stoffe-Gesetz](https://www.gesetze-im-internet.de/npsg/BJNR261510016.html)
-5. ↑ Cannabinoider föreslås bli klassade som hälsofarlig vara | [http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/](http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/)
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-7. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-8. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-9. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218075110 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.076 seconds CPU time usage: 0.333 seconds Real time usage: 0.571 seconds Preprocessor visited node count: 1559/1000000 Post‐expand include size: 104319/2097152 bytes Template argument size: 10195/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10238/5000000 bytes Lua time usage: 0.140/7 seconds Lua virtual size: 7.09 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 415.675 1 -total 25.14% 104.519 2 Template:Cite_journal 16.69% 69.396 1 Template:SubstanceBox/4-MeO-PCP 15.72% 65.324 1 Template:SubstanceBox 14.07% 58.494 1 Template:Distinguish 13.08% 54.382 1 Template:Hatnote 11.05% 45.912 3 Template:Citation 7.41% 30.808 1 Template:Effects/base 6.54% 27.176 1 Template:Effect_list 5.62% 23.372 1 Template:Experience_reports`,
+- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)`,
   "tripsit-factsheets": `# 4-MeO-PCP
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-meo-pcp*
 

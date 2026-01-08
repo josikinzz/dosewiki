@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Coluracetam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Coluracetam.md","displayName":"Isomer Design","size":791},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Coluracetam.md","displayName":"PsychonautWiki","size":18020},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coluracetam.md","displayName":"TripSit Factsheets","size":551},{"id":"wikipedia","fileName":"WIKIPEDIA - Coluracetam.md","displayName":"Wikipedia","size":2119}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Coluracetam.md","displayName":"Isomer Design","size":467,"tokens":206},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Coluracetam.md","displayName":"PsychonautWiki","size":15045,"tokens":4211},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coluracetam.md","displayName":"TripSit Factsheets","size":551,"tokens":207},{"id":"wikipedia","fileName":"WIKIPEDIA - Coluracetam.md","displayName":"Wikipedia","size":2119,"tokens":522}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Coluracetam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=9971*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`O=C(Nc1c2CCCCc2nc2c1c(C)c(o2)C)CN1CCCC1=O\`
 
-**InChI:** \`InChI=1S/C19H23N3O3/c1-11-12(2)25-19-17(11)18(13-6-3-4-7-14(13)20-19)21-15(23)10-22-9-5-8-16(22)24/h3-10H2,1-2H3,(H,20,21,23)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [185836](https://www.chemspider.com/Chemical-Structure.185836.html/)
-- [214346](https://pubchem.ncbi.nlm.nih.gov/compound/214346)
-- [Q3683872](https://www.wikidata.org/wiki/Q3683872)
-- [Coluracetam](https://en.wikipedia.org/wiki/Coluracetam)
-`,
+**InChI:** \`InChI=1S/C19H23N3O3/c1-11-12(2)25-19-17(11)18(13-6-3-4-7-14(13)20-19)21-15(23)10-22-9-5-8-16(22)24/h3-10H2,1-2H3,(H,20,21,23)\``,
   "psychonautwiki": `# Coluracetam
 *Source: https://psychonautwiki.org/wiki/Coluracetam*
 
@@ -152,13 +143,7 @@ Coluracetam, being a member of the [racetam](https://psychonautwiki.org/wiki/Rac
 
 - [Coluracetam (Wikipedia)](https://en.wikipedia.org/wiki/Coluracetam)
 - [Coluracetam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=9971)
-- [Coluracetam (Examine)](https://examine.com/supplements/coluracetam/)
-
-## References
-1. ↑ Bessho, T., Takashina, K., Tabata, R., Ohshima, C., Chaki, H., Yamabe, H., Egawa, M., Tobe, A., Saito, K. (April 1996). "Effect of the novel high affinity choline uptake enhancer 2-(2-oxopyrrolidin-1-yl)-N-(2,3-dimethyl-5,6,7,8-tetrahydrofuro[2,3-b] quinolin-4-yl)acetoamide on deficits of water maze learning in rats".*Arzneimittel-Forschung*.**46**(4): 369–373.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0004-4172](//www.worldcat.org/issn/0004-4172).
-2. ↑ Malykh, A. G., Sadaie, M. R. (February 2010).["Piracetam and Piracetam-Like Drugs: From Basic Science to Novel Clinical Applications to CNS Disorders"](http://link.springer.com/10.2165/11319230-000000000-00000).*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0012-6667](//www.worldcat.org/issn/0012-6667).
-3. ↑ Murai, S., Saito, H., Abe, E., Masuda, Y., Odashima, J., Itoh, T. (February 1994).["MKC-231, a choline uptake enhancer, ameliorates working memory deficits and decreased hippocampal acetylcholine induced by ethylcholine aziridinium ion in mice"](http://link.springer.com/10.1007/BF01277590).*Journal of Neural Transmission*.**98**(1): 1–13.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF01277590](//doi.org/10.1007%2FBF01277590).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0300-9564](//www.worldcat.org/issn/0300-9564).
-4. ↑ RESULTS FROM EXPLORATORY PHASE 2A TRIAL OF BCI-540 IN DEPRESSION WITH ANXIETY | [https://web.archive.org/web/20111121081645/http://www.braincellsinc.com/wp-content/uploads/2010/06/BCI-PR-06142010.pdf](https://web.archive.org/web/20111121081645/http://www.braincellsinc.com/wp-content/uploads/2010/06/BCI-PR-06142010.pdf)NewPP limit report Cached time: 20251218075304 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.048 seconds CPU time usage: 0.255 seconds Real time usage: 0.418 seconds Preprocessor visited node count: 1243/1000000 Post‐expand include size: 68701/2097152 bytes Template argument size: 4589/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 5668/5000000 bytes Lua time usage: 0.090/7 seconds Lua virtual size: 6.46 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 302.513 1 -total 55.71% 168.523 3 Template:Cite_journal 23.94% 72.413 1 Template:SubstanceBox/Coluracetam 22.59% 68.330 1 Template:SubstanceBox 8.64% 26.124 1 Template:Effects/base 7.46% 22.579 1 Template:Effect_list 6.25% 18.893 2 Template:Effect_column 2.27% 6.878 1 Template:Effects/physical 1.51% 4.557 3 Template:Effect_panel 1.46% 4.422 1 Template:Effects/cognitive`,
+- [Coluracetam (Examine)](https://examine.com/supplements/coluracetam/)`,
   "tripsit-factsheets": `# Coluracetam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/coluracetam*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Picamilon";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Picamilon.md","displayName":"Drug Users Bible","size":1142},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Picamilon.md","displayName":"TripSit Factsheets","size":714},{"id":"wikipedia","fileName":"WIKIPEDIA - Picamilon.md","displayName":"Wikipedia","size":2567}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Picamilon.md","displayName":"Drug Users Bible","size":1142,"tokens":285},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Picamilon.md","displayName":"TripSit Factsheets","size":714,"tokens":197},{"id":"wikipedia","fileName":"WIKIPEDIA - Picamilon.md","displayName":"Wikipedia","size":2567,"tokens":631}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Picamilon
 *Source: Drug Users Bible by Dominic Milton Trott*

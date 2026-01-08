@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "A-PVP";
-export const sources = [{"id":"erowid","fileName":"EROWID - A-PVP.md","displayName":"Erowid","size":4926},{"id":"isomerdesign","fileName":"ISOMERDESIGN - A-PVP.md","displayName":"Isomer Design","size":724},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - A-PVP.md","displayName":"PsychonautWiki","size":37461},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - A-PVP.md","displayName":"The Drug Classroom","size":3915},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - A-PVP.md","displayName":"TripSit Factsheets","size":837},{"id":"wikipedia","fileName":"WIKIPEDIA - A-PVP.md","displayName":"Wikipedia","size":6648}];
+export const sources = [{"id":"erowid","fileName":"EROWID - A-PVP.md","displayName":"Erowid","size":4926,"tokens":1431},{"id":"isomerdesign","fileName":"ISOMERDESIGN - A-PVP.md","displayName":"Isomer Design","size":364,"tokens":154},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - A-PVP.md","displayName":"PsychonautWiki","size":28444,"tokens":7807},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - A-PVP.md","displayName":"The Drug Classroom","size":1388,"tokens":381},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - A-PVP.md","displayName":"TripSit Factsheets","size":837,"tokens":240},{"id":"wikipedia","fileName":"WIKIPEDIA - A-PVP.md","displayName":"Wikipedia","size":6648,"tokens":1726}];
 export const contents: Record<string, string> = {
   "erowid": `# A-PVP
 *Source: https://erowid.org/chemicals/a-pvp/a-pvp.shtml*
@@ -121,16 +121,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCCC(C(=O)c1ccccc1)N1CCCC1\`
 
-**InChI:** \`InChI=1S/C15H21NO/c1-2-8-14(16-11-6-7-12-16)15(17)13-9-4-3-5-10-13/h3-5,9-10,14H,2,6-8,11-12H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [9324063](https://www.chemspider.com/Chemical-Structure.9324063.html/)
-- [11148955](https://pubchem.ncbi.nlm.nih.gov/compound/11148955)
-- [Q4734923](https://www.wikidata.org/wiki/Q4734923)
-- [α-Pyrrolidinopentiophenone](https://en.wikipedia.org/wiki/Α-Pyrrolidinopentiophenone)
-`,
+**InChI:** \`InChI=1S/C15H21NO/c1-2-8-14(16-11-6-7-12-16)15(17)13-9-4-3-5-10-13/h3-5,9-10,14H,2,6-8,11-12H2,1H3\``,
   "psychonautwiki": `# A-PVP
 *Source: https://psychonautwiki.org/wiki/A-PVP*
 
@@ -374,34 +365,7 @@ In June 2016, the European Council decided that α-PVP shall be subjected by the
 
 ## Literature
 
-- [EMCDDA. (2015). EMCDDA–Europol Joint Report on a new psychoactive substance: 1‐phenyl‐2‐(1‐pyrrolidinyl)‐1‐pentanone (α‐PVP).](http://www.emcdda.europa.eu/system/files/publications/1814/TDAS15001ENN.pdf)
-
-## References
-1. ↑ Wander, A. (1963), ‘α-Pyrrolidino valerophenones’, patent specification 9274
-2. ↑ 2.00 2.01 2.02 2.03 2.04 2.05 2.06 2.07 2.08 2.09 2.10 2.11 2.12 2.13 2.14 2.15 2.16 2.17 2.18 2.19 2.20 ["α-PVP: EMCDDA–Europol Joint Report on a new psychoactive substance: 1-phenyl-2-(1-pyrrolidinyl)-1-pentanone (α-PVP)"](http://www.emcdda.europa.eu/system/files/publications/1814/TDAS15001ENN.pdf)(PDF). European Monitoring Centre for Drugs and Drug Addiction. Retrieved December 25, 2019.
-3. ↑ Marusich, Julie A.; Antonazzo, Kateland R.; Wiley, Jenny L.; Blough, Bruce E.; Partilla, John S.; Baumann, Michael H. (2014). "Pharmacology of novel synthetic stimulants structurally related to the "bath salts" constituent 3,4-methylenedioxypyrovalerone (MDPV)".*Neuropharmacology*.**87**: 206–213.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.neuropharm.2014.02.016](//doi.org/10.1016%2Fj.neuropharm.2014.02.016).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-4. ↑ Marinetti, L. J., Antonides, H. M. (April 2013). "Analysis of synthetic cathinones commonly found in bath salts in human performance and postmortem toxicology: method development, drug distribution and interpretation of results".*Journal of Analytical Toxicology*.**37**(3): 135–146.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bks136](//doi.org/10.1093%2Fjat%2Fbks136).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1945-2403](//www.worldcat.org/issn/1945-2403).
-5. ↑ [http://www.aafs.org/sites/default/files/pdf/ProceedingsWashingtonDC2013.pdf](http://www.aafs.org/sites/default/files/pdf/ProceedingsWashingtonDC2013.pdf)
-6. ↑ [Cheap, synthetic “flakka” dethroning cocaine on Florida drug scene](http://news.yahoo.com/cheap-synthetic-flakka-dethroning-cocaine-florida-drug-scene-140910992.html)
-7. ↑ Klavž, J., Gorenjak, M., Marinšek, M. (1 August 2016).["Suicide attempt with a mix of synthetic cannabinoids and synthetic cathinones: Case report of non-fatal intoxication with AB-CHMINACA, AB-FUBINACA, alpha-PHP, alpha-PVP and 4-CMC"](https://www.sciencedirect.com/science/article/pii/S0379073816000372).*Forensic Science International*.**265**: 121–124.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2016.01.018](//doi.org/10.1016%2Fj.forsciint.2016.01.018).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-8. ↑ Sykutera, M., Cychowska, M., Bloch-Boguslawska, E. (May 2015). "A Fatal Case of Pentedrone and α-Pyrrolidinovalerophenone Poisoning".*Journal of Analytical Toxicology*.**39**(4): 324–329.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bkv011](//doi.org/10.1093%2Fjat%2Fbkv011).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1945-2403](//www.worldcat.org/issn/1945-2403).
-9. ↑ National Institute on Drug Abuse,[Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts)
-10. ↑ 10.0 10.1 10.2 Shoptaw, S. J., Kao, U., Ling, W. W. (8 October 2008). "The Cochrane Database of Systematic Reviews (Complete Reviews)". In The Cochrane Collaboration.[Treatment for amphetamine psychosis](https://doi.wiley.com/10.1002/14651858.CD003026.pub2). John Wiley & Sons, Ltd. pp. CD003026.pub2.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub2](//doi.org/10.1002%2F14651858.CD003026.pub2).
-11. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-12. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-13. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-14. ↑ ["Council Implementing (EU) 2016/1070"](https://op.europa.eu/o/opportal-service/download-handler?identifier=2f352aaa-3fdb-11e6-af30-01aa75ed71a1&format=pdfa1a&language=en&productionSystem=cellar&part=).*Official Journal of the European Union*. Office for Official Publications of the European Communites (published July 2, 2016). June 27, 2016. pp. 18–20.[OCLC](http://en.wikipedia.org/wiki/OCLC)[52224955](//www.worldcat.org/oclc/52224955). L 178.
-15. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-16. ↑ [http://www.ejustice.just.fgov.be/cgi_loi/change_lg.pl?language=fr&la=N&cn=1998012251&table_name=wet](http://www.ejustice.just.fgov.be/cgi_loi/change_lg.pl?language=fr&la=N&cn=1998012251&table_name=wet)
-17. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-18. ↑ 关于印发《非药用类麻醉药品和精神药品列管办法》的通知 | [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html)
-19. ↑ Látky, o které byl doplněn seznam č. 4 psychotropních látek (příloha č. 4 k nařízení vlády č. 463/2013 Sb.) | [http://www.mzcr.cz/Admin/_upload/files/3/Nov%C3%A9%20PL.pdf](http://www.mzcr.cz/Admin/_upload/files/3/Nov%C3%A9%20PL.pdf)
-20. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-21. ↑ ["Siebenundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl113s2274.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-22. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-23. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-24. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-25. ↑ [http://www.deadiversion.usdoj.gov/fed_regs/rules/2014/fr0128.htm](http://www.deadiversion.usdoj.gov/fed_regs/rules/2014/fr0128.htm)NewPP limit report Cached time: 20251218075148 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.076 seconds CPU time usage: 0.446 seconds Real time usage: 0.868 seconds Preprocessor visited node count: 2701/1000000 Post‐expand include size: 212889/2097152 bytes Template argument size: 29563/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 29801/5000000 bytes Lua time usage: 0.290/7 seconds Lua virtual size: 8.62 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 728.540 1 -total 49.72% 362.194 1 Template:Reflist 18.01% 131.203 6 Template:Cite_web 16.28% 118.631 6 Template:Cite_journal 10.81% 78.773 5 Template:Citation_needed 10.57% 76.971 1 Template:SubstanceBox/A-PVP 9.92% 72.266 1 Template:SubstanceBox 9.44% 68.790 1 Template:Fix 8.84% 64.423 2 Template:Category_handler 8.41% 61.264 1 Template:Distinguish`,
+- [EMCDDA. (2015). EMCDDA–Europol Joint Report on a new psychoactive substance: 1‐phenyl‐2‐(1‐pyrrolidinyl)‐1‐pentanone (α‐PVP).](http://www.emcdda.europa.eu/system/files/publications/1814/TDAS15001ENN.pdf)`,
   "thedrugclassroom": `# Alpha-PVP
 *Source: https://thedrugclassroom.com/video/alpha-pvp/*
 
@@ -461,40 +425,7 @@ Strongest: 01:00 – 02:00
 
 ---
 
----
-
-## References
-
-**(2016)** [Twenty-One Cases Involving Alpha-Pyrrolidinovalerophenone (α-PVP)](http://jat.oxfordjournals.org/content/40/5/396.abstract)
-
-**(2016)** [Temporal trends in drug use in Adelaide, South Australia by wastewater analysis](http://www.sciencedirect.com/science/article/pii/S0048969716308853)
-
-**(2016)** [Detection of “bath salts” and other novel psychoactive substances in hair samples of ecstasy/MDMA/“Molly” users](http://www.sciencedirect.com/science/article/pii/S0376871616000570)
-
-**(2016)** [Cocaine-like discriminative stimulus effects of alpha-pyrrolidinovalerophenone, methcathinone and their 3,4-methylenedioxy or 4-methyl analogs in rhesus monkeys.](https://www.ncbi.nlm.nih.gov/pubmed/27060605)
-
-**(2016)** [Elimination half-life of alpha-pyrrolidinovalerophenone in an acute non-fatal intoxication](http://www.tandfonline.com/doi/abs/10.3109/15563650.2016.1166509)
-
-**(2015)** [In vivo potency and efficacy of the novel cathinone α-pyrrolidinopentiophenone and 3,4-methylenedioxypyrovalerone: self-administration and locomotor stimulation in male rats](http://link.springer.com/article/10.1007/s00213-015-3944-8)
-
-**(2015)** [Discriminative-stimulus effects of second generation synthetic cathinones in methamphetamine-trained rats](http://www.sciencedirect.com/science/article/pii/S0376871615000812)
-
-**(2015)** [A Fatal Case of Pentedrone and α-Pyrrolidinovalerophenone Poisoning.](https://www.ncbi.nlm.nih.gov/pubmed/25737339)
-
-**(2014)** [A case of severe psychosis induced by novel recreational drugs](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4207243/)
-
-**(2014)** [Sudden death after sustained restraint following self-administration of the designer drug α-pyrrolidinovalerophenone.](https://www.ncbi.nlm.nih.gov/pubmed/24491861)
-
-**(2014)** [New recreational drug 1-phenyl-2-(1-pyrrolidinyl)-1-pentanone (alpha-PVP) activates central nervous system via dopaminergic neuron.](https://www.ncbi.nlm.nih.gov/pubmed/24418703)
-
-**(2013)** [Analysis of Synthetic Cathinones Commonly Found in Bath Salts in Human Performance and Postmortem Toxicology: Method Development, Drug Distribution and Interpretation of Results](http://jat.oxfordjournals.org/content/early/2013/01/28/jat.bks136.short)
-
-**(2012)** [Analysis of First and Second Generation Legal Highs for Synthetic Cannabinoids and Synthetic Stimulants by Ultra-Performance Liquid Chromatography and Time of Flight Mass Spectrometry](https://jat.oxfordjournals.org/content/early/2012/05/13/jat.bks047.full)
-
----
-
-## Test Results
-`,
+---`,
   "tripsit-factsheets": `# α-PVP
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/a-pvp*
 

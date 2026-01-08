@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Eutylone";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Eutylone.md","displayName":"Wikipedia","size":903}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Eutylone.md","displayName":"Wikipedia","size":903,"tokens":230}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Eutylone
 *Source: https://en.wikipedia.org/wiki/Eutylone*

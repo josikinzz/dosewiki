@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methylone";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methylone.md","displayName":"Disregard Everything I Say","size":10592},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methylone.md","displayName":"Drug Users Bible","size":5274},{"id":"erowid","fileName":"EROWID - Methylone.md","displayName":"Erowid","size":21859},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methylone.md","displayName":"Isomer Design","size":640},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methylone.md","displayName":"PsychonautWiki","size":31930},{"id":"saferparty","fileName":"SAFERPARTY - Methylone.md","displayName":"Safer Party","size":870},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylone.md","displayName":"TripSit Factsheets","size":617},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylone.md","displayName":"Wikipedia","size":13683}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methylone.md","displayName":"Disregard Everything I Say","size":10592,"tokens":2660},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methylone.md","displayName":"Drug Users Bible","size":5274,"tokens":1331},{"id":"erowid","fileName":"EROWID - Methylone.md","displayName":"Erowid","size":21859,"tokens":6279},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methylone.md","displayName":"Isomer Design","size":312,"tokens":127},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methylone.md","displayName":"PsychonautWiki","size":24278,"tokens":6499},{"id":"saferparty","fileName":"SAFERPARTY - Methylone.md","displayName":"Safer Party","size":870,"tokens":218},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylone.md","displayName":"TripSit Factsheets","size":617,"tokens":187},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylone.md","displayName":"Wikipedia","size":13683,"tokens":3509}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Methylone
 *Source: https://disregardeverythingisay.com/post/100955058004/bk-mdma-broken-down-and-described*
@@ -574,16 +574,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CNC(C(=O)c1ccc2c(c1)OCO2)C\`
 
-**InChI:** \`InChI=1S/C11H13NO3/c1-7(12-2)11(13)8-3-4-9-10(5-8)15-6-14-9/h3-5,7,12H,6H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106350](https://www.chemspider.com/Chemical-Structure.21106350.html/)
-- [45789647](https://pubchem.ncbi.nlm.nih.gov/compound/45789647)
-- [Q4046265](https://www.wikidata.org/wiki/Q4046265)
-- [Methylone](https://en.wikipedia.org/wiki/Methylone)
-`,
+**InChI:** \`InChI=1S/C11H13NO3/c1-7(12-2)11(13)8-3-4-9-10(5-8)15-6-14-9/h3-5,7,12H,6H2,1-2H3\``,
   "psychonautwiki": `# Methylone
 *Source: https://psychonautwiki.org/wiki/Methylone*
 
@@ -759,32 +750,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 
 ### Discussion
 
-- [The Big & Dandy bk-MDMA (Methylone) Thread (Bluelight)](http://www.bluelight.org/vb/threads/299732-The-Big-amp-Dandy-bk-MDMA-(Methylone)-Thread)
-
-## References
-1. ↑ III, P. J., Shulgin, A. T.,[Novel n-substituted-2-amino-3’,4’-methylene-dioxypropiophenones](https://patents.google.com/patent/AU6104196A/en)
-2. ↑ ["Cathinone | Ask Dr. Shulgin Online"](http://www.cognitiveliberty.org/shulgin/adsarchive/cathinone.htm).
-3. ↑ 3.0 3.1 3.2 Cozzi, N. V., Sievert, M. K., Shulgin, A. T., Jacob, P., Ruoho, A. E. (17 September 1999). "Inhibition of plasma membrane monoamine transporters by beta-ketoamphetamines".*European Journal of Pharmacology*.**381**(1): 63–69.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0014-2999(99)00538-5](//doi.org/10.1016%2Fs0014-2999%2899%2900538-5).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-4. ↑ 4.0 4.1 4.2 Nagai, F., Nonaka, R., Satoh Hisashi Kamimura, K. (22 March 2007).["The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain"](https://www.sciencedirect.com/science/article/pii/S0014299906013811).*European Journal of Pharmacology*.**559**(2): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-5. ↑ 5.0 5.1 5.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-6. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-7. ↑ [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-8. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-9. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-10. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-11. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-12. ↑ [Controlled Drugs and Substances Act : Legislative history · Schedule I · Section 19: Tramadol [Proposed]; Amphetamines](http://isomerdesign.com/Cdsa/schedule.php?schedule=1&section=18.5&structure=C)
-13. ↑ [Controlled Drugs and Substances Act : Definitions and Interpretations](http://isomerdesign.com/Cdsa/definitions.php?structure=C)
-14. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-15. ↑ ["Sechsundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl112s1639.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-16. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-17. ↑ van Amsterdam et al., 2004
-18. ↑ Resolution of the Government of the Russian Federation | [https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347)
-19. ↑ [http://www.lakemedelsverket.se/upload/lvfs/LVFS_2010_23.pdf](http://www.lakemedelsverket.se/upload/lvfs/LVFS_2010_23.pdf)
-20. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-21. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-22. ↑ "Chemicals Used in 'Bath Salts' Now Under Federal Control and Regulation". USA Dept of Justice. Retrieved 22 April 2014. | [http://www.justice.gov/dea/divisions/hq/2011/hq102111.shtml](http://www.justice.gov/dea/divisions/hq/2011/hq102111.shtml)
-23. ↑ "Schedules of Controlled Substances: Placement of Methylone Into Schedule I". Retrieved 22 April 2014. | [http://www.deadiversion.usdoj.gov/fed_regs/rules/2012/fr1017.htm](http://www.deadiversion.usdoj.gov/fed_regs/rules/2012/fr1017.htm)NewPP limit report Cached time: 20251218075616 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.043 seconds CPU time usage: 0.353 seconds Real time usage: 0.763 seconds Preprocessor visited node count: 1831/1000000 Post‐expand include size: 139043/2097152 bytes Template argument size: 20497/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 23750/5000000 bytes Lua time usage: 0.310/7 seconds Lua virtual size: 8.68 MB/50 MB Lua estimated memory usage: 132 KB ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 652.286 1 -total 60.19% 392.613 1 Template:Reflist 21.83% 142.390 1 Template:Effects/base 21.48% 140.100 1 Template:Effect_list 21.08% 137.502 2 Template:Effect_column 19.60% 127.876 1 Template:Effects/physical 19.59% 127.790 4 Template:Citation 19.27% 125.693 3 Template:Effect_panel 18.84% 122.910 4 Template:Citation_needed 18.36% 119.753 5 Template:Cite_journal`,
+- [The Big & Dandy bk-MDMA (Methylone) Thread (Bluelight)](http://www.bluelight.org/vb/threads/299732-The-Big-amp-Dandy-bk-MDMA-(Methylone)-Thread)`,
   "saferparty": `# Methylone
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 

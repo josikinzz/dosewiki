@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-MPT";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MPT.md","displayName":"Wikipedia","size":910}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MPT.md","displayName":"Wikipedia","size":910,"tokens":271}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 4-AcO-MPT
 *Source: https://en.wikipedia.org/wiki/4-AcO-MPT*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "13-Butanediol";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 13-Butanediol.md","displayName":"PsychonautWiki","size":74},{"id":"wikipedia","fileName":"WIKIPEDIA - 13-Butanediol.md","displayName":"Wikipedia","size":2160}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 13-Butanediol.md","displayName":"PsychonautWiki","size":74,"tokens":27},{"id":"wikipedia","fileName":"WIKIPEDIA - 13-Butanediol.md","displayName":"Wikipedia","size":2160,"tokens":575}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# 1,3-Butanediol
 *Source: https://psychonautwiki.org/wiki/1,3-Butanediol*

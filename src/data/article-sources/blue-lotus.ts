@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Blue_Lotus";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Blue_Lotus.md","displayName":"Drug Users Bible","size":4249},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Blue_Lotus.md","displayName":"PsychonautWiki","size":66},{"id":"wikipedia","fileName":"WIKIPEDIA - Blue_Lotus.md","displayName":"Wikipedia","size":20852}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Blue_Lotus.md","displayName":"Drug Users Bible","size":4249,"tokens":1019},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Blue_Lotus.md","displayName":"PsychonautWiki","size":66,"tokens":20},{"id":"wikipedia","fileName":"WIKIPEDIA - Blue_Lotus.md","displayName":"Wikipedia","size":20852,"tokens":5144}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Blue Lotus
 *Source: Drug Users Bible by Dominic Milton Trott*

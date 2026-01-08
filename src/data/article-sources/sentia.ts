@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sentia";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sentia.md","displayName":"Drug Users Bible","size":3944},{"id":"wikipedia","fileName":"WIKIPEDIA - Sentia.md","displayName":"Wikipedia","size":15548}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sentia.md","displayName":"Drug Users Bible","size":3944,"tokens":1012},{"id":"wikipedia","fileName":"WIKIPEDIA - Sentia.md","displayName":"Wikipedia","size":15548,"tokens":4023}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Sentia
 *Source: Drug Users Bible by Dominic Milton Trott*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOET";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOET.md","displayName":"Isomer Design","size":5418},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOET.md","displayName":"TripSit Factsheets","size":1080},{"id":"wikipedia","fileName":"WIKIPEDIA - DOET.md","displayName":"Wikipedia","size":15827}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOET.md","displayName":"Isomer Design","size":5418,"tokens":1422},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOET.md","displayName":"TripSit Factsheets","size":1080,"tokens":290},{"id":"wikipedia","fileName":"WIKIPEDIA - DOET.md","displayName":"Wikipedia","size":15827,"tokens":4053}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DOET
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=66*

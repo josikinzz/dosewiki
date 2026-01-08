@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "U-47700";
-export const sources = [{"id":"erowid","fileName":"EROWID - U-47700.md","displayName":"Erowid","size":3145},{"id":"isomerdesign","fileName":"ISOMERDESIGN - U-47700.md","displayName":"Isomer Design","size":800},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - U-47700.md","displayName":"PsychonautWiki","size":30379},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - U-47700.md","displayName":"TripSit Factsheets","size":772},{"id":"wikipedia","fileName":"WIKIPEDIA - U-47700.md","displayName":"Wikipedia","size":4116}];
+export const sources = [{"id":"erowid","fileName":"EROWID - U-47700.md","displayName":"Erowid","size":3145,"tokens":900},{"id":"isomerdesign","fileName":"ISOMERDESIGN - U-47700.md","displayName":"Isomer Design","size":474,"tokens":207},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - U-47700.md","displayName":"PsychonautWiki","size":30379,"tokens":9145},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - U-47700.md","displayName":"TripSit Factsheets","size":772,"tokens":332},{"id":"wikipedia","fileName":"WIKIPEDIA - U-47700.md","displayName":"Wikipedia","size":4116,"tokens":1056}];
 export const contents: Record<string, string> = {
   "erowid": `# U-47700
 *Source: https://www.erowid.org/chemicals/u-47700/*
@@ -79,16 +79,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CN([C@@H]1CCCC[C@H]1N(C(=O)c1ccc(c(c1)Cl)Cl)C)C\`
 
-**InChI:** \`InChI=1S/C16H22Cl2N2O/c1-19(2)14-6-4-5-7-15(14)20(3)16(21)11-8-9-12(17)13(18)10-11/h8-10,14-15H,4-7H2,1-3H3/t14-,15-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [23113403](https://www.chemspider.com/Chemical-Structure.23113403.html/)
-- [13544016](https://pubchem.ncbi.nlm.nih.gov/compound/13544016)
-- [Q83129025](https://www.wikidata.org/wiki/Q83129025)
-- [U-47700](https://en.wikipedia.org/wiki/U-47700)
-`,
+**InChI:** \`InChI=1S/C16H22Cl2N2O/c1-19(2)14-6-4-5-7-15(14)20(3)16(21)11-8-9-12(17)13(18)10-11/h8-10,14-15H,4-7H2,1-3H3/t14-,15-/m1/s1\``,
   "psychonautwiki": `# U-47700
 *Source: https://psychonautwiki.org/wiki/U-47700*
 

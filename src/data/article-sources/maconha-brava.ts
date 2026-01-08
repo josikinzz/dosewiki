@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Maconha_Brava";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Maconha_Brava.md","displayName":"Drug Users Bible","size":1370},{"id":"wikipedia","fileName":"WIKIPEDIA - Maconha_Brava.md","displayName":"Wikipedia","size":1451}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Maconha_Brava.md","displayName":"Drug Users Bible","size":1370,"tokens":381},{"id":"wikipedia","fileName":"WIKIPEDIA - Maconha_Brava.md","displayName":"Wikipedia","size":1451,"tokens":350}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Maconha Brava
 *Source: Drug Users Bible by Dominic Milton Trott*

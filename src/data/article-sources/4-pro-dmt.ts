@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-PrO-DMT";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-PrO-DMT.md","displayName":"Wikipedia","size":1797}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-PrO-DMT.md","displayName":"Wikipedia","size":1797,"tokens":496}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 4-PrO-DMT
 *Source: https://en.wikipedia.org/wiki/4-PrO-DMT*

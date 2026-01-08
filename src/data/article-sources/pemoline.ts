@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pemoline";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pemoline.md","displayName":"DrugBank","size":10211},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pemoline.md","displayName":"TripSit Factsheets","size":487},{"id":"wikipedia","fileName":"WIKIPEDIA - Pemoline.md","displayName":"Wikipedia","size":10281}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Pemoline.md","displayName":"DrugBank","size":10211,"tokens":2531},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pemoline.md","displayName":"TripSit Factsheets","size":487,"tokens":135},{"id":"wikipedia","fileName":"WIKIPEDIA - Pemoline.md","displayName":"Wikipedia","size":10281,"tokens":2440}];
 export const contents: Record<string, string> = {
   "drugbank": `# Pemoline
 *Source: https://go.drugbank.com/drugs/DB01230*

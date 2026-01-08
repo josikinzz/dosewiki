@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methallylescaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methallylescaline.md","displayName":"Isomer Design","size":5826},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methallylescaline.md","displayName":"PsychonautWiki","size":20747},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methallylescaline.md","displayName":"TripSit Factsheets","size":875},{"id":"wikipedia","fileName":"WIKIPEDIA - Methallylescaline.md","displayName":"Wikipedia","size":4552}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methallylescaline.md","displayName":"Isomer Design","size":5826,"tokens":1582},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methallylescaline.md","displayName":"PsychonautWiki","size":17458,"tokens":4659},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methallylescaline.md","displayName":"TripSit Factsheets","size":875,"tokens":245},{"id":"wikipedia","fileName":"WIKIPEDIA - Methallylescaline.md","displayName":"Wikipedia","size":4552,"tokens":1150}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Methallylescaline
 *Source: http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=99*
@@ -206,17 +206,7 @@ Tolerance to the effects of methallylescaline is built almost immediately after 
 
 ### Discussion
 
-- [The Big & Dandy Methallylescaline Thread (Bluelight)](http://www.bluelight.org/vb/threads/630226-The-Big-amp-Dandy-Methallylescaline-(MAL)-Thread)
-
-## References
-1. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin); Ann Shulgin (1991).["#99. MAL"](https://erowid.org/library/books_online/pihkal/pihkal099.shtml).*[PiHKAL: A Chemical Love Story](https://psychonautwiki.org/wiki/PiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0963009605](http://en.wikipedia.org/wiki/Special:BookSources/0963009605).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1166889264](//www.worldcat.org/oclc/1166889264).
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-3. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2016 Teil I Nr. 55*(in German). Bundesanzeiger Verlag (published November 25, 2016). November 21, 2016. pp. 2615–2622.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1004462279](//www.worldcat.org/oclc/1004462279).
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Psychoactive Substances Act 2016"](http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted). UK Government. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075557 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.255 seconds Real time usage: 0.537 seconds Preprocessor visited node count: 1465/1000000 Post‐expand include size: 122288/2097152 bytes Template argument size: 23075/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 1/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9163/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.24 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 447.635 1 -total 21.79% 97.525 2 Template:Citation_needed 20.56% 92.019 7 Template:Cite_web 18.79% 84.090 2 Template:Fix 17.67% 79.110 4 Template:Category_handler 16.03% 71.741 1 Template:Cite_book 14.79% 66.220 2 Template:Further 9.54% 42.720 1 Template:SubstanceBox/Methallylescaline 9.01% 40.335 1 Template:SubstanceBox 6.36% 28.456 1 Template:Effects/base`,
+- [The Big & Dandy Methallylescaline Thread (Bluelight)](http://www.bluelight.org/vb/threads/630226-The-Big-amp-Dandy-Methallylescaline-(MAL)-Thread)`,
   "tripsit-factsheets": `# Methallylescaline
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/methallylescaline*
 

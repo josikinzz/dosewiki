@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDOH";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDOH.md","displayName":"Isomer Design","size":2453},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDOH.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - MDOH.md","displayName":"Wikipedia","size":989}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MDOH.md","displayName":"Isomer Design","size":2453,"tokens":618},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MDOH.md","displayName":"TripSit Factsheets","size":923,"tokens":252},{"id":"wikipedia","fileName":"WIKIPEDIA - MDOH.md","displayName":"Wikipedia","size":989,"tokens":264}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MDOH
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=114*

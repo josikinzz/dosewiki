@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MET";
-export const sources = [{"id":"erowid","fileName":"EROWID - MET.md","displayName":"Erowid","size":8473},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MET.md","displayName":"Isomer Design","size":753},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MET.md","displayName":"PsychonautWiki","size":20724},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MET.md","displayName":"TripSit Factsheets","size":840},{"id":"wikipedia","fileName":"WIKIPEDIA - MET.md","displayName":"Wikipedia","size":2568}];
+export const sources = [{"id":"erowid","fileName":"EROWID - MET.md","displayName":"Erowid","size":8473,"tokens":2302},{"id":"isomerdesign","fileName":"ISOMERDESIGN - MET.md","displayName":"Isomer Design","size":399,"tokens":161},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MET.md","displayName":"PsychonautWiki","size":17832,"tokens":4859},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MET.md","displayName":"TripSit Factsheets","size":840,"tokens":245},{"id":"wikipedia","fileName":"WIKIPEDIA - MET.md","displayName":"Wikipedia","size":2568,"tokens":684}];
 export const contents: Record<string, string> = {
   "erowid": `# MET
 *Source: https://erowid.org/chemicals/met/met.shtml*
@@ -243,16 +243,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCN(CCc1c[nH]c2c1cccc2)C\`
 
-**InChI:** \`InChI=1S/C13H18N2/c1-3-15(2)9-8-11-10-14-13-7-5-4-6-12(11)13/h4-7,10,14H,3,8-9H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [720502](https://www.chemspider.com/Chemical-Structure.720502.html/)
-- [824845](https://pubchem.ncbi.nlm.nih.gov/compound/824845)
-- [Q3725286](https://www.wikidata.org/wiki/Q3725286)
-- [N-Methyl-N-ethyltryptamine](https://en.wikipedia.org/wiki/N-Methyl-N-ethyltryptamine)
-`,
+**InChI:** \`InChI=1S/C13H18N2/c1-3-15(2)9-8-11-10-14-13-7-5-4-6-12(11)13/h4-7,10,14H,3,8-9H2,1-2H3\``,
   "psychonautwiki": `# MET
 *Source: https://psychonautwiki.org/wiki/MET*
 
@@ -469,17 +460,7 @@ Due to its relative obscurity, the possession and sale of MET is unscheduled in 
 
 ### Discussion
 
-- [The Big & Dandy MET Thread (Bluelight)](https://www.bluelight.org/xf/threads/255405)
-
-## References
-1. ↑ [“That’s okay, you’re good” MET trip report](https://www.erowid.org/experiences/exp_info7.shtml), The Vaults of Erowid
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-3. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-5. ↑ *[危険ドラッグの成分７物質を新たに指定薬物に指定](https://www.mhlw.go.jp/stf/houdou/0000212475_00037.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved March 11, 2023.*
-6. ↑ ["Schedule 1 Class A controlled drugs"](http://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html#DLM436576).*"Reprint as at 13 August 2019: Misuse of Drugs Act 1975"*. Parliamentary Counsel Office. Retrieved January 7, 2020.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["The Misuse of Drugs Act 1971 (Modification) Order 1977"](http://www.legislation.gov.uk/uksi/1977/1243/made). The National Archives. July 26, 1977. Retrieved January 10, 2020.NewPP limit report Cached time: 20251218075552 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.093 seconds CPU time usage: 0.348 seconds Real time usage: 0.659 seconds Preprocessor visited node count: 1930/1000000 Post‐expand include size: 160954/2097152 bytes Template argument size: 20981/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 8308/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 7.96 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 477.977 1 -total 25.60% 122.356 3 Template:Citation_needed 23.81% 113.812 6 Template:Cite_web 15.72% 75.150 1 Template:Fix 15.57% 74.424 1 Template:Citation 14.58% 69.684 2 Template:Category_handler 13.09% 62.548 1 Template:SubstanceBox/MET 12.27% 58.663 1 Template:SubstanceBox 8.54% 40.812 1 Template:Effects/base 6.51% 31.093 1 Template:Effect_list`,
+- [The Big & Dandy MET Thread (Bluelight)](https://www.bluelight.org/xf/threads/255405)`,
   "tripsit-factsheets": `# MET
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/met*
 

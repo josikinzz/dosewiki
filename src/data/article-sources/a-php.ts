@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "A-PHP";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - A-PHP.md","displayName":"Drug Users Bible","size":6118},{"id":"isomerdesign","fileName":"ISOMERDESIGN - A-PHP.md","displayName":"Isomer Design","size":731},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - A-PHP.md","displayName":"PsychonautWiki","size":36535},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - A-PHP.md","displayName":"TripSit Factsheets","size":1005},{"id":"wikipedia","fileName":"WIKIPEDIA - A-PHP.md","displayName":"Wikipedia","size":1437}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - A-PHP.md","displayName":"Drug Users Bible","size":6118,"tokens":1611},{"id":"isomerdesign","fileName":"ISOMERDESIGN - A-PHP.md","displayName":"Isomer Design","size":367,"tokens":158},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - A-PHP.md","displayName":"PsychonautWiki","size":28686,"tokens":7796},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - A-PHP.md","displayName":"TripSit Factsheets","size":1005,"tokens":276},{"id":"wikipedia","fileName":"WIKIPEDIA - A-PHP.md","displayName":"Wikipedia","size":1437,"tokens":379}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# a-PHP
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -153,16 +153,7 @@ the safety measures.
 
 **SMILES:** \`CCCCC(C(=O)c1ccccc1)N1CCCC1\`
 
-**InChI:** \`InChI=1S/C16H23NO/c1-2-3-11-15(17-12-7-8-13-17)16(18)14-9-5-4-6-10-14/h4-6,9-10,15H,2-3,7-8,11-13H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [52084419](https://www.chemspider.com/Chemical-Structure.52084419.html/)
-- [102107923](https://pubchem.ncbi.nlm.nih.gov/compound/102107923)
-- [Q21098929](https://www.wikidata.org/wiki/Q21098929)
-- [α-Pyrrolidinohexiophenone](https://en.wikipedia.org/wiki/Α-Pyrrolidinohexiophenone)
-`,
+**InChI:** \`InChI=1S/C16H23NO/c1-2-3-11-15(17-12-7-8-13-17)16(18)14-9-5-4-6-10-14/h4-6,9-10,15H,2-3,7-8,11-13H2,1H3\``,
   "psychonautwiki": `# A-PHP
 *Source: https://psychonautwiki.org/wiki/A-PHP*
 
@@ -390,28 +381,7 @@ Internationally, α-PHP was added to the UN Convention on Psychotropic Substance
 
 - [α-PHP (Wikipedia)](https://en.wikipedia.org/wiki/α-PHP)
 - [α-PHP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=644)
-- [a-PHP (Erowid)](https://www.erowid.org/experiences/subs/exp_alphaPHP.shtml)
-
-## References
-1. ↑ Meltzer, P. C., Butler, D., Deschamps, J. R., Madras, B. K. (23 February 2006).["1-(4-Methylphenyl)-2-pyrrolidin-1-yl-pentan-1-one (Pyrovalerone) analogs. A promising class of monoamine uptake inhibitors"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2602954/).*Journal of medicinal chemistry*.**49**(4): 1420–1432.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm050797a](//doi.org/10.1021%2Fjm050797a).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-2. ↑ Klavž, J., Gorenjak, M., Marinšek, M. (1 August 2016).["Suicide attempt with a mix of synthetic cannabinoids and synthetic cathinones: Case report of non-fatal intoxication with AB-CHMINACA, AB-FUBINACA, alpha-PHP, alpha-PVP and 4-CMC"](https://www.sciencedirect.com/science/article/pii/S0379073816000372).*Forensic Science International*.**265**: 121–124.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2016.01.018](//doi.org/10.1016%2Fj.forsciint.2016.01.018).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-3. ↑ National Institute on Drug Abuse,[Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts)
-4. ↑ 4.0 4.1 4.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-5. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-6. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-7. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-8. ↑ ["WHO: World Health Organization recommends 12 NPS for scheduling"](https://www.unodc.org/LSS/Announcement/Details/021820a0-8746-42a4-9ee3-47ce50b30ca3). December 2019. Retrieved October 16, 2020.
-9. ↑ ["CND accepts all WHO recommendations on the control of several psychoactive substances from the 42nd ECDD meeting"](https://www.who.int/news/item/18-03-2020-c-n-d-accepts-all-w-h-o-recommendations-from-42nd-e-c-d-d). World Health Organization (WHO). March 18, 2020. Retrieved October 16, 2020.
-10. ↑ New blanket ban on synthetic illegal drugs is approved (Portuguese) | [http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil/219201/pop_up?_101_INSTANCE_FXrpx9qY7FbU_viewMode=print&_101_INSTANCE_FXrpx9qY7FbU_languageId=pt_BR](http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil/219201/pop_up?_101_INSTANCE_FXrpx9qY7FbU_viewMode=print&_101_INSTANCE_FXrpx9qY7FbU_languageId=pt_BR)
-11. ↑ [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html)
-12. ↑ "AnlageII BtmG" (in German). Bundesministerium der Justiz und für Verbraucherschutz. Text "urlhttps://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html" ignored ( [help](/w/index.php?title=Help:CS1_errors&action=edit&redlink=1) ); Missing or empty |url= ( [help](/w/index.php?title=Help:CS1_errors&action=edit&redlink=1) ); |access-date= requires |url= ( [help](/w/index.php?title=Help:CS1_errors&action=edit&redlink=1) )
-13. ↑ ["Änderung des BtMG mit Aufnahme von vier neuen NPS in Kraft getreten"](https://community.beck.de/2023/01/03/aenderung-des-btmg-mit-aufnahme-von-vier-neuen-nps-in-kraft-getreten)(in German). Retrieved May 30, 2023. Text "publisherBeck Community" ignored ( [help](/w/index.php?title=Help:CS1_errors&action=edit&redlink=1) )
-14. ↑ [http://www.politicheantidroga.it/media/491607/decreto%20ministero%20salute%2029%20dicembre%202011.pdf](http://www.politicheantidroga.it/media/491607/decreto%20ministero%20salute%2029%20dicembre%202011.pdf)
-15. ↑ ["Tractatenblad van het Koninkrijk der Nederlanden - 77 (1971), Nr. 7, A. TITEL, Verdrag inzake psychotrope stoffen;Wenen, 21 februari 1971"](https://zoek.officielebekendmakingen.nl/trb-2021-110.html#d17e4724). Retrieved 2021-10-29.
-16. ↑ [http://rkrattsbaser.gov.se/sfst?fritext=alfa-PHP&upph=false&sort=desc&post_id=2](http://rkrattsbaser.gov.se/sfst?fritext=alfa-PHP&upph=false&sort=desc&post_id=2)
-17. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-18. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-19. ↑ ["Schedules of Controlled Substances Extension"](https://www.federalregister.gov/documents/2021/07/16/2021-15113/schedules-of-controlled-substances-extension-of-temporary-placement-of-n). Drug Enforcement Administration. Retrieved 2022-04-22.NewPP limit report Cached time: 20251218075145 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.089 seconds CPU time usage: 0.441 seconds Real time usage: 0.801 seconds Preprocessor visited node count: 2395/1000000 Post‐expand include size: 209437/2097152 bytes Template argument size: 29565/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 22579/5000000 bytes Lua time usage: 0.230/7 seconds Lua virtual size: 8.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 609.099 1 -total 23.78% 144.865 5 Template:Cite_journal 12.96% 78.948 3 Template:Citation_needed 12.86% 78.352 1 Template:SubstanceBox/A-PHP 12.17% 74.107 1 Template:SubstanceBox 11.33% 69.018 1 Template:Fix 10.62% 64.668 2 Template:Category_handler 10.06% 61.283 7 Template:Cite_web 9.69% 59.001 1 Template:Distinguish 9.01% 54.895 1 Template:Hatnote`,
+- [a-PHP (Erowid)](https://www.erowid.org/experiences/subs/exp_alphaPHP.shtml)`,
   "tripsit-factsheets": `# α-PHP
 *Source: TripSit Factsheets (tripsit.me)*
 

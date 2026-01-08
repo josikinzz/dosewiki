@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-DPT";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DPT.md","displayName":"TripSit Factsheets","size":663},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DPT.md","displayName":"Wikipedia","size":835}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DPT.md","displayName":"TripSit Factsheets","size":663,"tokens":173},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DPT.md","displayName":"Wikipedia","size":835,"tokens":252}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-AcO-DPT
 *Source: TripSit Factsheets (tripsit.me)*

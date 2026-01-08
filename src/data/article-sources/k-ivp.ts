@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "βk-IVP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - βk-IVP.md","displayName":"TripSit Factsheets","size":493}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - βk-IVP.md","displayName":"TripSit Factsheets","size":493,"tokens":134}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# βk-IVP
 *Source: TripSit Factsheets (tripsit.me)*

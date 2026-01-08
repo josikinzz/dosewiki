@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { estimateTokenCount } from "tokenx";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTICLES_DIR = path.join(__dirname, "..", "drug-info-articles");
@@ -45,6 +46,30 @@ function slugify(name) {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * Strip content after references for specific sources.
+ * This removes reference sections that aren't useful for article generation.
+ */
+const REFERENCE_MARKERS = {
+  THEDRUGCLASSROOM: "## References",
+  DRUGBANK: "### General References",
+  ISOMERDESIGN: "## External References",
+  PSYCHONAUTWIKI: "## References",
+  TRIPSIT_FACTSHEETS: "## References",
+  TRIPSIT_WIKI: "## References",
+};
+
+function processContent(content, sourceKey) {
+  const marker = REFERENCE_MARKERS[sourceKey];
+  if (marker) {
+    const index = content.indexOf(marker);
+    if (index !== -1) {
+      return content.slice(0, index).trimEnd();
+    }
+  }
+  return content;
+}
+
 async function buildArticleSources() {
   // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
@@ -83,13 +108,15 @@ async function buildArticleSources() {
 
       const displayName = getDisplayName(sourceKey);
       const filePath = path.join(substanceDir, file);
-      const content = fs.readFileSync(filePath, "utf-8");
+      const rawContent = fs.readFileSync(filePath, "utf-8");
+      const content = processContent(rawContent, sourceKey);
 
       sources.push({
         id: sourceId,
         fileName: file,
         displayName,
         size: content.length,
+        tokens: estimateTokenCount(content),
         content,
       });
       totalFiles++;
@@ -112,6 +139,7 @@ export const sources = ${JSON.stringify(sources.map(s => ({
       fileName: s.fileName,
       displayName: s.displayName,
       size: s.size,
+      tokens: s.tokens,
     })))};
 export const contents: Record<string, string> = {
 ${sources.map(s => `  ${JSON.stringify(s.id)}: \`${escapeString(s.content)}\`,`).join("\n")}
@@ -131,6 +159,7 @@ ${sources.map(s => `  ${JSON.stringify(s.id)}: \`${escapeString(s.content)}\`,`)
         fileName: s.fileName,
         displayName: s.displayName,
         size: s.size,
+        tokens: s.tokens,
       })),
     });
   }
@@ -142,6 +171,7 @@ export interface SourceInfo {
   fileName: string;
   displayName: string;
   size: number;
+  tokens: number;
 }
 
 export interface SubstanceInfo {

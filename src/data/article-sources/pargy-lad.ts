@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PARGY-LAD";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - PARGY-LAD.md","displayName":"Isomer Design","size":835},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PARGY-LAD.md","displayName":"PsychonautWiki","size":29857},{"id":"wikipedia","fileName":"WIKIPEDIA - PARGY-LAD.md","displayName":"Wikipedia","size":777}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - PARGY-LAD.md","displayName":"Isomer Design","size":505,"tokens":229},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PARGY-LAD.md","displayName":"PsychonautWiki","size":26309,"tokens":7195},{"id":"wikipedia","fileName":"WIKIPEDIA - PARGY-LAD.md","displayName":"Wikipedia","size":777,"tokens":212}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# PARGY-LAD
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5343*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`C#CCN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N(CC)CC\`
 
-**InChI:** \`InChI=1S/C22H25N3O/c1-4-10-25-14-16(22(26)24(5-2)6-3)11-18-17-8-7-9-19-21(17)15(13-23-19)12-20(18)25/h1,7-9,11,13,16,20,23H,5-6,10,12,14H2,2-3H3/t16-,20-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106360](https://www.chemspider.com/Chemical-Structure.21106360.html/)
-- [139030999](https://pubchem.ncbi.nlm.nih.gov/compound/139030999)
-- [Q7118214](https://www.wikidata.org/wiki/Q7118214)
-- [PARGY-LAD](https://en.wikipedia.org/wiki/PARGY-LAD)
-`,
+**InChI:** \`InChI=1S/C22H25N3O/c1-4-10-25-14-16(22(26)24(5-2)6-3)11-18-17-8-7-9-19-21(17)15(13-23-19)12-20(18)25/h1,7-9,11,13,16,20,23H,5-6,10,12,14H2,2-3H3/t16-,20-/m1/s1\``,
   "psychonautwiki": `# PARGY-LAD
 *Source: https://psychonautwiki.org/wiki/PARGY-LAD*
 
@@ -217,17 +208,7 @@ Tolerance to the effects of PARGY-LAD is built almost immediately after ingestio
 
 - Watts, V. J., Mailman, R. B., Lawler, C. P., Neve, K. A., & Nichols, D. E. (1995). ***LSD and structural analogs: pharmacological evaluation at D1 dopamine receptors*** . *Psychopharmacology* , 118(4), 401-409. [https://doi.org/10.1007/BF02245940](https://doi.org/10.1007/BF02245940) .
 - Niwaguchi, T., Nakahara, Y., & Ishii, H. (1976). ***Studies on lysergic acid diethylamide and related compounds. IV. Syntheses of various amide derivatives of norlysergic acid and related compounds.*** *Yakugaku Zasshi: Journal of the Pharmaceutical Society of Japan* , 96(5), 673-678. PMID 987200.
-- Pfaff, R. C., Huang, X., Marona-Lewicka, D., Oberlender, R., & Nichols, D. E. (1994). ***[Lysergamides Revisited.](http://archives.drugabuse.gov/pdf/monographs/146.pdf)*** *NIDA Research Monograph* , 146, 52-73. PMID: 8742794.
-
-## References
-1. ↑ 1.0 1.1 1.2 1.3 1.4 1.5 1.6 ["Explore PARGY-LAD"](https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5343).*TiHKAL · info*. Isomer Design. Retrieved January 7, 2020.
-2. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#51. PRO-LAD"](https://erowid.org/library/books_online/tihkal/tihkal51.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-4. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-5. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-6. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-7. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-8. ↑ Advisory Council on the Misuse of Drugs (ACMD) (June 10, 2014).["Update of the generic definition for tryptamines"](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/318693/UpdateGenericDefinitionTryptamines.pdf)(PDF). Government Digital Service. p. 12. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075709 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.033 seconds CPU time usage: 0.300 seconds Real time usage: 0.590 seconds Preprocessor visited node count: 1557/1000000 Post‐expand include size: 135212/2097152 bytes Template argument size: 26717/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10674/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 8.09 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 483.149 1 -total 32.21% 155.628 6 Template:Cite_web 21.69% 104.796 1 Template:Effects/base 21.09% 101.897 1 Template:Effect_list 20.44% 98.757 2 Template:Effect_column 18.24% 88.114 5 Template:Citation_needed 16.06% 77.613 6 Template:Effect_panel 15.89% 76.755 2 Template:Fix 15.82% 76.435 1 Template:Effects/physical 14.96% 72.285 4 Template:Category_handler`,
+- Pfaff, R. C., Huang, X., Marona-Lewicka, D., Oberlender, R., & Nichols, D. E. (1994). ***[Lysergamides Revisited.](http://archives.drugabuse.gov/pdf/monographs/146.pdf)*** *NIDA Research Monograph* , 146, 52-73. PMID: 8742794.`,
   "wikipedia": `# PARGY-LAD
 *Source: https://en.wikipedia.org/wiki/PARGY-LAD*
 

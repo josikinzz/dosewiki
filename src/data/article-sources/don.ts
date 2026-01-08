@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DON";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DON.md","displayName":"Isomer Design","size":521},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DON.md","displayName":"TripSit Factsheets","size":1126},{"id":"wikipedia","fileName":"WIKIPEDIA - DON.md","displayName":"Wikipedia","size":3901}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DON.md","displayName":"Isomer Design","size":521,"tokens":137},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DON.md","displayName":"TripSit Factsheets","size":1126,"tokens":296},{"id":"wikipedia","fileName":"WIKIPEDIA - DON.md","displayName":"Wikipedia","size":3901,"tokens":970}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DON
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=70*

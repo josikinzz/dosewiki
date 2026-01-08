@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "O-PCE";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - O-PCE.md","displayName":"Isomer Design","size":751},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - O-PCE.md","displayName":"PsychonautWiki","size":24496},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - O-PCE.md","displayName":"TripSit Factsheets","size":505},{"id":"wikipedia","fileName":"WIKIPEDIA - O-PCE.md","displayName":"Wikipedia","size":308}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - O-PCE.md","displayName":"Isomer Design","size":355,"tokens":145},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - O-PCE.md","displayName":"PsychonautWiki","size":21278,"tokens":5819},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - O-PCE.md","displayName":"TripSit Factsheets","size":505,"tokens":218},{"id":"wikipedia","fileName":"WIKIPEDIA - O-PCE.md","displayName":"Wikipedia","size":308,"tokens":87}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# O-PCE
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=756*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCNC1(CCCCC1=O)c1ccccc1\`
 
-**InChI:** \`InChI=1S/C14H19NO/c1-2-15-14(11-7-6-10-13(14)16)12-8-4-3-5-9-12/h3-5,8-9,15H,2,6-7,10-11H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [76590394](https://www.chemspider.com/Chemical-Structure.76590394.html/)
-- [132989542](https://pubchem.ncbi.nlm.nih.gov/compound/132989542)
-- [Eticyclidone](https://en.wikipedia.org/wiki/Eticyclidone)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C14H19NO/c1-2-15-14(11-7-6-10-13(14)16)12-8-4-3-5-9-12/h3-5,8-9,15H,2,6-7,10-11H2,1H3\``,
   "psychonautwiki": `# O-PCE
 *Source: https://psychonautwiki.org/wiki/O-PCE*
 
@@ -221,18 +212,7 @@ However, anecdotal evidence suggests that these symptoms can be largely avoided 
 
 ## Literature
 
-- Morris, H., & Wallach, J. (2014). ***From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs.*** *Drug Testing and Analysis* , 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-
-## References
-1. ↑ 1.0 1.1 Stevens, C. L.,[Aminoketones and methods for their production](https://patents.google.com/patent/US3254124/en)
-2. ↑ Gocmen, S., Buyukkocak, U., Caglayan, O. (2008). "In vitro investigation of the antibacterial effect of ketamine".*Upsala Journal of Medical Sciences*.**113**(1): 39–46.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.3109/2000-1967-211](//doi.org/10.3109%2F2000-1967-211).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2000-1967](//www.worldcat.org/issn/2000-1967).
-3. ↑ The Big & Dandy 2'-Oxo-PCE / 2'-Oxo-PCE Thread | [http://www.bluelight.org/vb/threads/767905-The-Big-amp-Dandy-2'-Oxo-PCE-2-Oxo-PCE-Thread](http://www.bluelight.org/vb/threads/767905-The-Big-amp-Dandy-2'-Oxo-PCE-2-Oxo-PCE-Thread)
-4. ↑ [https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch](https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch)
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218075700 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.058 seconds CPU time usage: 0.353 seconds Real time usage: 0.652 seconds Preprocessor visited node count: 1629/1000000 Post‐expand include size: 105641/2097152 bytes Template argument size: 12774/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9016/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 8.16 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 510.236 1 -total 16.62% 84.824 2 Template:Citation 16.18% 82.535 2 Template:Citation_needed 14.07% 71.788 4 Template:Cite_web 14.06% 71.736 1 Template:SubstanceBox/O-PCE 14.03% 71.595 1 Template:Fix 13.23% 67.491 1 Template:SubstanceBox 13.14% 67.049 2 Template:Category_handler 12.55% 64.010 1 Template:Distinguish 11.47% 58.511 1 Template:Hatnote`,
+- Morris, H., & Wallach, J. (2014). ***From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs.*** *Drug Testing and Analysis* , 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)`,
   "tripsit-factsheets": `# O-PCE
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/o-pce*
 

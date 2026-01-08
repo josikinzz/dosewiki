@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Diphenidine";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Diphenidine.md","displayName":"Disregard Everything I Say","size":13426},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Diphenidine.md","displayName":"Drug Users Bible","size":3712},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diphenidine.md","displayName":"TripSit Factsheets","size":923},{"id":"wikipedia","fileName":"WIKIPEDIA - Diphenidine.md","displayName":"Wikipedia","size":2865}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Diphenidine.md","displayName":"Disregard Everything I Say","size":13426,"tokens":3385},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Diphenidine.md","displayName":"Drug Users Bible","size":3712,"tokens":891},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diphenidine.md","displayName":"TripSit Factsheets","size":923,"tokens":238},{"id":"wikipedia","fileName":"WIKIPEDIA - Diphenidine.md","displayName":"Wikipedia","size":2865,"tokens":752}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Diphenidine
 *Source: https://disregardeverythingisay.com/post/107535099362/diphenidine-broken-down-and-described*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Glaucine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glaucine.md","displayName":"TripSit Factsheets","size":471},{"id":"wikipedia","fileName":"WIKIPEDIA - Glaucine.md","displayName":"Wikipedia","size":4139}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Glaucine.md","displayName":"TripSit Factsheets","size":471,"tokens":127},{"id":"wikipedia","fileName":"WIKIPEDIA - Glaucine.md","displayName":"Wikipedia","size":4139,"tokens":1026}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Glaucine
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Naphyrone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naphyrone.md","displayName":"TripSit Factsheets","size":448},{"id":"wikipedia","fileName":"WIKIPEDIA - Naphyrone.md","displayName":"Wikipedia","size":3301}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Naphyrone.md","displayName":"TripSit Factsheets","size":448,"tokens":126},{"id":"wikipedia","fileName":"WIKIPEDIA - Naphyrone.md","displayName":"Wikipedia","size":3301,"tokens":881}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Naphyrone
 *Source: TripSit Factsheets (tripsit.me)*

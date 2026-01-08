@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Hexobarbital";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Hexobarbital.md","displayName":"TripSit Factsheets","size":592},{"id":"wikipedia","fileName":"WIKIPEDIA - Hexobarbital.md","displayName":"Wikipedia","size":7650}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Hexobarbital.md","displayName":"TripSit Factsheets","size":592,"tokens":157},{"id":"wikipedia","fileName":"WIKIPEDIA - Hexobarbital.md","displayName":"Wikipedia","size":7650,"tokens":1827}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Hexobarbital
 *Source: TripSit Factsheets (tripsit.me)*

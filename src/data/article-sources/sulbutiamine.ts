@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sulbutiamine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sulbutiamine.md","displayName":"TripSit Factsheets","size":489},{"id":"wikipedia","fileName":"WIKIPEDIA - Sulbutiamine.md","displayName":"Wikipedia","size":3335}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sulbutiamine.md","displayName":"TripSit Factsheets","size":489,"tokens":126},{"id":"wikipedia","fileName":"WIKIPEDIA - Sulbutiamine.md","displayName":"Wikipedia","size":3335,"tokens":771}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Sulbutiamine
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5F-AKB48";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5F-AKB48.md","displayName":"Drug Users Bible","size":3424},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5F-AKB48.md","displayName":"TripSit Factsheets","size":618},{"id":"wikipedia","fileName":"WIKIPEDIA - 5F-AKB48.md","displayName":"Wikipedia","size":1159}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5F-AKB48.md","displayName":"Drug Users Bible","size":3424,"tokens":841},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5F-AKB48.md","displayName":"TripSit Factsheets","size":618,"tokens":165},{"id":"wikipedia","fileName":"WIKIPEDIA - 5F-AKB48.md","displayName":"Wikipedia","size":1159,"tokens":311}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 5F-AKB48
 *Source: Drug Users Bible by Dominic Milton Trott*

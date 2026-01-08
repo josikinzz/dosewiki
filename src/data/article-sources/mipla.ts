@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MiPLA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MiPLA.md","displayName":"Isomer Design","size":722},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MiPLA.md","displayName":"PsychonautWiki","size":32682},{"id":"wikipedia","fileName":"WIKIPEDIA - MiPLA.md","displayName":"Wikipedia","size":4744}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MiPLA.md","displayName":"Isomer Design","size":409,"tokens":188},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MiPLA.md","displayName":"PsychonautWiki","size":27623,"tokens":7448},{"id":"wikipedia","fileName":"WIKIPEDIA - MiPLA.md","displayName":"Wikipedia","size":4744,"tokens":1173}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MiPLA
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=tk&id=5327*
@@ -15,15 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N(C(C)C)C\`
 
-**InChI:** \`InChI=1S/C20H25N3O/c1-12(2)23(4)20(24)14-8-16-15-6-5-7-17-19(15)13(10-21-17)9-18(16)22(3)11-14/h5-8,10,12,14,18,21H,9,11H2,1-4H3/t14-,18-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [114937465](https://www.chemspider.com/Chemical-Structure.114937465.html/)
-- [102060927](https://pubchem.ncbi.nlm.nih.gov/compound/102060927)
-- [Methylisopropyllysergamide](https://en.wikipedia.org/wiki/Methylisopropyllysergamide)
-`,
+**InChI:** \`InChI=1S/C20H25N3O/c1-12(2)23(4)20(24)14-8-16-15-6-5-7-17-19(15)13(10-21-17)9-18(16)22(3)11-14/h5-8,10,12,14,18,21H,9,11H2,1-4H3/t14-,18-/m1/s1\``,
   "psychonautwiki": `# MiPLA
 *Source: https://psychonautwiki.org/wiki/MiPLA*
 
@@ -234,21 +226,7 @@ MiPLA is not scheduled under the UN Convention on Psychotropic Substances. It is
 ## Literature
 
 - Halberstadt, A. L., Klein, L. M., Chatha, M., Valenzuela, L. B., Stratford, A., Wallach, J., ... & Brandt, S. D. (2018). Pharmacological characterization of the LSD analog N-ethyl-N-cyclopropyl lysergamide (ECPLA). Psychopharmacology, 1-10. [http://dx.doi.org/10.1007/s00213-018-5055-9](http://dx.doi.org/10.1007/s00213-018-5055-9)
-- [Nichols, D. E. (2001). LSD and its lysergamide cousins. The Heffter Review of Psychedelic Research. Santa Fe, New Mexico: Heffter Research Institute, 80-87.](https://heffter.org/docs/hrireview/02/chap6.pdf)
-
-## References
-1. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin).[Pharmacology Notes IX (The Shulgin Lab Books)](https://erowid.org/library/books_online/shulgin_labbooks/shulgin_pharmacology_notebook9_searchable.pdf)(PDF). Erowid.
-2. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin).[Pharmacology Notes C (The Shulgin Lab Books)](https://erowid.org/library/books_online/shulgin_labbooks/shulgin_pharmacology_notebookc_searchable.pdf)(PDF). Erowid.
-3. ↑ Halberstadt, A. L.; Klein, L. M.; Chatha, M.; Valenzuela, L. B.; Stratford, A.; Wallach, Jason;[Nichols, D. E.](https://psychonautwiki.org/wiki/David_E._Nichols); Brandt, S. D. (2018). "Pharmacological characterization of the LSD analog*N*-ethyl-*N*-cyclopropyl lysergamide (ECPLA)".*Psychopharmacology*.**236**: 799–808.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00213-018-5055-9](//doi.org/10.1007%2Fs00213-018-5055-9).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1432-2072](//www.worldcat.org/issn/1432-2072).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).[OCLC](http://en.wikipedia.org/wiki/OCLC)[2409222](//www.worldcat.org/oclc/2409222).
-4. ↑ Huang, X., Marona-Lewicka, D., Pfaff, R. C., Nichols, D. E. (March 1994).["Drug discrimination and receptor binding studies of N-isopropyl lysergamide derivatives"](https://linkinghub.elsevier.com/retrieve/pii/0091305794901724).*Pharmacology Biochemistry and Behavior*.**47**(3): 667–673.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0091-3057(94)90172-4](//doi.org/10.1016%2F0091-3057%2894%2990172-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-5. ↑ Hofmann, A. (June 1959). "Psychotomimetic drugs; chemical and pharmacological aspects".*Acta Physiologica Et Pharmacologica Neerlandica*.**8**: 240–258.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0001-6748](//www.worldcat.org/issn/0001-6748).
-6. ↑ Pioch, R. P.,[Lysergic acid amides](https://patents.google.com/patent/US2997470A/en)
-7. ↑ Nichols, D. E. (2001).["LSD and its lysergamide cousins"](http://www.thevespiary.org/rhodium/Rhodium/pdf/nichols/nichols-lsd.lysergamide.cousins.pdf)(PDF).*The Heffter Review of Psychedelic Research. Santa Fe, New Mexico: Heffter Research Institute*.**2**: 80–87.
-8. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-9. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-10. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-11. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075624 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.054 seconds CPU time usage: 0.349 seconds Real time usage: 0.735 seconds Preprocessor visited node count: 1695/1000000 Post‐expand include size: 162103/2097152 bytes Template argument size: 31126/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15023/5000000 bytes Lua time usage: 0.280/7 seconds Lua virtual size: 8.14 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 595.154 1 -total 24.23% 144.204 14 Template:Citation_needed 17.52% 104.297 5 Template:Cite_journal 15.81% 94.082 2 Template:Cite_book 15.73% 93.608 2 Template:Fix 14.73% 87.647 4 Template:Category_handler 11.68% 69.495 4 Template:Cite_web 8.54% 50.834 1 Template:SubstanceBox/MiPLA 8.10% 48.188 1 Template:SubstanceBox 5.60% 33.308 1 Template:Effects/base`,
+- [Nichols, D. E. (2001). LSD and its lysergamide cousins. The Heffter Review of Psychedelic Research. Santa Fe, New Mexico: Heffter Research Institute, 80-87.](https://heffter.org/docs/hrireview/02/chap6.pdf)`,
   "wikipedia": `# MiPLA
 *Source: https://en.wikipedia.org/wiki/MiPLA*
 

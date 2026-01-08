@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "D2PM";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - D2PM.md","displayName":"The Drug Classroom","size":9118},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - D2PM.md","displayName":"TripSit Factsheets","size":580},{"id":"wikipedia","fileName":"WIKIPEDIA - D2PM.md","displayName":"Wikipedia","size":802}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - D2PM.md","displayName":"The Drug Classroom","size":7881,"tokens":2041},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - D2PM.md","displayName":"TripSit Factsheets","size":580,"tokens":156},{"id":"wikipedia","fileName":"WIKIPEDIA - D2PM.md","displayName":"Wikipedia","size":802,"tokens":198}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Diphenylprolinol (D2PM)
 *Source: https://thedrugclassroom.com/video/diphenylprolinol-d2pm/*
@@ -248,22 +248,7 @@ Values for neurite outgrowth inhibition:
 - R-D2PM = 35 uM
 - S-D2PM = 41 uM
 
----
-
-## References
-
-**(2013)** [Studies on the metabolism and detectability of the emerging drug of abuse diphenyl-2-pyrrolidinemethanol (D2PM) in rat urine using GC-MS and LC-HR-MS/MS](http://onlinelibrary.wiley.com/doi/10.1002/jms.3142/abstract)
-
-**(2012)** [Use and acute toxicity associated with the novel psychoactive substances diphenylprolinol (D2PM) and desoxypipradrol (2-DPMP).](https://www.ncbi.nlm.nih.gov/pubmed/22882169)
-
-**(2012)** [2-DPMP (desoxypipradrol, 2-benzhydrylpiperidine, 2-phenylmethylpiperidine) and D2PM (diphenyl-2-pyrrolidin-2-yl-methanol, diphenylprolinol): A preliminary review.](https://www.ncbi.nlm.nih.gov/pubmed/22687464)
-
-**(2012)** [A case series of individuals with analytically confirmed acute diphenyl-2-pyrrolidinemethanol (D2PM) toxicity](https://link.springer.com/article/10.1007/s00228-011-1142-0)
-
-**(2010)** [Recreational drugs, 3,4-Methylenedioxymethamphetamine(MDMA), 3,4-methylenedioxyamphetamine (MDA) and diphenylprolinol, inhibit neurite outgrowth in PC12 cells.](https://www.ncbi.nlm.nih.gov/pubmed/20519846)
-
-**(2008)** [Cardiovascular toxicity associated with recreational use of diphenylprolinol (diphenyl-2-pyrrolidinemethanol [D2PM])](https://www.ncbi.nlm.nih.gov/pubmed/18821489)
-`,
+---`,
   "tripsit-factsheets": `# D2PM
 *Source: TripSit Factsheets (tripsit.me)*
 

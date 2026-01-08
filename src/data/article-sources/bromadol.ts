@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bromadol";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromadol.md","displayName":"TripSit Factsheets","size":534},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromadol.md","displayName":"Wikipedia","size":954}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromadol.md","displayName":"TripSit Factsheets","size":534,"tokens":134},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromadol.md","displayName":"Wikipedia","size":954,"tokens":230}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Bromadol
 *Source: TripSit Factsheets (tripsit.me)*

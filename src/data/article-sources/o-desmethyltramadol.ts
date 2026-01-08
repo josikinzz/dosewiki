@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "O-Desmethyltramadol";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - O-Desmethyltramadol.md","displayName":"The Drug Classroom","size":41966},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - O-Desmethyltramadol.md","displayName":"TripSit Factsheets","size":812},{"id":"wikipedia","fileName":"WIKIPEDIA - O-Desmethyltramadol.md","displayName":"Wikipedia","size":3971}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - O-Desmethyltramadol.md","displayName":"The Drug Classroom","size":38720,"tokens":10046},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - O-Desmethyltramadol.md","displayName":"TripSit Factsheets","size":812,"tokens":219},{"id":"wikipedia","fileName":"WIKIPEDIA - O-Desmethyltramadol.md","displayName":"Wikipedia","size":3971,"tokens":945}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# O-Desmethyltramadol (O-DSMT)
 *Source: https://thedrugclassroom.com/video/o-desmethyltramadol-o-dsmt/*
@@ -486,30 +486,7 @@ Among the withdrawal effects are sweating, vomiting, a strong ill flu-like feeli
 
 Though more reports are needed to confirm how O-DSMT compares to other opioids, the mental effects are reportedly less severe than what’s seen with the classically strongest opioids, meaning withdrawal could be less depression and despair-inducing.
 
----
-
-## References
-Show ReferencesArndt, T., Claussen, U., Güssregen, B., Schröfel, S., Stürzer, B., Werle, A., & Wolf, G. (2011). Kratom alkaloids and O-desmethyltramadol in urine of a “Krypton” herbal mixture consumer. *Forensic Science International* , *208* (1–3), 47–52. https://doi.org/10.1016/j.forsciint.2010.10.025
- 
-Bäckberg, M., Jönsson, K. H., Beck, O., & Helander, A. (2018). Investigation of drug products received for analysis in the Swedish STRIDA project on new psychoactive substances. *Drug Testing and Analysis* , *10* (2), 340–349. https://doi.org/10.1002/dta.2226
- 
-Dresen, S., Ferreirós, N., Pütz, M., Westphal, F., Zimmermann, R., & Auwärter, V. (2010). Monitoring of herbal mixtures potentially containing synthetic cannabinoids as psychoactive compounds. *Journal of Mass Spectrometry* , *45* (10), 1186–1194. https://doi.org/10.1002/jms.1811
- 
-Helander, A., Beck, O., Hägerkvist, R., & Hultén, P. (2013). Identification of novel psychoactive drug use in Sweden based on laboratory analysis-initial experiences from the STRIDA project. *Scandinavian Journal of Clinical and Laboratory Investigation* , *73* (5), 400–406. https://doi.org/10.3109/00365513.2013.793817
- 
-Horishita, T., Minami, K., Uezono, Y., Shiraishi, M., Ogata, J., Okamoto, T., & Shigematsu, A. (2006). The tramadol metabolite, O-Desmethyl tramadol, inhibits 5-hydroxytryptamine type 2C receptors expressed in Xenopus oocytes. *Pharmacology* , *77* (2), 93–99. https://doi.org/10.1159/000093179
- 
-Kronstrand, R., Roman, M., Thelander, G., & Eriksson, A. (2011). Unintentional fatal intoxications with mitragynine and o-desmethyltramadol from the herbal blend krypton. *Journal of Analytical Toxicology* , *35* (4), 242–247. https://doi.org/10.1093/anatox/35.4.242
- 
-Matic, M., De Wildt, S. N., Elens, L., De Hoon, J. N., Annaert, P., Tibboel, D., … Allegaert, K. (2016). SLC22A1 /OCT1 Genotype Affects O-desmethyltramadol Exposure in Newborn Infants. *Therapeutic Drug Monitoring* , *38* (4), 487–492. https://doi.org/10.1097/FTD.0000000000000307
- 
-Minami, K., Yokoyama, T., Ogata, J., & Uezono, Y. (2011). The Tramadol Metabolite O-Desmethyl Tramadol Inhibits Substance P– Receptor Functions Expressed in Xenopus Oocytes. *Journal of Pharmacological Sciences J Pharmacol Sci* , *115* , 421–424. https://doi.org/10.1254/jphs.10313SC
- 
-Nakamura, M., Minami, K., Uezono, Y., Horishita, T., Ogata, J., Shiraishi, M., … Sata, T. (2005). The effects of the tramadol metabolite O-desmethyl tramadol on muscarinic receptor-induced responses in Xenopus oocytes expressing cloned M1or M3receptors. *Anesthesia and Analgesia* , *101* (1), 180–186. https://doi.org/10.1213/01.ANE.0000154303.93909.A3
- 
-Sevcik, J., Nieber, K., Driessen, B., & Illes, P. (1993). Effects of the central analgesic tramadol and its main metabolite, O‐desmethyltramadol, on rat locus coeruleus neurones. *British Journal of Pharmacology* , *110* (1), 169–176. https://doi.org/10.1111/j.1476-5381.1993.tb13788.x
- 
-Valle, M., Garrido, M. J., Pavon, J. M., Calvo, R., & Troconiz, I. F. (2000). Pharmacokinetic-pharmacodynamic modeling of the antinociceptive effects of main active metabolites of tramadol, (+)-O-desmethyltramadol and (-)-O-desmethyltramadol, in rats. *J Pharmacol Exp Ther* .`,
+---`,
   "tripsit-factsheets": `# O-Desmethyltramadol
 *Source: TripSit Factsheets (tripsit.me)*
 

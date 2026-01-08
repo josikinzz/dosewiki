@@ -36,7 +36,6 @@ import {
 import {
   MODEL_OPTIONS,
   estimateTokens,
-  estimateTokensFromCharCount,
   streamCompletion,
   validateApiKey,
 } from "../../../../utils/openrouter";
@@ -213,29 +212,26 @@ export const GeneratorTab = memo(function GeneratorTab({
     return substance?.sources ?? [];
   }, [selectedSubstanceSlug]);
 
-  // Token estimation - use actual text when available for accuracy
+  // Token estimation using precalculated tokens from build
   const totalTokenEstimate = useMemo(() => {
     let total = estimateTokens(generatorPrompt);
     for (const sourceId of selectedSourceIds) {
-      const content = substanceModule?.contents[sourceId];
-      if (content) {
-        // Use actual content for accurate estimation
-        total += estimateTokens(content);
-      } else {
-        // Fall back to char count estimation if content not loaded
-        const source = availableSources.find((s) => s.id === sourceId);
-        if (source) {
-          total += estimateTokensFromCharCount(source.size);
-        }
+      const source = availableSources.find((s) => s.id === sourceId);
+      if (source) {
+        total += source.tokens;
       }
     }
     return total;
-  }, [selectedSourceIds, availableSources, generatorPrompt, substanceModule]);
+  }, [selectedSourceIds, availableSources, generatorPrompt]);
 
   const selectedModelInfo = useMemo(
     () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS[0],
     [selectedModel]
   );
+
+  const contextUsagePercent = useMemo(() => {
+    return Math.min((totalTokenEstimate / selectedModelInfo.contextWindow) * 100, 100);
+  }, [totalTokenEstimate, selectedModelInfo.contextWindow]);
 
   // Load substance module when selection changes
   useEffect(() => {
@@ -580,25 +576,41 @@ export const GeneratorTab = memo(function GeneratorTab({
                     {source.displayName}
                   </span>
                   <span className="block text-xs text-white/40">
-                    ~{(substanceModule?.contents[source.id]
-                      ? estimateTokens(substanceModule.contents[source.id])
-                      : estimateTokensFromCharCount(source.size)
-                    ).toLocaleString()} tokens
+                    {source.tokens.toLocaleString()} tokens
                   </span>
                 </div>
               </label>
             ))}
           </div>
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <span className="text-white/60">
-              Total: ~{totalTokenEstimate.toLocaleString()} tokens
-            </span>
-            {totalTokenEstimate > selectedModelInfo.contextWindow * 0.8 && (
-              <span className="flex items-center gap-1 text-amber-400">
-                <AlertTriangle className="h-4 w-4" />
-                May exceed context window
+          <div className="mt-4 space-y-2">
+            {/* Progress bar */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  contextUsagePercent >= 80
+                    ? "bg-red-500"
+                    : contextUsagePercent >= 60
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+                }`}
+                style={{ width: `${contextUsagePercent}%` }}
+              />
+            </div>
+            {/* Labels */}
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-white/60">
+                ~{totalTokenEstimate.toLocaleString()} / {selectedModelInfo.contextWindow.toLocaleString()} tokens
               </span>
-            )}
+              <span className={`font-medium ${
+                contextUsagePercent >= 80
+                  ? "text-red-400"
+                  : contextUsagePercent >= 60
+                  ? "text-amber-400"
+                  : "text-white/60"
+              }`}>
+                {contextUsagePercent.toFixed(1)}%
+              </span>
+            </div>
           </div>
 
           {/* Generate Button */}

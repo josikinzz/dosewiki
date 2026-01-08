@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-Aminoindane";
-export const sources = [{"id":"erowid","fileName":"EROWID - 2-Aminoindane.md","displayName":"Erowid","size":6161},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Aminoindane.md","displayName":"Isomer Design","size":677},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-Aminoindane.md","displayName":"PsychonautWiki","size":23078},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Aminoindane.md","displayName":"Wikipedia","size":1686}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 2-Aminoindane.md","displayName":"Erowid","size":6161,"tokens":1618},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2-Aminoindane.md","displayName":"Isomer Design","size":353,"tokens":136},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2-Aminoindane.md","displayName":"PsychonautWiki","size":17899,"tokens":4825},{"id":"wikipedia","fileName":"WIKIPEDIA - 2-Aminoindane.md","displayName":"Wikipedia","size":1686,"tokens":493}];
 export const contents: Record<string, string> = {
   "erowid": `# 2-Aminoindane
 *Source: https://erowid.org/chemicals/2_aminoindan/2_aminoindan.shtml*
@@ -180,16 +180,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`NC1Cc2c(C1)cccc2\`
 
-**InChI:** \`InChI=1S/C9H11N/c10-9-5-7-3-1-2-4-8(7)6-9/h1-4,9H,5-6,10H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [68787](https://www.chemspider.com/Chemical-Structure.68787.html/)
-- [76310](https://pubchem.ncbi.nlm.nih.gov/compound/76310)
-- [Q4596856](https://www.wikidata.org/wiki/Q4596856)
-- [2-Aminoindane](https://en.wikipedia.org/wiki/2-Aminoindane)
-`,
+**InChI:** \`InChI=1S/C9H11N/c10-9-5-7-3-1-2-4-8(7)6-9/h1-4,9H,5-6,10H2\``,
   "psychonautwiki": `# 2-Aminoindane
 *Source: https://psychonautwiki.org/wiki/2-Aminoindane*
 
@@ -323,20 +314,7 @@ Abuse of compounds within the stimulant class at high dosages for prolonged peri
 
 - [2-AI (Wikipedia)](https://en.wikipedia.org/wiki/2-Aminoindane)
 - [2-AI (Erowid Vault)](https://erowid.org/chemicals/2_aminoindan/2_aminoindan.shtml)
-- [2-Aminoindane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2357)
-
-## References
-1. ↑ Oberlender, R., Nichols, D. E. (March 1991). "Structural variation and (+)-amphetamine-like discriminative stimulus properties".*Pharmacology, Biochemistry, and Behavior*.**38**(3): 581–586.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0091-3057(91)90017-v](//doi.org/10.1016%2F0091-3057%2891%2990017-v).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-2. ↑ 2.0 2.1 2.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-3. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-5. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-6. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](https://web.archive.org/web/20170210033939/www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. Archived from[the original](http://www.sfda.gov.cn/WS01/CL0056/130753.html)on February 10, 2017. Retrieved December 28, 2019.
-7. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-8. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 25, 2019.
-9. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-10. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-11. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218074846 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.02 seconds CPU time usage: 0.282 seconds Real time usage: 0.597 seconds Preprocessor visited node count: 1501/1000000 Post‐expand include size: 97466/2097152 bytes Template argument size: 11232/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15108/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.56 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 516.337 1 -total 22.99% 118.694 4 Template:Cite_journal 15.69% 81.014 1 Template:Citation_needed 14.85% 76.654 5 Template:Cite_web 13.72% 70.834 1 Template:Fix 12.85% 66.374 2 Template:Category_handler 12.67% 65.442 1 Template:SubstanceBox/2-Aminoindane 12.06% 62.289 1 Template:SubstanceBox 11.83% 61.089 1 Template:Further 4.41% 22.794 1 Template:Effects/base`,
+- [2-Aminoindane (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2357)`,
   "wikipedia": `# 2-Aminoindane
 *Source: https://en.wikipedia.org/wiki/2-Aminoindane*
 

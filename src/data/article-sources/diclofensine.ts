@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Diclofensine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diclofensine.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Diclofensine.md","displayName":"Wikipedia","size":1404}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Diclofensine.md","displayName":"TripSit Factsheets","size":689,"tokens":181},{"id":"wikipedia","fileName":"WIKIPEDIA - Diclofensine.md","displayName":"Wikipedia","size":1404,"tokens":372}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Diclofensine
 *Source: TripSit Factsheets (tripsit.me)*

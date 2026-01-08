@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenibut";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Phenibut.md","displayName":"Drug Users Bible","size":1487},{"id":"erowid","fileName":"EROWID - Phenibut.md","displayName":"Erowid","size":6676},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenibut.md","displayName":"Isomer Design","size":643},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Phenibut.md","displayName":"PsychonautWiki","size":31766},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Phenibut.md","displayName":"The Drug Classroom","size":161551},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenibut.md","displayName":"TripSit Factsheets","size":452},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenibut.md","displayName":"Wikipedia","size":11841}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Phenibut.md","displayName":"Drug Users Bible","size":1487,"tokens":369},{"id":"erowid","fileName":"EROWID - Phenibut.md","displayName":"Erowid","size":6676,"tokens":1723},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenibut.md","displayName":"Isomer Design","size":331,"tokens":130},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Phenibut.md","displayName":"PsychonautWiki","size":23256,"tokens":6295},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Phenibut.md","displayName":"The Drug Classroom","size":140913,"tokens":35359},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenibut.md","displayName":"TripSit Factsheets","size":452,"tokens":131},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenibut.md","displayName":"Wikipedia","size":11841,"tokens":2966}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Phenibut
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -235,16 +235,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`NCC(c1ccccc1)CC(=O)O\`
 
-**InChI:** \`InChI=1S/C10H13NO2/c11-7-9(6-10(12)13)8-4-2-1-3-5-8/h1-5,9H,6-7,11H2,(H,12,13)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [13491](https://www.chemspider.com/Chemical-Structure.13491.html/)
-- [14113](https://pubchem.ncbi.nlm.nih.gov/compound/14113)
-- [Q419559](https://www.wikidata.org/wiki/Q419559)
-- [Phenibut](https://en.wikipedia.org/wiki/Phenibut)
-`,
+**InChI:** \`InChI=1S/C10H13NO2/c11-7-9(6-10(12)13)8-4-2-1-3-5-8/h1-5,9H,6-7,11H2,(H,12,13)\``,
   "psychonautwiki": `# Phenibut
 *Source: https://psychonautwiki.org/wiki/Phenibut*
 
@@ -405,34 +396,7 @@ Phenibut produces cross-tolerance with all [GABAgenic](https://psychonautwiki.or
 
 - [Phenibut (Wikipedia)](https://en.wikipedia.org/wiki/Phenibut)
 - [Phenibut (Erowid Vault)](https://www.erowid.org/smarts/phenibut/)
-- [Phenibut (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2378)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Wyllie, E., Cascino, G. D., Gidal, B. E., Goodkin, H. P. (17 February 2012).*Wyllie’s Treatment of Epilepsy: Principles and Practice*. Lippincott Williams & Wilkins.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9781451153484](http://en.wikipedia.org/wiki/Special:BookSources/9781451153484).
-3. ↑ Benzon, H., Rathmell, J. P., Wu, C. L., Turk, D., Argoff, C. E., Hurley, R. W. (11 September 2013).*Practical Management of Pain E-Book*. Elsevier Health Sciences.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780323170802](http://en.wikipedia.org/wiki/Special:BookSources/9780323170802).
-4. ↑ 4.0 4.1 4.2 4.3 Lapin, I. (7 June 2006).["Phenibut (β-Phenyl-GABA): A Tranquilizer and Nootropic Drug"](https://onlinelibrary.wiley.com/doi/10.1111/j.1527-3458.2001.tb00211.x).*CNS Drug Reviews*.**7**(4): 471–481.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1527-3458.2001.tb00211.x](//doi.org/10.1111%2Fj.1527-3458.2001.tb00211.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1080-563X](//www.worldcat.org/issn/1080-563X).
-5. ↑ Shulgina, G. I. (December 1986). "On neurotransmitter mechanisms of reinforcement and internal inhibition".*The Pavlovian Journal of Biological Science*.**21**(4): 129–140.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF02734511](//doi.org/10.1007%2FBF02734511).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0093-2213](//www.worldcat.org/issn/0093-2213).
-6. ↑ 6.0 6.1 Group, D. W. (25 February 2015).*Encyclopedia of Mind Enhancing Foods, Drugs and Nutritional Substances, 2d ed*. McFarland.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780786441426](http://en.wikipedia.org/wiki/Special:BookSources/9780786441426).
-7. ↑ Shulgina, G. I. (October 1986).["On neurotransmitter mechanisms of reinforcement and internal inhibition"](https://link.springer.com/10.1007/BF02734511).*The Pavlovian Journal of Biological Science*.**21**(4): 129–140.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF02734511](//doi.org/10.1007%2FBF02734511).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0093-2213](//www.worldcat.org/issn/0093-2213).
-8. ↑ Lapin, I. (2001). "Phenibut (beta-phenyl-GABA): a tranquilizer and nootropic drug".*CNS drug reviews*.**7**(4): 471–481.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1527-3458.2001.tb00211.x](//doi.org/10.1111%2Fj.1527-3458.2001.tb00211.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1080-563X](//www.worldcat.org/issn/1080-563X).
-9. ↑ Dambrova, M., Zvejniece, L., Liepinsh, E., Cirule, H., Zharkova, O., Veinberg, G., Kalvinsh, I. (March 2008).["Comparative pharmacological activity of optical isomers of phenibut"](https://linkinghub.elsevier.com/retrieve/pii/S001429990800068X).*European Journal of Pharmacology*.**583**(1): 128–134.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2008.01.015](//doi.org/10.1016%2Fj.ejphar.2008.01.015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-10. ↑ *GABAb Receptor Pharmacology: A Tribute to Norman Bowery*. Academic Press. 21 September 2010.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780123786487](http://en.wikipedia.org/wiki/Special:BookSources/9780123786487).
-11. ↑ Zyablitseva, E. A.; Pavlova, I. V. (2010). "Effects of the GABA Receptor Agonist Phenibut on Spike Activity and Interactions between Neocortex and Hippocampus Neurons in Emotionally Negative Situations".*Neuroscience and Behavioral Physiology*.**40**(9): 1003–1011.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s11055-010-9360-y](//doi.org/10.1007%2Fs11055-010-9360-y).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0097-0549](//www.worldcat.org/issn/0097-0549).
-12. ↑ 12.0 12.1 12.2 Dambrova, M., Zvejniece, L., Liepinsh, E., Cirule, H., Zharkova, O., Veinberg, G., Kalvinsh, I. (31 March 2008). "Comparative pharmacological activity of optical isomers of phenibut".*European Journal of Pharmacology*.**583**(1): 128–134.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2008.01.015](//doi.org/10.1016%2Fj.ejphar.2008.01.015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-13. ↑ Koski, A., Ojanpera, I., Vuori, E. (July 2002).["Alcohol and Benzodiazepines in Fatal Poisonings"](https://onlinelibrary.wiley.com/doi/10.1111/j.1530-0277.2002.tb02627.x).*Alcoholism: Clinical and Experimental Research*.**26**(7): 956–959.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1530-0277.2002.tb02627.x](//doi.org/10.1111%2Fj.1530-0277.2002.tb02627.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0145-6008](//www.worldcat.org/issn/0145-6008).
-14. ↑ [The Drug Classroom - Phenibut: Combinations](https://thedrugclassroom.com/video/phenibut/)
-15. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-16. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-17. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-18. ↑ [Evaluation der Auswirkungen des Neue-psychoaktive-Stoffe-Gesetzes (NpSG): Abschlussbericht.](https://www.ift.de/fileadmin/user_upload/Literatur/Berichte/Kraus_et_al_2020_NpSG-Abschlussbericht.pdf)
-19. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-20. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-21. ↑ [Erowid Phenibut Vault: Legal Status](https://erowid.org/smarts/phenibut/phenibut_law.shtml)
-22. ↑ Alabama List of Controlled Substances [https://www.alabamapublichealth.gov/blog/assets/controlledsubstanceslist.pdf](https://www.alabamapublichealth.gov/blog/assets/controlledsubstanceslist.pdf)
-23. ↑ [Tabella 1](http://www.salute.gov.it/imgs/C_17_pagineAree_3729_0_file.pdf) (PDF) (in Italian). Ministero della Salute [Ministry of Health]. p.19. Retrieved November 24, 2020.
-24. ↑ [https://dati.zva.gov.lv/zalu-registrs/?iss=1&q=Phenibutum](https://dati.zva.gov.lv/zalu-registrs/?iss=1&q=Phenibutum) Database of licensed phenibut medicines and their legal status under the State Agency of Medicines of the Republic of Latvia. *Retrieved August 26, 2023.*
-25. ↑ [https://likumi.lv/ta/en/en/id/50539](https://likumi.lv/ta/en/en/id/50539) Active Latvian law regarding scheduled and banned substances. *Retrieved August 26, 2023.*NewPP limit report Cached time: 20251218075719 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.049 seconds CPU time usage: 0.391 seconds Real time usage: 0.802 seconds Preprocessor visited node count: 1934/1000000 Post‐expand include size: 132683/2097152 bytes Template argument size: 20406/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 26854/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.56 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 660.662 1 -total 21.73% 143.561 8 Template:Cite_journal 14.60% 96.486 4 Template:Citation 13.05% 86.217 4 Template:Citation_needed 11.61% 76.730 1 Template:Fix 11.00% 72.649 2 Template:Category_handler 10.76% 71.057 1 Template:SubstanceBox/Phenibut 10.08% 66.616 1 Template:SubstanceBox 9.76% 64.489 1 Template:Headerpanel 9.43% 62.276 4 Template:Cite_book`,
+- [Phenibut (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2378)`,
   "thedrugclassroom": `# Phenibut
 *Source: https://thedrugclassroom.com/video/phenibut/*
 
@@ -1850,180 +1814,7 @@ Show Papers(Ahuja, 2018) – Withdrawal symptoms like anxiety and hallucinations
 **Risky Combinations (list is not exhaustive)**
 
 - Benzodiazepines, opioids, alcohol, barbiturates, and other GABAergics.
-- Dissociatives
-
-## References
-Show ReferencesAbramets, I. I., & Komissarov, I. V. (1985). [Effect of fenibut on the GABA B receptors of the spinal motor neurons]. Biulleten’ Eksperimental’noi Biologii i Meditsiny, 99(6), 698–700. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/2861865
- 
-Ahuja, T., Mgbako, O., Katzman, C., & Grossman, A. (2018). Phenibut ( β -Phenyl- γ -aminobutyric Acid) Dependence and Management of Withdrawal: Emerging Nootropics of Abuse. Case Reports in Psychiatry, 2018, 1–3. https://doi.org/10.1155/2018/9864285
- 
-Allan, R. D., Bates, M. C., Drew, C. A., Duke, R. K., Hambley, T. W., Johnston, G. A. R., … Spence, I. (1990). A new synthesis resolution and in vitro activities of (R)- and (S)-β-Phenyl-Gaba. Tetrahedron, 46(7), 2511–2524. https://doi.org/10.1016/S0040-4020(01)82032-9
- 
-Allikmets, L. H., & Rägo, L. K. (1983). The action of benzodiazepine antagonist Ro 15-1788 on the effects of GABA-ergic drugs. Naunyn-Schmiedeberg’s Archives of Pharmacology, 324(3), 235–7. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6318128
- 
-Arts, M., Petrykiv, S., & Fennema, J. (2018). Hazards of phenibut intoxication: A “new” internet drug. European Psychiatry. https://doi.org/10.1016/j.eurpsy.2017.12.023
- 
-Bagmetova, V. V, Krivitskaya, A. N., & Tyurenkov, I. N. (2015). Effects of Phenibut and Citrocard on Non-Competitive and Competitive Behavior during Provoked Aggression in Animals. Bulletin of Experimental Biology and Medicine, 159(1), 48–52. https://doi.org/10.1007/s10517-015-2887-8
- 
-Belozertseva, I. V. (n.d.). Pharmacoethical investigation GABA-ergic regulation of aggression and depression: animal models. Affective Disorders and Antidepressants.
- 
-Belozertseva, I., Nagel, J., Valastro, B., Franke, L., & Danysz, W. (2016). Optical isomers of phenibut inhibit [H3]-Gabapentin binding in vitro and show activity in animal models of chronic pain. Pharmacological Reports, 68(3), 550–554. https://doi.org/10.1016/j.pharep.2015.12.004
- 
-Benarroch, E. E. (2012). GABAB receptors: Structure, functions, and clinical implications. Neurology, 78(8), 578–584. https://doi.org/10.1212/WNL.0b013e318247cd03
- 
-Borisov, A. V, Prokofiev, I. I., Mokrousov, I. S., Perfilova, V. N., & Tyurenkov, I. N. (2017). Inhibition of the Expression of Inducible NO Synthase by Neuroactive Amino Acid Derivatives Phenibut and Glufimet In Vitro and Ex Vivo. Bulletin of Experimental Biology and Medicine, 164(2), 177–180. https://doi.org/10.1007/s10517-017-3952-2
- 
-Borodkina, L. E., & Bagmetova, V. V. (n.d.). The influence of fenibut and its composition with nicotinic acid on the behavior of animals exposed to electric shock, 1–2.
- 
-BOWERY, N. (2006). GABAB receptor: a site of therapeutic benefit. Current Opinion in Pharmacology, 6(1), 37–43. https://doi.org/10.1016/j.coph.2005.10.002
- 
-Bowery, N. G., Hill, D. R., & Hudson, A. L. (1983). Characteristics of GABAB receptor binding sites on rat whole brain synaptic membranes. British Journal of Pharmacology, 78(1), 191–206. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6297646
- 
-Brel’, A. K., Tyurenkov, I. N., Lisina, S. V, Popov, S. S., Verkholyak, D. V, Budaeva, Y. N., … Kurkin, D. V. (2018). Acetoxybenzoylglycylglycines as Potential Cerebroprotective Compounds. Pharmaceutical Chemistry Journal, 52(1), 37–41. https://doi.org/10.1007/s11094-018-1762-0
- 
-Chutko, L. S., Surushkina, S. Y., Yakovenko, E. A., Kropotov, Y. D., Anisimova, T. I., & Sergeev, A. V. (2018). Impulsivity in Adolescents with Attention Deficit Hyperactivity Disorder. Neuroscience and Behavioral Physiology, 48(4), 383–387. https://doi.org/10.1007/s11055-018-0574-8
- 
-Cryan, J. F., & Kaupmann, K. (2005). Don’t worry ‘B’ happy!: a role for GABAB receptors in anxiety and depression. Trends in Pharmacological Sciences, 26(1), 36–43. https://doi.org/10.1016/j.tips.2004.11.004
- 
-Dambrova, M., Zvejniece, L., Liepinsh, E., Cirule, H., Zharkova, O., Veinberg, G., & Kalvinsh, I. (2008). Comparative pharmacological activity of optical isomers of phenibut. European Journal of Pharmacology, 583(1), 128–134. https://doi.org/10.1016/j.ejphar.2008.01.015
- 
-Davies, J., & Watkins, J. C. (1974). The action of β-phenyl-GABA derivatives on neurones of the cat cerebral cortex. Brain Research, 70(3), 501–505. https://doi.org/10.1016/0006-8993(74)90258-3
- 
-El Zahran, T., Schier, J., Glidden, E., Kieszak, S., Law, R., Bottei, E., … Chang, A. (2018). Characteristics of Tianeptine Exposures Reported to the National Poison Data System — United States, 2000–2017. MMWR. Morbidity and Mortality Weekly Report, 67(30), 815–818. https://doi.org/10.15585/mmwr.mm6730a2
- 
-Elamin, M., Hill, S., Dunn, M., & Thomas, S. (2016). Convulsions associated with analytically confirmed phenibut ingestion. Clinical Toxicology, 54(4), 344–519. https://doi.org/10.3109/15563650.2016.1165952
- 
-Emson, P. C. (2007). GABAB receptors: structure and function (Vol. 160, pp. 43–57). https://doi.org/10.1016/S0079-6123(06)60004-6
- 
-Esin, O. R. (2018). Treatment of Tension-Type Headaches in Adolescents (14–15 Years Old): the Efficacy of Aminophenylbutyric Acid Hydrochloride. BioNanoScience, 8(1), 418–422. https://doi.org/10.1007/s12668-018-0507-6
- 
-Fatemi, S. H., Folsom, T. D., Reutiman, T. J., & Thuras, P. D. (2009). Expression of GABAB Receptors Is Altered in Brains of Subjects with Autism. The Cerebellum, 8(1), 64–69. https://doi.org/10.1007/s12311-008-0075-3
- 
-Fatemi, S. H., Folsom, T. D., & Thuras, P. D. (2011). Deficits in GABAB receptor system in schizophrenia and mood disorders: A postmortem study. Schizophrenia Research, 128(1–3), 37–43. https://doi.org/10.1016/j.schres.2010.12.025
- 
-Froestl, W. (2010). Chemistry and Pharmacology of GABAB Receptor Ligands (Vol. 58, pp. 19–62). https://doi.org/10.1016/S1054-3589(10)58002-5
- 
-Galli, A., Zilletti, L., Scotton, M., Adembri, G., & Ciotti, A. (1979). Inhibition of Na+-independent [ 3 H]GABA binding to synaptic membranes of rat brain by β-substituted GABA derivatives. Journal of Neurochemistry, 32(3), 1123–1125. https://doi.org/10.1111/j.1471-4159.1979.tb04605.x
- 
-Högberg, L., Szabó, I., & Ruusa, J. (2013). Psychotic symptoms during phenibut (beta-phenyl-gamma-aminobutyric acid) withdrawal. Journal of Substance Use, 18(4), 335–338. https://doi.org/10.3109/14659891.2012.668261
- 
-Huntington, S., Vohra, R., Lewis, J., Iknoian, J., & Dougherty, B. (2016). GABA GABA Hey (I wanna be sedated): Phenybut exposures reported to a statewide poison control system. https://doi.org/10.3109/15563650.2015.1071025
- 
-Ikhalaynen, A. A. (2005). P.3.048 The application of pharmacological drugs for the correction of psychoemotional state in extreme conditions. European Neuropsychopharmacology, 15, S166–S167. https://doi.org/10.1016/S0924-977X(05)80344-X
- 
-Jansone, B., Kuum, M., & Maciulaitis, R. (2016). Pharmacology in Estonia, Latvia and Lithuania: From historical roots to nowadays achievements. Pharmacological Research, 113, 723–730. https://doi.org/10.1016/j.phrs.2016.04.024
- 
-Joshi, Y. B., Friend, S. F., Jimenez, B., & Steiger, L. R. (2017). Dissociative Intoxication and Prolonged Withdrawal Associated With Phenibut. Journal of Clinical Psychopharmacology, 37(4), 478–480. https://doi.org/10.1097/JCP.0000000000000731
- 
-Khaunina, K. A., & Prakh’e, I. B. (1974). Effect of phenygam (β-phenyl-γ-aminobutyric acid) on the pituitary-adrenal system of rats. Bulletin of Experimental Biology and Medicine, 78(2), 904–907. https://doi.org/10.1007/BF00803923
- 
-Khaunina, R. A. (1971). Pharmacological activity of optical isomers of β-phenyl-γ-aminobutyric acid. Bulletin of Experimental Biology and Medicine, 72(5), 1280–1282. https://doi.org/10.1007/BF00807673
- 
-Khaunina, R. A., & Lapin, I. P. (1976). Fenibut, a new tranquilizer. Khimiko-Farmatsevticheskii Zhurnal, 10(12), 125–127.
- 
-Khomazyuk, T., & Krotova, V. (2018). The quality of life and cognitive health in comorbid vascular pathology. Medicus, 4(22).
- 
-Komissarov, I. V., & Abramets, I. I. (1986). Ionic mechanisms of the effect of phenibut and gaba not associated with a change in the function of the chloride channels. Neurophysiology, 17(4), 345–351. https://doi.org/10.1007/BF01052346
- 
-Koppen, A., A., V. R., C., R., I., D. V., & J., M. (2015). Reports of phenibut usage to the dutch poisons information center (DPIC). Clinical Toxicology, 53(7), 716–717. Retrieved from http://www.embase.com/search/results?subaction=viewrecord&from=export&id=L72003626%5Cnhttp://dx.doi.org/10.3109/15563650.2015.1071025%5Cnhttp://sfxhosted.exlibrisgroup.com/galway?sid=EMBASE&issn=15563650&id=doi:10.3109%2F15563650.2015.1071025&atitle=Repor
- 
-Kovalev, G. I., Prikhozhan, A. V, & Raevskiĭ, K. S. (1982). [Presynaptic component in the mechanism of fenibut action]. Biulleten’ Eksperimental’noi Biologii i Meditsiny, 94(11), 59–61. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/7150741
- 
-Kovalev, G. V, Spasov, A. A., Bogachev, N. A., Petrianik, V. D., & Ostrovskiĭ, O. V. (1987). [Role of the GABAergic system in the mechanism of the stress-regulating action of phenibut]. Biulleten’ Eksperimental’noi Biologii i Meditsiny, 104(11), 588–90. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/3676496
- 
-Kresyun, V. I. (1984). Disturbances of the supply of high-energy compounds to the brain in chronic stress and their correction by psychotropic drugs. Byulleten’ Eksperimental’noi Biologii i Meditsiny, 96(9), 72–74.
- 
-Lapin, I. P., Prakhie, I. B., & Kiseleva, I. P. (1986). Antagonism of seizures induced by the administration of the endogenous convulsant quinolinic acid into rat brain ventricles. Journal of Neural Transmission, 65(3–4), 177–185. https://doi.org/10.1007/BF01249080
- 
-Lapin, I. (2006). Phenibut (β-Phenyl-GABA): A Tranquilizer and Nootropic Drug. CNS Drug Reviews, 7(4), 471–481. https://doi.org/10.1111/j.1527-3458.2001.tb00211.x
- 
-Lapin, I. P. (1990). Beta-phenylethylamine (PEA): an endogenous anxiogen? Three series of experimental data. Biological Psychiatry, 28(11), 997–1003. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/1980422
- 
-Li, C., & Sundararajan, K. (2015). An Uncommon Case of Phenibut Toxicity in an Intensive Care Unit. International Journal of Medical and Pharmaceutical Case Reports, 5(5), 1–6. https://doi.org/10.9734/IJMPCR/2015/21689
- 
-Li, W., & Madhira, B. (2017). Phenibut (β-phenyl-γ-aminobutyric acid) Psychosis. American Journal of Therapeutics, 1–2.
- 
-Magsalin, R. M. M., & Khan, A. Y. (2010). Withdrawal Symptoms After Internet Purchase of Phenibut (β-Phenyl-γ-Aminobutyric Acid HCL). Journal of Clinical Psychopharmacology, 30(5), 648–649. https://doi.org/10.1097/JCP.0b013e3181f057c8
- 
-Marraffa, J. M., Nacca, N., Stork, C. M., & Hodgman, M. (2014). Phenibut: One poison center’s experience. Clinical Toxicology, 52(7), 682–818. https://doi.org/10.3109/15563650.2014.940163
- 
-Maslova, M. N., & Khaunina, R. A. (1965). Distribution of β-phenyl-γ-aminobutyric acid (phenygam) in the organism and cartain indices of its central effects. Bulletin of Experimental Biology and Medicine, 60(2), 908–911. https://doi.org/10.1007/BF00805044
- 
-McCabe, D., Bangh, S., & Arens, A. (2018). Phenibut exposures reported to a regional poison center. Journal of Medical Toxicology, 14(3), 16.
- 
-McDonnell, M. N., Orekhov, Y., & Ziemann, U. (2006). The role of GABAB receptors in intracortical inhibition in the human motor cortex. Experimental Brain Research, 173(1), 86–93. https://doi.org/10.1007/s00221-006-0365-2
- 
-Mehilane, L. (1992). Ammonium chloride and phenibut in treatment of panic disorder. Clinical Neuropharmacology, 15.
- 
-Merchan, C. (2016). Phenibut Overdose in Combination with Fasoracetam: Emerging Drugs of Abuse. Journal of Clinical Intensive Care and Medicine, 001–004. https://doi.org/10.29328/journal.jcicm.1001001
- 
-Monteleone, P., Maj, M., Iovino, M., & Steardo, L. (1988). Evidence for a sex difference in the basal growth hormone response to GABAergic stimulation in humans. Acta Endocrinologica, 119(3), 353–7. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/2847468
- 
-O’Connell, C. W., Schneir, A. B., Hwang, J. Q., & Cantrell, F. L. (2014). Phenibut, the Appearance of Another Potentially Dangerous Product in the United States. The American Journal of Medicine, 127(8), e3–e4. https://doi.org/10.1016/j.amjmed.2014.03.029
- 
-Ong, J., Kerr, D. I. S., Doolette, D. J., Duke, R. K., Mewett, K. N., Allen, R. D., & Johnson, G. A. R. (1993). R-(−)-β-phenyl-GABA is a full agonist at GABAB receptors in brain slices but a partial agonist in the ileum. European Journal of Pharmacology, 233(1), 169–172. https://doi.org/10.1016/0014-2999(93)90364-N
- 
-Owen, D. R., Wood, D. M., Archer, J. R. H., & Dargan, P. I. (2016). Phenibut (4-amino-3-phenyl-butyric acid): Availability, prevalence of use, desired effects and acute toxicity. Drug and Alcohol Review, 35(5), 591–596. https://doi.org/10.1111/dar.12356
- 
-Perfilova, V. N., Popova, T. A., Prokofiev, I. I., Mokrousov, I. S., Ostrovskii, O. V, & Tyurenkov, I. N. (2017). Effect of Phenibut and Glufimet, a Novel Glutamic Acid Derivative, on Respiration of Heart and Brain Mitochondria from Animals Exposed to Stress against the Background of Inducible NO-Synthase Blockade. Bulletin of Experimental Biology and Medicine, 163(2), 226–229. https://doi.org/10.1007/s10517-017-3772-4
- 
-Povoroznyuk, V., Grygoryeva, N., Orlyk, T., & Dudko, O. (2009). OPEN PLACEBO-CONTROLLED STUDY OF THE EFFICACY OF PHENIBUT IN TREATING CHRONIC NECK PAIN AND MENOPAUSAL SYMPTOMS IN POSTMENOPAUSAL WOMEN. Maturitas, 63, S113. https://doi.org/10.1016/S0378-5122(09)70455-4
- 
-Powers, M. (2012). GABA Supplementation and Growth Hormone Response (Vol. 59, pp. 36–46). https://doi.org/10.1159/000341944
- 
-Rägo, L., Kiivet, R.-A., Adojaan, A., Harro, J., & Allikmets, L. (1990). Stress-protective Action of β-Phenyl(GABA): Involvement of Central and Peripheral Type Benzodiazepine Binding Sites. Pharmacology & Toxicology, 66(1), 41–44. https://doi.org/10.1111/j.1600-0773.1990.tb00699.x
- 
-Rayevsky, K. S., Kovalev, G. I., & Kharlamov, A. N. (1986). Neurochemical Pharmacology of GABA-ergic Drugs. In A. V. Valdman (Ed.), Drug Dependence and Emotional Behavior (pp. 261–288). Boston, MA: Springer US. https://doi.org/10.1007/978-1-4684-1656-5_10
- 
-Ryago, L. K., Sarv, H. A., & Allikmets, L. K. (1983). Effect of a ten-day course of fenibut and diazepam on gaba and benzodiazepine receptors in mouse brain. Bulletin of Experimental Biology and Medicine, 96(6), 1708–1710. https://doi.org/10.1007/BF00834310
- 
-Riago, L. K., Nurk, A. M., Korneev, A. I., & Allikmets, L. K. (1982). [Fenibut binding with bicuculline-insensitive GABA receptors in the rat brain]. Biulleten’ Eksperimental’noi Biologii i Meditsiny, 94(11), 58–9. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/6295522
- 
-Rod, W., Kudryk, A., Brunetti, L., Sun, N., & Nguyen, M. (2018). Phenibut withdrawal management in the setting of concomitant kratom and alcohol dependence. Critical Care Medicine, 46(1), 451. https://doi.org/10.1097/01.ccm.0000528942.37373.7a
- 
-Samokhvalov, A. V., Paton-Gay, C. L., Balchand, K., & Rehm, J. (2013). Phenibut dependence. Case Reports, 2013(feb06 1), bcr2012008381-bcr2012008381. https://doi.org/10.1136/bcr-2012-008381
- 
-Samokhvalov, A. V., Paton-Gay, C. L., Balchand, K., & Rehm, J. (2013). Phenibut dependence. Case Reports, 2013(feb06 1), bcr2012008381-bcr2012008381. https://doi.org/10.1136/bcr-2012-008381
- 
-Sankary, S., Canino, P., & Jackson, J. (2017). Phenibut overdose. The American Journal of Emergency Medicine, 35(3), 516.e1-516.e2. https://doi.org/10.1016/j.ajem.2016.08.067
- 
-Talalaenko, A. N., Pankrat’ev, D. V, & Goncharenko, N. V. (2003). Neurochemical characteristics of the ventromedial hypothalamus in mediating the antiaversive effects of anxiolytics in different models of anxiety. Neuroscience and Behavioral Physiology, 33(3), 255–61. https://doi.org/10.1023/A:1022151331354
- 
-Talalaenko, A. N., Krivobok, G. K., Pankrat’ev, D. V., & Goncharenko, N. V. (2006). Neurochemical mechanisms of the dorsal pallidum in the antiaversive effects of anxiolytics in various models of anxiety. Neuroscience and Behavioral Physiology, 36(7), 749–754. https://doi.org/10.1007/s11055-006-0083-z
- 
-Tarakanov, I. A., & Safonov, V. A. (1995). Effect of phenibut on the formation of the respiratory rhythm. Bulletin of Experimental Biology and Medicine, 119(6), 583–586. https://doi.org/10.1007/BF02443695
- 
-Teter, C., Varney, S., & Kruse, C. (2017). Phenibut: High school vital sign lows, patient woes, and poison center kudos. Clinical Toxicology, 55(7), 689–868. https://doi.org/10.1080/15563650.2017.1348043
- 
-Tu, H., Xu, C., Zhang, W., Liu, Q., Rondard, P., Pin, J.-P., & Liu, J. (2010). GABAB Receptor Activation Protects Neurons from Apoptosis via IGF-1 Receptor Transactivation. Journal of Neuroscience, 30(2), 749–759. https://doi.org/10.1523/JNEUROSCI.2343-09.2010
- 
-Tyurenkov, I. N., Perfilova, V. N., Karamysheva, V. I., Reznikova, L. B., Mokrousov, I. S., Mikhailova, L. I., … Vasil’eva, O. S. (2014). Effect of GABA Derivatives on the Rate of Thrombus Formation, Platelet Aggregation, and Plasma Coagulation Capacity in Rats with Experimental Gestosis. Bulletin of Experimental Biology and Medicine, 158(2), 219–221. https://doi.org/10.1007/s10517-014-2726-3
- 
-Tyurenkov, I. N., Borodkina, L. E., Bagmetova, V. V., Berestovitskaya, V. M., & Vasil’eva, O. S. (2016). Comparison of Nootropic and Neuroprotective Features of Aryl-Substituted Analogs of Gamma-Aminobutyric Acid. Bulletin of Experimental Biology and Medicine, 160(4), 465–469. https://doi.org/10.1007/s10517-016-3198-4
- 
-Tyurenkov, I. N., & Samotrueva, M. A. (2009). Comparative Study of Immunocorrective Activity of Phenibut and Its Organic Salts in Experimental Immunodeficiency. Bulletin of Experimental Biology and Medicine, 147(5), 606–608. https://doi.org/10.1007/s10517-009-0571-6
- 
-Vavers, E., Zvejniece, L., Svalbe, B., Volska, K., Makarova, E., Liepinsh, E., … Dambrova, M. (2016). The neuroprotective effects of R-phenibut after focal cerebral ischemia. Pharmacological Research, 113, 796–801. https://doi.org/10.1016/j.phrs.2015.11.013
- 
-Wong, A., Little, M., Caldicott, D., Easton, C., Andres, D., & Greene, S. (2015). Multiple intensive care admissions associated with analytically confi rmed recreational use of phenibut ( β -phenyl- γ -amniobutyric acid) purchased over the Internet. Clinical Toxicology, 53(4). https://doi.org/10.3109/15563650.2015.1024953
- 
-Wong, A., Little, M., Caldicott, D., Easton, C., Andres, D., & Greene, S. L. (2015). Analytically confirmed recreational use of Phenibut (β-phenyl-γ-aminobutyric acid) bought over the internet. Clinical Toxicology, 53(7), 783–784. https://doi.org/10.3109/15563650.2015.1059944
- 
-Zarubina, I. P., Nurmanbetova, F. N., & Shabanov, P. D. (n.d.). The efficacy of nootropics and antihypoxants in correction of posttraumatic disorders of the brain.
- 
-Zavadenko, N. N., & Sorokin, A. B. (1997). EEG response to phenibut therapy in hyperactive children.
- 
-Zavadenko, N. N., & Suvorinova, N. Y. (2016). Results of Pharmacotherapy of Attention Deficit Hyperactivity Disorder: Assessment Using Neuropsychological Methods. Neuroscience and Behavioral Physiology, 46(3), 354–359. https://doi.org/10.1007/s11055-016-0241-x
- 
-Zharkovskii, A. M., & Zharkovskaya, T. A. (1987). Antiwithdrawal action of fenibut and baclofen on experimental withdrawal induced by CGS 8216, a benzodiazepine receptor antagonist, in rats receiving diazepam. Bulletin of Experimental Biology and Medicine, 103(6), 766–768. https://doi.org/10.1007/BF00842330
- 
-Zvejniece, L., Vavers, E., Svalbe, B., Veinberg, G., Rizhanova, K., Liepins, V., … Dambrova, M. (2015). R-phenibut binds to the α2–δ subunit of voltage-dependent calcium channels and exerts gabapentin-like anti-nociceptive effects. Pharmacology Biochemistry and Behavior, 137, 23–29. https://doi.org/10.1016/j.pbb.2015.07.014
- 
-Zyablitseva, E. A., & Pavlova, I. V. (2010). Effects of the GABA Receptor Agonist Phenibut on Spike Activity and Interactions between Neocortex and Hippocampus Neurons in Emotionally Negative Situations. Neuroscience and Behavioral Physiology, 40(9), 1003–1011. https://doi.org/10.1007/s11055-010-9360-y
- 
-Zyablitseva, E. A., & Pavlova, I. V. (2008). Effects of the GABA receptor agonist phenibut on behavior and respiration in rabbits in emotionally negative situations. Neuroscience and Behavioral Physiology, 38(6), 555–562. https://doi.org/10.1007/s11055-008-9025-2
- 
-Zyablitseva, E. A., Kositsyn, N. S., & Shul’gina, G. I. (2009). The Effects of Agonists of Ionotropic GABAA and Metabotropic GABAB Receptors on Learning. The Spanish Journal of Psychology, 12(01), 12–20. https://doi.org/10.1017/S1138741600001438`,
+- Dissociatives`,
   "tripsit-factsheets": `# Phenibut
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/phenibut*
 

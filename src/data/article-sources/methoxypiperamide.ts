@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxypiperamide";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxypiperamide.md","displayName":"TripSit Factsheets","size":370},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxypiperamide.md","displayName":"Wikipedia","size":543}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxypiperamide.md","displayName":"TripSit Factsheets","size":370,"tokens":98},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxypiperamide.md","displayName":"Wikipedia","size":543,"tokens":132}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Methoxypiperamide
 *Source: TripSit Factsheets (tripsit.me)*

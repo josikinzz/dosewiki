@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pagoclone";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pagoclone.md","displayName":"The Drug Classroom","size":40444},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pagoclone.md","displayName":"TripSit Factsheets","size":376},{"id":"wikipedia","fileName":"WIKIPEDIA - Pagoclone.md","displayName":"Wikipedia","size":3093}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pagoclone.md","displayName":"The Drug Classroom","size":36677,"tokens":9403},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pagoclone.md","displayName":"TripSit Factsheets","size":376,"tokens":94},{"id":"wikipedia","fileName":"WIKIPEDIA - Pagoclone.md","displayName":"Wikipedia","size":3093,"tokens":819}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Pagoclone
 *Source: https://thedrugclassroom.com/video/pagoclone/*
@@ -464,36 +464,7 @@ Show Papers(Caveney, 2008) – It impairs some aspects of performance, though to
 
 Other depressants including alcohol (ethanol), benzodiazepines, and opioids.
 
----
-
-## References
-Show ReferencesAtack, J. R., Pike, A., Marshall, G., Stanley, J., Lincoln, R., Cook, S. M., … Reynolds, D. S. (2006). The in vivo properties of pagoclone in rat are most likely mediated by 5′-hydroxy pagoclone. *Neuropharmacology* , *50* (6), 677–689. https://doi.org/10.1016/j.neuropharm.2005.11.014
- 
-Caveney, A. F., Giordani, B., & Haig, G. M. (2008). Preliminary effects of pagoclone, a partial GABA(A) agonist, on neuropsychological performance. *Neuropsychiatric Disease and Treatment* , *4* (1), 277–82. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/18728798
- 
-Dalvie, D., Obach, R. S., Kang, P., Prakash, C., Loi, C., Hurst, S., … Smith, D. A. (2009). Assessment of Three Human in Vitro Systems in the Generation of Major Human Excretory and Circulating Metabolites. *Chemical Research in Toxicology* , *22* (2), 357–368. https://doi.org/10.1021/tx8004357
- 
-de Wit, H., Vicini, L., Haig, G. M., Hunt, T., & Feltner, D. (2006). Evaluation of the Abuse Potential of Pagoclone, a Partial GABAA Agonist. *Journal of Clinical Psychopharmacology* , *26* (3), 268–273. https://doi.org/10.1097/01.jcp.0000218983.61683.96
- 
-Haig, G. M., Giordani, B., Randinitis, E. J., & Mitchell, D. Y. (2003). Evaluation of the pharmacodynamic and pharmacokinetic interaction between pagoclone and ethanol. *Clinical Pharmacology & Therapeutics* , *73* (2), P93–P93. https://doi.org/10.1016/S0009-9236(03)90698-9
- 
-Ingham, R. J. (2010). Comments on Article by Maguire et al: Pagoclone Trial. *Journal of Clinical Psychopharmacology* , *30* (5), 649–650. https://doi.org/10.1097/JCP.0b013e3181f1f130
- 
-Jackson, H. C., Ramsay, E., & Nutt, D. J. (1992). Effect of the cyclopyrrolones suriclone and RP 59037 on body temperature in mice. *European Journal of Pharmacology* , *216* (1), 23–7. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/1356087
- 
-Lingford-Hughes, A., Wilson, S. J., Feeney, A., Grasby, P. G., & Nutt, D. J. (2005). A proof-of-concept study using [11C]flumazenil PET to demonstrate that pagoclone is a partial agonist. *Psychopharmacology* , *180* (4), 1–3. https://doi.org/10.1007/s00213-005-0060-1
- 
-Maguire, G. A., Yeh, C. Y., & Ito, B. S. (2012). Overview of the Diagnosis and Treatment of Stuttering. *Journal of Experimental & Clinical Medicine* , *4* (2), 92–97. https://doi.org/10.1016/j.jecm.2012.02.001
- 
-Maguire, G., Franklin, D., Vatakis, N. G., Morgenshtern, E., Denko, T., Yaruss, J. S., … Riley, G. (2010). Exploratory Randomized Clinical Study of Pagoclone in Persistent Developmental Stuttering. *Journal of Clinical Psychopharmacology* , *30* (1), 48–56. https://doi.org/10.1097/JCP.0b013e3181caebbe
- 
-Reibaud, M. (1992). Rp 59037 : a Cyclopyrrolone With Partial Agonist Properties At the Gaba Receptor Complex. *Journal of Psychopharmacology* , *6* (1), 124–124. https://doi.org/10.1177/026988119200600169
- 
-Sandford, J. J., Forshall, S., Bell, C., Argyropoulos, S., Rich, A., D’Orlando, K. J., … Nutt, D. J. (2001). Crossover trial of pagoclone and placebo in patients with DSM-IV panic disorder. *Journal of Psychopharmacology* , *15* (3), 205–208. https://doi.org/10.1177/026988110101500312
- 
-Stutzmann, J. ., Piot, O., Rataud, J., Bardone, M. ., & Blanchard, J. . (1991). Behavioural and electrocorticographic studies in rodents with RP 59037, a cyclopyrrolone derivative partial agonist at the GABA receptor-complex. *European Neuropsychopharmacology* , *1* (3), 397. https://doi.org/10.1016/0924-977X(91)90584-H
- 
-Wong, G., Uusi-Oukari, M., Hansen, H. C., Suzdak, P. D., & Korpi, E. R. (1995). Characterization of novel ligands for wild-type and natural mutant diazepam-insensitive benzodiazepine receptors. *European Journal of Pharmacology* , *289* (2), 335–42. Retrieved from http://www.ncbi.nlm.nih.gov/pubmed/7621907`,
+---`,
   "tripsit-factsheets": `# Pagoclone
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Noopept";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Noopept.md","displayName":"Drug Users Bible","size":3325},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Noopept.md","displayName":"TripSit Factsheets","size":1186},{"id":"wikipedia","fileName":"WIKIPEDIA - Noopept.md","displayName":"Wikipedia","size":2966}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Noopept.md","displayName":"Drug Users Bible","size":3325,"tokens":849},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Noopept.md","displayName":"TripSit Factsheets","size":1186,"tokens":309},{"id":"wikipedia","fileName":"WIKIPEDIA - Noopept.md","displayName":"Wikipedia","size":2966,"tokens":742}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Noopept
 *Source: Drug Users Bible by Dominic Milton Trott*

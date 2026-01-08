@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-Fluorobutyrfentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Fluorobutyrfentanyl.md","displayName":"TripSit Factsheets","size":885},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Fluorobutyrfentanyl.md","displayName":"Wikipedia","size":1111}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Fluorobutyrfentanyl.md","displayName":"TripSit Factsheets","size":885,"tokens":229},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Fluorobutyrfentanyl.md","displayName":"Wikipedia","size":1111,"tokens":280}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-Fluorobutyrfentanyl
 *Source: TripSit Factsheets (tripsit.me)*

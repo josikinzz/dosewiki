@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-EPD";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-EPD.md","displayName":"TripSit Factsheets","size":525}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-EPD.md","displayName":"TripSit Factsheets","size":525,"tokens":142}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-EPD
 *Source: TripSit Factsheets (tripsit.me)*

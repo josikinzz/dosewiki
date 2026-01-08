@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Isophenmetrazine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isophenmetrazine.md","displayName":"TripSit Factsheets","size":746}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isophenmetrazine.md","displayName":"TripSit Factsheets","size":746,"tokens":197}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Isophenmetrazine
 *Source: TripSit Factsheets (tripsit.me)*

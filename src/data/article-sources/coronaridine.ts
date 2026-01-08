@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Coronaridine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coronaridine.md","displayName":"TripSit Factsheets","size":265},{"id":"wikipedia","fileName":"WIKIPEDIA - Coronaridine.md","displayName":"Wikipedia","size":1299}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Coronaridine.md","displayName":"TripSit Factsheets","size":265,"tokens":65},{"id":"wikipedia","fileName":"WIKIPEDIA - Coronaridine.md","displayName":"Wikipedia","size":1299,"tokens":339}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Coronaridine
 *Source: TripSit Factsheets (tripsit.me)*

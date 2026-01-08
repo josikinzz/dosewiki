@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-HO-PCP";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-HO-PCP.md","displayName":"Drug Users Bible","size":5644},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-HO-PCP.md","displayName":"Isomer Design","size":861},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-HO-PCP.md","displayName":"PsychonautWiki","size":28373},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-HO-PCP.md","displayName":"TripSit Factsheets","size":374},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-HO-PCP.md","displayName":"Wikipedia","size":2280}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-HO-PCP.md","displayName":"Drug Users Bible","size":5644,"tokens":1393},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-HO-PCP.md","displayName":"Isomer Design","size":428,"tokens":175},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-HO-PCP.md","displayName":"PsychonautWiki","size":22388,"tokens":6168},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-HO-PCP.md","displayName":"TripSit Factsheets","size":374,"tokens":118},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-HO-PCP.md","displayName":"Wikipedia","size":2280,"tokens":656}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 3-HO-PCP
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -135,17 +135,7 @@ all.
 
 **SMILES:** \`Oc1cccc(c1)C1(CCCCC1)N1CCCCC1\`
 
-**InChI:** \`InChI=1S/C17H25NO/c19-16-9-7-8-15(14-16)17(10-3-1-4-11-17)18-12-5-2-6-13-18/h7-9,14,19H,1-6,10-13H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [117583](https://www.chemspider.com/Chemical-Structure.117583.html/)
-- [133277](https://pubchem.ncbi.nlm.nih.gov/compound/133277)
-- [Q20707014](https://www.wikidata.org/wiki/Q20707014)
-- [3-HO-PCP](https://en.wikipedia.org/wiki/3-HO-PCP)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C17H25NO/c19-16-9-7-8-15(14-16)17(10-3-1-4-11-17)18-12-5-2-6-13-18/h7-9,14,19H,1-6,10-13H2\``,
   "psychonautwiki": `# 3-HO-PCP
 *Source: https://psychonautwiki.org/wiki/3-HO-PCP*
 
@@ -341,24 +331,7 @@ It is strongly recommended that one use [harm reduction practices](https://psych
 ## Literature
 
 - Morris, H., & Wallach, J. (2014). ***From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs.*** *Drug Testing and Analysis* , 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-- Kalir, A., Elkavets, R., Maayani, S., Rehavi, M., Sokolovsky, M., Pri-Bar, I., & Buchman, O. (1978). Structure-activity relationship of some phencyclidine derivatives: in vivo studies in mice. European Journal of Medicinal Chemistry, 13(1), 17-24. [https://doi.org/10.1002%2Fchin.197825192](https://doi.org/10.1002%2Fchin.197825192)
-
-## References
-1. ↑ 1.0 1.1 1.2 1.3 Itzhak, Y., Kalir, A., Sarne, Y. (July 1981).["On the opioid nature of phencyclidine and its 3-hydroxy derivative"](https://linkinghub.elsevier.com/retrieve/pii/0014299981900972).*European Journal of Pharmacology*.**73**(2–3): 229–233.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0014-2999(81)90097-2](//doi.org/10.1016%2F0014-2999%2881%2990097-2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-2. ↑ 2.0 2.1 2.2 Kalir, A., Maayani, S., Rehavi, M., Elkavets, R., Pri-Bar, I., Buchman, O., Sokolovsky, M. (20 June 1978).["ChemInform Abstract: STRUCTURE-ACTIVITY RELATIONSHIP OF SOME PHENCYCLIDINE DERIVATIVES- IN VIVO STUDIES IN MICE"](https://onlinelibrary.wiley.com/doi/10.1002/chin.197825192).*Chemischer Informationsdienst*.**9**(25).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/chin.197825192](//doi.org/10.1002%2Fchin.197825192).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0009-2975](//www.worldcat.org/issn/0009-2975).
-3. ↑ 3.0 3.1 Morris, H., Wallach, J. (July 2014).["From PCP to MXE: a comprehensive review of the non-medical use of dissociative drugs: PCP to MXE"](https://onlinelibrary.wiley.com/doi/10.1002/dta.1620).*Drug Testing and Analysis*.**6**(7–8): 614–632.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1620](//doi.org/10.1002%2Fdta.1620).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-4. ↑ [Structure Activity of PCP analogs](https://erowid.org/archive/rhodium/chemistry/pcp/sar.html#sarphenyl)
-5. ↑ [Advisory Council on the Misuse of Drugs (ACMD) Methoxetamine report, 2012](https://www.gov.uk/government/publications/advisory-council-on-the-misuse-of-drugs-acmd-methoxetamine-report-2012)
-6. ↑ Fusar-Poli, P., Crippa, J. A., Bhattacharyya, S., Borgwardt, S. J., Allen, P., Martin-Santos, R., Seal, M., Surguladze, S. A., O’Carrol, C., Atakan, Z., Zuardi, A. W., McGuire, P. K. (1 January 2009).["Distinct Effects of Δ9-Tetrahydrocannabinol and Cannabidiol on Neural Activation During Emotional Processing"](https://jamanetwork.com/journals/jamapsychiatry/fullarticle/482939).*Archives of General Psychiatry*.**66**(1): 95.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archgenpsychiatry.2008.519](//doi.org/10.1001%2Farchgenpsychiatry.2008.519).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-7. ↑ Doyle, O. M., De Simoni, S., Schwarz, A. J., Brittain, C., O’Daly, O. G., Williams, S. C. R., Mehta, M. A. (April 2013).["Quantifying the Attenuation of the Ketamine Pharmacological Magnetic Resonance Imaging Response in Humans: A Validation Using Antipsychotic and Glutamatergic Agents"](http://jpet.aspetjournals.org/lookup/doi/10.1124/jpet.112.201665).*Journal of Pharmacology and Experimental Therapeutics*.**345**(1): 151–160.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/jpet.112.201665](//doi.org/10.1124%2Fjpet.112.201665).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-8. ↑ Gisselgård, J., Anda, L. G., Brønnick, K., Langeveld, J., Velden Hegelstad, W. ten, Joa, I., Johannessen, J. O., Larsen, T. K. (March 2014).["Verbal working memory deficits predict levels of auditory hallucination in first-episode psychosis"](https://linkinghub.elsevier.com/retrieve/pii/S0920996413006968).*Schizophrenia Research*.**153**(1–3): 38–41.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.schres.2013.12.018](//doi.org/10.1016%2Fj.schres.2013.12.018).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0920-9964](//www.worldcat.org/issn/0920-9964).
-9. ↑ 3-HO-PCP (Tripsit) | [https://wiki.tripsit.me/wiki/3-HO-PCP](https://wiki.tripsit.me/wiki/3-HO-PCP)
-10. ↑ [https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch](https://www.zakonyprolidi.cz/cs/2013-463?text=o+seznamech+n%C3%A1vykov%C3%BDch)
-11. ↑ [Anlage I BtMG - Einzelnorm](http://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)
-12. ↑ [§ 2 AMG - Einzelnorm](https://www.gesetze-im-internet.de/amg_1976/__2.html)
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ Cumhurbaşkanı Kararı CK Karar Sayısı : 1335 | [https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)
-15. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)NewPP limit report Cached time: 20251218075017 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.042 seconds CPU time usage: 0.379 seconds Real time usage: 0.751 seconds Preprocessor visited node count: 1609/1000000 Post‐expand include size: 104789/2097152 bytes Template argument size: 14145/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 18778/5000000 bytes Lua time usage: 0.270/7 seconds Lua virtual size: 8.49 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 617.315 1 -total 34.00% 209.886 6 Template:Cite_journal 13.83% 85.371 1 Template:Citation_needed 12.21% 75.399 1 Template:Fix 11.58% 71.484 2 Template:Category_handler 11.44% 70.607 1 Template:SubstanceBox/3-HO-PCP 10.89% 67.239 1 Template:SubstanceBox 9.61% 59.319 1 Template:Distinguish 9.58% 59.137 5 Template:Citation 9.15% 56.477 1 Template:Hatnote`,
+- Kalir, A., Elkavets, R., Maayani, S., Rehavi, M., Sokolovsky, M., Pri-Bar, I., & Buchman, O. (1978). Structure-activity relationship of some phencyclidine derivatives: in vivo studies in mice. European Journal of Medicinal Chemistry, 13(1), 17-24. [https://doi.org/10.1002%2Fchin.197825192](https://doi.org/10.1002%2Fchin.197825192)`,
   "tripsit-factsheets": `# 3-HO-PCP
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3-ho-pcp*
 

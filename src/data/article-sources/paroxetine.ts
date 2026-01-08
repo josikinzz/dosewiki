@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Paroxetine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paroxetine.md","displayName":"DrugBank","size":28899},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paroxetine.md","displayName":"TripSit Factsheets","size":133},{"id":"wikipedia","fileName":"WIKIPEDIA - Paroxetine.md","displayName":"Wikipedia","size":18365}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Paroxetine.md","displayName":"DrugBank","size":28899,"tokens":7282},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Paroxetine.md","displayName":"TripSit Factsheets","size":133,"tokens":36},{"id":"wikipedia","fileName":"WIKIPEDIA - Paroxetine.md","displayName":"Wikipedia","size":18365,"tokens":4523}];
 export const contents: Record<string, string> = {
   "drugbank": `# Paroxetine
 *Source: https://go.drugbank.com/drugs/DB00715*

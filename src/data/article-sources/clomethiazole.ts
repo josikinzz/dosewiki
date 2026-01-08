@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Clomethiazole";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clomethiazole.md","displayName":"TripSit Factsheets","size":771},{"id":"wikipedia","fileName":"WIKIPEDIA - Clomethiazole.md","displayName":"Wikipedia","size":3803}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clomethiazole.md","displayName":"TripSit Factsheets","size":771,"tokens":205},{"id":"wikipedia","fileName":"WIKIPEDIA - Clomethiazole.md","displayName":"Wikipedia","size":3803,"tokens":917}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Clomethiazole
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methylmethaqualone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylmethaqualone.md","displayName":"TripSit Factsheets","size":949},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylmethaqualone.md","displayName":"Wikipedia","size":1037}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methylmethaqualone.md","displayName":"TripSit Factsheets","size":949,"tokens":264},{"id":"wikipedia","fileName":"WIKIPEDIA - Methylmethaqualone.md","displayName":"Wikipedia","size":1037,"tokens":250}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Methylmethaqualone
 *Source: TripSit Factsheets (tripsit.me)*

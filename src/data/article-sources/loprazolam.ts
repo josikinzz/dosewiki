@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Loprazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Loprazolam.md","displayName":"TripSit Factsheets","size":520},{"id":"wikipedia","fileName":"WIKIPEDIA - Loprazolam.md","displayName":"Wikipedia","size":7613}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Loprazolam.md","displayName":"TripSit Factsheets","size":520,"tokens":150},{"id":"wikipedia","fileName":"WIKIPEDIA - Loprazolam.md","displayName":"Wikipedia","size":7613,"tokens":1756}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Loprazolam
 *Source: TripSit Factsheets (tripsit.me)*

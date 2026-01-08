@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dexoxadrol";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Dexoxadrol.md","displayName":"Wikipedia","size":429}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Dexoxadrol.md","displayName":"Wikipedia","size":429,"tokens":103}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Dexoxadrol
 *Source: https://en.wikipedia.org/wiki/Dexoxadrol*

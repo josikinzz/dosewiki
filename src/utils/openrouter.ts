@@ -15,13 +15,13 @@ export interface ModelOption {
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
-  { id: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (Recommended)", contextWindow: 1050000, provider: "google" },
-  { id: "deepseek/deepseek-v3.2", label: "DeepSeek V3.2", contextWindow: 164000, provider: "deepseek" },
+  { id: "google/gemini-3-pro-preview", label: "Gemini 3 Pro (Recommended)", contextWindow: 1000000, provider: "google" },
+  { id: "google/gemini-3-flash-preview", label: "Gemini 3 Flash", contextWindow: 1000000, provider: "google" },
+  { id: "deepseek/deepseek-v3.2", label: "DeepSeek V3.2", contextWindow: 128000, provider: "deepseek" },
   { id: "x-ai/grok-4.1-fast", label: "Grok 4.1 Fast", contextWindow: 2000000, provider: "x-ai" },
   { id: "moonshotai/kimi-k2-thinking", label: "Kimi K2 Thinking", contextWindow: 256000, provider: "moonshotai" },
   { id: "anthropic/claude-haiku-4.5", label: "Claude Haiku 4.5", contextWindow: 200000, provider: "anthropic" },
-  { id: "anthropic/claude-opus-4.5", label: "Claude Opus 4.5", contextWindow: 1000000, provider: "anthropic" },
-  { id: "google/gemini-3-pro-preview", label: "Gemini 3 Pro", contextWindow: 1050000, provider: "google" },
+  { id: "anthropic/claude-opus-4.5", label: "Claude Opus 4.5", contextWindow: 200000, provider: "anthropic" },
 ];
 
 export const ERROR_MESSAGES: Record<number, string> = {
@@ -38,14 +38,6 @@ export const ERROR_MESSAGES: Record<number, string> = {
  */
 export function estimateTokens(text: string): number {
   return estimateTokenCount(text);
-}
-
-/**
- * Estimate tokens from character count (fallback when text isn't available).
- * Uses simple heuristic: ~4 characters per token.
- */
-export function estimateTokensFromCharCount(charCount: number): number {
-  return Math.ceil(charCount / 4);
 }
 
 export async function streamCompletion(

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mapacho";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mapacho.md","displayName":"Drug Users Bible","size":4440},{"id":"wikipedia","fileName":"WIKIPEDIA - Mapacho.md","displayName":"Wikipedia","size":6336}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mapacho.md","displayName":"Drug Users Bible","size":4440,"tokens":1185},{"id":"wikipedia","fileName":"WIKIPEDIA - Mapacho.md","displayName":"Wikipedia","size":6336,"tokens":1639}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Mapacho
 *Source: Drug Users Bible by Dominic Milton Trott*

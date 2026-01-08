@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nitracaine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitracaine.md","displayName":"TripSit Factsheets","size":569},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitracaine.md","displayName":"Wikipedia","size":833}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitracaine.md","displayName":"TripSit Factsheets","size":569,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitracaine.md","displayName":"Wikipedia","size":833,"tokens":207}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nitracaine
 *Source: TripSit Factsheets (tripsit.me)*

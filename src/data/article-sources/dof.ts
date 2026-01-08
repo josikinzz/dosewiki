@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOF";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - DOF.md","displayName":"Wikipedia","size":1324}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - DOF.md","displayName":"Wikipedia","size":1324,"tokens":341}];
 export const contents: Record<string, string> = {
   "wikipedia": `# DOF
 *Source: https://en.wikipedia.org/wiki/DOF*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOIP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOIP.md","displayName":"TripSit Factsheets","size":879},{"id":"wikipedia","fileName":"WIKIPEDIA - DOIP.md","displayName":"Wikipedia","size":829}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOIP.md","displayName":"TripSit Factsheets","size":879,"tokens":231},{"id":"wikipedia","fileName":"WIKIPEDIA - DOIP.md","displayName":"Wikipedia","size":829,"tokens":214}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# DOIP
 *Source: TripSit Factsheets (tripsit.me)*

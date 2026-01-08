@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methamnetamine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methamnetamine.md","displayName":"Drug Users Bible","size":5358},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methamnetamine.md","displayName":"TripSit Factsheets","size":604},{"id":"wikipedia","fileName":"WIKIPEDIA - Methamnetamine.md","displayName":"Wikipedia","size":791}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methamnetamine.md","displayName":"Drug Users Bible","size":5358,"tokens":1378},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methamnetamine.md","displayName":"TripSit Factsheets","size":604,"tokens":165},{"id":"wikipedia","fileName":"WIKIPEDIA - Methamnetamine.md","displayName":"Wikipedia","size":791,"tokens":199}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# MNA
 *Source: Drug Users Bible by Dominic Milton Trott*

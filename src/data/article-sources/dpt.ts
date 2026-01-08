@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - DPT.md","displayName":"Erowid","size":8745},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DPT.md","displayName":"Isomer Design","size":7765},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DPT.md","displayName":"PsychonautWiki","size":32551},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DPT.md","displayName":"The Drug Classroom","size":11525},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DPT.md","displayName":"TripSit Factsheets","size":1213},{"id":"wikipedia","fileName":"WIKIPEDIA - DPT.md","displayName":"Wikipedia","size":7412}];
+export const sources = [{"id":"erowid","fileName":"EROWID - DPT.md","displayName":"Erowid","size":8745,"tokens":2462},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DPT.md","displayName":"Isomer Design","size":7765,"tokens":2034},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DPT.md","displayName":"PsychonautWiki","size":23871,"tokens":6562},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DPT.md","displayName":"The Drug Classroom","size":10141,"tokens":2584},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DPT.md","displayName":"TripSit Factsheets","size":1213,"tokens":515},{"id":"wikipedia","fileName":"WIKIPEDIA - DPT.md","displayName":"Wikipedia","size":7412,"tokens":1881}];
 export const contents: Record<string, string> = {
   "erowid": `# DPT
 *Source: https://www.erowid.org/chemicals/dpt/dpt.shtml*
@@ -465,28 +465,7 @@ Tolerance to the effects of DPT has been shown to not be built in animal models.
 - Soskin, R.A., Grof, S., & Richards, W.A. (1973). Low doses of Dipropyltryptamine in psychotherapy. Archives of General Psychiatry, 28 6, 817-21.
 - Richards, W. A., Rhead, J. C., DiLeo, F. B., Yensen, R., & Kurland, A. A. (1977). The peak experience variable in DPT-assisted psychotherapy with cancer patients. Journal of Psychedelic Drugs, 9(1), 1-10. [http://dx.doi.org/10.1080/02791072.1977.10472020](http://dx.doi.org/10.1080/02791072.1977.10472020)
 - Grof, S., Soskin, R. A., Richards, W. A., & Kurland, A. A. (1972). DPT as an adjunct in psychotherapy of alcoholics. International Pharmacopsychiatry, 8(1), 104-115. PMID: 4150711
-- Li, J., Rice, K.C., & France, C.P. (2007). Behavioral effects of dipropyltryptamine in rats: evidence for 5-HT1A and 5-HT2A agonist activity. Behavioural Pharmacology, 18 4, 283-8.
-
-## References
-1. ↑ Li, J. X.; Rice, K.; France, C. P. (2007). "Behavioral effects of dipropyltryptamine in rats: evidence for 5-HT1A and 5-HT2A agonist activity".*Behavioural Pharmacology*.**18**(4): 283–288.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/FBP.0b013e3281f19ca0](//doi.org/10.1097%2FFBP.0b013e3281f19ca0).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1473-5849](//www.worldcat.org/issn/1473-5849).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-8810](//www.worldcat.org/issn/0955-8810).[OCLC](http://en.wikipedia.org/wiki/OCLC)[22170289](//www.worldcat.org/oclc/22170289).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[17551320](//www.ncbi.nlm.nih.gov/pubmed/17551320).
-2. ↑ Grof, S.; Soskin, R. A.; Richards, W. A.; Kurland, A. A. (1973). "DPT as an Adjunct in Psychotherapy of Alcoholics".*International Pharmacopsychiatry*.**8**(1): 104–115.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1159/000467979](//doi.org/10.1159%2F000467979).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0020-8272](//www.worldcat.org/issn/0020-8272).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1753673](//www.worldcat.org/oclc/1753673).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[4150711](//www.ncbi.nlm.nih.gov/pubmed/4150711).
-3. ↑ Richards, W. A.; Rhead, J. C.; Dileo, F. B.; Yensen, R.; Kurland, A. A. (1977). "The Peak Experience Variable in DPT-Assisted Psychotherapy with Cancer Patients".*Journal of Psychedelic Drugs*.**9**(1): 1–10.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/02791072.1977.10472020](//doi.org/10.1080%2F02791072.1977.10472020).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-393X](//www.worldcat.org/issn/0022-393X).[OCLC](http://en.wikipedia.org/wiki/OCLC)[7565359](//www.worldcat.org/oclc/7565359).
-4. ↑ ["Temple of the True Inner Light"](http://psychede.tripod.com/). Retrieved January 9, 2020.
-5. ↑ Fantegrossi, W., Reissig, C., Katz, E., Yarosh, H., Rice, K., Winter, J. (January 2008).["Hallucinogen-like effects of N,N-dipropyltryptamine (DPT): Possible mediation by serotonin 5-HT1A and 5-HT2A receptors in rodents"](https://linkinghub.elsevier.com/retrieve/pii/S0091305707002894).*Pharmacology Biochemistry and Behavior*.**88**(3): 358–365.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pbb.2007.09.007](//doi.org/10.1016%2Fj.pbb.2007.09.007).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-6. ↑ Tribune, B. D. S.,[Carver County teen’s death puts spotlight on ease of purchasing synthetic drugs online](https://www.startribune.com/carver-county-teen-s-death-puts-spotlight-on-ease-of-purchasing-synthetic-drugs-online/330344661/)
-7. ↑ Smith, D. A.; Bailey, J. M.; Williams, D.; Fantegrossi, W. E. (2014).["Tolerance and Cross-Tolerance to Head Twitch Behavior Elicited by Phenethylamine- and Tryptamine-Derived Hallucinogens in Mice"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC4309922).*Journal of Pharmacology and Experimental Therapeutics*.**351**(2): 485–491.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/jpet.114.219337](//doi.org/10.1124%2Fjpet.114.219337).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1521-0103](//www.worldcat.org/issn/1521-0103).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1606914](//www.worldcat.org/oclc/1606914).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[4309922](//www.ncbi.nlm.nih.gov/pmc/articles/PMC4309922).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[25271256](//www.ncbi.nlm.nih.gov/pubmed/25271256).
-8. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009).["Dose-independent occurrence of seizure with tramadol"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3550327).*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[3550327](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3550327).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[19415589](//www.ncbi.nlm.nih.gov/pubmed/19415589).
-9. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-10. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-11. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-12. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-13. ↑ ["Schedule 1 Class A controlled drugs"](http://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html#DLM436576).*"Reprint as at 13 August 2019: Misuse of Drugs Act 1975"*. Parliamentary Counsel Office. Retrieved January 7, 2020.
-14. ↑ ["31 nya substanser klassas som narkotika eller hälsofarlig vara"](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2016/januari/31-nya-substanser-klassas-som-narkotika-eller-halsofarlig-vara)(in Swedish). Folkhälsomyndigheten [Public Health Agency of Sweden]. January 26, 2016. Retrieved January 1, 2020.
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-16. ↑ ["Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.
-17. ↑ ["Title XLVI: Chapter 893: Drug Abuse Prevention And Control"](http://leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/0893.html).*The 2019 Florida Statutes*. The Florida Legislature. Retrieved January 10, 2020.
-18. ↑ [http://legislature.maine.gov/statutes/17-a/title17-Asec1102.html](http://legislature.maine.gov/statutes/17-a/title17-Asec1102.html)
-19. ↑ ["Section 2-204 - Schedule I"](https://web.archive.org/web/20190709113340/http://www.oscn.net/applications/oscn/DeliverDocument.asp?CiteID=98866).*Oklahoma Statutes Citationized*. Oklahoma Judicial Center. January 11, 2019. Archived from[the original](http://www.oscn.net/applications/oscn/DeliverDocument.asp?CiteID=98866)on July 9, 2019. Retrieved January 10, 2020.NewPP limit report Cached time: 20251218075349 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.077 seconds CPU time usage: 0.440 seconds Real time usage: 0.871 seconds Preprocessor visited node count: 2336/1000000 Post‐expand include size: 182614/2097152 bytes Template argument size: 24478/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 26661/5000000 bytes Lua time usage: 0.320/7 seconds Lua virtual size: 8.45 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 682.372 1 -total 28.21% 192.465 6 Template:Cite_journal 22.92% 156.388 11 Template:Cite_web 19.67% 134.210 4 Template:Citation_needed 12.63% 86.190 1 Template:Fix 11.77% 80.338 2 Template:Category_handler 8.66% 59.072 1 Template:SubstanceBox/DPT 8.24% 56.256 1 Template:SubstanceBox 4.87% 33.234 1 Template:Effects/base 4.32% 29.445 1 Template:Effect_list`,
+- Li, J., Rice, K.C., & France, C.P. (2007). Behavioral effects of dipropyltryptamine in rats: evidence for 5-HT1A and 5-HT2A agonist activity. Behavioural Pharmacology, 18 4, 283-8.`,
   "thedrugclassroom": `# Dipropyltryptamine (DPT)
 *Source: https://thedrugclassroom.com/video/dipropyltryptamine-dpt/*
 
@@ -737,28 +716,7 @@ Psychological concerns do exist and there’s some potential for temporary psych
 - Other hallucinogens
 - Tramadol
 
----
-
-## References
-
-**(2015)** [Classic hallucinogens in the treatment of addictions.](https://www.ncbi.nlm.nih.gov/pubmed/25784600)
-
-**(2008)** [Hallucinogen-like effects of N,N-dipropyltryptamine (DPT): possible mediation by serotonin 5-HT1A and 5-HT2A receptors in rodents.](https://www.ncbi.nlm.nih.gov/pubmed/17905422)
-
-**(2007)** [Behavioral effects of dipropyltryptamine in rats: evidence for 5-HT1A and 5-HT2A agonist activity.](https://www.ncbi.nlm.nih.gov/pubmed/17551320)
-
-**(2005)** [Binding properties of dipropyltryptamine at the human 5-HT1a receptor.](https://www.ncbi.nlm.nih.gov/pubmed/15886504)
-
-**(2005)** [Analytical Profiles for Five “Designer” Tryptamines](https://www.dea.gov/pr/microgram-journals/2005/mj05_v3_1-2.pdf)
-
-**(1979)** [DPT as an Adjunct in Brief Psychotherapy with Cancer Patients](https://www.researchgate.net/publication/235984484_DPT_as_an_Adjunct_in_Brief_Psychotherapy_with_Cancer_Patients)
-
-**(1977)** [The Peak Experience Variable in DPT-Assisted Psychotherapy with Cancer Patients](http://www.tandfonline.com/doi/abs/10.1080/02791072.1977.10472020?journalCode=ujpd19)
-
-**(1973)** [Low doses of Dipropyltryptamine in psychotherapy.](https://www.ncbi.nlm.nih.gov/pubmed/4575167)
-
-**(1970)** [DMT and homologues – Clinical and pharmacological considerations](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.690.1341&rep=rep1&type=pdf)
-`,
+---`,
   "tripsit-factsheets": `# DPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/dpt*
 

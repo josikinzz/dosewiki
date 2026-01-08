@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bromazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromazolam.md","displayName":"TripSit Factsheets","size":528},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromazolam.md","displayName":"Wikipedia","size":8876}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromazolam.md","displayName":"TripSit Factsheets","size":528,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromazolam.md","displayName":"Wikipedia","size":8876,"tokens":2192}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Bromazolam
 *Source: TripSit Factsheets (tripsit.me)*

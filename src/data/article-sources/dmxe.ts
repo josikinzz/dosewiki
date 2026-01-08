@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DMXE";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - DMXE.md","displayName":"Wikipedia","size":473}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - DMXE.md","displayName":"Wikipedia","size":473,"tokens":122}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Deoxymethoxetamine
 *Source: https://en.wikipedia.org/wiki/Deoxymethoxetamine*

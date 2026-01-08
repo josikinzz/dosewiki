@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Rolicyclidine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Rolicyclidine.md","displayName":"TripSit Factsheets","size":779},{"id":"wikipedia","fileName":"WIKIPEDIA - Rolicyclidine.md","displayName":"Wikipedia","size":582}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Rolicyclidine.md","displayName":"TripSit Factsheets","size":779,"tokens":202},{"id":"wikipedia","fileName":"WIKIPEDIA - Rolicyclidine.md","displayName":"Wikipedia","size":582,"tokens":143}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Rolicyclidine
 *Source: TripSit Factsheets (tripsit.me)*

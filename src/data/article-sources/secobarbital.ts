@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Secobarbital";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Secobarbital.md","displayName":"DrugBank","size":16515},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Secobarbital.md","displayName":"Isomer Design","size":724},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Secobarbital.md","displayName":"PsychonautWiki","size":22016},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Secobarbital.md","displayName":"TripSit Factsheets","size":378},{"id":"wikipedia","fileName":"WIKIPEDIA - Secobarbital.md","displayName":"Wikipedia","size":6245}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Secobarbital.md","displayName":"DrugBank","size":16515,"tokens":4059},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Secobarbital.md","displayName":"Isomer Design","size":408,"tokens":183},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Secobarbital.md","displayName":"PsychonautWiki","size":16570,"tokens":4285},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Secobarbital.md","displayName":"TripSit Factsheets","size":378,"tokens":110},{"id":"wikipedia","fileName":"WIKIPEDIA - Secobarbital.md","displayName":"Wikipedia","size":6245,"tokens":1526}];
 export const contents: Record<string, string> = {
   "drugbank": `# Secobarbital
 *Source: https://go.drugbank.com/drugs/DB00418*
@@ -986,16 +986,7 @@ Secobarbital is a member of the barbiturate drug class, which are known to induc
 
 **SMILES:** \`CCCC(C1(CC=C)C(=O)NC(=O)NC1=O)C\`
 
-**InChI:** \`InChI=1S/C12H18N2O3/c1-4-6-8(3)12(7-5-2)9(15)13-11(17)14-10(12)16/h5,8H,2,4,6-7H2,1,3H3,(H2,13,14,15,16,17)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [5005](https://www.chemspider.com/Chemical-Structure.5005.html/)
-- [5193](https://pubchem.ncbi.nlm.nih.gov/compound/5193)
-- [Q414788](https://www.wikidata.org/wiki/Q414788)
-- [Secobarbital](https://en.wikipedia.org/wiki/Secobarbital)
-`,
+**InChI:** \`InChI=1S/C12H18N2O3/c1-4-6-8(3)12(7-5-2)9(15)13-11(17)14-10(12)16/h5,8H,2,4,6-7H2,1,3H3,(H2,13,14,15,16,17)\``,
   "psychonautwiki": `# Secobarbital
 *Source: https://psychonautwiki.org/wiki/Secobarbital*
 
@@ -1120,23 +1111,7 @@ Internationally, secobarbital is listed in Schedule II of the UN Convention on P
 
 - [Secobarbital (Wikipedia)](https://en.wikipedia.org/wiki/secobarbital)
 - [Secobarbital (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3992)
-- [Secobarbital (DrugBank)](https://go.drugbank.com/drugs/DB00418)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Sarrecchia, C., Sordillo, P., Conte, G., Rocchi, G. (December 1998). "[Barbiturate withdrawal syndrome: a case associated with the abuse of a headache medication]".*Annali Italiani Di Medicina Interna: Organo Ufficiale Della Societa Italiana Di Medicina Interna*.**13**(4): 237–239.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0393-9340](//www.worldcat.org/issn/0393-9340).
-3. ↑ Roberts, I., Sydenham, E. (12 December 2012). Cochrane Injuries Group, ed.["Barbiturates for acute traumatic brain injury"](https://doi.wiley.com/10.1002/14651858.CD000033.pub2).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD000033.pub2](//doi.org/10.1002%2F14651858.CD000033.pub2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-4. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-5. ↑ Friedman, G. D., Habel, L. A. (1 June 1999).["Barbiturates and lung cancer: a re-evaluation"](https://academic.oup.com/ije/article-lookup/doi/10.1093/ije/28.3.375).*International Journal of Epidemiology*.**28**(3): 375–379.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/ije/28.3.375](//doi.org/10.1093%2Fije%2F28.3.375).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0300-5771](//www.worldcat.org/issn/0300-5771).
-6. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-7. ↑ [Barbiturate intoxication and overdose: MedlinePlus Medical Encyclopedia](https://medlineplus.gov/ency/article/000951.htm)
-8. ↑ UN Convention on Psychotropic Substances | [https://www.unodc.org/documents/commissions/CND/Int_Drug_Control_Conventions/1971_Schedules/Revision1_2015/ST_CND_1_ADD2_Rev1_e_V1600359.pdf](https://www.unodc.org/documents/commissions/CND/Int_Drug_Control_Conventions/1971_Schedules/Revision1_2015/ST_CND_1_ADD2_Rev1_e_V1600359.pdf)
-9. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/c-38.8/page-15.html)
-10. ↑ ["Anlage III BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_iii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 26, 2019.
-11. ↑ [Постановление Правительства РФ от 01.10.2012 N 1002 (ред. от 09.08.2019) “Об утверждении значительного, крупного и особо крупного размеров наркотических средств и психотропных веществ, а также значительного, крупного и особо крупного размеров для растений, содержащих наркотические средства или психотропные вещества, либо их частей, содержащих наркотические средства или психотропные вещества, для целей статей 228, 228.1, 229 и 229.1 Уголовного кодекса Российской Федерации” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=331879&dst=15%2C-1&date=02.12.2019)
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ [Drugs penalties](https://www.gov.uk/penalties-drug-possession-dealing)
-14. ↑ DEA Schedule II Drugs | [https://www.deadiversion.usdoj.gov/21cfr/cfr/1308/1308_12.htm](https://www.deadiversion.usdoj.gov/21cfr/cfr/1308/1308_12.htm)NewPP limit report Cached time: 20251218075809 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.04 seconds CPU time usage: 0.287 seconds Real time usage: 0.560 seconds Preprocessor visited node count: 1368/1000000 Post‐expand include size: 97130/2097152 bytes Template argument size: 11837/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 18309/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 7.54 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 448.662 1 -total 26.52% 118.988 5 Template:Citation 25.32% 113.595 5 Template:Cite_journal 15.86% 71.156 1 Template:Headerpanel 15.11% 67.792 1 Template:DepressantOD 14.76% 66.237 1 Template:SubstanceBox/Secobarbital 14.36% 64.430 1 Template:GenericPanel/warning 13.68% 61.388 1 Template:GenericPanel 13.67% 61.323 1 Template:SubstanceBox 6.64% 29.795 2 Template:Cite_web`,
+- [Secobarbital (DrugBank)](https://go.drugbank.com/drugs/DB00418)`,
   "tripsit-factsheets": `# Secobarbital
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/secobarbital*
 

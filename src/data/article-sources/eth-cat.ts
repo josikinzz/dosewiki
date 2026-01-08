@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "ETH-CAT";
-export const sources = [{"id":"erowid","fileName":"EROWID - ETH-CAT.md","displayName":"Erowid","size":14565},{"id":"isomerdesign","fileName":"ISOMERDESIGN - ETH-CAT.md","displayName":"Isomer Design","size":653},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - ETH-CAT.md","displayName":"PsychonautWiki","size":30290},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ETH-CAT.md","displayName":"TripSit Factsheets","size":927},{"id":"wikipedia","fileName":"WIKIPEDIA - ETH-CAT.md","displayName":"Wikipedia","size":1770}];
+export const sources = [{"id":"erowid","fileName":"EROWID - ETH-CAT.md","displayName":"Erowid","size":14565,"tokens":4031},{"id":"isomerdesign","fileName":"ISOMERDESIGN - ETH-CAT.md","displayName":"Isomer Design","size":327,"tokens":128},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - ETH-CAT.md","displayName":"PsychonautWiki","size":22446,"tokens":6042},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ETH-CAT.md","displayName":"TripSit Factsheets","size":927,"tokens":257},{"id":"wikipedia","fileName":"WIKIPEDIA - ETH-CAT.md","displayName":"Wikipedia","size":1770,"tokens":433}];
 export const contents: Record<string, string> = {
   "erowid": `# ETH-CAT
 *Source: https://erowid.org/chemicals/ethylcathinone/ethylcathinone.shtml*
@@ -283,16 +283,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCNC(C(=O)c1ccccc1)C\`
 
-**InChI:** \`InChI=1S/C11H15NO/c1-3-12-9(2)11(13)10-7-5-4-6-8-10/h4-9,12H,3H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [403504](https://www.chemspider.com/Chemical-Structure.403504.html/)
-- [458519](https://pubchem.ncbi.nlm.nih.gov/compound/458519)
-- [Q5403044](https://www.wikidata.org/wiki/Q5403044)
-- [Ethcathinone](https://en.wikipedia.org/wiki/Ethcathinone)
-`,
+**InChI:** \`InChI=1S/C11H15NO/c1-3-12-9(2)11(13)10-7-5-4-6-8-10/h4-9,12H,3H2,1-2H3\``,
   "psychonautwiki": `# ETH-CAT
 *Source: https://psychonautwiki.org/wiki/ETH-CAT*
 
@@ -455,30 +446,7 @@ ETH-CAT is currently a grey area compound within many parts of the world. People
 
 - [Ethcathinone (Wikipedia)](https://en.wikipedia.org/wiki/Ethcathinone)
 - [Ethcathinone (Erowid Vault)](https://erowid.org/chemicals/ethylcathinone/ethylcathinone.shtml)
-- [ETH-CAT (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2019)
-
-## References
-1. ↑ Rösner, P., Quednow, B., Girreser, U., Junge, T. (10 March 2005). "Isomeric fluoro-methoxy-phenylalkylamines: a new series of controlled-substance analogues (designer drugs)".*Forensic Science International*.**148**(2–3): 143–156.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2004.05.003](//doi.org/10.1016%2Fj.forsciint.2004.05.003).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-2. ↑ Camilleri, A., Johnston, M. R., Brennan, M., Davis, S., Caldicott, D. G. E. (15 April 2010). "Chemical analysis of four capsules containing the controlled substance analogues 4-methylmethcathinone, 2-fluoromethamphetamine, alpha-phthalimidopropiophenone and N-ethylcathinone".*Forensic Science International*.**197**(1–3): 59–66.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2009.12.048](//doi.org/10.1016%2Fj.forsciint.2009.12.048).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1872-6283](//www.worldcat.org/issn/1872-6283).
-3. ↑ [Police warn of potentially fatal “fake ecstasy”](https://www.abc.net.au/news/2008-06-17/police-warn-of-potentially-fatal-fake-ecstasy/2475270), 2008
-4. ↑ Deventer, K., Van Eenoo, P., Baele, G., Pozo, O. J., Van Thuyne, W., Delbeke, F. T. (May 2009).["Interpretation of urinary concentrations of pseudoephedrine and its metabolite cathine in relation to doping control"](https://onlinelibrary.wiley.com/doi/10.1002/dta.31).*Drug Testing and Analysis*.**1**(5): 209–213.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.31](//doi.org/10.1002%2Fdta.31).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-5. ↑ Trachsel, D., Lehmann, D., Enzensperger, C. (2013).*Phenethylamine: von der Struktur zur Funktion*. Edition Nachtschatten Science. Nachtschatten Verlag.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9783037887004](http://en.wikipedia.org/wiki/Special:BookSources/9783037887004).
-6. ↑ 6.0 6.1 6.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-7. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-8. ↑ [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-9. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-10. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-11. ↑ New blanket ban on synthetic illegal drugs is approved (Portuguese) | [http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil](http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil)
-12. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-13. ↑ Forbud mod tre nye stoffer | [http://nyheder.tv2.dk/article.php/id-19197033.html?forside=](http://nyheder.tv2.dk/article.php/id-19197033.html?forside=)
-14. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-15. ↑ ["Sechsundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl112s1639.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 25, 2019.
-16. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-17. ↑ [Ustawa z dnia 24 kwietnia 2015 r. o zmianie ustawy o przeciwdziałaniu narkomanii oraz niektórych innych ustaw (Dz.U. z 2015 r. poz. 875).](https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20150000875)
-18. ↑ [https://www.lakemedelsverket.se/sv/lagar-och-regler/foreskrifter/2011-10-konsoliderad](https://www.lakemedelsverket.se/sv/lagar-och-regler/foreskrifter/2011-10-konsoliderad)
-19. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-20. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)
-21. ↑ [21 U.S. Code § 813 - Treatment of controlled substance analogues](https://www.law.cornell.edu/uscode/text/21/813)NewPP limit report Cached time: 20251218075403 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.06 seconds CPU time usage: 0.392 seconds Real time usage: 0.797 seconds Preprocessor visited node count: 2060/1000000 Post‐expand include size: 126349/2097152 bytes Template argument size: 9566/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 23936/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 638.774 1 -total 27.37% 174.864 6 Template:Cite_journal 13.57% 86.707 5 Template:Cite_web 12.86% 82.151 2 Template:Citation_needed 11.40% 72.841 1 Template:Fix 10.71% 68.407 2 Template:Category_handler 10.21% 65.231 1 Template:SubstanceBox/ETH-CAT 9.62% 61.446 1 Template:SubstanceBox 8.61% 55.001 4 Template:Citation 8.59% 54.900 1 Template:Further`,
+- [ETH-CAT (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2019)`,
   "tripsit-factsheets": `# Ethylcathinone
 *Source: TripSit Factsheets (tripsit.me)*
 

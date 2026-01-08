@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "GBL";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - GBL.md","displayName":"Isomer Design","size":607},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - GBL.md","displayName":"PsychonautWiki","size":39157},{"id":"saferparty","fileName":"SAFERPARTY - GBL.md","displayName":"Safer Party","size":3256},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GBL.md","displayName":"TripSit Factsheets","size":617},{"id":"wikipedia","fileName":"WIKIPEDIA - GBL.md","displayName":"Wikipedia","size":10747}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - GBL.md","displayName":"Isomer Design","size":287,"tokens":98},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - GBL.md","displayName":"PsychonautWiki","size":28270,"tokens":7324},{"id":"saferparty","fileName":"SAFERPARTY - GBL.md","displayName":"Safer Party","size":3256,"tokens":781},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GBL.md","displayName":"TripSit Factsheets","size":617,"tokens":190},{"id":"wikipedia","fileName":"WIKIPEDIA - GBL.md","displayName":"Wikipedia","size":10747,"tokens":2650}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# GBL
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=12267*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`O=C1CCCO1\`
 
-**InChI:** \`InChI=1S/C4H6O2/c5-4-2-1-3-6-4/h1-3H2\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [7029](https://www.chemspider.com/Chemical-Structure.7029.html/)
-- [7302](https://pubchem.ncbi.nlm.nih.gov/compound/7302)
-- [Q79739](https://www.wikidata.org/wiki/Q79739)
-- [γ-Butyrolactone](https://en.wikipedia.org/wiki/Γ-Butyrolactone)
-`,
+**InChI:** \`InChI=1S/C4H6O2/c5-4-2-1-3-6-4/h1-3H2\``,
   "psychonautwiki": `# GBL
 *Source: https://psychonautwiki.org/wiki/GBL*
 
@@ -224,40 +215,7 @@ GBL presents cross-tolerance with [1,4-Butanediol](https://psychonautwiki.org/wi
 
 - [GBL (Wikipedia)](http://en.wikipedia.org/wiki/Gamma-Butyrolactone)
 - [GBL (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=12267)
-- [GBL (Drugs-Forum)](https://drugs-forum.com/wiki/GBL)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ [Erowid 1,4-butanediol Vault : Storage : 14b and GBL May Dissolve Some Plastics](https://www.erowid.org/chemicals/14b/14b_storage1.shtml), 2001
-3. ↑ Vose, J., Tighe, T., Schwartz, M., Buel, E. (September 2001). "Detection of gamma-butyrolactone (GBL) as a natural component in wine".*Journal of Forensic Sciences*.**46**(5): 1164–1167.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-1198](//www.worldcat.org/issn/0022-1198).
-4. ↑ [https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/100526/21-2009.pdf](https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/100526/21-2009.pdf)
-5. ↑ 5.0 5.1 5.2 Teiber, J. F., Draganov, D. I., Du, B. N. L. (September 2003).["Lactonase and lactonizing activities of human serum paraoxonase (PON1) and rabbit serum PON3"](https://linkinghub.elsevier.com/retrieve/pii/S0006295203004015).*Biochemical Pharmacology*.**66**(6): 887–896.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0006-2952(03)00401-5](//doi.org/10.1016%2FS0006-2952%2803%2900401-5).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0006-2952](//www.worldcat.org/issn/0006-2952).
-6. ↑ [https://drugs-forum.com/threads/important-ghb-gbl-addiction-withdrawal.43390/](https://drugs-forum.com/threads/important-ghb-gbl-addiction-withdrawal.43390/)
-7. ↑ [Rhodium GHB Synthesis FAQ](https://www.erowid.org/archive//rhodium/chemistry/ghb.html#GBL)
-8. ↑ Sircar, R., Basak, A. (1 December 2004).["Adolescent γ-hydroxybutyric acid exposure decreases cortical N-methyl-d-aspartate receptor and impairs spatial learning"](https://www.sciencedirect.com/science/article/pii/S009130570400320X).*Pharmacology Biochemistry and Behavior*.**79**(4): 701–708.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pbb.2004.09.022](//doi.org/10.1016%2Fj.pbb.2004.09.022).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-9. ↑ 9.0 9.1 García, F. B., Pedraza, C., Arias, J. L., Navarro, J. F. (August 2006). "[Effects of subchronic administration of gammahydroxybutyrate (GHB) on spatial working memory in rats]".*Psicothema*.**18**(3): 519–524.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0214-9915](//www.worldcat.org/issn/0214-9915).
-10. ↑ 10.0 10.1 Sircar, R., Basak, A., Sircar, D. (October 2008).["γ-Hydroxybutyric Acid-Induced Cognitive Deficits in the Female Adolescent Rat"](http://doi.wiley.com/10.1196/annals.1432.044).*Annals of the New York Academy of Sciences*.**1139**(1): 386–389.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1196/annals.1432.044](//doi.org/10.1196%2Fannals.1432.044).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0077-8923](//www.worldcat.org/issn/0077-8923).
-11. ↑ 11.0 11.1 Pedraza, C., García, F. B., Navarro, J. F. (October 2009).["Neurotoxic effects induced by gammahydroxybutyric acid (GHB) in male rats"](https://academic.oup.com/ijnp/article-lookup/doi/10.1017/S1461145709000157).*The International Journal of Neuropsychopharmacology*.**12**(09): 1165.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1017/S1461145709000157](//doi.org/10.1017%2FS1461145709000157).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1461-1457](//www.worldcat.org/issn/1461-1457).
-12. ↑ 12.0 12.1 Sircar, R., Basak, A. (December 2004). "Adolescent gamma-hydroxybutyric acid exposure decreases cortical N-methyl-D-aspartate receptor and impairs spatial learning".*Pharmacology, Biochemistry, and Behavior*.**79**(4): 701–708.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pbb.2004.09.022](//doi.org/10.1016%2Fj.pbb.2004.09.022).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-13. ↑ Sircar, R., Basak, A. (1 December 2004).["Adolescent γ-hydroxybutyric acid exposure decreases cortical N-methyl-d-aspartate receptor and impairs spatial learning"](https://www.sciencedirect.com/science/article/pii/S009130570400320X).*Pharmacology Biochemistry and Behavior*.**79**(4): 701–708.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pbb.2004.09.022](//doi.org/10.1016%2Fj.pbb.2004.09.022).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-14. ↑ Pedraza, C., García, F. B., Navarro, J. F. (October 2009).["Neurotoxic effects induced by gammahydroxybutyric acid (GHB) in male rats"](https://academic.oup.com/ijnp/article-lookup/doi/10.1017/S1461145709000157).*The International Journal of Neuropsychopharmacology*.**12**(09): 1165.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1017/S1461145709000157](//doi.org/10.1017%2FS1461145709000157).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1461-1457](//www.worldcat.org/issn/1461-1457).
-15. ↑ 15.0 15.1 GHB Withdrawal Syndrome | Texas Commission on Alcohol and Drug Abuse | [https://www.erowid.org/chemicals/ghb/ghb_addiction2.pdf](https://www.erowid.org/chemicals/ghb/ghb_addiction2.pdf)
-16. ↑ Kim, S. Y., Barker, J. C., Anderson, I. B., Dyer, J. E., Earnest, G., Blanc, P. D. (2008).["Systematic Assessment of Gamma Hydroxybutyrate (GHB) Effects During and After Acute Intoxication"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2759403/).*The American journal on addictions / American Academy of Psychiatrists in Alcoholism and Addictions*.**17**(4): 312–318.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/10550490802138988](//doi.org/10.1080%2F10550490802138988).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1055-0496](//www.worldcat.org/issn/1055-0496).
-17. ↑ Carter, L. P., Pardi, D., Gorsline, J., Griffiths, R. R. (1 September 2009).["Illicit gamma-hydroxybutyrate (GHB) and pharmaceutical sodium oxybate (Xyrem®): differences in characteristics and misuse"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2713368/).*Drug and alcohol dependence*.**104**(1–2): 1–10.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.drugalcdep.2009.04.012](//doi.org/10.1016%2Fj.drugalcdep.2009.04.012).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0376-8716](//www.worldcat.org/issn/0376-8716).
-18. ↑ Dyer, J. E., Roth, B., Hyma, B. A. (February 2001). "Gamma-hydroxybutyrate withdrawal syndrome".*Annals of Emergency Medicine*.**37**(2): 147–153.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1067/mem.2001.112985](//doi.org/10.1067%2Fmem.2001.112985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0196-0644](//www.worldcat.org/issn/0196-0644).
-19. ↑ [https://drugs-forum.com/threads/important-ghb-gbl-addiction-withdrawal.43390/page-4](https://drugs-forum.com/threads/important-ghb-gbl-addiction-withdrawal.43390/page-4)
-20. ↑ Galloway, G. P., Frederick, S. L., Staggers, F. E., Gonzales, M., Stalcup, S. A., Smith, D. E. (January 1997).["Gamma-hydroxybutyrate: an emerging drug of abuse that causes physical dependence"](https://onlinelibrary.wiley.com/doi/10.1111/j.1360-0443.1997.tb03640.x).*Addiction*.**92**(1): 89–96.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1360-0443.1997.tb03640.x](//doi.org/10.1111%2Fj.1360-0443.1997.tb03640.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0965-2140](//www.worldcat.org/issn/0965-2140).
-21. ↑ [Law and Justice Legislation Amendment (Serious Drug Offences and Other Measures) Act 2005 No. 129, 2005](http://www6.austlii.edu.au/cgi-bin/viewdoc/au/legis/cth/num_act/lajladoaoma2005722/sch1.html)
-22. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-3.html)
-23. ↑ section 7c of chapter B of part A of the 1st appendix of the Dangerous Drugs Act 1973 [http://www.nevo.co.il/Law_word/law01/P170_001.doc](http://www.nevo.co.il/Law_word/law01/P170_001.doc)
-24. ↑ ["Verkopers schoonmaakmiddel verdienen fors aan partydrug GHB"](http://www.trouw.nl/tr/nl/4492/Nederland/article/detail/3238971/2012/04/11/Verkopers-schoonmaakmiddel-verdienen-fors-aan-partydrug-GHB.dhtml).*[Trouw](/w/index.php?title=Trouw&action=edit&redlink=1)*(in Dutch). 11 April 2012. Retrieved 11 April 2012.
-25. ↑ ["undefinedKomunikat Nr 3/2016 Głównego Inspektora Farmaceutycznego w sprawie GBL (y-Butyrolaktonu)"](https://sip.lex.pl/orzeczenia-i-pisma-urzedowe/pisma-urzedowe/komunikat-nr-3-2016-glownego-inspektora-farmaceutycznego-184855158)(in Polish). 11 April 2021. Retrieved 11 April 2021.
-26. ↑ [Socialutskottets betänkande 2010/11:SoU5 - Riksdagen](http://www.riksdagen.se/Webbnav/index.aspx?nid=3120&doktyp=betankande&bet=2010/11:SoU5)
-27. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-28. ↑ ["Karar Sayısı: 2016/9019"](https://resmigazete.gov.tr/eskiler/2016/08/20160803-15.pdf)(PDF).*Resmî Gazete, Sayı: 29790*(in Turkish). June 22, 2016.
-29. ↑ [http://www.gov.uk/government/uploads/system/uploads/attachment_data/file/100526/21-2009.pdf](http://www.gov.uk/government/uploads/system/uploads/attachment_data/file/100526/21-2009.pdf)
-30. ↑ ["UK Statutory Instrument 2011 No. 448"](http://www.legislation.gov.uk/uksi/2011/448/made?view=plain). 2011-02-18.
-31. ↑ [Information Bulletin: GHB Analogs; GBL, BD, GHV, and GVL](https://www.justice.gov/archive/ndic/pubs1/1621/index.htm)NewPP limit report Cached time: 20251218075444 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.056 seconds CPU time usage: 0.472 seconds Real time usage: 0.998 seconds Preprocessor visited node count: 2405/1000000 Post‐expand include size: 159699/2097152 bytes Template argument size: 23808/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 35959/5000000 bytes Lua time usage: 0.440/7 seconds Lua virtual size: 9.07 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 864.368 1 -total 63.12% 545.582 1 Template:Reflist 26.31% 227.455 13 Template:Cite_journal 18.28% 158.011 5 Template:Cite_web 14.40% 124.439 6 Template:Citation 9.88% 85.372 7 Template:Citation_needed 8.68% 75.011 1 Template:Headerpanel 8.65% 74.774 1 Template:Fix 8.15% 70.453 1 Template:SubstanceBox/GBL 8.15% 70.412 1 Template:DepressantOD`,
+- [GBL (Drugs-Forum)](https://drugs-forum.com/wiki/GBL)`,
   "saferparty": `# GBL
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MDPHP";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDPHP.md","displayName":"The Drug Classroom","size":18294}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MDPHP.md","displayName":"The Drug Classroom","size":17481,"tokens":4428}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# MDPHP
 *Source: https://thedrugclassroom.com/video/mdphp/*
@@ -219,12 +219,5 @@ Show Papers(Adamowicz, 2018) – A fetal death associated with MDPHP and α-PHP.
 - Sedatives, e.g. benzodiazepines 
 - This combination is helpful and quite safe when someone needs to sleep or if they’re experiencing anxiety or discomfort on a stimulant, but using sedatives concurrently with stimulants can mask the level of impairment you’re actually experiencing, making overdoses more likely. Planning out your doses before using is even more important if you anticipate using a sedative at some point. Making redose decisions while also on a sedative is a bad idea and fairly likely to result in using too much.
 
----
-
-## References
-Show ReferencesAdamowicz, P., & Hydzik, P. (2019). Fetal death associated with the use of 3,4-MDPHP and α-PHP. *Clinical Toxicology* , *57* (2), 112–116. https://doi.org/10.1080/15563650.2018.1502443
- 
-Beck, O., Bäckberg, M., Signell, P., & Helander, A. (2018). Intoxications in the STRIDA project involving a panorama of psychostimulant pyrovalerone derivatives, MDPV copycats. *Clinical Toxicology* , *56* (4), 256–263. https://doi.org/10.1080/15563650.2017.1370097
- 
-Gaspar, H., Bronze, S., Ciríaco, S., Queirós, C. R., Matias, A., Rodrigues, J., … Santos, S. (2015). 4F-PBP (4′-fluoro-α-pyrrolidinobutyrophenone), a new substance of abuse: Structural characterization and purity NMR profiling. *Forensic Science International* , *252* , 168–176. https://doi.org/10.1016/j.forsciint.2015.05.003`,
+---`,
 };

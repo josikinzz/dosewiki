@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aptiganel";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Aptiganel.md","displayName":"Wikipedia","size":1033}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - Aptiganel.md","displayName":"Wikipedia","size":1033,"tokens":256}];
 export const contents: Record<string, string> = {
   "wikipedia": `# Aptiganel
 *Source: https://en.wikipedia.org/wiki/Aptiganel*

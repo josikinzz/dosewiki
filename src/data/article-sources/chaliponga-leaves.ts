@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Chaliponga_Leaves";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Chaliponga_Leaves.md","displayName":"Drug Users Bible","size":1213},{"id":"wikipedia","fileName":"WIKIPEDIA - Chaliponga_Leaves.md","displayName":"Wikipedia","size":1050}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Chaliponga_Leaves.md","displayName":"Drug Users Bible","size":1213,"tokens":288},{"id":"wikipedia","fileName":"WIKIPEDIA - Chaliponga_Leaves.md","displayName":"Wikipedia","size":1050,"tokens":287}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Chaliponga Leaves
 *Source: Drug Users Bible by Dominic Milton Trott*

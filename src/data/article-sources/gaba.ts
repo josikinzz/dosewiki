@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "GABA";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GABA.md","displayName":"TripSit Factsheets","size":548},{"id":"wikipedia","fileName":"WIKIPEDIA - GABA.md","displayName":"Wikipedia","size":13594}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - GABA.md","displayName":"TripSit Factsheets","size":548,"tokens":147},{"id":"wikipedia","fileName":"WIKIPEDIA - GABA.md","displayName":"Wikipedia","size":13594,"tokens":3233}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# GABA
 *Source: TripSit Factsheets (tripsit.me)*

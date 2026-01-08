@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-MeO-PCP";
-export const sources = [{"id":"erowid","fileName":"EROWID - 3-MeO-PCP.md","displayName":"Erowid","size":15054},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCP.md","displayName":"Isomer Design","size":767},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCP.md","displayName":"PsychonautWiki","size":39045},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 3-MeO-PCP.md","displayName":"The Drug Classroom","size":97509},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCP.md","displayName":"TripSit Factsheets","size":715},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 3-MeO-PCP.md","displayName":"TripSit Wiki","size":5368},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCP.md","displayName":"Wikipedia","size":5646}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 3-MeO-PCP.md","displayName":"Erowid","size":15054,"tokens":4223},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-MeO-PCP.md","displayName":"Isomer Design","size":443,"tokens":177},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-MeO-PCP.md","displayName":"PsychonautWiki","size":29565,"tokens":8194},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 3-MeO-PCP.md","displayName":"The Drug Classroom","size":97509,"tokens":26325},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-MeO-PCP.md","displayName":"TripSit Factsheets","size":715,"tokens":235},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 3-MeO-PCP.md","displayName":"TripSit Wiki","size":5368,"tokens":1494},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-MeO-PCP.md","displayName":"Wikipedia","size":5646,"tokens":1475}];
 export const contents: Record<string, string> = {
   "erowid": `# 3-MeO-PCP
 *Source: https://erowid.org/chemicals/3-meo-pcp/*
@@ -296,16 +296,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`COc1cccc(c1)C1(CCCCC1)N1CCCCC1\`
 
-**InChI:** \`InChI=1S/C18H27NO/c1-20-17-10-8-9-16(15-17)18(11-4-2-5-12-18)19-13-6-3-7-14-19/h8-10,15H,2-7,11-14H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [9952762](https://www.chemspider.com/Chemical-Structure.9952762.html/)
-- [11778080](https://pubchem.ncbi.nlm.nih.gov/compound/11778080)
-- [Q223096](https://www.wikidata.org/wiki/Q223096)
-- [3-MeO-PCP](https://en.wikipedia.org/wiki/3-MeO-PCP)
-`,
+**InChI:** \`InChI=1S/C18H27NO/c1-20-17-10-8-9-16(15-17)18(11-4-2-5-12-18)19-13-6-3-7-14-19/h8-10,15H,2-7,11-14H2,1H3\``,
   "psychonautwiki": `# 3-MeO-PCP
 *Source: https://psychonautwiki.org/wiki/3-MeO-PCP*
 
@@ -569,40 +560,7 @@ These effects can be mitigated by refraining from using 3-MeO-PCP regularly (on 
 
 ## Literature
 
-- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-
-## References
-1. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 2 (Bluelight) | [http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2](http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2)
-2. ↑ The Big & Dandy 3-MeO-PCP Thread - Mad Manic Meo 3nity | [http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity](http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity)
-3. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 1 (Bluelight) | [http://www.bluelight.org/vb/threads/454099-The-Big-amp-Dandy-3-MeO-PCP-Thread-%28Part-1%29](http://www.bluelight.org/vb/threads/454099-The-Big-amp-Dandy-3-MeO-PCP-Thread-%28Part-1%29)
-4. ↑ 4.0 4.1 4.2 3-MeO-PCP Psychosis (PsychonautWiki) | [https://psychonautwiki.org/wiki/3-MeO-PCP#Toxicity_and_harm_potential](https://psychonautwiki.org/wiki/3-MeO-PCP#Toxicity_and_harm_potential)
-5. ↑ 5.0 5.1 5.2 Morris, H., Wallach, J. (July 2014).["From PCP to MXE: a comprehensive review of the non-medical use of dissociative drugs: PCP to MXE"](https://onlinelibrary.wiley.com/doi/10.1002/dta.1620).*Drug Testing and Analysis*.**6**(7–8): 614–632.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1620](//doi.org/10.1002%2Fdta.1620).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-6. ↑ [http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0194984](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0194984)
-7. ↑ [Advisory Council on the Misuse of Drugs (ACMD) Methoxetamine report, 2012](https://www.gov.uk/government/publications/advisory-council-on-the-misuse-of-drugs-acmd-methoxetamine-report-2012)
-8. ↑ [http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0194984](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0194984)
-9. ↑ Morris, H. (2011),[Interview with a Ketamine Chemist](https://www.vice.com/en/article/ppzgk9/interview-with-ketamine-chemist-704-v18n2)
-10. ↑ Roth, B. L., Gibbons, S., Arunotayanun, W., Huang, X.-P., Setola, V., Treble, R., Iversen, L. (19 March 2013).["The Ketamine Analogue Methoxetamine and 3- and 4-Methoxy Analogues of Phencyclidine Are High Affinity and Selective Ligands for the Glutamate NMDA Receptor"](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0059334).*PLOS ONE*.**8**(3): e59334.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pone.0059334](//doi.org/10.1371%2Fjournal.pone.0059334).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-6203](//www.worldcat.org/issn/1932-6203).
-11. ↑ 11.0 11.1 11.2 Berar, A., Allain, J.-S., Allard, S., Lefevre, C., Baert, A., Morel, I., Bouvet, R., Gicquel, T. (December 2019).["Intoxication with 3-MeO-PCP alone: A case report and literature review"](https://journals.lww.com/10.1097/MD.0000000000018295).*Medicine*.**98**(52): e18295.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/MD.0000000000018295](//doi.org/10.1097%2FMD.0000000000018295).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0025-7974](//www.worldcat.org/issn/0025-7974).
-12. ↑ Bakota, E., Arndt, C., Romoser, A. A., Wilson, S. K. (September 2016).["Fatal Intoxication Involving 3-MeO-PCP: A Case Report and Validated Method"](https://academic.oup.com/jat/article-lookup/doi/10.1093/jat/bkw056).*Journal of Analytical Toxicology*.**40**(7): 504–510.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bkw056](//doi.org/10.1093%2Fjat%2Fbkw056).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0146-4760](//www.worldcat.org/issn/0146-4760).
-13. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 2 (Bluelight) | [http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2](http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2)
-14. ↑ The Big & Dandy 3-MeO-PCP Thread - Mad Manic Meo 3nity | [http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity](http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity)
-15. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 1 (Bluelight) | [http://www.bluelight.org/vb/threads/454099-The-Big-amp-Dandy-3-MeO-PCP-Thread-%28Part-1%29](http://www.bluelight.org/vb/threads/454099-The-Big-amp-Dandy-3-MeO-PCP-Thread-%28Part-1%29)
-16. ↑ Bäckberg, M., Beck, O., Helander, A. (November 2015). "Phencyclidine analog use in Sweden--intoxication cases involving 3-MeO-PCP and 4-MeO-PCP from the STRIDA project".*Clinical Toxicology (Philadelphia, Pa.)*.**53**(9): 856–864.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.3109/15563650.2015.1079325](//doi.org/10.3109%2F15563650.2015.1079325).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9519](//www.worldcat.org/issn/1556-9519).
-17. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 2 | Page 18 | 10-08-2014 09:10 | Post #448 by Sekio (Administrator) | [http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2?p=12523821&viewfull=1#post12523821](http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2?p=12523821&viewfull=1#post12523821)
-18. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 2 | Page 20 | 30-08-2014 14:08 | Post #481 by Chocodoobie | [http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2?p=12559322&viewfull=1#post12559322](http://www.bluelight.org/vb/threads/697059-The-Big-amp-Dandy-3-MeO-PCP-Thread-Part-2?p=12559322&viewfull=1#post12559322)
-19. ↑ The Big & Dandy 3-MeO-PCP Thread - Part 3 | Page 1 | 23-06-2015 11:53 | Post #5 by Confield | [http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity?p=13108675&viewfull=1#post13108675](http://www.bluelight.org/vb/threads/760934-The-Big-amp-Dandy-3-MeO-PCP-Thread-Mad-Manic-Meo-3nity?p=13108675&viewfull=1#post13108675)
-20. ↑ [3-MeO-PCP - Erowid Exp - “So Strong I’m Shocked”](https://www.erowid.org/experiences/exp.php?ID=103972)
-21. ↑ List of controlled substances: Portaria SVS/MS nº 344 (Portuguese) | [http://portal.anvisa.gov.br/lista-de-substancias-sujeitas-a-controle-especial](http://portal.anvisa.gov.br/lista-de-substancias-sujeitas-a-controle-especial)
-22. ↑ [30. BtMÄndVO in Kraft getreten: 6 neue Stoffe wurden ins BtMG aufgenommen](https://community.beck.de/2015/11/23/30-btm-ndvo-in-kraft-getreten-6-neue-stoffe-wurden-ins-btmg-aufgenommen-0), 2015
-23. ↑ [Bekendtgørelse om euforiserende stoffer - ni nye stoffer tilføjet](https://laegemiddelstyrelsen.dk/da/nyheder/2015/bekendtgoerelse-om-euforiserende-stoffer-ni-nye-stoffer-tilfoejet/)
-24. ↑ Cannabinoider föreslås bli klassade som hälsofarlig vara | [http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/](http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/)
-25. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-26. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-27. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-28. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2013](https://www.legislation.gov.uk/uksi/2013/239/introduction/made)
-29. ↑ info@aion.cz, A. C.-,[463/2013 Sb. Nařízení vlády o seznamech návykových látek](https://www.zakonyprolidi.cz/cs/2013-463)
-30. ↑ [Opiumwet, Lijst I, (Dutch)](https://wetten.overheid.nl/BWBR0001941/2023-09-12#BijlageI), 2023
-31. ↑ [https://www.gazzettaufficiale.it/atto/vediMenuHTML?atto.dataPubblicazioneGazzetta=2021-10-18&atto.codiceRedazionale=21A06118&tipoSerie=serie_generale&tipoVigenza=originario](https://www.gazzettaufficiale.it/atto/vediMenuHTML?atto.dataPubblicazioneGazzetta=2021-10-18&atto.codiceRedazionale=21A06118&tipoSerie=serie_generale&tipoVigenza=originario)NewPP limit report Cached time: 20251218075025 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.085 seconds CPU time usage: 0.472 seconds Real time usage: 0.856 seconds Preprocessor visited node count: 2521/1000000 Post‐expand include size: 189874/2097152 bytes Template argument size: 27389/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 28317/5000000 bytes Lua time usage: 0.290/7 seconds Lua virtual size: 8.52 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 33Transclusion expansion time report (%,ms,calls,template) 100.00% 688.679 1 -total 48.47% 333.832 1 Template:Reflist 24.88% 171.327 5 Template:Cite_journal 16.68% 114.900 9 Template:Citation 12.79% 88.110 4 Template:Citation_needed 11.38% 78.387 1 Template:SubstanceBox/3-MeO-PCP 11.18% 77.025 1 Template:Fix 10.74% 73.982 1 Template:SubstanceBox 10.53% 72.488 2 Template:Category_handler 8.84% 60.883 1 Template:Distinguish`,
+- Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)`,
   "thedrugclassroom": `# 3-Methoxyphencyclidine (3-MeO-PCP)
 *Source: https://thedrugclassroom.com/video/3-methoxyphencyclidine-3-meo-pcp/*
 

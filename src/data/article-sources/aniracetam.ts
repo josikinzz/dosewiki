@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aniracetam";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Aniracetam.md","displayName":"Drug Users Bible","size":1032},{"id":"erowid","fileName":"EROWID - Aniracetam.md","displayName":"Erowid","size":3680},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aniracetam.md","displayName":"Isomer Design","size":662},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Aniracetam.md","displayName":"PsychonautWiki","size":16558},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aniracetam.md","displayName":"TripSit Factsheets","size":356},{"id":"wikipedia","fileName":"WIKIPEDIA - Aniracetam.md","displayName":"Wikipedia","size":3319}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Aniracetam.md","displayName":"Drug Users Bible","size":1032,"tokens":259},{"id":"erowid","fileName":"EROWID - Aniracetam.md","displayName":"Erowid","size":3680,"tokens":891},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Aniracetam.md","displayName":"Isomer Design","size":350,"tokens":139},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Aniracetam.md","displayName":"PsychonautWiki","size":10127,"tokens":2619},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aniracetam.md","displayName":"TripSit Factsheets","size":356,"tokens":104},{"id":"wikipedia","fileName":"WIKIPEDIA - Aniracetam.md","displayName":"Wikipedia","size":3319,"tokens":830}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Aniracetam (+ Citicoline)
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -182,16 +182,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`COc1ccc(cc1)C(=O)N1CCCC1=O\`
 
-**InChI:** \`InChI=1S/C12H13NO3/c1-16-10-6-4-9(5-7-10)12(15)13-8-2-3-11(13)14/h4-7H,2-3,8H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [2111](https://www.chemspider.com/Chemical-Structure.2111.html/)
-- [2196](https://pubchem.ncbi.nlm.nih.gov/compound/2196)
-- [Q417630](https://www.wikidata.org/wiki/Q417630)
-- [Aniracetam](https://en.wikipedia.org/wiki/Aniracetam)
-`,
+**InChI:** \`InChI=1S/C12H13NO3/c1-16-10-6-4-9(5-7-10)12(15)13-8-2-3-11(13)14/h4-7H,2-3,8H2,1H3\``,
   "psychonautwiki": `# Aniracetam
 *Source: https://psychonautwiki.org/wiki/Aniracetam*
 
@@ -303,22 +294,7 @@ As a member of the [racetam](https://psychonautwiki.org/wiki/Racetam) family, an
 - [Aniracetam (Wikipedia)](https://en.wikipedia.org/wiki/Aniracetam)
 - [Aniracetam (Erowid Vault)](https://erowid.org/smarts/aniracetam/aniracetam.shtml)
 - [Aniracetam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=9968)
-- [Aniracetam (Examine)](https://examine.com/supplements/aniracetam/)
-
-## References
-1. ↑ Malykh, A. G., Sadaie, M. R. (12 February 2010). "Piracetam and piracetam-like drugs: from basic science to novel clinical applications to CNS disorders".*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1950](//www.worldcat.org/issn/1179-1950).
-2. ↑ Valzelli, L., Baiguerra, G., Giraud, O. (June 1986). "Difference in learning and retention by Albino Swiss mice. Part III. Effect of some brain stimulants".*Methods and Findings in Experimental and Clinical Pharmacology*.**8**(6): 337–341.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0355](//www.worldcat.org/issn/0379-0355).
-3. ↑ Nootreviews Aniracetam Guide | [http://www.nootreviews.com/aniracetam/](http://www.nootreviews.com/aniracetam/)
-4. ↑ 4.0 4.1 4.2 Lee, C. R., Benfield, P. (March 1994). "Aniracetam. An overview of its pharmacodynamic and pharmacokinetic properties, and a review of its therapeutic potential in senile cognitive disorders".*Drugs & Aging*.**4**(3): 257–273.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00002512-199404030-00007](//doi.org/10.2165%2F00002512-199404030-00007).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1170-229X](//www.worldcat.org/issn/1170-229X).
-5. ↑ Cumin, R., Bandle, E. F., Gamzu, E., Haefely, W. E. (1982). "Effects of the novel compound aniracetam (Ro 13-5057) upon impaired learning and memory in rodents".*Psychopharmacology*.**78**(2): 104–111.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF00432244](//doi.org/10.1007%2FBF00432244).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).
-6. ↑ Zhao, X., Kuryatov, A., Lindstrom, J. M., Yeh, J. Z., Narahashi, T. (April 2001). "Nootropic drug modulation of neuronal nicotinic acetylcholine receptors in rat cortical neurons".*Molecular Pharmacology*.**59**(4): 674–683.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/mol.59.4.674](//doi.org/10.1124%2Fmol.59.4.674).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0026-895X](//www.worldcat.org/issn/0026-895X).
-7. ↑ Kaneko, S., Sugimura, M., Inoue, T., Satoh, M. (19 June 1991). "Effects of several cerebroprotective drugs on NMDA channel function: evaluation using Xenopus oocytes and [3H]MK-801 binding".*European Journal of Pharmacology*.**207**(2): 119–128.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0922-4106(91)90086-w](//doi.org/10.1016%2F0922-4106%2891%2990086-w).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-8. ↑ Ling, D. S. F., Benardo, L. S. (1 July 2005).["Nootropic Agents Enhance the Recruitment of Fast GABAA Inhibition in Rat Neocortex"](http://academic.oup.com/cercor/article/15/7/921/387971/Nootropic-Agents-Enhance-the-Recruitment-of-Fast).*Cerebral Cortex*.**15**(7): 921–928.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/cercor/bhh191](//doi.org/10.1093%2Fcercor%2Fbhh191).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1460-2199](//www.worldcat.org/issn/1460-2199).
-9. ↑ Petkov, V. D., Grahovska, T., Petkov, V. V., Konstantinova, E., Stancheva, S. (1984). "Changes in the brain biogenic monoamines of rats, induced by piracetam and aniracetam".*Acta Physiologica Et Pharmacologica Bulgarica*.**10**(4): 6–15.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0323-9950](//www.worldcat.org/issn/0323-9950).
-10. ↑ Stancheva, S. L., Alova, L. G. (June 1988). "[Effect of centrophenoxine, piracetam and aniracetam on the monoamine oxidase activity in different brain structures of rats]".*Farmakologiia I Toksikologiia*.**51**(3): 16–18.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-8318](//www.worldcat.org/issn/0014-8318).
-11. ↑ Trabucchi, M., Govoni, S., Battaini, F. (April 1986). "Changes in the interaction between CNS cholinergic and dopaminergic neurons induced by L-alpha-glycerylphosphorylcholine, a cholinomimetic drug".*Il Farmaco; Edizione Scientifica*.**41**(4): 325–334.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0430-0920](//www.worldcat.org/issn/0430-0920).
-12. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-13. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075211 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.032 seconds CPU time usage: 0.254 seconds Real time usage: 0.459 seconds Preprocessor visited node count: 1324/1000000 Post‐expand include size: 67947/2097152 bytes Template argument size: 4149/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 17849/5000000 bytes Lua time usage: 0.140/7 seconds Lua virtual size: 7.05 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 351.207 1 -total 59.41% 208.658 11 Template:Cite_journal 20.07% 70.473 1 Template:SubstanceBox/Aniracetam 18.87% 66.262 1 Template:SubstanceBox 6.10% 21.416 1 Template:Effects/base 5.25% 18.428 1 Template:Effect_list 4.36% 15.327 2 Template:Effect_column 3.76% 13.189 1 Template:Citation 1.59% 5.593 1 Template:Effects/physical 1.21% 4.258 1 Template:SummarySheet`,
+- [Aniracetam (Examine)](https://examine.com/supplements/aniracetam/)`,
   "tripsit-factsheets": `# Aniracetam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/aniracetam*
 

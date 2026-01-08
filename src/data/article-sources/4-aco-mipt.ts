@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-MiPT";
-export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-MiPT.md","displayName":"Erowid","size":4397},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-MiPT.md","displayName":"Isomer Design","size":813},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-MiPT.md","displayName":"PsychonautWiki","size":25548},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-MiPT.md","displayName":"TripSit Factsheets","size":490},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MiPT.md","displayName":"Wikipedia","size":1111}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-MiPT.md","displayName":"Erowid","size":4397,"tokens":1298},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-MiPT.md","displayName":"Isomer Design","size":483,"tokens":203},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-MiPT.md","displayName":"PsychonautWiki","size":20197,"tokens":5674},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-MiPT.md","displayName":"TripSit Factsheets","size":490,"tokens":156},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MiPT.md","displayName":"Wikipedia","size":1111,"tokens":333}];
 export const contents: Record<string, string> = {
   "erowid": `# 4-AcO-MiPT
 *Source: https://erowid.org/chemicals/4_acetoxy_mipt/4_acetoxy_mipt.shtml*
@@ -94,16 +94,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CC(=O)Oc1cccc2c1c(CCN(C(C)C)C)c[nH]2\`
 
-**InChI:** \`InChI=1S/C16H22N2O2/c1-11(2)18(4)9-8-13-10-17-14-6-5-7-15(16(13)14)20-12(3)19/h5-7,10-11,17H,8-9H2,1-4H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [23976075](https://www.chemspider.com/Chemical-Structure.23976075.html/)
-- [46783587](https://pubchem.ncbi.nlm.nih.gov/compound/46783587)
-- [Q4637098](https://www.wikidata.org/wiki/Q4637098)
-- [4-AcO-MiPT](https://en.wikipedia.org/wiki/4-AcO-MiPT)
-`,
+**InChI:** \`InChI=1S/C16H22N2O2/c1-11(2)18(4)9-8-13-10-17-14-6-5-7-15(16(13)14)20-12(3)19/h5-7,10-11,17H,8-9H2,1-4H3\``,
   "psychonautwiki": `# 4-AcO-MiPT
 *Source: https://psychonautwiki.org/wiki/4-AcO-MiPT*
 
@@ -276,22 +267,7 @@ Due to its relative obscurity, the possession and sale of 4-AcO-MiPT is unschedu
 
 ### Discussion
 
-- [The Big & Dandy 4-AcO-MiPT Thread (Bluelight)](http://www.bluelight.org/vb/threads/101872-The-Big-amp-Dandy-4-AcO-MiPT-Thread)
-
-## References
-1. ↑ Takahashi, M.; Nagashima, M.; Suzuki, J.; Seto, T.; Yasuda, I.; Yoshida, T. (2009). "Creation and application of psychoactive designer drugs data library using liquid chromatography with photodiode array spectrophotometry detector and gas chromatography–mass spectrometry".*Talanta*.**77**(4): 1245–1272.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.talanta.2008.07.062](//doi.org/10.1016%2Fj.talanta.2008.07.062).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1873-3573](//www.worldcat.org/issn/1873-3573).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0039-9140](//www.worldcat.org/issn/0039-9140).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01767116](//www.worldcat.org/oclc/01767116).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[19084633](//www.ncbi.nlm.nih.gov/pubmed/19084633).
-2. ↑ Noorizadeh, H.; Farmany, A.; Noorizadeh, M. (2012). "Application of GA–KPLS and L–M ANN calculations for the prediction of the capacity factor of hazardous psychoactive designer drugs".**21**(9): 2680–2688.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00044-011-9794-y](//doi.org/10.1007%2Fs00044-011-9794-y).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1554-8120](//www.worldcat.org/issn/1554-8120).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1054-2523](//www.worldcat.org/issn/1054-2523).[OCLC](http://en.wikipedia.org/wiki/OCLC)[57733023](//www.worldcat.org/oclc/57733023).
-3. ↑ ["Compound Summary: Mipracetin"](https://pubchem.ncbi.nlm.nih.gov/compound/46783587).*PubChem*. National Center for Biotechnology Information. 46783587. Retrieved August 20, 2020.
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-8. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-9. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-10. ↑ [危険ドラッグの成分１６物質を新たに指定薬物に指定](https://www.mhlw.go.jp/stf/houdou/0000078803.html)(in Japanese), 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)], retrieved 2 May 2022
-11. ↑ ["Svensk författningssamling Förordning om ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](http://www.notisum.se/rnp/sls/sfs/20050733.pdf)(PDF)(in Swedish) (published October 18, 2005). October 6, 2005. SFS 2005:733.
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075046 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.051 seconds CPU time usage: 0.326 seconds Real time usage: 0.629 seconds Preprocessor visited node count: 1710/1000000 Post‐expand include size: 131467/2097152 bytes Template argument size: 20211/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 16526/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.66 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 494.029 1 -total 22.59% 111.625 4 Template:Citation_needed 21.57% 106.542 9 Template:Cite_web 20.29% 100.221 3 Template:Cite_journal 12.95% 63.993 2 Template:Fix 12.17% 60.129 4 Template:Category_handler 9.73% 48.068 1 Template:SubstanceBox/4-AcO-MiPT 9.17% 45.294 1 Template:SubstanceBox 8.57% 42.338 1 Template:Effects/base 7.79% 38.461 1 Template:Effect_list`,
+- [The Big & Dandy 4-AcO-MiPT Thread (Bluelight)](http://www.bluelight.org/vb/threads/101872-The-Big-amp-Dandy-4-AcO-MiPT-Thread)`,
   "tripsit-factsheets": `# 4-AcO-MiPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-aco-mipt*
 

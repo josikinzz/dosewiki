@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-PiPT";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-PiPT.md","displayName":"Wikipedia","size":941}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-PiPT.md","displayName":"Wikipedia","size":941,"tokens":288}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 4-HO-PiPT
 *Source: https://en.wikipedia.org/wiki/4-HO-PiPT*

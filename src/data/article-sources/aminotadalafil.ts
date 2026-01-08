@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aminotadalafil";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aminotadalafil.md","displayName":"TripSit Factsheets","size":333}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aminotadalafil.md","displayName":"TripSit Factsheets","size":333,"tokens":96}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Aminotadalafil
 *Source: TripSit Factsheets (tripsit.me)*

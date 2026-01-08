@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "HDEP-28";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HDEP-28.md","displayName":"TripSit Factsheets","size":624},{"id":"wikipedia","fileName":"WIKIPEDIA - HDEP-28.md","displayName":"Wikipedia","size":669}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HDEP-28.md","displayName":"TripSit Factsheets","size":624,"tokens":176},{"id":"wikipedia","fileName":"WIKIPEDIA - HDEP-28.md","displayName":"Wikipedia","size":669,"tokens":194}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# HDEP-28
 *Source: TripSit Factsheets (tripsit.me)*

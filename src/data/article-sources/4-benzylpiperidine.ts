@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-Benzylpiperidine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Benzylpiperidine.md","displayName":"TripSit Factsheets","size":867},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Benzylpiperidine.md","displayName":"Wikipedia","size":1129}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Benzylpiperidine.md","displayName":"TripSit Factsheets","size":867,"tokens":221},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Benzylpiperidine.md","displayName":"Wikipedia","size":1129,"tokens":290}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-Benzylpiperidine
 *Source: TripSit Factsheets (tripsit.me)*

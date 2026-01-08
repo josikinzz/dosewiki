@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-MET";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-AcO-MET.md","displayName":"Disregard Everything I Say","size":11742},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-MET.md","displayName":"Isomer Design","size":793},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-MET.md","displayName":"PsychonautWiki","size":23756},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-MET.md","displayName":"TripSit Factsheets","size":778},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MET.md","displayName":"Wikipedia","size":1634}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 4-AcO-MET.md","displayName":"Disregard Everything I Say","size":11742,"tokens":3206},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-MET.md","displayName":"Isomer Design","size":463,"tokens":191},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-MET.md","displayName":"PsychonautWiki","size":20576,"tokens":5770},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-MET.md","displayName":"TripSit Factsheets","size":778,"tokens":228},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-MET.md","displayName":"Wikipedia","size":1634,"tokens":456}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 4-AcO-MET
 *Source: https://disregardeverythingisay.com/post/93834563989/4-aco-met-broken-down-and-described*
@@ -140,16 +140,7 @@ This substance breakdown was written through collaboration between PsychonautWik
 
 **SMILES:** \`CCN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)C\`
 
-**InChI:** \`InChI=1S/C15H20N2O2/c1-4-17(3)9-8-12-10-16-13-6-5-7-14(15(12)13)19-11(2)18/h5-7,10,16H,4,8-9H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [26633897](https://www.chemspider.com/Chemical-Structure.26633897.html/)
-- [71308138](https://pubchem.ncbi.nlm.nih.gov/compound/71308138)
-- [Q16154986](https://www.wikidata.org/wiki/Q16154986)
-- [4-AcO-MET](https://en.wikipedia.org/wiki/4-AcO-MET)
-`,
+**InChI:** \`InChI=1S/C15H20N2O2/c1-4-17(3)9-8-12-10-16-13-6-5-7-14(15(12)13)19-11(2)18/h5-7,10,16H,4,8-9H2,1-3H3\``,
   "psychonautwiki": `# 4-AcO-MET
 *Source: https://psychonautwiki.org/wiki/4-AcO-MET*
 
@@ -320,17 +311,7 @@ Tolerance to the effects of 4-AcO-MET is built almost immediately after ingestio
 
 ### Discussion
 
-- [The Big & Dandy 4-AcO-MET Thread (Bluelight)](http://www.bluelight.org/vb/threads/403781-The-Big-amp-Dandy-4-AcO-MET-Thread)
-
-## References
-1. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-3. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075043 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.052 seconds CPU time usage: 0.323 seconds Real time usage: 0.630 seconds Preprocessor visited node count: 1494/1000000 Post‐expand include size: 118953/2097152 bytes Template argument size: 20714/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9143/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.16 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 496.054 1 -total 23.60% 117.086 7 Template:Cite_web 20.18% 100.080 4 Template:Citation_needed 17.40% 86.315 2 Template:Fix 16.38% 81.262 4 Template:Category_handler 15.51% 76.944 1 Template:Cite_journal 13.95% 69.209 2 Template:Further 11.02% 54.664 1 Template:SubstanceBox/4-AcO-MET 10.35% 51.334 1 Template:SubstanceBox 7.00% 34.721 1 Template:DangerousInteractions/Psychedelics`,
+- [The Big & Dandy 4-AcO-MET Thread (Bluelight)](http://www.bluelight.org/vb/threads/403781-The-Big-amp-Dandy-4-AcO-MET-Thread)`,
   "tripsit-factsheets": `# 4-AcO-MET
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-aco-met*
 

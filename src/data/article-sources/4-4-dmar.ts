@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4,4-DMAR";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4,4-DMAR.md","displayName":"The Drug Classroom","size":128189},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4,4-DMAR.md","displayName":"TripSit Factsheets","size":530},{"id":"wikipedia","fileName":"WIKIPEDIA - 4,4-DMAR.md","displayName":"Wikipedia","size":2091}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4,4-DMAR.md","displayName":"The Drug Classroom","size":128189,"tokens":33213},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4,4-DMAR.md","displayName":"TripSit Factsheets","size":530,"tokens":153},{"id":"wikipedia","fileName":"WIKIPEDIA - 4,4-DMAR.md","displayName":"Wikipedia","size":2091,"tokens":563}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Serotonin Toxicity (Serotonin Syndrome)
 *Source: https://thedrugclassroom.com/video/serotonin-toxicity-serotonin-syndrome/*

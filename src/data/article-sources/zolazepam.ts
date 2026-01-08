@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Zolazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Zolazepam.md","displayName":"TripSit Factsheets","size":897},{"id":"wikipedia","fileName":"WIKIPEDIA - Zolazepam.md","displayName":"Wikipedia","size":1017}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Zolazepam.md","displayName":"TripSit Factsheets","size":897,"tokens":241},{"id":"wikipedia","fileName":"WIKIPEDIA - Zolazepam.md","displayName":"Wikipedia","size":1017,"tokens":255}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Zolazepam
 *Source: TripSit Factsheets (tripsit.me)*

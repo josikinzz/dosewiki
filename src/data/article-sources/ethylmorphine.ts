@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethylmorphine";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ethylmorphine.md","displayName":"Isomer Design","size":765},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ethylmorphine.md","displayName":"PsychonautWiki","size":21141},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethylmorphine.md","displayName":"TripSit Factsheets","size":463},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethylmorphine.md","displayName":"Wikipedia","size":762}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ethylmorphine.md","displayName":"Isomer Design","size":435,"tokens":197},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ethylmorphine.md","displayName":"PsychonautWiki","size":17038,"tokens":4373},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethylmorphine.md","displayName":"TripSit Factsheets","size":463,"tokens":132},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethylmorphine.md","displayName":"Wikipedia","size":762,"tokens":190}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Ethylmorphine
 *Source: https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=7661*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCOc1ccc2c3c1O[C@@H]1[C@@]43CCN([C@H](C2)[C@@H]4C=C[C@@H]1O)C\`
 
-**InChI:** \`InChI=1S/C19H23NO3/c1-3-22-15-7-4-11-10-13-12-5-6-14(21)18-19(12,8-9-20(13)2)16(11)17(15)23-18/h4-7,12-14,18,21H,3,8-10H2,1-2H3/t12-,13+,14-,18-,19-/m0/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [4514250](https://www.chemspider.com/Chemical-Structure.4514250.html/)
-- [5359271](https://pubchem.ncbi.nlm.nih.gov/compound/5359271)
-- [Q554881](https://www.wikidata.org/wiki/Q554881)
-- [Ethylmorphine](https://en.wikipedia.org/wiki/Ethylmorphine)
-`,
+**InChI:** \`InChI=1S/C19H23NO3/c1-3-22-15-7-4-11-10-13-12-5-6-14(21)18-19(12,8-9-20(13)2)16(11)17(15)23-18/h4-7,12-14,18,21H,3,8-10H2,1-2H3/t12-,13+,14-,18-,19-/m0/s1\``,
   "psychonautwiki": `# Ethylmorphine
 *Source: https://psychonautwiki.org/wiki/Ethylmorphine*
 
@@ -153,24 +144,7 @@ In general, ethylmorphine and codeine, owing to their structural and pharmacolog
 
 - [Ethylmorphine (Wikipedia)](http://en.wikipedia.org/wiki/Ethylmorphine)
 - [Ethylmorphine (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=7661)
-- [Ethylmorphine (Drugs.com)](http://www.drugs.com/international/ethylmorphine.html)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Hinshelwood, J. (30 April 1904).["Dionine: A New Ocular Analgesic"](https://www.bmj.com/content/1/2261/1009.2).*Br Med J*.**1**(2261): 1009–1010.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1136/bmj.1.2261.1009-a](//doi.org/10.1136%2Fbmj.1.2261.1009-a).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-1447](//www.worldcat.org/issn/0007-1447).
-3. ↑ [Ethylmorphine , CasNO.76-58-4](https://www.lookchem.com/Ethylmorphine/)
-4. ↑ Kintz, P., Jamey, C., Mangin, P. (1 March 1994).["Ethylmorphine concentrations in human samples in an overdose case"](https://doi.org/10.1007/s002040050057).*Archives of Toxicology*.**68**(3): 210–211.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s002040050057](//doi.org/10.1007%2Fs002040050057).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1432-0738](//www.worldcat.org/issn/1432-0738).
-5. ↑ 5.0 5.1 Ershad, M., Cruz, M. D., Mostafa, A., Mckeever, R., Vearrier, D., Greenberg, M. I. (March 2020).["Opioid Toxidrome Following Grapefruit Juice Consumption in the Setting of Methadone Maintenance"](https://journals.lww.com/10.1097/ADM.0000000000000535).*Journal of Addiction Medicine*.**14**(2): 172–174.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/ADM.0000000000000535](//doi.org/10.1097%2FADM.0000000000000535).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1932-0620](//www.worldcat.org/issn/1932-0620).
-6. ↑ [Single Convention on Narcotic Drugs](https://en.wikipedia.org/w/index.php?title=Single_Convention_on_Narcotic_Drugs&oldid=1096299093), 2022
-7. ↑ [Anlage II BtMG - Einzelnorm](http://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)
-8. ↑ [http://www.felleskatalogen.no/medisin/cosylan-recip-547676](http://www.felleskatalogen.no/medisin/cosylan-recip-547676)
-9. ↑ [http://www.felleskatalogen.no/medisin/solvipect-comp-takeda-nycomed-564022](http://www.felleskatalogen.no/medisin/solvipect-comp-takeda-nycomed-564022)
-10. ↑ [Постановление Правительства РФ от 01.10.2012 N 1002 (ред. от 09.08.2019)](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=331879&dst=100295&date=03.12.2019)
-11. ↑ [Cocillana-Etyfin - FASS Allmänhet](https://www.fass.se/LIF/product?docType=6&userType&nplId=19641222000010)
-12. ↑ [Lepheton® - FASS Allmänhet](https://www.fass.se/LIF/product?userType=2&nplId=19350429000012&docType=6)
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2)
-15. ↑ [http://www.deadiversion.usdoj.gov/21cfr/cfr/2108cfrt.htm](http://www.deadiversion.usdoj.gov/21cfr/cfr/2108cfrt.htm)NewPP limit report Cached time: 20251218075408 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.032 seconds CPU time usage: 0.324 seconds Real time usage: 0.626 seconds Preprocessor visited node count: 1534/1000000 Post‐expand include size: 82444/2097152 bytes Template argument size: 8602/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14269/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.43 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 520.649 1 -total 28.66% 149.211 8 Template:Citation 16.51% 85.951 1 Template:Citation_needed 14.61% 76.042 1 Template:Headerpanel 14.55% 75.768 1 Template:Fix 13.85% 72.126 1 Template:SubstanceBox/Ethylmorphine 13.83% 72.026 1 Template:DepressantOD 13.67% 71.161 2 Template:Category_handler 13.13% 68.344 1 Template:GenericPanel/warning 13.06% 68.008 1 Template:SubstanceBox`,
+- [Ethylmorphine (Drugs.com)](http://www.drugs.com/international/ethylmorphine.html)`,
   "tripsit-factsheets": `# Ethylmorphine
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/ethylmorphine*
 

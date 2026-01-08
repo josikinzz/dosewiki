@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Etizolam";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Etizolam.md","displayName":"Drug Users Bible","size":1427},{"id":"erowid","fileName":"EROWID - Etizolam.md","displayName":"Erowid","size":4829},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Etizolam.md","displayName":"Isomer Design","size":830},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Etizolam.md","displayName":"PsychonautWiki","size":39346},{"id":"saferparty","fileName":"SAFERPARTY - Etizolam.md","displayName":"Safer Party","size":3608},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Etizolam.md","displayName":"The Drug Classroom","size":3432},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Etizolam.md","displayName":"TripSit Factsheets","size":635},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Etizolam.md","displayName":"TripSit Wiki","size":4842},{"id":"wikipedia","fileName":"WIKIPEDIA - Etizolam.md","displayName":"Wikipedia","size":7918}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Etizolam.md","displayName":"Drug Users Bible","size":1427,"tokens":371},{"id":"erowid","fileName":"EROWID - Etizolam.md","displayName":"Erowid","size":4829,"tokens":1366},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Etizolam.md","displayName":"Isomer Design","size":438,"tokens":189},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Etizolam.md","displayName":"PsychonautWiki","size":26371,"tokens":7051},{"id":"saferparty","fileName":"SAFERPARTY - Etizolam.md","displayName":"Safer Party","size":3608,"tokens":860},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Etizolam.md","displayName":"The Drug Classroom","size":913,"tokens":244},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Etizolam.md","displayName":"TripSit Factsheets","size":635,"tokens":192},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Etizolam.md","displayName":"TripSit Wiki","size":4842,"tokens":1216},{"id":"wikipedia","fileName":"WIKIPEDIA - Etizolam.md","displayName":"Wikipedia","size":7918,"tokens":1896}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Etizolam
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -136,17 +136,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCc1cc2c(s1)n1c(CN=C2c2ccccc2Cl)nnc1C\`
 
-**InChI:** \`InChI=1S/C17H15ClN4S/c1-3-11-8-13-16(12-6-4-5-7-14(12)18)19-9-15-21-20-10(2)22(15)17(13)23-11/h4-8H,3,9H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [3191](https://www.chemspider.com/Chemical-Structure.3191.html/)
-- [3307](https://pubchem.ncbi.nlm.nih.gov/compound/3307)
-- [Q409966](https://www.wikidata.org/wiki/Q409966)
-- [Etizolam](https://en.wikipedia.org/wiki/Etizolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C17H15ClN4S/c1-3-11-8-13-16(12-6-4-5-7-14(12)18)19-9-15-21-20-10(2)22(15)17(13)23-11/h4-8H,3,9H2,1-2H3\``,
   "psychonautwiki": `# Etizolam
 *Source: https://psychonautwiki.org/wiki/Etizolam*
 
@@ -330,55 +320,7 @@ Internationally, etizolam was added to the UN Convention on Psychotropic Substan
 
 - Sanna, E., Pau, D., Tuveri, F., Massa, F., Maciocco, E., Acquas, C., ... & Biggio, G. (1999). Molecular and neurochemical evaluation of the effects of etizolam on GABAA receptors under normal and stress conditions. Arzneimittelforschung, 49(02), 88-95. [https://doi.org/10.1055/s-0031-1300366](https://doi.org/10.1055/s-0031-1300366)
 - Altamura, A. C., Moliterno, D., Paletta, S., Maffini, M., Mauri, M. C., & Bareggi, S. (2013). Understanding the pharmacokinetics of anxiolytic drugs. Expert Opinion on Drug Metabolism & Toxicology, 9(4), 423-440. [https://doi.org/10.1517/17425255.2013.759209](https://doi.org/10.1517/17425255.2013.759209)
-- Fracasso, C., Confalonieri, S., Garattini, S., & Caccia, S. (1991). Single and multiple dose pharmacokinetics of etizolam in healthy subjects. European Journal of Clinical Pharmacology, 40(2), 181-185. [https://doi.org/10.1007/BF00280074](https://doi.org/10.1007/BF00280074)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-3. ↑ [Etizolam - TripSit wiki](https://wiki.tripsit.me/wiki/Etizolam), retrieved 11 May 2017
-4. ↑ Sanna, E., Pau, D., Tuveri, F., Massa, F., Maciocco, E., Acquas, C., Floris, C., Fontana, S., Maira, G., Biggio, G. (28 December 2011).["Molecular and Neurochemical Evaluation of the Effects of Etizolam on GABAA Receptors under Normal and Stress Conditions"](http://www.thieme-connect.de/DOI/DOI?10.1055/s-0031-1300366).*Arzneimittelforschung*.**49**(02): 88–95.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1055/s-0031-1300366](//doi.org/10.1055%2Fs-0031-1300366).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0004-4172](//www.worldcat.org/issn/0004-4172).
-5. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-6. ↑ [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3684331/#s2title](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3684331/#s2title)
-7. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-8. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-9. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-10. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-11. ↑ Wakakura, M., Tsubouchi, T., Inouye, J. (March 2004). "Etizolam and benzodiazepine induced blepharospasm".*Journal of Neurology, Neurosurgery, and Psychiatry*.**75**(3): 506–507.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1136/jnnp.2003.019869](//doi.org/10.1136%2Fjnnp.2003.019869).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3050](//www.worldcat.org/issn/0022-3050).
-12. ↑ Kuroda, K., Yabunami, H., Hisanaga, Y. (January 2002). "Etizolam-induced superficial erythema annulare centrifugum".*Clinical and Experimental Dermatology*.**27**(1): 34–36.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1046/j.0307-6938.2001.00943.x](//doi.org/10.1046%2Fj.0307-6938.2001.00943.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0307-6938](//www.worldcat.org/issn/0307-6938).
-13. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-14. ↑ 14.0 14.1 Sanna, E., Busonero, F., Talani, G., Mostallino, M. C., Mura, M. L., Pisu, M. G., Maciocco, E., Serra, M., Biggio, G. (5 September 2005). "Low tolerance and dependence liabilities of etizolam: molecular, functional, and pharmacological correlates".*European Journal of Pharmacology*.**519**(1–2): 31–42.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2005.06.047](//doi.org/10.1016%2Fj.ejphar.2005.06.047).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-15. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-16. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-17. ↑ ["WHO: World Health Organization recommends 12 NPS for scheduling"](https://www.unodc.org/LSS/Announcement/Details/021820a0-8746-42a4-9ee3-47ce50b30ca3). December 2019. Retrieved October 16, 2020.
-18. ↑ ["CND accepts all WHO recommendations on the control of several psychoactive substances from the 42nd ECDD meeting"](https://www.who.int/news/item/18-03-2020-c-n-d-accepts-all-w-h-o-recommendations-from-42nd-e-c-d-d). World Health Organization (WHO). March 18, 2020. Retrieved October 16, 2020.
-19. ↑ Health,[Poisons Standard October 2020](http://www.legislation.gov.au/Details/F2020L01255/Html/Text)
-20. ↑ ["Neue Psychoaktive Substanzen"](https://www.oesterreich.gv.at/themen/gesundheit_und_notfaelle/sucht/2/1/Seite.1520660.html)(in German). Bundeskriminalamt Österreich. Retrieved February 17, 2022.
-21. ↑ ["NPSG"](https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20007605)(in German). Bundeskriminalamt Österreich. Retrieved February 17, 2022.
-22. ↑ ["Resolução de diretoria colegiada - RDC Nº 473"](http://antigo.anvisa.gov.br/documents/10181/6236630/%282%29RDC_473_2021_.pdf/7a65445f-52a1-4533-97c7-6d96eff3b8e1)(in Portuguese). Retrieved May 20, 2021.
-23. ↑ ["Portaria SVS/MS nº 344 - Lista de substâncias sujeitas a controle especial no Brasil"](https://web.archive.org/web/20210520204528/https://www.gov.br/anvisa/pt-br/assuntos/medicamentos/controlados/lista-substancias)(in Portuguese). Retrieved May 20, 2021.
-24. ↑ ["Anlage III BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_iii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-25. ↑ ["Siebenundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav#__bgbl__//*%5B@attr_id=%27bgbl113s2274.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-26. ↑ ["§ 8 BtMVV"](https://www.gesetze-im-internet.de/btmvv_1998/__8.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-27. ↑ ["新たに３物質を向精神薬に指定します"](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/oshirase/20160914-1.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved March 28, 2021.
-28. ↑ ["Rozporządzenie Ministra zdrowia z dnia 21 sierpnia 2019 r. zmieniające rozporządzenie w sprawie wykazu substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](http://prawo.sejm.gov.pl/isap.nsf/download.xsp/WDU20190001745/O/D20191745.pdf)(PDF)(in Polish).
-29. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-30. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-31. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-32. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-33. ↑ [Opiumwet, Lijst II (Dutch)](https://wetten.overheid.nl/BWBR0001941/2023-09-12#BijlageII), 2023
-34. ↑ The Misuse of Drugs (Amendment) (England, Wales and Scotland) Regulations 2017 | [http://www.tihs.org.uk/timeline/resources/2017-631.pdf](http://www.tihs.org.uk/timeline/resources/2017-631.pdf)
-35. ↑ Schedules of Controlled Substances: Temporary Placement of Etizolam, Flualprazolam, Clonazolam, Flubromazolam, and Diclazepam in Schedule I | [https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam](https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam)
-36. ↑ [Alabama Code Title 20. Food, Drugs, and Cosmetics § 20-2-23](https://codes.findlaw.com/al/title-20-food-drugs-and-cosmetics/al-code-sect-20-2-23.html)
-37. ↑ [http://www.healthy.arkansas.gov/aboutadh/rulesregs/controlled_substances_list.pdf](http://www.healthy.arkansas.gov/aboutadh/rulesregs/controlled_substances_list.pdf)
-38. ↑ [Statutes & Constitution :View Statutes : Online Sunshine](http://www.leg.state.fl.us/Statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/Sections/0893.03.html)
-39. ↑ [http://www.namsdl.org/library/946E60B2-ABB3-24A6-F087859B3EA48EC1/](http://www.namsdl.org/library/946E60B2-ABB3-24A6-F087859B3EA48EC1/)
-40. ↑ [HB1231 (As Sent to Governor) - 2014 Regular Session](http://billstatus.ls.state.ms.us/documents/2014/html/HB/1200-1299/HB1231SG.htm)
-41. ↑ [Controlled Substance Schedule, SCDHEC](https://scdhec.gov/healthcare-quality/drug-control-register-verify/controlled-substance-schedule)
-42. ↑ [18VAC110-20-322. Placement of chemicals in Schedule I.](https://law.lis.virginia.gov/admincode/title18/agency110/chapter20/section322/)
-43. ↑ [Ellington’s bill banning two deadly drugs could soon be law, State of Indiana House of Representatives](https://www.indianahouserepublicans.com/news/press-releases/ellington-s-bill-banning-two-deadly-drugs-could-soon-be-law/)
-44. ↑ [HB2033 - 531R - H Ver](https://www.azleg.gov/legtext/53leg/1r/bills/hb2033h.htm)
-45. ↑ [http://www.healthy.arkansas.gov/aboutADH/RulesRegs/ControlledSubstanceListSummary.pdf](http://www.healthy.arkansas.gov/aboutADH/RulesRegs/ControlledSubstanceListSummary.pdf)
-46. ↑ [https://capitol.texas.gov/tlodocs/85R/billtext/pdf/HB02671S.pdf](https://capitol.texas.gov/tlodocs/85R/billtext/pdf/HB02671S.pdf)NewPP limit report Cached time: 20251218075415 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.052 seconds CPU time usage: 0.502 seconds Real time usage: 1.104 seconds Preprocessor visited node count: 2832/1000000 Post‐expand include size: 172733/2097152 bytes Template argument size: 21402/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 1/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 49033/5000000 bytes Lua time usage: 0.500/7 seconds Lua virtual size: 8.87 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 956.130 1 -total 63.55% 607.629 1 Template:Reflist 23.81% 227.700 13 Template:Cite_journal 20.19% 193.007 13 Template:Citation 15.39% 147.180 1 Template:SubstanceBox/Etizolam 15.06% 143.984 1 Template:SubstanceBox 14.81% 141.583 12 Template:Cite_web 12.16% 116.298 5 Template:Citation_needed 10.52% 100.576 3 Template:Fix 10.03% 95.875 6 Template:Category_handler`,
+- Fracasso, C., Confalonieri, S., Garattini, S., & Caccia, S. (1991). Single and multiple dose pharmacokinetics of etizolam in healthy subjects. European Journal of Clinical Pharmacology, 40(2), 181-185. [https://doi.org/10.1007/BF00280074](https://doi.org/10.1007/BF00280074)`,
   "saferparty": `# Etizolam
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
@@ -452,44 +394,7 @@ Onset: 00:20 – 01:00
 
 ---
 
----
-
-## References
-
-**(2016)** [A fatal intoxication related to MDPV and pentedrone combined with antipsychotic and antidepressant substances in Cyprus.](https://www.ncbi.nlm.nih.gov/pubmed/26930452)
-
-**(2016)** [Etizolam/tizanidine overdose – Consciousness disturbance and myocardial toxicity: case report](https://link.springer.com/article/10.1007/s40278-016-16755-1)
-
-**(2015)** [Etizolam/pregabalin Fatal intoxication: 2 case reports](https://link.springer.com/article/10.1007/s40278-015-8513-8)
-
-**(2009)** [Effects of treatment with etizolam 0.5 mg BID on cognitive performance: A 3-week, multicenter, randomized, double-blind, placebo-controlled, two-treatment, three-period, noninferiority crossover study in patients with anxiety disorder](https://www.ncbi.nlm.nih.gov/pubmed/20110024)
-
-**(2008)** [Case report: Etizolam and its major metabolites in two unnatural death cases.](https://www.ncbi.nlm.nih.gov/pubmed/18976871)
-
-**(2005)** [Pharmacokinetics and pharmacodynamics of etizolam are influenced by polymorphic CYP2C19 activity.](https://www.ncbi.nlm.nih.gov/pubmed/16261363)
-
-**(2005)** [Low tolerance and dependence liabilities of etizolam: molecular, functional, and pharmacological correlates.](https://www.ncbi.nlm.nih.gov/pubmed/16107249)
-
-**(2004)** [Inhibition of the metabolism of etizolam by itraconazole in humans: evidence for the involvement of CYP3A4 in etizolam metabolism.](https://www.ncbi.nlm.nih.gov/pubmed/15232663)
-
-**(2002)** [Etizolam-induced superficial erythema annulare centrifugum.](https://www.ncbi.nlm.nih.gov/pubmed/11952667)
-
-**(1999)** [Molecular and neurochemical evaluation of the effects of etizolam on GABAA receptors under normal and stress conditions.](https://www.ncbi.nlm.nih.gov/pubmed/10083975)
-
-**(1991)** [Single and multiple dose pharmacokinetics of etizolam in healthy subjects.](https://www.ncbi.nlm.nih.gov/pubmed/2065698)
-
-**(1990)** [Etizolam in the treatment of generalized anxiety disorder: a double-blind study versus placebo.](https://www.ncbi.nlm.nih.gov/pubmed/1981698)
-
-**(1990)** [Etizolam versus placebo in the treatment of panic disorder with agoraphobia: a double-blind study.](https://www.ncbi.nlm.nih.gov/pubmed/2272192)
-
-**(1989)** [Etizolam in the treatment of generalized anxiety disorder associated with depressive symptoms.](https://www.ncbi.nlm.nih.gov/pubmed/2692969)
-
-**(1989)** [Etizolam in the treatment of generalized anxiety disorder: a controlled clinical trial.](https://www.ncbi.nlm.nih.gov/pubmed/2572494)
-
----
-
-## Test Results
-`,
+---`,
   "tripsit-factsheets": `# Etizolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/etizolam*
 

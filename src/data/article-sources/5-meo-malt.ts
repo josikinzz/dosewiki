@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MeO-MALT";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-MALT.md","displayName":"TripSit Factsheets","size":1029},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-MALT.md","displayName":"Wikipedia","size":1279}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-MALT.md","displayName":"TripSit Factsheets","size":1029,"tokens":269},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-MALT.md","displayName":"Wikipedia","size":1279,"tokens":394}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 5-MeO-MALT
 *Source: TripSit Factsheets (tripsit.me)*

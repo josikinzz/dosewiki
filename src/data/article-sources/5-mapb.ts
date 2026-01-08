@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MAPB";
-export const sources = [{"id":"erowid","fileName":"EROWID - 5-MAPB.md","displayName":"Erowid","size":15389},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MAPB.md","displayName":"Isomer Design","size":752},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MAPB.md","displayName":"PsychonautWiki","size":26842},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MAPB.md","displayName":"TripSit Factsheets","size":796},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MAPB.md","displayName":"Wikipedia","size":2873}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 5-MAPB.md","displayName":"Erowid","size":15389,"tokens":4228},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MAPB.md","displayName":"Isomer Design","size":347,"tokens":142},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MAPB.md","displayName":"PsychonautWiki","size":20675,"tokens":5707},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MAPB.md","displayName":"TripSit Factsheets","size":796,"tokens":222},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MAPB.md","displayName":"Wikipedia","size":2873,"tokens":775}];
 export const contents: Record<string, string> = {
   "erowid": `# 5-MAPB
 *Source: https://www.erowid.org/chemicals/5-mapb/*
@@ -281,17 +281,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CNC(Cc1ccc2c(c1)cco2)C\`
 
-**InChI:** \`InChI=1S/C12H15NO/c1-9(13-2)7-10-3-4-12-11(8-10)5-6-14-12/h3-6,8-9,13H,7H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [32078887](https://www.chemspider.com/Chemical-Structure.32078887.html/)
-- [102336592](https://pubchem.ncbi.nlm.nih.gov/compound/102336592)
-- [Q4639615](https://www.wikidata.org/wiki/Q4639615)
-- [5-MAPB](https://en.wikipedia.org/wiki/5-MAPB)
-- [Substituted benzofuran](https://en.wikipedia.org/wiki/Substituted_benzofuran)
-`,
+**InChI:** \`InChI=1S/C12H15NO/c1-9(13-2)7-10-3-4-12-11(8-10)5-6-14-12/h3-6,8-9,13H,7H2,1-2H3\``,
   "psychonautwiki": `# 5-MAPB
 *Source: https://psychonautwiki.org/wiki/5-MAPB*
 
@@ -451,22 +441,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 - [5-MAPB (Wikipedia)](https://en.wikipedia.org/wiki/5-MAPB)
 - [5-MAPB (Erowid Vault)](https://www.erowid.org/chemicals/5-mapb/)
 - [5-MAPB (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1289)
-- [The Big and Dandy 5-MAPB Thread (Bluelight)](http://www.bluelight.org/vb/threads/548570-The-Big-amp-Dandy-5-MAPB-Thread)
-
-## References
-1. ↑ [EMCDDA–Europol 2010 Annual Report on the implementation of Council Decision 2005/387/JHA](https://www.emcdda.europa.eu/publications/implementation-reports/2010)
-2. ↑ Dawson, P., Opacka-Juffry, J., Moffatt, J. D., Daniju, Y., Dutta, N., Ramsey, J., Davidson, C. (3 January 2014). "The effects of benzofury (5-APB) on the dopamine transporter and 5-HT2-dependent vasoconstriction in the rat".*Progress in Neuro-Psychopharmacology & Biological Psychiatry*.**48**: 57–63.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pnpbp.2013.08.013](//doi.org/10.1016%2Fj.pnpbp.2013.08.013).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1878-4216](//www.worldcat.org/issn/1878-4216).
-3. ↑ Iversen, L., Gibbons, S., Treble, R., Setola, V., Huang, X.-P., Roth, B. L. (30 January 2013).["Neurochemical profiles of some novel psychoactive substances"](https://www.sciencedirect.com/science/article/pii/S0014299912010114).*European Journal of Pharmacology*.**700**(1): 147–151.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2012.12.006](//doi.org/10.1016%2Fj.ejphar.2012.12.006).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-5. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-6. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-7. ↑ ["Article Annexe IV - Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants"](https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000043529751)(in French). Légifrance. Retrieved September 23, 2022.
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-9. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-10. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-11. ↑ ["平成26年8月15日付けで以下の21物質が指定薬物に指定されました。（施行日：平成26年8月25日）"](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/ihou-drug/20140815.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved on May 2, 2022.
-12. ↑ Loi du 19 février 1973 concernant la vente de substances médicamenteuses et la lutte contre la toxicomanie. | http://legilux.public.lu/eli/etat/leg/loi/1973/02/19/n1/jo
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075122 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.055 seconds CPU time usage: 0.380 seconds Real time usage: 0.744 seconds Preprocessor visited node count: 1659/1000000 Post‐expand include size: 104983/2097152 bytes Template argument size: 10638/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 17399/5000000 bytes Lua time usage: 0.250/7 seconds Lua virtual size: 8.44 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 592.926 1 -total 21.37% 126.731 1 Template:Citation_needed 18.29% 108.462 5 Template:Cite_journal 14.30% 84.781 5 Template:Cite_web 12.70% 75.304 1 Template:Citation 12.63% 74.911 1 Template:Fix 11.56% 68.556 2 Template:Category_handler 10.56% 62.637 1 Template:SubstanceBox/5-MAPB 9.91% 58.787 1 Template:SubstanceBox 5.99% 35.541 1 Template:Effects/base`,
+- [The Big and Dandy 5-MAPB Thread (Bluelight)](http://www.bluelight.org/vb/threads/548570-The-Big-amp-Dandy-5-MAPB-Thread)`,
   "tripsit-factsheets": `# 5-MAPB
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/5-mapb*
 

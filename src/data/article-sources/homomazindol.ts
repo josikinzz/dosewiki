@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Homomazindol";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homomazindol.md","displayName":"TripSit Factsheets","size":302}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homomazindol.md","displayName":"TripSit Factsheets","size":302,"tokens":76}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Homomazindol
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Parafluorofentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Parafluorofentanyl.md","displayName":"TripSit Factsheets","size":661},{"id":"wikipedia","fileName":"WIKIPEDIA - Parafluorofentanyl.md","displayName":"Wikipedia","size":1165}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Parafluorofentanyl.md","displayName":"TripSit Factsheets","size":661,"tokens":167},{"id":"wikipedia","fileName":"WIKIPEDIA - Parafluorofentanyl.md","displayName":"Wikipedia","size":1165,"tokens":266}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Parafluorofentanyl
 *Source: TripSit Factsheets (tripsit.me)*

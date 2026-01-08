@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "YOPO";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YOPO.md","displayName":"Drug Users Bible","size":4449},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YOPO.md","displayName":"TripSit Factsheets","size":424},{"id":"wikipedia","fileName":"WIKIPEDIA - YOPO.md","displayName":"Wikipedia","size":1474}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YOPO.md","displayName":"Drug Users Bible","size":4449,"tokens":1089},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YOPO.md","displayName":"TripSit Factsheets","size":424,"tokens":121},{"id":"wikipedia","fileName":"WIKIPEDIA - YOPO.md","displayName":"Wikipedia","size":1474,"tokens":434}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Yopo
 *Source: Drug Users Bible by Dominic Milton Trott*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tolibut";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tolibut.md","displayName":"TripSit Factsheets","size":307},{"id":"wikipedia","fileName":"WIKIPEDIA - Tolibut.md","displayName":"Wikipedia","size":579}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tolibut.md","displayName":"TripSit Factsheets","size":307,"tokens":84},{"id":"wikipedia","fileName":"WIKIPEDIA - Tolibut.md","displayName":"Wikipedia","size":579,"tokens":156}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Tolibut
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DMAA";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DMAA.md","displayName":"TripSit Factsheets","size":709},{"id":"wikipedia","fileName":"WIKIPEDIA - DMAA.md","displayName":"Wikipedia","size":234}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DMAA.md","displayName":"TripSit Factsheets","size":709,"tokens":180},{"id":"wikipedia","fileName":"WIKIPEDIA - DMAA.md","displayName":"Wikipedia","size":234,"tokens":60}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# DMAA
 *Source: TripSit Factsheets (tripsit.me)*

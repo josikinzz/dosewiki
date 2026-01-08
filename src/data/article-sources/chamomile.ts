@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Chamomile";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Chamomile.md","displayName":"Drug Users Bible","size":1297},{"id":"wikipedia","fileName":"WIKIPEDIA - Chamomile.md","displayName":"Wikipedia","size":6451}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Chamomile.md","displayName":"Drug Users Bible","size":1297,"tokens":325},{"id":"wikipedia","fileName":"WIKIPEDIA - Chamomile.md","displayName":"Wikipedia","size":6451,"tokens":1689}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Chamomile
 *Source: Drug Users Bible by Dominic Milton Trott*

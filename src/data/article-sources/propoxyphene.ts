@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propoxyphene";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propoxyphene.md","displayName":"TripSit Factsheets","size":553},{"id":"wikipedia","fileName":"WIKIPEDIA - Propoxyphene.md","displayName":"Wikipedia","size":16957}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propoxyphene.md","displayName":"TripSit Factsheets","size":553,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - Propoxyphene.md","displayName":"Wikipedia","size":16957,"tokens":4105}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Propoxyphene
 *Source: TripSit Factsheets (tripsit.me)*

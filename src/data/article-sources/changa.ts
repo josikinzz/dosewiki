@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Changa";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Changa.md","displayName":"Drug Users Bible","size":8213},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Changa.md","displayName":"TripSit Factsheets","size":1410},{"id":"wikipedia","fileName":"WIKIPEDIA - Changa.md","displayName":"Wikipedia","size":2946}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Changa.md","displayName":"Drug Users Bible","size":8213,"tokens":1957},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Changa.md","displayName":"TripSit Factsheets","size":1410,"tokens":353},{"id":"wikipedia","fileName":"WIKIPEDIA - Changa.md","displayName":"Wikipedia","size":2946,"tokens":754}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Changa
 *Source: Drug Users Bible by Dominic Milton Trott*

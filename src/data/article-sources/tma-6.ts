@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "TMA-6";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - TMA-6.md","displayName":"Isomer Design","size":10760},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - TMA-6.md","displayName":"PsychonautWiki","size":19317},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - TMA-6.md","displayName":"TripSit Factsheets","size":794},{"id":"wikipedia","fileName":"WIKIPEDIA - TMA-6.md","displayName":"Wikipedia","size":3330}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - TMA-6.md","displayName":"Isomer Design","size":10760,"tokens":2883},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - TMA-6.md","displayName":"PsychonautWiki","size":15683,"tokens":4269},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - TMA-6.md","displayName":"TripSit Factsheets","size":794,"tokens":229},{"id":"wikipedia","fileName":"WIKIPEDIA - TMA-6.md","displayName":"Wikipedia","size":3330,"tokens":890}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# TMA-6
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=162*
@@ -193,18 +193,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 
 - [Trimethoxyamphetamine (Wikipedia)](https://en.wikipedia.org/wiki/Trimethoxyamphetamine)
 - [TMA-6 (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=162)
-- [The Big & Dandy TMA Series Thread (Bluelight)](http://www.bluelight.org/vb/threads/115050-The-Big-amp-Dandy-TMA-Series-Thread)
-
-## References
-1. ↑ 1.0 1.1 [Erowid Online Books : “PIHKAL” - #162 TMA-6](https://www.erowid.org/library/books_online/pihkal/pihkal162.shtml)
-2. ↑ Talaie, H., Panahandeh, R., Fayaznouri, M. R., Asadi, Z., Abdollahi, M. (June 2009).["Dose-independent occurrence of seizure with tramadol"](http://link.springer.com/10.1007/BF03161089).*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-3. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-4. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-6. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-9. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)NewPP limit report Cached time: 20251218075825 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.046 seconds CPU time usage: 0.329 seconds Real time usage: 0.636 seconds Preprocessor visited node count: 1461/1000000 Post‐expand include size: 99787/2097152 bytes Template argument size: 13555/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 11247/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.01 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 509.454 1 -total 23.91% 121.821 4 Template:Citation_needed 17.59% 89.602 2 Template:Citation 14.06% 71.643 1 Template:Fix 13.42% 68.371 1 Template:SubstanceBox/TMA-6 13.12% 66.857 2 Template:Category_handler 12.68% 64.609 1 Template:SubstanceBox 12.03% 61.292 4 Template:Cite_web 8.43% 42.944 2 Template:Cite_journal 6.80% 34.647 1 Template:Effects/base`,
+- [The Big & Dandy TMA Series Thread (Bluelight)](http://www.bluelight.org/vb/threads/115050-The-Big-amp-Dandy-TMA-Series-Thread)`,
   "tripsit-factsheets": `# TMA-6
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/tma-6*
 

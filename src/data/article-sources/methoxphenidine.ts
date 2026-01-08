@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxphenidine";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methoxphenidine.md","displayName":"Disregard Everything I Say","size":9035},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methoxphenidine.md","displayName":"Drug Users Bible","size":5929},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxphenidine.md","displayName":"TripSit Factsheets","size":717},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxphenidine.md","displayName":"Wikipedia","size":2118}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methoxphenidine.md","displayName":"Disregard Everything I Say","size":9035,"tokens":2156},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methoxphenidine.md","displayName":"Drug Users Bible","size":5929,"tokens":1507},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxphenidine.md","displayName":"TripSit Factsheets","size":717,"tokens":199},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxphenidine.md","displayName":"Wikipedia","size":2118,"tokens":507}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Methoxphenidine
 *Source: https://disregardeverythingisay.com/post/79851082420/mxp-broken-down-and-described*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cathinone";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cathinone.md","displayName":"PsychonautWiki","size":1468},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Cathinone.md","displayName":"The Drug Classroom","size":50067},{"id":"wikipedia","fileName":"WIKIPEDIA - Cathinone.md","displayName":"Wikipedia","size":13135}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cathinone.md","displayName":"PsychonautWiki","size":1468,"tokens":404},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Cathinone.md","displayName":"The Drug Classroom","size":44552,"tokens":11322},{"id":"wikipedia","fileName":"WIKIPEDIA - Cathinone.md","displayName":"Wikipedia","size":13135,"tokens":3165}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# Cathinone
 *Source: https://psychonautwiki.org/wiki/Cathinone*
@@ -906,90 +906,7 @@ Studies
 - Mechanical ventilation required for 25-year-old female and 16-year-old male 
 - Both had ischemic ECG changes, elevated troponin, and reduced ejection fraction (10-20%)
 
----
-
-## References
-
-**(2016)** [Khat Chewing Induces Cardiac Arrhythmia](https://www.scirp.org/Journal/PaperInformation.aspx?PaperID=69544)
-
-**(2015)** [Khat Use: What Is the Problem and What Can Be Done?](https://www.hindawi.com/journals/bmri/2015/472302/)
-
-**(2014)** [Cathinone increases body temperature, enhances locomotor activity, and induces striatal c-fos expression in the Siberian hamster.](https://www.ncbi.nlm.nih.gov/pubmed/24287379)
-
-**(2014)** [Cathinone, an active principle of Catha edulis, accelerates oxidative stress in the limbic area of swiss albino mice.](https://www.ncbi.nlm.nih.gov/pubmed/25153022)
-
-**(2014)** [Neurobiology of Khat (Catha edulis Forsk)](https://link.springer.com/chapter/10.1007%2F978-1-4614-8100-3_17)
-
-**(2014)** [The association of khat (Catha edulis) chewing and orodental health: A systematic review and meta-analysis](http://www.samj.org.za/index.php/samj/article/view/8070)
-
-**(2014)** [Dose-response inhibitory effects of purified cathinone from khat (Catha edulis) on cortisol and prolactin release in vervet monkeys (Chlorocebus aethiops).](https://www.ncbi.nlm.nih.gov/pubmed/24190428)
-
-**(2012)** [Khat and stroke](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3345594/)
-
-**(2012)** [What science says about khat (Catha edulis Forsk)? Overview of chemistry, toxicology and pharmacology](http://www.scopemed.org/?mno=11001)
-
-**(2012)** [Khat use among Somali mental health service users in South London.](https://www.ncbi.nlm.nih.gov/pubmed/22249804)
-
-**(2011)** [An Overview of Khat](http://www.recoveryonpurpose.com/upload/an%20overview%20of%20khat.pdf)
-
-**(2011)** [Chemistry, Pharmacology, and Toxicology of Khat (Catha Edulis Forsk): A Review](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3905534/)
-
-**(2011)** [Subchronic administration of Catha edulis F. (khat) extract is marked by elevation of cardiac biomarkers and subendocardial necrosis besides blood pressure alteration in rats.](https://www.ncbi.nlm.nih.gov/pubmed/21549816)
-
-**(2011)** [Khat use is associated with impaired working memory and cognitive flexibility.](https://www.ncbi.nlm.nih.gov/pubmed/21698275)
-
-**(2011)** [Chemistry, pharmacology, and toxicology of khat (catha edulis forsk): a review.](https://www.ncbi.nlm.nih.gov/pubmed/24494129)
-
-**(2010)** [Cathinone preservation in khat evidence via drying.](https://www.ncbi.nlm.nih.gov/pubmed/20036789)
-
-**(2010)** [Khat in the Horn of Africa: historical perspectives and current trends.](https://www.ncbi.nlm.nih.gov/pubmed/20227478)
-
-**(2009)** [Khat – a controversial plant.](https://www.ncbi.nlm.nih.gov/pubmed/19921126)
-
-**(2008)** [A review of the neuropharmacological properties of khat.](https://www.ncbi.nlm.nih.gov/pubmed/18561890)
-
-**(2008)** [Illicit cathinone (“Hagigat”) poisoning.](https://www.ncbi.nlm.nih.gov/pubmed/17852166)
-
-**(2006)** [What harm? Kenyan and Ugandan perspectives on khat](https://academic.oup.com/afraf/article-abstract/105/419/219/14785/What-harm-Kenyan-and-Ugandan-perspectives-on-khat?redirectedFrom=fulltext)
-
-**(2005)** [Khat chewing and arterial blood pressure. A randomized controlled clinical trial of alpha-1 and selective beta-1 adrenoceptor blockade.](https://www.ncbi.nlm.nih.gov/pubmed/15900355)
-
-**(2005)** [Khat chewing is a risk factor for acute myocardial infarction: a case-control study.](https://www.ncbi.nlm.nih.gov/pubmed/15842556)
-
-**(2003)** [Determination of cathinone, cathine and norephedrine in hair of Yemenite khat chewers.](https://www.ncbi.nlm.nih.gov/pubmed/12742688)
-
-**(2003)** [The toxicological potential of khat.](https://www.ncbi.nlm.nih.gov/pubmed/12787946)
-
-**(2002)** [Effect of khat, its constituents and restraint stress on free radical metabolism of rats.](https://www.ncbi.nlm.nih.gov/pubmed/12426093)
-
-**(1996)** [Catha edulis, a plant that has amphetamine effects.](https://www.ncbi.nlm.nih.gov/pubmed/8739260)
-
-**(1995)** [Plasma cathinone levels following chewing khat leaves (Catha edulis Forsk.).](https://www.ncbi.nlm.nih.gov/pubmed/8847883)
-
-**(1991)** [Khat and oral cancer.](https://www.ncbi.nlm.nih.gov/pubmed/1919319)
-
-**(1989)** [Potentiation of cathinone by caffeine and nikethamide.](https://www.ncbi.nlm.nih.gov/pubmed/2813469)
-
-**(1988)** [Khat-induced hypnagogic hallucinations.](https://www.ncbi.nlm.nih.gov/pubmed/3227966)
-
-**(1986)** [Metabolism of cathinone to (−)-norephedrine and (−)-norpseudoephedrine](https://www.researchgate.net/publication/20284553_Metabolism_of_cathinone_to_--norephedrine_and_--norpseudoephedrine)
-
-**(1986)** [Khat: Another Drug of Abuse?](http://www.tandfonline.com/doi/abs/10.1080/02791072.1986.10471395)
-
-**(1985)** [Quantitative differences in the pharmacological effects of (+)- and (−)-cathinone](https://link.springer.com/article/10.1007/BF01964811)
-
-**(1984)** [Recent advances in khat research.](https://www.ncbi.nlm.nih.gov/pubmed/6398076)
-
-**(1983)** [Metabolism of cathinone to d-norpseudoephedrine in humans.](https://www.ncbi.nlm.nih.gov/pubmed/6644577)
-
-**(1982)** [Cardiovascular effects of (−)-cathinone in the anaesthetized dog: comparison with (+)-amphetamine](http://onlinelibrary.wiley.com/doi/10.1111/j.2042-7158.1982.tb04722.x/abstract)
-
-**(1980)** [Hyperthermic response to (-)-cathinone, an alkaloid of Catha edulis (khat).](https://www.ncbi.nlm.nih.gov/pubmed/6107375)
-
-**(1979)** [Research on the chemical composition of khat.](https://www.ncbi.nlm.nih.gov/pubmed/121351)
-
-**(1947)** [Khat](http://www.tandfonline.com/doi/abs/10.1080/03670074.1947.11664588?journalCode=teaf19)
-`,
+---`,
   "wikipedia": `# Cathinone
 *Source: https://en.wikipedia.org/wiki/Cathinone*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Isopropylphenidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Isopropylphenidate.md","displayName":"Drug Users Bible","size":3898},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Isopropylphenidate.md","displayName":"The Drug Classroom","size":9999},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isopropylphenidate.md","displayName":"TripSit Factsheets","size":624},{"id":"wikipedia","fileName":"WIKIPEDIA - Isopropylphenidate.md","displayName":"Wikipedia","size":578}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Isopropylphenidate.md","displayName":"Drug Users Bible","size":3898,"tokens":988},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Isopropylphenidate.md","displayName":"The Drug Classroom","size":9106,"tokens":2298},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isopropylphenidate.md","displayName":"TripSit Factsheets","size":624,"tokens":173},{"id":"wikipedia","fileName":"WIKIPEDIA - Isopropylphenidate.md","displayName":"Wikipedia","size":578,"tokens":137}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# IPPH
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -369,20 +369,7 @@ As of September 2017 there have been no fatalities linked to IPPH discussed in t
 
 ## Test Videos
 
----
-
-## References
-
-**(2017)** [Pharmacological profile of methylphenidate-based designer drugs.](https://www.ncbi.nlm.nih.gov/pubmed/28823611)
-
-**(2015)** [Temporary class drug order (TCDO) – Methylphenidate related New Psychoactive Substances (NPS)](http://www.wedinos.org/resources/downloads/Philtre_Issue_5.pdf)
-
-**(2015)** [EMCDDA–Europol 2015 Annual Report on the implementation of Council Decision 2005/387/JHA](http://www.emcdda.europa.eu/system/files/publications/2880/TDAS16001ENN.pdf)
-
-**(2013)** [Isopropylphenidate: an ester homolog of methylphenidate with sustained and selective dopaminergic activity and reduced drug interaction liability.](https://www.ncbi.nlm.nih.gov/pubmed/24261661)
-
-**(2011)** [Isopropylphenidate for the treatment of attention-deficit/hyperactivity disorder and fatigue-related disorders and conditions](https://www.google.com/patents/WO2011011528A1?cl=en)
-`,
+---`,
   "tripsit-factsheets": `# Isopropylphenidate
 *Source: TripSit Factsheets (tripsit.me)*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Lagochilus_inebrians";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Lagochilus_inebrians.md","displayName":"The Drug Classroom","size":8013}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Lagochilus_inebrians.md","displayName":"The Drug Classroom","size":7247,"tokens":1943}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Lagochilus inebrians
 *Source: https://thedrugclassroom.com/video/lagochilus-inebrians/*
@@ -236,18 +236,5 @@ Due to a lack of information, it’s not clear how safe the drug is, particularl
 
 It’s best to use common doses, avoid combinations, and minimize your use frequency.
 
----
-
-## References
-
-**(2010)** [Stachydrine, a Major Constituent of the Chinese Herb Leonurus Heterophyllus Sweet, Ameliorates Human Umbilical Vein Endothelial Cells Injury Induced by Anoxia-Reoxygenation](http://www.worldscientific.com/doi/abs/10.1142/S0192415X10007737)
-
-**(2002)** [Structure-Activity Relationship for Hemostatic Lagochilin Diterpenoids](https://link.springer.com/article/10.1023/A:1019640014991)
-
-**(1971)** [The Soma of the Rig Veda: What Was It?](https://www.jstor.org/stable/600096?seq=1#page_scan_tab_contents)
-
-**(1970)** [The Botanical and Chemical Distribution of Hallucinogens](https://catbull.com/alamut/Bibliothek/7775docid6888.pdf)
-
-**(1969)** [Structure of lagochilin](http://www.sciencedirect.com/science/article/pii/S0040403901878862)
-`,
+---`,
 };

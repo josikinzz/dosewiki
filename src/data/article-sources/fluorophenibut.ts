@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fluorophenibut";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluorophenibut.md","displayName":"TripSit Factsheets","size":532},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluorophenibut.md","displayName":"Wikipedia","size":829}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Fluorophenibut.md","displayName":"TripSit Factsheets","size":532,"tokens":142},{"id":"wikipedia","fileName":"WIKIPEDIA - Fluorophenibut.md","displayName":"Wikipedia","size":829,"tokens":232}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Fluorophenibut
 *Source: TripSit Factsheets (tripsit.me)*

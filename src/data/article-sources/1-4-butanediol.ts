@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "1,4-Butanediol";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1,4-Butanediol.md","displayName":"TripSit Factsheets","size":927},{"id":"wikipedia","fileName":"WIKIPEDIA - 1,4-Butanediol.md","displayName":"Wikipedia","size":7548}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 1,4-Butanediol.md","displayName":"TripSit Factsheets","size":927,"tokens":270},{"id":"wikipedia","fileName":"WIKIPEDIA - 1,4-Butanediol.md","displayName":"Wikipedia","size":7548,"tokens":2037}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 1,4-Butanediol
 *Source: TripSit Factsheets (tripsit.me)*

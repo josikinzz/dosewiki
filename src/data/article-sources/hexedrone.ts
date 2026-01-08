@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Hexedrone";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Hexedrone.md","displayName":"Isomer Design","size":678},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Hexedrone.md","displayName":"PsychonautWiki","size":12519},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Hexedrone.md","displayName":"TripSit Factsheets","size":384},{"id":"wikipedia","fileName":"WIKIPEDIA - Hexedrone.md","displayName":"Wikipedia","size":887}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Hexedrone.md","displayName":"Isomer Design","size":344,"tokens":137},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Hexedrone.md","displayName":"PsychonautWiki","size":10086,"tokens":2699},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Hexedrone.md","displayName":"TripSit Factsheets","size":384,"tokens":117},{"id":"wikipedia","fileName":"WIKIPEDIA - Hexedrone.md","displayName":"Wikipedia","size":887,"tokens":239}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Hexedrone
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=641*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCCC(C(=O)c1ccccc1)NC\`
 
-**InChI:** \`InChI=1S/C13H19NO/c1-3-4-10-12(14-2)13(15)11-8-6-5-7-9-11/h5-9,12,14H,3-4,10H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [67169739](https://www.chemspider.com/Chemical-Structure.67169739.html/)
-- [129844496](https://pubchem.ncbi.nlm.nih.gov/compound/129844496)
-- [Q106153133](https://www.wikidata.org/wiki/Q106153133)
-- [Hexedrone](https://en.wikipedia.org/wiki/Hexedrone)
-`,
+**InChI:** \`InChI=1S/C13H19NO/c1-3-4-10-12(14-2)13(15)11-8-6-5-7-9-11/h5-9,12,14H,3-4,10H2,1-2H3\``,
   "psychonautwiki": `# Hexedrone
 *Source: https://psychonautwiki.org/wiki/Hexedrone*
 
@@ -128,15 +119,7 @@ Tolerance to many of the effects of hexedrone develops with prolonged and repeat
 ## External links
 
 - [Hexedrone (Wikipedia)](https://en.wikipedia.org/wiki/Hexedrone)
-- [Hexedrone (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=641)
-
-## References
-1. ↑ New blanket ban on synthetic illegal drugs is approved (Portuguese) | [http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil](http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil)
-2. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-3. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 23, 2019.
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-5. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-6. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)NewPP limit report Cached time: 20251218075453 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0 seconds CPU time usage: 0.216 seconds Real time usage: 0.383 seconds Preprocessor visited node count: 1051/1000000 Post‐expand include size: 63204/2097152 bytes Template argument size: 7692/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 450/5000000 bytes Lua time usage: 0.100/7 seconds Lua virtual size: 6.98 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 336.707 1 -total 25.30% 85.184 4 Template:Cite_web 21.20% 71.396 1 Template:SubstanceBox/Hexedrone 20.08% 67.613 1 Template:SubstanceBox 17.52% 58.988 1 Template:Distinguish2 16.68% 56.169 1 Template:Hatnote 6.80% 22.899 1 Template:Effects/base 5.68% 19.124 1 Template:Effect_list 4.90% 16.510 1 Template:Citation 4.46% 15.018 2 Template:Effect_column`,
+- [Hexedrone (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=641)`,
   "tripsit-factsheets": `# Hexedrone
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/hexedrone*
 

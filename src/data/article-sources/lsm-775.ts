@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "LSM-775";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - LSM-775.md","displayName":"Isomer Design","size":811},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LSM-775.md","displayName":"PsychonautWiki","size":31225},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - LSM-775.md","displayName":"The Drug Classroom","size":3707},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSM-775.md","displayName":"TripSit Factsheets","size":388},{"id":"wikipedia","fileName":"WIKIPEDIA - LSM-775.md","displayName":"Wikipedia","size":1252}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - LSM-775.md","displayName":"Isomer Design","size":495,"tokens":208},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LSM-775.md","displayName":"PsychonautWiki","size":27485,"tokens":7482},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - LSM-775.md","displayName":"The Drug Classroom","size":3570,"tokens":924},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSM-775.md","displayName":"TripSit Factsheets","size":388,"tokens":128},{"id":"wikipedia","fileName":"WIKIPEDIA - LSM-775.md","displayName":"Wikipedia","size":1252,"tokens":319}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# LSM-775
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5338*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N1CCOCC1\`
 
-**InChI:** \`InChI=1S/C20H23N3O2/c1-22-12-14(20(24)23-5-7-25-8-6-23)9-16-15-3-2-4-17-19(15)13(11-21-17)10-18(16)22/h2-4,9,11,14,18,21H,5-8,10,12H2,1H3/t14-,18-/m1/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [172695](https://www.chemspider.com/Chemical-Structure.172695.html/)
-- [199507](https://pubchem.ncbi.nlm.nih.gov/compound/199507)
-- [Q6459970](https://www.wikidata.org/wiki/Q6459970)
-- [LSM-775](https://en.wikipedia.org/wiki/LSM-775)
-`,
+**InChI:** \`InChI=1S/C20H23N3O2/c1-22-12-14(20(24)23-5-7-25-8-6-23)9-16-15-3-2-4-17-19(15)13(11-21-17)10-18(16)22/h2-4,9,11,14,18,21H,5-8,10,12H2,1H3/t14-,18-/m1/s1\``,
   "psychonautwiki": `# LSM-775
 *Source: https://psychonautwiki.org/wiki/LSM-775*
 
@@ -222,16 +213,7 @@ Tolerance to the effects of LSM-775 is built almost immediately after ingestion.
 
 ## Literature
 
-- Gogerty, J. H., & Dille, J. M. (1957). Pharmacology of d-lysergic acid morpholide (LSM). *Journal of Pharmacology and Experimental Therapeutics* , 120(3), 340-348. PMID: 13476356
-
-## References
-1. ↑ 1.0 1.1 Gogerty, J. H.; Dille, J. M. (1957). "Pharmacology of d-lysergic acid morpholide (LSM)".*Journal of Pharmacology and Experimental Therapeutics*.**120**(3): 340–348.[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1521-0103](//www.worldcat.org/issn/1521-0103).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1606914](//www.worldcat.org/oclc/1606914).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[13476356](//www.ncbi.nlm.nih.gov/pubmed/13476356).
-2. ↑ 2.0 2.1 [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#26. LSD-25"](https://erowid.org/library/books_online/tihkal/tihkal26.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-4. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-5. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-6. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075523 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.049 seconds CPU time usage: 0.307 seconds Real time usage: 0.564 seconds Preprocessor visited node count: 1525/1000000 Post‐expand include size: 134772/2097152 bytes Template argument size: 26595/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9589/5000000 bytes Lua time usage: 0.160/7 seconds Lua virtual size: 8.2 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 420.208 1 -total 28.66% 120.443 1 Template:Effects/base 27.85% 117.041 1 Template:Effect_list 26.97% 113.320 2 Template:Effect_column 23.44% 98.507 6 Template:Citation_needed 21.09% 88.611 2 Template:Cite_journal 21.00% 88.223 6 Template:Effect_panel 20.82% 87.493 1 Template:Effects/physical 20.44% 85.901 2 Template:Fix 19.26% 80.935 4 Template:Category_handler`,
+- Gogerty, J. H., & Dille, J. M. (1957). Pharmacology of d-lysergic acid morpholide (LSM). *Journal of Pharmacology and Experimental Therapeutics* , 120(3), 340-348. PMID: 13476356`,
   "thedrugclassroom": `# LSM-775
 *Source: https://thedrugclassroom.com/video/lsm-775/*
 
@@ -359,12 +341,7 @@ While little is known about the drug, current evidence indicates a common dose w
 
 Due to this lack of information, it’s best to use the drug at the lowest possible dose, as infrequently as possible, and without combinations.
 
----
-
-## References
-
-**(1957)** [Pharmacology of d-Lysergic Acid Morpholide (LSM)](http://jpet.aspetjournals.org/content/120/3/340.abstract)
-`,
+---`,
   "tripsit-factsheets": `# LSM-775
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/lsm-775*
 

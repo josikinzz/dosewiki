@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pentedrone";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pentedrone.md","displayName":"Isomer Design","size":674},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pentedrone.md","displayName":"PsychonautWiki","size":30626},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentedrone.md","displayName":"TripSit Factsheets","size":689},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentedrone.md","displayName":"Wikipedia","size":1575}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pentedrone.md","displayName":"Isomer Design","size":344,"tokens":137},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pentedrone.md","displayName":"PsychonautWiki","size":23555,"tokens":6430},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pentedrone.md","displayName":"TripSit Factsheets","size":689,"tokens":267},{"id":"wikipedia","fileName":"WIKIPEDIA - Pentedrone.md","displayName":"Wikipedia","size":1575,"tokens":389}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Pentedrone
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2434*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCC(C(=O)c1ccccc1)NC\`
 
-**InChI:** \`InChI=1S/C12H17NO/c1-3-7-11(13-2)12(14)10-8-5-4-6-9-10/h4-6,8-9,11,13H,3,7H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [26286729](https://www.chemspider.com/Chemical-Structure.26286729.html/)
-- [57501499](https://pubchem.ncbi.nlm.nih.gov/compound/57501499)
-- [Q2069408](https://www.wikidata.org/wiki/Q2069408)
-- [Pentedrone](https://en.wikipedia.org/wiki/Pentedrone)
-`,
+**InChI:** \`InChI=1S/C12H17NO/c1-3-7-11(13-2)12(14)10-8-5-4-6-9-10/h4-6,8-9,11,13H,3,7H2,1-2H3\``,
   "psychonautwiki": `# Pentedrone
 *Source: https://psychonautwiki.org/wiki/Pentedrone*
 
@@ -203,27 +194,7 @@ Abuse of compounds within the stimulant class at high dosages for prolonged peri
 ## Literature
 
 - Simmler, L. D., Rickli, A., Hoener, M. C., & Liechti, M. E. (2014). Neuropharmacology Monoamine transporter and receptor interaction profiles of a new series of designer cathinones. Neuropharmacology, 79, 152–160. [https://doi.org/10.1016/j.neuropharm.2013.11.008](https://doi.org/10.1016/j.neuropharm.2013.11.008)
-- Hwang, J., Kim, J., Oh, J., Hong, S., Ma, S., Jung, Y., … Jang, C. (2014). The new stimulant designer compound pentedrone exhibits rewarding properties and affects dopaminergic activity, 117–128. [https://doi.org/10.1111/adb.12299](https://doi.org/10.1111/adb.12299)
-
-## References
-1. ↑ 1.0 1.1 Simmler, L. D., Rickli, A., Hoener, M. C., Liechti, M. E. (April 2014).["Monoamine transporter and receptor interaction profiles of a new series of designer cathinones"](https://linkinghub.elsevier.com/retrieve/pii/S0028390813005327).*Neuropharmacology*.**79**: 152–160.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.neuropharm.2013.11.008](//doi.org/10.1016%2Fj.neuropharm.2013.11.008).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-2. ↑ [2010 Annual report on the state of the drugs problem in Europe](https://www.emcdda.europa.eu/publications/annual-report/2010)
-3. ↑ Liu, C., Jia, W., Li, T., Hua, Z., Qian, Z. (August 2017).["Identification and analytical characterization of nine synthetic cathinone derivatives N -ethylhexedrone, 4-Cl-pentedrone, 4-Cl- α -EAPP, propylone, N -ethylnorpentylone, 6-MeO-bk-MDMA, α -PiHP, 4-Cl- α -PHP, and 4-F- α -PHP: Identification of nine synthetic cathinones"](https://onlinelibrary.wiley.com/doi/10.1002/dta.2136).*Drug Testing and Analysis*.**9**(8): 1162–1171.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2136](//doi.org/10.1002%2Fdta.2136).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-4. ↑ 4.0 4.1 4.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-5. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-6. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-7. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-8. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-9. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-10. ↑ ["Látky, o které byl doplněn seznam č. 4 psychotropních látek (příloha č. 4 k nařízení vlády č. 463/2013 Sb.)"](http://www.mzcr.cz/Admin/_upload/files/3/Nov%C3%A9%20PL.pdf)(PDF)(in Czech). Ministerstvo zdravotnictví.
-11. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-12. ↑ ["Siebenundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl113s2274.pdf)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-13. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-14. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-15. ↑ Bakanlar Kurulu Kararı Karar Sayısı : 2013/4827 | [https://free-ankara.org/wp-content/uploads/2017/09/BKK_2013_4827_28688.pdf](https://free-ankara.org/wp-content/uploads/2017/09/BKK_2013_4827_28688.pdf)
-16. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-17. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made) e
-18. ↑ ["Temporary Placement of 10 Synthetic Cathinones into Schedule I"](http://www.deadiversion.usdoj.gov/fed_regs/rules/2014/fr0128.htm). 28 January 2014.NewPP limit report Cached time: 20251218075711 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.067 seconds CPU time usage: 0.405 seconds Real time usage: 0.778 seconds Preprocessor visited node count: 2013/1000000 Post‐expand include size: 141705/2097152 bytes Template argument size: 14806/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 22507/5000000 bytes Lua time usage: 0.270/7 seconds Lua virtual size: 8.86 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 617.199 1 -total 24.11% 148.822 7 Template:Cite_web 21.78% 134.440 5 Template:Cite_journal 16.93% 104.500 8 Template:Citation_needed 10.63% 65.593 1 Template:Fix 10.24% 63.198 1 Template:SubstanceBox/Pentedrone 9.83% 60.684 2 Template:Category_handler 9.71% 59.918 1 Template:SubstanceBox 6.18% 38.169 3 Template:Citation 4.20% 25.934 1 Template:Effects/base`,
+- Hwang, J., Kim, J., Oh, J., Hong, S., Ma, S., Jung, Y., … Jang, C. (2014). The new stimulant designer compound pentedrone exhibits rewarding properties and affects dopaminergic activity, 117–128. [https://doi.org/10.1111/adb.12299](https://doi.org/10.1111/adb.12299)`,
   "tripsit-factsheets": `# Pentedrone
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/pentedrone*
 

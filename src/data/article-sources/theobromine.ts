@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Theobromine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theobromine.md","displayName":"TripSit Factsheets","size":670},{"id":"wikipedia","fileName":"WIKIPEDIA - Theobromine.md","displayName":"Wikipedia","size":5307}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Theobromine.md","displayName":"TripSit Factsheets","size":670,"tokens":174},{"id":"wikipedia","fileName":"WIKIPEDIA - Theobromine.md","displayName":"Wikipedia","size":5307,"tokens":1342}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Theobromine
 *Source: TripSit Factsheets (tripsit.me)*

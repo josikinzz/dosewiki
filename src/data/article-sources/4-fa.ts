@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-FA";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-FA.md","displayName":"Drug Users Bible","size":6007},{"id":"erowid","fileName":"EROWID - 4-FA.md","displayName":"Erowid","size":9411},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-FA.md","displayName":"Isomer Design","size":697},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-FA.md","displayName":"PsychonautWiki","size":36981},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4-FA.md","displayName":"The Drug Classroom","size":16930},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FA.md","displayName":"TripSit Factsheets","size":859},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FA.md","displayName":"Wikipedia","size":5292}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-FA.md","displayName":"Drug Users Bible","size":6007,"tokens":1532},{"id":"erowid","fileName":"EROWID - 4-FA.md","displayName":"Erowid","size":9411,"tokens":2889},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-FA.md","displayName":"Isomer Design","size":367,"tokens":144},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-FA.md","displayName":"PsychonautWiki","size":28196,"tokens":7547},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4-FA.md","displayName":"The Drug Classroom","size":13644,"tokens":3621},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FA.md","displayName":"TripSit Factsheets","size":859,"tokens":242},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FA.md","displayName":"Wikipedia","size":5292,"tokens":1402}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 4-FA
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -286,16 +286,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CC(Cc1ccc(cc1)F)N\`
 
-**InChI:** \`InChI=1S/C9H12FN/c1-7(11)6-8-2-4-9(10)5-3-8/h2-5,7H,6,11H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [9592](https://www.chemspider.com/Chemical-Structure.9592.html/)
-- [9986](https://pubchem.ncbi.nlm.nih.gov/compound/9986)
-- [Q229962](https://www.wikidata.org/wiki/Q229962)
-- [4-Fluoroamphetamine](https://en.wikipedia.org/wiki/4-Fluoroamphetamine)
-`,
+**InChI:** \`InChI=1S/C9H12FN/c1-7(11)6-8-2-4-9(10)5-3-8/h2-5,7H,6,11H2,1H3\``,
   "psychonautwiki": `# 4-FA
 *Source: https://psychonautwiki.org/wiki/4-FA*
 
@@ -505,35 +496,7 @@ Tolerance to many of the effects of 4-FA develops with prolonged and repeated us
 
 ### Discussion
 
-- [Big n Dandy 4-FA (4-fluoroamphetamine) thread v.1.0 (Bluelight)](http://www.bluelight.org/vb/threads/498590-Big-n-Dandy-4-FA-(4-fluoroamphetamine)-thread-v-1-0)
-
-## References
-1. ↑ 1.0 1.1 Rösner, P., Quednow, B., Girreser, U., Junge, T. (March 2005).["Isomeric Fluoro-methoxy-phenylalkylamines: a new series of controlled-substance analogues (designer drugs)"](https://linkinghub.elsevier.com/retrieve/pii/S0379073804003251).*Forensic Science International*.**148**(2–3): 143–156.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2004.05.003](//doi.org/10.1016%2Fj.forsciint.2004.05.003).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-2. ↑ 2.0 2.1 Nagai, F., Nonaka, R., Satoh Hisashi Kamimura, K. (22 March 2007). "The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain".*European Journal of Pharmacology*.**559**(2–3): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-3. ↑ Fuller, R. W., Baker, J. C., Perry, K. W., Molloy, B. B. (1 October 1975).["Comparison of 4-chloro-, 4-bromo- and 4-fluoroamphetamine in rats: Drug levels in brain and effects on brain serotonin metabolism"](https://www.sciencedirect.com/science/article/pii/0028390875900994).*Neuropharmacology*.**14**(10): 739–746.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0028-3908(75)90099-4](//doi.org/10.1016%2F0028-3908%2875%2990099-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-4. ↑ [Voor mentale gezondheid](https://www.trimbos.nl/)
-5. ↑ [Vergiftigingen.info - Home](https://www.vergiftigingen.info)
-6. ↑ [https://psychonautwiki.org/wiki/File:Behandeling-4-fa-intoxicatie.pdf](https://psychonautwiki.org/wiki/File:Behandeling-4-fa-intoxicatie.pdf)
-7. ↑ [https://psychonautwiki.org/wiki/File:4-FA%20risicobeoordeling%20(2016).pdf](https://psychonautwiki.org/wiki/File:4-FA%20risicobeoordeling%20(2016).pdf)
-8. ↑ Costa, E., Garattini, S. (June 1971). Domino, E. F., ed.["Amphetamines and related compounds"](https://linkinghub.elsevier.com/retrieve/pii/001346947190160X).*Electroencephalography and Clinical Neurophysiology*.**30**(6): 579.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0013-4694(71)90160-X](//doi.org/10.1016%2F0013-4694%2871%2990160-X).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-4694](//www.worldcat.org/issn/0013-4694).
-9. ↑ National Institute on Drug Abuse,[Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts)
-10. ↑ 10.0 10.1 10.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-11. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-12. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-13. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-14. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-15. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-16. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-17. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-18. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-19. ↑ ["Sechsundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl112s1639.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-20. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-21. ↑ [https://www.rijksoverheid.nl/actueel/nieuws/2017/05/24/verbod-op-drug-4-fluoramfetamine-gaat-vrijdag-25-mei-in](https://www.rijksoverheid.nl/actueel/nieuws/2017/05/24/verbod-op-drug-4-fluoramfetamine-gaat-vrijdag-25-mei-in)
-22. ↑ [Misuse of Drugs Act 1975 No 116 (as at 01 July 2022), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-23. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-24. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-25. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-26. ↑ [Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I)NewPP limit report Cached time: 20251218075048 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.058 seconds CPU time usage: 0.454 seconds Real time usage: 0.863 seconds Preprocessor visited node count: 2080/1000000 Post‐expand include size: 162215/2097152 bytes Template argument size: 21021/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 29626/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.83 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 722.567 1 -total 54.61% 394.583 1 Template:Reflist 30.50% 220.366 8 Template:Cite_journal 16.25% 117.383 12 Template:Citation_needed 11.69% 84.469 8 Template:Citation 10.43% 75.329 1 Template:SubstanceBox/4-FA 9.63% 69.584 1 Template:SubstanceBox 9.01% 65.072 1 Template:Fix 8.25% 59.640 2 Template:Category_handler 5.70% 41.209 4 Template:Cite_web`,
+- [Big n Dandy 4-FA (4-fluoroamphetamine) thread v.1.0 (Bluelight)](http://www.bluelight.org/vb/threads/498590-Big-n-Dandy-4-FA-(4-fluoroamphetamine)-thread-v-1-0)`,
   "thedrugclassroom": `# 4-Fluoroamphetamine (4-FA)
 *Source: https://thedrugclassroom.com/video/4-fluoroamphetamine-4-fa/*
 
@@ -904,52 +867,7 @@ Case 2
 
 ## Test Videos
 
----
-
-## References
-
-**(2017)** [Acute toxic effects related to 4-fluoroamphetamine](http://thelancet.com/journals/lancet/article/PIIS0140-6736(17)30281-7/fulltext)
-
-**(2016)** [4](https://www.ncbi.nlm.nih.gov/pubmed/26787750) [-Fluoroamphetamine in Serum and Urine from an Intoxicated Patient with Life-Threatening Hyperpyrexia.](https://www.ncbi.nlm.nih.gov/pubmed/26787750)
-
-**(2016)** [Acute dilated cardiomyopathy and myocardial injury after combined 4-fluoroamphetamine and modafinil ingestion.](https://www.ncbi.nlm.nih.gov/pubmed/27238856)
-
-**(2016)** [A snapshot on NPS in Italy: Distribution of drugs in seized materials analysed in an Italian forensic laboratory in the period 2013–2015](http://www.fsijournal.org/article/S0379-0738(16)30011-1/abstract)
-
-**(2016)** [Cardiovascular toxicity, cerebral hemorrhage, and mortality after 4-fluoroamphetamine](http://www.tandfonline.com/doi/abs/10.1080/15563650.2017.1309792)
-
-**(2015)** [4-Fluoroamphetamine in the Netherlands: more than a one-night stand](http://onlinelibrary.wiley.com/doi/10.1111/add.12932/abstract)
-
-**(2015)** [Ice water submersion for rapid cooling in severe drug-induced hyperthermia.](https://www.ncbi.nlm.nih.gov/pubmed/25695144)
-
-**(2015)** [Monoamine transporter and receptor interaction profiles of novel psychoactive substances: para-halogenated amphetamines and pyrovalerone cathinones.](https://www.ncbi.nlm.nih.gov/pubmed/25624004)
-
-**(2015)** [Monitoring new psychoactive substances (NPS) in The Netherlands: data from the drug market and the Poisons Information Centre.](https://www.ncbi.nlm.nih.gov/pubmed/25541244)
-
-**(2015)** [Pharmacokinetics, pharmacodynamics and toxicology of new psychoactive substances (NPS): 2C-B, 4-fluoroamphetamine and benzofurans.](https://www.ncbi.nlm.nih.gov/pubmed/26530501)
-
-**(2015)** [4-Fluoroamphetamine(4-FA) – Critical Review Report](http://www.who.int/medicines/access/controlled-substances/5.4_4-FA_CRev.pdf?ua=1)
-
-**(2015)** [Takotsubo syndrome due to 4-fluoroamphetamine.](https://www.ncbi.nlm.nih.gov/pubmed/25600939)
-
-**(2014)** [New phenethylamines in Europe.](https://www.ncbi.nlm.nih.gov/pubmed/24574327)
-
-**(2014)** [Cardiogenic shock after use of fluoroamphetamine confirmed with serum and urine levels.](https://www.ncbi.nlm.nih.gov/pubmed/25350468)
-
-**(2012)** [Isomers of fluoroamphetamines detected in forensic cases in Denmark.](https://www.ncbi.nlm.nih.gov/pubmed/22286570)
-
-**(2012)** [Prevalence of new psychoactive substances: A retrospective study in hair.](https://www.ncbi.nlm.nih.gov/pubmed/22522922)
-
-**(2012)** [Detection of the synthetic drug 4-fluoroamphetamine (4-FA) in serum and urine.](https://www.ncbi.nlm.nih.gov/pubmed/21543168)
-
-**(2007)** [The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain.](https://www.ncbi.nlm.nih.gov/pubmed/17223101)
-
-**(1995)** [Psychostimulant-like effects of p-fluoroamphetamine in the rat.](https://www.ncbi.nlm.nih.gov/pubmed/8749023)
-
-**(1978)** [Neurotoxic action of halogenated amphetamines.](https://www.ncbi.nlm.nih.gov/pubmed/81648)
-
-**(1975)** [Comparison of 4-chloro-, 4-bromo- and 4-fluoroamphetamine in rats: Drug levels in brain and effects on brain serotonin metabolism](http://www.sciencedirect.com/science/article/pii/0028390875900994)
-`,
+---`,
   "tripsit-factsheets": `# 4-FA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-fa*
 

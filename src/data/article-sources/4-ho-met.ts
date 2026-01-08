@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-MET";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-HO-MET.md","displayName":"Drug Users Bible","size":5131},{"id":"erowid","fileName":"EROWID - 4-HO-MET.md","displayName":"Erowid","size":11669},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MET.md","displayName":"Isomer Design","size":1323},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MET.md","displayName":"PsychonautWiki","size":37021},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4-HO-MET.md","displayName":"The Drug Classroom","size":57415},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MET.md","displayName":"TripSit Factsheets","size":793},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MET.md","displayName":"Wikipedia","size":5406}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4-HO-MET.md","displayName":"Drug Users Bible","size":5131,"tokens":1324},{"id":"erowid","fileName":"EROWID - 4-HO-MET.md","displayName":"Erowid","size":11669,"tokens":3219},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-MET.md","displayName":"Isomer Design","size":1323,"tokens":369},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-MET.md","displayName":"PsychonautWiki","size":30778,"tokens":8637},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 4-HO-MET.md","displayName":"The Drug Classroom","size":54116,"tokens":13351},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-MET.md","displayName":"TripSit Factsheets","size":793,"tokens":279},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-MET.md","displayName":"Wikipedia","size":5406,"tokens":1486}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 4-HO-MET
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -593,25 +593,7 @@ Tolerance to the effects of 4-HO-MET is built almost immediately after ingestion
 
 ### Discussion
 
-- [The Big & Dandy 4-HO-MET Thread (Bluelight)](http://www.bluelight.org/vb/threads/250897-The-Big-amp-Dandy-4-HO-MET-Thread)
-
-## References
-1. ↑ 1.0 1.1 1.2 ["4-HO-MET"](https://erowid.org/chemicals/4_ho_met/4_ho_met.shtml).*The Vaults of Erowid*. Erowid. August 18, 2011. Retrieved August 27, 2020.
-2. ↑ [Shulgin, Alexander](https://psychonautwiki.org/wiki/Alexander_Shulgin); Shulgin, Ann (1997).["#21. 4-HO-MET"](https://erowid.org/library/books_online/tihkal/tihkal21.shtml).*[TiHKAL: The Continuation](https://psychonautwiki.org/wiki/TiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0-9630096-9-9](http://en.wikipedia.org/wiki/Special:BookSources/0-9630096-9-9).[OCLC](http://en.wikipedia.org/wiki/OCLC)[38503252](//www.worldcat.org/oclc/38503252).
-3. ↑ Rickli, A.; Moning, O.D.; Hoener, M. C.; Liechti, M. E. (2016). "Receptor interaction profiles of novel psychoactive tryptamines compared with classic hallucinogens".**26**(8): 1327–1337doi=10.1016/j.euroneuro.2016.05.001.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0924-977X](//www.worldcat.org/issn/0924-977X).[OCLC](http://en.wikipedia.org/wiki/OCLC)[795935172](//www.worldcat.org/oclc/795935172).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[27216487](//www.ncbi.nlm.nih.gov/pubmed/27216487).
-4. ↑ ["4-HO-MET: Dose"](https://www.erowid.org/chemicals/4_ho_met/4_ho_met_dose.shtml).*The Vaults of Erowid*. Erowid. August 18, 2011. Retrieved August 27, 2020.
-5. ↑ Täljemark, J.; Johansson, B. A. (2012). "Drug-induced acute psychosis in an adolescent first-time user of 4-HO-MET".*European Child & Adolescent Psychiatry*.**21**(9): 527–528.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00787-012-0282-9](//doi.org/10.1007%2Fs00787-012-0282-9).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1435-165X](//www.worldcat.org/issn/1435-165X).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1018-8827](//www.worldcat.org/issn/1018-8827).[OCLC](http://en.wikipedia.org/wiki/OCLC)[26585556](//www.worldcat.org/oclc/26585556).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[22580963](//www.ncbi.nlm.nih.gov/pubmed/22580963).
-6. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-7. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-8. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-9. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-10. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-11. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-12. ↑ ["危険ドラッグの成分１６物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000078803.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-13. ↑ [Wykaz środków odurzających i substancji psychotropowych](https://pl.wikipedia.org/wiki/Wykaz_%C5%9Brodk%C3%B3w_odurzaj%C4%85cych_i_substancji_psychotropowych#Grupa_I-P)(in Polish), 2022
-14. ↑ ["Föreskrifter om ändring i Läkemedelsverkets föreskrifter (LVFS 2011:10) om förteckningar över narkotika"](https://web.archive.org/web/20181031222225/https://lakemedelsverket.se/upload/lvfs/LVFS_2012_6.pdf)(PDF)(in Swedish). Läkemedelsverket [Medical Products Agency ] (published April 30, 2012). April 20, 2012.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1101-5225](//www.worldcat.org/issn/1101-5225). LVFS 2012:6. Archived from[the original](https://lakemedelsverket.se/upload/lvfs/LVFS_2012_6.pdf)(PDF)on October 31, 2018.
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-16. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075103 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.064 seconds CPU time usage: 0.425 seconds Real time usage: 0.839 seconds Preprocessor visited node count: 2112/1000000 Post‐expand include size: 184832/2097152 bytes Template argument size: 31830/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 19467/5000000 bytes Lua time usage: 0.300/7 seconds Lua virtual size: 8.77 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 675.656 1 -total 27.83% 188.061 10 Template:Cite_web 17.69% 119.492 1 Template:Effects/base 17.16% 115.925 1 Template:Effect_list 16.59% 112.068 2 Template:Effect_column 15.97% 107.899 6 Template:Citation_needed 13.79% 93.193 2 Template:Fix 13.31% 89.912 1 Template:Effects/physical 13.01% 87.886 4 Template:Category_handler 12.89% 87.079 6 Template:Effect_panel`,
+- [The Big & Dandy 4-HO-MET Thread (Bluelight)](http://www.bluelight.org/vb/threads/250897-The-Big-amp-Dandy-4-HO-MET-Thread)`,
   "thedrugclassroom": `# 4-HO-MET
 *Source: https://thedrugclassroom.com/video/4-ho-met/*
 
@@ -1192,34 +1174,7 @@ Show Papers(McIntyre, 2015) – Fatality associated with polydrug intoxication. 
 - MAOIs
 - Tramadol
 
----
-
-## References
-Show ReferencesAndersson, M., Persson, M., & Kjellgren, A. (2017). Psychoactive substances as a last resort—a qualitative study of self-treatment of migraine and cluster headaches. Harm Reduction Journal, 14(1), 60. https://doi.org/10.1186/s12954-017-0186-6
- 
-Bäckberg, M., Jönsson, K.-H., Beck, O., & Helander, A. (2018). Investigation of drug products received for analysis in the Swedish STRIDA project on new psychoactive substances. Drug Testing and Analysis, 10(2), 340–349. https://doi.org/10.1002/dta.2226
- 
-Blanckaert, P. (2014). 4-HO-MET, (July). https://www.me-assist.com/wp-content/uploads/2014/07/Fact-Sheet-4-HO-MET.pdf
- 
-Bruni, P. S., Grafinger, K. E., Nussbaumer, S., König, S., Schürch, S., & Weinmann, W. (2018). Study of the in vitro and in vivo metabolism of 4-HO-MET. Forensic Science International, 290, 103–110. https://doi.org/10.1016/j.forsciint.2018.06.037
- 
-González, D., Ventura, M., Caudevilla, F., Torrens, M., & Farre, M. (2013). Consumption of new psychoactive substances in a Spanish sample of research chemical users. Human Psychopharmacology: Clinical and Experimental, 28(4), 332–340. https://doi.org/10.1002/hup.2323
- 
-Helander, A., Bäckberg, M., Hultén, P., Al-Saffar, Y., & Beck, O. (2014). Detection of new psychoactive substance use among emergency room patients: Results from the Swedish STRIDA project. Forensic Science International, 243, 23–29. https://doi.org/10.1016/j.forsciint.2014.02.022
- 
-Helander, A., Beck, O., Hägerkvist, R., & Hultén, P. (2013). Identification of novel psychoactive drug use in Sweden based on laboratory analysis – initial experiences from the STRIDA project. Scandinavian Journal of Clinical and Laboratory Investigation, 73(5), 400–406. https://doi.org/10.3109/00365513.2013.793817
- 
-Kjellgren, A., & Soussan, C. (2011). Heaven and Hell—A Phenomenological Study of Recreational Use of 4-HO-MET in Sweden. Journal of Psychoactive Drugs, 43(3), 211–219. https://doi.org/10.1080/02791072.2011.605699
- 
-Ledberg, A. (2015). The interest in eight new psychoactive substances before and after scheduling. Drug and Alcohol Dependence, 152, 73–78. https://doi.org/10.1016/j.drugalcdep.2015.04.020
- 
-McIntyre, I. M., Trochta, A., Gary, R. D., Storey, A., Corneal, J., & Schaber, B. (2015). A Fatality Related to Two Novel Hallucinogenic Compounds: 4-Methoxyphencyclidine and 4-Hydroxy- N -methyl- N -ethyltryptamine. Journal of Analytical Toxicology, 39(9), 751–755. https://doi.org/10.1093/jat/bkv089
- 
-Palma-Conesa, Á. J., Ventura, M., Galindo, L., Fonseca, F., Grifell, M., Quintana, P., … Torrens, M. (2017). Something New about Something Old: A 10-Year Follow-Up on Classical and New Psychoactive Tryptamines and Results of Analysis. Journal of Psychoactive Drugs, 49(4), 297–305. https://doi.org/10.1080/02791072.2017.1320732
- 
-Rickli, A., Moning, O. D., Hoener, M. C., & Liechti, M. E. (2016). Receptor interaction profiles of novel psychoactive tryptamines compared with classic hallucinogens. European Neuropsychopharmacology, 26(8), 1327–1337. https://doi.org/10.1016/j.euroneuro.2016.05.001
- 
-Täljemark, J., & Johansson, B. A. (2012). Drug-induced acute psychosis in an adolescent first-time user of 4-HO-MET. European Child & Adolescent Psychiatry, 21(9), 527–528. https://doi.org/10.1007/s00787-012-0282-9`,
+---`,
   "tripsit-factsheets": `# 4-HO-MET
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-ho-met*
 

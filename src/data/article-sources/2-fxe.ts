@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-FXE";
-export const sources = [{"id":"nervewing","fileName":"NERVEWING - FXE Confusion Notes.md","displayName":"NERVEWING","size":8703}];
+export const sources = [{"id":"nervewing","fileName":"NERVEWING - FXE Confusion Notes.md","displayName":"NERVEWING","size":8703,"tokens":2384}];
 export const contents: Record<string, string> = {
   "nervewing": `# Almost all "FXE" (as in 3F-2'-Oxo-PCE) is not actually FXE, and "canket" is the same thing as what we have all been calling "FXE". Confirmed via NMR.
 

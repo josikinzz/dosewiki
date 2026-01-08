@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4F-MPH";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4F-MPH.md","displayName":"Drug Users Bible","size":1529},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4F-MPH.md","displayName":"Isomer Design","size":884},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4F-MPH.md","displayName":"PsychonautWiki","size":29339},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4F-MPH.md","displayName":"TripSit Factsheets","size":819},{"id":"wikipedia","fileName":"WIKIPEDIA - 4F-MPH.md","displayName":"Wikipedia","size":1741}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 4F-MPH.md","displayName":"Drug Users Bible","size":1529,"tokens":388},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4F-MPH.md","displayName":"Isomer Design","size":419,"tokens":166},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4F-MPH.md","displayName":"PsychonautWiki","size":22170,"tokens":5936},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4F-MPH.md","displayName":"TripSit Factsheets","size":819,"tokens":228},{"id":"wikipedia","fileName":"WIKIPEDIA - 4F-MPH.md","displayName":"Wikipedia","size":1741,"tokens":459}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 4F-MPH
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -52,17 +52,7 @@ make a habit of.
 
 **SMILES:** \`COC(=O)C(c1ccc(cc1)F)C1CCCCN1\`
 
-**InChI:** \`InChI=1S/C14H18FNO2/c1-18-14(17)13(12-4-2-3-9-16-12)10-5-7-11(15)8-6-10/h5-8,12-13,16H,2-4,9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [103880814](https://www.chemspider.com/Chemical-Structure.103880814.html/)
-- [70876096](https://pubchem.ncbi.nlm.nih.gov/compound/70876096)
-- [Q126613079](https://www.wikidata.org/wiki/Q126613079)
-- [4-Fluoromethylphenidate](https://en.wikipedia.org/wiki/4-Fluoromethylphenidate)
-- [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
-`,
+**InChI:** \`InChI=1S/C14H18FNO2/c1-18-14(17)13(12-4-2-3-9-16-12)10-5-7-11(15)8-6-10/h5-8,12-13,16H,2-4,9H2,1H3\``,
   "psychonautwiki": `# 4F-MPH
 *Source: https://psychonautwiki.org/wiki/4F-MPH*
 
@@ -225,24 +215,7 @@ In terms of its tolerance, 4F-MPH can be used multiple days in a row for extende
 - [4F-MPH (Wikipedia)](https://en.wikipedia.org/wiki/4-Fluoromethylphenidate)
 - [4F-MPH (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=630)
 - [4F-MPH (Bluelight)](http://www.bluelight.org/vb/threads/770658-4-Fluoromethylphenidate-(4F-MPH))
-- [4F-MPH (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-4-Fluoromethylphenidate-4F-MPH)
-
-## References
-1. ↑ [http://www.bluelight.org/vb/threads/770658-4-Fluoromethylphenidate-(4F-MPH)](http://www.bluelight.org/vb/threads/770658-4-Fluoromethylphenidate-(4F-MPH))
-2. ↑ Deutsch, H. M., Shi, Q., Gruszecka-Kowalik, E., Schweri, M. M. (15 March 1996).["Synthesis and Pharmacology of Potential Cocaine Antagonists. 2. Structure−Activity Relationship Studies of Aromatic Ring-Substituted Methylphenidate Analogs"](https://pubs.acs.org/doi/10.1021/jm950697c).*Journal of Medicinal Chemistry*.**39**(6): 1201–1209.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm950697c](//doi.org/10.1021%2Fjm950697c).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-3. ↑ Schweri, M. M., Deutsch, H. M., Massey, A. T., Holtzman, S. G. (May 2002). "Biochemical and behavioral characterization of novel methylphenidate analogs".*The Journal of Pharmacology and Experimental Therapeutics*.**301**(2): 527–535.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/jpet.301.2.527](//doi.org/10.1124%2Fjpet.301.2.527).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-4. ↑ Davies, H. M. L., Hopper, D. W., Hansen, T., Liu, Q., Childers, S. R. (5 April 2004). "Synthesis of methylphenidate analogues and their binding affinities at dopamine and serotonin transport sites".*Bioorganic & Medicinal Chemistry Letters*.**14**(7): 1799–1802.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmcl.2003.12.097](//doi.org/10.1016%2Fj.bmcl.2003.12.097).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0960-894X](//www.worldcat.org/issn/0960-894X).
-5. ↑ Misra, M., Shi, Q., Ye, X., Gruszecka-Kowalik, E., Bu, W., Liu, Z., Schweri, M. M., Deutsch, H. M., Venanzi, C. A. (15 October 2010). "Quantitative structure-activity relationship studies of threo-methylphenidate analogs".*Bioorganic & Medicinal Chemistry*.**18**(20): 7221–7238.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmc.2010.08.034](//doi.org/10.1016%2Fj.bmc.2010.08.034).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1464-3391](//www.worldcat.org/issn/1464-3391).
-6. ↑ Singh, S. (1 March 2000).["Chemistry, Design, and Structure−Activity Relationship of Cocaine Antagonists"](https://pubs.acs.org/doi/10.1021/cr9700538).*Chemical Reviews*.**100**(3): 925–1024.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/cr9700538](//doi.org/10.1021%2Fcr9700538).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0009-2665](//www.worldcat.org/issn/0009-2665).
-7. ↑ McLaughlin, G., Morris, N., Kavanagh, P. V., Power, J. D., Dowling, G., Twamley, B., O’Brien, J., Hessman, G., Murphy, B., Walther, D., Partilla, J. S., Baumann, M. H., Brandt, S. D. (March 2017).["Analytical characterization and pharmacological evaluation of the new psychoactive substance 4-fluoromethylphenidate (4F-MPH) and differentiation between the (±)- threo and (±)- erythro diastereomers: Analytical characterization and pharmacological evaluation of 4-fluoromethylphenidate"](https://onlinelibrary.wiley.com/doi/10.1002/dta.2167).*Drug Testing and Analysis*.**9**(3): 347–357.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2167](//doi.org/10.1002%2Fdta.2167).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-8. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-9. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-10. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-11. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 23, 2019.
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ Cumhurbaşkanı Kararı Karar Sayısı : 1335 | [https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)
-14. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)
-15. ↑ [Alabama SB333, 2014, Regular Session](https://legiscan.com/AL/text/SB333/id/988417)NewPP limit report Cached time: 20251218075114 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.039 seconds CPU time usage: 0.299 seconds Real time usage: 0.566 seconds Preprocessor visited node count: 1877/1000000 Post‐expand include size: 150031/2097152 bytes Template argument size: 18759/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 20422/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.64 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 444.970 1 -total 32.68% 145.414 8 Template:Cite_journal 24.08% 107.170 2 Template:Citation_needed 13.52% 60.159 1 Template:SubstanceBox/4F-MPH 13.36% 59.454 1 Template:Fix 12.67% 56.399 1 Template:SubstanceBox 12.40% 55.156 2 Template:Category_handler 8.42% 37.453 3 Template:Cite_web 6.42% 28.549 2 Template:Citation 3.97% 17.650 1 Template:Effects/base`,
+- [4F-MPH (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-4-Fluoromethylphenidate-4F-MPH)`,
   "tripsit-factsheets": `# 4-Fluoromethylphenidate
 *Source: TripSit Factsheets (tripsit.me)*
 

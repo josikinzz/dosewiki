@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cloniprazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cloniprazepam.md","displayName":"TripSit Factsheets","size":431},{"id":"wikipedia","fileName":"WIKIPEDIA - Cloniprazepam.md","displayName":"Wikipedia","size":532}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cloniprazepam.md","displayName":"TripSit Factsheets","size":431,"tokens":122},{"id":"wikipedia","fileName":"WIKIPEDIA - Cloniprazepam.md","displayName":"Wikipedia","size":532,"tokens":144}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Cloniprazepam
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Wild_Dagga";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Wild_Dagga.md","displayName":"Drug Users Bible","size":2806},{"id":"wikipedia","fileName":"WIKIPEDIA - Wild_Dagga.md","displayName":"Wikipedia","size":5052}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Wild_Dagga.md","displayName":"Drug Users Bible","size":2806,"tokens":727},{"id":"wikipedia","fileName":"WIKIPEDIA - Wild_Dagga.md","displayName":"Wikipedia","size":5052,"tokens":1268}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Wild Dagga
 *Source: Drug Users Bible by Dominic Milton Trott*

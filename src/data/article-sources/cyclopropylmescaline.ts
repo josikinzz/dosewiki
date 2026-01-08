@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclopropylmescaline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Cyclopropylmescaline.md","displayName":"Isomer Design","size":3812},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclopropylmescaline.md","displayName":"TripSit Factsheets","size":642},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclopropylmescaline.md","displayName":"Wikipedia","size":1739}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Cyclopropylmescaline.md","displayName":"Isomer Design","size":3812,"tokens":996},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclopropylmescaline.md","displayName":"TripSit Factsheets","size":642,"tokens":173},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclopropylmescaline.md","displayName":"Wikipedia","size":1739,"tokens":425}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Cyclopropylmescaline
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=37*

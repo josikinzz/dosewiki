@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Fenethylline";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Fenethylline.md","displayName":"Isomer Design","size":798},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Fenethylline.md","displayName":"PsychonautWiki","size":16859},{"id":"wikipedia","fileName":"WIKIPEDIA - Fenethylline.md","displayName":"Wikipedia","size":16488}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Fenethylline.md","displayName":"Isomer Design","size":474,"tokens":202},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Fenethylline.md","displayName":"PsychonautWiki","size":11953,"tokens":3121},{"id":"wikipedia","fileName":"WIKIPEDIA - Fenethylline.md","displayName":"Wikipedia","size":16488,"tokens":4125}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Fenethylline
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=724&name=Fenethylline*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CC(Cc1ccccc1)NCCn1cnc2c1c(=O)n(C)c(=O)n2C\`
 
-**InChI:** \`InChI=1S/C18H23N5O2/c1-13(11-14-7-5-4-6-8-14)19-9-10-23-12-20-16-15(23)17(24)22(3)18(25)21(16)2/h4-8,12-13,19H,9-11H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [18398](https://www.chemspider.com/Chemical-Structure.18398.html/)
-- [19527](https://pubchem.ncbi.nlm.nih.gov/compound/19527)
-- [Q27887794](https://www.wikidata.org/wiki/Q27887794)
-- [Fenethylline](https://en.wikipedia.org/wiki/Fenethylline)
-`,
+**InChI:** \`InChI=1S/C18H23N5O2/c1-13(11-14-7-5-4-6-8-14)19-9-10-23-12-20-16-15(23)17(24)22(3)18(25)21(16)2/h4-8,12-13,19H,9-11H2,1-3H3\``,
   "psychonautwiki": `# Fenethylline
 *Source: https://psychonautwiki.org/wiki/Fenethylline*
 
@@ -142,22 +133,7 @@ Fenethylline became illegal in most countries in 1986 after being listed by the 
 - [Theophylline (Wikipedia)](https://en.wikipedia.org/wiki/Theophylline)
 - [Fenethylline (DrugBank)](https://go.drugbank.com/drugs/DB01482)
 - [Fenethylline (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=724&name=Fenethylline)
-- [Fenethylline Abuse (Abuse Study)](https://onlinelibrary.wiley.com/doi/full/10.1111/bcpt.12584)
-
-## References
-1. ↑ 1.00 1.01 1.02 1.03 1.04 1.05 1.06 1.07 1.08 1.09 1.10 1.11 1.12 1.13 1.14 1.15 1.16 1.17 1.18 1.19 1.20 1.21 1.22 [https://onlinelibrary.wiley.com/doi/full/10.1111/bcpt.12584](https://onlinelibrary.wiley.com/doi/full/10.1111/bcpt.12584)
-2. ↑ [https://web.archive.org/web/20230605043558/https://www.aljazeera.com/news/2023/5/9/what-is-captagon-the-addictive-drug-mass-produced-in-syria](https://web.archive.org/web/20230605043558/https://www.aljazeera.com/news/2023/5/9/what-is-captagon-the-addictive-drug-mass-produced-in-syria)
-3. ↑ [https://web.archive.org/web/20230106175927/https://www.spectator.co.uk/article/how-syria-became-the-worlds-most-profitable-narco-state](https://web.archive.org/web/20230106175927/https://www.spectator.co.uk/article/how-syria-became-the-worlds-most-profitable-narco-state)
-4. ↑ [https://web.archive.org/web/20230517053609/https://edition.cnn.com/2023/04/10/middleeast/syria-drugs-bargaining-chip-mime-intl/index.html](https://web.archive.org/web/20230517053609/https://edition.cnn.com/2023/04/10/middleeast/syria-drugs-bargaining-chip-mime-intl/index.html)
-5. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-6. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-7. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-8. ↑ [https://www.incb.org/incb/en/psychotropics/green-list.html](https://www.incb.org/incb/en/psychotropics/green-list.html)
-9. ↑ [https://www.legislation.gov.au/Details/F2019L01471](https://www.legislation.gov.au/Details/F2019L01471)
-10. ↑ [https://www.in.gov.br/en/web/dou/-/resolucao-rdc-n-784-de-31-de-marco-de-2023-474904992](https://www.in.gov.br/en/web/dou/-/resolucao-rdc-n-784-de-31-de-marco-de-2023-474904992)
-11. ↑ [https://laws-lois.justice.gc.ca/eng/acts/C-38.8/FullText.html](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/FullText.html)
-12. ↑ [https://www.gesetze-im-internet.de/btmg_1981/anlage_iii.html](https://www.gesetze-im-internet.de/btmg_1981/anlage_iii.html)
-13. ↑ [https://www.legislation.gov.uk/ukpga/1971/38/schedule/2](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2)NewPP limit report Cached time: 20251218075423 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.036 seconds CPU time usage: 0.288 seconds Real time usage: 0.516 seconds Preprocessor visited node count: 1394/1000000 Post‐expand include size: 72504/2097152 bytes Template argument size: 6264/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14289/5000000 bytes Lua time usage: 0.140/7 seconds Lua virtual size: 7.41 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 426.275 1 -total 35.73% 152.293 1 Template:Reflist 30.60% 130.426 3 Template:Cite_journal 30.21% 128.758 1 Template:Citation_needed 18.11% 77.212 1 Template:Fix 16.96% 72.313 2 Template:Category_handler 15.90% 67.794 1 Template:SubstanceBox/Fenethylline 14.99% 63.889 1 Template:SubstanceBox 7.56% 32.234 1 Template:Effects/base 6.84% 29.158 1 Template:Effect_list`,
+- [Fenethylline Abuse (Abuse Study)](https://onlinelibrary.wiley.com/doi/full/10.1111/bcpt.12584)`,
   "wikipedia": `# Fenethylline
 *Source: https://en.wikipedia.org/wiki/Fenethylline*
 

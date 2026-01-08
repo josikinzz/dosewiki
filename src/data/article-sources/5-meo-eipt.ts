@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MeO-EiPT";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 5-MeO-EiPT.md","displayName":"The Drug Classroom","size":1579},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-EiPT.md","displayName":"TripSit Factsheets","size":1041},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-EiPT.md","displayName":"Wikipedia","size":1896}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 5-MeO-EiPT.md","displayName":"The Drug Classroom","size":940,"tokens":261},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-EiPT.md","displayName":"TripSit Factsheets","size":1041,"tokens":285},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-EiPT.md","displayName":"Wikipedia","size":1896,"tokens":542}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# 5-MeO-EiPT
 *Source: https://thedrugclassroom.com/video/5-meo-eipt/*
@@ -35,16 +35,7 @@ Not currently available due to a lack of information.
 
 ---
 
----
-
-## References
-
-**(2014)** [Simultaneous determination of tryptamine analogues in designer drugs using gas chromatography–mass spectrometry and liquid chromatography–tandem mass spectrometry](http://link.springer.com/article/10.1007/s11419-013-0208-3#/page-1)
-
-**(2010)** [Simultaneous and group determination methods for designated substances by HPLC with multi-channel electrochemical detection and their application to real samples](http://onlinelibrary.wiley.com/doi/10.1002/bmc.1439/abstract)
-
-**(2008)** [Analysis of designer drugs detected in the products purchased in fiscal year 2006](http://europepmc.org/abstract/med/18827471)
-`,
+---`,
   "tripsit-factsheets": `# 5-MeO-EiPT
 *Source: TripSit Factsheets (tripsit.me)*
 

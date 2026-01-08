@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Adinazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Adinazolam.md","displayName":"TripSit Factsheets","size":527},{"id":"wikipedia","fileName":"WIKIPEDIA - Adinazolam.md","displayName":"Wikipedia","size":11644}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Adinazolam.md","displayName":"TripSit Factsheets","size":527,"tokens":142},{"id":"wikipedia","fileName":"WIKIPEDIA - Adinazolam.md","displayName":"Wikipedia","size":11644,"tokens":2907}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Adinazolam
 *Source: TripSit Factsheets (tripsit.me)*

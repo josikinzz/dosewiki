@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3,4-CTMP";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3,4-CTMP.md","displayName":"Drug Users Bible","size":1470},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3,4-CTMP.md","displayName":"Isomer Design","size":915},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3,4-CTMP.md","displayName":"PsychonautWiki","size":36139},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3,4-CTMP.md","displayName":"TripSit Factsheets","size":1097},{"id":"wikipedia","fileName":"WIKIPEDIA - 3,4-CTMP.md","displayName":"Wikipedia","size":2749}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3,4-CTMP.md","displayName":"Drug Users Bible","size":1470,"tokens":375},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3,4-CTMP.md","displayName":"Isomer Design","size":444,"tokens":183},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3,4-CTMP.md","displayName":"PsychonautWiki","size":30183,"tokens":7896},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3,4-CTMP.md","displayName":"TripSit Factsheets","size":1097,"tokens":290},{"id":"wikipedia","fileName":"WIKIPEDIA - 3,4-CTMP.md","displayName":"Wikipedia","size":2749,"tokens":742}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 3,4-CTMP
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -51,17 +51,7 @@ By and large, it now appears to have faded into the annals of history.
 
 **SMILES:** \`COC(=O)C(c1ccc(c(c1)Cl)Cl)C1CCCCN1\`
 
-**InChI:** \`InChI=1S/C14H17Cl2NO2/c1-19-14(18)13(12-4-2-3-7-17-12)9-5-6-10(15)11(16)8-9/h5-6,8,12-13,17H,2-4,7H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [23278471](https://www.chemspider.com/Chemical-Structure.23278471.html/)
-- [44418862](https://pubchem.ncbi.nlm.nih.gov/compound/44418862)
-- [Q126612005](https://www.wikidata.org/wiki/Q126612005)
-- [3,4-Dichloromethylphenidate](https://en.wikipedia.org/wiki/3,4-Dichloromethylphenidate)
-- [List of methylphenidate analogues](https://en.wikipedia.org/wiki/List_of_methylphenidate_analogues)
-`,
+**InChI:** \`InChI=1S/C14H17Cl2NO2/c1-19-14(18)13(12-4-2-3-7-17-12)9-5-6-10(15)11(16)8-9/h5-6,8,12-13,17H,2-4,7H2,1H3\``,
   "psychonautwiki": `# 3,4-CTMP
 *Source: https://psychonautwiki.org/wiki/3,4-CTMP*
 
@@ -238,24 +228,7 @@ It has been reported that 3,4-CTMP has potential for abuse on par with that of [
 
 - [3,4-CTMP (Wikipedia)](https://en.wikipedia.org/wiki/3,4-Dichloromethylphenidate)
 - [3,4-CTMP (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2572)
-- [3,4-CTMP (Drugs-Forum)](https://drugs-forum.com/forum/showwiki.php?title=3_4-CTMP)
-
-## References
-1. ↑ Davies, H. M. L., Hopper, D. W., Hansen, T., Liu, Q., Childers, S. R. (April 2004).["Synthesis of methylphenidate analogues and their binding affinities at dopamine and serotonin transport sites"](https://linkinghub.elsevier.com/retrieve/pii/S0960894X04000630).*Bioorganic & Medicinal Chemistry Letters*.**14**(7): 1799–1802.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmcl.2003.12.097](//doi.org/10.1016%2Fj.bmcl.2003.12.097).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0960-894X](//www.worldcat.org/issn/0960-894X).
-2. ↑ 2.0 2.1 Arunotayanun, W. (2014),[Chemical and biological studies on natural and synthetic Novel Psychoactive Substances](https://discovery.ucl.ac.uk/id/eprint/1432658/), University College London (University of London)
-3. ↑ Rothman, R. B., Baumann, M. H., Savage, J. E., Rauser, L., McBride, A., Hufeisen, S. J., Roth, B. L. (5 December 2000).["Evidence for Possible Involvement of 5-HT 2B Receptors in the Cardiac Valvulopathy Associated With Fenfluramine and Other Serotonergic Medications"](https://www.ahajournals.org/doi/10.1161/01.CIR.102.23.2836).*Circulation*.**102**(23): 2836–2841.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1161/01.CIR.102.23.2836](//doi.org/10.1161%2F01.CIR.102.23.2836).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0009-7322](//www.worldcat.org/issn/0009-7322).
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-5. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-6. ↑ [Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/c-38.8/fulltext.html), 2022
-7. ↑ [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html) | 关于印发《非药用类麻醉药品和精神药品列管办法》的通知
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-9. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 23, 2019.
-10. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-11. ↑ ["○平成２６年３月６日付けで以下の１０物質が指定薬物に指定されました。"](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/dl/new.pdf) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-12. ↑ Cannabinoider föreslås bli klassade som hälsofarlig var | [http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/](http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2014/november/cannabinoider-foreslas-bli-klassade-som-halsofarlig-vara/)
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)
-15. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)NewPP limit report Cached time: 20251218075000 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.043 seconds CPU time usage: 0.322 seconds Real time usage: 0.615 seconds Preprocessor visited node count: 1582/1000000 Post‐expand include size: 175707/2097152 bytes Template argument size: 36025/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 17744/5000000 bytes Lua time usage: 0.190/7 seconds Lua virtual size: 8.05 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 478.201 1 -total 25.18% 120.411 4 Template:Cite_journal 24.61% 117.666 8 Template:Citation_needed 14.74% 70.501 1 Template:Fix 13.68% 65.401 2 Template:Category_handler 12.18% 58.234 4 Template:Cite_web 10.80% 51.628 1 Template:SubstanceBox/3,4-CTMP 10.09% 48.258 1 Template:SubstanceBox 6.92% 33.087 3 Template:Citation 4.89% 23.400 1 Template:Effects/base`,
+- [3,4-CTMP (Drugs-Forum)](https://drugs-forum.com/forum/showwiki.php?title=3_4-CTMP)`,
   "tripsit-factsheets": `# 3,4-CTMP
 *Source: TripSit Factsheets (tripsit.me)*
 

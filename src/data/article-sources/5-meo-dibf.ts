@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MeO-DiBF";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5-MeO-DiBF.md","displayName":"Drug Users Bible","size":1600},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-DiBF.md","displayName":"Isomer Design","size":825},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MeO-DiBF.md","displayName":"PsychonautWiki","size":17882},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-DiBF.md","displayName":"TripSit Factsheets","size":615},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-DiBF.md","displayName":"Wikipedia","size":930}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 5-MeO-DiBF.md","displayName":"Drug Users Bible","size":1600,"tokens":409},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-DiBF.md","displayName":"Isomer Design","size":410,"tokens":182},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-MeO-DiBF.md","displayName":"PsychonautWiki","size":14164,"tokens":3885},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-DiBF.md","displayName":"TripSit Factsheets","size":615,"tokens":249},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-MeO-DiBF.md","displayName":"Wikipedia","size":930,"tokens":246}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 5-MEO-DIBF
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -52,17 +52,7 @@ enthralling experiences and the doubts cast by these, I binned my remaining supp
 
 **SMILES:** \`COc1ccc2c(c1)c(CCN(C(C)C)C(C)C)co2\`
 
-**InChI:** \`InChI=1S/C17H25NO2/c1-12(2)18(13(3)4)9-8-14-11-20-17-7-6-15(19-5)10-16(14)17/h6-7,10-13H,8-9H2,1-5H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [58191435](https://www.chemspider.com/Chemical-Structure.58191435.html/)
-- [125276632](https://pubchem.ncbi.nlm.nih.gov/compound/125276632)
-- [Q20707095](https://www.wikidata.org/wiki/Q20707095)
-- [5-MeO-DiBF](https://en.wikipedia.org/wiki/5-MeO-DiBF)
-- [Substituted benzofuran](https://en.wikipedia.org/wiki/Substituted_benzofuran)
-`,
+**InChI:** \`InChI=1S/C17H25NO2/c1-12(2)18(13(3)4)9-8-14-11-20-17-7-6-15(19-5)10-16(14)17/h6-7,10-13H,8-9H2,1-5H3\``,
   "psychonautwiki": `# 5-MeO-DiBF
 *Source: https://psychonautwiki.org/wiki/5-MeO-DiBF*
 
@@ -204,18 +194,7 @@ Tolerance to the effects of 5-MeO-DiBF is built almost immediately after ingesti
 ### Community
 
 - [5-MeO-DiBF (UK Chemical Research)](https://www.ukchemicalresearch.org/Thread-5-Meo-DIBF)
-- [5-MeO-DIBF (Benzofuran analogue of 5-MeO-DIPT) (BlueLight)](http://www.bluelight.org/vb/threads/755026-5-MeO-DIBF-(Benzofuran-analogue-of-5-MeO-DIPT))
-
-## References
-1. ↑ [The Characterization of 2-(5-Methoxy-1-benzofuran-3-yl)-N,N-dimethylethanamine (5-MeO-BFE) and Differentiation from its N-Ethyl Analog (Microgram Journal 2012;9(1):39-45)](https://www.dea.gov/documents/2012/2012-01/2012-01-01/characterization-2-5-methoxy-1-benzofuran-3-yl-nn)
-2. ↑ Tomaszewski, Z., Johnson, M. P., Huang, X., Nichols, D. E. (29 May 1992). "Benzofuran bioisosteres of hallucinogenic tryptamines".*Journal of Medicinal Chemistry*.**35**(11): 2061–2064.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00089a017](//doi.org/10.1021%2Fjm00089a017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-3. ↑ McKenna, D. J., Repke, D. B., Lo, L., Peroutka, S. J. (March 1990). "Differential interactions of indolealkylamines with 5-hydroxytryptamine receptor subtypes".*Neuropharmacology*.**29**(3): 193–198.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0028-3908(90)90001-8](//doi.org/10.1016%2F0028-3908%2890%2990001-8).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-5. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-6. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075127 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.038 seconds CPU time usage: 0.296 seconds Real time usage: 0.551 seconds Preprocessor visited node count: 1356/1000000 Post‐expand include size: 77874/2097152 bytes Template argument size: 8607/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10654/5000000 bytes Lua time usage: 0.170/7 seconds Lua virtual size: 8.08 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 426.976 1 -total 19.86% 84.806 1 Template:DangerousInteractions/Psychedelics 18.80% 80.252 2 Template:Citation_needed 16.31% 69.659 1 Template:Fix 15.66% 66.878 2 Template:Citation 15.66% 66.859 2 Template:Further 15.33% 65.444 2 Template:Category_handler 12.32% 52.599 1 Template:SubstanceBox/5-MeO-DiBF 12.26% 52.329 4 Template:Cite_web 11.47% 48.988 1 Template:SubstanceBox`,
+- [5-MeO-DIBF (Benzofuran analogue of 5-MeO-DIPT) (BlueLight)](http://www.bluelight.org/vb/threads/755026-5-MeO-DIBF-(Benzofuran-analogue-of-5-MeO-DIPT))`,
   "tripsit-factsheets": `# 5-MeO-DIBF
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/5-meo-dibf*
 

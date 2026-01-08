@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2C-IP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-IP.md","displayName":"TripSit Factsheets","size":879},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-IP.md","displayName":"Wikipedia","size":460}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-IP.md","displayName":"TripSit Factsheets","size":879,"tokens":238},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-IP.md","displayName":"Wikipedia","size":460,"tokens":122}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 2C-IP
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Salvinorin_B_methoxymethyl_ether";
-export const sources = [{"id":"erowid","fileName":"EROWID - Salvinorin_B_methoxymethyl_ether.md","displayName":"Erowid","size":6031},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Salvinorin_B_methoxymethyl_ether.md","displayName":"Isomer Design","size":1067},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Salvinorin_B_methoxymethyl_ether.md","displayName":"PsychonautWiki","size":3117},{"id":"wikipedia","fileName":"WIKIPEDIA - Salvinorin_B_methoxymethyl_ether.md","displayName":"Wikipedia","size":856}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Salvinorin_B_methoxymethyl_ether.md","displayName":"Erowid","size":6031,"tokens":1490},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Salvinorin_B_methoxymethyl_ether.md","displayName":"Isomer Design","size":746,"tokens":331},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Salvinorin_B_methoxymethyl_ether.md","displayName":"PsychonautWiki","size":2194,"tokens":584},{"id":"wikipedia","fileName":"WIKIPEDIA - Salvinorin_B_methoxymethyl_ether.md","displayName":"Wikipedia","size":856,"tokens":226}];
 export const contents: Record<string, string> = {
   "erowid": `# Salvinorin_B_methoxymethyl_ether
 *Source: https://www.erowid.org/chemicals/salvinorin_b_ethoxymethyl_ether/*
@@ -130,15 +130,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`COCO[C@H]1C[C@@H](C(=O)OC)[C@]2([C@H](C1=O)[C@@]1(C)C[C@H](OC(=O)[C@@H]1CC2)c1cocc1)C\`
 
-**InChI:** \`InChI=1S/C23H30O8/c1-22-7-5-14-21(26)31-17(13-6-8-29-11-13)10-23(14,2)19(22)18(24)16(30-12-27-3)9-15(22)20(25)28-4/h6,8,11,14-17,19H,5,7,9-10,12H2,1-4H3/t14-,15-,16-,17-,19-,22-,23-/m0/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [23323947](https://www.chemspider.com/Chemical-Structure.23323947.html/)
-- [44456192](https://pubchem.ncbi.nlm.nih.gov/compound/44456192)
-- [Salvinorin B methoxymethyl ether](https://en.wikipedia.org/wiki/Salvinorin_B_methoxymethyl_ether)
-`,
+**InChI:** \`InChI=1S/C23H30O8/c1-22-7-5-14-21(26)31-17(13-6-8-29-11-13)10-23(14,2)19(22)18(24)16(30-12-27-3)9-15(22)20(25)28-4/h6,8,11,14-17,19H,5,7,9-10,12H2,1-4H3/t14-,15-,16-,17-,19-,22-,23-/m0/s1\``,
   "psychonautwiki": `# Salvinorin B methoxymethyl ether
 *Source: https://psychonautwiki.org/wiki/Salvinorin_B_methoxymethyl_ether*
 
@@ -165,10 +157,7 @@ Additional experience reports can be found here:
 
 - [Salvinorin B methoxymethyl ether (Wikipedia)](https://en.wikipedia.org/wiki/Salvinorin_B_methoxymethyl_ether)
 - [Salvinorin B methoxymethyl ether (Erowid Vault)](https://www.erowid.org/chemicals/salvinorin_b_ethoxymethyl_ether/)
-- [Salvinorin B methoxymethyl ether (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2842)
-
-## References
-NewPP limit report Cached time: 20251218075804 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.002 seconds CPU time usage: 0.067 seconds Real time usage: 0.104 seconds Preprocessor visited node count: 497/1000000 Post‐expand include size: 9800/2097152 bytes Template argument size: 1878/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 0/5000000 bytes ExtLoops count: 0Transclusion expansion time report (%,ms,calls,template) 100.00% 73.506 1 -total 54.43% 40.010 1 Template:SubstanceBox/Salvinorin_B_methoxymethyl_ether 49.24% 36.193 1 Template:SubstanceBox 25.07% 18.428 1 Template:Experience_reports 10.88% 8.001 1 Template:Headerpanel 5.11% 3.758 1 Template:Stub 4.63% 3.407 1 Template:References 4.53% 3.333 1 Template:SummarySheet 4.15% 3.052 6 Template:=`,
+- [Salvinorin B methoxymethyl ether (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2842)`,
   "wikipedia": `# Salvinorin B methoxymethyl ether
 *Source: https://en.wikipedia.org/wiki/Salvinorin_B_methoxymethyl_ether*
 

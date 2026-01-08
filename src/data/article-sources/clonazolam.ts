@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Clonazolam";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Clonazolam.md","displayName":"Drug Users Bible","size":1226},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Clonazolam.md","displayName":"Isomer Design","size":897},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Clonazolam.md","displayName":"PsychonautWiki","size":38331},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Clonazolam.md","displayName":"The Drug Classroom","size":17507},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clonazolam.md","displayName":"TripSit Factsheets","size":618},{"id":"wikipedia","fileName":"WIKIPEDIA - Clonazolam.md","displayName":"Wikipedia","size":2497}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Clonazolam.md","displayName":"Drug Users Bible","size":1226,"tokens":315},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Clonazolam.md","displayName":"Isomer Design","size":481,"tokens":198},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Clonazolam.md","displayName":"PsychonautWiki","size":26232,"tokens":6938},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Clonazolam.md","displayName":"The Drug Classroom","size":15097,"tokens":3769},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Clonazolam.md","displayName":"TripSit Factsheets","size":618,"tokens":181},{"id":"wikipedia","fileName":"WIKIPEDIA - Clonazolam.md","displayName":"Wikipedia","size":2497,"tokens":611}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Clonazolam
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -49,17 +49,7 @@ I suggest that this is one to use only in exceptional circumstances.
 
 **SMILES:** \`Clc1ccccc1C1=NCc2n(c3c1cc(cc3)N(=O)=O)c(nn2)C\`
 
-**InChI:** \`InChI=1S/C17H12ClN5O2/c1-10-20-21-16-9-19-17(12-4-2-3-5-14(12)18)13-8-11(23(24)25)6-7-15(13)22(10)16/h2-8H,9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [15468596](https://www.chemspider.com/Chemical-Structure.15468596.html/)
-- [12317881](https://pubchem.ncbi.nlm.nih.gov/compound/12317881)
-- [Q19607410](https://www.wikidata.org/wiki/Q19607410)
-- [Clonazolam](https://en.wikipedia.org/wiki/Clonazolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C17H12ClN5O2/c1-10-20-21-16-9-19-17(12-4-2-3-5-14(12)18)13-8-11(23(24)25)6-7-15(13)22(10)16/h2-8H,9H2,1H3\``,
   "psychonautwiki": `# Clonazolam
 *Source: https://psychonautwiki.org/wiki/Clonazolam*
 
@@ -236,43 +226,7 @@ Benzodiazepine overdoses may be treated effectively in a hospital environment, w
 
 - [Clonazolam (Wikipedia)](https://en.wikipedia.org/wiki/Clonazolam)
 - [Clonazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3036)
-- [Clonazolam (DrugBank)](https://go.drugbank.com/drugs/DB14716)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Hester, J. B., Rudzik, A. D., Kamdar, B. V. (November 1971). "6-phenyl-4H-s-triazolo[4,3-a][1,4]benzodiazepines which have central nervous system depressant activity".*Journal of Medicinal Chemistry*.**14**(11): 1078–1081.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00293a015](//doi.org/10.1021%2Fjm00293a015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-3. ↑ Borer, R., Gerecke, M. D., Kyburz, E. D.,[Triazolobenzazepines, process and intermediates for their preparation and medicines containing them](https://patents.google.com/patent/EP0072029B1/en)
-4. ↑ Moosmann, B., King, L. A., Auwärter, V. (June 2015). "Designer benzodiazepines: A new challenge".*World psychiatry: official journal of the World Psychiatric Association (WPA)*.**14**(2): 248.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/wps.20236](//doi.org/10.1002%2Fwps.20236).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1723-8617](//www.worldcat.org/issn/1723-8617).
-5. ↑ Huppertz, L. M., Bisel, P., Westphal, F., Franz, F., Auwärter, V., Moosmann, B. (1 July 2015).["Characterization of the four designer benzodiazepines clonazolam, deschloroetizolam, flubromazolam, and meclonazepam, and identification of their in vitro metabolites"](https://doi.org/10.1007/s11419-015-0277-6).*Forensic Toxicology*.**33**(2): 388–395.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s11419-015-0277-6](//doi.org/10.1007%2Fs11419-015-0277-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1860-8973](//www.worldcat.org/issn/1860-8973).
-6. ↑ 6.0 6.1 Meyer, M. R., Bergstrand, M. P., Helander, A., Beck, O. (May 2016). "Identification of main human urinary metabolites of the designer nitrobenzodiazepines clonazolam, meclonazepam, and nifoxipam by nano-liquid chromatography-high-resolution mass spectrometry for drug testing purposes".*Analytical and Bioanalytical Chemistry*.**408**(13): 3571–3591.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00216-016-9439-6](//doi.org/10.1007%2Fs00216-016-9439-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1618-2650](//www.worldcat.org/issn/1618-2650).
-7. ↑ Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-8. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A., National Opioid Use Guideline Group (November 2011). "Canadian guideline for safe and effective use of opioids for chronic noncancer pain: clinical summary for family physicians. Appendix B-6: Benzodiazepine Tapering".*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1715-5258](//www.worldcat.org/issn/1715-5258).
-9. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-10. ↑ McLean, M. J., Macdonald, R. L. (February 1988). "Benzodiazepines, but not beta carbolines, limit high frequency repetitive firing of action potentials of spinal cord neurons in cell culture".*The Journal of Pharmacology and Experimental Therapeutics*.**244**(2): 789–795.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-11. ↑ Hester, J. B., Rudzik, A. D., Kamdar, B. V. (November 1971).["6-Phenyl-4H-s-triazolo[4,3-a][1,4]benzodiazepines which have central nervous system depressant activity"](https://pubs.acs.org/doi/abs/10.1021/jm00293a015).*Journal of Medicinal Chemistry*.**14**(11): 1078–1081.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00293a015](//doi.org/10.1021%2Fjm00293a015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-12. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-13. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-14. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-15. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-16. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-17. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-18. ↑ Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-19. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-20. ↑ [https://eur-lex.europa.eu/resource.html?uri=cellar:6b5e9beb-1d9b-11ea-95ab-01aa75ed71a1.0001.02/DOC_1&format=PDF](https://eur-lex.europa.eu/resource.html?uri=cellar:6b5e9beb-1d9b-11ea-95ab-01aa75ed71a1.0001.02/DOC_1&format=PDF)
-21. ↑ [https://www.zakonyprolidi.cz/cs/2013-463](https://www.zakonyprolidi.cz/cs/2013-463)
-22. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-23. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-24. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-25. ↑ ["新たに８物質を麻薬等に指定し、規制の強化を図ります"](https://www.mhlw.go.jp/stf/houdou/0000212707_00003.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved December 1, 2022.
-26. ↑ ["Rozporządzenie Ministra zdrowia z dnia 21 sierpnia 2019 r. zmieniające rozporządzenie w sprawie wykazu substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](http://prawo.sejm.gov.pl/isap.nsf/download.xsp/WDU20190001745/O/D20191745.pdf)(PDF)(in Polish).
-27. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-28. ↑ ["Förordning (1992:1554) om kontroll av narkotika"](http://rkrattsbaser.gov.se/sfst?bet=1992:1554)(in Swedish). Regeringskansliet. Retrieved December 27, 2019.
-29. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-30. ↑ [Opiumwet, Lijst II (Dutch)](https://wetten.overheid.nl/BWBR0001941/2023-09-12#BijlageII), 2023
-31. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)
-32. ↑ Schedules of Controlled Substances: Temporary Placement of Etizolam, Flualprazolam, Clonazolam, Flubromazolam, and Diclazepam in Schedule I | [https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam](https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam)
-33. ↑ [Oregon Secretary of State Administrative Rules](https://secure.sos.state.or.us/oard/displayDivisionRules.action?selectedDivision=3987)
-34. ↑ [§ 54.1-3446. Schedule I](https://law.lis.virginia.gov/vacode/title54.1/chapter34/section54.1-3446/)NewPP limit report Cached time: 20251218075257 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.038 seconds CPU time usage: 0.472 seconds Real time usage: 1.030 seconds Preprocessor visited node count: 2428/1000000 Post‐expand include size: 159737/2097152 bytes Template argument size: 19043/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 41701/5000000 bytes Lua time usage: 0.450/7 seconds Lua virtual size: 8.84 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 900.282 1 -total 60.12% 541.272 1 Template:Reflist 29.75% 267.824 17 Template:Cite_journal 15.90% 143.113 7 Template:Citation 10.51% 94.595 5 Template:Citation_needed 9.55% 85.952 7 Template:Cite_web 8.91% 80.178 2 Template:Fix 8.77% 78.953 1 Template:BenzoDiscontinuation 8.33% 74.960 4 Template:Category_handler 7.70% 69.358 1 Template:Headerpanel`,
+- [Clonazolam (DrugBank)](https://go.drugbank.com/drugs/DB14716)`,
   "thedrugclassroom": `# Clonazolam
 *Source: https://thedrugclassroom.com/video/clonazolam/*
 
@@ -564,30 +518,7 @@ These symptoms likely arise from changes in the GABAA receptor complex that resu
 
 - Other depressants
 
----
-
-## References
-
-Bäckberg, M., Westerbergh, J., Beck, O., & Helander, A. (2016). Adverse events related to the new psychoactive substance 3-fluorophenmetrazine – results from the Swedish STRIDA project. *Clinical Toxicology* . https://doi.org/10.1080/15563650.2016.1211288
-
-Drugnet Ireland. (2017). European drug trends 2017, (62). Retrieved from http://www.hrb.ie/uploads/tx_hrbpublications/Drugnet_62_draft3.pdf
-
-EMCDDA. (n.d.). EMCDDA–Europol 2015 Annual Report on the implementation of Council Decision 2005/387/JHA.
-
-Hester, J. (1971). 6-phenyl-4H-s-triazolo[4,3-a][1,4]benzodiazepines which have central nervous system depressant activity. *Journal of Medicinal Chemistry* .
-
-Høiseth, G., Tuv, S. S., & Karinen, R. (2016). Blood concentrations of new designer benzodiazepines in forensic cases. *Forensic Science International* , *268* , 35–38. https://doi.org/10.1016/j.forsciint.2016.09.006
-
-Huppertz, L. M., Bisel, P., Westphal, F., Franz, F., Auwärter, V., & Moosmann, B. (2015). Characterization of the four designer benzodiazepines clonazolam, deschloroetizolam, flubromazolam, and meclonazepam, and identification of their in vitro metabolites. *Forensic Toxicology* , *33* (2), 388–395. https://doi.org/10.1007/s11419-015-0277-6
-
-Meyer, M. R., Bergstrand, M. P., Helander, A., & Beck, O. (2016). Identification of main human urinary metabolites of the designer nitrobenzodiazepines clonazolam, meclonazepam, and nifoxipam by nano-liquid chromatography-high-resolution mass spectrometry for drug testing purposes. *Analytical and Bioanalytical Chemistry* , *408* (13), 3571–3591. https://doi.org/10.1007/s00216-016-9439-6
-
-Moosmann, B., King, L. A., & Auwärter, V. (2015). Designer benzodiazepines: A new challenge. *World Psychiatry* , *14* (2), 248. https://doi.org/10.1002/wps.20236
-
-Pettersson Bergstrand, M., Helander, A., & Beck, O. (2016). Development and application of a multi-component LC–MS/MS method for determination of designer benzodiazepines in urine. *Journal of Chromatography B: Analytical Technologies in the Biomedical and Life Sciences* , *1035* , 104–110. https://doi.org/10.1016/j.jchromb.2016.08.047
-
-Pettersson Bergstrand, M., Helander, A., Hansson, T., & Beck, O. (2017). Detectability of designer benzodiazepines in CEDIA, EMIT II Plus, HEIA, and KIMS II immunochemical screening assays. *Drug Testing and Analysis* , *9* (4), 640–645. https://doi.org/10.1002/dta.2003
-`,
+---`,
   "tripsit-factsheets": `# Clonazolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/clonazolam*
 

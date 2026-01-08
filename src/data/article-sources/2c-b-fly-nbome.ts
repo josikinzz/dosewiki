@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2C-B-FLY-NBOMe";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-B-FLY-NBOMe.md","displayName":"TripSit Factsheets","size":350},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-B-FLY-NBOMe.md","displayName":"Wikipedia","size":1035}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-B-FLY-NBOMe.md","displayName":"TripSit Factsheets","size":350,"tokens":94},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-B-FLY-NBOMe.md","displayName":"Wikipedia","size":1035,"tokens":261}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 2C-B-FLY-NBOMe
 *Source: TripSit Factsheets (tripsit.me)*

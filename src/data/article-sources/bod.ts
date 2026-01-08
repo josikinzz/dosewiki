@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "BOD";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - BOD.md","displayName":"Isomer Design","size":7985},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BOD.md","displayName":"TripSit Factsheets","size":1067},{"id":"wikipedia","fileName":"WIKIPEDIA - BOD.md","displayName":"Wikipedia","size":6846}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - BOD.md","displayName":"Isomer Design","size":7985,"tokens":2081},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - BOD.md","displayName":"TripSit Factsheets","size":1067,"tokens":299},{"id":"wikipedia","fileName":"WIKIPEDIA - BOD.md","displayName":"Wikipedia","size":6846,"tokens":1800}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# BOD
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=14*

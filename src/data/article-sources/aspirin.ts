@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Aspirin";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aspirin.md","displayName":"TripSit Factsheets","size":1099},{"id":"wikipedia","fileName":"WIKIPEDIA - Aspirin.md","displayName":"Wikipedia","size":54826}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Aspirin.md","displayName":"TripSit Factsheets","size":1099,"tokens":281},{"id":"wikipedia","fileName":"WIKIPEDIA - Aspirin.md","displayName":"Wikipedia","size":54826,"tokens":13187}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Aspirin
 *Source: TripSit Factsheets (tripsit.me)*

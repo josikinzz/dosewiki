@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Kanna";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kanna.md","displayName":"Drug Users Bible","size":3832},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Kanna.md","displayName":"The Drug Classroom","size":1298},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Kanna.md","displayName":"TripSit Factsheets","size":1064},{"id":"wikipedia","fileName":"WIKIPEDIA - Kanna.md","displayName":"Wikipedia","size":9256}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kanna.md","displayName":"Drug Users Bible","size":3832,"tokens":989},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Kanna.md","displayName":"The Drug Classroom","size":1298,"tokens":340},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Kanna.md","displayName":"TripSit Factsheets","size":1064,"tokens":268},{"id":"wikipedia","fileName":"WIKIPEDIA - Kanna.md","displayName":"Wikipedia","size":9256,"tokens":2330}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Kanna
 *Source: Drug Users Bible by Dominic Milton Trott*

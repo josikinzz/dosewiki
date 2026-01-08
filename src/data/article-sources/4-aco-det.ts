@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-AcO-DET";
-export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-DET.md","displayName":"Erowid","size":4359},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-DET.md","displayName":"Isomer Design","size":788},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-DET.md","displayName":"PsychonautWiki","size":26113},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DET.md","displayName":"TripSit Factsheets","size":522},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DET.md","displayName":"Wikipedia","size":1420}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 4-AcO-DET.md","displayName":"Erowid","size":4359,"tokens":1235},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-AcO-DET.md","displayName":"Isomer Design","size":460,"tokens":190},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-AcO-DET.md","displayName":"PsychonautWiki","size":20969,"tokens":5919},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-AcO-DET.md","displayName":"TripSit Factsheets","size":522,"tokens":166},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-AcO-DET.md","displayName":"Wikipedia","size":1420,"tokens":413}];
 export const contents: Record<string, string> = {
   "erowid": `# 4-AcO-DET
 *Source: https://erowid.org/chemicals/4_acetoxy_det/4_acetoxy_det.shtml*
@@ -102,16 +102,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCN(CCc1c[nH]c2c1c(ccc2)OC(=O)C)CC\`
 
-**InChI:** \`InChI=1S/C16H22N2O2/c1-4-18(5-2)10-9-13-11-17-14-7-6-8-15(16(13)14)20-12(3)19/h6-8,11,17H,4-5,9-10H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106239](https://www.chemspider.com/Chemical-Structure.21106239.html/)
-- [24801867](https://pubchem.ncbi.nlm.nih.gov/compound/24801867)
-- [Q3491314](https://www.wikidata.org/wiki/Q3491314)
-- [4-AcO-DET](https://en.wikipedia.org/wiki/4-AcO-DET)
-`,
+**InChI:** \`InChI=1S/C16H22N2O2/c1-4-18(5-2)10-9-13-11-17-14-7-6-8-15(16(13)14)20-12(3)19/h6-8,11,17H,4-5,9-10H2,1-3H3\``,
   "psychonautwiki": `# 4-AcO-DET
 *Source: https://psychonautwiki.org/wiki/4-AcO-DET*
 
@@ -300,21 +291,7 @@ Due to its relative obscurity, the possession and sale of 4-AcO-DET is unschedul
 
 ### Discussion
 
-- [The Big & Dandy 4-AcO-DET Thread (Bluelight)](https://www.bluelight.org/xf/threads/101364)
-
-## References
-1. ↑ Takahashi, M.; Nagashima, M.; Suzuki, J.; Yasuda, I; Yoshida, T. (February 15, 2009). "Creation and application of psychoactive designer drugs data library using liquid chromatography with photodiode array spectrophotometry detector and gas chromatography–mass spectrometry".**77**(4): 1245–1272.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.talanta.2008.07.062](//doi.org/10.1016%2Fj.talanta.2008.07.062).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1873-3573](//www.worldcat.org/issn/1873-3573).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0039-9140](//www.worldcat.org/issn/0039-9140).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01767116](//www.worldcat.org/oclc/01767116).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[19084633](//www.ncbi.nlm.nih.gov/pubmed/19084633).
-2. ↑ ["Compound Summary - 3-(2-(Diethylamino)ethyl)-1H-indol-4-yl acetate"](https://pubchem.ncbi.nlm.nih.gov/compound/24801867).*PubChem*. Retrieved July 18, 2020.
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-4. ↑ ["Betäubungsmittelgesetz (BtMG) Anlage I"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)[Narcotics Act (BtMG) Schedule I] (in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["Sechste Verordnung über die den Betäubungsmitteln gleichgestellten Stoffe"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl174s0097.pdf)(PDF).*Bundesgesetzblatt Jahrgang 1974 Teil I Nr. 6*(in German). Bundesanzeiger Verlag [Federal Gazette] (published January 23, 1974). January 17, 1974. p. 97.[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[0344-7634](//www.worldcat.org/issn/0344-7634).
-6. ↑ ["Betäubungsmittelgesetz (BtMG) § 29"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)[Narcotics Act (BtMG) § 29] (in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-7. ↑ [危険ドラッグの成分４物質を新たに指定薬物に指定](https://www.mhlw.go.jp/stf/houdou/0000092698.html)(in Japanese), 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)], retrieved 2 May 2022
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ ["Förordning om ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](http://www.notisum.se/rnp/sls/sfs/20050733.pdf)(PDF).*Svensk författningssamling*(in Swedish). Läkemedelsverket [Medical Products Agency] (published October 18, 2005). October 6, 2005.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1101-5225](//www.worldcat.org/issn/1101-5225). SFS 2005:733.
-10. ↑ ["Bakanlar Kurulu Kararı - Karar Sayısı : 2013/5742"](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published January 25, 2014). December 16, 2013.
-11. ↑ ["Kararnamenin Eki: Liste"](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)(PDF).*Resmî Gazete, Sayı: 28893*(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published January 25, 2014). December 16, 2013. 2013/5742.
-12. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.NewPP limit report Cached time: 20251218075035 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.057 seconds CPU time usage: 0.328 seconds Real time usage: 0.620 seconds Preprocessor visited node count: 1669/1000000 Post‐expand include size: 127642/2097152 bytes Template argument size: 19929/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15460/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 8.45 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 476.198 1 -total 21.66% 103.136 4 Template:Citation_needed 19.03% 90.644 9 Template:Cite_web 18.79% 89.476 2 Template:Fix 17.69% 84.241 4 Template:Category_handler 13.07% 62.237 2 Template:Cite_journal 11.25% 53.559 2 Template:Further 10.80% 51.448 1 Template:SubstanceBox/4-AcO-DET 9.96% 47.451 1 Template:SubstanceBox 6.26% 29.825 1 Template:Effects/base`,
+- [The Big & Dandy 4-AcO-DET Thread (Bluelight)](https://www.bluelight.org/xf/threads/101364)`,
   "tripsit-factsheets": `# 4-AcO-DET
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-aco-det*
 

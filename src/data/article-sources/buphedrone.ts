@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Buphedrone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Buphedrone.md","displayName":"TripSit Factsheets","size":509},{"id":"wikipedia","fileName":"WIKIPEDIA - Buphedrone.md","displayName":"Wikipedia","size":2271}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Buphedrone.md","displayName":"TripSit Factsheets","size":509,"tokens":137},{"id":"wikipedia","fileName":"WIKIPEDIA - Buphedrone.md","displayName":"Wikipedia","size":2271,"tokens":556}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Buphedrone
 *Source: TripSit Factsheets (tripsit.me)*

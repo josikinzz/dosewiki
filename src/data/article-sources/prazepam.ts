@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Prazepam";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Prazepam.md","displayName":"DrugBank","size":15317},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Prazepam.md","displayName":"TripSit Factsheets","size":896},{"id":"wikipedia","fileName":"WIKIPEDIA - Prazepam.md","displayName":"Wikipedia","size":4972}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Prazepam.md","displayName":"DrugBank","size":15317,"tokens":3847},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Prazepam.md","displayName":"TripSit Factsheets","size":896,"tokens":237},{"id":"wikipedia","fileName":"WIKIPEDIA - Prazepam.md","displayName":"Wikipedia","size":4972,"tokens":1174}];
 export const contents: Record<string, string> = {
   "drugbank": `# Prazepam
 *Source: https://go.drugbank.com/drugs/DB01588*

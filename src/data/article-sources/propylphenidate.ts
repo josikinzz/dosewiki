@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Propylphenidate";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Propylphenidate.md","displayName":"Drug Users Bible","size":4023},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylphenidate.md","displayName":"TripSit Factsheets","size":441},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylphenidate.md","displayName":"Wikipedia","size":460}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Propylphenidate.md","displayName":"Drug Users Bible","size":4023,"tokens":1086},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Propylphenidate.md","displayName":"TripSit Factsheets","size":441,"tokens":127},{"id":"wikipedia","fileName":"WIKIPEDIA - Propylphenidate.md","displayName":"Wikipedia","size":460,"tokens":113}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# PPH
 *Source: Drug Users Bible by Dominic Milton Trott*

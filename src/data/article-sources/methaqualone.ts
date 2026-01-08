@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methaqualone";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Methaqualone.md","displayName":"DrugBank","size":13312},{"id":"erowid","fileName":"EROWID - Methaqualone.md","displayName":"Erowid","size":17728},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methaqualone.md","displayName":"Isomer Design","size":688},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methaqualone.md","displayName":"PsychonautWiki","size":20156},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methaqualone.md","displayName":"The Drug Classroom","size":124631},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methaqualone.md","displayName":"TripSit Factsheets","size":575},{"id":"wikipedia","fileName":"WIKIPEDIA - Methaqualone.md","displayName":"Wikipedia","size":12127}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Methaqualone.md","displayName":"DrugBank","size":13312,"tokens":3271},{"id":"erowid","fileName":"EROWID - Methaqualone.md","displayName":"Erowid","size":17728,"tokens":4545},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methaqualone.md","displayName":"Isomer Design","size":372,"tokens":143},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methaqualone.md","displayName":"PsychonautWiki","size":17400,"tokens":4610},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methaqualone.md","displayName":"The Drug Classroom","size":118330,"tokens":30553},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methaqualone.md","displayName":"TripSit Factsheets","size":575,"tokens":165},{"id":"wikipedia","fileName":"WIKIPEDIA - Methaqualone.md","displayName":"Wikipedia","size":12127,"tokens":3222}];
 export const contents: Record<string, string> = {
   "drugbank": `# Methaqualone
 *Source: https://go.drugbank.com/drugs/DB04833*
@@ -1008,16 +1008,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`Cc1nc2ccccc2c(=O)n1c1ccccc1C\`
 
-**InChI:** \`InChI=1S/C16H14N2O/c1-11-7-3-6-10-15(11)18-12(2)17-14-9-5-4-8-13(14)16(18)19/h3-10H,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [6055](https://www.chemspider.com/Chemical-Structure.6055.html/)
-- [6292](https://pubchem.ncbi.nlm.nih.gov/compound/6292)
-- [Q423912](https://www.wikidata.org/wiki/Q423912)
-- [Methaqualone](https://en.wikipedia.org/wiki/Methaqualone)
-`,
+**InChI:** \`InChI=1S/C16H14N2O/c1-11-7-3-6-10-15(11)18-12(2)17-14-9-5-4-8-13(14)16(18)19/h3-10H,1-2H3\``,
   "psychonautwiki": `# Methaqualone
 *Source: https://psychonautwiki.org/wiki/Methaqualone*
 
@@ -1162,18 +1153,7 @@ Abrupt discontinuation of methaqualone following regular dosing over several day
 - [Methaqualone (Wikipedia)](https://en.wikipedia.org/wiki/Methaqualone)
 - [Methaqualone (Erowid Vault)](https://www.erowid.org/chemicals/methaqualone/methaqualone.shtml)
 - [Methaqualone (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3000)
-- [Quaaludes (Drugs.com)](http://www.drugs.com/quaaludes.html)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Vithal, S. B., Campanella, L. A., Hays, E. E.,[Hydroxy and alkoxy aryl quinazolinones](https://patents.google.com/patent/US3135659A/en)
-3. ↑ [Methaqualone (Quaalude) Synthesis - [www.rhodium.ws]](https://chemistry.mdma.ch/hiveboard/rhodium/quaalude.html)
-4. ↑ 4.0 4.1 Hammer, H., Bader, B. M., Ehnert, C., Bundgaard, C., Bunch, L., Hoestgaard-Jensen, K., Schroeder, O. H.-U., Bastlund, J. F., Gramowski-Voß, A., Jensen, A. A. (August 2015). "A Multifaceted GABAA Receptor Modulator: Functional Properties and Mechanism of Action of the Sedative-Hypnotic and Recreational Drug Methaqualone (Quaalude)".*Molecular Pharmacology*.**88**(2): 401–420.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/mol.115.099291](//doi.org/10.1124%2Fmol.115.099291).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1521-0111](//www.worldcat.org/issn/1521-0111).
-5. ↑ [methaqualone (CHEBI:6821)](https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:6821)
-6. ↑ [Anlage II BtMG - Einzelnorm](http://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ Participation, E.,[Misuse of Drugs Act 1971](https://www.legislation.gov.uk/ukpga/1971/38/schedule/2)
-9. ↑ [http://www.drugs.com/article/csa-schedule-1.html](http://www.drugs.com/article/csa-schedule-1.html)NewPP limit report Cached time: 20251218075603 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.047 seconds CPU time usage: 0.326 seconds Real time usage: 0.606 seconds Preprocessor visited node count: 1635/1000000 Post‐expand include size: 98586/2097152 bytes Template argument size: 11326/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 8774/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 8.16 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 486.276 1 -total 27.05% 131.541 6 Template:Citation 17.52% 85.173 3 Template:Citation_needed 15.44% 75.074 1 Template:Fix 14.70% 71.474 1 Template:SubstanceBox/Methaqualone 14.53% 70.637 2 Template:Category_handler 14.38% 69.932 1 Template:DepressantOD 13.75% 66.887 1 Template:SubstanceBox 13.52% 65.749 1 Template:GenericPanel/warning 12.87% 62.567 1 Template:GenericPanel`,
+- [Quaaludes (Drugs.com)](http://www.drugs.com/quaaludes.html)`,
   "thedrugclassroom": `# Methaqualone
 *Source: https://thedrugclassroom.com/video/methaqualone/*
 
@@ -2917,112 +2897,7 @@ Dissociatives are best avoided.
 - Given naloxone with no response, but 3 mg of doxapram led to rapid response in respiratory rate and depth. 
 - Regained consciousness and appeared to have near-normal responsiveness during the next 2 to 3 hours under observation.
 
----
-
-## References
-
-**(2015)** [A Multifaceted GABAA Receptor Modulator: Functional Properties and Mechanism of Action of the Sedative-Hypnotic and Recreational Drug Methaqualone (Quaalude).](https://www.ncbi.nlm.nih.gov/pubmed/26056160)
-
-**(2013)** [Drug Abuse Among The Youth In Kenya](http://www.ijstr.org/final-print/june2013/Drug-Abuse-Among-The-Youth-In-Kenya.pdf)
-
-**(2011)** [Blockbusters and controlled substances: Miltown, Quaalude, and consumer demand for drugs in postwar America.](https://www.ncbi.nlm.nih.gov/pubmed/22035715)
-
-**(2011)** [Drugs and violent crime in southern Africa](http://www.saflii.org/na/journals/SADCLJ/2011/8.pdf)
-
-**(2007)** [Quaalude Lemmon 714 Mimic Tablets (Containing Diazepam) – Surprising persistence](https://erowid.org/library/periodicals/microgram/microgram_2007-01.pdf)
-
-**(2005)** [Treatment for methaqualone dependence in adults.](https://www.ncbi.nlm.nih.gov/pubmed/15846700)
-
-**(2002)** [Drugs and Crime in South Africa A Study in Three Cities](https://www.africaportal.org/publications/drugs-and-crime-in-south-africa-a-study-in-three-cities/)
-
-**(1995)** [Narco-trafficking in Africa: Security, social, and economic implications](http://www.tandfonline.com/doi/abs/10.1080/10246029.1995.9627654?journalCode=rasr20)
-
-**(1988)** [Comparative study of the abuse liability of alprazolam, lorazepam, diazepam, methaqualone, and placebo.](https://www.ncbi.nlm.nih.gov/pubmed/3061941)
-
-**(1988)** [Methaqualone.](https://www.ncbi.nlm.nih.gov/pubmed/3397524)
-
-**(1985)** [A dozen and two years of methaqualone: a case report.](https://www.ncbi.nlm.nih.gov/pubmed/4095224)
-
-**(1984)** [Fixed drug eruption due to methaqualone.](https://www.ncbi.nlm.nih.gov/pubmed/6235782)
-
-**(1981)** [Methaqualone abuse implicated in injuries, deaths nationwide](http://jamanetwork.com/journals/jama/article-abstract/360925)
-
-**(1981)** [Methaqualone ingestion: evaluation of present status.](https://www.ncbi.nlm.nih.gov/pubmed/7339211)
-
-**(1981)** [Incidence of Methaqualone in Driving-Under-the-Influence (DUI) Cases in the State of Georgia](https://academic.oup.com/jat/article-abstract/5/6/270/826123/Incidence-of-Methaqualone-in-Driving-Under-the?redirectedFrom=fulltext)
-
-**(1978)** [Methaqualone abuse among U.S. army troops stationed in Europe.](https://www.ncbi.nlm.nih.gov/pubmed/640763)
-
-**(1975)** [Severe peripheral neuropathy after mandrax overdose.](https://www.ncbi.nlm.nih.gov/pubmed/165858)
-
-**(1975)** [Effects of dixyrazine and methaqualone on the sleep pattern in normal man.](https://www.ncbi.nlm.nih.gov/pubmed/9296)
-
-**(1974)** [Methaqualone: Another “Safe” Sedative?](http://journals.sagepub.com/doi/abs/10.1177/002204267400400204?journalCode=joda)
-
-**(1974)** [Methaqualone Abuse In Europe](http://jamanetwork.com/journals/jama/article-abstract/358570)
-
-**(1974)** [Personalities and Attitudes of Nonmedical Users of Methaqualone](http://jamanetwork.com/journals/jamapsychiatry/article-abstract/491123)
-
-**(1974)** [Methaqualone poisoning with muscular hyperactivity necessitating the use of curare.](https://www.ncbi.nlm.nih.gov/pubmed/4810682)
-
-**(1974)** [The influence of diphenhydramine on the absorption of methaqualone in man.](https://www.ncbi.nlm.nih.gov/pubmed/22454958)
-
-**(1974)** [Absorption and clearance of secobarbital, heptabarbital, methaqualone, and ethinamate.](https://www.ncbi.nlm.nih.gov/pubmed/4604053)
-
-**(1973)** [Methaqualone abuse. “Luding out”.](https://www.ncbi.nlm.nih.gov/pubmed/4739953)
-
-**(1973)** [Prescribing mandrax.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1589304/)
-
-**(1973)** [Methaqualone abuse, the quiet epidemic.](https://www.ncbi.nlm.nih.gov/pubmed/4739954)
-
-**(1973)** [A Drug of Abuse—Mandrax](http://www.drugsandalcohol.ie/6575/1/611-0566.pdf)
-
-**(1973)** [Quaalude alley: a one-way street.](https://www.ncbi.nlm.nih.gov/pubmed/4685248)
-
-**(1973)** [Methaqualone](https://www.ncbi.nlm.nih.gov/labs/articles/4490684/)
-
-**(1973)** [Methaqualone Abuse: An Epidemic for the Seventies](http://journals.sagepub.com/doi/abs/10.2190/QTFK-7D1P-G59B-C42T)
-
-**(1973)** [Nonmedical Use of Methaqualone](http://jamanetwork.com/journals/jamapsychiatry/article-abstract/490888)
-
-**(1973)** [Methaqualone withdrawal.](https://www.ncbi.nlm.nih.gov/pubmed/4197070)
-
-**(1973)** [Methaqualone–a Dr. Jekyll and Mr. Hyde?](https://www.ncbi.nlm.nih.gov/pubmed/4799567)
-
-**(1972)** [Intravenous methaqualone: a new non-barbiturate anaesthetic.](https://www.ncbi.nlm.nih.gov/pubmed/5058138)
-
-**(1972)** [Withdrawal Syndrome with Methaqualone](http://www.tandfonline.com/doi/abs/10.1080/02791072.1972.10471474)
-
-**(1972)** [Methaqualone: Just Another Downer](http://www.tandfonline.com/doi/abs/10.1080/02791072.1972.10471492?journalCode=ujpd19)
-
-**(1968)** [Mandrax poisoning: conservative management of 116 patients.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1985750/)
-
-**(1968)** [Quantitative Analysis of the Effect of Methaqualone on the Human EEG](http://onlinelibrary.wiley.com/doi/10.1002/j.1552-4604.1968.tb00100.x/full)
-
-**(1967)** [Methaqualone addiction and delirium tremens.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1842386/)
-
-**(1967)** [Tolerance to Mandrax](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1842193/)
-
-**(1967)** [Acute Methaqualone (Mandrax) Poisoning](http://journals.sagepub.com/doi/abs/10.1177/003693306701200205?journalCode=scma)
-
-**(1967)** [Experimental studies on sleep produced by methaqualone](http://www.sciencedirect.com/science/article/pii/0024320567902068)
-
-**(1967)** [Poisoning with Mandrax](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1840623/)
-
-**(1966)** [Dependency on Methaqualone Hydrochloride (Melsedin)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1943094/)
-
-**(1966)** [Poisoning with Mandrax](http://www.bmj.com/content/2/5527/1455.4)
-
-**(1966)** [Oral premedication: a study of the sedative effects of mandrax.](https://www.ncbi.nlm.nih.gov/pubmed/5333885)
-
-**(1966)** [Fatal poisoning with methaqualone and diphenhydramine.](https://www.ncbi.nlm.nih.gov/pubmed/4162340)
-
-**(1963)** [Side-effects of methaqualone.](https://www.ncbi.nlm.nih.gov/pubmed/14016566)
-
-**(1962)** [The hypnotic effects of methaqualone.](https://www.ncbi.nlm.nih.gov/pubmed/13919886)
-
-**(1961)** [Methaqualone as a Hypnotic](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1952931/)
-`,
+---`,
   "tripsit-factsheets": `# Methaqualone
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/methaqualone*
 

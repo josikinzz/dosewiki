@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sinicuichi";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sinicuichi.md","displayName":"Drug Users Bible","size":1227},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sinicuichi.md","displayName":"TripSit Factsheets","size":573},{"id":"wikipedia","fileName":"WIKIPEDIA - Sinicuichi.md","displayName":"Wikipedia","size":1340}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sinicuichi.md","displayName":"Drug Users Bible","size":1227,"tokens":308},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Sinicuichi.md","displayName":"TripSit Factsheets","size":573,"tokens":148},{"id":"wikipedia","fileName":"WIKIPEDIA - Sinicuichi.md","displayName":"Wikipedia","size":1340,"tokens":325}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Sinicuichi
 *Source: Drug Users Bible by Dominic Milton Trott*

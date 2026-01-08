@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Psilocin";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Psilocin.md","displayName":"Disregard Everything I Say","size":10239},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Psilocin.md","displayName":"Isomer Design","size":13735},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Psilocin.md","displayName":"TripSit Factsheets","size":602},{"id":"wikipedia","fileName":"WIKIPEDIA - Psilocin.md","displayName":"Wikipedia","size":10845}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Psilocin.md","displayName":"Disregard Everything I Say","size":10239,"tokens":2543},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Psilocin.md","displayName":"Isomer Design","size":13735,"tokens":3631},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Psilocin.md","displayName":"TripSit Factsheets","size":602,"tokens":172},{"id":"wikipedia","fileName":"WIKIPEDIA - Psilocin.md","displayName":"Wikipedia","size":10845,"tokens":2818}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Psilocin
 *Source: https://disregardeverythingisay.com/post/34000699680/psilocin-mushrooms-broken-down-and-described*

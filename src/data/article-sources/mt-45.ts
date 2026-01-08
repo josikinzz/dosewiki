@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MT-45";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MT-45.md","displayName":"The Drug Classroom","size":8596},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MT-45.md","displayName":"TripSit Factsheets","size":1011},{"id":"wikipedia","fileName":"WIKIPEDIA - MT-45.md","displayName":"Wikipedia","size":2044}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - MT-45.md","displayName":"The Drug Classroom","size":7224,"tokens":1868},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MT-45.md","displayName":"TripSit Factsheets","size":1011,"tokens":268},{"id":"wikipedia","fileName":"WIKIPEDIA - MT-45.md","displayName":"Wikipedia","size":2044,"tokens":515}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# MT-45
 *Source: https://thedrugclassroom.com/video/mt-45/*
@@ -176,28 +176,7 @@ For similar reasons, dissociatives like ketamine, MXE, and DXM should be avoided
 
 Due to the lack of information, it’s wise to avoid other combinations as well.
 
----
-
-## References
-
-**(2016)** [Analysis of MT-45, a Novel Synthetic Opioid, in Human Whole Blood by LC-MS-MS and Its Identification in a Drug-Related Death.](https://www.ncbi.nlm.nih.gov/pubmed/27091064)
-
-**(2015)** [Understanding the availability, prevalence of use, desired effects, acute toxicity and dependence potential of the novel opioid MT-45.](https://www.ncbi.nlm.nih.gov/pubmed/25430506)
-
-**(2014)** [MT-45, a new psychoactive substance associated with hearing loss and unconsciousness.](https://www.ncbi.nlm.nih.gov/pubmed/25175898)
-
-**(2014)** [MT-45–a dangerous and potentially ototoxic internet drug](http://europepmc.org/abstract/med/25253604)
-
-**(2014)** [MT-45: EMCDDA-Europol Joint Report](http://www.emcdda.europa.eu/attachements.cfm/att_230615_EN_TDAS14007ENN.pdf)
-
-**(2013)** [Identification of two new-type designer drugs, piperazine derivative MT-45 (I-C6) and synthetic peptide Noopept (GVS-111), with synthetic cannabinoid A-834735, cathinone derivative 4-methoxy-α-PVP, and phenethylamine derivative 4-methylbuphedrine from illegal products](http://link.springer.com/article/10.1007%2Fs11419-013-0194-5)
-
-**(1976)** [Comparative study of 1-cyclohexyl-4-(1,2-diphenylethyl)-piperazine and its enantiomorphs on analgesic and othe pharmacological activities in experimental animals.](https://www.ncbi.nlm.nih.gov/pubmed/962421)
-
----
-
-## Test Results
-`,
+---`,
   "tripsit-factsheets": `# MT-45
 *Source: TripSit Factsheets (tripsit.me)*
 

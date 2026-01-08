@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AB-FUBINACA";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AB-FUBINACA.md","displayName":"TripSit Factsheets","size":1052},{"id":"wikipedia","fileName":"WIKIPEDIA - AB-FUBINACA.md","displayName":"Wikipedia","size":2046}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AB-FUBINACA.md","displayName":"TripSit Factsheets","size":1052,"tokens":302},{"id":"wikipedia","fileName":"WIKIPEDIA - AB-FUBINACA.md","displayName":"Wikipedia","size":2046,"tokens":495}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# AB-FUBINACA
 *Source: TripSit Factsheets (tripsit.me)*

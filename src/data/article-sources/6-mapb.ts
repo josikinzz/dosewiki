@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "6-MAPB";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 6-MAPB.md","displayName":"TripSit Factsheets","size":882},{"id":"wikipedia","fileName":"WIKIPEDIA - 6-MAPB.md","displayName":"Wikipedia","size":795}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 6-MAPB.md","displayName":"TripSit Factsheets","size":882,"tokens":237},{"id":"wikipedia","fileName":"WIKIPEDIA - 6-MAPB.md","displayName":"Wikipedia","size":795,"tokens":212}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 6-MAPB
 *Source: TripSit Factsheets (tripsit.me)*

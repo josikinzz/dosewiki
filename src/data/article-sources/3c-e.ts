@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3C-E";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3C-E.md","displayName":"Isomer Design","size":3400},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3C-E.md","displayName":"PsychonautWiki","size":24726},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3C-E.md","displayName":"TripSit Factsheets","size":826},{"id":"wikipedia","fileName":"WIKIPEDIA - 3C-E.md","displayName":"Wikipedia","size":1114}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3C-E.md","displayName":"Isomer Design","size":3400,"tokens":943},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3C-E.md","displayName":"PsychonautWiki","size":21920,"tokens":5922},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3C-E.md","displayName":"TripSit Factsheets","size":826,"tokens":241},{"id":"wikipedia","fileName":"WIKIPEDIA - 3C-E.md","displayName":"Wikipedia","size":1114,"tokens":299}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 3C-E
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=25*
@@ -225,17 +225,7 @@ Tolerance to the effects of 3C-E is built almost immediately after ingestion. Af
 ## External links
 
 - [3C-E (Wikipedia)](https://en.wikipedia.org/wiki/3C-E)
-- [3C-E (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=25)
-
-## References
-1. ↑ [Erowid Online Books : “PIHKAL” - #25 3C-E](https://erowid.org/library/books_online/pihkal/pihkal025.shtml)
-2. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-3. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-4. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-5. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-6. ↑ [危険ドラッグの成分１６物質を新たに指定薬物に指定](https://www.mhlw.go.jp/stf/houdou/0000078803.html)(in Japanese), 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)], retrieved 2 May 2022
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075031 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.083 seconds CPU time usage: 0.401 seconds Real time usage: 0.746 seconds Preprocessor visited node count: 1852/1000000 Post‐expand include size: 164638/2097152 bytes Template argument size: 27902/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 8757/5000000 bytes Lua time usage: 0.220/7 seconds Lua virtual size: 8.32 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 580.178 1 -total 41.57% 241.183 1 Template:Reflist 20.38% 118.263 1 Template:Effects/base 19.86% 115.225 3 Template:Citation 19.77% 114.692 1 Template:Effect_list 19.11% 110.900 2 Template:Effect_column 17.10% 99.229 3 Template:Citation_needed 15.26% 88.520 1 Template:Effects/physical 14.87% 86.252 2 Template:Fix 14.77% 85.665 6 Template:Effect_panel`,
+- [3C-E (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=25)`,
   "tripsit-factsheets": `# 3C-E
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3c-e*
 

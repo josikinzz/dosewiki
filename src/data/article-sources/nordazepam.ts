@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nordazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nordazepam.md","displayName":"TripSit Factsheets","size":841},{"id":"wikipedia","fileName":"WIKIPEDIA - Nordazepam.md","displayName":"Wikipedia","size":3894}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nordazepam.md","displayName":"TripSit Factsheets","size":841,"tokens":216},{"id":"wikipedia","fileName":"WIKIPEDIA - Nordazepam.md","displayName":"Wikipedia","size":3894,"tokens":914}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nordazepam
 *Source: TripSit Factsheets (tripsit.me)*

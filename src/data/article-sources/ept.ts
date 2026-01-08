@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "EPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - EPT.md","displayName":"Isomer Design","size":887},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - EPT.md","displayName":"PsychonautWiki","size":13177},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - EPT.md","displayName":"TripSit Factsheets","size":538},{"id":"wikipedia","fileName":"WIKIPEDIA - EPT.md","displayName":"Wikipedia","size":1038}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - EPT.md","displayName":"Isomer Design","size":411,"tokens":168},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - EPT.md","displayName":"PsychonautWiki","size":10692,"tokens":2877},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - EPT.md","displayName":"TripSit Factsheets","size":538,"tokens":246},{"id":"wikipedia","fileName":"WIKIPEDIA - EPT.md","displayName":"Wikipedia","size":1038,"tokens":252}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# EPT
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5075*
@@ -17,17 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCN(CCc1c[nH]c2c1cccc2)CC\`
 
-**InChI:** \`InChI=1S/C15H22N2/c1-3-10-17(4-2)11-9-13-12-16-15-8-6-5-7-14(13)15/h5-8,12,16H,3-4,9-11H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [81407759](https://www.chemspider.com/Chemical-Structure.81407759.html/)
-- [74405184](https://pubchem.ncbi.nlm.nih.gov/compound/74405184)
-- [Q55639672](https://www.wikidata.org/wiki/Q55639672)
-- [Ethylpropyltryptamine](https://en.wikipedia.org/wiki/Ethylpropyltryptamine)
-- [List of substituted tryptamines](https://en.wikipedia.org/wiki/Substituted_tryptamine#List_of_substituted_tryptamines)
-`,
+**InChI:** \`InChI=1S/C15H22N2/c1-3-10-17(4-2)11-9-13-12-16-15-8-6-5-7-14(13)15/h5-8,12,16H,3-4,9-11H2,1-2H3\``,
   "psychonautwiki": `# EPT
 *Source: https://psychonautwiki.org/wiki/EPT*
 
@@ -157,15 +147,7 @@ Due to its relative obscurity, the possession and sale of EPT is unscheduled in 
 
 ### Discussion
 
-- [The Small & Handy EPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/856610)
-
-## References
-1. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-2. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-3. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-4. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-5. ↑ ["Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.
-6. ↑ [Tabella 1](http://www.salute.gov.it/imgs/C_17_pagineAree_3729_0_file.pdf)(PDF)(in Italian), Ministero della Salute (Ministry of Health), retrieved 24 November 2020NewPP limit report Cached time: 20251212142642 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.026 seconds CPU time usage: 0.275 seconds Real time usage: 0.629 seconds Preprocessor visited node count: 1291/1000000 Post‐expand include size: 60713/2097152 bytes Template argument size: 5955/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 6781/5000000 bytes Lua time usage: 0.260/7 seconds Lua virtual size: 8.42 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 536.546 1 -total 29.34% 157.439 5 Template:Cite_web 25.02% 134.245 2 Template:Citation_needed 18.40% 98.728 1 Template:Citation 15.44% 82.819 1 Template:Fix 14.61% 78.396 2 Template:Category_handler 7.41% 39.746 1 Template:SubstanceBox/EPT 6.77% 36.302 1 Template:SubstanceBox 5.77% 30.950 1 Template:Effects/base 5.50% 29.523 2 Template:Further`,
+- [The Small & Handy EPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/856610)`,
   "tripsit-factsheets": `# EPT
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/ept*
 

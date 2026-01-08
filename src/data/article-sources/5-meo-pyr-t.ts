@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-MeO-PYR-T";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-PYR-T.md","displayName":"Isomer Design","size":6653},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-PYR-T.md","displayName":"TripSit Factsheets","size":549}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-MeO-PYR-T.md","displayName":"Isomer Design","size":6653,"tokens":1786},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-MeO-PYR-T.md","displayName":"TripSit Factsheets","size":549,"tokens":164}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 5-MeO-PYR-T
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=43*

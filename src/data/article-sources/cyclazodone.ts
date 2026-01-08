@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclazodone";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Cyclazodone.md","displayName":"Isomer Design","size":789},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cyclazodone.md","displayName":"PsychonautWiki","size":32520},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclazodone.md","displayName":"Wikipedia","size":1362}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Cyclazodone.md","displayName":"Isomer Design","size":380,"tokens":153},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cyclazodone.md","displayName":"PsychonautWiki","size":26588,"tokens":7181},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclazodone.md","displayName":"Wikipedia","size":1362,"tokens":327}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Cyclazodone
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=1434*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`O=C1N=C(OC1c1ccccc1)NC1CC1\`
 
-**InChI:** \`InChI=1S/C12H12N2O2/c15-11-10(8-4-2-1-3-5-8)16-12(14-11)13-9-6-7-9/h1-5,9-10H,6-7H2,(H,13,14,15)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [24875](https://www.chemspider.com/Chemical-Structure.24875.html/)
-- [135438121](https://pubchem.ncbi.nlm.nih.gov/compound/135438121)
-- [Q5198127](https://www.wikidata.org/wiki/Q5198127)
-- [Cyclazodone](https://en.wikipedia.org/wiki/Cyclazodone)
-- [Aminorex analogues](https://en.wikipedia.org/wiki/List_of_aminorex_analogues)
-`,
+**InChI:** \`InChI=1S/C12H12N2O2/c15-11-10(8-4-2-1-3-5-8)16-12(14-11)13-9-6-7-9/h1-5,9-10H,6-7H2,(H,13,14,15)\``,
   "psychonautwiki": `# Cyclazodone
 *Source: https://psychonautwiki.org/wiki/Cyclazodone*
 
@@ -212,26 +202,7 @@ Cyclazodone is currently a gray area compound within all parts of the world, mea
 
 ## Literature
 
-- Segal, D. S., Cox Jr, R. H., Stern, W. C., & Maickel, R. P. (1967). Stimulatory effects of pemoline and cyclopropylpemoline on continuous avoidance behavior: similarity to effects of D-amphetamine. Life Sciences, 6(23), 2567-2572. [https://doi.org/10.1016/0024-3205(67)90322-0](https://doi.org/10.1016/0024-3205(67)90322-0)
-
-## References
-1. ↑ "Cylert (Pemoline)" (PDF). FDA. December 2002.
-2. ↑ 2.0 2.1 2.2 Guidicelli, D. P. R. L., Najer, H.,[5-phenyl-2-cyclopropylamino-4-oxazolinone, and process for making the same](https://patents.google.com/patent/US3609159A/en)
-3. ↑ Miller, G. M. (January 2011).["The Emerging Role of Trace Amine Associated Receptor 1 in the Functional Regulation of Monoamine Transporters and Dopaminergic Activity"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3005101/).*Journal of neurochemistry*.**116**(2): 164–176.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1471-4159.2010.07109.x](//doi.org/10.1111%2Fj.1471-4159.2010.07109.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3042](//www.worldcat.org/issn/0022-3042).
-4. ↑ [Amphetamine](https://go.drugbank.com/drugs#targets)
-5. ↑ TA1 receptor | [http://www.iuphar-db.org/DATABASE/ObjectDisplayForward?objectId=364](http://www.iuphar-db.org/DATABASE/ObjectDisplayForward?objectId=364)
-6. ↑ Gaine, S. P., Rubin, L. J., Kmetzo, J. J., Palevsky, H. I., Traill, T. A. (November 2000). "Recreational use of aminorex and pulmonary hypertension".*Chest*.**118**(5): 1496–1497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1378/chest.118.5.1496](//doi.org/10.1378%2Fchest.118.5.1496).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0012-3692](//www.worldcat.org/issn/0012-3692).
-7. ↑ Marotta, P. J., Roberts, E. A. (May 1998).["Pemoline hepatotoxicity in children"](https://linkinghub.elsevier.com/retrieve/pii/S0022347698703294).*The Journal of Pediatrics*.**132**(5): 894–897.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0022-3476(98)70329-4](//doi.org/10.1016%2FS0022-3476%2898%2970329-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3476](//www.worldcat.org/issn/0022-3476).
-8. ↑ National Institute on Drug Abuse,[Emerging Trends](https://nida.nih.gov/research-topics/emerging-trends-alerts)
-9. ↑ 9.0 9.1 9.2 Shoptaw, S. J., Kao, U., Ling, W. W. (8 October 2008). "The Cochrane Database of Systematic Reviews (Complete Reviews)". In The Cochrane Collaboration.[Treatment for amphetamine psychosis](https://doi.wiley.com/10.1002/14651858.CD003026.pub2). John Wiley & Sons, Ltd. pp. CD003026.pub2.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub2](//doi.org/10.1002%2F14651858.CD003026.pub2).
-10. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-11. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-12. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln (Betäubungsmittelgesetz - BtMG)"](https://www.gesetze-im-internet.de/btmg_1981/BJNR106810981.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-13. ↑ ["Neue-psychoaktive-Stoffe-Gesetz (NpSG)"](https://www.gesetze-im-internet.de/npsg/BJNR261510016.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-14. ↑ ["§ 2 AMG"](https://www.gesetze-im-internet.de/amg_1976/__2.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-15. ↑ Prof. Dr. Helmut Pollähne (July 11, 2014).["Cannabinoide Kräutermischungen vor dem EuGH: Legal Highs bleiben legal"](https://www.lto.de/recht/hintergruende/h/eugh-urteil-c35813-c18114-legal-highs-kein-arzneimittel-strafbar-amg-btmg/)[Cannabinoid herbal mixtures at the ECJ: Legal highs stay legal] (in German). LTO. Retrieved December 28, 2019.
-16. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-17. ↑ [21 U.S. Code § 813 - Treatment of controlled substance analogues](https://www.law.cornell.edu/uscode/text/21/813)NewPP limit report Cached time: 20251218075308 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.045 seconds CPU time usage: 0.358 seconds Real time usage: 0.686 seconds Preprocessor visited node count: 1679/1000000 Post‐expand include size: 131961/2097152 bytes Template argument size: 21573/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 19361/5000000 bytes Lua time usage: 0.250/7 seconds Lua virtual size: 8.19 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 563.230 1 -total 25.24% 142.154 1 Template:Effects/base 24.80% 139.663 1 Template:Effect_list 24.31% 136.925 2 Template:Effect_column 22.19% 124.954 1 Template:Effects/physical 21.83% 122.956 4 Template:Effect_panel 21.28% 119.844 6 Template:Citation_needed 18.70% 105.315 4 Template:Citation 13.12% 73.869 4 Template:Cite_journal 12.34% 69.495 1 Template:Fix`,
+- Segal, D. S., Cox Jr, R. H., Stern, W. C., & Maickel, R. P. (1967). Stimulatory effects of pemoline and cyclopropylpemoline on continuous avoidance behavior: similarity to effects of D-amphetamine. Life Sciences, 6(23), 2567-2572. [https://doi.org/10.1016/0024-3205(67)90322-0](https://doi.org/10.1016/0024-3205(67)90322-0)`,
   "wikipedia": `# Cyclazodone
 *Source: https://en.wikipedia.org/wiki/Cyclazodone*
 

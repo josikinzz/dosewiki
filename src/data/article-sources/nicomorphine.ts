@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nicomorphine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nicomorphine.md","displayName":"TripSit Factsheets","size":569},{"id":"wikipedia","fileName":"WIKIPEDIA - Nicomorphine.md","displayName":"Wikipedia","size":4268}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nicomorphine.md","displayName":"TripSit Factsheets","size":569,"tokens":153},{"id":"wikipedia","fileName":"WIKIPEDIA - Nicomorphine.md","displayName":"Wikipedia","size":4268,"tokens":1045}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nicomorphine
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25-DMA";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25-DMA.md","displayName":"Isomer Design","size":6620},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25-DMA.md","displayName":"PsychonautWiki","size":15714},{"id":"wikipedia","fileName":"WIKIPEDIA - 25-DMA.md","displayName":"Wikipedia","size":403}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25-DMA.md","displayName":"Isomer Design","size":6620,"tokens":1787},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25-DMA.md","displayName":"PsychonautWiki","size":12179,"tokens":3352},{"id":"wikipedia","fileName":"WIKIPEDIA - 25-DMA.md","displayName":"Wikipedia","size":403,"tokens":156}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 25-DMA
 *Source: http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=54*
@@ -141,17 +141,7 @@ Tolerance to the effects of 2,5-DMA is built after ingestion over the couse of m
 
 - [Dimethoxyamphetamine (including 2,5-DMA) (Wikipedia)](https://en.wikipedia.org/wiki/Dimethoxyamphetamine)
 - [2,5-DMA (PiHKAL)](https://www.erowid.org/library/books_online/pihkal/pihkal054.shtml)
-- [2,5-DMA (PiHKAL / Isomer Design)](http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=54)
-
-## References
-1. ↑ Baltzly, R., Buck, J. S. (January 1940).["Amines Related to 2,5-Dimethoxyphenethylamine. 1 I"](https://pubs.acs.org/doi/abs/10.1021/ja01858a046).*Journal of the American Chemical Society*.**62**(1): 161–164.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/ja01858a046](//doi.org/10.1021%2Fja01858a046).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0002-7863](//www.worldcat.org/issn/0002-7863).
-2. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-3. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2016 Teil I Nr. 55*(in German). Bundesanzeiger Verlag (published November 25, 2016). November 21, 2016. pp. 2615–2622.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1004462279](//www.worldcat.org/oclc/1004462279).
-4. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-5. ↑ ["§ 3 NpSG"](https://www.gesetze-im-internet.de/npsg/__3.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Gesetzentwurf der Bundesregierung: Entwurf eines Gesetzes zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](http://dip21.bundestag.de/dip21/btd/18/085/1808579.pdf)(PDF)(in German). Deutscher Bundestag. May 30, 2016. p. 20. Drucksache 18/8579.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251215154802 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.029 seconds CPU time usage: 0.261 seconds Real time usage: 0.545 seconds Preprocessor visited node count: 1380/1000000 Post‐expand include size: 62322/2097152 bytes Template argument size: 4911/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 9805/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 8.02 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 445.264 1 -total 30.40% 135.365 5 Template:Citation_needed 21.97% 97.828 6 Template:Cite_web 19.20% 85.480 2 Template:Cite_journal 18.74% 83.449 2 Template:Fix 17.48% 77.837 4 Template:Category_handler 12.85% 57.218 1 Template:SubstanceBox/2,5-DMA 12.03% 53.557 1 Template:SubstanceBox 5.31% 23.655 1 Template:Effects/base 5.12% 22.779 1 Template:DangerousInteractions/Psychedelics`,
+- [2,5-DMA (PiHKAL / Isomer Design)](http://isomerdesign.com/PiHKAL/read.php?domain=pk&id=54)`,
   "wikipedia": `# Dimethoxyamphetamine
 *Source: https://en.wikipedia.org/wiki/Dimethoxyamphetamine*
 

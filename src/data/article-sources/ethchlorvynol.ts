@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethchlorvynol";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ethchlorvynol.md","displayName":"DrugBank","size":12318},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethchlorvynol.md","displayName":"TripSit Factsheets","size":550},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethchlorvynol.md","displayName":"Wikipedia","size":4150}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Ethchlorvynol.md","displayName":"DrugBank","size":12318,"tokens":3052},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethchlorvynol.md","displayName":"TripSit Factsheets","size":550,"tokens":151},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethchlorvynol.md","displayName":"Wikipedia","size":4150,"tokens":985}];
 export const contents: Record<string, string> = {
   "drugbank": `# Ethchlorvynol
 *Source: https://go.drugbank.com/drugs/DB00189*

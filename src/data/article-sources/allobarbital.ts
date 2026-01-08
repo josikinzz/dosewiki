@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Allobarbital";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allobarbital.md","displayName":"TripSit Factsheets","size":616},{"id":"wikipedia","fileName":"WIKIPEDIA - Allobarbital.md","displayName":"Wikipedia","size":898}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Allobarbital.md","displayName":"TripSit Factsheets","size":616,"tokens":159},{"id":"wikipedia","fileName":"WIKIPEDIA - Allobarbital.md","displayName":"Wikipedia","size":898,"tokens":215}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Allobarbital
 *Source: TripSit Factsheets (tripsit.me)*

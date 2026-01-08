@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methedrone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methedrone.md","displayName":"TripSit Factsheets","size":258},{"id":"wikipedia","fileName":"WIKIPEDIA - Methedrone.md","displayName":"Wikipedia","size":11811}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methedrone.md","displayName":"TripSit Factsheets","size":258,"tokens":71},{"id":"wikipedia","fileName":"WIKIPEDIA - Methedrone.md","displayName":"Wikipedia","size":11811,"tokens":2865}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Methedrone
 *Source: TripSit Factsheets (tripsit.me)*

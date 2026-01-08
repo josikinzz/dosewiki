@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclopentyl-Fentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclopentyl-Fentanyl.md","displayName":"TripSit Factsheets","size":422}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclopentyl-Fentanyl.md","displayName":"TripSit Factsheets","size":422,"tokens":110}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Cyclopentyl-Fentanyl
 *Source: TripSit Factsheets (tripsit.me)*

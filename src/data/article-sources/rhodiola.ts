@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Rhodiola";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Rhodiola.md","displayName":"Drug Users Bible","size":1639},{"id":"wikipedia","fileName":"WIKIPEDIA - Rhodiola.md","displayName":"Wikipedia","size":2986}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Rhodiola.md","displayName":"Drug Users Bible","size":1639,"tokens":416},{"id":"wikipedia","fileName":"WIKIPEDIA - Rhodiola.md","displayName":"Wikipedia","size":2986,"tokens":680}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Rhodiola
 *Source: Drug Users Bible by Dominic Milton Trott*

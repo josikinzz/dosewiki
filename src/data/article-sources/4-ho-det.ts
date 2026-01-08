@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-HO-DET";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DET.md","displayName":"Isomer Design","size":10979},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DET.md","displayName":"PsychonautWiki","size":22941},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DET.md","displayName":"TripSit Factsheets","size":842},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DET.md","displayName":"Wikipedia","size":6442}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 4-HO-DET.md","displayName":"Isomer Design","size":10979,"tokens":2864},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 4-HO-DET.md","displayName":"PsychonautWiki","size":19384,"tokens":5501},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-HO-DET.md","displayName":"TripSit Factsheets","size":842,"tokens":248},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-HO-DET.md","displayName":"Wikipedia","size":6442,"tokens":1780}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 4-HO-DET
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=16*
@@ -211,19 +211,7 @@ Tolerance to the effects of 4-HO-DET is built almost immediately after ingestion
 - [4-HO-DET (Wikipedia)](https://en.wikipedia.org/wiki/4-HO-DET)
 - [4-HO-DET (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=16)
 - [4-HO-DET phosphate ester (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=5057)
-- [4-HO-DET (Bluelight)](http://www.bluelight.org/vb/threads/480200-The-Big-amp-Dandy-4-HO-DET-Thread)
-
-## References
-1. ↑ ["US Patent 3072530 - Therapeutic indoles for psychic stimulation and relief of mental depression"](https://patents.google.com/patent/US3072530/en).*Google Patents*. Retrieved July 18, 2020.
-2. ↑ ["Esters of Indoles"](https://www.erowid.org/archive/rhodium/pdf/psilocin.esters.pdf)(PDF). United States Patent Office. January 29, 1963. 3,075,992.
-3. ↑ "Psycholytische Therapie nach Hanscarl Leuner – Grundlagen, Praxis, Perspektiven" (in German), Torsten Passie, Michael Schlichting, Ralf Bolle (published September, 2023).
-4. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-5. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: Anlage I"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-6. ↑ ["Vierte Verordnung über die den Betäubungsmitteln gleichgestellten Stoffe"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl167s0197.pdf)(PDF).*Bundesgesetzblatt Teil I: 1967 Nr. 10*(in German). Bundesanzeiger Verlag. February 24, 1967. p. 197.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).
-7. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: § 29"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-8. ↑ ["Svensk författningssamling Förordning om ändring i förordningen (1999:58) om förbud mot vissa hälsofarliga varor"](http://www.notisum.se/rnp/sls/sfs/20050733.pdf)(PDF)(in Swedish) (published October 18, 2005). October 6, 2005. SFS 2005:733.
-9. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-10. ↑ ["Schedule 2: Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved August 20, 2020.NewPP limit report Cached time: 20251218075053 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.054 seconds CPU time usage: 0.308 seconds Real time usage: 0.568 seconds Preprocessor visited node count: 1516/1000000 Post‐expand include size: 103623/2097152 bytes Template argument size: 14860/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10571/5000000 bytes Lua time usage: 0.160/7 seconds Lua virtual size: 8.43 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 433.546 1 -total 28.81% 124.911 8 Template:Cite_web 21.32% 92.439 4 Template:Citation_needed 18.93% 82.058 2 Template:Fix 18.03% 78.174 4 Template:Category_handler 14.48% 62.774 1 Template:SubstanceBox/4-HO-DET 13.89% 60.206 2 Template:Further 13.54% 58.712 1 Template:SubstanceBox 6.66% 28.887 1 Template:Effects/base 5.88% 25.479 1 Template:Effect_list`,
+- [4-HO-DET (Bluelight)](http://www.bluelight.org/vb/threads/480200-The-Big-amp-Dandy-4-HO-DET-Thread)`,
   "tripsit-factsheets": `# 4-HO-DET
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/4-ho-det*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenylpiracetam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenylpiracetam.md","displayName":"Isomer Design","size":743},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Phenylpiracetam.md","displayName":"PsychonautWiki","size":15545},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenylpiracetam.md","displayName":"TripSit Factsheets","size":327},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenylpiracetam.md","displayName":"Wikipedia","size":12333}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Phenylpiracetam.md","displayName":"Isomer Design","size":413,"tokens":156},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Phenylpiracetam.md","displayName":"PsychonautWiki","size":10558,"tokens":2744},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenylpiracetam.md","displayName":"TripSit Factsheets","size":327,"tokens":93},{"id":"wikipedia","fileName":"WIKIPEDIA - Phenylpiracetam.md","displayName":"Wikipedia","size":12333,"tokens":3024}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Phenylpiracetam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=10856*
@@ -17,16 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`NC(=O)CN1CC(CC1=O)c1ccccc1\`
 
-**InChI:** \`InChI=1S/C12H14N2O2/c13-11(15)8-14-7-10(6-12(14)16)9-4-2-1-3-5-9/h1-5,10H,6-8H2,(H2,13,15)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [116950](https://www.chemspider.com/Chemical-Structure.116950.html/)
-- [132441](https://pubchem.ncbi.nlm.nih.gov/compound/132441)
-- [Q420882](https://www.wikidata.org/wiki/Q420882)
-- [Phenylpiracetam](https://en.wikipedia.org/wiki/Phenylpiracetam)
-`,
+**InChI:** \`InChI=1S/C12H14N2O2/c13-11(15)8-14-7-10(6-12(14)16)9-4-2-1-3-5-9/h1-5,10H,6-8H2,(H2,13,15)\``,
   "psychonautwiki": `# Phenylpiracetam
 *Source: https://psychonautwiki.org/wiki/Phenylpiracetam*
 
@@ -149,21 +140,7 @@ Phenylpiracetam, being a member of the [racetam](https://psychonautwiki.org/wiki
 
 - [Phenylpiracetam (Wikipedia)](https://en.wikipedia.org/wiki/phenylpiracetam)
 - [Phenylpiracetam (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=10856)
-- [Phenylpiracetam (Examine)](https://examine.com/supplements/phenylpiracetam/)
-
-## References
-1. ↑ [My experience with phenylpiracetam - Brain Health](https://www.longecity.org/forum/topic/15449-my-experience-with-phenylpiracetam/)
-2. ↑ Malykh, A. G., Sadaie, M. R. (12 February 2010). "Piracetam and piracetam-like drugs: from basic science to novel clinical applications to CNS disorders".*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1950](//www.worldcat.org/issn/1179-1950).
-3. ↑ Valzelli, L., Baiguerra, G., Giraud, O. (June 1986). "Difference in learning and retention by Albino Swiss mice. Part III. Effect of some brain stimulants".*Methods and Findings in Experimental and Clinical Pharmacology*.**8**(6): 337–341.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0355](//www.worldcat.org/issn/0379-0355).
-4. ↑ Phenylpiracetam (Phenotropil): The Definitive Resource & Reviews | [http://www.nootropicsjournal.com/phenylpiracetam/](http://www.nootropicsjournal.com/phenylpiracetam/)
-5. ↑ 5.0 5.1 Firstova, Yu. Yu., Abaimov, D. A., Kapitsa, I. G., Voronina, T. A., Kovalev, G. I. (1 June 2011).["The effects of scopolamine and the nootropic drug phenotropil on rat brain neurotransmitter receptors during testing of the conditioned passive avoidance task"](https://doi.org/10.1134/S1819712411020048).*Neurochemical Journal*.**5**(2): 115–125.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1134/S1819712411020048](//doi.org/10.1134%2FS1819712411020048).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1819-7132](//www.worldcat.org/issn/1819-7132).
-6. ↑ [Use of (r)-phenylpiracetam for the treatment of sleep disorders](https://patents.google.com/patent/EP2891491A1/en)
-7. ↑ Zvejniece, L., Svalbe, B., Veinberg, G., Grinberga, S., Vorona, M., Kalvinsh, I., Dambrova, M. (November 2011). "Investigation into stereoselective pharmacological activity of phenotropil".*Basic & Clinical Pharmacology & Toxicology*.**109**(5): 407–412.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1742-7843.2011.00742.x](//doi.org/10.1111%2Fj.1742-7843.2011.00742.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1742-7843](//www.worldcat.org/issn/1742-7843).
-8. ↑ 8.0 8.1 Savchenko, A. I., Zakharova, N. S., Stepanov, I. N. (2005). "[The phenotropil treatment of the consequences of brain organic lesions]".*Zhurnal Nevrologii I Psikhiatrii Imeni S.S. Korsakova*.**105**(12): 22–26.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1997-7298](//www.worldcat.org/issn/1997-7298).
-9. ↑ Gustov, A. A., Smirnov, A. A., Korshunova, I. A., Andrianova, E. V. (2006). "[Phenotropil in the treatment of vascular encephalopathy]".*Zhurnal Nevrologii I Psikhiatrii Imeni S.S. Korsakova*.**106**(3): 52–53.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1997-7298](//www.worldcat.org/issn/1997-7298).
-10. ↑ Lybzikova, G. N., Iaglova, Z. S., Kharlamova, I. S. (2008). "[The efficacy of phenotropil in the complex treatment of epilepsy]".*Zhurnal Nevrologii I Psikhiatrii Imeni S.S. Korsakova*.**108**(2): 69–70.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1997-7298](//www.worldcat.org/issn/1997-7298).
-11. ↑ Malykh, A. G., Sadaie, M. R. (1 February 2010).["Piracetam and Piracetam-Like Drugs"](https://doi.org/10.2165/11319230-000000000-00000).*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1950](//www.worldcat.org/issn/1179-1950).
-12. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075723 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.033 seconds CPU time usage: 0.335 seconds Real time usage: 0.668 seconds Preprocessor visited node count: 1434/1000000 Post‐expand include size: 79604/2097152 bytes Template argument size: 8449/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14600/5000000 bytes Lua time usage: 0.260/7 seconds Lua virtual size: 7.91 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 557.933 1 -total 32.98% 184.027 8 Template:Cite_journal 29.24% 163.142 1 Template:Effects/base 28.63% 159.739 1 Template:Effect_list 27.97% 156.045 2 Template:Effect_column 25.08% 139.920 1 Template:Effects/physical 24.58% 137.143 4 Template:Effect_panel 23.87% 133.206 1 Template:Citation_needed 17.21% 96.023 3 Template:Citation 14.54% 81.100 1 Template:Fix`,
+- [Phenylpiracetam (Examine)](https://examine.com/supplements/phenylpiracetam/)`,
   "tripsit-factsheets": `# Phenylpiracetam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/carphedon*
 

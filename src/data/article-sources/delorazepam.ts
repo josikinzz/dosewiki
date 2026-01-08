@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Delorazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Delorazepam.md","displayName":"TripSit Factsheets","size":938},{"id":"wikipedia","fileName":"WIKIPEDIA - Delorazepam.md","displayName":"Wikipedia","size":7498}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Delorazepam.md","displayName":"TripSit Factsheets","size":938,"tokens":250},{"id":"wikipedia","fileName":"WIKIPEDIA - Delorazepam.md","displayName":"Wikipedia","size":7498,"tokens":1697}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Delorazepam
 *Source: TripSit Factsheets (tripsit.me)*

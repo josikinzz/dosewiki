@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Flualprazolam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flualprazolam.md","displayName":"Isomer Design","size":854},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flualprazolam.md","displayName":"PsychonautWiki","size":23045},{"id":"saferparty","fileName":"SAFERPARTY - Flualprazolam.md","displayName":"Safer Party","size":3768},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flualprazolam.md","displayName":"TripSit Factsheets","size":396},{"id":"wikipedia","fileName":"WIKIPEDIA - Flualprazolam.md","displayName":"Wikipedia","size":1380}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flualprazolam.md","displayName":"Isomer Design","size":434,"tokens":182},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flualprazolam.md","displayName":"PsychonautWiki","size":18021,"tokens":4776},{"id":"saferparty","fileName":"SAFERPARTY - Flualprazolam.md","displayName":"Safer Party","size":3768,"tokens":892},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flualprazolam.md","displayName":"TripSit Factsheets","size":396,"tokens":128},{"id":"wikipedia","fileName":"WIKIPEDIA - Flualprazolam.md","displayName":"Wikipedia","size":1380,"tokens":325}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Flualprazolam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3445*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`Clc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccc1F\`
 
-**InChI:** \`InChI=1S/C17H12ClFN4/c1-10-21-22-16-9-20-17(12-4-2-3-5-14(12)19)13-8-11(18)6-7-15(13)23(10)16/h2-8H,9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8534493](https://www.chemspider.com/Chemical-Structure.8534493.html/)
-- [10359044](https://pubchem.ncbi.nlm.nih.gov/compound/10359044)
-- [Q62018618](https://www.wikidata.org/wiki/Q62018618)
-- [Flualprazolam](https://en.wikipedia.org/wiki/Flualprazolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C17H12ClFN4/c1-10-21-22-16-9-20-17(12-4-2-3-5-14(12)19)13-8-11(18)6-7-15(13)23(10)16/h2-8H,9H2,1H3\``,
   "psychonautwiki": `# Flualprazolam
 *Source: https://psychonautwiki.org/wiki/Flualprazolam*
 
@@ -180,22 +170,7 @@ Internationally, Flualprazolam was added to the UN Convention on Psychotropic Su
 ## External links
 
 - [Flualprazolam (Wikipedia)](https://en.wikipedia.org/wiki/Flualprazolam)
-- [Flualprazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3445)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ 2.0 2.1 Flualprazolam - Google Trends | [https://trends.google.com/trends/explore?date=all&geo=US&q=Flualprazolam](https://trends.google.com/trends/explore?date=all&geo=US&q=Flualprazolam)
-3. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-4. ↑ 4.0 4.1 Waters, L., Manchester, K. R., Maskell, P. D., Haegeman, C., Haider, S. (May 2018).["The use of a quantitative structure-activity relationship (QSAR) model to predict GABA-A receptor binding of newly emerging benzodiazepines"](https://linkinghub.elsevier.com/retrieve/pii/S1355030617301545).*Science & Justice*.**58**(3): 219–225.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.scijus.2017.12.004](//doi.org/10.1016%2Fj.scijus.2017.12.004).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1355-0306](//www.worldcat.org/issn/1355-0306).
-5. ↑ Goyal, S. (14 March 1970). "Drugs and dreams".*Canadian Medical Association Journal*.**102**(5): 524.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-4409](//www.worldcat.org/issn/0008-4409).
-6. ↑ ["WHO: World Health Organization recommends 12 NPS for scheduling"](https://www.unodc.org/LSS/Announcement/Details/021820a0-8746-42a4-9ee3-47ce50b30ca3). December 2019. Retrieved October 16, 2020.
-7. ↑ ["CND accepts all WHO recommendations on the control of several psychoactive substances from the 42nd ECDD meeting"](https://www.who.int/news/item/18-03-2020-c-n-d-accepts-all-w-h-o-recommendations-from-42nd-e-c-d-d). World Health Organization (WHO). March 18, 2020. Retrieved October 16, 2020.
-8. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved August 30, 2021.
-9. ↑ ["Einundzwanzigste Verordnung zur Änderung von Anlagen des Betäubungsmittelgesetzes"](https://www.bgbl.de/xaver/bgbl/start.xav#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl121s0070.pdf%27%5D__1630275084900).*Bundesgesetzblatt Jahrgang 2021 Teil I Nr. 2*(in German). Bundesanzeiger Verlag. January 20, 2021. Retrieved August 30, 2021.
-10. ↑ ["Rozporządzenie Ministra Zdrowia z dnia 11 marca 2021 r. zmieniające rozporządzenie w sprawie wykazu substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](https://dziennikustaw.gov.pl/DU/rok/2021/pozycja/518).*DZIENNIK USTAW 2021 R. POZ. 518*(in Polish). 2021-03-22.
-11. ↑ ["Rozporządzenie Ministra Zdrowia z dnia 11 marca 2021 r. zmieniające rozporządzenie w sprawie wykazu substancji psychotropowych, środków odurzających oraz nowych substancji psychoaktywnych"](https://dziennikustaw.gov.pl/D2021000051801.pdf)(PDF).*DZIENNIK USTAW 2021 R. POZ. 518*(in Polish). 2021-03-22.
-12. ↑ ["Cumhurbaşkanı Kararı: Karar Sayısı: 1335"](https://resmigazete.gov.tr/eskiler/2019/07/20190720-19.pdf)(PDF).*Resmî Gazete, Sayı: 30837*(in Turkish). Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü [General Directorate of Legislation Development and Publication] (published July 20, 2019). July 19, 2020.
-13. ↑ Schedules of Controlled Substances: Temporary Placement of Etizolam, Flualprazolam, Clonazolam, Flubromazolam, and Diclazepam in Schedule I | [https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam](https://www.federalregister.gov/documents/2022/12/23/2022-27278/schedules-of-controlled-substances-temporary-placement-of-etizolam-flualprazolam-clonazolam)NewPP limit report Cached time: 20251218075428 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.039 seconds CPU time usage: 0.387 seconds Real time usage: 0.822 seconds Preprocessor visited node count: 1564/1000000 Post‐expand include size: 109642/2097152 bytes Template argument size: 16567/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15116/5000000 bytes Lua time usage: 0.320/7 seconds Lua virtual size: 8.66 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 708.945 1 -total 33.11% 234.699 7 Template:Cite_web 18.41% 130.542 1 Template:Effects/base 17.84% 126.456 1 Template:Effect_list 17.22% 122.102 2 Template:Effect_column 13.97% 99.025 1 Template:Effects/physical 13.60% 96.414 5 Template:Effect_panel 12.79% 90.665 2 Template:Citation_needed 11.37% 80.579 1 Template:Fix 10.65% 75.525 2 Template:Category_handler`,
+- [Flualprazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3445)`,
   "saferparty": `# Flualprazolam
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 

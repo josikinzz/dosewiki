@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Flunitrazolam";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flunitrazolam.md","displayName":"Isomer Design","size":872},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flunitrazolam.md","displayName":"PsychonautWiki","size":28800},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flunitrazolam.md","displayName":"TripSit Factsheets","size":594},{"id":"wikipedia","fileName":"WIKIPEDIA - Flunitrazolam.md","displayName":"Wikipedia","size":834}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Flunitrazolam.md","displayName":"Isomer Design","size":448,"tokens":190},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Flunitrazolam.md","displayName":"PsychonautWiki","size":21202,"tokens":5505},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Flunitrazolam.md","displayName":"TripSit Factsheets","size":594,"tokens":229},{"id":"wikipedia","fileName":"WIKIPEDIA - Flunitrazolam.md","displayName":"Wikipedia","size":834,"tokens":207}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Flunitrazolam
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3066*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`Fc1ccccc1C1=NCc2n(c3c1cc(cc3)N(=O)=O)c(nn2)C\`
 
-**InChI:** \`InChI=1S/C17H12FN5O2/c1-10-20-21-16-9-19-17(12-4-2-3-5-14(12)18)13-8-11(23(24)25)6-7-15(13)22(10)16/h2-8H,9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [59718543](https://www.chemspider.com/Chemical-Structure.59718543.html/)
-- [137700379](https://pubchem.ncbi.nlm.nih.gov/compound/137700379)
-- [Q25378730](https://www.wikidata.org/wiki/Q25378730)
-- [Flunitrazolam](https://en.wikipedia.org/wiki/Flunitrazolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C17H12FN5O2/c1-10-20-21-16-9-19-17(12-4-2-3-5-14(12)18)13-8-11(23(24)25)6-7-15(13)22(10)16/h2-8H,9H2,1H3\``,
   "psychonautwiki": `# Flunitrazolam
 *Source: https://psychonautwiki.org/wiki/Flunitrazolam*
 
@@ -175,26 +165,7 @@ Flunitrazolam is currently a gray area compound within most (if not all) parts o
 ## External links
 
 - [Flunitrazolam (Wikipedia)](http://en.wikipedia.org/wiki/Flunitrazolam)
-- [Flunitrazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3066)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ Ameline A, Richeval C, Gaulier JM, Raul JS, Kintz P (July 2018). "Characterization of Flunitrazolam, a New Designer Benzodiazepine, in Oral Fluid After a Controlled Single Administration".*Journal of Analytical Toxicology*.**42**(6): e58–e60.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bky012](//doi.org/10.1093%2Fjat%2Fbky012).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[29462316](//www.ncbi.nlm.nih.gov/pubmed/29462316).
-3. ↑ ["Europol 2016 Annual Report on the implementation of Council Decision 2005/387/JHA"](https://www.europol.europa.eu/sites/default/files/documents/tdan17001enn_pdfweb.pdf)(PDF).
-4. ↑ 4.0 4.1 Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-5. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-6. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-7. ↑ McLean, M. J., Macdonald, R. L. (February 1988). "Benzodiazepines, but not beta carbolines, limit high frequency repetitive firing of action potentials of spinal cord neurons in cell culture".*The Journal of Pharmacology and Experimental Therapeutics*.**244**(2): 789–795.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-8. ↑ Ameline, A., Richeval, C., Gaulier, J.-M., Raul, J.-S., Kintz, P. (1 July 2018). "Characterization of Flunitrazolam, a New Designer Benzodiazepine, in Oral Fluid After a Controlled Single Administration".*Journal of Analytical Toxicology*.**42**(6): e58–e60.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bky012](//doi.org/10.1093%2Fjat%2Fbky012).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1945-2403](//www.worldcat.org/issn/1945-2403).
-9. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-10. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-11. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-12. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-13. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-14. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-15. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989).["Differential regulation of γ-aminobutyric acid receptor channels by diazepam and phenobarbital"](https://onlinelibrary.wiley.com/doi/10.1002/ana.410250302).*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-16. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-17. ↑ [https://fedlex.data.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/2011/363/20161201/de/pdf-a/fedlex-data-admin-ch-eli-cc-2011-363-20161201-de-pdf-a.pdf](https://fedlex.data.admin.ch/filestore/fedlex.data.admin.ch/eli/cc/2011/363/20161201/de/pdf-a/fedlex-data-admin-ch-eli-cc-2011-363-20161201-de-pdf-a.pdf)NewPP limit report Cached time: 20251218075439 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.021 seconds CPU time usage: 0.284 seconds Real time usage: 0.606 seconds Preprocessor visited node count: 1686/1000000 Post‐expand include size: 113410/2097152 bytes Template argument size: 15987/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 22483/5000000 bytes Lua time usage: 0.250/7 seconds Lua virtual size: 7.79 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 538.547 1 -total 60.00% 323.146 1 Template:Reflist 40.39% 217.522 14 Template:Cite_journal 13.06% 70.349 1 Template:Headerpanel 12.51% 67.398 1 Template:Citation 12.41% 66.851 1 Template:DepressantOD 12.19% 65.665 1 Template:SubstanceBox/Flunitrazolam 11.77% 63.412 1 Template:GenericPanel/warning 11.42% 61.481 1 Template:SubstanceBox 11.16% 60.099 1 Template:GenericPanel`,
+- [Flunitrazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3066)`,
   "tripsit-factsheets": `# Flunitrazolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/flunitrazolam*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dextromoramide";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dextromoramide.md","displayName":"TripSit Factsheets","size":752},{"id":"wikipedia","fileName":"WIKIPEDIA - Dextromoramide.md","displayName":"Wikipedia","size":4872}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dextromoramide.md","displayName":"TripSit Factsheets","size":752,"tokens":196},{"id":"wikipedia","fileName":"WIKIPEDIA - Dextromoramide.md","displayName":"Wikipedia","size":4872,"tokens":1175}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Dextromoramide
 *Source: TripSit Factsheets (tripsit.me)*

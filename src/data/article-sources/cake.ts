@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cake";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cake.md","displayName":"PsychonautWiki","size":5512},{"id":"wikipedia","fileName":"WIKIPEDIA - Cake.md","displayName":"Wikipedia","size":14318}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Cake.md","displayName":"PsychonautWiki","size":3919,"tokens":1040},{"id":"wikipedia","fileName":"WIKIPEDIA - Cake.md","displayName":"Wikipedia","size":14318,"tokens":3462}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# Cake
 *Source: https://psychonautwiki.org/wiki/Cake*
@@ -82,13 +82,7 @@ Cake is almost illegal in all countries of the world. However there is one excep
 
 - [Cake (Drug) (Wikipedia)](https://en.wikipedia.org/wiki/Cake)
 - [Cake synthesis (Erowid)](https://erowid.org/culture/food/food_recipe_cake1.shtml)
-- [A short documentary about cake (Youtube)](https://www.youtube.com/watch?v=Xbq3kc29Tmg)
-
-## References
-1. ↑ [Why one cake is never enough](http://www.dailymail.co.uk/femail/food/article-1203906/Why-cake-Addictive-additives-food-MAKE-fatter.html)
-2. ↑ [http://www.bath.ac.uk/news/2017/02/23/sugar-alzheimer%E2%80%99s-disease/](http://www.bath.ac.uk/news/2017/02/23/sugar-alzheimer%E2%80%99s-disease/)
-3. ↑ [https://www.alz.org/national/documents/latino_brochure_diabetes.pdf](https://www.alz.org/national/documents/latino_brochure_diabetes.pdf)
-4. ↑ [http://www.molossia.org/welcomemessage.html](http://www.molossia.org/welcomemessage.html)NewPP limit report Cached time: 20251218075237 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.008 seconds CPU time usage: 0.225 seconds Real time usage: 0.964 seconds Preprocessor visited node count: 1072/1000000 Post‐expand include size: 37535/2097152 bytes Template argument size: 4165/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 1744/5000000 bytes Lua time usage: 0.040/7 seconds Lua virtual size: 5.31 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 197.311 1 -total 60.31% 119.008 1 Template:Citation_needed 38.49% 75.943 1 Template:Fix 36.06% 71.155 2 Template:Category_handler 25.28% 49.888 1 Template:SubstanceBox/Cake 23.61% 46.580 1 Template:SubstanceBox 7.37% 14.539 1 Template:Effects/base 6.16% 12.149 1 Template:Effect_list 4.90% 9.667 2 Template:Effect_column 4.23% 8.342 1 Template:Headerpanel`,
+- [A short documentary about cake (Youtube)](https://www.youtube.com/watch?v=Xbq3kc29Tmg)`,
   "wikipedia": `# Cake
 *Source: https://en.wikipedia.org/wiki/Cake*
 

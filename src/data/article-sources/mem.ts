@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MEM";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MEM.md","displayName":"Isomer Design","size":10584},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MEM.md","displayName":"TripSit Factsheets","size":1029},{"id":"wikipedia","fileName":"WIKIPEDIA - MEM.md","displayName":"Wikipedia","size":1234}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MEM.md","displayName":"Isomer Design","size":10584,"tokens":2793},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MEM.md","displayName":"TripSit Factsheets","size":1029,"tokens":276},{"id":"wikipedia","fileName":"WIKIPEDIA - MEM.md","displayName":"Wikipedia","size":1234,"tokens":308}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MEM
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=122*

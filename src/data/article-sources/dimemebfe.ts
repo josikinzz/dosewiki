@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dimemebfe";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dimemebfe.md","displayName":"TripSit Factsheets","size":506},{"id":"wikipedia","fileName":"WIKIPEDIA - Dimemebfe.md","displayName":"Wikipedia","size":656}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dimemebfe.md","displayName":"TripSit Factsheets","size":506,"tokens":141},{"id":"wikipedia","fileName":"WIKIPEDIA - Dimemebfe.md","displayName":"Wikipedia","size":656,"tokens":173}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Dimemebfe
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "ALEPH-2";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - ALEPH-2.md","displayName":"Isomer Design","size":8089},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ALEPH-2.md","displayName":"TripSit Factsheets","size":832},{"id":"wikipedia","fileName":"WIKIPEDIA - ALEPH-2.md","displayName":"Wikipedia","size":1988}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - ALEPH-2.md","displayName":"Isomer Design","size":8089,"tokens":2327},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - ALEPH-2.md","displayName":"TripSit Factsheets","size":832,"tokens":222},{"id":"wikipedia","fileName":"WIKIPEDIA - ALEPH-2.md","displayName":"Wikipedia","size":1988,"tokens":547}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# ALEPH-2
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=4*

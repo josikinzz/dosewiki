@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclo-Methiodrone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclo-Methiodrone.md","displayName":"TripSit Factsheets","size":435}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclo-Methiodrone.md","displayName":"TripSit Factsheets","size":435,"tokens":122}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Cyclo-Methiodrone
 *Source: TripSit Factsheets (tripsit.me)*

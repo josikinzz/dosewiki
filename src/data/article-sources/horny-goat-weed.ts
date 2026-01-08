@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Horny_Goat_Weed";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Horny_Goat_Weed.md","displayName":"Drug Users Bible","size":4139},{"id":"wikipedia","fileName":"WIKIPEDIA - Horny_Goat_Weed.md","displayName":"Wikipedia","size":5014}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Horny_Goat_Weed.md","displayName":"Drug Users Bible","size":4139,"tokens":1100},{"id":"wikipedia","fileName":"WIKIPEDIA - Horny_Goat_Weed.md","displayName":"Wikipedia","size":5014,"tokens":1295}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Horny Goat Weed
 *Source: Drug Users Bible by Dominic Milton Trott*

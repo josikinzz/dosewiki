@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Bromo-DragonFLY";
-export const sources = [{"id":"erowid","fileName":"EROWID - Bromo-DragonFLY.md","displayName":"Erowid","size":11578},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Bromo-DragonFLY.md","displayName":"Isomer Design","size":799},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Bromo-DragonFLY.md","displayName":"PsychonautWiki","size":33455},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromo-DragonFLY.md","displayName":"TripSit Factsheets","size":765},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromo-DragonFLY.md","displayName":"Wikipedia","size":10227}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Bromo-DragonFLY.md","displayName":"Erowid","size":11578,"tokens":3200},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Bromo-DragonFLY.md","displayName":"Isomer Design","size":382,"tokens":160},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Bromo-DragonFLY.md","displayName":"PsychonautWiki","size":28408,"tokens":7812},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Bromo-DragonFLY.md","displayName":"TripSit Factsheets","size":765,"tokens":212},{"id":"wikipedia","fileName":"WIKIPEDIA - Bromo-DragonFLY.md","displayName":"Wikipedia","size":10227,"tokens":2571}];
 export const contents: Record<string, string> = {
   "erowid": `# Bromo-DragonFLY
 *Source: https://erowid.org/chemicals/bromo_dragonfly/bromo_dragonfly.shtml*
@@ -223,17 +223,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CC(Cc1c2occc2c(c2c1cco2)Br)N\`
 
-**InChI:** \`InChI=1S/C13H12BrNO2/c1-7(15)6-10-8-2-4-17-13(8)11(14)9-3-5-16-12(9)10/h2-5,7H,6,15H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8014776](https://www.chemspider.com/Chemical-Structure.8014776.html/)
-- [9839057](https://pubchem.ncbi.nlm.nih.gov/compound/9839057)
-- [Q2452973](https://www.wikidata.org/wiki/Q2452973)
-- [Bromo-DragonFLY](https://en.wikipedia.org/wiki/Bromo-DragonFLY)
-- [Substituted benzofuran](https://en.wikipedia.org/wiki/Substituted_benzofuran)
-`,
+**InChI:** \`InChI=1S/C13H12BrNO2/c1-7(15)6-10-8-2-4-17-13(8)11(14)9-3-5-16-12(9)10/h2-5,7H,6,15H2,1H3\``,
   "psychonautwiki": `# Bromo-DragonFLY
 *Source: https://psychonautwiki.org/wiki/Bromo-DragonFLY*
 
@@ -449,26 +439,7 @@ In the event of an overdose, [benzodiazepines](https://psychonautwiki.org/wiki/B
 - [Bromo-DragonFLY (Wikipedia)](https://en.wikipedia.org/wiki/Bromo-DragonFLY)
 - [Bromo-DragonFLY (Erowid Vault)](https://erowid.org/chemicals/bromo_dragonfly/bromo_dragonfly.shtml)
 - [Bromo-DragonFLY (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2033)
-- [Bromo-DragonFLY (Drugs-Forum)](https://drugs-forum.com/wiki/Bromo-Dragonfly)
-
-## References
-1. ↑ 1.0 1.1 [Erowid Bromo-Dragonfly Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/bromo_dragonfly/bromo_dragonfly_death.shtml)
-2. ↑ Parker, M. A., Marona-Lewicka, D., Lucaites, V. L., Nelson, D. L., Nichols, D. E. (17 December 1998). "A novel (benzodifuranyl)aminoalkane with extremely potent activity at the 5-HT2A receptor".*Journal of Medicinal Chemistry*.**41**(26): 5148–5149.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm9803525](//doi.org/10.1021%2Fjm9803525).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623). }}
-3. ↑ Corazza, O., Schifano, F., Farre, M., Deluca, P., Davey, Z., Torrens, M., Demetrovics, Z., Di Furia, L., Flesland, L., Siemann, H., Skutle, A., Van Der Kreeft, P., Scherbaum, N. (May 2011). "Designer drugs on the internet: a phenomenon out-of-control? the emergence of hallucinogenic drug Bromo-Dragonfly".*Current Clinical Pharmacology*.**6**(2): 125–129.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/157488411796151129](//doi.org/10.2174%2F157488411796151129).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2212-3938](//www.worldcat.org/issn/2212-3938).
-4. ↑ 4.0 4.1 Noble, C; Holm, NB; Mardal, M; Linnet, K (1 October 2018). "Bromo-dragonfly, a psychoactive benzodifuran, is resistant to hepatic metabolism and potently inhibits monoamine oxidase A".*Toxicology letters*.**295**: 397–407.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.toxlet.2018.07.018](//doi.org/10.1016%2Fj.toxlet.2018.07.018).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[30036687](//www.ncbi.nlm.nih.gov/pubmed/30036687).
-5. ↑ Thorlacius, K., Borna, C., Personne, M. (16 April 2008). "[Bromo-dragon fly--life-threatening drug. Can cause tissue necrosis as demonstrated by the first described case]".*Lakartidningen*.**105**(16): 1199–1200.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0023-7205](//www.worldcat.org/issn/0023-7205).
-6. ↑ ["| Danish man died after trip on Chinese drug"](http://jp.dk/indland/kbh/article1884968.ece). Jp.dk. Retrieved 2010-02-08.
-7. ↑ ["Narkodød skyldtes ikke GHB"](http://jp.dk/indland/kbh/article1884968.ece). RB.no. Retrieved 2018-05-16.
-8. ↑ Griffin, D.,[Second Victim Dies After Taking Designer Drug In Konawa](https://www.newson6.com/story/5e35b1a383eff40362bece8e/second-victim-dies-after-taking-designer-drug-in-konawa)
-9. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-10. ↑ " "Therapeutic Goods (Poisons Standard—October 2024), Schedule 9
-11. ↑ [Anlage NpSG - Einzelnorm](https://www.gesetze-im-internet.de/npsg/anlage.html)
-12. ↑ [§ 4 NpSG - Einzelnorm](https://www.gesetze-im-internet.de/npsg/__4.html)
-13. ↑ ["危険ドラッグの成分６物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000094513.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-14. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-15. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-16. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-17. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075226 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.064 seconds CPU time usage: 0.397 seconds Real time usage: 0.749 seconds Preprocessor visited node count: 1917/1000000 Post‐expand include size: 149875/2097152 bytes Template argument size: 25979/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 18557/5000000 bytes Lua time usage: 0.250/7 seconds Lua virtual size: 8.18 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 592.576 1 -total 24.27% 143.806 17 Template:Citation_needed 18.72% 110.930 6 Template:Citation 16.06% 95.168 5 Template:Cite_journal 15.46% 91.618 2 Template:Fix 14.49% 85.870 4 Template:Category_handler 11.51% 68.200 1 Template:SubstanceBox/Bromo-DragonFLY 10.74% 63.649 1 Template:SubstanceBox 8.75% 51.860 4 Template:Cite_web 5.46% 32.356 1 Template:Effects/base`,
+- [Bromo-DragonFLY (Drugs-Forum)](https://drugs-forum.com/wiki/Bromo-Dragonfly)`,
   "tripsit-factsheets": `# Bromo-DragonFLY
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/bromo-dragonfly*
 

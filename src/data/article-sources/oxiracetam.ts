@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Oxiracetam";
-export const sources = [{"id":"erowid","fileName":"EROWID - Oxiracetam.md","displayName":"Erowid","size":781},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Oxiracetam.md","displayName":"Isomer Design","size":680},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Oxiracetam.md","displayName":"PsychonautWiki","size":13519},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxiracetam.md","displayName":"TripSit Factsheets","size":303},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxiracetam.md","displayName":"Wikipedia","size":2882}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Oxiracetam.md","displayName":"Erowid","size":781,"tokens":219},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Oxiracetam.md","displayName":"Isomer Design","size":368,"tokens":140},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Oxiracetam.md","displayName":"PsychonautWiki","size":8172,"tokens":2114},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Oxiracetam.md","displayName":"TripSit Factsheets","size":303,"tokens":88},{"id":"wikipedia","fileName":"WIKIPEDIA - Oxiracetam.md","displayName":"Wikipedia","size":2882,"tokens":707}];
 export const contents: Record<string, string> = {
   "erowid": `# Oxiracetam
 *Source: https://erowid.org/smarts/oxiracetam/oxiracetam.shtml*
@@ -45,16 +45,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`NC(=O)CN1CC(CC1=O)O\`
 
-**InChI:** \`InChI=1S/C6H10N2O3/c7-5(10)3-8-2-4(9)1-6(8)11/h4,9H,1-3H2,(H2,7,10)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [4465](https://www.chemspider.com/Chemical-Structure.4465.html/)
-- [4626](https://pubchem.ncbi.nlm.nih.gov/compound/4626)
-- [Q415099](https://www.wikidata.org/wiki/Q415099)
-- [Oxiracetam](https://en.wikipedia.org/wiki/Oxiracetam)
-`,
+**InChI:** \`InChI=1S/C6H10N2O3/c7-5(10)3-8-2-4(9)1-6(8)11/h4,9H,1-3H2,(H2,7,10)\``,
   "psychonautwiki": `# Oxiracetam
 *Source: https://psychonautwiki.org/wiki/Oxiracetam*
 
@@ -151,20 +142,7 @@ Oxiracetam, being a member of the [racetam](https://psychonautwiki.org/wiki/Race
 - [Oxiracetam (Wikipedia)](https://en.wikipedia.org/wiki/Oxiracetam)
 - [Oxiracetam (Erowid Vault)](https://erowid.org/smarts/oxiracetam/oxiracetam.shtml)
 - [Oxiracetam (TiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=9983)
-- [Oxiracetam (Examine)](https://examine.com/supplements/Oxiracetam/)
-
-## References
-1. ↑ Malykh, A. G., Sadaie, M. R. (12 February 2010). "Piracetam and piracetam-like drugs: from basic science to novel clinical applications to CNS disorders".*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1950](//www.worldcat.org/issn/1179-1950).
-2. ↑ Valzelli, L., Baiguerra, G., Giraud, O. (June 1986). "Difference in learning and retention by Albino Swiss mice. Part III. Effect of some brain stimulants".*Methods and Findings in Experimental and Clinical Pharmacology*.**8**(6): 337–341.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0355](//www.worldcat.org/issn/0379-0355).
-3. ↑ Nootreviews Oxiracetam Guide | [http://nootreviews.com/oxiracetam](http://nootreviews.com/oxiracetam)
-4. ↑ Preda, L., Alberoni, M., Bressi, S., Cattaneo, C., Parini, J., Canal, N., Franceschi, M. (1993). "Effects of acute doses of oxiracetam in the scopolamine model of human amnesia".*Psychopharmacology*.**110**(4): 421–426.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF02244648](//doi.org/10.1007%2FBF02244648).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3158](//www.worldcat.org/issn/0033-3158).
-5. ↑ Pitsikas, N., Algeri, S. (November 1992). "Effect of oxiracetam on scopolamine-induced amnesia in the rat in a spatial learning task".*Pharmacology, Biochemistry, and Behavior*.**43**(3): 949–951.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0091-3057(92)90430-n](//doi.org/10.1016%2F0091-3057%2892%2990430-n).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0091-3057](//www.worldcat.org/issn/0091-3057).
-6. ↑ Malykh, A. G., Sadaie, M. R. (12 February 2010). "Piracetam and piracetam-like drugs: from basic science to novel clinical applications to CNS disorders".*Drugs*.**70**(3): 287–312.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/11319230-000000000-00000](//doi.org/10.2165%2F11319230-000000000-00000).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1950](//www.worldcat.org/issn/1179-1950).
-7. ↑ Pugliese, A. M., Corradetti, R., Ballerini, L., Pepeu, G. (January 1990).["Effect of the nootropic drug oxiracetam on field potentials of rat hippocampal slices"](https://onlinelibrary.wiley.com/doi/10.1111/j.1476-5381.1990.tb14676.x).*British Journal of Pharmacology*.**99**(1): 189–193.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1476-5381.1990.tb14676.x](//doi.org/10.1111%2Fj.1476-5381.1990.tb14676.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-1188](//www.worldcat.org/issn/0007-1188).
-8. ↑ Parnetti, L., Mecocci, P., Petrini, A., Longo, A., Buccolieri, A., Senin, U. (1989). "Neuropsychological results of long-term therapy with oxiracetam in patients with dementia of Alzheimer type and multi-infarct dementia in comparison with a control group".*Neuropsychobiology*.**22**(2): 97–100.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1159/000118599](//doi.org/10.1159%2F000118599).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0302-282X](//www.worldcat.org/issn/0302-282X).
-9. ↑ Itil, T. M., Menon, G. N., Songar, A., Itil, K. Z. (1986). "CNS pharmacology and clinical therapeutic effects of oxiracetam".*Clinical Neuropharmacology*. 9 Suppl 3: S70–72.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0362-5664](//www.worldcat.org/issn/0362-5664).
-10. ↑ Perucca, E., Parini, J., Albrici, A., Visconti, M., Ferrero, E. (June 1987). "Oxiracetam pharmacokinetics following single and multiple dose administration in the elderly".*European Journal of Drug Metabolism and Pharmacokinetics*.**12**(2): 145–148.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03189889](//doi.org/10.1007%2FBF03189889).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0378-7966](//www.worldcat.org/issn/0378-7966).
-11. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075702 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.029 seconds CPU time usage: 0.247 seconds Real time usage: 0.460 seconds Preprocessor visited node count: 1228/1000000 Post‐expand include size: 62431/2097152 bytes Template argument size: 3948/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14078/5000000 bytes Lua time usage: 0.150/7 seconds Lua virtual size: 7.44 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 363.687 1 -total 62.09% 225.802 9 Template:Cite_journal 17.95% 65.277 1 Template:SubstanceBox/Oxiracetam 16.68% 60.669 1 Template:SubstanceBox 7.65% 27.831 1 Template:Effects/base 6.70% 24.367 1 Template:Effect_list 5.69% 20.681 2 Template:Effect_column 4.10% 14.906 1 Template:Citation 1.84% 6.679 1 Template:Effects/physical 1.31% 4.763 1 Template:SummarySheet`,
+- [Oxiracetam (Examine)](https://examine.com/supplements/Oxiracetam/)`,
   "tripsit-factsheets": `# Oxiracetam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/oxiracetam*
 

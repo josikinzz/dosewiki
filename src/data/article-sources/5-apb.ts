@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-APB";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-APB.md","displayName":"Isomer Design","size":727},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-APB.md","displayName":"PsychonautWiki","size":28170},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-APB.md","displayName":"TripSit Factsheets","size":674},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-APB.md","displayName":"Wikipedia","size":3912}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 5-APB.md","displayName":"Isomer Design","size":330,"tokens":135},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 5-APB.md","displayName":"PsychonautWiki","size":20902,"tokens":5765},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-APB.md","displayName":"TripSit Factsheets","size":674,"tokens":191},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-APB.md","displayName":"Wikipedia","size":3912,"tokens":1076}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 5-APB
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=2359*
@@ -15,17 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CC(Cc1ccc2c(c1)cco2)N\`
 
-**InChI:** \`InChI=1S/C11H13NO/c1-8(12)6-9-2-3-11-10(7-9)4-5-13-11/h2-5,7-8H,6,12H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8012953](https://www.chemspider.com/Chemical-Structure.8012953.html/)
-- [9837232](https://pubchem.ncbi.nlm.nih.gov/compound/9837232)
-- [Q4639569](https://www.wikidata.org/wiki/Q4639569)
-- [5-APB](https://en.wikipedia.org/wiki/5-APB)
-- [Substituted benzofuran](https://en.wikipedia.org/wiki/Substituted_benzofuran)
-`,
+**InChI:** \`InChI=1S/C11H13NO/c1-8(12)6-9-2-3-11-10(7-9)4-5-13-11/h2-5,7-8H,6,12H2,1H3\``,
   "psychonautwiki": `# 5-APB
 *Source: https://psychonautwiki.org/wiki/5-APB*
 
@@ -197,26 +187,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 
 ## Literature
 
-- Greene, S. L. (2013). Benzofurans and benzodifurans. In Novel Psychoactive Substances (pp. 383-392). [https://doi.org/10.1016/B978-0-12-415816-0.00016-X](https://doi.org/10.1016/B978-0-12-415816-0.00016-X)
-
-## References
-1. ↑ 1.0 1.1 Monte, A. P., Marona-Lewicka, D., Cozzi, N. V., Nichols, D. E. (November 1993).["Synthesis and pharmacological examination of benzofuran, indan, and tetralin analogs of 3,4-(methylenedioxy)amphetamine"](https://pubs.acs.org/doi/abs/10.1021/jm00075a027).*Journal of Medicinal Chemistry*.**36**(23): 3700–3706.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00075a027](//doi.org/10.1021%2Fjm00075a027).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-2. ↑ [EMCDDA–Europol 2010 Annual Report on the implementation of Council Decision 2005/387/JHA](https://www.emcdda.europa.eu/publications/implementation-reports/2010)
-3. ↑ Advisory Council on the Misuse of Drugs, Jeremy Browne (4 June 2013). "Temporary class drug order on benzofury and NBOMe compounds - letter from ACMD". GOV.UK.
-4. ↑ [The Misuse of Drugs Act 1971 (Ketamine etc.) (Amendment) Order 2014](https://www.legislation.gov.uk/uksi/2014/1106/made)
-5. ↑ Dawson, P., Opacka-Juffry, J., Moffatt, J. D., Daniju, Y., Dutta, N., Ramsey, J., Davidson, C. (3 January 2014). "The effects of benzofury (5-APB) on the dopamine transporter and 5-HT2-dependent vasoconstriction in the rat".*Progress in Neuro-Psychopharmacology & Biological Psychiatry*.**48**: 57–63.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.pnpbp.2013.08.013](//doi.org/10.1016%2Fj.pnpbp.2013.08.013).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1878-4216](//www.worldcat.org/issn/1878-4216).
-6. ↑ Iversen, L., Gibbons, S., Treble, R., Setola, V., Huang, X.-P., Roth, B. L. (30 January 2013).["Neurochemical profiles of some novel psychoactive substances"](https://www.sciencedirect.com/science/article/pii/S0014299912010114).*European Journal of Pharmacology*.**700**(1): 147–151.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2012.12.006](//doi.org/10.1016%2Fj.ejphar.2012.12.006).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-7. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-8. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-9. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-10. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-11. ↑ ["Article Annexe IV - Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants"](https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000043529751)(in French). Légifrance. Retrieved September 23, 2022.
-12. ↑ ["Anlage II BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_ii.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-13. ↑ ["Siebenundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl113s2274.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-14. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-15. ↑ ["危険ドラッグの成分４物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000097658.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-16. ↑ [Wijziging van de Opiumwet in verband met het toevoegen van een derde lijst met als doel het tegengaan van de productie van en de handel in nieuwe psychoactieve stoffen en enkele andere wijzigingen (Dutch)](https://www.tweedekamer.nl/kamerstukken/wetsvoorstellen/detail?id=2022Z14042&dossier=36159), 2024
-17. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075117 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.051 seconds CPU time usage: 0.382 seconds Real time usage: 0.755 seconds Preprocessor visited node count: 1813/1000000 Post‐expand include size: 99857/2097152 bytes Template argument size: 6447/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 21600/5000000 bytes Lua time usage: 0.260/7 seconds Lua virtual size: 8.69 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 609.461 1 -total 29.82% 181.734 6 Template:Cite_journal 20.49% 124.848 5 Template:Citation_needed 12.34% 75.209 1 Template:Fix 11.52% 70.211 2 Template:Category_handler 10.20% 62.193 5 Template:Cite_web 10.02% 61.043 1 Template:SubstanceBox/5-APB 9.21% 56.152 1 Template:SubstanceBox 6.93% 42.222 3 Template:Citation 4.11% 25.065 1 Template:Effects/base`,
+- Greene, S. L. (2013). Benzofurans and benzodifurans. In Novel Psychoactive Substances (pp. 383-392). [https://doi.org/10.1016/B978-0-12-415816-0.00016-X](https://doi.org/10.1016/B978-0-12-415816-0.00016-X)`,
   "tripsit-factsheets": `# 5-APB
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/5-apb*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-FPP";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FPP.md","displayName":"TripSit Factsheets","size":454},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FPP.md","displayName":"Wikipedia","size":2260}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-FPP.md","displayName":"TripSit Factsheets","size":454,"tokens":121},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-FPP.md","displayName":"Wikipedia","size":2260,"tokens":588}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-FPP
 *Source: TripSit Factsheets (tripsit.me)*

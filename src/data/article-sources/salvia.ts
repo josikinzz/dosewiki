@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Salvia";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Salvia.md","displayName":"Disregard Everything I Say","size":14543},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Salvia.md","displayName":"Drug Users Bible","size":8595},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Salvia.md","displayName":"TripSit Factsheets","size":803},{"id":"wikipedia","fileName":"WIKIPEDIA - Salvia.md","displayName":"Wikipedia","size":34188}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Salvia.md","displayName":"Disregard Everything I Say","size":14543,"tokens":3454},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Salvia.md","displayName":"Drug Users Bible","size":8595,"tokens":2132},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Salvia.md","displayName":"TripSit Factsheets","size":803,"tokens":194},{"id":"wikipedia","fileName":"WIKIPEDIA - Salvia.md","displayName":"Wikipedia","size":34188,"tokens":8539}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Salvia
 *Source: https://disregardeverythingisay.com/post/19637689917/salvia-broken-down-and-described*

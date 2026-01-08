@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Thiopropamine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Thiopropamine.md","displayName":"Drug Users Bible","size":2880},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Thiopropamine.md","displayName":"TripSit Factsheets","size":609},{"id":"wikipedia","fileName":"WIKIPEDIA - Thiopropamine.md","displayName":"Wikipedia","size":1131}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Thiopropamine.md","displayName":"Drug Users Bible","size":2880,"tokens":720},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Thiopropamine.md","displayName":"TripSit Factsheets","size":609,"tokens":162},{"id":"wikipedia","fileName":"WIKIPEDIA - Thiopropamine.md","displayName":"Wikipedia","size":1131,"tokens":295}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# TPA
 *Source: Drug Users Bible by Dominic Milton Trott*

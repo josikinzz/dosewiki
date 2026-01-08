@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MPT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MPT.md","displayName":"Isomer Design","size":749},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MPT.md","displayName":"PsychonautWiki","size":15753},{"id":"wikipedia","fileName":"WIKIPEDIA - MPT.md","displayName":"Wikipedia","size":1009}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MPT.md","displayName":"Isomer Design","size":407,"tokens":163},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - MPT.md","displayName":"PsychonautWiki","size":11836,"tokens":3143},{"id":"wikipedia","fileName":"WIKIPEDIA - MPT.md","displayName":"Wikipedia","size":1009,"tokens":258}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MPT
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=5175*
@@ -17,15 +17,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`CCCN(CCc1c[nH]c2c1cccc2)C\`
 
-**InChI:** \`InChI=1S/C14H20N2/c1-3-9-16(2)10-8-12-11-15-14-7-5-4-6-13(12)14/h4-7,11,15H,3,8-10H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [96351249](https://www.chemspider.com/Chemical-Structure.96351249.html/)
-- [74405270](https://pubchem.ncbi.nlm.nih.gov/compound/74405270)
-- [List of substituted tryptamines](https://en.wikipedia.org/wiki/Substituted_tryptamine#List_of_substituted_tryptamines)
-`,
+**InChI:** \`InChI=1S/C14H20N2/c1-3-9-16(2)10-8-12-11-15-14-7-5-4-6-13(12)14/h4-7,11,15H,3,8-10H2,1-2H3\``,
   "psychonautwiki": `# MPT
 *Source: https://psychonautwiki.org/wiki/MPT*
 
@@ -160,17 +152,7 @@ Although many drugs are safe on their own, they can become dangerous and even li
 
 ### Discussion
 
-- [The Big & Dandy MPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/399129)
-
-## References
-1. ↑ Chadeayne, A. R., Golen, J. A., Manke, D. R. (28 July 2019).["N -Methyl- N -propyltryptamine (MPT)"](http://scripts.iucr.org/cgi-bin/paper?S2414314619009623).*IUCrData*.**4**(7): x190962.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1107/S2414314619009623](//doi.org/10.1107%2FS2414314619009623).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2414-3146](//www.worldcat.org/issn/2414-3146).
-2. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009).["Dose-independent occurrence of seizure with tramadol"](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3550327).*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).[PMC](http://en.wikipedia.org/wiki/PubMed_Central)[3550327](//www.ncbi.nlm.nih.gov/pmc/articles/PMC3550327).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[19415589](//www.ncbi.nlm.nih.gov/pubmed/19415589).
-3. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-4. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-5. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-6. ↑ ["Schedule 1 Class A controlled drugs"](http://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html#DLM436576).*"Reprint as at 13 August 2019: Misuse of Drugs Act 1975"*. Parliamentary Counsel Office. Retrieved January 7, 2020.
-7. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-8. ↑ ["Part I: Class A Drugs"](http://www.legislation.gov.uk/ukpga/1971/38/schedule/2/part/I).*"Misuse of Drugs Act 1971"*. UK Government. Retrieved January 7, 2020.NewPP limit report Cached time: 20251218075632 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.027 seconds CPU time usage: 0.295 seconds Real time usage: 0.612 seconds Preprocessor visited node count: 1347/1000000 Post‐expand include size: 62763/2097152 bytes Template argument size: 7118/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 10996/5000000 bytes Lua time usage: 0.210/7 seconds Lua virtual size: 8.11 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 496.707 1 -total 26.87% 133.471 3 Template:Citation_needed 19.63% 97.528 6 Template:Cite_web 19.21% 95.430 2 Template:Cite_journal 16.33% 81.127 1 Template:Fix 15.30% 76.004 2 Template:Category_handler 11.26% 55.951 1 Template:SubstanceBox/MPT 10.60% 52.631 1 Template:SubstanceBox 5.87% 29.152 2 Template:Further 5.68% 28.230 1 Template:Effects/base`,
+- [The Big & Dandy MPT Thread (Bluelight)](https://www.bluelight.org/xf/threads/399129)`,
   "wikipedia": `# Methylpropyltryptamine
 *Source: https://en.wikipedia.org/wiki/Methylpropyltryptamine*
 

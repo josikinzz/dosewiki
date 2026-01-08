@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "YERBA-MATE";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YERBA-MATE.md","displayName":"Drug Users Bible","size":2868},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YERBA-MATE.md","displayName":"TripSit Factsheets","size":478},{"id":"wikipedia","fileName":"WIKIPEDIA - YERBA-MATE.md","displayName":"Wikipedia","size":14823}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - YERBA-MATE.md","displayName":"Drug Users Bible","size":2868,"tokens":690},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - YERBA-MATE.md","displayName":"TripSit Factsheets","size":478,"tokens":127},{"id":"wikipedia","fileName":"WIKIPEDIA - YERBA-MATE.md","displayName":"Wikipedia","size":14823,"tokens":3754}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Yerba Mate
 *Source: Drug Users Bible by Dominic Milton Trott*

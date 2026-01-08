@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Kola_Nut";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kola_Nut.md","displayName":"Drug Users Bible","size":1279},{"id":"wikipedia","fileName":"WIKIPEDIA - Kola_Nut.md","displayName":"Wikipedia","size":7552}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Kola_Nut.md","displayName":"Drug Users Bible","size":1279,"tokens":322},{"id":"wikipedia","fileName":"WIKIPEDIA - Kola_Nut.md","displayName":"Wikipedia","size":7552,"tokens":1836}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Kola Nut
 *Source: Drug Users Bible by Dominic Milton Trott*

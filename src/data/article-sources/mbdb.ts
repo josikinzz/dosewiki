@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "MBDB";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MBDB.md","displayName":"Isomer Design","size":4672},{"id":"saferparty","fileName":"SAFERPARTY - MBDB.md","displayName":"Safer Party","size":1142},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBDB.md","displayName":"TripSit Factsheets","size":713},{"id":"wikipedia","fileName":"WIKIPEDIA - MBDB.md","displayName":"Wikipedia","size":6657}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - MBDB.md","displayName":"Isomer Design","size":4672,"tokens":1267},{"id":"saferparty","fileName":"SAFERPARTY - MBDB.md","displayName":"Safer Party","size":1142,"tokens":292},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - MBDB.md","displayName":"TripSit Factsheets","size":713,"tokens":208},{"id":"wikipedia","fileName":"WIKIPEDIA - MBDB.md","displayName":"Wikipedia","size":6657,"tokens":1688}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# MBDB
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=128*

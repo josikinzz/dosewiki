@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Meclofenoxate";
-export const sources = [{"id":"erowid","fileName":"EROWID - Meclofenoxate.md","displayName":"Erowid","size":826},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Meclofenoxate.md","displayName":"Isomer Design","size":727},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Meclofenoxate.md","displayName":"PsychonautWiki","size":9027},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Meclofenoxate.md","displayName":"TripSit Factsheets","size":297},{"id":"wikipedia","fileName":"WIKIPEDIA - Meclofenoxate.md","displayName":"Wikipedia","size":1354}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Meclofenoxate.md","displayName":"Erowid","size":826,"tokens":232},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Meclofenoxate.md","displayName":"Isomer Design","size":409,"tokens":153},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Meclofenoxate.md","displayName":"PsychonautWiki","size":6473,"tokens":1724},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Meclofenoxate.md","displayName":"TripSit Factsheets","size":297,"tokens":85},{"id":"wikipedia","fileName":"WIKIPEDIA - Meclofenoxate.md","displayName":"Wikipedia","size":1354,"tokens":348}];
 export const contents: Record<string, string> = {
   "erowid": `# Meclofenoxate
 *Source: https://www.erowid.org/smarts/meclofenoxate/*
@@ -46,16 +46,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CN(CCOC(=O)COc1ccc(cc1)Cl)C\`
 
-**InChI:** \`InChI=1S/C12H16ClNO3/c1-14(2)7-8-16-12(15)9-17-11-5-3-10(13)4-6-11/h3-6H,7-9H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [3899](https://www.chemspider.com/Chemical-Structure.3899.html/)
-- [4039](https://pubchem.ncbi.nlm.nih.gov/compound/4039)
-- [Q421147](https://www.wikidata.org/wiki/Q421147)
-- [Meclofenoxate](https://en.wikipedia.org/wiki/Meclofenoxate)
-`,
+**InChI:** \`InChI=1S/C12H16ClNO3/c1-14(2)7-8-16-12(15)9-17-11-5-3-10(13)4-6-11/h3-6H,7-9H2,1-2H3\``,
   "psychonautwiki": `# Meclofenoxate
 *Source: https://psychonautwiki.org/wiki/Meclofenoxate*
 
@@ -146,13 +137,7 @@ In vitro studies of meclofenoxate showed inhibition of total MAO, MAO A and MAO 
 - [Meclofenoxate (Wikipedia)](https://en.wikipedia.org/wiki/Meclofenoxate)
 - [Meclofenoxate (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=11475)
 - [Meclofenoxate (Erowid Vault)](https://www.erowid.org/smarts/meclofenoxate/)
-- [Centrophenoxine (Examine)](https://examine.com/supplements/centrophenoxine/)
-
-## References
-1. ↑ Malík, Matěj; Tlustoš, Pavel (2022-08-17). "Nootropics as Cognitive Enhancers: Types, Dosage and Side Effects of Smart Drugs".*Nutrients*.**14**(16): 3367.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.3390/nu14163367](//doi.org/10.3390%2Fnu14163367).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2072-6643](//www.worldcat.org/issn/2072-6643).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[36014874](//www.ncbi.nlm.nih.gov/pubmed/36014874).
-2. ↑ Hochschild, R. (1973). "Effect of dimethylaminoethyl p-chlorophenoxyacetate on the life span of male swiss webster albino mice".*Experimental Gerontology*.**8**(4): 177–183.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0531-5565(73)90024-7](//doi.org/10.1016%2F0531-5565%2873%2990024-7).
-3. ↑ ["Uses of Lucimax"](https://www.vinmec.com/en/pharmaceutical-information/use-medicines-safely/uses-of-lucimax/).*Vinmec*. 2012-11-30. Retrieved 2024-03-14.
-4. ↑ SL, Stancheva; LG, Alova.["[Effect of centrophenoxine, piracetam and aniracetam on the monoamine oxidase activity in different brain structures of rats]"](https://pubmed.ncbi.nlm.nih.gov/3137089/).*Farmakologiia i toksikologiia*. Farmakol Toksikol.**51**(3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-8318](//www.worldcat.org/issn/0014-8318).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[3137089](//www.ncbi.nlm.nih.gov/pubmed/3137089). Retrieved 2024-03-15.NewPP limit report Cached time: 20251218075545 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.019 seconds CPU time usage: 0.222 seconds Real time usage: 0.429 seconds Preprocessor visited node count: 1113/1000000 Post‐expand include size: 48535/2097152 bytes Template argument size: 5341/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 6052/5000000 bytes Lua time usage: 0.130/7 seconds Lua virtual size: 7.41 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 341.204 1 -total 35.26% 120.307 1 Template:Citation_needed 32.83% 112.033 3 Template:Cite_journal 21.86% 74.581 1 Template:Fix 20.34% 69.402 2 Template:Category_handler 12.69% 43.306 1 Template:SubstanceBox/Meclofenoxate 12.15% 41.456 1 Template:SubstanceBox 6.19% 21.133 1 Template:Effects/base 5.28% 18.013 1 Template:Cite_web 5.17% 17.638 1 Template:Effect_list`,
+- [Centrophenoxine (Examine)](https://examine.com/supplements/centrophenoxine/)`,
   "tripsit-factsheets": `# Centrophenoxine
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/centrophenoxine*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Celastrus_Paniculatus";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Celastrus_Paniculatus.md","displayName":"Drug Users Bible","size":3376},{"id":"wikipedia","fileName":"WIKIPEDIA - Celastrus_Paniculatus.md","displayName":"Wikipedia","size":979}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Celastrus_Paniculatus.md","displayName":"Drug Users Bible","size":3376,"tokens":823},{"id":"wikipedia","fileName":"WIKIPEDIA - Celastrus_Paniculatus.md","displayName":"Wikipedia","size":979,"tokens":261}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Celastrus Paniculatus
 *Source: Drug Users Bible by Dominic Milton Trott*

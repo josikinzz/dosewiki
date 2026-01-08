@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Afloqualone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Afloqualone.md","displayName":"TripSit Factsheets","size":654},{"id":"wikipedia","fileName":"WIKIPEDIA - Afloqualone.md","displayName":"Wikipedia","size":471}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Afloqualone.md","displayName":"TripSit Factsheets","size":654,"tokens":170},{"id":"wikipedia","fileName":"WIKIPEDIA - Afloqualone.md","displayName":"Wikipedia","size":471,"tokens":116}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Afloqualone
 *Source: TripSit Factsheets (tripsit.me)*

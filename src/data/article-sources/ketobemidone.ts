@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ketobemidone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ketobemidone.md","displayName":"TripSit Factsheets","size":940},{"id":"wikipedia","fileName":"WIKIPEDIA - Ketobemidone.md","displayName":"Wikipedia","size":3779}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ketobemidone.md","displayName":"TripSit Factsheets","size":940,"tokens":240},{"id":"wikipedia","fileName":"WIKIPEDIA - Ketobemidone.md","displayName":"Wikipedia","size":3779,"tokens":912}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Ketobemidone
 *Source: TripSit Factsheets (tripsit.me)*

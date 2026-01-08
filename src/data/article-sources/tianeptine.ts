@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tianeptine";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Tianeptine.md","displayName":"Isomer Design","size":837},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Tianeptine.md","displayName":"PsychonautWiki","size":26454},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tianeptine.md","displayName":"TripSit Factsheets","size":329},{"id":"wikipedia","fileName":"WIKIPEDIA - Tianeptine.md","displayName":"Wikipedia","size":20443}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - Tianeptine.md","displayName":"Isomer Design","size":521,"tokens":237},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Tianeptine.md","displayName":"PsychonautWiki","size":16635,"tokens":4335},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tianeptine.md","displayName":"TripSit Factsheets","size":329,"tokens":99},{"id":"wikipedia","fileName":"WIKIPEDIA - Tianeptine.md","displayName":"Wikipedia","size":20443,"tokens":4970}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# Tianeptine
 *Source: https://isomerdesign.com/PiHKAL/explore.php?id=3241*
@@ -15,16 +15,7 @@ export const contents: Record<string, string> = {
 
 **SMILES:** \`OC(=O)CCCCCCNC1c2ccccc2N(S(=O)(=O)c2c1ccc(c2)Cl)C\`
 
-**InChI:** \`InChI=1S/C21H25ClN2O4S/c1-24-18-9-6-5-8-16(18)21(23-13-7-3-2-4-10-20(25)26)17-12-11-15(22)14-19(17)29(24,27)28/h5-6,8-9,11-12,14,21,23H,2-4,7,10,13H2,1H3,(H,25,26)\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [62102](https://www.chemspider.com/Chemical-Structure.62102.html/)
-- [68870](https://pubchem.ncbi.nlm.nih.gov/compound/68870)
-- [Q424260](https://www.wikidata.org/wiki/Q424260)
-- [Tianeptine](https://en.wikipedia.org/wiki/Tianeptine)
-`,
+**InChI:** \`InChI=1S/C21H25ClN2O4S/c1-24-18-9-6-5-8-16(18)21(23-13-7-3-2-4-10-20(25)26)17-12-11-15(22)14-19(17)29(24,27)28/h5-6,8-9,11-12,14,21,23H,2-4,7,10,13H2,1H3,(H,25,26)\``,
   "psychonautwiki": `# Tianeptine
 *Source: https://psychonautwiki.org/wiki/Tianeptine*
 
@@ -160,40 +151,7 @@ Tianeptine is available by prescription in many European, Asian, and South Ameri
 
 ## Literature
 
-- Ormrod, D.J., Spencer, C.M., & Wagstaff, A.J. (2001). Tianeptine: a review of its use in depressive disorders. CNS Drugs, 15 3, 231-59. PMID: 11463130
-
-## References
-1. ↑ Defrance, R., Marey, C., Kamoun, A. (1988). "Antidepressant and anxiolytic activities of tianeptine: an overview of clinical trials".*Clinical Neuropharmacology*. 11 Suppl 2: S74–82.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0362-5664](//www.worldcat.org/issn/0362-5664).
-2. ↑ 2.0 2.1 McEwen, B. S., Chattarji, S., Diamond, D. M., Jay, T. M., Reagan, L. P., Svenningsson, P., Fuchs, E. (March 2010).["The neurobiological properties of Tianeptine (Stablon): from monoamine hypothesis to glutamatergic modulation"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2902200/).*Molecular psychiatry*.**15**(3): 237–249.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/mp.2009.80](//doi.org/10.1038%2Fmp.2009.80).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1359-4184](//www.worldcat.org/issn/1359-4184).
-3. ↑ Wagstaff, A. J., Ormrod, D., Spencer, C. M. (2001). "Tianeptine: a review of its use in depressive disorders".*CNS drugs*.**15**(3): 231–259.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-200115030-00006](//doi.org/10.2165%2F00023210-200115030-00006).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1172-7047](//www.worldcat.org/issn/1172-7047).
-4. ↑ 4.0 4.1 Schruers, K., Griez, E. (December 2004).["The effects of tianeptine or paroxetine on 35% CO 2 provoked panic in panic disorder"](http://journals.sagepub.com/doi/10.1177/026988110401800413).*Journal of Psychopharmacology*.**18**(4): 553–558.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1177/026988110401800413](//doi.org/10.1177%2F026988110401800413).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0269-8811](//www.worldcat.org/issn/0269-8811).
-5. ↑ Plaisant, F., Dommergues, M.-A., Spedding, M., Cecchelli, R., Brillault, J., Kato, G., Muñoz, C., Gressens, P. (May 2003). "Neuroprotective properties of tianeptine: interactions with cytokines".*Neuropharmacology*.**44**(6): 801–809.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0028-3908(03)00066-2](//doi.org/10.1016%2Fs0028-3908%2803%2900066-2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-6. ↑ Klasik, A., Krysta, K., Krupka-Matuszczyk, I. (September 2011). "Effect of tianeptine on cognitive functions in patients with depressive disorders during a 3-month observation".*Psychiatria Danubina*. 23 Suppl 1: S18–22.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0353-5053](//www.worldcat.org/issn/0353-5053).
-7. ↑ [Tianeptine - A Mood Brightening Drug for Depression and Anxiety](https://nootriment.com/tianeptine/), 2014
-8. ↑ TIANEPTINE: WHAT IS TIANEPTINE? | [https://smartdrugsforthought.com/what-is-tianeptine/](https://smartdrugsforthought.com/what-is-tianeptine/)
-9. ↑ [Tricyclic antidepressants (TCAs)](https://www.mayoclinic.org/diseases-conditions/depression/in-depth/antidepressants/art-20046983)
-10. ↑ Brink, C. B., Harvey, B. H., Brand, L. (January 2006). "Tianeptine: a novel atypical antidepressant that may provide new insights into the biomolecular basis of depression".*Recent patents on CNS drug discovery*.**1**(1): 29–41.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/157488906775245327](//doi.org/10.2174%2F157488906775245327).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1574-8898](//www.worldcat.org/issn/1574-8898).
-11. ↑ [http://www.ceretropic.com/tianeptine-sulfate-powder/](http://www.ceretropic.com/tianeptine-sulfate-powder/)
-12. ↑ Gorthaur111 (2015),[Tianeptine Sulfate is VASTLY SUPERIOR to Tianeptine Sodium](https://www.reddit.com/r/Nootropics/comments/30w63b/tianeptine_sulfate_is_vastly_superior_to/)
-13. ↑ [Tianeptine sulfate is so great.](https://www.reddit.com/r/Nootropics/comments/33or7s/tianeptine_sulfate_is_so_great/), 2015
-14. ↑ Invernizzi, R., Pozzi, L., Garattini, S., Samanin, R. (March 1992). "Tianeptine increases the extracellular concentrations of dopamine in the nucleus accumbens by a serotonin-independent mechanism".*Neuropharmacology*.**31**(3): 221–227.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0028-3908(92)90171-k](//doi.org/10.1016%2F0028-3908%2892%2990171-k).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-3908](//www.worldcat.org/issn/0028-3908).
-15. ↑ Mennini, T., Mocaer, E., Garattini, S. (November 1987). "Tianeptine, a selective enhancer of serotonin uptake in rat brain".*Naunyn-Schmiedeberg’s Archives of Pharmacology*.**336**(5): 478–482.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF00169302](//doi.org/10.1007%2FBF00169302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0028-1298](//www.worldcat.org/issn/0028-1298).
-16. ↑ [Tianeptine ( Stablon )](https://www.tianeptine.com/)
-17. ↑ Gassaway, M. M., Rives, M.-L., Kruegel, A. C., Javitch, J. A., Sames, D. (15 July 2014). "The atypical antidepressant and neurorestorative agent tianeptine is a μ-opioid receptor agonist".*Translational Psychiatry*.**4**: e411.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/tp.2014.30](//doi.org/10.1038%2Ftp.2014.30).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2158-3188](//www.worldcat.org/issn/2158-3188).
-18. ↑ [The serotonin reuptake enhancer tianeptine ( Stablon ) prevents asthma attacks](https://www.tianeptine.com/asthma.html)
-19. ↑ [The Tianeptine Story: Irritable Bowel Syndrome, VelaPharm and Pharmos Corporation](https://www.tianeptine.com/ibs/index.html)
-20. ↑ [The serotonin reuptake enhancer tianeptine ( Stablon ) prevents asthma attacks](https://www.tianeptine.com/asthma.html)
-21. ↑ Klasik, A., Krysta, K., Krupka-Matuszczyk, I. (September 2011). "Effect of tianeptine on cognitive functions in patients with depressive disorders during a 3-month observation".*Psychiatria Danubina*. 23 Suppl 1: S18–22.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0353-5053](//www.worldcat.org/issn/0353-5053).
-22. ↑ Proença, P., Teixeira, H., Pinheiro, J., Monsanto, P. V., Vieira, D. N. (August 2007).["Fatal intoxication with tianeptine (Stablon®)"](https://linkinghub.elsevier.com/retrieve/pii/S0379073807005683).*Forensic Science International*.**170**(2–3): 200–203.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.forsciint.2007.03.035](//doi.org/10.1016%2Fj.forsciint.2007.03.035).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0379-0738](//www.worldcat.org/issn/0379-0738).
-23. ↑ Gassaway, M. M., Rives, M.-L., Kruegel, A. C., Javitch, J. A., Sames, D. (July 2014).["The atypical antidepressant and neurorestorative agent tianeptine is a μ-opioid receptor agonist"](https://www.nature.com/articles/tp201430).*Translational Psychiatry*.**4**(7): e411–e411.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/tp.2014.30](//doi.org/10.1038%2Ftp.2014.30).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[2158-3188](//www.worldcat.org/issn/2158-3188).
-24. ↑ [AMVV - Verordnung über die Verschreibungspflicht von Arzneimitteln](https://www.gesetze-im-internet.de/amvv/BJNR363210005.html)
-25. ↑ [Resolution of the Government of the Russian Federation от 30.06.2010 N 486](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=136223&fld=134&dst=100001,0&rnd=0.12167570485188983#017679654459079552)
-26. ↑ [https://www.lakemedelsverket.se/sv/sok-lakemedelsfakta/substans?id=E4POFBUAVAHVERT1](https://www.lakemedelsverket.se/sv/sok-lakemedelsfakta/substans?id=E4POFBUAVAHVERT1)
-27. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-28. ↑ [https://www.titck.gov.tr/dinamikmodul/43](https://www.titck.gov.tr/dinamikmodul/43)
-29. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-30. ↑ PutItOnaTshirt (2016),[Powder City has discontinued the selling of Tianeptine](https://www.reddit.com/r/Nootropics/comments/4a1oq2/powder_city_has_discontinued_the_selling_of/)
-31. ↑ Michigan's Legislature has passed a statewide ban on the antidepressant tianeptine sodium. | [https://www.usnews.com/news/best-states/michigan/articles/2018-03-21/snyder-to-receive-bill-on-statewide-tianeptine-sodium-ban](https://www.usnews.com/news/best-states/michigan/articles/2018-03-21/snyder-to-receive-bill-on-statewide-tianeptine-sodium-ban)NewPP limit report Cached time: 20251218075818 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.038 seconds CPU time usage: 0.385 seconds Real time usage: 0.838 seconds Preprocessor visited node count: 2048/1000000 Post‐expand include size: 112682/2097152 bytes Template argument size: 8873/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 33397/5000000 bytes Lua time usage: 0.360/7 seconds Lua virtual size: 8.41 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 722.111 1 -total 65.09% 470.001 1 Template:Reflist 41.50% 299.706 13 Template:Cite_journal 16.85% 121.666 1 Template:Citation_needed 16.31% 117.798 12 Template:Citation 10.40% 75.117 1 Template:Fix 9.79% 70.707 2 Template:Category_handler 8.02% 57.888 1 Template:SubstanceBox/Tianeptine 7.51% 54.234 1 Template:SubstanceBox 3.22% 23.252 1 Template:Effects/base`,
+- Ormrod, D.J., Spencer, C.M., & Wagstaff, A.J. (2001). Tianeptine: a review of its use in depressive disorders. CNS Drugs, 15 3, 231-59. PMID: 11463130`,
   "tripsit-factsheets": `# Tianeptine
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/tianeptine*
 

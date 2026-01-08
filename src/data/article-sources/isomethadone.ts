@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Isomethadone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isomethadone.md","displayName":"TripSit Factsheets","size":783},{"id":"wikipedia","fileName":"WIKIPEDIA - Isomethadone.md","displayName":"Wikipedia","size":908}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Isomethadone.md","displayName":"TripSit Factsheets","size":783,"tokens":206},{"id":"wikipedia","fileName":"WIKIPEDIA - Isomethadone.md","displayName":"Wikipedia","size":908,"tokens":223}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Isomethadone
 *Source: TripSit Factsheets (tripsit.me)*

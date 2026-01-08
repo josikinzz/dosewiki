@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "4-Chlorodiazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Chlorodiazepam.md","displayName":"TripSit Factsheets","size":379},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Chlorodiazepam.md","displayName":"Wikipedia","size":825}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 4-Chlorodiazepam.md","displayName":"TripSit Factsheets","size":379,"tokens":103},{"id":"wikipedia","fileName":"WIKIPEDIA - 4-Chlorodiazepam.md","displayName":"Wikipedia","size":825,"tokens":218}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 4-Chlorodiazepam
 *Source: TripSit Factsheets (tripsit.me)*

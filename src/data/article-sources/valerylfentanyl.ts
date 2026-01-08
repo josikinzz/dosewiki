@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Valerylfentanyl";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Valerylfentanyl.md","displayName":"TripSit Factsheets","size":321},{"id":"wikipedia","fileName":"WIKIPEDIA - Valerylfentanyl.md","displayName":"Wikipedia","size":1479}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Valerylfentanyl.md","displayName":"TripSit Factsheets","size":321,"tokens":84},{"id":"wikipedia","fileName":"WIKIPEDIA - Valerylfentanyl.md","displayName":"Wikipedia","size":1479,"tokens":339}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Valerylfentanyl
 *Source: TripSit Factsheets (tripsit.me)*

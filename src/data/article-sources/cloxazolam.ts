@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cloxazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cloxazolam.md","displayName":"TripSit Factsheets","size":422},{"id":"wikipedia","fileName":"WIKIPEDIA - Cloxazolam.md","displayName":"Wikipedia","size":334}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cloxazolam.md","displayName":"TripSit Factsheets","size":422,"tokens":118},{"id":"wikipedia","fileName":"WIKIPEDIA - Cloxazolam.md","displayName":"Wikipedia","size":334,"tokens":87}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Cloxazolam
 *Source: TripSit Factsheets (tripsit.me)*

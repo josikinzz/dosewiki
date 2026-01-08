@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Homosildenafil";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homosildenafil.md","displayName":"TripSit Factsheets","size":558},{"id":"wikipedia","fileName":"WIKIPEDIA - Homosildenafil.md","displayName":"Wikipedia","size":820}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Homosildenafil.md","displayName":"TripSit Factsheets","size":558,"tokens":146},{"id":"wikipedia","fileName":"WIKIPEDIA - Homosildenafil.md","displayName":"Wikipedia","size":820,"tokens":203}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Homosildenafil
 *Source: TripSit Factsheets (tripsit.me)*

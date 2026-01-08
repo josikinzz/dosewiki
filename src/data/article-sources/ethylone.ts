@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ethylone";
-export const sources = [{"id":"erowid","fileName":"EROWID - Ethylone.md","displayName":"Erowid","size":1041},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ethylone.md","displayName":"Isomer Design","size":644},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ethylone.md","displayName":"PsychonautWiki","size":29249},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethylone.md","displayName":"TripSit Factsheets","size":495},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethylone.md","displayName":"Wikipedia","size":1092}];
+export const sources = [{"id":"erowid","fileName":"EROWID - Ethylone.md","displayName":"Erowid","size":1041,"tokens":278},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Ethylone.md","displayName":"Isomer Design","size":318,"tokens":131},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Ethylone.md","displayName":"PsychonautWiki","size":22271,"tokens":5968},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ethylone.md","displayName":"TripSit Factsheets","size":495,"tokens":148},{"id":"wikipedia","fileName":"WIKIPEDIA - Ethylone.md","displayName":"Wikipedia","size":1092,"tokens":274}];
 export const contents: Record<string, string> = {
   "erowid": `# Ethylone
 *Source: https://erowid.org/chemicals/bk_mdea/*
@@ -43,16 +43,7 @@ Ethylone is classified as a research chemical with limited documentation of huma
 
 **SMILES:** \`CCNC(C(=O)c1ccc2c(c1)OCO2)C\`
 
-**InChI:** \`InChI=1S/C12H15NO3/c1-3-13-8(2)12(14)9-4-5-10-11(6-9)16-7-15-10/h4-6,8,13H,3,7H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106271](https://www.chemspider.com/Chemical-Structure.21106271.html/)
-- [57252245](https://pubchem.ncbi.nlm.nih.gov/compound/57252245)
-- [Q5404507](https://www.wikidata.org/wiki/Q5404507)
-- [Ethylone](https://en.wikipedia.org/wiki/Ethylone)
-`,
+**InChI:** \`InChI=1S/C12H15NO3/c1-3-13-8(2)12(14)9-4-5-10-11(6-9)16-7-15-10/h4-6,8,13H,3,7H2,1-2H3\``,
   "psychonautwiki": `# Ethylone
 *Source: https://psychonautwiki.org/wiki/Ethylone*
 
@@ -202,26 +193,7 @@ Combinations with the following substances can cause dangerously high [serotonin
 
 ### Discussion
 
-- [Ethylone / BK-MDEA (Bluelight)](http://www.bluelight.org/vb/threads/590326-Ethylone-BK-MDEA)
-
-## References
-1. ↑ ["Cathinone | Ask Dr. Shulgin Online"](http://www.cognitiveliberty.org/shulgin/adsarchive/cathinone.htm).
-2. ↑ Cozzi, N. V., Sievert, M. K., Shulgin, A. T., Jacob, P., Ruoho, A. E. (17 September 1999). "Inhibition of plasma membrane monoamine transporters by beta-ketoamphetamines".*European Journal of Pharmacology*.**381**(1): 63–69.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0014-2999(99)00538-5](//doi.org/10.1016%2Fs0014-2999%2899%2900538-5).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-3. ↑ 3.0 3.1 Nagai, F., Nonaka, R., Satoh Hisashi Kamimura, K. (22 March 2007).["The effects of non-medically used psychoactive drugs on monoamine neurotransmission in rat brain"](https://www.sciencedirect.com/science/article/pii/S0014299906013811).*European Journal of Pharmacology*.**559**(2): 132–137.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2006.11.075](//doi.org/10.1016%2Fj.ejphar.2006.11.075).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-4. ↑ 4.0 4.1 Simmler, L., Buser, T., Donzelli, M., Schramm, Y., Dieu, L.-H., Huwyler, J., Chaboz, S., Hoener, M., Liechti, M. (January 2013).["Pharmacological characterization of designer cathinones in vitro: Pharmacology of cathinones"](https://onlinelibrary.wiley.com/doi/10.1111/j.1476-5381.2012.02145.x).*British Journal of Pharmacology*.**168**(2): 458–470.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1476-5381.2012.02145.x](//doi.org/10.1111%2Fj.1476-5381.2012.02145.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-1188](//www.worldcat.org/issn/0007-1188).
-5. ↑ 5.0 5.1 5.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-6. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-7. ↑ [http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf](http://www.accessdata.fda.gov/drugsatfda_docs/label/2013/021303s026lbl.pdf)
-8. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-9. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-10. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-11. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](http://www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. 27 September 2015. Retrieved 1 October 2015.
-12. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-13. ↑ ["Achtundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl114s1999.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl114s1999.pdf%27%5D__1576023093735)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 25, 2019.
-14. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 25, 2019.
-15. ↑ [http://rkrattsbaser.gov.se/sfst?fritext=etylon&upph=false&sort=desc](http://rkrattsbaser.gov.se/sfst?fritext=etylon&upph=false&sort=desc)
-16. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-17. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2010](https://www.legislation.gov.uk/uksi/2010/1207/made)NewPP limit report Cached time: 20251218075410 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.045 seconds CPU time usage: 0.380 seconds Real time usage: 0.757 seconds Preprocessor visited node count: 1700/1000000 Post‐expand include size: 123213/2097152 bytes Template argument size: 16640/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 21472/5000000 bytes Lua time usage: 0.270/7 seconds Lua virtual size: 8.64 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 619.308 1 -total 23.71% 146.829 6 Template:Cite_web 20.24% 125.329 6 Template:Cite_journal 12.98% 80.396 1 Template:Citation_needed 11.67% 72.264 1 Template:SubstanceBox/Ethylone 11.35% 70.309 1 Template:Fix 11.01% 68.193 1 Template:SubstanceBox 10.63% 65.829 2 Template:Category_handler 9.06% 56.109 1 Template:Distinguish 8.53% 52.843 1 Template:Hatnote`,
+- [Ethylone / BK-MDEA (Bluelight)](http://www.bluelight.org/vb/threads/590326-Ethylone-BK-MDEA)`,
   "tripsit-factsheets": `# Ethylone
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/ethylone*
 

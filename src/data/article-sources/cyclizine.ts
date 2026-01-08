@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Cyclizine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Cyclizine.md","displayName":"DrugBank","size":14984},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclizine.md","displayName":"TripSit Factsheets","size":798},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclizine.md","displayName":"Wikipedia","size":4434}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Cyclizine.md","displayName":"DrugBank","size":14984,"tokens":3660},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Cyclizine.md","displayName":"TripSit Factsheets","size":798,"tokens":195},{"id":"wikipedia","fileName":"WIKIPEDIA - Cyclizine.md","displayName":"Wikipedia","size":4434,"tokens":1089}];
 export const contents: Record<string, string> = {
   "drugbank": `# Cyclizine
 *Source: https://go.drugbank.com/drugs/DB01176*

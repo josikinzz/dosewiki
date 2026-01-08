@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2M2B";
-export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2M2B.md","displayName":"PsychonautWiki","size":19067},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2M2B.md","displayName":"TripSit Factsheets","size":743},{"id":"wikipedia","fileName":"WIKIPEDIA - 2M2B.md","displayName":"Wikipedia","size":3539}];
+export const sources = [{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 2M2B.md","displayName":"PsychonautWiki","size":13856,"tokens":3756},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2M2B.md","displayName":"TripSit Factsheets","size":743,"tokens":214},{"id":"wikipedia","fileName":"WIKIPEDIA - 2M2B.md","displayName":"Wikipedia","size":3539,"tokens":882}];
 export const contents: Record<string, string> = {
   "psychonautwiki": `# 2M2B
 *Source: https://psychonautwiki.org/wiki/2M2B*
@@ -116,24 +116,7 @@ Tolerance to many of the effects of 2M2B develops with prolonged and repeated us
 
 ### Discussion
 
-- [2-methyl-2-butanol (2M2B) "Vodka" (Bluelight)](https://www.bluelight.org/xf/threads/490389/)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ 2-METHYL-2-BUTANOL - National Library of Medicine HSDB Database | [https://www.toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005](https://www.toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005)
-3. ↑ Schlaepfer, K. (1 May 1932).["AVERTIN FLUID ANESTHESIA IN SURGERY"](http://archsurg.jamanetwork.com/article.aspx?doi=10.1001/archsurg.1932.01160170155006).*Archives of Surgery*.**24**(5): 868.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archsurg.1932.01160170155006](//doi.org/10.1001%2Farchsurg.1932.01160170155006).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0004-0010](//www.worldcat.org/issn/0004-0010).
-4. ↑ [2-Methyl-2-Butanol (also tert-amyl alcohol) : Erowid Exp: Main Index](https://www.erowid.org/experiences/subs/exp_2Methyl2Butanol.shtml)
-5. ↑ Gould, G. M. (1919).*The Practitioner’s Medical Dictionary: Containing All the Words and Phrases Generally Used in Medicine and the Allied Sciences, with Their Proper Pronunciation, Derivation, and Definition*. P. Blakiston’s.
-6. ↑ Dougan, J., Robinson, J. M., Sumar, S., Howard, G. E., Coursey, D. G. (August 1983).["Some flavouring constituents of cassava and of processed cassava products"](https://onlinelibrary.wiley.com/doi/10.1002/jsfa.2740340816).*Journal of the Science of Food and Agriculture*.**34**(8): 874–884.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/jsfa.2740340816](//doi.org/10.1002%2Fjsfa.2740340816).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-5142](//www.worldcat.org/issn/0022-5142).
-7. ↑ Ho, C. T., Lee, K. N., Jin, Q. Z. (March 1983).["Isolation and identification of volatile flavor compounds in fried bacon"](https://pubs.acs.org/doi/abs/10.1021/jf00116a038).*Journal of Agricultural and Food Chemistry*.**31**(2): 336–342.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jf00116a038](//doi.org/10.1021%2Fjf00116a038).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0021-8561](//www.worldcat.org/issn/0021-8561).
-8. ↑ Habu, T., Flath, R. A., Mon, T. R., Morton, J. F. (March 1985).["Volatile components of Rooibos tea (Aspalathus linearis)"](https://pubs.acs.org/doi/abs/10.1021/jf00062a024).*Journal of Agricultural and Food Chemistry*.**33**(2): 249–254.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jf00062a024](//doi.org/10.1021%2Fjf00062a024).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0021-8561](//www.worldcat.org/issn/0021-8561).
-9. ↑ [http://toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005](http://toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005)
-10. ↑ Martin, J. V., Bilgin, N. M., Iba, M. M. (28 March 2002). "Influence of oxygenated fuel additives and their metabolites on the binding of a convulsant ligand of the gamma-aminobutyric acid(A) (GABA(A)) receptor in rat brain membrane preparations".*Toxicology Letters*.**129**(3): 219–226.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/s0378-4274(02)00020-6](//doi.org/10.1016%2Fs0378-4274%2802%2900020-6).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0378-4274](//www.worldcat.org/issn/0378-4274).
-11. ↑ [http://www.mhhe.com/physsci/chemistry/carey/student/olc/ch15oxidationalcohols.html](http://www.mhhe.com/physsci/chemistry/carey/student/olc/ch15oxidationalcohols.html)
-12. ↑ [http://www.toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005](http://www.toxnet.nlm.nih.gov/cgi-bin/sis/search/a?dbs+hsdb:@term+@DOCNO+5005)
-13. ↑ [http://www.mhhe.com/physsci/chemistry/carey/student/olc/ch15oxidationalcohols.html](http://www.mhhe.com/physsci/chemistry/carey/student/olc/ch15oxidationalcohols.html)
-14. ↑ [AMVV - Verordnung über die Verschreibungspflicht von Arzneimitteln](https://www.gesetze-im-internet.de/amvv/BJNR363210005.html)
-15. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218074958 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.038 seconds CPU time usage: 0.287 seconds Real time usage: 0.549 seconds Preprocessor visited node count: 1393/1000000 Post‐expand include size: 79453/2097152 bytes Template argument size: 8833/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 14615/5000000 bytes Lua time usage: 0.180/7 seconds Lua virtual size: 7.67 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 439.300 1 -total 23.76% 104.398 4 Template:Citation 23.48% 103.131 5 Template:Cite_journal 16.39% 72.022 1 Template:Headerpanel 15.69% 68.922 1 Template:SubstanceBox/2M2B 15.48% 67.993 1 Template:DepressantOD 14.78% 64.937 1 Template:SubstanceBox 14.75% 64.781 1 Template:GenericPanel/warning 14.03% 61.614 1 Template:GenericPanel 4.66% 20.464 1 Template:Experience_reports`,
+- [2-methyl-2-butanol (2M2B) "Vodka" (Bluelight)](https://www.bluelight.org/xf/threads/490389/)`,
   "tripsit-factsheets": `# 2-methyl-2-butanol
 *Source: TripSit Factsheets (tripsit.me)*
 

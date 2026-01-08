@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Wormwood";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Wormwood.md","displayName":"Drug Users Bible","size":5098},{"id":"wikipedia","fileName":"WIKIPEDIA - Wormwood.md","displayName":"Wikipedia","size":9809}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Wormwood.md","displayName":"Drug Users Bible","size":5098,"tokens":1352},{"id":"wikipedia","fileName":"WIKIPEDIA - Wormwood.md","displayName":"Wikipedia","size":9809,"tokens":2703}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Wormwood
 *Source: Drug Users Bible by Dominic Milton Trott*

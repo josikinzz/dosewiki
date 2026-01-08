@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "5-Bromo-DMT";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-Bromo-DMT.md","displayName":"TripSit Factsheets","size":492},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-Bromo-DMT.md","displayName":"Wikipedia","size":3605}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 5-Bromo-DMT.md","displayName":"TripSit Factsheets","size":492,"tokens":134},{"id":"wikipedia","fileName":"WIKIPEDIA - 5-Bromo-DMT.md","displayName":"Wikipedia","size":3605,"tokens":1000}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# 5-Bromo-DMT
 *Source: TripSit Factsheets (tripsit.me)*

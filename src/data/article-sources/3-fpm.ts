@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3-FPM";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-FPM.md","displayName":"Drug Users Bible","size":3523},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-FPM.md","displayName":"Isomer Design","size":854},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-FPM.md","displayName":"PsychonautWiki","size":27110},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 3-FPM.md","displayName":"The Drug Classroom","size":2103},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-FPM.md","displayName":"TripSit Factsheets","size":1056},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-FPM.md","displayName":"Wikipedia","size":2378}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - 3-FPM.md","displayName":"Drug Users Bible","size":3523,"tokens":861},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3-FPM.md","displayName":"Isomer Design","size":407,"tokens":157},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3-FPM.md","displayName":"PsychonautWiki","size":21713,"tokens":5884},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 3-FPM.md","displayName":"The Drug Classroom","size":1234,"tokens":353},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3-FPM.md","displayName":"TripSit Factsheets","size":1056,"tokens":366},{"id":"wikipedia","fileName":"WIKIPEDIA - 3-FPM.md","displayName":"Wikipedia","size":2378,"tokens":619}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# 3-FPM
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -105,17 +105,7 @@ stimulants on the market.
 
 **SMILES:** \`CC1NCCOC1c1cccc(c1)F\`
 
-**InChI:** \`InChI=1S/C11H14FNO/c1-8-11(14-6-5-13-8)9-3-2-4-10(12)7-9/h2-4,7-8,11,13H,5-6H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [37509994](https://www.chemspider.com/Chemical-Structure.37509994.html/)
-- [54673723](https://pubchem.ncbi.nlm.nih.gov/compound/54673723)
-- [Q20707008](https://www.wikidata.org/wiki/Q20707008)
-- [3-Fluorophenmetrazine](https://en.wikipedia.org/wiki/3-Fluorophenmetrazine)
-- [Substituted phenylmorpholine](https://en.wikipedia.org/wiki/Substituted_phenylmorpholine)
-`,
+**InChI:** \`InChI=1S/C11H14FNO/c1-8-11(14-6-5-13-8)9-3-2-4-10(12)7-9/h2-4,7-8,11,13H,5-6H2,1H3\``,
   "psychonautwiki": `# 3-FPM
 *Source: https://psychonautwiki.org/wiki/3-FPM*
 
@@ -283,26 +273,7 @@ Tolerance to many of the effects of 3-FPM develops with prolonged and repeated u
 ### Community
 
 - [3F-Phenmetrazine (3-FPM) (Bluelight)](http://www.bluelight.org/vb/threads/737012-3F-Phenmetrazine-(3-FPM))
-- [PAL-593 / 3-fluorophenmetrazine (3-FPM) (Drugs Forum)](https://www.drugs-forum.com/forum/showthread.php?t=257863)
-
-## References
-1. ↑ Kalant, O. J. (1966).[The amphetamines; toxicity and addiction](http://archive.org/details/amphetaminestoxi0000unse). [Springfield, Ill.] Thomas [Toronto, Univ. of Toronto Press].
-2. ↑ Blough, B. E., Rothman, R., Landavazo, A., Page, K. M., Decker, A. M.,[Phenylmorpholines and analogues thereof](https://patents.google.com/patent/US9617229B2/en)
-3. ↑ Sisquitch (2021),[I had the 3-FPM that caused mild paralysis and damage to a Reddit user’s peroneal nerve NMR tested. Results in the description.](https://www.reddit.com/r/researchchemicals/comments/l4yvh5/i_had_the_3fpm_that_caused_mild_paralysis_and/)
-4. ↑ Blough, B. E., Rothman, R., Landavazo, A., Page, K. M., Decker, A. M.,[Phenylmorpholines and analogues thereof](https://patents.google.com/patent/US20130203752/en)
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-6. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-7. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-8. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 19, 2019.
-9. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 19, 2019.
-10. ↑ [פקודת הסמים המסוכנים [נוסח חדש], תשל"ג-1973](https://www.nevo.co.il/law_html/Law01/P170_001.htm)
-11. ↑ [http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2015/juni/23-nya-amnen-kan-klassas-som-narkotika-eller-halsofarlig-vara](http://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2015/juni/23-nya-amnen-kan-klassas-som-narkotika-eller-halsofarlig-vara)
-12. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-13. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)
-14. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-15. ↑ [https://www.deadiversion.usdoj.gov/schedules/orangebook/c_cs_alpha.pdf](https://www.deadiversion.usdoj.gov/schedules/orangebook/c_cs_alpha.pdf)
-16. ↑ [21 U.S. Code § 813 - Treatment of controlled substance analogues](https://www.law.cornell.edu/uscode/text/21/813)
-17. ↑ [https://law.lis.virginia.gov/vacode/title54.1/chapter34/section54.1-3446/#:~:text=5.%20Unless%20specifically,name%3A%203%2Dfluorophenmetrazine)%3B](https://law.lis.virginia.gov/vacode/title54.1/chapter34/section54.1-3446/#:~:text=5.%20Unless%20specifically,name%3A%203%2Dfluorophenmetrazine)%3B)NewPP limit report Cached time: 20251218075013 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.051 seconds CPU time usage: 0.353 seconds Real time usage: 0.723 seconds Preprocessor visited node count: 1903/1000000 Post‐expand include size: 134406/2097152 bytes Template argument size: 17714/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 17637/5000000 bytes Lua time usage: 0.270/7 seconds Lua virtual size: 8.4 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 583.784 1 -total 22.49% 131.298 7 Template:Citation 16.60% 96.894 1 Template:Effects/base 16.11% 94.034 1 Template:Effect_list 15.59% 91.007 2 Template:Effect_column 13.29% 77.582 1 Template:Effects/physical 13.04% 76.119 1 Template:Cite_book 12.86% 75.085 4 Template:Effect_panel 12.29% 71.771 4 Template:Citation_needed 10.79% 62.965 1 Template:Fix`,
+- [PAL-593 / 3-fluorophenmetrazine (3-FPM) (Drugs Forum)](https://www.drugs-forum.com/forum/showthread.php?t=257863)`,
   "thedrugclassroom": `# 3-Fluorophenmetrazine (3-FPM)
 *Source: https://thedrugclassroom.com/video/3-fluorophenmetrazine-3-fpm/*
 
@@ -364,18 +335,7 @@ Onset: ~5 minutes
 
 ## Test Results
 
----
-
-## References
-
-**(2016)** [Adverse events related to the new psychoactive substance 3-fluorophenmetrazine – results from the Swedish STRIDA project](http://www.tandfonline.com/doi/abs/10.1080/15563650.2016.1211288)
-
-**(2016)** [3-Fluorophenmetrazine, a fluorinated analogue of phenmetrazine: Studies on in vivo metabolism in rat and human, in vitro metabolism in human CYP isoenzymes and microbial biotransformation in Pseudomonas Putida and wastewater using GC and LC coupled to (HR)-MS techniques.](https://www.ncbi.nlm.nih.gov/pubmed/27372653)
-
-**(2016)** [Test purchase, synthesis and characterization of 3-fluorophenmetrazine (3-FPM) and differentiation from its ortho- and para-substituted isomers](http://onlinelibrary.wiley.com/doi/10.1002/dta.1945/abstract)
-
-**(2013)** [Phenylmorpholines and analogues thereof](https://www.google.com/patents/US20130203752)
-`,
+---`,
   "tripsit-factsheets": `# 3-FPM
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3-fpm*
 

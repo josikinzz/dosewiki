@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Muscimol";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Fly_Agaric.md","displayName":"Drug Users Bible","size":3210},{"id":"wikipedia","fileName":"WIKIPEDIA - Fly_Agaric.md","displayName":"Wikipedia","size":35133}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Fly_Agaric.md","displayName":"Drug Users Bible","size":3210,"tokens":784},{"id":"wikipedia","fileName":"WIKIPEDIA - Fly_Agaric.md","displayName":"Wikipedia","size":35133,"tokens":8614}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Fly Agaric
 *Source: Drug Users Bible by Dominic Milton Trott*

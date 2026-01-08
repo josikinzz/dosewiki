@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ayahuasca";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Ayahuasca.md","displayName":"Disregard Everything I Say","size":17141},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ayahuasca.md","displayName":"Drug Users Bible","size":8627},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ayahuasca.md","displayName":"TripSit Factsheets","size":1285},{"id":"wikipedia","fileName":"WIKIPEDIA - Ayahuasca.md","displayName":"Wikipedia","size":44149}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Ayahuasca.md","displayName":"Disregard Everything I Say","size":17141,"tokens":4245},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Ayahuasca.md","displayName":"Drug Users Bible","size":8627,"tokens":2128},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ayahuasca.md","displayName":"TripSit Factsheets","size":1285,"tokens":331},{"id":"wikipedia","fileName":"WIKIPEDIA - Ayahuasca.md","displayName":"Wikipedia","size":44149,"tokens":10859}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Ayahuasca
 *Source: https://disregardeverythingisay.com/post/60029447479/ayahuasca-broken-down-and-described*

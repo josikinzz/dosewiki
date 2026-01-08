@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pyrazolam";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Pyrazolam.md","displayName":"Drug Users Bible","size":1445},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pyrazolam.md","displayName":"Isomer Design","size":867},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pyrazolam.md","displayName":"PsychonautWiki","size":27645},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pyrazolam.md","displayName":"The Drug Classroom","size":1973},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pyrazolam.md","displayName":"TripSit Factsheets","size":616},{"id":"wikipedia","fileName":"WIKIPEDIA - Pyrazolam.md","displayName":"Wikipedia","size":1122}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Pyrazolam.md","displayName":"Drug Users Bible","size":1445,"tokens":360},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Pyrazolam.md","displayName":"Isomer Design","size":453,"tokens":192},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Pyrazolam.md","displayName":"PsychonautWiki","size":17003,"tokens":4453},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Pyrazolam.md","displayName":"The Drug Classroom","size":1263,"tokens":362},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pyrazolam.md","displayName":"TripSit Factsheets","size":616,"tokens":240},{"id":"wikipedia","fileName":"WIKIPEDIA - Pyrazolam.md","displayName":"Wikipedia","size":1122,"tokens":281}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Pyrazolam
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -53,17 +53,7 @@ import and supply, illegal.
 
 **SMILES:** \`Brc1ccc2c(c1)C(=NCc1n2c(C)nn1)c1ccccn1\`
 
-**InChI:** \`InChI=1S/C16H12BrN5/c1-10-20-21-15-9-19-16(13-4-2-3-7-18-13)12-8-11(17)5-6-14(12)22(10)15/h2-8H,9H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [15417688](https://www.chemspider.com/Chemical-Structure.15417688.html/)
-- [12562545](https://pubchem.ncbi.nlm.nih.gov/compound/12562545)
-- [Q15409343](https://www.wikidata.org/wiki/Q15409343)
-- [Pyrazolam](https://en.wikipedia.org/wiki/Pyrazolam)
-- [Table of benzodiazepines](https://en.wikipedia.org/wiki/List_of_benzodiazepines)
-`,
+**InChI:** \`InChI=1S/C16H12BrN5/c1-10-20-21-15-9-19-16(13-4-2-3-7-18-13)12-8-11(17)5-6-14(12)22(10)15/h2-8H,9H2,1H3\``,
   "psychonautwiki": `# Pyrazolam
 *Source: https://psychonautwiki.org/wiki/Pyrazolam*
 
@@ -196,37 +186,7 @@ Pyrazolam is not explicitly prohibited in most parts of the world, meaning it ex
 
 - [Pyrazolam (Wikipedia)](https://en.wikipedia.org/wiki/Pyrazolam)
 - [Pyrazolam (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=3045)
-- [Pyrazolam (DrugBank)](https://go.drugbank.com/drugs/DB14718)
-
-## References
-1. ↑ [Risks of Combining Depressants - TripSit](https://tripsit.me/combining-depressants/)
-2. ↑ 2.0 2.1 Sternbach, L. H., Walser, A.,[Preparation of triazolo benzodiazepines and novel compounds](https://patents.google.com/patent/US3954728A/en)
-3. ↑ 3.0 3.1 3.2 3.3 Moosmann, B., Hutter, M., Huppertz, L. M., Ferlaino, S., Redlingshöfer, L., Auwärter, V. (1 July 2013).["Characterization of the designer benzodiazepine pyrazolam and its detectability in human serum and urine"](https://doi.org/10.1007/s11419-013-0187-4).*Forensic Toxicology*.**31**(2): 263–271.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s11419-013-0187-4](//doi.org/10.1007%2Fs11419-013-0187-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1860-8973](//www.worldcat.org/issn/1860-8973).
-4. ↑ 4.0 4.1 Lann, M. A., Molina, D. K. (June 2009). "A fatal case of benzodiazepine withdrawal".*The American Journal of Forensic Medicine and Pathology*.**30**(2): 177–179.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/PAF.0b013e3181875aa0](//doi.org/10.1097%2FPAF.0b013e3181875aa0).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1533-404X](//www.worldcat.org/issn/1533-404X).
-5. ↑ Kahan, M., Wilson, L., Mailis-Gagnon, A., Srivastava, A. (November 2011).["Canadian guideline for safe and effective use of opioids for chronic noncancer pain. Appendix B-6: Benzodiazepine Tapering"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3215603/).*Canadian Family Physician*.**57**(11): 1269–1276.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0008-350X](//www.worldcat.org/issn/0008-350X).
-6. ↑ O’Connor, L. C., Torrance, H. J., McKeown, D. A. (March 2016).["ELISA Detection of Phenazepam, Etizolam, Pyrazolam, Flubromazepam, Diclazepam and Delorazepam in Blood Using Immunalysis ® Benzodiazepine Kit"](https://academic.oup.com/jat/article-lookup/doi/10.1093/jat/bkv122).*Journal of Analytical Toxicology*.**40**(2): 159–161.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/jat/bkv122](//doi.org/10.1093%2Fjat%2Fbkv122).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0146-4760](//www.worldcat.org/issn/0146-4760).
-7. ↑ Haefely, W. (29 June 1984). "Benzodiazepine interactions with GABA receptors".*Neuroscience Letters*.**47**(3): 201–206.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/0304-3940(84)90514-7](//doi.org/10.1016%2F0304-3940%2884%2990514-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0304-3940](//www.worldcat.org/issn/0304-3940).
-8. ↑ McLean, M. J., Macdonald, R. L. (February 1988). "Benzodiazepines, but not beta carbolines, limit high frequency repetitive firing of action potentials of spinal cord neurons in cell culture".*The Journal of Pharmacology and Experimental Therapeutics*.**244**(2): 789–795.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3565](//www.worldcat.org/issn/0022-3565).
-9. ↑ Hester, J. B., Von Voigtlander, P. (November 1979).["6-Aryl-4H-s-triazolo[4,3-a][1,4]benzodiazepines. Influence of 1-substitution on pharmacological activity"](https://pubs.acs.org/doi/abs/10.1021/jm00197a021).*Journal of Medicinal Chemistry*.**22**(11): 1390–1398.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00197a021](//doi.org/10.1021%2Fjm00197a021).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-10. ↑ Hester, J. B., Rudzik, A. D., Kamdar, B. V. (November 1971). "6-phenyl-4H-s-triazolo[4,3-a][1,4]benzodiazepines which have central nervous system depressant activity".*Journal of Medicinal Chemistry*.**14**(11): 1078–1081.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00293a015](//doi.org/10.1021%2Fjm00293a015).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-11. ↑ Hester, J. B., Von Voigtlander, P. (November 1979). "6-Aryl-4H-s-triazolo[4,3-a][1,4]benzodiazepines. Influence of 1-substitution on pharmacological activity".*Journal of Medicinal Chemistry*.**22**(11): 1390–1398.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm00197a021](//doi.org/10.1021%2Fjm00197a021).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).
-12. ↑ Saïas, T., Gallarda, T. (September 2008). "[Paradoxical aggressive reactions to benzodiazepine use: a review]".*L’Encephale*.**34**(4): 330–336.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.encep.2007.05.005](//doi.org/10.1016%2Fj.encep.2007.05.005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0013-7006](//www.worldcat.org/issn/0013-7006).
-13. ↑ Paton, C. (December 2002).["Benzodiazepines and disinhibition: a review"](https://www.cambridge.org/core/journals/psychiatric-bulletin/article/benzodiazepines-and-disinhibition-a-review/421AF197362B55EDF004700452BF3BC6).*Psychiatric Bulletin*.**26**(12): 460–462.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1192/pb.26.12.460](//doi.org/10.1192%2Fpb.26.12.460).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0955-6036](//www.worldcat.org/issn/0955-6036).
-14. ↑ Bond, A. J. (1 January 1998).["Drug- Induced Behavioural Disinhibition"](https://doi.org/10.2165/00023210-199809010-00005).*CNS Drugs*.**9**(1): 41–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2165/00023210-199809010-00005](//doi.org/10.2165%2F00023210-199809010-00005).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1179-1934](//www.worldcat.org/issn/1179-1934).
-15. ↑ Drummer, O. H. (February 2002). "Benzodiazepines - Effects on Human Performance and Behavior".*Forensic Science Review*.**14**(1–2): 1–14.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1042-7201](//www.worldcat.org/issn/1042-7201).
-16. ↑ Nutt, D., King, L. A., Saulsbury, W., Blakemore, C. (24 March 2007).["Development of a rational scale to assess the harm of drugs of potential misuse"](https://www.sciencedirect.com/science/article/pii/S0140673607604644).*The Lancet*.**369**(9566): 1047–1053.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/S0140-6736(07)60464-4](//doi.org/10.1016%2FS0140-6736%2807%2960464-4).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0140-6736](//www.worldcat.org/issn/0140-6736).
-17. ↑ Mandrioli, R., Mercolini, L., Raggi, M. A. (October 2008). "Benzodiazepine metabolism: an analytical perspective".*Current Drug Metabolism*.**9**(8): 827–844.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2174/138920008786049258](//doi.org/10.2174%2F138920008786049258).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1389-2002](//www.worldcat.org/issn/1389-2002).
-18. ↑ Twyman, R. E., Rogers, C. J., Macdonald, R. L. (March 1989). "Differential regulation of gamma-aminobutyric acid receptor channels by diazepam and phenobarbital".*Annals of Neurology*.**25**(3): 213–220.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/ana.410250302](//doi.org/10.1002%2Fana.410250302).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0364-5134](//www.worldcat.org/issn/0364-5134).
-19. ↑ Hoffman, E. J., Warren, E. W. (September 1993). "Flumazenil: a benzodiazepine antagonist".*Clinical Pharmacy*.**12**(9): 641–656; quiz 699–701.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0278-2677](//www.worldcat.org/issn/0278-2677).
-20. ↑ New item… Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-15.html)
-21. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-22. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. Retrieved December 28, 2019.
-23. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 10, 2019.
-24. ↑ [Постановление Правительства РФ от 12.07.2017 N 827 “О внесении изменений в некоторые акты Правительства Российской Федерации в связи с совершенствованием контроля за оборотом наркотических средств и психотропных веществ” - КонсультантПлюс](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=220067&dst=1000000001&date=02.12.2019)
-25. ↑ [Regeringskansliets rättsdatabaser](https://rkrattsbaser.gov.se/sfst?fritext=pyrazolam&upph=false)
-26. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-27. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)
-28. ↑ [The Misuse of Drugs Act 1971 (Amendment) Order 2017](https://www.legislation.gov.uk/uksi/2017/634/made)NewPP limit report Cached time: 20251218075757 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.026 seconds CPU time usage: 0.377 seconds Real time usage: 0.804 seconds Preprocessor visited node count: 1984/1000000 Post‐expand include size: 110460/2097152 bytes Template argument size: 8738/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 37275/5000000 bytes Lua time usage: 0.350/7 seconds Lua virtual size: 7.78 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 674.015 1 -total 41.40% 279.044 17 Template:Cite_journal 18.26% 123.069 6 Template:Citation 9.63% 64.878 1 Template:SubstanceBox/Pyrazolam 9.49% 63.943 1 Template:DepressantOD 9.02% 60.820 1 Template:SubstanceBox 9.00% 60.659 1 Template:GenericPanel/warning 8.55% 57.596 1 Template:GenericPanel 6.62% 44.630 4 Template:Cite_web 4.25% 28.656 1 Template:Effects/base`,
+- [Pyrazolam (DrugBank)](https://go.drugbank.com/drugs/DB14718)`,
   "thedrugclassroom": `# Pyrazolam
 *Source: https://thedrugclassroom.com/video/pyrazolam/*
 
@@ -278,18 +238,7 @@ Onset: ~00:05
 
 ---
 
----
-
-## References
-
-**(2015)** [ELISA Detection of Phenazepam, Etizolam, Pyrazolam, Flubromazepam, Diclazepam and Delorazepam in Blood Using Immunalysis® Benzodiazepine Kit](http://jat.oxfordjournals.org/content/early/2015/10/29/jat.bkv122.abstract)
-
-**(2013)** [Characterization of the designer benzodiazepine pyrazolam and its detectability in human serum and urine](http://link.springer.com/article/10.1007/s11419-013-0187-4)
-
-**(1979)** [6-Aryl-4H-s-triazolo[4,3-a][1,4]benzodiazepines. Influence of 1-substitution on pharmacological activity](http://pubs.acs.org/doi/abs/10.1021/jm00197a021)
-
-**(1976)** [Preparation of triazolo benzodiazepines and novel compounds](https://www.google.com/patents/US3954728)
-`,
+---`,
   "tripsit-factsheets": `# Pyrazolam
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/pyrazolam*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "3C-P";
-export const sources = [{"id":"erowid","fileName":"EROWID - 3C-P.md","displayName":"Erowid","size":2027},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3C-P.md","displayName":"Isomer Design","size":744},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3C-P.md","displayName":"PsychonautWiki","size":21208},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3C-P.md","displayName":"TripSit Factsheets","size":769},{"id":"wikipedia","fileName":"WIKIPEDIA - 3C-P.md","displayName":"Wikipedia","size":1163}];
+export const sources = [{"id":"erowid","fileName":"EROWID - 3C-P.md","displayName":"Erowid","size":2027,"tokens":548},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 3C-P.md","displayName":"Isomer Design","size":426,"tokens":174},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 3C-P.md","displayName":"PsychonautWiki","size":18856,"tokens":5170},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 3C-P.md","displayName":"TripSit Factsheets","size":769,"tokens":221},{"id":"wikipedia","fileName":"WIKIPEDIA - 3C-P.md","displayName":"Wikipedia","size":1163,"tokens":316}];
 export const contents: Record<string, string> = {
   "erowid": `# 3C-P
 *Source: https://erowid.org/chemicals/3cp/3cp.shtml*
@@ -66,16 +66,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCCOc1c(OC)cc(cc1OC)CC(N)C\`
 
-**InChI:** \`InChI=1S/C14H23NO3/c1-5-6-18-14-12(16-3)8-11(7-10(2)15)9-13(14)17-4/h8-10H,5-7,15H2,1-4H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [21106238](https://www.chemspider.com/Chemical-Structure.21106238.html/)
-- [54929142](https://pubchem.ncbi.nlm.nih.gov/compound/54929142)
-- [Q4636223](https://www.wikidata.org/wiki/Q4636223)
-- [3C-P](https://en.wikipedia.org/wiki/3C-P)
-`,
+**InChI:** \`InChI=1S/C14H23NO3/c1-5-6-18-14-12(16-3)8-11(7-10(2)15)9-13(14)17-4/h8-10H,5-7,15H2,1-4H3\``,
   "psychonautwiki": `# 3C-P
 *Source: https://psychonautwiki.org/wiki/3C-P*
 
@@ -263,14 +254,7 @@ Tolerance to the effects of 3C-P is built almost immediately after ingestion. Af
 ## External links
 
 - [3C-P (Wikipedia)](https://en.wikipedia.org/wiki/3C-P)
-- [3C-P (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=2044)
-
-## References
-1. ↑ [https://erowid.org/library/books_online/pihkal/pihkal140.shtml](https://erowid.org/library/books_online/pihkal/pihkal140.shtml)
-2. ↑ Halberstadt, AL; Chatha, M; Chapman, SJ; Brandt, SD. [Comparison of the behavioral effects of mescaline analogs using the head twitch response in mice.](https://bitnest.netfirms.com/external/10.1177/0269881119826610) *J. Psychopharmacol.* , 21 Feb 2019, *0269881119826610* . 901 kB. https://doi.org/10.1177/0269881119826610
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-4. ↑ Psychoactive Substances Act 2016 (Legislation.gov.uk) | [http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted](http://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)
-5. ↑ [指定薬物を指定する省令が公布されました](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/oshirase/20180228-1.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.NewPP limit report Cached time: 20251218075033 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.044 seconds CPU time usage: 0.251 seconds Real time usage: 0.475 seconds Preprocessor visited node count: 1428/1000000 Post‐expand include size: 105360/2097152 bytes Template argument size: 19716/2097152 bytes Highest expansion depth: 22/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 3551/5000000 bytes Lua time usage: 0.120/7 seconds Lua virtual size: 6.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 378.870 1 -total 24.49% 92.803 1 Template:Effects/base 23.50% 89.041 1 Template:Effect_list 22.75% 86.192 2 Template:Effect_column 21.69% 82.176 3 Template:Citation_needed 21.67% 82.112 1 Template:Reflist 19.31% 73.164 1 Template:Cite_journal 18.95% 71.814 2 Template:Fix 18.76% 71.089 1 Template:Effects/physical 18.19% 68.935 6 Template:Effect_panel`,
+- [3C-P (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?domain=pk&id=2044)`,
   "tripsit-factsheets": `# 3C-P
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/3c-p*
 

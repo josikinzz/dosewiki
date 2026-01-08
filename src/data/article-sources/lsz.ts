@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "LSZ";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - LSZ.md","displayName":"Drug Users Bible","size":1277},{"id":"erowid","fileName":"EROWID - LSZ.md","displayName":"Erowid","size":8256},{"id":"isomerdesign","fileName":"ISOMERDESIGN - LSZ.md","displayName":"Isomer Design","size":756},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LSZ.md","displayName":"PsychonautWiki","size":22887},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSZ.md","displayName":"TripSit Factsheets","size":733},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - LSZ.md","displayName":"TripSit Wiki","size":1216},{"id":"wikipedia","fileName":"WIKIPEDIA - LSZ.md","displayName":"Wikipedia","size":8520}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - LSZ.md","displayName":"Drug Users Bible","size":1277,"tokens":323},{"id":"erowid","fileName":"EROWID - LSZ.md","displayName":"Erowid","size":8256,"tokens":2199},{"id":"isomerdesign","fileName":"ISOMERDESIGN - LSZ.md","displayName":"Isomer Design","size":429,"tokens":204},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - LSZ.md","displayName":"PsychonautWiki","size":15441,"tokens":4229},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - LSZ.md","displayName":"TripSit Factsheets","size":733,"tokens":204},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - LSZ.md","displayName":"TripSit Wiki","size":1216,"tokens":340},{"id":"wikipedia","fileName":"WIKIPEDIA - LSZ.md","displayName":"Wikipedia","size":8520,"tokens":2211}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# LSZ
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -223,15 +223,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CN1C[C@@H](C=C2[C@H]1Cc1c[nH]c3c1c2ccc3)C(=O)N1[C@@H](C)C[C@@H]1C\`
 
-**InChI:** \`InChI=1S/C21H25N3O/c1-12-7-13(2)24(12)21(25)15-8-17-16-5-4-6-18-20(16)14(10-22-18)9-19(17)23(3)11-15/h4-6,8,10,12-13,15,19,22H,7,9,11H2,1-3H3/t12-,13-,15+,19+/m0/s1\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [30773535](https://www.chemspider.com/Chemical-Structure.30773535.html/)
-- [71301249](https://pubchem.ncbi.nlm.nih.gov/compound/71301249)
-- [Lysergic acid 2,4-dimethylazetidide](https://en.wikipedia.org/wiki/Lysergic_acid_2,4-dimethylazetidide)
-`,
+**InChI:** \`InChI=1S/C21H25N3O/c1-12-7-13(2)24(12)21(25)15-8-17-16-5-4-6-18-20(16)14(10-22-18)9-19(17)23(3)11-15/h4-6,8,10,12-13,15,19,22H,7,9,11H2,1-3H3/t12-,13-,15+,19+/m0/s1\``,
   "psychonautwiki": `# LSZ
 *Source: https://psychonautwiki.org/wiki/LSZ*
 
@@ -394,27 +386,7 @@ Tolerance to the effects of LSZ is built almost immediately after ingestion. Aft
 
 ### Discussion
 
-- [The Big & Dandy LSZ Thread (Bluelight)](http://www.bluelight.org/vb/threads/681365-The-Big-amp-Dandy-LSZ-Thread)
-
-## References
-1. ↑ 1.0 1.1 [Nichols, D. E.](https://psychonautwiki.org/wiki/David_E._Nichols); Frescas, S.; Marona-Lewicka, D.; Kurrasch-Orbaugh, D. M. (2002). "Lysergamides of Isomeric 2,4-Dimethylazetidines Map the Binding Orientation of the Diethylamide Moiety in the Potent Hallucinogenic Agent*N*,*N*-Diethyllysergamide (LSD)".*Journal of Medicinal Chemistry*.**45**(19): 4344–4349.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/jm020153s](//doi.org/10.1021%2Fjm020153s).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1520-4804](//www.worldcat.org/issn/1520-4804).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-2623](//www.worldcat.org/issn/0022-2623).[OCLC](http://en.wikipedia.org/wiki/OCLC)[39480771](//www.worldcat.org/oclc/39480771).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[12213075](//www.ncbi.nlm.nih.gov/pubmed/12213075).
-2. ↑ 2.0 2.1 Advisory Council on the Misuse of Drugs (ACMD) (June 10, 2014).["Update of the generic definition for tryptamines"](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/318693/UpdateGenericDefinitionTryptamines.pdf)(PDF). Government Digital Service. p. 12. Retrieved January 1, 2020.
-3. ↑ Mike Power (January 29, 2014).["The Drug Revolution That No One Can Stop"](https://medium.com/matter/the-drug-revolution-that-no-one-can-stop-19f753fb15e0#.fupvbuawp).*Matter*. Medium. Retrieved January 7, 2020.
-4. ↑ Cole, Krystle (2005).*Lysergic*. Indianapolis: Dog Ear Publishing.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[1-59858-007-8](http://en.wikipedia.org/wiki/Special:BookSources/1-59858-007-8).
-5. ↑ Hamilton Morris (May 1, 2011).["Life Is a Cosmic Giggle on the Breath of the Universe"](http://www.vice.com/en_ca/read/life-is-a-cosmic-giggle-803-v18n5?Contentpage=3). VICE. Retrieved January 7, 2020.
-6. ↑ Lüscher, Christian; Ungless, Mark A. (2006). "The Mechanistic Classification of Addictive Drugs".*PLOS Medicine*.**3**(11).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1371/journal.pmed.0030437](//doi.org/10.1371%2Fjournal.pmed.0030437).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1549-1676](//www.worldcat.org/issn/1549-1676).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1549-1277](//www.worldcat.org/issn/1549-1277).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[17105338](//www.ncbi.nlm.nih.gov/pubmed/17105338).
-7. ↑ [Nichols, David E.](https://psychonautwiki.org/wiki/David_E._Nichols)(2016). Barker, Eric L., ed. "Psychedelics".*Pharmacological Reviews*.**68**(2): 264–355.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1124/pr.115.011478](//doi.org/10.1124%2Fpr.115.011478).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1521-0081](//www.worldcat.org/issn/1521-0081).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0031-6997](//www.worldcat.org/issn/0031-6997).
-8. ↑ Strassmann, Rick (1984). "Adverse reactions to psychedelic drugs. A review of the literature".*Journal of Nervous and Mental Disease*.**172**(10): 577–595.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1097/00005053-198410000-00001](//doi.org/10.1097%2F00005053-198410000-00001).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3018](//www.worldcat.org/issn/0022-3018).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1754691](//www.worldcat.org/oclc/1754691).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[6384428](//www.ncbi.nlm.nih.gov/pubmed/6384428).
-9. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-10. ↑ ["Bekendtgørelse om euforiserende stoffer - ni nye stoffer tilføjet"](https://laegemiddelstyrelsen.dk/da/nyheder/2015/bekendtgoerelse-om-euforiserende-stoffer-ni-nye-stoffer-tilfoejet)(in Danish). Danish Medicines Ageny. August 31, 2015. Retrieved January 1, 2020.
-11. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-12. ↑ ["Verordnung zur Änderung der Anlage des Neue-psychoaktive-Stoffe-Gesetzes und von Anlagen des Betäubungsmittelgesetzes"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl119s1083.pdf)(PDF).*Bundesgesetzblatt Jahrgang 2019 Teil I Nr. 27*(in German). Bundesanzeiger Verlag. July 17, 2019. pp. 1083–1094. Retrieved January 1, 2020.
-13. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz [Federal Ministry of Justice and Consumer Protection]. Retrieved December 10, 2019.
-14. ↑ ["危険ドラッグの成分３物質を新たに指定薬物に指定"](https://www.mhlw.go.jp/stf/houdou/0000212475_00035.html)(in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved December 2, 2022.
-15. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-16. ↑ ["31 nya substanser klassas som narkotika eller hälsofarlig vara"](https://www.folkhalsomyndigheten.se/nyheter-och-press/nyhetsarkiv/2016/januari/31-nya-substanser-klassas-som-narkotika-eller-halsofarlig-vara)(in Swedish). Folkhälsomyndigheten [Public Health Agency of Sweden]. January 26, 2016. Retrieved January 1, 2020.
-17. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-18. ↑ [https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf](https://resmigazete.gov.tr/eskiler/2017/01/20170112-8.pdf)NewPP limit report Cached time: 20251218075525 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.05 seconds CPU time usage: 0.349 seconds Real time usage: 0.790 seconds Preprocessor visited node count: 1742/1000000 Post‐expand include size: 102086/2097152 bytes Template argument size: 8633/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 23265/5000000 bytes Lua time usage: 0.320/7 seconds Lua virtual size: 8.32 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 650.240 1 -total 26.64% 173.241 5 Template:Cite_journal 24.24% 157.594 9 Template:Cite_web 13.32% 86.589 1 Template:DangerousInteractions/Psychedelics 12.72% 82.742 2 Template:Citation_needed 11.69% 75.993 1 Template:Fix 11.18% 72.680 2 Template:Category_handler 8.71% 56.631 2 Template:Further 8.59% 55.871 1 Template:SubstanceBox/LSZ 8.08% 52.565 1 Template:SubstanceBox`,
+- [The Big & Dandy LSZ Thread (Bluelight)](http://www.bluelight.org/vb/threads/681365-The-Big-amp-Dandy-LSZ-Thread)`,
   "tripsit-factsheets": `# LSZ
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/lsz*
 

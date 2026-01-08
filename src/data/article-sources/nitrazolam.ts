@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nitrazolam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitrazolam.md","displayName":"TripSit Factsheets","size":611},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitrazolam.md","displayName":"Wikipedia","size":937}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nitrazolam.md","displayName":"TripSit Factsheets","size":611,"tokens":164},{"id":"wikipedia","fileName":"WIKIPEDIA - Nitrazolam.md","displayName":"Wikipedia","size":937,"tokens":233}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nitrazolam
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PRL-8-53";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - PRL-8-53.md","displayName":"Drug Users Bible","size":1638},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRL-8-53.md","displayName":"TripSit Factsheets","size":828},{"id":"wikipedia","fileName":"WIKIPEDIA - PRL-8-53.md","displayName":"Wikipedia","size":2237}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - PRL-8-53.md","displayName":"Drug Users Bible","size":1638,"tokens":417},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PRL-8-53.md","displayName":"TripSit Factsheets","size":828,"tokens":224},{"id":"wikipedia","fileName":"WIKIPEDIA - PRL-8-53.md","displayName":"Wikipedia","size":2237,"tokens":568}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# PRL-8-53
 *Source: Drug Users Bible by Dominic Milton Trott*

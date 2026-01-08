@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Yohimbe";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Yohimbe.md","displayName":"Drug Users Bible","size":3695},{"id":"wikipedia","fileName":"WIKIPEDIA - Yohimbe.md","displayName":"Wikipedia","size":3683}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Yohimbe.md","displayName":"Drug Users Bible","size":3695,"tokens":934},{"id":"wikipedia","fileName":"WIKIPEDIA - Yohimbe.md","displayName":"Wikipedia","size":3683,"tokens":917}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Yohimbe
 *Source: Drug Users Bible by Dominic Milton Trott*

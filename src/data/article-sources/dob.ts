@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOB";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - DOB.md","displayName":"Disregard Everything I Say","size":9370},{"id":"erowid","fileName":"EROWID - DOB.md","displayName":"Erowid","size":11862},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOB.md","displayName":"Isomer Design","size":6791},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DOB.md","displayName":"PsychonautWiki","size":35259},{"id":"saferparty","fileName":"SAFERPARTY - DOB.md","displayName":"Safer Party","size":2406},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DOB.md","displayName":"The Drug Classroom","size":25019},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOB.md","displayName":"TripSit Factsheets","size":898},{"id":"wikipedia","fileName":"WIKIPEDIA - DOB.md","displayName":"Wikipedia","size":6891}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - DOB.md","displayName":"Disregard Everything I Say","size":9370,"tokens":2310},{"id":"erowid","fileName":"EROWID - DOB.md","displayName":"Erowid","size":11862,"tokens":3238},{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOB.md","displayName":"Isomer Design","size":6791,"tokens":1795},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - DOB.md","displayName":"PsychonautWiki","size":29497,"tokens":7986},{"id":"saferparty","fileName":"SAFERPARTY - DOB.md","displayName":"Safer Party","size":2406,"tokens":569},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - DOB.md","displayName":"The Drug Classroom","size":20428,"tokens":5249},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOB.md","displayName":"TripSit Factsheets","size":898,"tokens":286},{"id":"wikipedia","fileName":"WIKIPEDIA - DOB.md","displayName":"Wikipedia","size":6891,"tokens":1806}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# DOB
 *Source: https://disregardeverythingisay.com/post/83026094771/dob-broken-down-and-described*
@@ -612,24 +612,7 @@ Internationally, DOB is a Schedule I drug under the Convention on Psychotropic S
 
 ### Discussion
 
-- [The Big & Dandy DOB Thread (Bluelight)](http://www.bluelight.org/vb/threads/325595-The-Big-amp-Dandy-DOB-Thread)
-
-## References
-1. ↑ 1.0 1.1 1.2 [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin); Ann Shulgin (1991).["#62. DOB"](https://erowid.org/library/books_online/pihkal/pihkal062.shtml).*[PiHKAL: A Chemical Love Story](https://psychonautwiki.org/wiki/PiHKAL)*. United States: Transform Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[0963009605](http://en.wikipedia.org/wiki/Special:BookSources/0963009605).[OCLC](http://en.wikipedia.org/wiki/OCLC)[1166889264](//www.worldcat.org/oclc/1166889264).
-2. ↑ Parrish, J. C., Braden, M. R., Gundy, E., Nichols, D. E. (December 2005).["Differential phospholipase C activation by phenylalkylamine serotonin 5-HT2A receptor agonists"](https://onlinelibrary.wiley.com/doi/10.1111/j.1471-4159.2005.03477.x).*Journal of Neurochemistry*.**95**(6): 1575–1584.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1111/j.1471-4159.2005.03477.x](//doi.org/10.1111%2Fj.1471-4159.2005.03477.x).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0022-3042](//www.worldcat.org/issn/0022-3042).
-3. ↑ [Alexander Shulgin](https://psychonautwiki.org/wiki/Alexander_Shulgin)(May 3, 2005).["DOB and Other Possible Prodrugs"](http://www.cognitiveliberty.org/shulgin/blg/2005/05/dob-and-other-possible-prodrugs.html).*Ask Dr. Shulgin Online*. Center for Cognitive Liberty and Ethics (CCLE).
-4. ↑ Bowen, J. S. (18 March 1983).["Diffuse Vascular Spasm Associated With 4-Bromo-2,5-Dimethoxyamphetamine Ingestion"](http://jama.jamanetwork.com/article.aspx?doi=10.1001/jama.1983.03330350053028).*JAMA: The Journal of the American Medical Association*.**249**(11): 1477.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/jama.1983.03330350053028](//doi.org/10.1001%2Fjama.1983.03330350053028).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0098-7484](//www.worldcat.org/issn/0098-7484).
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).
-6. ↑ ["List of psychotropic substances under international control (Green List)"](http://web.archive.org/web/20070302130637/http://www.incb.org/pdf/e/list/green.pdf)(PDF)(23rd ed.). International Narcotics Control Board (INCB). August 2003. Archived from[the original](http://www.incb.org/pdf/e/list/green.pdf)(PDF)on March 2, 2007.
-7. ↑ ["Schedule III"](http://isomerdesign.com/Cdsa/schedule.php?schedule=3&section=ALL&structure=C).*Controlled Drugs and Substances Act (CDSA)*. Isomer Design. Retrieved October 10, 2020.
-8. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: Anlage I"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-9. ↑ ["Erste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](http://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl184s1081.pdf)(PDF).*Bundesgesetzblatt Jahrgang 1984 Teil I Nr. 36*(in German). Bundesanzeiger Verlag (published August 8, 1984). August 6, 1984. p. 1081-1086.[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0341-1095](//www.worldcat.org/issn/0341-1095).[OCLC](http://en.wikipedia.org/wiki/OCLC)[231871244](//www.worldcat.org/oclc/231871244).
-10. ↑ ["Gesetz über den Verkehr mit Betäubungsmitteln: § 29"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesamt für Justiz [Federal Office of Justice]. Retrieved December 10, 2019.
-11. ↑ ["Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem"](http://likumi.lv/doc.php?id=121086)(in Latvian). VSIA Latvijas Vēstnesis. November 10, 2005. Retrieved January 1, 2020.
-12. ↑ Opiumlijst of The Netherlands
-13. ↑ ["Details Servlet"](http://isap.sejm.gov.pl/DetailsServlet?id=WDU20111050614+2011%2406%2408&min=1). Sejm Rzeczypospolitej Polskiej [Sejm of the Republic of Poland]. [ *[dead link](http://en.wikipedia.org/wiki/Link_rot)* ]
-14. ↑ [Law №143 from 26.07.2000](https://legislatie.just.ro/Public/DetaliiDocument/23629) , Annex, Table №1
-15. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.NewPP limit report Cached time: 20251218075338 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.047 seconds CPU time usage: 0.360 seconds Real time usage: 0.756 seconds Preprocessor visited node count: 2043/1000000 Post‐expand include size: 182627/2097152 bytes Template argument size: 35706/2097152 bytes Highest expansion depth: 16/40 Expensive parser function count: 1/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 17649/5000000 bytes Lua time usage: 0.290/7 seconds Lua virtual size: 8.18 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 620.852 1 -total 24.88% 154.482 17 Template:Citation_needed 21.79% 135.312 9 Template:Cite_web 18.15% 112.661 4 Template:Fix 17.12% 106.272 8 Template:Category_handler 12.35% 76.687 1 Template:Cite_book 9.64% 59.867 3 Template:Cite_journal 8.46% 52.532 1 Template:SubstanceBox/DOB 7.86% 48.770 1 Template:SubstanceBox 6.05% 37.592 1 Template:Effects/base`,
+- [The Big & Dandy DOB Thread (Bluelight)](http://www.bluelight.org/vb/threads/325595-The-Big-amp-Dandy-DOB-Thread)`,
   "saferparty": `# DOB
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
@@ -1136,64 +1119,7 @@ Case 3
 
 ## Test Videos
 
----
-
-## References
-
-**(2016)** [Presence of DOB (2,5-Dimethoxy-4-Bromoamphetamine) among samples submitted to a drug checking service in Spain](http://energycontrol-international.org/wp-content/uploads/2016/04/Presence-of-DOB-25-%C2%ADDimethoxy-%C2%AD4-Bromoamphetamine-among-samples-submitted-to-a-Drug-Checking-service-in-Spain.pdf)
-
-**(2015)** [Tolerance to LSD and DOB induced shaking behaviour: differential adaptations of frontocortical 5-HT(2A) and glutamate receptor binding sites.](https://www.ncbi.nlm.nih.gov/pubmed/25513973)
-
-**(2010)** [Chemistry, pharmacology, and metabolism of emerging drugs of abuse.](https://www.ncbi.nlm.nih.gov/pubmed/20683389)
-
-**(2010)** [Psychedelics and the Human Receptorome](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009019)
-
-**(2009)** [Content of ecstasy in the Netherlands: 1993-2008.](https://www.ncbi.nlm.nih.gov/pubmed/19804461)
-
-**(2008)** [2,5-Dimethoxyamphetamine-derived designer drugs: studies on the identification of cytochrome P450 (CYP) isoenzymes involved in formation of their main metabolites and on their capability to inhibit CYP2D6.](https://www.ncbi.nlm.nih.gov/pubmed/18938231)
-
-**(2007)** [Chemical identification of 2,5-dimethoxy-4-bromoamphetamine (DOB).](https://www.ncbi.nlm.nih.gov/pubmed/17376619)
-
-**(2007)** [Screening tablets for DOB using surface-enhanced Raman spectroscopy.](https://www.ncbi.nlm.nih.gov/pubmed/17680788)
-
-**(2007)** [Distribution profile of 2,5-dimethoxy-4-bromoamphetamine (DOB) in rats after oral and subcutaneous doses.](https://www.ncbi.nlm.nih.gov/pubmed/17629428)
-
-**(2006)** [Designer drugs 2,5-dimethoxy-4-bromo-amphetamine (DOB) and 2,5-dimethoxy-4-bromo-methamphetamine (MDOB): studies on their metabolism and toxicological detection in rat urine using gas chromatographic/mass spectrometric techniques.](https://www.ncbi.nlm.nih.gov/pubmed/16470568)
-
-**(2005)** [Differential phospholipase C activation by phenylalkylamine serotonin 5-HT 2A receptor agonists.](https://www.ncbi.nlm.nih.gov/pubmed/16277614)
-
-**(2005)** [Nonfatal and fatal DOB (2,5-dimethoxy-4-bromoamphetamine) overdose.](https://www.ncbi.nlm.nih.gov/pubmed/15979834)
-
-**(1999)** [LSD and DOB: interaction with 5-HT2A receptors to inhibit NMDA receptor-mediated transmission in the rat prefrontal cortex.](https://www.ncbi.nlm.nih.gov/pubmed/10510170)
-
-**(1988)** [R(−)-2,5-Dimethoxy-4-77bromoamphetamine [77Br-R(−)DOB]: a novel radioligand which labels a 5-HT binding site subtype](https://link.springer.com/article/10.1007/BF00174703)
-
-**(1987)** [Potent agonist activity of DOB at 5-HT2 receptors in guinea pig trachea.](https://www.ncbi.nlm.nih.gov/pubmed/3622603)
-
-**(1987)** [Selectivity of serotonergic drugs for multiple brain serotonin receptors. Role of [3H]-4-bromo-2,5-dimethoxyphenylisopropylamine ([3H]DOB), a 5-HT2 agonist radioligand.](https://www.ncbi.nlm.nih.gov/pubmed/3663239)
-
-**(1985)** [[3H]DOB: a specific agonist radioligand for 5-HT2 serotonin receptors.](https://www.ncbi.nlm.nih.gov/pubmed/4085543)
-
-**(1983)** [Bromo-DMA: the Australasian hallucinogen?](https://www.ncbi.nlm.nih.gov/pubmed/6580896)
-
-**(1983)** [Diffuse vascular spasm associated with 4-bromo-2,5-dimethoxyamphetamine ingestion.](https://www.ncbi.nlm.nih.gov/pubmed/6827726)
-
-**(1983)** [4-bromo-2,5-dimethoxyamphetamine: psychoactivity, toxic effects and analytical methods.](https://www.ncbi.nlm.nih.gov/pubmed/6873782)
-
-**(1981)** [A death due to 4-bromo-2,5-dimethoxyamphetamine.](https://www.ncbi.nlm.nih.gov/pubmed/7237958)
-
-**(1981)** [DOB](http://www.tandfonline.com/doi/abs/10.1080/02791072.1981.10471457?tab=permissions&scroll=top)
-
-**(1980)** [Bromo-DMA: new hallucinogenic drug.](https://www.ncbi.nlm.nih.gov/pubmed/7360100)
-
-**(1978)** [Serotonergic and dopaminergic involvement in the mechanism of action of R-(−)-2, 5-dimethoxy-4-bromoamphetamine (DOB) in cats](http://www.sciencedirect.com/science/article/pii/0024320578901327)
-
-**(1978)** [Acute toxicity and gross behavioral effects of amphetamine, four methoxyamphetamines, and mescaline in rodents, dogs, and monkeys](http://www.sciencedirect.com/science/article/pii/0041008X78900273)
-
-**(1975)** [In vivo human pharmacodynamics of the psychodysleptic 4-BR-2,5-dimethoxyphenylisopropylamine labelled with 82Br or 77Br](https://www.researchgate.net/publication/22347923_In_vivo_human_pharmacodynamics_of_the_psychodysleptic_4-BR-25-dimethoxyphenylisopropylamine_labelled_with_'BRor_'BR)
-
-**(1971)** [4-Bromo-2,5-dimethoxyphenylisopropylamine, a new centrally active amphetamine analog.](https://www.ncbi.nlm.nih.gov/pubmed/5570923)
-`,
+---`,
   "tripsit-factsheets": `# DOB
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/dob*
 

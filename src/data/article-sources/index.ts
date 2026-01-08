@@ -4,6 +4,7 @@ export interface SourceInfo {
   fileName: string;
   displayName: string;
   size: number;
+  tokens: number;
 }
 
 export interface SubstanceInfo {
@@ -21,13 +22,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1,4-Butanediol.md",
         "displayName": "TripSit Factsheets",
-        "size": 927
+        "size": 927,
+        "tokens": 270
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1,4-Butanediol.md",
         "displayName": "Wikipedia",
-        "size": 7548
+        "size": 7548,
+        "tokens": 2037
       }
     ]
   },
@@ -39,13 +42,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 13-Butanediol.md",
         "displayName": "PsychonautWiki",
-        "size": 74
+        "size": 74,
+        "tokens": 27
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 13-Butanediol.md",
         "displayName": "Wikipedia",
-        "size": 2160
+        "size": 2160,
+        "tokens": 575
       }
     ]
   },
@@ -57,25 +62,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1B-LSD.md",
         "displayName": "Isomer Design",
-        "size": 649
+        "size": 427,
+        "tokens": 199
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1B-LSD.md",
         "displayName": "PsychonautWiki",
-        "size": 44671
+        "size": 34882,
+        "tokens": 9543
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1B-LSD.md",
         "displayName": "TripSit Factsheets",
-        "size": 364
+        "size": 364,
+        "tokens": 112
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1B-LSD.md",
         "displayName": "Wikipedia",
-        "size": 838
+        "size": 838,
+        "tokens": 243
       }
     ]
   },
@@ -87,7 +96,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1D-LSD.md",
         "displayName": "Wikipedia",
-        "size": 997
+        "size": 997,
+        "tokens": 284
       }
     ]
   },
@@ -99,7 +109,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1F-LSD.md",
         "displayName": "Wikipedia",
-        "size": 800
+        "size": 800,
+        "tokens": 228
       }
     ]
   },
@@ -111,31 +122,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 1P-ETH-LAD.md",
         "displayName": "Drug Users Bible",
-        "size": 1217
+        "size": 1217,
+        "tokens": 318
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1P-ETH-LAD.md",
         "displayName": "Isomer Design",
-        "size": 836
+        "size": 502,
+        "tokens": 225
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1P-ETH-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 26335
+        "size": 21705,
+        "tokens": 5962
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1P-ETH-LAD.md",
         "displayName": "TripSit Factsheets",
-        "size": 404
+        "size": 404,
+        "tokens": 126
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1P-ETH-LAD.md",
         "displayName": "Wikipedia",
-        "size": 1200
+        "size": 1200,
+        "tokens": 328
       }
     ]
   },
@@ -147,37 +163,43 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 1P-LSD.md",
         "displayName": "Disregard Everything I Say",
-        "size": 13385
+        "size": 13385,
+        "tokens": 3441
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 1P-LSD.md",
         "displayName": "Drug Users Bible",
-        "size": 5092
+        "size": 5092,
+        "tokens": 1232
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1P-LSD.md",
         "displayName": "Isomer Design",
-        "size": 838
+        "size": 512,
+        "tokens": 226
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1P-LSD.md",
         "displayName": "PsychonautWiki",
-        "size": 51646
+        "size": 40002,
+        "tokens": 11114
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1P-LSD.md",
         "displayName": "TripSit Factsheets",
-        "size": 750
+        "size": 750,
+        "tokens": 212
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1P-LSD.md",
         "displayName": "Wikipedia",
-        "size": 2772
+        "size": 2772,
+        "tokens": 726
       }
     ]
   },
@@ -189,13 +211,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1V-LSD.md",
         "displayName": "PsychonautWiki",
-        "size": 40732
+        "size": 33428,
+        "tokens": 9045
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1V-LSD.md",
         "displayName": "Wikipedia",
-        "size": 2156
+        "size": 2156,
+        "tokens": 560
       }
     ]
   },
@@ -207,19 +231,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1cP-AL-LAD.md",
         "displayName": "Isomer Design",
-        "size": 685
+        "size": 481,
+        "tokens": 230
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1cP-AL-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 36380
+        "size": 32163,
+        "tokens": 8794
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1cP-AL-LAD.md",
         "displayName": "Wikipedia",
-        "size": 468
+        "size": 468,
+        "tokens": 138
       }
     ]
   },
@@ -231,31 +258,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 1cP-LSD.md",
         "displayName": "Drug Users Bible",
-        "size": 6385
+        "size": 6385,
+        "tokens": 1585
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1cP-LSD.md",
         "displayName": "Isomer Design",
-        "size": 800
+        "size": 470,
+        "tokens": 218
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1cP-LSD.md",
         "displayName": "PsychonautWiki",
-        "size": 40885
+        "size": 33101,
+        "tokens": 9001
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 1cP-LSD.md",
         "displayName": "TripSit Factsheets",
-        "size": 382
+        "size": 382,
+        "tokens": 116
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1cP-LSD.md",
         "displayName": "Wikipedia",
-        "size": 1300
+        "size": 1300,
+        "tokens": 359
       }
     ]
   },
@@ -267,19 +299,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 1cP-MiPLA.md",
         "displayName": "Isomer Design",
-        "size": 615
+        "size": 535,
+        "tokens": 239
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 1cP-MiPLA.md",
         "displayName": "PsychonautWiki",
-        "size": 33188
+        "size": 28971,
+        "tokens": 7876
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 1cP-MiPLA.md",
         "displayName": "Wikipedia",
-        "size": 1179
+        "size": 1179,
+        "tokens": 311
       }
     ]
   },
@@ -291,19 +326,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2-AI.md",
         "displayName": "Drug Users Bible",
-        "size": 3112
+        "size": 3112,
+        "tokens": 773
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-AI.md",
         "displayName": "TripSit Factsheets",
-        "size": 1199
+        "size": 1199,
+        "tokens": 325
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-AI.md",
         "displayName": "Wikipedia",
-        "size": 1686
+        "size": 1686,
+        "tokens": 493
       }
     ]
   },
@@ -315,25 +353,29 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 2-Aminoindane.md",
         "displayName": "Erowid",
-        "size": 6161
+        "size": 6161,
+        "tokens": 1618
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-Aminoindane.md",
         "displayName": "Isomer Design",
-        "size": 677
+        "size": 353,
+        "tokens": 136
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-Aminoindane.md",
         "displayName": "PsychonautWiki",
-        "size": 23078
+        "size": 17899,
+        "tokens": 4825
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-Aminoindane.md",
         "displayName": "Wikipedia",
-        "size": 1686
+        "size": 1686,
+        "tokens": 493
       }
     ]
   },
@@ -345,7 +387,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-Chloroephenidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 634
+        "size": 634,
+        "tokens": 170
       }
     ]
   },
@@ -357,25 +400,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-FA.md",
         "displayName": "Isomer Design",
-        "size": 693
+        "size": 353,
+        "tokens": 135
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-FA.md",
         "displayName": "PsychonautWiki",
-        "size": 32103
+        "size": 24232,
+        "tokens": 6481
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-FA.md",
         "displayName": "TripSit Factsheets",
-        "size": 876
+        "size": 876,
+        "tokens": 253
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-FA.md",
         "displayName": "Wikipedia",
-        "size": 1741
+        "size": 1741,
+        "tokens": 505
       }
     ]
   },
@@ -387,25 +434,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-FEA.md",
         "displayName": "Isomer Design",
-        "size": 592
+        "size": 372,
+        "tokens": 144
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-FEA.md",
         "displayName": "PsychonautWiki",
-        "size": 24237
+        "size": 19527,
+        "tokens": 5298
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-FEA.md",
         "displayName": "TripSit Factsheets",
-        "size": 194
+        "size": 194,
+        "tokens": 61
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-FEA.md",
         "displayName": "Wikipedia",
-        "size": 1069
+        "size": 1069,
+        "tokens": 303
       }
     ]
   },
@@ -417,31 +468,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-FMA.md",
         "displayName": "Isomer Design",
-        "size": 776
+        "size": 420,
+        "tokens": 159
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-FMA.md",
         "displayName": "PsychonautWiki",
-        "size": 32272
+        "size": 25217,
+        "tokens": 6762
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 2-FMA.md",
         "displayName": "The Drug Classroom",
-        "size": 8397
+        "size": 7176,
+        "tokens": 1916
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-FMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 702
+        "size": 702,
+        "tokens": 197
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-FMA.md",
         "displayName": "Wikipedia",
-        "size": 1607
+        "size": 1607,
+        "tokens": 406
       }
     ]
   },
@@ -453,7 +509,8 @@ export const substances: SubstanceInfo[] = [
         "id": "nervewing",
         "fileName": "NERVEWING - FXE Confusion Notes.md",
         "displayName": "NERVEWING",
-        "size": 8703
+        "size": 8703,
+        "tokens": 2384
       }
     ]
   },
@@ -465,25 +522,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-Fluorodeschloroketamine.md",
         "displayName": "Isomer Design",
-        "size": 859
+        "size": 384,
+        "tokens": 150
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2-Fluorodeschloroketamine.md",
         "displayName": "PsychonautWiki",
-        "size": 24247
+        "size": 19563,
+        "tokens": 5251
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-Fluorodeschloroketamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 570
+        "size": 570,
+        "tokens": 164
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-Fluorodeschloroketamine.md",
         "displayName": "Wikipedia",
-        "size": 5275
+        "size": 5275,
+        "tokens": 1336
       }
     ]
   },
@@ -495,13 +556,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MA.md",
         "displayName": "TripSit Factsheets",
-        "size": 799
+        "size": 799,
+        "tokens": 202
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-MA.md",
         "displayName": "Wikipedia",
-        "size": 583
+        "size": 583,
+        "tokens": 149
       }
     ]
   },
@@ -513,7 +576,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-MDP.md",
         "displayName": "Wikipedia",
-        "size": 922
+        "size": 922,
+        "tokens": 244
       }
     ]
   },
@@ -525,7 +589,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MEC.md",
         "displayName": "TripSit Factsheets",
-        "size": 482
+        "size": 482,
+        "tokens": 133
       }
     ]
   },
@@ -537,13 +602,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 491
+        "size": 491,
+        "tokens": 140
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-MMC.md",
         "displayName": "Wikipedia",
-        "size": 1866
+        "size": 1866,
+        "tokens": 493
       }
     ]
   },
@@ -555,13 +622,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-MPPP.md",
         "displayName": "TripSit Factsheets",
-        "size": 871
+        "size": 871,
+        "tokens": 233
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-MPPP.md",
         "displayName": "Wikipedia",
-        "size": 3584
+        "size": 3584,
+        "tokens": 920
       }
     ]
   },
@@ -573,19 +642,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2-Me-DMT.md",
         "displayName": "Isomer Design",
-        "size": 4439
+        "size": 4439,
+        "tokens": 1175
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-Me-DMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1067
+        "size": 1067,
+        "tokens": 290
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-Me-DMT.md",
         "displayName": "Wikipedia",
-        "size": 2960
+        "size": 2960,
+        "tokens": 884
       }
     ]
   },
@@ -597,13 +669,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-NMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 119
+        "size": 119,
+        "tokens": 34
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2-NMC.md",
         "displayName": "Wikipedia",
-        "size": 644
+        "size": 644,
+        "tokens": 158
       }
     ]
   },
@@ -615,7 +689,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-PA.md",
         "displayName": "TripSit Factsheets",
-        "size": 559
+        "size": 559,
+        "tokens": 156
       }
     ]
   },
@@ -627,7 +702,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2-PTA.md",
         "displayName": "TripSit Factsheets",
-        "size": 583
+        "size": 583,
+        "tokens": 170
       }
     ]
   },
@@ -639,19 +715,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25-DMA.md",
         "displayName": "Isomer Design",
-        "size": 6620
+        "size": 6620,
+        "tokens": 1787
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25-DMA.md",
         "displayName": "PsychonautWiki",
-        "size": 15714
+        "size": 12179,
+        "tokens": 3352
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25-DMA.md",
         "displayName": "Wikipedia",
-        "size": 403
+        "size": 403,
+        "tokens": 156
       }
     ]
   },
@@ -663,25 +742,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25B-NBOH.md",
         "displayName": "Isomer Design",
-        "size": 785
+        "size": 408,
+        "tokens": 170
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25B-NBOH.md",
         "displayName": "PsychonautWiki",
-        "size": 30587
+        "size": 25441,
+        "tokens": 6830
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25B-NBOH.md",
         "displayName": "TripSit Factsheets",
-        "size": 712
+        "size": 712,
+        "tokens": 202
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25B-NBOH.md",
         "displayName": "Wikipedia",
-        "size": 943
+        "size": 943,
+        "tokens": 273
       }
     ]
   },
@@ -693,31 +776,36 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25B-NBOMe.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10966
+        "size": 10966,
+        "tokens": 2645
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25B-NBOMe.md",
         "displayName": "Isomer Design",
-        "size": 724
+        "size": 353,
+        "tokens": 147
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25B-NBOMe.md",
         "displayName": "PsychonautWiki",
-        "size": 33777
+        "size": 24709,
+        "tokens": 6627
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25B-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 945
+        "size": 945,
+        "tokens": 299
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25B-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 6240
+        "size": 6240,
+        "tokens": 1627
       }
     ]
   },
@@ -729,25 +817,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25C-NBOH.md",
         "displayName": "Isomer Design",
-        "size": 733
+        "size": 411,
+        "tokens": 170
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25C-NBOH.md",
         "displayName": "PsychonautWiki",
-        "size": 30410
+        "size": 25570,
+        "tokens": 6894
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25C-NBOH.md",
         "displayName": "TripSit Factsheets",
-        "size": 680
+        "size": 680,
+        "tokens": 188
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25C-NBOH.md",
         "displayName": "Wikipedia",
-        "size": 781
+        "size": 781,
+        "tokens": 211
       }
     ]
   },
@@ -759,37 +851,43 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25C-NBOMe.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11672
+        "size": 11672,
+        "tokens": 2823
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 25C-NBOMe.md",
         "displayName": "Erowid",
-        "size": 14971
+        "size": 14971,
+        "tokens": 4199
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25C-NBOMe.md",
         "displayName": "Isomer Design",
-        "size": 725
+        "size": 352,
+        "tokens": 147
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25C-NBOMe.md",
         "displayName": "PsychonautWiki",
-        "size": 42973
+        "size": 32498,
+        "tokens": 8714
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25C-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 592
+        "size": 592,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25C-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 4340
+        "size": 4340,
+        "tokens": 1096
       }
     ]
   },
@@ -801,25 +899,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25D-NBOMe.md",
         "displayName": "Isomer Design",
-        "size": 731
+        "size": 352,
+        "tokens": 147
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25D-NBOMe.md",
         "displayName": "PsychonautWiki",
-        "size": 35832
+        "size": 28601,
+        "tokens": 7632
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25D-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 806
+        "size": 806,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25D-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 2276
+        "size": 2276,
+        "tokens": 608
       }
     ]
   },
@@ -831,19 +933,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25E-NBOH.md",
         "displayName": "Isomer Design",
-        "size": 743
+        "size": 417,
+        "tokens": 174
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25E-NBOH.md",
         "displayName": "PsychonautWiki",
-        "size": 25028
+        "size": 21112,
+        "tokens": 5669
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25E-NBOH.md",
         "displayName": "Wikipedia",
-        "size": 746
+        "size": 746,
+        "tokens": 195
       }
     ]
   },
@@ -855,13 +960,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25E-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 1076
+        "size": 1076,
+        "tokens": 284
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25E-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 1627
+        "size": 1627,
+        "tokens": 422
       }
     ]
   },
@@ -873,13 +980,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25G-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 1327
+        "size": 1327,
+        "tokens": 345
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25G-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 897
+        "size": 897,
+        "tokens": 250
       }
     ]
   },
@@ -891,13 +1000,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25H-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 987
+        "size": 987,
+        "tokens": 266
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25H-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 2610
+        "size": 2610,
+        "tokens": 694
       }
     ]
   },
@@ -909,13 +1020,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBF.md",
         "displayName": "TripSit Factsheets",
-        "size": 591
+        "size": 591,
+        "tokens": 162
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25I-NBF.md",
         "displayName": "Wikipedia",
-        "size": 1100
+        "size": 1100,
+        "tokens": 317
       }
     ]
   },
@@ -927,13 +1040,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBMD.md",
         "displayName": "TripSit Factsheets",
-        "size": 528
+        "size": 528,
+        "tokens": 140
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25I-NBMD.md",
         "displayName": "Wikipedia",
-        "size": 1034
+        "size": 1034,
+        "tokens": 296
       }
     ]
   },
@@ -945,25 +1060,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25I-NBOH.md",
         "displayName": "Isomer Design",
-        "size": 780
+        "size": 409,
+        "tokens": 170
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25I-NBOH.md",
         "displayName": "PsychonautWiki",
-        "size": 30486
+        "size": 25826,
+        "tokens": 6979
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBOH.md",
         "displayName": "TripSit Factsheets",
-        "size": 816
+        "size": 816,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25I-NBOH.md",
         "displayName": "Wikipedia",
-        "size": 2714
+        "size": 2714,
+        "tokens": 750
       }
     ]
   },
@@ -975,49 +1094,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25I-NBOMe.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12897
+        "size": 12897,
+        "tokens": 3154
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 25I-NBOMe.md",
         "displayName": "Erowid",
-        "size": 26527
+        "size": 26527,
+        "tokens": 7353
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25I-NBOMe.md",
         "displayName": "Isomer Design",
-        "size": 727
+        "size": 354,
+        "tokens": 147
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25I-NBOMe.md",
         "displayName": "PsychonautWiki",
-        "size": 46389
+        "size": 34087,
+        "tokens": 9162
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 25I-NBOMe.md",
         "displayName": "The Drug Classroom",
-        "size": 73292
+        "size": 63637,
+        "tokens": 16952
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25I-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 817
+        "size": 817,
+        "tokens": 235
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 25I-NBOMe.md",
         "displayName": "TripSit Wiki",
-        "size": 5757
+        "size": 5401,
+        "tokens": 1352
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25I-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 15646
+        "size": 15646,
+        "tokens": 4083
       }
     ]
   },
@@ -1029,31 +1156,36 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 25N-NBOMe.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10948
+        "size": 10948,
+        "tokens": 2871
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 25N-NBOMe.md",
         "displayName": "Isomer Design",
-        "size": 745
+        "size": 366,
+        "tokens": 155
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 25N-NBOMe.md",
         "displayName": "PsychonautWiki",
-        "size": 33661
+        "size": 27304,
+        "tokens": 7247
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25N-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 778
+        "size": 778,
+        "tokens": 219
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25N-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 4930
+        "size": 4930,
+        "tokens": 1375
       }
     ]
   },
@@ -1065,13 +1197,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25P-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 832
+        "size": 832,
+        "tokens": 216
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25P-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 1073
+        "size": 1073,
+        "tokens": 283
       }
     ]
   },
@@ -1083,7 +1217,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25T-2-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 543
+        "size": 543,
+        "tokens": 149
       }
     ]
   },
@@ -1095,7 +1230,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25T-4-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 554
+        "size": 554,
+        "tokens": 149
       }
     ]
   },
@@ -1107,13 +1243,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 25iP-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 1065
+        "size": 1065,
+        "tokens": 277
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 25iP-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 793
+        "size": 793,
+        "tokens": 196
       }
     ]
   },
@@ -1125,61 +1263,71 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-B.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10119
+        "size": 10119,
+        "tokens": 2582
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-B.md",
         "displayName": "Drug Users Bible",
-        "size": 5805
+        "size": 5805,
+        "tokens": 1485
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-B.md",
         "displayName": "Erowid",
-        "size": 25293
+        "size": 25293,
+        "tokens": 7022
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-B.md",
         "displayName": "Isomer Design",
-        "size": 10710
+        "size": 10710,
+        "tokens": 2912
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-B.md",
         "displayName": "PsychonautWiki",
-        "size": 54888
+        "size": 36992,
+        "tokens": 10362
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - 2C-B.md",
         "displayName": "Safer Party",
-        "size": 1783
+        "size": 1783,
+        "tokens": 440
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 2C-B.md",
         "displayName": "The Drug Classroom",
-        "size": 1350
+        "size": 1350,
+        "tokens": 388
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B.md",
         "displayName": "TripSit Factsheets",
-        "size": 1205
+        "size": 1205,
+        "tokens": 428
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 2C-B.md",
         "displayName": "TripSit Wiki",
-        "size": 4294
+        "size": 4294,
+        "tokens": 1176
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-B.md",
         "displayName": "Wikipedia",
-        "size": 25387
+        "size": 25387,
+        "tokens": 6897
       }
     ]
   },
@@ -1191,19 +1339,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-B-AN.md",
         "displayName": "Drug Users Bible",
-        "size": 1012
+        "size": 1012,
+        "tokens": 253
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B-AN.md",
         "displayName": "TripSit Factsheets",
-        "size": 385
+        "size": 385,
+        "tokens": 120
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-B-AN.md",
         "displayName": "Wikipedia",
-        "size": 826
+        "size": 826,
+        "tokens": 237
       }
     ]
   },
@@ -1215,37 +1366,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-B-FLY.md",
         "displayName": "Drug Users Bible",
-        "size": 2731
+        "size": 2731,
+        "tokens": 694
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-B-FLY.md",
         "displayName": "Erowid",
-        "size": 6981
+        "size": 6981,
+        "tokens": 1883
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-B-FLY.md",
         "displayName": "Isomer Design",
-        "size": 783
+        "size": 378,
+        "tokens": 161
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-B-FLY.md",
         "displayName": "PsychonautWiki",
-        "size": 31898
+        "size": 26903,
+        "tokens": 7624
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B-FLY.md",
         "displayName": "TripSit Factsheets",
-        "size": 776
+        "size": 776,
+        "tokens": 224
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-B-FLY.md",
         "displayName": "Wikipedia",
-        "size": 5685
+        "size": 5685,
+        "tokens": 1574
       }
     ]
   },
@@ -1257,13 +1414,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-B-FLY-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 350
+        "size": 350,
+        "tokens": 94
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-B-FLY-NBOMe.md",
         "displayName": "Wikipedia",
-        "size": 1035
+        "size": 1035,
+        "tokens": 261
       }
     ]
   },
@@ -1275,43 +1434,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-C.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12468
+        "size": 12468,
+        "tokens": 3245
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-C.md",
         "displayName": "Erowid",
-        "size": 11765
+        "size": 11765,
+        "tokens": 3571
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-C.md",
         "displayName": "Isomer Design",
-        "size": 4263
+        "size": 4263,
+        "tokens": 1206
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-C.md",
         "displayName": "PsychonautWiki",
-        "size": 33853
+        "size": 25586,
+        "tokens": 7001
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 2C-C.md",
         "displayName": "The Drug Classroom",
-        "size": 11724
+        "size": 10714,
+        "tokens": 2832
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-C.md",
         "displayName": "TripSit Factsheets",
-        "size": 863
+        "size": 863,
+        "tokens": 251
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-C.md",
         "displayName": "Wikipedia",
-        "size": 4431
+        "size": 4431,
+        "tokens": 1149
       }
     ]
   },
@@ -1323,37 +1489,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 2C-D.md",
         "displayName": "Erowid",
-        "size": 18508
+        "size": 18508,
+        "tokens": 5461
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-D.md",
         "displayName": "Isomer Design",
-        "size": 9035
+        "size": 9035,
+        "tokens": 2590
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-D.md",
         "displayName": "PsychonautWiki",
-        "size": 32191
+        "size": 21720,
+        "tokens": 5932
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-D.md",
         "displayName": "TripSit Factsheets",
-        "size": 962
+        "size": 962,
+        "tokens": 277
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 2C-D.md",
         "displayName": "TripSit Wiki",
-        "size": 4305
+        "size": 4305,
+        "tokens": 1223
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-D.md",
         "displayName": "Wikipedia",
-        "size": 5908
+        "size": 5908,
+        "tokens": 1609
       }
     ]
   },
@@ -1365,55 +1537,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-E.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11128
+        "size": 11128,
+        "tokens": 2743
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-E.md",
         "displayName": "Drug Users Bible",
-        "size": 4241
+        "size": 4241,
+        "tokens": 1115
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-E.md",
         "displayName": "Erowid",
-        "size": 14226
+        "size": 14226,
+        "tokens": 4270
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-E.md",
         "displayName": "Isomer Design",
-        "size": 7968
+        "size": 7968,
+        "tokens": 2184
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-E.md",
         "displayName": "PsychonautWiki",
-        "size": 33791
+        "size": 27617,
+        "tokens": 7618
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 2C-E.md",
         "displayName": "The Drug Classroom",
-        "size": 1382
+        "size": 1382,
+        "tokens": 411
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-E.md",
         "displayName": "TripSit Factsheets",
-        "size": 965
+        "size": 965,
+        "tokens": 282
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 2C-E.md",
         "displayName": "TripSit Wiki",
-        "size": 6797
+        "size": 6797,
+        "tokens": 1885
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-E.md",
         "displayName": "Wikipedia",
-        "size": 6268
+        "size": 6268,
+        "tokens": 1698
       }
     ]
   },
@@ -1425,19 +1606,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-G.md",
         "displayName": "Isomer Design",
-        "size": 9526
+        "size": 9526,
+        "tokens": 2706
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-G.md",
         "displayName": "TripSit Factsheets",
-        "size": 837
+        "size": 837,
+        "tokens": 222
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-G.md",
         "displayName": "Wikipedia",
-        "size": 1769
+        "size": 1769,
+        "tokens": 516
       }
     ]
   },
@@ -1449,19 +1633,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-H.md",
         "displayName": "Isomer Design",
-        "size": 2405
+        "size": 2405,
+        "tokens": 657
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-H.md",
         "displayName": "PsychonautWiki",
-        "size": 19167
+        "size": 11944,
+        "tokens": 3293
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-H.md",
         "displayName": "Wikipedia",
-        "size": 2371
+        "size": 2371,
+        "tokens": 637
       }
     ]
   },
@@ -1473,55 +1660,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-I.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9490
+        "size": 9490,
+        "tokens": 2363
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 2C-I.md",
         "displayName": "Drug Users Bible",
-        "size": 3660
+        "size": 3660,
+        "tokens": 957
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-I.md",
         "displayName": "Erowid",
-        "size": 19324
+        "size": 19324,
+        "tokens": 5852
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-I.md",
         "displayName": "Isomer Design",
-        "size": 8199
+        "size": 8199,
+        "tokens": 2218
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-I.md",
         "displayName": "PsychonautWiki",
-        "size": 28873
+        "size": 22989,
+        "tokens": 6357
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - 2C-I.md",
         "displayName": "Safer Party",
-        "size": 1738
+        "size": 1738,
+        "tokens": 427
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 2C-I.md",
         "displayName": "The Drug Classroom",
-        "size": 1163
+        "size": 1163,
+        "tokens": 360
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-I.md",
         "displayName": "TripSit Factsheets",
-        "size": 995
+        "size": 995,
+        "tokens": 319
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-I.md",
         "displayName": "Wikipedia",
-        "size": 4189
+        "size": 4189,
+        "tokens": 1113
       }
     ]
   },
@@ -1533,13 +1729,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-IP.md",
         "displayName": "TripSit Factsheets",
-        "size": 879
+        "size": 879,
+        "tokens": 238
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-IP.md",
         "displayName": "Wikipedia",
-        "size": 460
+        "size": 460,
+        "tokens": 122
       }
     ]
   },
@@ -1551,19 +1749,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-N.md",
         "displayName": "Isomer Design",
-        "size": 703
+        "size": 703,
+        "tokens": 208
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-N.md",
         "displayName": "TripSit Factsheets",
-        "size": 1081
+        "size": 1081,
+        "tokens": 295
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-N.md",
         "displayName": "Wikipedia",
-        "size": 2178
+        "size": 2178,
+        "tokens": 578
       }
     ]
   },
@@ -1575,43 +1776,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-P.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9773
+        "size": 9773,
+        "tokens": 2450
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-P.md",
         "displayName": "Erowid",
-        "size": 15201
+        "size": 15201,
+        "tokens": 4319
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-P.md",
         "displayName": "Isomer Design",
-        "size": 6893
+        "size": 6893,
+        "tokens": 1820
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-P.md",
         "displayName": "PsychonautWiki",
-        "size": 33294
+        "size": 26951,
+        "tokens": 7420
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-P.md",
         "displayName": "TripSit Factsheets",
-        "size": 966
+        "size": 966,
+        "tokens": 321
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 2C-P.md",
         "displayName": "TripSit Wiki",
-        "size": 2938
+        "size": 2938,
+        "tokens": 777
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-P.md",
         "displayName": "Wikipedia",
-        "size": 6654
+        "size": 6654,
+        "tokens": 1820
       }
     ]
   },
@@ -1623,25 +1831,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-T.md",
         "displayName": "Isomer Design",
-        "size": 7945
+        "size": 7945,
+        "tokens": 2279
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T.md",
         "displayName": "PsychonautWiki",
-        "size": 19289
+        "size": 14039,
+        "tokens": 3922
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-T.md",
         "displayName": "TripSit Factsheets",
-        "size": 369
+        "size": 369,
+        "tokens": 115
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-T.md",
         "displayName": "Wikipedia",
-        "size": 3293
+        "size": 3293,
+        "tokens": 918
       }
     ]
   },
@@ -1653,37 +1865,43 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-T-2.md",
         "displayName": "Disregard Everything I Say",
-        "size": 14842
+        "size": 14842,
+        "tokens": 4008
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-T-2.md",
         "displayName": "Erowid",
-        "size": 15498
+        "size": 15498,
+        "tokens": 4711
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-T-2.md",
         "displayName": "Isomer Design",
-        "size": 11043
+        "size": 11043,
+        "tokens": 3066
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-2.md",
         "displayName": "PsychonautWiki",
-        "size": 30227
+        "size": 22683,
+        "tokens": 6454
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-T-2.md",
         "displayName": "TripSit Factsheets",
-        "size": 839
+        "size": 839,
+        "tokens": 247
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-T-2.md",
         "displayName": "Wikipedia",
-        "size": 4836
+        "size": 4836,
+        "tokens": 1352
       }
     ]
   },
@@ -1695,31 +1913,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 2C-T-21.md",
         "displayName": "Erowid",
-        "size": 3965
+        "size": 3965,
+        "tokens": 1104
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-T-21.md",
         "displayName": "Isomer Design",
-        "size": 9532
+        "size": 9532,
+        "tokens": 2617
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-21.md",
         "displayName": "PsychonautWiki",
-        "size": 23924
+        "size": 17810,
+        "tokens": 5024
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-T-21.md",
         "displayName": "TripSit Factsheets",
-        "size": 823
+        "size": 823,
+        "tokens": 242
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-T-21.md",
         "displayName": "Wikipedia",
-        "size": 2845
+        "size": 2845,
+        "tokens": 757
       }
     ]
   },
@@ -1731,19 +1954,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-T-4.md",
         "displayName": "Isomer Design",
-        "size": 6647
+        "size": 6647,
+        "tokens": 1813
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-T-4.md",
         "displayName": "TripSit Factsheets",
-        "size": 932
+        "size": 932,
+        "tokens": 281
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-T-4.md",
         "displayName": "Wikipedia",
-        "size": 3233
+        "size": 3233,
+        "tokens": 911
       }
     ]
   },
@@ -1755,37 +1981,43 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 2C-T-7.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9662
+        "size": 9662,
+        "tokens": 2478
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 2C-T-7.md",
         "displayName": "Erowid",
-        "size": 26881
+        "size": 26881,
+        "tokens": 7676
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 2C-T-7.md",
         "displayName": "Isomer Design",
-        "size": 7163
+        "size": 7163,
+        "tokens": 1978
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2C-T-7.md",
         "displayName": "PsychonautWiki",
-        "size": 32307
+        "size": 21915,
+        "tokens": 6278
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2C-T-7.md",
         "displayName": "TripSit Factsheets",
-        "size": 946
+        "size": 946,
+        "tokens": 337
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2C-T-7.md",
         "displayName": "Wikipedia",
-        "size": 6484
+        "size": 6484,
+        "tokens": 1746
       }
     ]
   },
@@ -1797,19 +2029,22 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 2M2B.md",
         "displayName": "PsychonautWiki",
-        "size": 19067
+        "size": 13856,
+        "tokens": 3756
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 2M2B.md",
         "displayName": "TripSit Factsheets",
-        "size": 743
+        "size": 743,
+        "tokens": 214
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 2M2B.md",
         "displayName": "Wikipedia",
-        "size": 3539
+        "size": 3539,
+        "tokens": 882
       }
     ]
   },
@@ -1821,31 +2056,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 3,4-CTMP.md",
         "displayName": "Drug Users Bible",
-        "size": 1470
+        "size": 1470,
+        "tokens": 375
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3,4-CTMP.md",
         "displayName": "Isomer Design",
-        "size": 915
+        "size": 444,
+        "tokens": 183
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3,4-CTMP.md",
         "displayName": "PsychonautWiki",
-        "size": 36139
+        "size": 30183,
+        "tokens": 7896
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3,4-CTMP.md",
         "displayName": "TripSit Factsheets",
-        "size": 1097
+        "size": 1097,
+        "tokens": 290
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3,4-CTMP.md",
         "displayName": "Wikipedia",
-        "size": 2749
+        "size": 2749,
+        "tokens": 742
       }
     ]
   },
@@ -1857,7 +2097,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3,6-DMPM.md",
         "displayName": "TripSit Factsheets",
-        "size": 230
+        "size": 230,
+        "tokens": 63
       }
     ]
   },
@@ -1869,13 +2110,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-CMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 1078
+        "size": 1078,
+        "tokens": 280
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-CMC.md",
         "displayName": "Wikipedia",
-        "size": 7017
+        "size": 7017,
+        "tokens": 1704
       }
     ]
   },
@@ -1887,19 +2130,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-Cl-PCP.md",
         "displayName": "Isomer Design",
-        "size": 620
+        "size": 416,
+        "tokens": 168
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-Cl-PCP.md",
         "displayName": "PsychonautWiki",
-        "size": 23375
+        "size": 19263,
+        "tokens": 5304
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-Cl-PCP.md",
         "displayName": "Wikipedia",
-        "size": 492
+        "size": 492,
+        "tokens": 131
       }
     ]
   },
@@ -1911,7 +2157,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-F-PCP.md",
         "displayName": "Wikipedia",
-        "size": 297
+        "size": 297,
+        "tokens": 88
       }
     ]
   },
@@ -1923,25 +2170,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-FA.md",
         "displayName": "Isomer Design",
-        "size": 697
+        "size": 357,
+        "tokens": 141
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FA.md",
         "displayName": "PsychonautWiki",
-        "size": 27921
+        "size": 19787,
+        "tokens": 5247
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FA.md",
         "displayName": "TripSit Factsheets",
-        "size": 687
+        "size": 687,
+        "tokens": 193
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-FA.md",
         "displayName": "Wikipedia",
-        "size": 6397
+        "size": 6397,
+        "tokens": 1576
       }
     ]
   },
@@ -1953,25 +2204,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-FEA.md",
         "displayName": "Isomer Design",
-        "size": 770
+        "size": 416,
+        "tokens": 168
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FEA.md",
         "displayName": "PsychonautWiki",
-        "size": 35694
+        "size": 28159,
+        "tokens": 7539
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FEA.md",
         "displayName": "TripSit Factsheets",
-        "size": 348
+        "size": 348,
+        "tokens": 111
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-FEA.md",
         "displayName": "Wikipedia",
-        "size": 623
+        "size": 623,
+        "tokens": 156
       }
     ]
   },
@@ -1983,25 +2238,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-FMA.md",
         "displayName": "Isomer Design",
-        "size": 765
+        "size": 409,
+        "tokens": 159
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FMA.md",
         "displayName": "PsychonautWiki",
-        "size": 28173
+        "size": 21232,
+        "tokens": 5690
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 680
+        "size": 680,
+        "tokens": 190
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-FMA.md",
         "displayName": "Wikipedia",
-        "size": 609
+        "size": 609,
+        "tokens": 157
       }
     ]
   },
@@ -2013,13 +2272,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 892
+        "size": 892,
+        "tokens": 231
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-FMC.md",
         "displayName": "Wikipedia",
-        "size": 787
+        "size": 787,
+        "tokens": 218
       }
     ]
   },
@@ -2031,37 +2292,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 3-FPM.md",
         "displayName": "Drug Users Bible",
-        "size": 3523
+        "size": 3523,
+        "tokens": 861
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-FPM.md",
         "displayName": "Isomer Design",
-        "size": 854
+        "size": 407,
+        "tokens": 157
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-FPM.md",
         "displayName": "PsychonautWiki",
-        "size": 27110
+        "size": 21713,
+        "tokens": 5884
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 3-FPM.md",
         "displayName": "The Drug Classroom",
-        "size": 2103
+        "size": 1234,
+        "tokens": 353
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-FPM.md",
         "displayName": "TripSit Factsheets",
-        "size": 1056
+        "size": 1056,
+        "tokens": 366
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-FPM.md",
         "displayName": "Wikipedia",
-        "size": 2378
+        "size": 2378,
+        "tokens": 619
       }
     ]
   },
@@ -2073,25 +2340,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-HO-PCE.md",
         "displayName": "Isomer Design",
-        "size": 676
+        "size": 397,
+        "tokens": 158
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-HO-PCE.md",
         "displayName": "PsychonautWiki",
-        "size": 23690
+        "size": 19846,
+        "tokens": 5424
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-HO-PCE.md",
         "displayName": "TripSit Factsheets",
-        "size": 378
+        "size": 378,
+        "tokens": 119
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-HO-PCE.md",
         "displayName": "Wikipedia",
-        "size": 2280
+        "size": 2280,
+        "tokens": 656
       }
     ]
   },
@@ -2103,31 +2374,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 3-HO-PCP.md",
         "displayName": "Drug Users Bible",
-        "size": 5644
+        "size": 5644,
+        "tokens": 1393
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-HO-PCP.md",
         "displayName": "Isomer Design",
-        "size": 861
+        "size": 428,
+        "tokens": 175
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-HO-PCP.md",
         "displayName": "PsychonautWiki",
-        "size": 28373
+        "size": 22388,
+        "tokens": 6168
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-HO-PCP.md",
         "displayName": "TripSit Factsheets",
-        "size": 374
+        "size": 374,
+        "tokens": 118
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-HO-PCP.md",
         "displayName": "Wikipedia",
-        "size": 2280
+        "size": 2280,
+        "tokens": 656
       }
     ]
   },
@@ -2139,7 +2415,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MEC.md",
         "displayName": "TripSit Factsheets",
-        "size": 569
+        "size": 569,
+        "tokens": 155
       }
     ]
   },
@@ -2151,31 +2428,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 3-MMC.md",
         "displayName": "Drug Users Bible",
-        "size": 3585
+        "size": 3585,
+        "tokens": 919
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-MMC.md",
         "displayName": "Isomer Design",
-        "size": 689
+        "size": 335,
+        "tokens": 135
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MMC.md",
         "displayName": "PsychonautWiki",
-        "size": 32811
+        "size": 26761,
+        "tokens": 7339
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 724
+        "size": 724,
+        "tokens": 200
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-MMC.md",
         "displayName": "Wikipedia",
-        "size": 8877
+        "size": 8877,
+        "tokens": 2256
       }
     ]
   },
@@ -2187,7 +2469,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-Me-PCE.md",
         "displayName": "Wikipedia",
-        "size": 701
+        "size": 701,
+        "tokens": 185
       }
     ]
   },
@@ -2199,7 +2482,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-Me-PCP.md",
         "displayName": "Wikipedia",
-        "size": 439
+        "size": 439,
+        "tokens": 130
       }
     ]
   },
@@ -2211,7 +2495,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-Me-PCPy.md",
         "displayName": "Wikipedia",
-        "size": 750
+        "size": 750,
+        "tokens": 192
       }
     ]
   },
@@ -2223,25 +2508,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-MeO-PCE.md",
         "displayName": "Isomer Design",
-        "size": 872
+        "size": 429,
+        "tokens": 174
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MeO-PCE.md",
         "displayName": "PsychonautWiki",
-        "size": 32014
+        "size": 27021,
+        "tokens": 7512
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCE.md",
         "displayName": "TripSit Factsheets",
-        "size": 501
+        "size": 501,
+        "tokens": 157
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-MeO-PCE.md",
         "displayName": "Wikipedia",
-        "size": 1512
+        "size": 1512,
+        "tokens": 406
       }
     ]
   },
@@ -2253,37 +2542,43 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 3-MeO-PCMo.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11966
+        "size": 11966,
+        "tokens": 3120
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 3-MeO-PCMo.md",
         "displayName": "Drug Users Bible",
-        "size": 3488
+        "size": 3488,
+        "tokens": 911
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-MeO-PCMo.md",
         "displayName": "Isomer Design",
-        "size": 828
+        "size": 381,
+        "tokens": 155
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MeO-PCMo.md",
         "displayName": "PsychonautWiki",
-        "size": 23634
+        "size": 19380,
+        "tokens": 5197
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCMo.md",
         "displayName": "TripSit Factsheets",
-        "size": 443
+        "size": 443,
+        "tokens": 139
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-MeO-PCMo.md",
         "displayName": "Wikipedia",
-        "size": 492
+        "size": 492,
+        "tokens": 148
       }
     ]
   },
@@ -2295,43 +2590,50 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 3-MeO-PCP.md",
         "displayName": "Erowid",
-        "size": 15054
+        "size": 15054,
+        "tokens": 4223
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3-MeO-PCP.md",
         "displayName": "Isomer Design",
-        "size": 767
+        "size": 443,
+        "tokens": 177
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3-MeO-PCP.md",
         "displayName": "PsychonautWiki",
-        "size": 39045
+        "size": 29565,
+        "tokens": 8194
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 3-MeO-PCP.md",
         "displayName": "The Drug Classroom",
-        "size": 97509
+        "size": 97509,
+        "tokens": 26325
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCP.md",
         "displayName": "TripSit Factsheets",
-        "size": 715
+        "size": 715,
+        "tokens": 235
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 3-MeO-PCP.md",
         "displayName": "TripSit Wiki",
-        "size": 5368
+        "size": 5368,
+        "tokens": 1494
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-MeO-PCP.md",
         "displayName": "Wikipedia",
-        "size": 5646
+        "size": 5646,
+        "tokens": 1475
       }
     ]
   },
@@ -2343,7 +2645,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCPR.md",
         "displayName": "TripSit Factsheets",
-        "size": 534
+        "size": 534,
+        "tokens": 156
       }
     ]
   },
@@ -2355,7 +2658,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeO-PCPY.md",
         "displayName": "TripSit Factsheets",
-        "size": 600
+        "size": 600,
+        "tokens": 171
       }
     ]
   },
@@ -2367,13 +2671,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-MeOMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 405
+        "size": 405,
+        "tokens": 110
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-MeOMC.md",
         "displayName": "Wikipedia",
-        "size": 1486
+        "size": 1486,
+        "tokens": 425
       }
     ]
   },
@@ -2385,13 +2691,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3-OH-Phenazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 707
+        "size": 707,
+        "tokens": 205
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3-OH-Phenazepam.md",
         "displayName": "Wikipedia",
-        "size": 645
+        "size": 645,
+        "tokens": 162
       }
     ]
   },
@@ -2403,7 +2711,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 34-CTMP.md",
         "displayName": "Wikipedia",
-        "size": 2749
+        "size": 2749,
+        "tokens": 742
       }
     ]
   },
@@ -2415,25 +2724,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3C-E.md",
         "displayName": "Isomer Design",
-        "size": 3400
+        "size": 3400,
+        "tokens": 943
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3C-E.md",
         "displayName": "PsychonautWiki",
-        "size": 24726
+        "size": 21920,
+        "tokens": 5922
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3C-E.md",
         "displayName": "TripSit Factsheets",
-        "size": 826
+        "size": 826,
+        "tokens": 241
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3C-E.md",
         "displayName": "Wikipedia",
-        "size": 1114
+        "size": 1114,
+        "tokens": 299
       }
     ]
   },
@@ -2445,31 +2758,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 3C-P.md",
         "displayName": "Erowid",
-        "size": 2027
+        "size": 2027,
+        "tokens": 548
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 3C-P.md",
         "displayName": "Isomer Design",
-        "size": 744
+        "size": 426,
+        "tokens": 174
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 3C-P.md",
         "displayName": "PsychonautWiki",
-        "size": 21208
+        "size": 18856,
+        "tokens": 5170
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 3C-P.md",
         "displayName": "TripSit Factsheets",
-        "size": 769
+        "size": 769,
+        "tokens": 221
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 3C-P.md",
         "displayName": "Wikipedia",
-        "size": 1163
+        "size": 1163,
+        "tokens": 316
       }
     ]
   },
@@ -2481,19 +2799,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 4,4-DMAR.md",
         "displayName": "The Drug Classroom",
-        "size": 128189
+        "size": 128189,
+        "tokens": 33213
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4,4-DMAR.md",
         "displayName": "TripSit Factsheets",
-        "size": 530
+        "size": 530,
+        "tokens": 153
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4,4-DMAR.md",
         "displayName": "Wikipedia",
-        "size": 2091
+        "size": 2091,
+        "tokens": 563
       }
     ]
   },
@@ -2505,13 +2826,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DALT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1019
+        "size": 1019,
+        "tokens": 278
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-DALT.md",
         "displayName": "Wikipedia",
-        "size": 795
+        "size": 795,
+        "tokens": 237
       }
     ]
   },
@@ -2523,31 +2846,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-AcO-DET.md",
         "displayName": "Erowid",
-        "size": 4359
+        "size": 4359,
+        "tokens": 1235
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-AcO-DET.md",
         "displayName": "Isomer Design",
-        "size": 788
+        "size": 460,
+        "tokens": 190
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-DET.md",
         "displayName": "PsychonautWiki",
-        "size": 26113
+        "size": 20969,
+        "tokens": 5919
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DET.md",
         "displayName": "TripSit Factsheets",
-        "size": 522
+        "size": 522,
+        "tokens": 166
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-DET.md",
         "displayName": "Wikipedia",
-        "size": 1420
+        "size": 1420,
+        "tokens": 413
       }
     ]
   },
@@ -2559,49 +2887,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-AcO-DMT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9932
+        "size": 9932,
+        "tokens": 2628
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4-AcO-DMT.md",
         "displayName": "Drug Users Bible",
-        "size": 3501
+        "size": 3501,
+        "tokens": 912
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 4-AcO-DMT.md",
         "displayName": "Erowid",
-        "size": 16785
+        "size": 16785,
+        "tokens": 4527
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-AcO-DMT.md",
         "displayName": "Isomer Design",
-        "size": 797
+        "size": 455,
+        "tokens": 185
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-DMT.md",
         "displayName": "PsychonautWiki",
-        "size": 50790
+        "size": 43171,
+        "tokens": 12172
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 657
+        "size": 657,
+        "tokens": 202
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 4-AcO-DMT.md",
         "displayName": "TripSit Wiki",
-        "size": 4021
+        "size": 4021,
+        "tokens": 1075
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-DMT.md",
         "displayName": "Wikipedia",
-        "size": 9594
+        "size": 9594,
+        "tokens": 2493
       }
     ]
   },
@@ -2613,13 +2949,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 663
+        "size": 663,
+        "tokens": 173
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-DPT.md",
         "displayName": "Wikipedia",
-        "size": 835
+        "size": 835,
+        "tokens": 252
       }
     ]
   },
@@ -2631,31 +2969,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-AcO-DiPT.md",
         "displayName": "Erowid",
-        "size": 7244
+        "size": 7244,
+        "tokens": 2148
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-AcO-DiPT.md",
         "displayName": "Isomer Design",
-        "size": 823
+        "size": 485,
+        "tokens": 209
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-DiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 32265
+        "size": 28555,
+        "tokens": 7819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-DiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 821
+        "size": 821,
+        "tokens": 239
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-DiPT.md",
         "displayName": "Wikipedia",
-        "size": 2617
+        "size": 2617,
+        "tokens": 736
       }
     ]
   },
@@ -2667,31 +3010,36 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-AcO-MET.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11742
+        "size": 11742,
+        "tokens": 3206
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-AcO-MET.md",
         "displayName": "Isomer Design",
-        "size": 793
+        "size": 463,
+        "tokens": 191
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-MET.md",
         "displayName": "PsychonautWiki",
-        "size": 23756
+        "size": 20576,
+        "tokens": 5770
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-MET.md",
         "displayName": "TripSit Factsheets",
-        "size": 778
+        "size": 778,
+        "tokens": 228
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-MET.md",
         "displayName": "Wikipedia",
-        "size": 1634
+        "size": 1634,
+        "tokens": 456
       }
     ]
   },
@@ -2703,7 +3051,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-MPT.md",
         "displayName": "Wikipedia",
-        "size": 910
+        "size": 910,
+        "tokens": 271
       }
     ]
   },
@@ -2715,31 +3064,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-AcO-MiPT.md",
         "displayName": "Erowid",
-        "size": 4397
+        "size": 4397,
+        "tokens": 1298
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-AcO-MiPT.md",
         "displayName": "Isomer Design",
-        "size": 813
+        "size": 483,
+        "tokens": 203
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-AcO-MiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 25548
+        "size": 20197,
+        "tokens": 5674
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-AcO-MiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 490
+        "size": 490,
+        "tokens": 156
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-AcO-MiPT.md",
         "displayName": "Wikipedia",
-        "size": 1111
+        "size": 1111,
+        "tokens": 333
       }
     ]
   },
@@ -2751,13 +3105,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Benzylpiperidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 867
+        "size": 867,
+        "tokens": 221
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-Benzylpiperidine.md",
         "displayName": "Wikipedia",
-        "size": 1129
+        "size": 1129,
+        "tokens": 290
       }
     ]
   },
@@ -2769,7 +3125,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CBC.md",
         "displayName": "TripSit Factsheets",
-        "size": 750
+        "size": 750,
+        "tokens": 199
       }
     ]
   },
@@ -2781,7 +3138,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CIC.md",
         "displayName": "TripSit Factsheets",
-        "size": 130
+        "size": 130,
+        "tokens": 36
       }
     ]
   },
@@ -2793,13 +3151,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 218
+        "size": 218,
+        "tokens": 58
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-CMA.md",
         "displayName": "Wikipedia",
-        "size": 1869
+        "size": 1869,
+        "tokens": 457
       }
     ]
   },
@@ -2811,13 +3171,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-CMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 867
+        "size": 867,
+        "tokens": 222
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-CMC.md",
         "displayName": "Wikipedia",
-        "size": 1598
+        "size": 1598,
+        "tokens": 435
       }
     ]
   },
@@ -2829,13 +3191,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Chlorodiazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 379
+        "size": 379,
+        "tokens": 103
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-Chlorodiazepam.md",
         "displayName": "Wikipedia",
-        "size": 825
+        "size": 825,
+        "tokens": 218
       }
     ]
   },
@@ -2847,13 +3211,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-EMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 842
+        "size": 842,
+        "tokens": 227
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-EMC.md",
         "displayName": "Wikipedia",
-        "size": 669
+        "size": 669,
+        "tokens": 174
       }
     ]
   },
@@ -2865,7 +3231,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-EPD.md",
         "displayName": "TripSit Factsheets",
-        "size": 525
+        "size": 525,
+        "tokens": 142
       }
     ]
   },
@@ -2877,43 +3244,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4-FA.md",
         "displayName": "Drug Users Bible",
-        "size": 6007
+        "size": 6007,
+        "tokens": 1532
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 4-FA.md",
         "displayName": "Erowid",
-        "size": 9411
+        "size": 9411,
+        "tokens": 2889
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-FA.md",
         "displayName": "Isomer Design",
-        "size": 697
+        "size": 367,
+        "tokens": 144
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-FA.md",
         "displayName": "PsychonautWiki",
-        "size": 36981
+        "size": 28196,
+        "tokens": 7547
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 4-FA.md",
         "displayName": "The Drug Classroom",
-        "size": 16930
+        "size": 13644,
+        "tokens": 3621
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FA.md",
         "displayName": "TripSit Factsheets",
-        "size": 859
+        "size": 859,
+        "tokens": 242
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-FA.md",
         "displayName": "Wikipedia",
-        "size": 5292
+        "size": 5292,
+        "tokens": 1402
       }
     ]
   },
@@ -2925,7 +3299,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FEA.md",
         "displayName": "TripSit Factsheets",
-        "size": 465
+        "size": 465,
+        "tokens": 135
       }
     ]
   },
@@ -2937,25 +3312,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-FMA.md",
         "displayName": "Isomer Design",
-        "size": 767
+        "size": 413,
+        "tokens": 158
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-FMA.md",
         "displayName": "PsychonautWiki",
-        "size": 37108
+        "size": 26822,
+        "tokens": 7203
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 765
+        "size": 765,
+        "tokens": 243
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-FMA.md",
         "displayName": "Wikipedia",
-        "size": 2015
+        "size": 2015,
+        "tokens": 499
       }
     ]
   },
@@ -2967,13 +3346,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FMC.md",
         "displayName": "TripSit Factsheets",
-        "size": 1048
+        "size": 1048,
+        "tokens": 275
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-FMC.md",
         "displayName": "Wikipedia",
-        "size": 1225
+        "size": 1225,
+        "tokens": 306
       }
     ]
   },
@@ -2985,7 +3366,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FPM.md",
         "displayName": "TripSit Factsheets",
-        "size": 227
+        "size": 227,
+        "tokens": 59
       }
     ]
   },
@@ -2997,13 +3379,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-FPP.md",
         "displayName": "TripSit Factsheets",
-        "size": 454
+        "size": 454,
+        "tokens": 121
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-FPP.md",
         "displayName": "Wikipedia",
-        "size": 2260
+        "size": 2260,
+        "tokens": 588
       }
     ]
   },
@@ -3015,13 +3399,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Fluorobutyrfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 885
+        "size": 885,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-Fluorobutyrfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1111
+        "size": 1111,
+        "tokens": 280
       }
     ]
   },
@@ -3033,7 +3419,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Fluoropentedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 415
+        "size": 415,
+        "tokens": 111
       }
     ]
   },
@@ -3045,25 +3432,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-DET.md",
         "displayName": "Isomer Design",
-        "size": 10979
+        "size": 10979,
+        "tokens": 2864
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-DET.md",
         "displayName": "PsychonautWiki",
-        "size": 22941
+        "size": 19384,
+        "tokens": 5501
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-DET.md",
         "displayName": "TripSit Factsheets",
-        "size": 842
+        "size": 842,
+        "tokens": 248
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-DET.md",
         "displayName": "Wikipedia",
-        "size": 6442
+        "size": 6442,
+        "tokens": 1780
       }
     ]
   },
@@ -3075,25 +3466,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-DPT.md",
         "displayName": "Isomer Design",
-        "size": 1081
+        "size": 1081,
+        "tokens": 303
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-DPT.md",
         "displayName": "PsychonautWiki",
-        "size": 19851
+        "size": 15825,
+        "tokens": 4455
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-DPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 417
+        "size": 417,
+        "tokens": 130
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-DPT.md",
         "displayName": "Wikipedia",
-        "size": 4886
+        "size": 4886,
+        "tokens": 1357
       }
     ]
   },
@@ -3105,31 +3500,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-HO-DiPT.md",
         "displayName": "Erowid",
-        "size": 6140
+        "size": 6140,
+        "tokens": 1802
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-DiPT.md",
         "displayName": "Isomer Design",
-        "size": 5644
+        "size": 5644,
+        "tokens": 1603
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-DiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 20571
+        "size": 15584,
+        "tokens": 4388
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-DiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 852
+        "size": 852,
+        "tokens": 251
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-DiPT.md",
         "displayName": "Wikipedia",
-        "size": 7538
+        "size": 7538,
+        "tokens": 2109
       }
     ]
   },
@@ -3141,25 +3541,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-EPT.md",
         "displayName": "Isomer Design",
-        "size": 816
+        "size": 439,
+        "tokens": 184
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-EPT.md",
         "displayName": "PsychonautWiki",
-        "size": 17018
+        "size": 13837,
+        "tokens": 3823
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-EPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 322
+        "size": 322,
+        "tokens": 104
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-EPT.md",
         "displayName": "Wikipedia",
-        "size": 1568
+        "size": 1568,
+        "tokens": 450
       }
     ]
   },
@@ -3171,7 +3575,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-MALT.md",
         "displayName": "Wikipedia",
-        "size": 905
+        "size": 905,
+        "tokens": 282
       }
     ]
   },
@@ -3183,7 +3588,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MCPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 303
+        "size": 303,
+        "tokens": 80
       }
     ]
   },
@@ -3195,43 +3601,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4-HO-MET.md",
         "displayName": "Drug Users Bible",
-        "size": 5131
+        "size": 5131,
+        "tokens": 1324
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 4-HO-MET.md",
         "displayName": "Erowid",
-        "size": 11669
+        "size": 11669,
+        "tokens": 3219
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-MET.md",
         "displayName": "Isomer Design",
-        "size": 1323
+        "size": 1323,
+        "tokens": 369
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-MET.md",
         "displayName": "PsychonautWiki",
-        "size": 37021
+        "size": 30778,
+        "tokens": 8637
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 4-HO-MET.md",
         "displayName": "The Drug Classroom",
-        "size": 57415
+        "size": 54116,
+        "tokens": 13351
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MET.md",
         "displayName": "TripSit Factsheets",
-        "size": 793
+        "size": 793,
+        "tokens": 279
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-MET.md",
         "displayName": "Wikipedia",
-        "size": 5406
+        "size": 5406,
+        "tokens": 1486
       }
     ]
   },
@@ -3243,13 +3656,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MPMI.md",
         "displayName": "TripSit Factsheets",
-        "size": 1093
+        "size": 1093,
+        "tokens": 282
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-MPMI.md",
         "displayName": "Wikipedia",
-        "size": 820
+        "size": 820,
+        "tokens": 241
       }
     ]
   },
@@ -3261,31 +3676,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-HO-MPT.md",
         "displayName": "Erowid",
-        "size": 3634
+        "size": 3634,
+        "tokens": 1061
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-MPT.md",
         "displayName": "Isomer Design",
-        "size": 1780
+        "size": 1780,
+        "tokens": 516
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-MPT.md",
         "displayName": "PsychonautWiki",
-        "size": 18289
+        "size": 14475,
+        "tokens": 4058
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 536
+        "size": 536,
+        "tokens": 223
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-MPT.md",
         "displayName": "Wikipedia",
-        "size": 2911
+        "size": 2911,
+        "tokens": 811
       }
     ]
   },
@@ -3297,43 +3717,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 4-HO-MiPT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12047
+        "size": 12047,
+        "tokens": 3319
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 4-HO-MiPT.md",
         "displayName": "Erowid",
-        "size": 5911
+        "size": 5911,
+        "tokens": 1707
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-HO-MiPT.md",
         "displayName": "Isomer Design",
-        "size": 7053
+        "size": 7053,
+        "tokens": 1866
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-HO-MiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 36164
+        "size": 29635,
+        "tokens": 8150
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-HO-MiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 785
+        "size": 785,
+        "tokens": 236
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 4-HO-MiPT.md",
         "displayName": "TripSit Wiki",
-        "size": 1543
+        "size": 1402,
+        "tokens": 372
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-MiPT.md",
         "displayName": "Wikipedia",
-        "size": 6242
+        "size": 6242,
+        "tokens": 1694
       }
     ]
   },
@@ -3345,7 +3772,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-HO-PiPT.md",
         "displayName": "Wikipedia",
-        "size": 941
+        "size": 941,
+        "tokens": 288
       }
     ]
   },
@@ -3357,13 +3785,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MEC.md",
         "displayName": "TripSit Factsheets",
-        "size": 1104
+        "size": 1104,
+        "tokens": 289
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MEC.md",
         "displayName": "Wikipedia",
-        "size": 1190
+        "size": 1190,
+        "tokens": 310
       }
     ]
   },
@@ -3375,13 +3805,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-METHYLAMINOREX.md",
         "displayName": "TripSit Factsheets",
-        "size": 474
+        "size": 474,
+        "tokens": 136
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-METHYLAMINOREX.md",
         "displayName": "Wikipedia",
-        "size": 8874
+        "size": 8874,
+        "tokens": 2353
       }
     ]
   },
@@ -3393,13 +3825,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MPD.md",
         "displayName": "TripSit Factsheets",
-        "size": 243
+        "size": 243,
+        "tokens": 65
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MPD.md",
         "displayName": "Wikipedia",
-        "size": 563
+        "size": 563,
+        "tokens": 158
       }
     ]
   },
@@ -3411,13 +3845,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MPM.md",
         "displayName": "TripSit Factsheets",
-        "size": 652
+        "size": 652,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MPM.md",
         "displayName": "Wikipedia",
-        "size": 474
+        "size": 474,
+        "tokens": 125
       }
     ]
   },
@@ -3429,13 +3865,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MTA.md",
         "displayName": "TripSit Factsheets",
-        "size": 476
+        "size": 476,
+        "tokens": 125
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MTA.md",
         "displayName": "Wikipedia",
-        "size": 8483
+        "size": 8483,
+        "tokens": 2067
       }
     ]
   },
@@ -3447,7 +3885,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MeO-Butyrfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 575
+        "size": 575,
+        "tokens": 150
       }
     ]
   },
@@ -3459,19 +3898,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-MeO-MiPT.md",
         "displayName": "Isomer Design",
-        "size": 5571
+        "size": 5571,
+        "tokens": 1517
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MeO-MiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 997
+        "size": 997,
+        "tokens": 283
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MeO-MiPT.md",
         "displayName": "Wikipedia",
-        "size": 3362
+        "size": 3362,
+        "tokens": 909
       }
     ]
   },
@@ -3483,31 +3925,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 4-MeO-PCP.md",
         "displayName": "Erowid",
-        "size": 11116
+        "size": 11116,
+        "tokens": 3058
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4-MeO-PCP.md",
         "displayName": "Isomer Design",
-        "size": 868
+        "size": 427,
+        "tokens": 171
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4-MeO-PCP.md",
         "displayName": "PsychonautWiki",
-        "size": 20964
+        "size": 17430,
+        "tokens": 4781
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-MeO-PCP.md",
         "displayName": "TripSit Factsheets",
-        "size": 498
+        "size": 498,
+        "tokens": 155
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-MeO-PCP.md",
         "displayName": "Wikipedia",
-        "size": 2446
+        "size": 2446,
+        "tokens": 642
       }
     ]
   },
@@ -3519,19 +3966,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4-Methylmethylphenidate.md",
         "displayName": "Drug Users Bible",
-        "size": 1184
+        "size": 1184,
+        "tokens": 296
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4-Methylmethylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 1014
+        "size": 1014,
+        "tokens": 269
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-Methylmethylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 1383
+        "size": 1383,
+        "tokens": 332
       }
     ]
   },
@@ -3543,7 +3993,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4-PrO-DMT.md",
         "displayName": "Wikipedia",
-        "size": 1797
+        "size": 1797,
+        "tokens": 496
       }
     ]
   },
@@ -3555,31 +4006,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4F-EPH.md",
         "displayName": "Drug Users Bible",
-        "size": 1282
+        "size": 1282,
+        "tokens": 326
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4F-EPH.md",
         "displayName": "Isomer Design",
-        "size": 729
+        "size": 422,
+        "tokens": 168
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4F-EPH.md",
         "displayName": "PsychonautWiki",
-        "size": 29121
+        "size": 23972,
+        "tokens": 6316
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-EPH.md",
         "displayName": "TripSit Factsheets",
-        "size": 417
+        "size": 417,
+        "tokens": 130
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4F-EPH.md",
         "displayName": "Wikipedia",
-        "size": 354
+        "size": 354,
+        "tokens": 96
       }
     ]
   },
@@ -3591,31 +4047,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 4F-MPH.md",
         "displayName": "Drug Users Bible",
-        "size": 1529
+        "size": 1529,
+        "tokens": 388
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 4F-MPH.md",
         "displayName": "Isomer Design",
-        "size": 884
+        "size": 419,
+        "tokens": 166
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 4F-MPH.md",
         "displayName": "PsychonautWiki",
-        "size": 29339
+        "size": 22170,
+        "tokens": 5936
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-MPH.md",
         "displayName": "TripSit Factsheets",
-        "size": 819
+        "size": 819,
+        "tokens": 228
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4F-MPH.md",
         "displayName": "Wikipedia",
-        "size": 1741
+        "size": 1741,
+        "tokens": 459
       }
     ]
   },
@@ -3627,7 +4088,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-NEB.md",
         "displayName": "TripSit Factsheets",
-        "size": 412
+        "size": 412,
+        "tokens": 120
       }
     ]
   },
@@ -3639,13 +4101,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-PHP.md",
         "displayName": "TripSit Factsheets",
-        "size": 454
+        "size": 454,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4F-PHP.md",
         "displayName": "Wikipedia",
-        "size": 475
+        "size": 475,
+        "tokens": 120
       }
     ]
   },
@@ -3657,13 +4121,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 4F-PVP.md",
         "displayName": "TripSit Factsheets",
-        "size": 424
+        "size": 424,
+        "tokens": 120
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 4F-PVP.md",
         "displayName": "Wikipedia",
-        "size": 367
+        "size": 367,
+        "tokens": 112
       }
     ]
   },
@@ -3675,25 +4141,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-APB.md",
         "displayName": "Isomer Design",
-        "size": 727
+        "size": 330,
+        "tokens": 135
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-APB.md",
         "displayName": "PsychonautWiki",
-        "size": 28170
+        "size": 20902,
+        "tokens": 5765
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-APB.md",
         "displayName": "TripSit Factsheets",
-        "size": 674
+        "size": 674,
+        "tokens": 191
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-APB.md",
         "displayName": "Wikipedia",
-        "size": 3912
+        "size": 3912,
+        "tokens": 1076
       }
     ]
   },
@@ -3705,13 +4175,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-APDB.md",
         "displayName": "TripSit Factsheets",
-        "size": 950
+        "size": 950,
+        "tokens": 248
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-APDB.md",
         "displayName": "Wikipedia",
-        "size": 2591
+        "size": 2591,
+        "tokens": 677
       }
     ]
   },
@@ -3723,13 +4195,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-APDI.md",
         "displayName": "TripSit Factsheets",
-        "size": 950
+        "size": 950,
+        "tokens": 242
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-APDI.md",
         "displayName": "Wikipedia",
-        "size": 1631
+        "size": 1631,
+        "tokens": 408
       }
     ]
   },
@@ -3741,7 +4215,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-BPDI.md",
         "displayName": "TripSit Factsheets",
-        "size": 569
+        "size": 569,
+        "tokens": 158
       }
     ]
   },
@@ -3753,13 +4228,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-Bromo-DMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 492
+        "size": 492,
+        "tokens": 134
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-Bromo-DMT.md",
         "displayName": "Wikipedia",
-        "size": 3605
+        "size": 3605,
+        "tokens": 1000
       }
     ]
   },
@@ -3771,13 +4248,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-DBFPV.md",
         "displayName": "TripSit Factsheets",
-        "size": 459
+        "size": 459,
+        "tokens": 126
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-DBFPV.md",
         "displayName": "Wikipedia",
-        "size": 538
+        "size": 538,
+        "tokens": 141
       }
     ]
   },
@@ -3789,13 +4268,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-EAPB.md",
         "displayName": "TripSit Factsheets",
-        "size": 816
+        "size": 816,
+        "tokens": 212
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-EAPB.md",
         "displayName": "Wikipedia",
-        "size": 1196
+        "size": 1196,
+        "tokens": 309
       }
     ]
   },
@@ -3807,37 +4288,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - 5-Hydroxytryptophan.md",
         "displayName": "DrugBank",
-        "size": 17210
+        "size": 8181,
+        "tokens": 2019
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 5-Hydroxytryptophan.md",
         "displayName": "Drug Users Bible",
-        "size": 3733
+        "size": 3733,
+        "tokens": 911
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-Hydroxytryptophan.md",
         "displayName": "Isomer Design",
-        "size": 768
+        "size": 430,
+        "tokens": 176
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-Hydroxytryptophan.md",
         "displayName": "PsychonautWiki",
-        "size": 18759
+        "size": 11114,
+        "tokens": 3091
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-Hydroxytryptophan.md",
         "displayName": "TripSit Factsheets",
-        "size": 1123
+        "size": 1123,
+        "tokens": 291
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-Hydroxytryptophan.md",
         "displayName": "Wikipedia",
-        "size": 6819
+        "size": 6819,
+        "tokens": 1707
       }
     ]
   },
@@ -3849,13 +4336,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-IAI.md",
         "displayName": "TripSit Factsheets",
-        "size": 729
+        "size": 729,
+        "tokens": 182
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-IAI.md",
         "displayName": "Wikipedia",
-        "size": 3285
+        "size": 3285,
+        "tokens": 876
       }
     ]
   },
@@ -3867,13 +4356,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-IT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1040
+        "size": 1040,
+        "tokens": 271
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-IT.md",
         "displayName": "Wikipedia",
-        "size": 3952
+        "size": 3952,
+        "tokens": 1035
       }
     ]
   },
@@ -3885,31 +4376,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 5-MAPB.md",
         "displayName": "Erowid",
-        "size": 15389
+        "size": 15389,
+        "tokens": 4228
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MAPB.md",
         "displayName": "Isomer Design",
-        "size": 752
+        "size": 347,
+        "tokens": 142
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MAPB.md",
         "displayName": "PsychonautWiki",
-        "size": 26842
+        "size": 20675,
+        "tokens": 5707
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MAPB.md",
         "displayName": "TripSit Factsheets",
-        "size": 796
+        "size": 796,
+        "tokens": 222
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MAPB.md",
         "displayName": "Wikipedia",
-        "size": 2873
+        "size": 2873,
+        "tokens": 775
       }
     ]
   },
@@ -3921,13 +4417,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MAPDB.md",
         "displayName": "TripSit Factsheets",
-        "size": 872
+        "size": 872,
+        "tokens": 226
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MAPDB.md",
         "displayName": "Wikipedia",
-        "size": 1038
+        "size": 1038,
+        "tokens": 262
       }
     ]
   },
@@ -3939,37 +4437,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 5-MeO-DALT.md",
         "displayName": "Drug Users Bible",
-        "size": 1575
+        "size": 1575,
+        "tokens": 397
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 5-MeO-DALT.md",
         "displayName": "Erowid",
-        "size": 6461
+        "size": 6461,
+        "tokens": 1904
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-DALT.md",
         "displayName": "Isomer Design",
-        "size": 3849
+        "size": 3849,
+        "tokens": 1035
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DALT.md",
         "displayName": "PsychonautWiki",
-        "size": 23360
+        "size": 16984,
+        "tokens": 4780
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DALT.md",
         "displayName": "TripSit Factsheets",
-        "size": 923
+        "size": 923,
+        "tokens": 319
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-DALT.md",
         "displayName": "Wikipedia",
-        "size": 6025
+        "size": 6025,
+        "tokens": 1629
       }
     ]
   },
@@ -3981,55 +4485,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 5-MeO-DMT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12983
+        "size": 12983,
+        "tokens": 3465
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 5-MeO-DMT.md",
         "displayName": "Erowid",
-        "size": 30433
+        "size": 30433,
+        "tokens": 8655
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-DMT.md",
         "displayName": "Isomer Design",
-        "size": 18744
+        "size": 18744,
+        "tokens": 4918
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DMT.md",
         "displayName": "PsychonautWiki",
-        "size": 40386
+        "size": 29472,
+        "tokens": 8261
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - 5-MeO-DMT.md",
         "displayName": "Safer Party",
-        "size": 3116
+        "size": 3116,
+        "tokens": 759
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 5-MeO-DMT.md",
         "displayName": "The Drug Classroom",
-        "size": 5247
+        "size": 1565,
+        "tokens": 460
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 833
+        "size": 833,
+        "tokens": 265
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - 5-MeO-DMT.md",
         "displayName": "TripSit Wiki",
-        "size": 3904
+        "size": 3904,
+        "tokens": 1030
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-DMT.md",
         "displayName": "Wikipedia",
-        "size": 25671
+        "size": 25671,
+        "tokens": 6881
       }
     ]
   },
@@ -4041,13 +4554,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 991
+        "size": 991,
+        "tokens": 266
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-DPT.md",
         "displayName": "Wikipedia",
-        "size": 3956
+        "size": 3956,
+        "tokens": 1115
       }
     ]
   },
@@ -4059,31 +4574,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 5-MeO-DiBF.md",
         "displayName": "Drug Users Bible",
-        "size": 1600
+        "size": 1600,
+        "tokens": 409
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-DiBF.md",
         "displayName": "Isomer Design",
-        "size": 825
+        "size": 410,
+        "tokens": 182
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DiBF.md",
         "displayName": "PsychonautWiki",
-        "size": 17882
+        "size": 14164,
+        "tokens": 3885
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DiBF.md",
         "displayName": "TripSit Factsheets",
-        "size": 615
+        "size": 615,
+        "tokens": 249
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-DiBF.md",
         "displayName": "Wikipedia",
-        "size": 930
+        "size": 930,
+        "tokens": 246
       }
     ]
   },
@@ -4095,31 +4615,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - 5-MeO-DiPT.md",
         "displayName": "Erowid",
-        "size": 19059
+        "size": 19059,
+        "tokens": 5174
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-DiPT.md",
         "displayName": "Isomer Design",
-        "size": 8833
+        "size": 8833,
+        "tokens": 2337
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-DiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 25778
+        "size": 16779,
+        "tokens": 4650
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-DiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 885
+        "size": 885,
+        "tokens": 259
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-DiPT.md",
         "displayName": "Wikipedia",
-        "size": 16146
+        "size": 16146,
+        "tokens": 4305
       }
     ]
   },
@@ -4131,19 +4656,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 5-MeO-EiPT.md",
         "displayName": "The Drug Classroom",
-        "size": 1579
+        "size": 940,
+        "tokens": 261
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-EiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1041
+        "size": 1041,
+        "tokens": 285
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-EiPT.md",
         "displayName": "Wikipedia",
-        "size": 1896
+        "size": 1896,
+        "tokens": 542
       }
     ]
   },
@@ -4155,13 +4683,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-MALT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1029
+        "size": 1029,
+        "tokens": 269
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-MALT.md",
         "displayName": "Wikipedia",
-        "size": 1279
+        "size": 1279,
+        "tokens": 394
       }
     ]
   },
@@ -4173,13 +4703,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-MET.md",
         "displayName": "TripSit Factsheets",
-        "size": 889
+        "size": 889,
+        "tokens": 237
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-MET.md",
         "displayName": "Wikipedia",
-        "size": 1550
+        "size": 1550,
+        "tokens": 441
       }
     ]
   },
@@ -4191,43 +4723,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - 5-MeO-MiPT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10324
+        "size": 10324,
+        "tokens": 2621
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 5-MeO-MiPT.md",
         "displayName": "Erowid",
-        "size": 20535
+        "size": 20535,
+        "tokens": 5737
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-MiPT.md",
         "displayName": "Isomer Design",
-        "size": 10300
+        "size": 10300,
+        "tokens": 2745
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 5-MeO-MiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 32400
+        "size": 23134,
+        "tokens": 6364
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 5-MeO-MiPT.md",
         "displayName": "The Drug Classroom",
-        "size": 19644
+        "size": 19628,
+        "tokens": 5230
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-MiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 892
+        "size": 892,
+        "tokens": 262
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-MiPT.md",
         "displayName": "Wikipedia",
-        "size": 13985
+        "size": 13985,
+        "tokens": 3678
       }
     ]
   },
@@ -4239,13 +4778,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-NIPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 505
+        "size": 505,
+        "tokens": 142
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-NIPT.md",
         "displayName": "Wikipedia",
-        "size": 1367
+        "size": 1367,
+        "tokens": 396
       }
     ]
   },
@@ -4257,13 +4798,15 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 5-MeO-PYR-T.md",
         "displayName": "Isomer Design",
-        "size": 6653
+        "size": 6653,
+        "tokens": 1786
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-PYR-T.md",
         "displayName": "TripSit Factsheets",
-        "size": 549
+        "size": 549,
+        "tokens": 164
       }
     ]
   },
@@ -4275,13 +4818,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-MeO-αMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1173
+        "size": 1173,
+        "tokens": 316
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-MeO-αMT.md",
         "displayName": "Wikipedia",
-        "size": 8509
+        "size": 8509,
+        "tokens": 2388
       }
     ]
   },
@@ -4293,13 +4838,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-Methylethylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 1033
+        "size": 1033,
+        "tokens": 271
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5-Methylethylone.md",
         "displayName": "Wikipedia",
-        "size": 691
+        "size": 691,
+        "tokens": 176
       }
     ]
   },
@@ -4311,7 +4858,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5-PPDI.md",
         "displayName": "TripSit Factsheets",
-        "size": 946
+        "size": 946,
+        "tokens": 247
       }
     ]
   },
@@ -4323,19 +4871,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 5F-AKB48.md",
         "displayName": "Drug Users Bible",
-        "size": 3424
+        "size": 3424,
+        "tokens": 841
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5F-AKB48.md",
         "displayName": "TripSit Factsheets",
-        "size": 618
+        "size": 618,
+        "tokens": 165
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5F-AKB48.md",
         "displayName": "Wikipedia",
-        "size": 1159
+        "size": 1159,
+        "tokens": 311
       }
     ]
   },
@@ -4347,13 +4898,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 5F-PB-22.md",
         "displayName": "TripSit Factsheets",
-        "size": 606
+        "size": 606,
+        "tokens": 169
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 5F-PB-22.md",
         "displayName": "Wikipedia",
-        "size": 997
+        "size": 997,
+        "tokens": 293
       }
     ]
   },
@@ -4365,43 +4918,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - 6-APB.md",
         "displayName": "Drug Users Bible",
-        "size": 3921
+        "size": 3921,
+        "tokens": 1009
       },
       {
         "id": "erowid",
         "fileName": "EROWID - 6-APB.md",
         "displayName": "Erowid",
-        "size": 10128
+        "size": 10128,
+        "tokens": 2957
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 6-APB.md",
         "displayName": "Isomer Design",
-        "size": 727
+        "size": 330,
+        "tokens": 135
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 6-APB.md",
         "displayName": "PsychonautWiki",
-        "size": 52195
+        "size": 40475,
+        "tokens": 11020
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - 6-APB.md",
         "displayName": "The Drug Classroom",
-        "size": 1980
+        "size": 997,
+        "tokens": 282
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-APB.md",
         "displayName": "TripSit Factsheets",
-        "size": 589
+        "size": 589,
+        "tokens": 172
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 6-APB.md",
         "displayName": "Wikipedia",
-        "size": 9792
+        "size": 9792,
+        "tokens": 2569
       }
     ]
   },
@@ -4413,25 +4973,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - 6-APDB.md",
         "displayName": "Isomer Design",
-        "size": 740
+        "size": 345,
+        "tokens": 144
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 6-APDB.md",
         "displayName": "PsychonautWiki",
-        "size": 43125
+        "size": 34148,
+        "tokens": 9128
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-APDB.md",
         "displayName": "TripSit Factsheets",
-        "size": 797
+        "size": 797,
+        "tokens": 225
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 6-APDB.md",
         "displayName": "Wikipedia",
-        "size": 2803
+        "size": 2803,
+        "tokens": 733
       }
     ]
   },
@@ -4443,13 +5007,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-EAPB.md",
         "displayName": "TripSit Factsheets",
-        "size": 920
+        "size": 920,
+        "tokens": 240
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 6-EAPB.md",
         "displayName": "Wikipedia",
-        "size": 713
+        "size": 713,
+        "tokens": 193
       }
     ]
   },
@@ -4461,13 +5027,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-MAPB.md",
         "displayName": "TripSit Factsheets",
-        "size": 882
+        "size": 882,
+        "tokens": 237
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 6-MAPB.md",
         "displayName": "Wikipedia",
-        "size": 795
+        "size": 795,
+        "tokens": 212
       }
     ]
   },
@@ -4479,7 +5047,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - 6-MDDM.md",
         "displayName": "TripSit Factsheets",
-        "size": 904
+        "size": 904,
+        "tokens": 238
       }
     ]
   },
@@ -4491,13 +5060,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - 8-Chlorotheophylline.md",
         "displayName": "PsychonautWiki",
-        "size": 2222
+        "size": 1325,
+        "tokens": 375
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - 8-Chlorotheophylline.md",
         "displayName": "Wikipedia",
-        "size": 965
+        "size": 965,
+        "tokens": 238
       }
     ]
   },
@@ -4509,31 +5080,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - A-PHP.md",
         "displayName": "Drug Users Bible",
-        "size": 6118
+        "size": 6118,
+        "tokens": 1611
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - A-PHP.md",
         "displayName": "Isomer Design",
-        "size": 731
+        "size": 367,
+        "tokens": 158
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - A-PHP.md",
         "displayName": "PsychonautWiki",
-        "size": 36535
+        "size": 28686,
+        "tokens": 7796
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - A-PHP.md",
         "displayName": "TripSit Factsheets",
-        "size": 1005
+        "size": 1005,
+        "tokens": 276
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - A-PHP.md",
         "displayName": "Wikipedia",
-        "size": 1437
+        "size": 1437,
+        "tokens": 379
       }
     ]
   },
@@ -4545,7 +5121,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - A-PIHP.md",
         "displayName": "TripSit Factsheets",
-        "size": 928
+        "size": 928,
+        "tokens": 252
       }
     ]
   },
@@ -4557,37 +5134,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - A-PVP.md",
         "displayName": "Erowid",
-        "size": 4926
+        "size": 4926,
+        "tokens": 1431
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - A-PVP.md",
         "displayName": "Isomer Design",
-        "size": 724
+        "size": 364,
+        "tokens": 154
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - A-PVP.md",
         "displayName": "PsychonautWiki",
-        "size": 37461
+        "size": 28444,
+        "tokens": 7807
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - A-PVP.md",
         "displayName": "The Drug Classroom",
-        "size": 3915
+        "size": 1388,
+        "tokens": 381
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - A-PVP.md",
         "displayName": "TripSit Factsheets",
-        "size": 837
+        "size": 837,
+        "tokens": 240
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - A-PVP.md",
         "displayName": "Wikipedia",
-        "size": 6648
+        "size": 6648,
+        "tokens": 1726
       }
     ]
   },
@@ -4599,13 +5182,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AB-CHMINACA.md",
         "displayName": "TripSit Factsheets",
-        "size": 512
+        "size": 512,
+        "tokens": 141
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AB-CHMINACA.md",
         "displayName": "Wikipedia",
-        "size": 1061
+        "size": 1061,
+        "tokens": 277
       }
     ]
   },
@@ -4617,13 +5202,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AB-FUBINACA.md",
         "displayName": "TripSit Factsheets",
-        "size": 1052
+        "size": 1052,
+        "tokens": 302
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AB-FUBINACA.md",
         "displayName": "Wikipedia",
-        "size": 2046
+        "size": 2046,
+        "tokens": 495
       }
     ]
   },
@@ -4635,19 +5222,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - AH-7921.md",
         "displayName": "The Drug Classroom",
-        "size": 10360
+        "size": 8538,
+        "tokens": 2232
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AH-7921.md",
         "displayName": "TripSit Factsheets",
-        "size": 687
+        "size": 687,
+        "tokens": 186
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AH-7921.md",
         "displayName": "Wikipedia",
-        "size": 4862
+        "size": 4862,
+        "tokens": 1229
       }
     ]
   },
@@ -4659,49 +5249,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - AL-LAD.md",
         "displayName": "Disregard Everything I Say",
-        "size": 13380
+        "size": 13380,
+        "tokens": 3533
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - AL-LAD.md",
         "displayName": "Drug Users Bible",
-        "size": 8464
+        "size": 8464,
+        "tokens": 2163
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - AL-LAD.md",
         "displayName": "Isomer Design",
-        "size": 4510
+        "size": 4510,
+        "tokens": 1179
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - AL-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 43802
+        "size": 35304,
+        "tokens": 9742
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - AL-LAD.md",
         "displayName": "The Drug Classroom",
-        "size": 7569
+        "size": 7111,
+        "tokens": 1910
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AL-LAD.md",
         "displayName": "TripSit Factsheets",
-        "size": 775
+        "size": 775,
+        "tokens": 221
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - AL-LAD.md",
         "displayName": "TripSit Wiki",
-        "size": 2719
+        "size": 2719,
+        "tokens": 756
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AL-LAD.md",
         "displayName": "Wikipedia",
-        "size": 6364
+        "size": 6364,
+        "tokens": 1739
       }
     ]
   },
@@ -4713,25 +5311,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - ALD-52.md",
         "displayName": "Isomer Design",
-        "size": 814
+        "size": 500,
+        "tokens": 224
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - ALD-52.md",
         "displayName": "PsychonautWiki",
-        "size": 50960
+        "size": 37336,
+        "tokens": 10321
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - ALD-52.md",
         "displayName": "TripSit Factsheets",
-        "size": 535
+        "size": 535,
+        "tokens": 154
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - ALD-52.md",
         "displayName": "Wikipedia",
-        "size": 10577
+        "size": 10577,
+        "tokens": 2769
       }
     ]
   },
@@ -4743,19 +5345,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - ALEPH-2.md",
         "displayName": "Isomer Design",
-        "size": 8089
+        "size": 8089,
+        "tokens": 2327
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - ALEPH-2.md",
         "displayName": "TripSit Factsheets",
-        "size": 832
+        "size": 832,
+        "tokens": 222
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - ALEPH-2.md",
         "displayName": "Wikipedia",
-        "size": 1988
+        "size": 1988,
+        "tokens": 547
       }
     ]
   },
@@ -4767,19 +5372,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - AM-2201.md",
         "displayName": "Drug Users Bible",
-        "size": 2502
+        "size": 2502,
+        "tokens": 617
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AM-2201.md",
         "displayName": "TripSit Factsheets",
-        "size": 559
+        "size": 559,
+        "tokens": 150
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AM-2201.md",
         "displayName": "Wikipedia",
-        "size": 1291
+        "size": 1291,
+        "tokens": 339
       }
     ]
   },
@@ -4791,13 +5399,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - AM-694.md",
         "displayName": "Drug Users Bible",
-        "size": 1387
+        "size": 1387,
+        "tokens": 355
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AM-694.md",
         "displayName": "Wikipedia",
-        "size": 912
+        "size": 912,
+        "tokens": 250
       }
     ]
   },
@@ -4809,49 +5419,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - AMT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11710
+        "size": 11710,
+        "tokens": 2861
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - AMT.md",
         "displayName": "Drug Users Bible",
-        "size": 1562
+        "size": 1562,
+        "tokens": 390
       },
       {
         "id": "erowid",
         "fileName": "EROWID - AMT.md",
         "displayName": "Erowid",
-        "size": 14316
+        "size": 14316,
+        "tokens": 3987
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - AMT.md",
         "displayName": "Isomer Design",
-        "size": 12737
+        "size": 12737,
+        "tokens": 3450
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - AMT.md",
         "displayName": "PsychonautWiki",
-        "size": 33306
+        "size": 20348,
+        "tokens": 5521
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - AMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 2240
+        "size": 2240,
+        "tokens": 598
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - AMT.md",
         "displayName": "TripSit Wiki",
-        "size": 4240
+        "size": 4240,
+        "tokens": 1073
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - AMT.md",
         "displayName": "Wikipedia",
-        "size": 10735
+        "size": 10735,
+        "tokens": 2796
       }
     ]
   },
@@ -4863,13 +5481,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Acetildenafil.md",
         "displayName": "TripSit Factsheets",
-        "size": 409
+        "size": 409,
+        "tokens": 117
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Acetildenafil.md",
         "displayName": "Wikipedia",
-        "size": 1550
+        "size": 1550,
+        "tokens": 364
       }
     ]
   },
@@ -4881,43 +5501,50 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Acetylfentanyl.md",
         "displayName": "Erowid",
-        "size": 5377
+        "size": 5377,
+        "tokens": 1458
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Acetylfentanyl.md",
         "displayName": "Isomer Design",
-        "size": 744
+        "size": 412,
+        "tokens": 168
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Acetylfentanyl.md",
         "displayName": "PsychonautWiki",
-        "size": 33717
+        "size": 24560,
+        "tokens": 6267
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Acetylfentanyl.md",
         "displayName": "The Drug Classroom",
-        "size": 13079
+        "size": 10436,
+        "tokens": 2709
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Acetylfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 617
+        "size": 617,
+        "tokens": 182
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Acetylfentanyl.md",
         "displayName": "TripSit Wiki",
-        "size": 2736
+        "size": 2736,
+        "tokens": 715
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Acetylfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 3606
+        "size": 3606,
+        "tokens": 832
       }
     ]
   },
@@ -4929,13 +5556,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Acrylfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 904
+        "size": 904,
+        "tokens": 236
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Acrylfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1469
+        "size": 1469,
+        "tokens": 347
       }
     ]
   },
@@ -4947,13 +5576,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Adinazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 527
+        "size": 527,
+        "tokens": 142
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Adinazolam.md",
         "displayName": "Wikipedia",
-        "size": 11644
+        "size": 11644,
+        "tokens": 2907
       }
     ]
   },
@@ -4965,37 +5596,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Adrafinil.md",
         "displayName": "DrugBank",
-        "size": 5890
+        "size": 5890,
+        "tokens": 1460
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Adrafinil.md",
         "displayName": "Erowid",
-        "size": 6196
+        "size": 6196,
+        "tokens": 1676
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Adrafinil.md",
         "displayName": "Isomer Design",
-        "size": 720
+        "size": 398,
+        "tokens": 155
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Adrafinil.md",
         "displayName": "PsychonautWiki",
-        "size": 11208
+        "size": 7728,
+        "tokens": 2058
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Adrafinil.md",
         "displayName": "TripSit Factsheets",
-        "size": 837
+        "size": 837,
+        "tokens": 221
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Adrafinil.md",
         "displayName": "Wikipedia",
-        "size": 8634
+        "size": 8634,
+        "tokens": 2144
       }
     ]
   },
@@ -5007,13 +5644,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Afloqualone.md",
         "displayName": "TripSit Factsheets",
-        "size": 654
+        "size": 654,
+        "tokens": 170
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Afloqualone.md",
         "displayName": "Wikipedia",
-        "size": 471
+        "size": 471,
+        "tokens": 116
       }
     ]
   },
@@ -5025,37 +5664,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Alcohol.md",
         "displayName": "DrugBank",
-        "size": 25784
+        "size": 17659,
+        "tokens": 4441
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Alcohol.md",
         "displayName": "Drug Users Bible",
-        "size": 8400
+        "size": 8400,
+        "tokens": 2094
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Alcohol.md",
         "displayName": "Safer Party",
-        "size": 4133
+        "size": 4133,
+        "tokens": 1036
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Alcohol.md",
         "displayName": "The Drug Classroom",
-        "size": 1310
+        "size": 1310,
+        "tokens": 346
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Alcohol.md",
         "displayName": "TripSit Factsheets",
-        "size": 6774
+        "size": 6774,
+        "tokens": 1624
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Alcohol.md",
         "displayName": "Wikipedia",
-        "size": 32685
+        "size": 32685,
+        "tokens": 7915
       }
     ]
   },
@@ -5067,19 +5712,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Aleph.md",
         "displayName": "Isomer Design",
-        "size": 3524
+        "size": 3524,
+        "tokens": 923
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aleph.md",
         "displayName": "TripSit Factsheets",
-        "size": 493
+        "size": 493,
+        "tokens": 137
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Aleph.md",
         "displayName": "Wikipedia",
-        "size": 13184
+        "size": 13184,
+        "tokens": 3652
       }
     ]
   },
@@ -5091,13 +5739,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Allobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 616
+        "size": 616,
+        "tokens": 159
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Allobarbital.md",
         "displayName": "Wikipedia",
-        "size": 898
+        "size": 898,
+        "tokens": 215
       }
     ]
   },
@@ -5109,25 +5759,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Allylescaline.md",
         "displayName": "Isomer Design",
-        "size": 3321
+        "size": 3321,
+        "tokens": 876
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Allylescaline.md",
         "displayName": "PsychonautWiki",
-        "size": 16988
+        "size": 13828,
+        "tokens": 3712
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Allylescaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 868
+        "size": 868,
+        "tokens": 247
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Allylescaline.md",
         "displayName": "Wikipedia",
-        "size": 3756
+        "size": 3756,
+        "tokens": 913
       }
     ]
   },
@@ -5139,13 +5793,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Alpha-GPC.md",
         "displayName": "PsychonautWiki",
-        "size": 16429
+        "size": 11176,
+        "tokens": 3079
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Alpha-GPC.md",
         "displayName": "Wikipedia",
-        "size": 2014
+        "size": 2014,
+        "tokens": 501
       }
     ]
   },
@@ -5157,61 +5813,71 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Alprazolam.md",
         "displayName": "DrugBank",
-        "size": 32496
+        "size": 18013,
+        "tokens": 4782
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Alprazolam.md",
         "displayName": "Drug Users Bible",
-        "size": 7665
+        "size": 7665,
+        "tokens": 1990
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Alprazolam.md",
         "displayName": "Erowid",
-        "size": 14260
+        "size": 14260,
+        "tokens": 3752
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Alprazolam.md",
         "displayName": "Isomer Design",
-        "size": 813
+        "size": 417,
+        "tokens": 176
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Alprazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 44312
+        "size": 29958,
+        "tokens": 7957
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Alprazolam.md",
         "displayName": "Safer Party",
-        "size": 3500
+        "size": 3500,
+        "tokens": 841
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Alprazolam.md",
         "displayName": "The Drug Classroom",
-        "size": 21786
+        "size": 15414,
+        "tokens": 3894
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Alprazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 551
+        "size": 551,
+        "tokens": 166
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Alprazolam.md",
         "displayName": "TripSit Wiki",
-        "size": 3970
+        "size": 3970,
+        "tokens": 1040
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Alprazolam.md",
         "displayName": "Wikipedia",
-        "size": 24206
+        "size": 24206,
+        "tokens": 5774
       }
     ]
   },
@@ -5223,13 +5889,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amfecloral.md",
         "displayName": "TripSit Factsheets",
-        "size": 419
+        "size": 419,
+        "tokens": 112
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Amfecloral.md",
         "displayName": "Wikipedia",
-        "size": 3342
+        "size": 3342,
+        "tokens": 835
       }
     ]
   },
@@ -5241,13 +5909,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amfonelic acid.md",
         "displayName": "TripSit Factsheets",
-        "size": 892
+        "size": 892,
+        "tokens": 224
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Amfonelic acid.md",
         "displayName": "Wikipedia",
-        "size": 3068
+        "size": 3068,
+        "tokens": 727
       }
     ]
   },
@@ -5259,13 +5929,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aminorex.md",
         "displayName": "TripSit Factsheets",
-        "size": 493
+        "size": 493,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Aminorex.md",
         "displayName": "Wikipedia",
-        "size": 4649
+        "size": 4649,
+        "tokens": 1213
       }
     ]
   },
@@ -5277,7 +5949,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aminotadalafil.md",
         "displayName": "TripSit Factsheets",
-        "size": 333
+        "size": 333,
+        "tokens": 96
       }
     ]
   },
@@ -5289,19 +5962,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Amobarbital.md",
         "displayName": "DrugBank",
-        "size": 16179
+        "size": 9079,
+        "tokens": 2170
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 734
+        "size": 734,
+        "tokens": 184
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Amobarbital.md",
         "displayName": "Wikipedia",
-        "size": 5902
+        "size": 5902,
+        "tokens": 1425
       }
     ]
   },
@@ -5313,61 +5989,71 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Amphetamine.md",
         "displayName": "DrugBank",
-        "size": 34510
+        "size": 20324,
+        "tokens": 5112
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Amphetamine.md",
         "displayName": "Drug Users Bible",
-        "size": 5543
+        "size": 5543,
+        "tokens": 1421
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Amphetamine.md",
         "displayName": "Erowid",
-        "size": 34885
+        "size": 34885,
+        "tokens": 9171
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Amphetamine.md",
         "displayName": "Isomer Design",
-        "size": 652
+        "size": 330,
+        "tokens": 119
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Amphetamine.md",
         "displayName": "PsychonautWiki",
-        "size": 64771
+        "size": 36819,
+        "tokens": 9751
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Amphetamine.md",
         "displayName": "Safer Party",
-        "size": 5859
+        "size": 5859,
+        "tokens": 1412
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Amphetamine.md",
         "displayName": "The Drug Classroom",
-        "size": 4325
+        "size": 1338,
+        "tokens": 359
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Amphetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 835
+        "size": 835,
+        "tokens": 298
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Amphetamine.md",
         "displayName": "TripSit Wiki",
-        "size": 2986
+        "size": 2986,
+        "tokens": 729
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Amphetamine.md",
         "displayName": "Wikipedia",
-        "size": 69163
+        "size": 69163,
+        "tokens": 16379
       }
     ]
   },
@@ -5379,37 +6065,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Aniracetam.md",
         "displayName": "Drug Users Bible",
-        "size": 1032
+        "size": 1032,
+        "tokens": 259
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Aniracetam.md",
         "displayName": "Erowid",
-        "size": 3680
+        "size": 3680,
+        "tokens": 891
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Aniracetam.md",
         "displayName": "Isomer Design",
-        "size": 662
+        "size": 350,
+        "tokens": 139
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Aniracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 16558
+        "size": 10127,
+        "tokens": 2619
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aniracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 356
+        "size": 356,
+        "tokens": 104
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Aniracetam.md",
         "displayName": "Wikipedia",
-        "size": 3319
+        "size": 3319,
+        "tokens": 830
       }
     ]
   },
@@ -5421,7 +6113,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Aptiganel.md",
         "displayName": "Wikipedia",
-        "size": 1033
+        "size": 1033,
+        "tokens": 256
       }
     ]
   },
@@ -5433,37 +6126,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Armodafinil.md",
         "displayName": "DrugBank",
-        "size": 15243
+        "size": 10341,
+        "tokens": 2509
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Armodafinil.md",
         "displayName": "Drug Users Bible",
-        "size": 1257
+        "size": 1257,
+        "tokens": 312
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Armodafinil.md",
         "displayName": "Isomer Design",
-        "size": 720
+        "size": 394,
+        "tokens": 156
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Armodafinil.md",
         "displayName": "PsychonautWiki",
-        "size": 35025
+        "size": 23110,
+        "tokens": 6265
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Armodafinil.md",
         "displayName": "TripSit Factsheets",
-        "size": 427
+        "size": 427,
+        "tokens": 125
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Armodafinil.md",
         "displayName": "Wikipedia",
-        "size": 9928
+        "size": 9928,
+        "tokens": 2398
       }
     ]
   },
@@ -5475,13 +6174,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ashwagandha.md",
         "displayName": "TripSit Factsheets",
-        "size": 603
+        "size": 603,
+        "tokens": 169
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ashwagandha.md",
         "displayName": "Wikipedia",
-        "size": 5303
+        "size": 5303,
+        "tokens": 1342
       }
     ]
   },
@@ -5493,13 +6194,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Aspirin.md",
         "displayName": "TripSit Factsheets",
-        "size": 1099
+        "size": 1099,
+        "tokens": 281
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Aspirin.md",
         "displayName": "Wikipedia",
-        "size": 54826
+        "size": 54826,
+        "tokens": 13187
       }
     ]
   },
@@ -5511,19 +6214,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Atomoxetine.md",
         "displayName": "DrugBank",
-        "size": 31485
+        "size": 19778,
+        "tokens": 4715
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Atomoxetine.md",
         "displayName": "TripSit Factsheets",
-        "size": 416
+        "size": 416,
+        "tokens": 116
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Atomoxetine.md",
         "displayName": "Wikipedia",
-        "size": 16423
+        "size": 16423,
+        "tokens": 3945
       }
     ]
   },
@@ -5535,25 +6241,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ayahuasca.md",
         "displayName": "Disregard Everything I Say",
-        "size": 17141
+        "size": 17141,
+        "tokens": 4245
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ayahuasca.md",
         "displayName": "Drug Users Bible",
-        "size": 8627
+        "size": 8627,
+        "tokens": 2128
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ayahuasca.md",
         "displayName": "TripSit Factsheets",
-        "size": 1285
+        "size": 1285,
+        "tokens": 331
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ayahuasca.md",
         "displayName": "Wikipedia",
-        "size": 44149
+        "size": 44149,
+        "tokens": 10859
       }
     ]
   },
@@ -5565,13 +6275,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - BK-2C-B.md",
         "displayName": "Drug Users Bible",
-        "size": 7214
+        "size": 7214,
+        "tokens": 1815
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - BK-2C-B.md",
         "displayName": "Wikipedia",
-        "size": 1989
+        "size": 1989,
+        "tokens": 550
       }
     ]
   },
@@ -5583,19 +6295,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - BOD.md",
         "displayName": "Isomer Design",
-        "size": 7985
+        "size": 7985,
+        "tokens": 2081
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - BOD.md",
         "displayName": "TripSit Factsheets",
-        "size": 1067
+        "size": 1067,
+        "tokens": 299
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - BOD.md",
         "displayName": "Wikipedia",
-        "size": 6846
+        "size": 6846,
+        "tokens": 1800
       }
     ]
   },
@@ -5607,13 +6322,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - BZP.md",
         "displayName": "TripSit Factsheets",
-        "size": 623
+        "size": 623,
+        "tokens": 180
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - BZP.md",
         "displayName": "Wikipedia",
-        "size": 13234
+        "size": 13234,
+        "tokens": 3211
       }
     ]
   },
@@ -5625,43 +6342,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Baclofen.md",
         "displayName": "DrugBank",
-        "size": 30225
+        "size": 16189,
+        "tokens": 4008
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Baclofen.md",
         "displayName": "Erowid",
-        "size": 3201
+        "size": 3201,
+        "tokens": 897
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Baclofen.md",
         "displayName": "Isomer Design",
-        "size": 688
+        "size": 380,
+        "tokens": 147
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Baclofen.md",
         "displayName": "PsychonautWiki",
-        "size": 26157
+        "size": 20042,
+        "tokens": 5509
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Baclofen.md",
         "displayName": "The Drug Classroom",
-        "size": 5168
+        "size": 968,
+        "tokens": 270
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Baclofen.md",
         "displayName": "TripSit Factsheets",
-        "size": 375
+        "size": 375,
+        "tokens": 114
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Baclofen.md",
         "displayName": "Wikipedia",
-        "size": 12136
+        "size": 12136,
+        "tokens": 2934
       }
     ]
   },
@@ -5673,25 +6397,29 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Banisteriopsis_caapi.md",
         "displayName": "Erowid",
-        "size": 5132
+        "size": 5132,
+        "tokens": 1449
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Banisteriopsis_caapi.md",
         "displayName": "Isomer Design",
-        "size": 29905
+        "size": 29905,
+        "tokens": 7547
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Banisteriopsis_caapi.md",
         "displayName": "PsychonautWiki",
-        "size": 5295
+        "size": 3194,
+        "tokens": 939
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Banisteriopsis_caapi.md",
         "displayName": "Wikipedia",
-        "size": 5876
+        "size": 5876,
+        "tokens": 1419
       }
     ]
   },
@@ -5703,13 +6431,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Barbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 421
+        "size": 421,
+        "tokens": 108
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Barbital.md",
         "displayName": "Wikipedia",
-        "size": 4762
+        "size": 4762,
+        "tokens": 1198
       }
     ]
   },
@@ -5721,13 +6451,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bentazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 717
+        "size": 717,
+        "tokens": 185
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bentazepam.md",
         "displayName": "Wikipedia",
-        "size": 920
+        "size": 920,
+        "tokens": 214
       }
     ]
   },
@@ -5739,7 +6471,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Benzodioxole-Fentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 190
+        "size": 190,
+        "tokens": 51
       }
     ]
   },
@@ -5751,19 +6484,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Benzydamine.md",
         "displayName": "DrugBank",
-        "size": 28212
+        "size": 20215,
+        "tokens": 5060
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Benzydamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 523
+        "size": 523,
+        "tokens": 137
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Benzydamine.md",
         "displayName": "Wikipedia",
-        "size": 4510
+        "size": 4510,
+        "tokens": 1043
       }
     ]
   },
@@ -5775,13 +6511,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Betel_Nut.md",
         "displayName": "Drug Users Bible",
-        "size": 2142
+        "size": 2142,
+        "tokens": 513
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Betel_Nut.md",
         "displayName": "Wikipedia",
-        "size": 19060
+        "size": 19060,
+        "tokens": 4577
       }
     ]
   },
@@ -5793,19 +6531,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Blue_Lotus.md",
         "displayName": "Drug Users Bible",
-        "size": 4249
+        "size": 4249,
+        "tokens": 1019
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Blue_Lotus.md",
         "displayName": "PsychonautWiki",
-        "size": 66
+        "size": 66,
+        "tokens": 20
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Blue_Lotus.md",
         "displayName": "Wikipedia",
-        "size": 20852
+        "size": 20852,
+        "tokens": 5144
       }
     ]
   },
@@ -5817,13 +6558,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromadol.md",
         "displayName": "TripSit Factsheets",
-        "size": 534
+        "size": 534,
+        "tokens": 134
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bromadol.md",
         "displayName": "Wikipedia",
-        "size": 954
+        "size": 954,
+        "tokens": 230
       }
     ]
   },
@@ -5835,25 +6578,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Bromantane.md",
         "displayName": "Isomer Design",
-        "size": 692
+        "size": 368,
+        "tokens": 149
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Bromantane.md",
         "displayName": "PsychonautWiki",
-        "size": 19589
+        "size": 12238,
+        "tokens": 3462
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromantane.md",
         "displayName": "TripSit Factsheets",
-        "size": 384
+        "size": 384,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bromantane.md",
         "displayName": "Wikipedia",
-        "size": 11314
+        "size": 11314,
+        "tokens": 2721
       }
     ]
   },
@@ -5865,31 +6612,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Bromazepam.md",
         "displayName": "DrugBank",
-        "size": 18522
+        "size": 9658,
+        "tokens": 2364
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Bromazepam.md",
         "displayName": "Erowid",
-        "size": 3411
+        "size": 3411,
+        "tokens": 927
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Bromazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 18189
+        "size": 13392,
+        "tokens": 3529
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 488
+        "size": 488,
+        "tokens": 145
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bromazepam.md",
         "displayName": "Wikipedia",
-        "size": 11466
+        "size": 11466,
+        "tokens": 2697
       }
     ]
   },
@@ -5901,13 +6653,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 528
+        "size": 528,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bromazolam.md",
         "displayName": "Wikipedia",
-        "size": 8876
+        "size": 8876,
+        "tokens": 2192
       }
     ]
   },
@@ -5919,31 +6673,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Bromo-DragonFLY.md",
         "displayName": "Erowid",
-        "size": 11578
+        "size": 11578,
+        "tokens": 3200
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Bromo-DragonFLY.md",
         "displayName": "Isomer Design",
-        "size": 799
+        "size": 382,
+        "tokens": 160
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Bromo-DragonFLY.md",
         "displayName": "PsychonautWiki",
-        "size": 33455
+        "size": 28408,
+        "tokens": 7812
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bromo-DragonFLY.md",
         "displayName": "TripSit Factsheets",
-        "size": 765
+        "size": 765,
+        "tokens": 212
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bromo-DragonFLY.md",
         "displayName": "Wikipedia",
-        "size": 10227
+        "size": 10227,
+        "tokens": 2571
       }
     ]
   },
@@ -5955,19 +6714,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Brotizolam.md",
         "displayName": "DrugBank",
-        "size": 15123
+        "size": 8684,
+        "tokens": 2224
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Brotizolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 862
+        "size": 862,
+        "tokens": 215
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Brotizolam.md",
         "displayName": "Wikipedia",
-        "size": 6021
+        "size": 6021,
+        "tokens": 1453
       }
     ]
   },
@@ -5979,13 +6741,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Buphedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 509
+        "size": 509,
+        "tokens": 137
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Buphedrone.md",
         "displayName": "Wikipedia",
-        "size": 2271
+        "size": 2271,
+        "tokens": 556
       }
     ]
   },
@@ -5997,55 +6761,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Buprenorphine.md",
         "displayName": "DrugBank",
-        "size": 46961
+        "size": 34312,
+        "tokens": 8797
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Buprenorphine.md",
         "displayName": "Erowid",
-        "size": 6152
+        "size": 6152,
+        "tokens": 1664
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Buprenorphine.md",
         "displayName": "Isomer Design",
-        "size": 834
+        "size": 508,
+        "tokens": 251
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Buprenorphine.md",
         "displayName": "PsychonautWiki",
-        "size": 26241
+        "size": 20355,
+        "tokens": 5258
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Buprenorphine.md",
         "displayName": "Safer Party",
-        "size": 3076
+        "size": 3076,
+        "tokens": 723
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Buprenorphine.md",
         "displayName": "The Drug Classroom",
-        "size": 6149
+        "size": 1239,
+        "tokens": 333
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Buprenorphine.md",
         "displayName": "TripSit Factsheets",
-        "size": 574
+        "size": 574,
+        "tokens": 176
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Buprenorphine.md",
         "displayName": "TripSit Wiki",
-        "size": 10680
+        "size": 10680,
+        "tokens": 2797
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Buprenorphine.md",
         "displayName": "Wikipedia",
-        "size": 23053
+        "size": 23053,
+        "tokens": 5541
       }
     ]
   },
@@ -6057,25 +6830,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Bupropion.md",
         "displayName": "DrugBank",
-        "size": 41806
+        "size": 41806,
+        "tokens": 10395
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Bupropion.md",
         "displayName": "The Drug Classroom",
-        "size": 35269
+        "size": 27536,
+        "tokens": 6915
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Bupropion.md",
         "displayName": "TripSit Factsheets",
-        "size": 529
+        "size": 529,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Bupropion.md",
         "displayName": "Wikipedia",
-        "size": 33206
+        "size": 33206,
+        "tokens": 8143
       }
     ]
   },
@@ -6087,19 +6864,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Buspirone.md",
         "displayName": "DrugBank",
-        "size": 27584
+        "size": 16782,
+        "tokens": 4100
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Buspirone.md",
         "displayName": "PsychonautWiki",
-        "size": 9071
+        "size": 7359,
+        "tokens": 2092
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Buspirone.md",
         "displayName": "Wikipedia",
-        "size": 10233
+        "size": 10233,
+        "tokens": 2465
       }
     ]
   },
@@ -6111,31 +6891,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Butylone.md",
         "displayName": "Erowid",
-        "size": 60
+        "size": 60,
+        "tokens": 18
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Butylone.md",
         "displayName": "Isomer Design",
-        "size": 644
+        "size": 318,
+        "tokens": 131
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Butylone.md",
         "displayName": "PsychonautWiki",
-        "size": 31432
+        "size": 23955,
+        "tokens": 6470
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Butylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 554
+        "size": 554,
+        "tokens": 170
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Butylone.md",
         "displayName": "Wikipedia",
-        "size": 2938
+        "size": 2938,
+        "tokens": 753
       }
     ]
   },
@@ -6147,13 +6932,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Butyrfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 719
+        "size": 719,
+        "tokens": 190
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Butyrfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 3538
+        "size": 3538,
+        "tokens": 893
       }
     ]
   },
@@ -6165,7 +6952,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - C30-NBOMe.md",
         "displayName": "TripSit Factsheets",
-        "size": 165
+        "size": 165,
+        "tokens": 45
       }
     ]
   },
@@ -6177,13 +6965,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - CRL-40-940.md",
         "displayName": "TripSit Factsheets",
-        "size": 559
+        "size": 559,
+        "tokens": 153
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - CRL-40-940.md",
         "displayName": "Wikipedia",
-        "size": 3793
+        "size": 3793,
+        "tokens": 979
       }
     ]
   },
@@ -6195,13 +6985,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - CRL-40-941.md",
         "displayName": "TripSit Factsheets",
-        "size": 507
+        "size": 507,
+        "tokens": 144
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - CRL-40-941.md",
         "displayName": "Wikipedia",
-        "size": 1341
+        "size": 1341,
+        "tokens": 335
       }
     ]
   },
@@ -6213,13 +7005,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Cacao.md",
         "displayName": "Drug Users Bible",
-        "size": 6037
+        "size": 6037,
+        "tokens": 1486
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cacao.md",
         "displayName": "Wikipedia",
-        "size": 17217
+        "size": 17217,
+        "tokens": 4245
       }
     ]
   },
@@ -6231,37 +7025,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Caffeine.md",
         "displayName": "DrugBank",
-        "size": 42446
+        "size": 25013,
+        "tokens": 6364
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Caffeine.md",
         "displayName": "Drug Users Bible",
-        "size": 4003
+        "size": 4003,
+        "tokens": 970
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Caffeine.md",
         "displayName": "Safer Party",
-        "size": 1279
+        "size": 1279,
+        "tokens": 305
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Caffeine.md",
         "displayName": "The Drug Classroom",
-        "size": 1410
+        "size": 1410,
+        "tokens": 378
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Caffeine.md",
         "displayName": "TripSit Factsheets",
-        "size": 4929
+        "size": 4929,
+        "tokens": 1204
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Caffeine.md",
         "displayName": "Wikipedia",
-        "size": 57078
+        "size": 57078,
+        "tokens": 13931
       }
     ]
   },
@@ -6273,13 +7073,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cake.md",
         "displayName": "PsychonautWiki",
-        "size": 5512
+        "size": 3919,
+        "tokens": 1040
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cake.md",
         "displayName": "Wikipedia",
-        "size": 14318
+        "size": 14318,
+        "tokens": 3462
       }
     ]
   },
@@ -6291,13 +7093,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Calea.md",
         "displayName": "Drug Users Bible",
-        "size": 3418
+        "size": 3418,
+        "tokens": 872
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Calea.md",
         "displayName": "Wikipedia",
-        "size": 4571
+        "size": 4571,
+        "tokens": 1089
       }
     ]
   },
@@ -6309,13 +7113,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Camazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 638
+        "size": 638,
+        "tokens": 170
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Camazepam.md",
         "displayName": "Wikipedia",
-        "size": 3367
+        "size": 3367,
+        "tokens": 771
       }
     ]
   },
@@ -6327,55 +7133,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Cannabis.md",
         "displayName": "Drug Users Bible",
-        "size": 18252
+        "size": 18252,
+        "tokens": 4468
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Cannabis.md",
         "displayName": "Erowid",
-        "size": 83676
+        "size": 83676,
+        "tokens": 22620
       },
       {
         "id": "nervewing",
         "fileName": "NERVEWING - Cannabis Use Notes.md",
         "displayName": "NERVEWING",
-        "size": 149
+        "size": 149,
+        "tokens": 58
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cannabis.md",
         "displayName": "PsychonautWiki",
-        "size": 105709
+        "size": 63312,
+        "tokens": 17174
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Cannabis.md",
         "displayName": "Safer Party",
-        "size": 4812
+        "size": 4812,
+        "tokens": 1163
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Cannabis.md",
         "displayName": "The Drug Classroom",
-        "size": 3534
+        "size": 891,
+        "tokens": 227
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cannabis.md",
         "displayName": "TripSit Factsheets",
-        "size": 2781
+        "size": 2781,
+        "tokens": 783
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Cannabis.md",
         "displayName": "TripSit Wiki",
-        "size": 25651
+        "size": 22086,
+        "tokens": 5404
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cannabis.md",
         "displayName": "Wikipedia",
-        "size": 34449
+        "size": 34449,
+        "tokens": 8564
       }
     ]
   },
@@ -6387,49 +7202,57 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Carisoprodol.md",
         "displayName": "DrugBank",
-        "size": 28555
+        "size": 16725,
+        "tokens": 4048
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Carisoprodol.md",
         "displayName": "Drug Users Bible",
-        "size": 3564
+        "size": 3564,
+        "tokens": 896
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Carisoprodol.md",
         "displayName": "Erowid",
-        "size": 6729
+        "size": 6729,
+        "tokens": 1832
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Carisoprodol.md",
         "displayName": "Isomer Design",
-        "size": 736
+        "size": 420,
+        "tokens": 165
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Carisoprodol.md",
         "displayName": "PsychonautWiki",
-        "size": 15671
+        "size": 13362,
+        "tokens": 3527
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Carisoprodol.md",
         "displayName": "The Drug Classroom",
-        "size": 22378
+        "size": 18254,
+        "tokens": 4649
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Carisoprodol.md",
         "displayName": "TripSit Factsheets",
-        "size": 472
+        "size": 472,
+        "tokens": 134
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Carisoprodol.md",
         "displayName": "Wikipedia",
-        "size": 13952
+        "size": 13952,
+        "tokens": 3276
       }
     ]
   },
@@ -6441,19 +7264,22 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cathinone.md",
         "displayName": "PsychonautWiki",
-        "size": 1468
+        "size": 1468,
+        "tokens": 404
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Cathinone.md",
         "displayName": "The Drug Classroom",
-        "size": 50067
+        "size": 44552,
+        "tokens": 11322
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cathinone.md",
         "displayName": "Wikipedia",
-        "size": 13135
+        "size": 13135,
+        "tokens": 3165
       }
     ]
   },
@@ -6465,13 +7291,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Catuaba.md",
         "displayName": "Drug Users Bible",
-        "size": 3889
+        "size": 3889,
+        "tokens": 973
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Catuaba.md",
         "displayName": "Wikipedia",
-        "size": 1652
+        "size": 1652,
+        "tokens": 417
       }
     ]
   },
@@ -6483,13 +7311,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Cebil.md",
         "displayName": "Drug Users Bible",
-        "size": 1501
+        "size": 1501,
+        "tokens": 368
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cebil.md",
         "displayName": "Wikipedia",
-        "size": 4805
+        "size": 4805,
+        "tokens": 1236
       }
     ]
   },
@@ -6501,13 +7331,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Celastrus_Paniculatus.md",
         "displayName": "Drug Users Bible",
-        "size": 3376
+        "size": 3376,
+        "tokens": 823
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Celastrus_Paniculatus.md",
         "displayName": "Wikipedia",
-        "size": 979
+        "size": 979,
+        "tokens": 261
       }
     ]
   },
@@ -6519,13 +7351,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Chaliponga_Leaves.md",
         "displayName": "Drug Users Bible",
-        "size": 1213
+        "size": 1213,
+        "tokens": 288
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Chaliponga_Leaves.md",
         "displayName": "Wikipedia",
-        "size": 1050
+        "size": 1050,
+        "tokens": 287
       }
     ]
   },
@@ -6537,13 +7371,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Chamomile.md",
         "displayName": "Drug Users Bible",
-        "size": 1297
+        "size": 1297,
+        "tokens": 325
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Chamomile.md",
         "displayName": "Wikipedia",
-        "size": 6451
+        "size": 6451,
+        "tokens": 1689
       }
     ]
   },
@@ -6555,19 +7391,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Changa.md",
         "displayName": "Drug Users Bible",
-        "size": 8213
+        "size": 8213,
+        "tokens": 1957
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Changa.md",
         "displayName": "TripSit Factsheets",
-        "size": 1410
+        "size": 1410,
+        "tokens": 353
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Changa.md",
         "displayName": "Wikipedia",
-        "size": 2946
+        "size": 2946,
+        "tokens": 754
       }
     ]
   },
@@ -6579,13 +7418,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloral betaine.md",
         "displayName": "TripSit Factsheets",
-        "size": 577
+        "size": 577,
+        "tokens": 158
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Chloral betaine.md",
         "displayName": "Wikipedia",
-        "size": 511
+        "size": 511,
+        "tokens": 135
       }
     ]
   },
@@ -6597,13 +7438,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloral hydrate.md",
         "displayName": "TripSit Factsheets",
-        "size": 781
+        "size": 781,
+        "tokens": 206
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Chloral hydrate.md",
         "displayName": "Wikipedia",
-        "size": 11274
+        "size": 11274,
+        "tokens": 2963
       }
     ]
   },
@@ -6615,19 +7458,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Chloroform.md",
         "displayName": "DrugBank",
-        "size": 10077
+        "size": 4103,
+        "tokens": 929
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Chloroform.md",
         "displayName": "TripSit Factsheets",
-        "size": 664
+        "size": 664,
+        "tokens": 167
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Chloroform.md",
         "displayName": "Wikipedia",
-        "size": 19379
+        "size": 19379,
+        "tokens": 4796
       }
     ]
   },
@@ -6639,13 +7485,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Choline_bitartrate.md",
         "displayName": "PsychonautWiki",
-        "size": 19779
+        "size": 10747,
+        "tokens": 3123
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Choline_bitartrate.md",
         "displayName": "Wikipedia",
-        "size": 2806
+        "size": 2806,
+        "tokens": 743
       }
     ]
   },
@@ -6657,13 +7505,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cinolazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 705
+        "size": 705,
+        "tokens": 182
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cinolazepam.md",
         "displayName": "Wikipedia",
-        "size": 502
+        "size": 502,
+        "tokens": 124
       }
     ]
   },
@@ -6675,19 +7525,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Citalopram.md",
         "displayName": "DrugBank",
-        "size": 40573
+        "size": 24106,
+        "tokens": 5834
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Citalopram.md",
         "displayName": "TripSit Factsheets",
-        "size": 556
+        "size": 556,
+        "tokens": 140
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Citalopram.md",
         "displayName": "Wikipedia",
-        "size": 14553
+        "size": 14553,
+        "tokens": 3512
       }
     ]
   },
@@ -6699,25 +7552,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Citicoline.md",
         "displayName": "DrugBank",
-        "size": 14428
+        "size": 7216,
+        "tokens": 1804
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Citicoline.md",
         "displayName": "Isomer Design",
-        "size": 915
+        "size": 601,
+        "tokens": 276
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Citicoline.md",
         "displayName": "PsychonautWiki",
-        "size": 19511
+        "size": 11192,
+        "tokens": 3048
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Citicoline.md",
         "displayName": "Wikipedia",
-        "size": 6050
+        "size": 6050,
+        "tokens": 1412
       }
     ]
   },
@@ -6729,19 +7586,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Clobazam.md",
         "displayName": "DrugBank",
-        "size": 39728
+        "size": 27884,
+        "tokens": 6924
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clobazam.md",
         "displayName": "TripSit Factsheets",
-        "size": 885
+        "size": 885,
+        "tokens": 228
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clobazam.md",
         "displayName": "Wikipedia",
-        "size": 9820
+        "size": 9820,
+        "tokens": 2364
       }
     ]
   },
@@ -6753,13 +7613,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clomethiazole.md",
         "displayName": "TripSit Factsheets",
-        "size": 771
+        "size": 771,
+        "tokens": 205
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clomethiazole.md",
         "displayName": "Wikipedia",
-        "size": 3803
+        "size": 3803,
+        "tokens": 917
       }
     ]
   },
@@ -6771,43 +7633,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Clonazepam.md",
         "displayName": "DrugBank",
-        "size": 33337
+        "size": 19607,
+        "tokens": 4873
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Clonazepam.md",
         "displayName": "Erowid",
-        "size": 3084
+        "size": 3084,
+        "tokens": 863
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Clonazepam.md",
         "displayName": "Isomer Design",
-        "size": 814
+        "size": 418,
+        "tokens": 179
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Clonazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 30445
+        "size": 20982,
+        "tokens": 5614
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Clonazepam.md",
         "displayName": "The Drug Classroom",
-        "size": 1449
+        "size": 1449,
+        "tokens": 395
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clonazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 477
+        "size": 477,
+        "tokens": 144
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clonazepam.md",
         "displayName": "Wikipedia",
-        "size": 22221
+        "size": 22221,
+        "tokens": 5218
       }
     ]
   },
@@ -6819,37 +7688,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Clonazolam.md",
         "displayName": "Drug Users Bible",
-        "size": 1226
+        "size": 1226,
+        "tokens": 315
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Clonazolam.md",
         "displayName": "Isomer Design",
-        "size": 897
+        "size": 481,
+        "tokens": 198
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Clonazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 38331
+        "size": 26232,
+        "tokens": 6938
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Clonazolam.md",
         "displayName": "The Drug Classroom",
-        "size": 17507
+        "size": 15097,
+        "tokens": 3769
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clonazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 618
+        "size": 618,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clonazolam.md",
         "displayName": "Wikipedia",
-        "size": 2497
+        "size": 2497,
+        "tokens": 611
       }
     ]
   },
@@ -6861,37 +7736,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Clonidine.md",
         "displayName": "DrugBank",
-        "size": 30834
+        "size": 15526,
+        "tokens": 4015
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Clonidine.md",
         "displayName": "Erowid",
-        "size": 2089
+        "size": 2089,
+        "tokens": 527
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Clonidine.md",
         "displayName": "Isomer Design",
-        "size": 670
+        "size": 360,
+        "tokens": 144
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Clonidine.md",
         "displayName": "PsychonautWiki",
-        "size": 31835
+        "size": 20470,
+        "tokens": 5347
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clonidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 371
+        "size": 371,
+        "tokens": 110
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clonidine.md",
         "displayName": "Wikipedia",
-        "size": 14237
+        "size": 14237,
+        "tokens": 3479
       }
     ]
   },
@@ -6903,13 +7784,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cloniprazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 431
+        "size": 431,
+        "tokens": 122
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cloniprazepam.md",
         "displayName": "Wikipedia",
-        "size": 532
+        "size": 532,
+        "tokens": 144
       }
     ]
   },
@@ -6921,13 +7804,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clonitazene.md",
         "displayName": "TripSit Factsheets",
-        "size": 471
+        "size": 471,
+        "tokens": 130
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clonitazene.md",
         "displayName": "Wikipedia",
-        "size": 495
+        "size": 495,
+        "tokens": 120
       }
     ]
   },
@@ -6939,13 +7824,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clorazepate.md",
         "displayName": "TripSit Factsheets",
-        "size": 757
+        "size": 757,
+        "tokens": 199
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clorazepate.md",
         "displayName": "Wikipedia",
-        "size": 9108
+        "size": 9108,
+        "tokens": 2133
       }
     ]
   },
@@ -6957,19 +7844,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Clotiazepam.md",
         "displayName": "DrugBank",
-        "size": 15761
+        "size": 7770,
+        "tokens": 1956
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Clotiazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 554
+        "size": 554,
+        "tokens": 154
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Clotiazepam.md",
         "displayName": "Wikipedia",
-        "size": 2958
+        "size": 2958,
+        "tokens": 679
       }
     ]
   },
@@ -6981,13 +7871,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cloxazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 422
+        "size": 422,
+        "tokens": 118
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cloxazolam.md",
         "displayName": "Wikipedia",
-        "size": 334
+        "size": 334,
+        "tokens": 87
       }
     ]
   },
@@ -6999,13 +7891,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Coca.md",
         "displayName": "Drug Users Bible",
-        "size": 1434
+        "size": 1434,
+        "tokens": 365
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Coca.md",
         "displayName": "Wikipedia",
-        "size": 48342
+        "size": 48342,
+        "tokens": 11640
       }
     ]
   },
@@ -7017,31 +7911,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Cocaine.md",
         "displayName": "DrugBank",
-        "size": 22211
+        "size": 13014,
+        "tokens": 3194
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Cocaine.md",
         "displayName": "Drug Users Bible",
-        "size": 11002
+        "size": 11002,
+        "tokens": 2841
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Cocaine.md",
         "displayName": "Safer Party",
-        "size": 7309
+        "size": 7309,
+        "tokens": 1816
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cocaine.md",
         "displayName": "TripSit Factsheets",
-        "size": 6232
+        "size": 6232,
+        "tokens": 1471
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cocaine.md",
         "displayName": "Wikipedia",
-        "size": 68937
+        "size": 68937,
+        "tokens": 16706
       }
     ]
   },
@@ -7053,19 +7952,22 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Cocoa.md",
         "displayName": "Erowid",
-        "size": 4714
+        "size": 4714,
+        "tokens": 1309
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cocoa.md",
         "displayName": "PsychonautWiki",
-        "size": 13820
+        "size": 8657,
+        "tokens": 2371
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cocoa.md",
         "displayName": "Wikipedia",
-        "size": 17160
+        "size": 17160,
+        "tokens": 4217
       }
     ]
   },
@@ -7077,37 +7979,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Codeine.md",
         "displayName": "DrugBank",
-        "size": 40499
+        "size": 23274,
+        "tokens": 5861
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Codeine.md",
         "displayName": "Drug Users Bible",
-        "size": 3938
+        "size": 3938,
+        "tokens": 1003
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Codeine.md",
         "displayName": "Safer Party",
-        "size": 2352
+        "size": 2352,
+        "tokens": 582
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Codeine.md",
         "displayName": "The Drug Classroom",
-        "size": 97484
+        "size": 88557,
+        "tokens": 22790
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Codeine.md",
         "displayName": "TripSit Factsheets",
-        "size": 1272
+        "size": 1272,
+        "tokens": 327
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Codeine.md",
         "displayName": "Wikipedia",
-        "size": 29173
+        "size": 29173,
+        "tokens": 7217
       }
     ]
   },
@@ -7119,25 +8027,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Coluracetam.md",
         "displayName": "Isomer Design",
-        "size": 791
+        "size": 467,
+        "tokens": 206
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Coluracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 18020
+        "size": 15045,
+        "tokens": 4211
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Coluracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 551
+        "size": 551,
+        "tokens": 207
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Coluracetam.md",
         "displayName": "Wikipedia",
-        "size": 2119
+        "size": 2119,
+        "tokens": 522
       }
     ]
   },
@@ -7149,13 +8061,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Coronaridine.md",
         "displayName": "TripSit Factsheets",
-        "size": 265
+        "size": 265,
+        "tokens": 65
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Coronaridine.md",
         "displayName": "Wikipedia",
-        "size": 1299
+        "size": 1299,
+        "tokens": 339
       }
     ]
   },
@@ -7167,19 +8081,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Creatine.md",
         "displayName": "DrugBank",
-        "size": 13530
+        "size": 7819,
+        "tokens": 1844
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Creatine.md",
         "displayName": "PsychonautWiki",
-        "size": 13343
+        "size": 10766,
+        "tokens": 3072
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Creatine.md",
         "displayName": "Wikipedia",
-        "size": 18226
+        "size": 18226,
+        "tokens": 4367
       }
     ]
   },
@@ -7191,19 +8108,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Cyclazodone.md",
         "displayName": "Isomer Design",
-        "size": 789
+        "size": 380,
+        "tokens": 153
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Cyclazodone.md",
         "displayName": "PsychonautWiki",
-        "size": 32520
+        "size": 26588,
+        "tokens": 7181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cyclazodone.md",
         "displayName": "Wikipedia",
-        "size": 1362
+        "size": 1362,
+        "tokens": 327
       }
     ]
   },
@@ -7215,19 +8135,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Cyclizine.md",
         "displayName": "DrugBank",
-        "size": 14984
+        "size": 14984,
+        "tokens": 3660
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclizine.md",
         "displayName": "TripSit Factsheets",
-        "size": 798
+        "size": 798,
+        "tokens": 195
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cyclizine.md",
         "displayName": "Wikipedia",
-        "size": 4434
+        "size": 4434,
+        "tokens": 1089
       }
     ]
   },
@@ -7239,7 +8162,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclo-Methiodrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 435
+        "size": 435,
+        "tokens": 122
       }
     ]
   },
@@ -7251,19 +8175,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Cyclobenzaprine.md",
         "displayName": "DrugBank",
-        "size": 29110
+        "size": 16025,
+        "tokens": 4003
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclobenzaprine.md",
         "displayName": "TripSit Factsheets",
-        "size": 772
+        "size": 772,
+        "tokens": 199
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cyclobenzaprine.md",
         "displayName": "Wikipedia",
-        "size": 8115
+        "size": 8115,
+        "tokens": 1920
       }
     ]
   },
@@ -7275,7 +8202,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclopentyl-Fentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 422
+        "size": 422,
+        "tokens": 110
       }
     ]
   },
@@ -7287,19 +8215,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Cyclopropylmescaline.md",
         "displayName": "Isomer Design",
-        "size": 3812
+        "size": 3812,
+        "tokens": 996
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Cyclopropylmescaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 642
+        "size": 642,
+        "tokens": 173
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Cyclopropylmescaline.md",
         "displayName": "Wikipedia",
-        "size": 1739
+        "size": 1739,
+        "tokens": 425
       }
     ]
   },
@@ -7311,19 +8242,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - D2PM.md",
         "displayName": "The Drug Classroom",
-        "size": 9118
+        "size": 7881,
+        "tokens": 2041
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - D2PM.md",
         "displayName": "TripSit Factsheets",
-        "size": 580
+        "size": 580,
+        "tokens": 156
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - D2PM.md",
         "displayName": "Wikipedia",
-        "size": 802
+        "size": 802,
+        "tokens": 198
       }
     ]
   },
@@ -7335,19 +8269,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DALT.md",
         "displayName": "Isomer Design",
-        "size": 4072
+        "size": 4072,
+        "tokens": 1104
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DALT.md",
         "displayName": "TripSit Factsheets",
-        "size": 724
+        "size": 724,
+        "tokens": 192
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DALT.md",
         "displayName": "Wikipedia",
-        "size": 1318
+        "size": 1318,
+        "tokens": 323
       }
     ]
   },
@@ -7359,7 +8296,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DB-MDBP.md",
         "displayName": "TripSit Factsheets",
-        "size": 121
+        "size": 121,
+        "tokens": 34
       }
     ]
   },
@@ -7371,31 +8309,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - DET.md",
         "displayName": "Erowid",
-        "size": 5929
+        "size": 5929,
+        "tokens": 1701
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DET.md",
         "displayName": "Isomer Design",
-        "size": 19027
+        "size": 19027,
+        "tokens": 5252
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DET.md",
         "displayName": "PsychonautWiki",
-        "size": 19050
+        "size": 13751,
+        "tokens": 3685
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DET.md",
         "displayName": "TripSit Factsheets",
-        "size": 956
+        "size": 956,
+        "tokens": 301
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DET.md",
         "displayName": "Wikipedia",
-        "size": 10626
+        "size": 10626,
+        "tokens": 2684
       }
     ]
   },
@@ -7407,13 +8350,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DMAA.md",
         "displayName": "TripSit Factsheets",
-        "size": 709
+        "size": 709,
+        "tokens": 180
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DMAA.md",
         "displayName": "Wikipedia",
-        "size": 234
+        "size": 234,
+        "tokens": 60
       }
     ]
   },
@@ -7425,43 +8370,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DMT.md",
         "displayName": "Disregard Everything I Say",
-        "size": 17653
+        "size": 17653,
+        "tokens": 4256
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - DMT.md",
         "displayName": "Drug Users Bible",
-        "size": 8261
+        "size": 8261,
+        "tokens": 2045
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DMT.md",
         "displayName": "Isomer Design",
-        "size": 28084
+        "size": 28084,
+        "tokens": 7461
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - DMT.md",
         "displayName": "Safer Party",
-        "size": 4136
+        "size": 4136,
+        "tokens": 994
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - DMT.md",
         "displayName": "The Drug Classroom",
-        "size": 38463
+        "size": 27332,
+        "tokens": 7154
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DMT.md",
         "displayName": "TripSit Factsheets",
-        "size": 3281
+        "size": 3281,
+        "tokens": 881
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DMT.md",
         "displayName": "Wikipedia",
-        "size": 60864
+        "size": 60864,
+        "tokens": 15152
       }
     ]
   },
@@ -7473,7 +8425,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DMXE.md",
         "displayName": "Wikipedia",
-        "size": 473
+        "size": 473,
+        "tokens": 122
       }
     ]
   },
@@ -7485,49 +8438,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOB.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9370
+        "size": 9370,
+        "tokens": 2310
       },
       {
         "id": "erowid",
         "fileName": "EROWID - DOB.md",
         "displayName": "Erowid",
-        "size": 11862
+        "size": 11862,
+        "tokens": 3238
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOB.md",
         "displayName": "Isomer Design",
-        "size": 6791
+        "size": 6791,
+        "tokens": 1795
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOB.md",
         "displayName": "PsychonautWiki",
-        "size": 35259
+        "size": 29497,
+        "tokens": 7986
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - DOB.md",
         "displayName": "Safer Party",
-        "size": 2406
+        "size": 2406,
+        "tokens": 569
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - DOB.md",
         "displayName": "The Drug Classroom",
-        "size": 25019
+        "size": 20428,
+        "tokens": 5249
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOB.md",
         "displayName": "TripSit Factsheets",
-        "size": 898
+        "size": 898,
+        "tokens": 286
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOB.md",
         "displayName": "Wikipedia",
-        "size": 6891
+        "size": 6891,
+        "tokens": 1806
       }
     ]
   },
@@ -7539,43 +8500,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOC.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9743
+        "size": 9743,
+        "tokens": 2420
       },
       {
         "id": "erowid",
         "fileName": "EROWID - DOC.md",
         "displayName": "Erowid",
-        "size": 7183
+        "size": 7183,
+        "tokens": 2140
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOC.md",
         "displayName": "Isomer Design",
-        "size": 3262
+        "size": 3262,
+        "tokens": 919
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOC.md",
         "displayName": "PsychonautWiki",
-        "size": 38755
+        "size": 30406,
+        "tokens": 8201
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOC.md",
         "displayName": "TripSit Factsheets",
-        "size": 824
+        "size": 824,
+        "tokens": 240
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - DOC.md",
         "displayName": "TripSit Wiki",
-        "size": 3587
+        "size": 3587,
+        "tokens": 985
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOC.md",
         "displayName": "Wikipedia",
-        "size": 7079
+        "size": 7079,
+        "tokens": 1846
       }
     ]
   },
@@ -7587,19 +8555,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOET.md",
         "displayName": "Isomer Design",
-        "size": 5418
+        "size": 5418,
+        "tokens": 1422
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOET.md",
         "displayName": "TripSit Factsheets",
-        "size": 1080
+        "size": 1080,
+        "tokens": 290
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOET.md",
         "displayName": "Wikipedia",
-        "size": 15827
+        "size": 15827,
+        "tokens": 4053
       }
     ]
   },
@@ -7611,7 +8582,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOF.md",
         "displayName": "Wikipedia",
-        "size": 1324
+        "size": 1324,
+        "tokens": 341
       }
     ]
   },
@@ -7623,43 +8595,50 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - DOI.md",
         "displayName": "Erowid",
-        "size": 4561
+        "size": 4561,
+        "tokens": 1339
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOI.md",
         "displayName": "Isomer Design",
-        "size": 8991
+        "size": 8991,
+        "tokens": 2471
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOI.md",
         "displayName": "PsychonautWiki",
-        "size": 39955
+        "size": 28093,
+        "tokens": 7541
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - DOI.md",
         "displayName": "Safer Party",
-        "size": 2406
+        "size": 2406,
+        "tokens": 569
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - DOI.md",
         "displayName": "The Drug Classroom",
-        "size": 3214
+        "size": 944,
+        "tokens": 261
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOI.md",
         "displayName": "TripSit Factsheets",
-        "size": 827
+        "size": 827,
+        "tokens": 238
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOI.md",
         "displayName": "Wikipedia",
-        "size": 8184
+        "size": 8184,
+        "tokens": 2071
       }
     ]
   },
@@ -7671,13 +8650,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOIP.md",
         "displayName": "TripSit Factsheets",
-        "size": 879
+        "size": 879,
+        "tokens": 231
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOIP.md",
         "displayName": "Wikipedia",
-        "size": 829
+        "size": 829,
+        "tokens": 214
       }
     ]
   },
@@ -7689,61 +8670,71 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - DOM.md",
         "displayName": "Disregard Everything I Say",
-        "size": 8956
+        "size": 8956,
+        "tokens": 2191
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - DOM.md",
         "displayName": "Drug Users Bible",
-        "size": 4774
+        "size": 4774,
+        "tokens": 1207
       },
       {
         "id": "erowid",
         "fileName": "EROWID - DOM.md",
         "displayName": "Erowid",
-        "size": 5716
+        "size": 5716,
+        "tokens": 1620
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOM.md",
         "displayName": "Isomer Design",
-        "size": 16117
+        "size": 16117,
+        "tokens": 4296
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DOM.md",
         "displayName": "PsychonautWiki",
-        "size": 33603
+        "size": 26827,
+        "tokens": 7266
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - DOM.md",
         "displayName": "Safer Party",
-        "size": 2406
+        "size": 2406,
+        "tokens": 569
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - DOM.md",
         "displayName": "The Drug Classroom",
-        "size": 1403
+        "size": 1403,
+        "tokens": 374
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOM.md",
         "displayName": "TripSit Factsheets",
-        "size": 547
+        "size": 547,
+        "tokens": 175
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - DOM.md",
         "displayName": "TripSit Wiki",
-        "size": 1602
+        "size": 1602,
+        "tokens": 453
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOM.md",
         "displayName": "Wikipedia",
-        "size": 13386
+        "size": 13386,
+        "tokens": 3506
       }
     ]
   },
@@ -7755,19 +8746,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DON.md",
         "displayName": "Isomer Design",
-        "size": 521
+        "size": 521,
+        "tokens": 137
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DON.md",
         "displayName": "TripSit Factsheets",
-        "size": 1126
+        "size": 1126,
+        "tokens": 296
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DON.md",
         "displayName": "Wikipedia",
-        "size": 3901
+        "size": 3901,
+        "tokens": 970
       }
     ]
   },
@@ -7779,19 +8773,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DOPR.md",
         "displayName": "Isomer Design",
-        "size": 7588
+        "size": 7588,
+        "tokens": 2015
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DOPR.md",
         "displayName": "TripSit Factsheets",
-        "size": 1168
+        "size": 1168,
+        "tokens": 332
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DOPR.md",
         "displayName": "Wikipedia",
-        "size": 3203
+        "size": 3203,
+        "tokens": 863
       }
     ]
   },
@@ -7803,37 +8800,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - DPT.md",
         "displayName": "Erowid",
-        "size": 8745
+        "size": 8745,
+        "tokens": 2462
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DPT.md",
         "displayName": "Isomer Design",
-        "size": 7765
+        "size": 7765,
+        "tokens": 2034
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DPT.md",
         "displayName": "PsychonautWiki",
-        "size": 32551
+        "size": 23871,
+        "tokens": 6562
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - DPT.md",
         "displayName": "The Drug Classroom",
-        "size": 11525
+        "size": 10141,
+        "tokens": 2584
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1213
+        "size": 1213,
+        "tokens": 515
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DPT.md",
         "displayName": "Wikipedia",
-        "size": 7412
+        "size": 7412,
+        "tokens": 1881
       }
     ]
   },
@@ -7845,13 +8848,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Damiana.md",
         "displayName": "Drug Users Bible",
-        "size": 6364
+        "size": 6364,
+        "tokens": 1597
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Damiana.md",
         "displayName": "Wikipedia",
-        "size": 3770
+        "size": 3770,
+        "tokens": 1000
       }
     ]
   },
@@ -7863,25 +8868,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Datura.md",
         "displayName": "Disregard Everything I Say",
-        "size": 4421
+        "size": 4421,
+        "tokens": 1001
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Datura.md",
         "displayName": "Drug Users Bible",
-        "size": 5741
+        "size": 5741,
+        "tokens": 1462
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Datura.md",
         "displayName": "TripSit Factsheets",
-        "size": 934
+        "size": 934,
+        "tokens": 237
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Datura.md",
         "displayName": "Wikipedia",
-        "size": 17342
+        "size": 17342,
+        "tokens": 4322
       }
     ]
   },
@@ -7893,19 +8902,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Dehydroxyfluorafinil.md",
         "displayName": "Drug Users Bible",
-        "size": 1193
+        "size": 1193,
+        "tokens": 295
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dehydroxyfluorafinil.md",
         "displayName": "TripSit Factsheets",
-        "size": 526
+        "size": 526,
+        "tokens": 152
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dehydroxyfluorafinil.md",
         "displayName": "Wikipedia",
-        "size": 682
+        "size": 682,
+        "tokens": 178
       }
     ]
   },
@@ -7917,13 +8929,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Delorazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 938
+        "size": 938,
+        "tokens": 250
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Delorazepam.md",
         "displayName": "Wikipedia",
-        "size": 7498
+        "size": 7498,
+        "tokens": 1697
       }
     ]
   },
@@ -7935,25 +8949,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Deschloroetizolam.md",
         "displayName": "Isomer Design",
-        "size": 855
+        "size": 433,
+        "tokens": 185
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Deschloroetizolam.md",
         "displayName": "PsychonautWiki",
-        "size": 25055
+        "size": 18414,
+        "tokens": 4789
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Deschloroetizolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 499
+        "size": 499,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Deschloroetizolam.md",
         "displayName": "Wikipedia",
-        "size": 479
+        "size": 479,
+        "tokens": 118
       }
     ]
   },
@@ -7965,25 +8983,29 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Deschloroketamine.md",
         "displayName": "PsychonautWiki",
-        "size": 24602
+        "size": 18949,
+        "tokens": 5105
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Deschloroketamine.md",
         "displayName": "The Drug Classroom",
-        "size": 12371
+        "size": 11058,
+        "tokens": 2768
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Deschloroketamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 488
+        "size": 488,
+        "tokens": 177
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Deschloroketamine.md",
         "displayName": "Wikipedia",
-        "size": 400
+        "size": 400,
+        "tokens": 100
       }
     ]
   },
@@ -7995,13 +9017,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Desmethylflunitrazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 583
+        "size": 583,
+        "tokens": 161
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Desmethylflunitrazepam.md",
         "displayName": "Wikipedia",
-        "size": 330
+        "size": 330,
+        "tokens": 84
       }
     ]
   },
@@ -8013,25 +9037,29 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Desomorphine.md",
         "displayName": "Erowid",
-        "size": 15445
+        "size": 15445,
+        "tokens": 4205
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Desomorphine.md",
         "displayName": "Isomer Design",
-        "size": 776
+        "size": 448,
+        "tokens": 191
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Desomorphine.md",
         "displayName": "PsychonautWiki",
-        "size": 30893
+        "size": 21200,
+        "tokens": 5428
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Desomorphine.md",
         "displayName": "Wikipedia",
-        "size": 9835
+        "size": 9835,
+        "tokens": 2298
       }
     ]
   },
@@ -8043,31 +9071,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Desoxypipradrol.md",
         "displayName": "Isomer Design",
-        "size": 864
+        "size": 431,
+        "tokens": 165
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Desoxypipradrol.md",
         "displayName": "PsychonautWiki",
-        "size": 31673
+        "size": 25338,
+        "tokens": 6743
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Desoxypipradrol.md",
         "displayName": "The Drug Classroom",
-        "size": 3163
+        "size": 1861,
+        "tokens": 478
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Desoxypipradrol.md",
         "displayName": "TripSit Factsheets",
-        "size": 1047
+        "size": 1047,
+        "tokens": 302
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Desoxypipradrol.md",
         "displayName": "Wikipedia",
-        "size": 4281
+        "size": 4281,
+        "tokens": 1090
       }
     ]
   },
@@ -8079,19 +9112,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Dexmethylphenidate.md",
         "displayName": "DrugBank",
-        "size": 23374
+        "size": 15017,
+        "tokens": 3870
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dexmethylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 618
+        "size": 618,
+        "tokens": 162
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dexmethylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 16507
+        "size": 16507,
+        "tokens": 3906
       }
     ]
   },
@@ -8103,7 +9139,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dexoxadrol.md",
         "displayName": "Wikipedia",
-        "size": 429
+        "size": 429,
+        "tokens": 103
       }
     ]
   },
@@ -8115,31 +9152,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Dextroamphetamine.md",
         "displayName": "DrugBank",
-        "size": 21639
+        "size": 12613,
+        "tokens": 3151
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Dextroamphetamine.md",
         "displayName": "PsychonautWiki",
-        "size": 17474
+        "size": 12040,
+        "tokens": 3152
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Dextroamphetamine.md",
         "displayName": "Safer Party",
-        "size": 1532
+        "size": 1532,
+        "tokens": 373
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dextroamphetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 387
+        "size": 387,
+        "tokens": 115
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dextroamphetamine.md",
         "displayName": "Wikipedia",
-        "size": 43343
+        "size": 43343,
+        "tokens": 10320
       }
     ]
   },
@@ -8151,67 +9193,78 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Dextromethorphan.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12897
+        "size": 12897,
+        "tokens": 3120
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - Dextromethorphan.md",
         "displayName": "DrugBank",
-        "size": 37493
+        "size": 20904,
+        "tokens": 5171
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Dextromethorphan.md",
         "displayName": "Drug Users Bible",
-        "size": 6447
+        "size": 6447,
+        "tokens": 1593
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Dextromethorphan.md",
         "displayName": "Erowid",
-        "size": 39020
+        "size": 39020,
+        "tokens": 10203
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Dextromethorphan.md",
         "displayName": "Isomer Design",
-        "size": 763
+        "size": 425,
+        "tokens": 180
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Dextromethorphan.md",
         "displayName": "PsychonautWiki",
-        "size": 90987
+        "size": 68456,
+        "tokens": 18100
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Dextromethorphan.md",
         "displayName": "Safer Party",
-        "size": 630
+        "size": 630,
+        "tokens": 147
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Dextromethorphan.md",
         "displayName": "The Drug Classroom",
-        "size": 386050
+        "size": 315092,
+        "tokens": 80206
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dextromethorphan.md",
         "displayName": "TripSit Factsheets",
-        "size": 3659
+        "size": 3659,
+        "tokens": 925
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Dextromethorphan.md",
         "displayName": "TripSit Wiki",
-        "size": 31400
+        "size": 30937,
+        "tokens": 7823
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dextromethorphan.md",
         "displayName": "Wikipedia",
-        "size": 17007
+        "size": 17007,
+        "tokens": 3994
       }
     ]
   },
@@ -8223,13 +9276,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dextromoramide.md",
         "displayName": "TripSit Factsheets",
-        "size": 752
+        "size": 752,
+        "tokens": 196
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dextromoramide.md",
         "displayName": "Wikipedia",
-        "size": 4872
+        "size": 4872,
+        "tokens": 1175
       }
     ]
   },
@@ -8241,19 +9296,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Dextropropoxyphene.md",
         "displayName": "DrugBank",
-        "size": 22567
+        "size": 12970,
+        "tokens": 3200
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dextropropoxyphene.md",
         "displayName": "TripSit Factsheets",
-        "size": 903
+        "size": 903,
+        "tokens": 230
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dextropropoxyphene.md",
         "displayName": "Wikipedia",
-        "size": 16957
+        "size": 16957,
+        "tokens": 4105
       }
     ]
   },
@@ -8265,31 +9323,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - DiPT.md",
         "displayName": "Erowid",
-        "size": 6016
+        "size": 6016,
+        "tokens": 1739
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - DiPT.md",
         "displayName": "Isomer Design",
-        "size": 7770
+        "size": 7770,
+        "tokens": 2091
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - DiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 19118
+        "size": 14356,
+        "tokens": 3833
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - DiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 851
+        "size": 851,
+        "tokens": 240
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - DiPT.md",
         "displayName": "Wikipedia",
-        "size": 16008
+        "size": 16008,
+        "tokens": 4062
       }
     ]
   },
@@ -8301,31 +9364,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Diazepam.md",
         "displayName": "DrugBank",
-        "size": 40231
+        "size": 23588,
+        "tokens": 6046
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Diazepam.md",
         "displayName": "Drug Users Bible",
-        "size": 5929
+        "size": 5929,
+        "tokens": 1505
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Diazepam.md",
         "displayName": "Safer Party",
-        "size": 3434
+        "size": 3434,
+        "tokens": 819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 1049
+        "size": 1049,
+        "tokens": 260
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diazepam.md",
         "displayName": "Wikipedia",
-        "size": 37741
+        "size": 37741,
+        "tokens": 8972
       }
     ]
   },
@@ -8337,13 +9405,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dibutylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 152
+        "size": 152,
+        "tokens": 39
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dibutylone.md",
         "displayName": "Wikipedia",
-        "size": 588
+        "size": 588,
+        "tokens": 143
       }
     ]
   },
@@ -8355,25 +9425,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Dichloropane.md",
         "displayName": "Isomer Design",
-        "size": 758
+        "size": 481,
+        "tokens": 212
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Dichloropane.md",
         "displayName": "PsychonautWiki",
-        "size": 29219
+        "size": 21907,
+        "tokens": 5741
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dichloropane.md",
         "displayName": "TripSit Factsheets",
-        "size": 515
+        "size": 515,
+        "tokens": 161
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dichloropane.md",
         "displayName": "Wikipedia",
-        "size": 740
+        "size": 740,
+        "tokens": 217
       }
     ]
   },
@@ -8385,25 +9459,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Diclazepam.md",
         "displayName": "Isomer Design",
-        "size": 854
+        "size": 450,
+        "tokens": 181
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Diclazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 29956
+        "size": 19660,
+        "tokens": 5162
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diclazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 524
+        "size": 524,
+        "tokens": 155
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diclazepam.md",
         "displayName": "Wikipedia",
-        "size": 1760
+        "size": 1760,
+        "tokens": 422
       }
     ]
   },
@@ -8415,13 +9493,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diclofensine.md",
         "displayName": "TripSit Factsheets",
-        "size": 689
+        "size": 689,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diclofensine.md",
         "displayName": "Wikipedia",
-        "size": 1404
+        "size": 1404,
+        "tokens": 372
       }
     ]
   },
@@ -8433,13 +9513,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diethyl ether.md",
         "displayName": "TripSit Factsheets",
-        "size": 689
+        "size": 689,
+        "tokens": 176
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diethyl ether.md",
         "displayName": "Wikipedia",
-        "size": 4156
+        "size": 4156,
+        "tokens": 1036
       }
     ]
   },
@@ -8451,19 +9533,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Dihydrocodeine.md",
         "displayName": "DrugBank",
-        "size": 22168
+        "size": 12664,
+        "tokens": 3266
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dihydrocodeine.md",
         "displayName": "TripSit Factsheets",
-        "size": 805
+        "size": 805,
+        "tokens": 209
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dihydrocodeine.md",
         "displayName": "Wikipedia",
-        "size": 17078
+        "size": 17078,
+        "tokens": 4150
       }
     ]
   },
@@ -8475,13 +9560,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimemebfe.md",
         "displayName": "TripSit Factsheets",
-        "size": 506
+        "size": 506,
+        "tokens": 141
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dimemebfe.md",
         "displayName": "Wikipedia",
-        "size": 656
+        "size": 656,
+        "tokens": 173
       }
     ]
   },
@@ -8493,19 +9580,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Dimenhydrinate.md",
         "displayName": "DrugBank",
-        "size": 20010
+        "size": 11607,
+        "tokens": 3018
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimenhydrinate.md",
         "displayName": "TripSit Factsheets",
-        "size": 1242
+        "size": 1242,
+        "tokens": 313
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dimenhydrinate.md",
         "displayName": "Wikipedia",
-        "size": 5329
+        "size": 5329,
+        "tokens": 1458
       }
     ]
   },
@@ -8517,13 +9607,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dimethylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 125
+        "size": 125,
+        "tokens": 33
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dimethylone.md",
         "displayName": "Wikipedia",
-        "size": 512
+        "size": 512,
+        "tokens": 119
       }
     ]
   },
@@ -8535,55 +9627,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Diphenhydramine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10498
+        "size": 10498,
+        "tokens": 2528
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - Diphenhydramine.md",
         "displayName": "DrugBank",
-        "size": 39794
+        "size": 24685,
+        "tokens": 6199
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Diphenhydramine.md",
         "displayName": "Erowid",
-        "size": 11846
+        "size": 11846,
+        "tokens": 3046
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Diphenhydramine.md",
         "displayName": "Isomer Design",
-        "size": 701
+        "size": 379,
+        "tokens": 149
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Diphenhydramine.md",
         "displayName": "PsychonautWiki",
-        "size": 50749
+        "size": 40193,
+        "tokens": 10650
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Diphenhydramine.md",
         "displayName": "The Drug Classroom",
-        "size": 1034
+        "size": 1034,
+        "tokens": 264
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diphenhydramine.md",
         "displayName": "TripSit Factsheets",
-        "size": 1098
+        "size": 1098,
+        "tokens": 281
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Diphenhydramine.md",
         "displayName": "TripSit Wiki",
-        "size": 4265
+        "size": 4265,
+        "tokens": 1080
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diphenhydramine.md",
         "displayName": "Wikipedia",
-        "size": 17086
+        "size": 17086,
+        "tokens": 4072
       }
     ]
   },
@@ -8595,25 +9696,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Diphenidine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 13426
+        "size": 13426,
+        "tokens": 3385
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Diphenidine.md",
         "displayName": "Drug Users Bible",
-        "size": 3712
+        "size": 3712,
+        "tokens": 891
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Diphenidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 923
+        "size": 923,
+        "tokens": 238
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Diphenidine.md",
         "displayName": "Wikipedia",
-        "size": 2865
+        "size": 2865,
+        "tokens": 752
       }
     ]
   },
@@ -8625,13 +9730,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Dipipanone.md",
         "displayName": "TripSit Factsheets",
-        "size": 791
+        "size": 791,
+        "tokens": 200
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Dipipanone.md",
         "displayName": "Wikipedia",
-        "size": 4458
+        "size": 4458,
+        "tokens": 1073
       }
     ]
   },
@@ -8643,19 +9750,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Doxylamine.md",
         "displayName": "DrugBank",
-        "size": 20162
+        "size": 20162,
+        "tokens": 5179
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Doxylamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 572
+        "size": 572,
+        "tokens": 149
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Doxylamine.md",
         "displayName": "Wikipedia",
-        "size": 10998
+        "size": 10998,
+        "tokens": 2699
       }
     ]
   },
@@ -8667,7 +9777,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - EFLEA.md",
         "displayName": "TripSit Factsheets",
-        "size": 185
+        "size": 185,
+        "tokens": 51
       }
     ]
   },
@@ -8679,25 +9790,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - EPT.md",
         "displayName": "Isomer Design",
-        "size": 887
+        "size": 411,
+        "tokens": 168
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - EPT.md",
         "displayName": "PsychonautWiki",
-        "size": 13177
+        "size": 10692,
+        "tokens": 2877
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - EPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 538
+        "size": 538,
+        "tokens": 246
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - EPT.md",
         "displayName": "Wikipedia",
-        "size": 1038
+        "size": 1038,
+        "tokens": 252
       }
     ]
   },
@@ -8709,31 +9824,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - ETH-CAT.md",
         "displayName": "Erowid",
-        "size": 14565
+        "size": 14565,
+        "tokens": 4031
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - ETH-CAT.md",
         "displayName": "Isomer Design",
-        "size": 653
+        "size": 327,
+        "tokens": 128
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - ETH-CAT.md",
         "displayName": "PsychonautWiki",
-        "size": 30290
+        "size": 22446,
+        "tokens": 6042
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - ETH-CAT.md",
         "displayName": "TripSit Factsheets",
-        "size": 927
+        "size": 927,
+        "tokens": 257
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - ETH-CAT.md",
         "displayName": "Wikipedia",
-        "size": 1770
+        "size": 1770,
+        "tokens": 433
       }
     ]
   },
@@ -8745,25 +9865,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - ETH-LAD.md",
         "displayName": "Isomer Design",
-        "size": 5007
+        "size": 5007,
+        "tokens": 1332
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - ETH-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 42520
+        "size": 37282,
+        "tokens": 10138
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - ETH-LAD.md",
         "displayName": "TripSit Factsheets",
-        "size": 556
+        "size": 556,
+        "tokens": 172
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - ETH-LAD.md",
         "displayName": "Wikipedia",
-        "size": 5743
+        "size": 5743,
+        "tokens": 1520
       }
     ]
   },
@@ -8775,13 +9899,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Entada_Rheedii.md",
         "displayName": "Drug Users Bible",
-        "size": 3768
+        "size": 3768,
+        "tokens": 951
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Entada_Rheedii.md",
         "displayName": "Wikipedia",
-        "size": 1883
+        "size": 1883,
+        "tokens": 457
       }
     ]
   },
@@ -8793,49 +9919,57 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Ephedrine.md",
         "displayName": "DrugBank",
-        "size": 29096
+        "size": 16606,
+        "tokens": 4131
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ephedrine.md",
         "displayName": "Drug Users Bible",
-        "size": 1992
+        "size": 1992,
+        "tokens": 497
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Ephedrine.md",
         "displayName": "Erowid",
-        "size": 17515
+        "size": 17515,
+        "tokens": 4793
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ephedrine.md",
         "displayName": "Isomer Design",
-        "size": 669
+        "size": 359,
+        "tokens": 139
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ephedrine.md",
         "displayName": "PsychonautWiki",
-        "size": 18574
+        "size": 14945,
+        "tokens": 3854
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Ephedrine.md",
         "displayName": "Safer Party",
-        "size": 1338
+        "size": 1338,
+        "tokens": 322
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ephedrine.md",
         "displayName": "TripSit Factsheets",
-        "size": 460
+        "size": 460,
+        "tokens": 140
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ephedrine.md",
         "displayName": "Wikipedia",
-        "size": 22805
+        "size": 22805,
+        "tokens": 5578
       }
     ]
   },
@@ -8847,25 +9981,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ephenidine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12701
+        "size": 12701,
+        "tokens": 3205
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ephenidine.md",
         "displayName": "Drug Users Bible",
-        "size": 3021
+        "size": 3021,
+        "tokens": 732
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ephenidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 632
+        "size": 632,
+        "tokens": 171
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ephenidine.md",
         "displayName": "Wikipedia",
-        "size": 1706
+        "size": 1706,
+        "tokens": 432
       }
     ]
   },
@@ -8877,19 +10015,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ephylone.md",
         "displayName": "Isomer Design",
-        "size": 674
+        "size": 330,
+        "tokens": 137
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ephylone.md",
         "displayName": "PsychonautWiki",
-        "size": 31278
+        "size": 23928,
+        "tokens": 6513
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ephylone.md",
         "displayName": "Wikipedia",
-        "size": 1942
+        "size": 1942,
+        "tokens": 476
       }
     ]
   },
@@ -8901,25 +10042,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Escaline.md",
         "displayName": "Isomer Design",
-        "size": 9298
+        "size": 9298,
+        "tokens": 2524
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Escaline.md",
         "displayName": "PsychonautWiki",
-        "size": 20709
+        "size": 15510,
+        "tokens": 4237
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Escaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 743
+        "size": 743,
+        "tokens": 210
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Escaline.md",
         "displayName": "Wikipedia",
-        "size": 2511
+        "size": 2511,
+        "tokens": 629
       }
     ]
   },
@@ -8931,19 +10076,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Escitalopram.md",
         "displayName": "DrugBank",
-        "size": 32512
+        "size": 20472,
+        "tokens": 5134
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Escitalopram.md",
         "displayName": "TripSit Factsheets",
-        "size": 138
+        "size": 138,
+        "tokens": 37
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Escitalopram.md",
         "displayName": "Wikipedia",
-        "size": 17818
+        "size": 17818,
+        "tokens": 4274
       }
     ]
   },
@@ -8955,19 +10103,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Estazolam.md",
         "displayName": "DrugBank",
-        "size": 20011
+        "size": 9662,
+        "tokens": 2454
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Estazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 686
+        "size": 686,
+        "tokens": 184
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Estazolam.md",
         "displayName": "Wikipedia",
-        "size": 5006
+        "size": 5006,
+        "tokens": 1165
       }
     ]
   },
@@ -8979,37 +10130,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Eszopiclone.md",
         "displayName": "DrugBank",
-        "size": 24339
+        "size": 14992,
+        "tokens": 3766
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Eszopiclone.md",
         "displayName": "Erowid",
-        "size": 1290
+        "size": 1290,
+        "tokens": 309
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Eszopiclone.md",
         "displayName": "PsychonautWiki",
-        "size": 18817
+        "size": 17030,
+        "tokens": 4563
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Eszopiclone.md",
         "displayName": "The Drug Classroom",
-        "size": 1641
+        "size": 1641,
+        "tokens": 422
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Eszopiclone.md",
         "displayName": "TripSit Factsheets",
-        "size": 414
+        "size": 414,
+        "tokens": 124
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Eszopiclone.md",
         "displayName": "Wikipedia",
-        "size": 12056
+        "size": 12056,
+        "tokens": 2907
       }
     ]
   },
@@ -9021,13 +10178,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethaqualone.md",
         "displayName": "TripSit Factsheets",
-        "size": 735
+        "size": 735,
+        "tokens": 189
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethaqualone.md",
         "displayName": "Wikipedia",
-        "size": 1605
+        "size": 1605,
+        "tokens": 385
       }
     ]
   },
@@ -9039,19 +10198,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Ethchlorvynol.md",
         "displayName": "DrugBank",
-        "size": 12318
+        "size": 12318,
+        "tokens": 3052
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethchlorvynol.md",
         "displayName": "TripSit Factsheets",
-        "size": 550
+        "size": 550,
+        "tokens": 151
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethchlorvynol.md",
         "displayName": "Wikipedia",
-        "size": 4150
+        "size": 4150,
+        "tokens": 985
       }
     ]
   },
@@ -9063,13 +10225,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethketamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 630
+        "size": 630,
+        "tokens": 162
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethketamine.md",
         "displayName": "Wikipedia",
-        "size": 771
+        "size": 771,
+        "tokens": 196
       }
     ]
   },
@@ -9081,25 +10245,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ethylmorphine.md",
         "displayName": "Isomer Design",
-        "size": 765
+        "size": 435,
+        "tokens": 197
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ethylmorphine.md",
         "displayName": "PsychonautWiki",
-        "size": 21141
+        "size": 17038,
+        "tokens": 4373
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethylmorphine.md",
         "displayName": "TripSit Factsheets",
-        "size": 463
+        "size": 463,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethylmorphine.md",
         "displayName": "Wikipedia",
-        "size": 762
+        "size": 762,
+        "tokens": 190
       }
     ]
   },
@@ -9111,31 +10279,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Ethylone.md",
         "displayName": "Erowid",
-        "size": 1041
+        "size": 1041,
+        "tokens": 278
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ethylone.md",
         "displayName": "Isomer Design",
-        "size": 644
+        "size": 318,
+        "tokens": 131
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ethylone.md",
         "displayName": "PsychonautWiki",
-        "size": 29249
+        "size": 22271,
+        "tokens": 5968
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 495
+        "size": 495,
+        "tokens": 148
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethylone.md",
         "displayName": "Wikipedia",
-        "size": 1092
+        "size": 1092,
+        "tokens": 274
       }
     ]
   },
@@ -9147,37 +10320,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ethylphenidate.md",
         "displayName": "Drug Users Bible",
-        "size": 2992
+        "size": 2992,
+        "tokens": 729
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Ethylphenidate.md",
         "displayName": "Erowid",
-        "size": 10354
+        "size": 10354,
+        "tokens": 2856
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ethylphenidate.md",
         "displayName": "Isomer Design",
-        "size": 847
+        "size": 410,
+        "tokens": 162
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ethylphenidate.md",
         "displayName": "PsychonautWiki",
-        "size": 30650
+        "size": 21762,
+        "tokens": 5794
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ethylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 1055
+        "size": 1055,
+        "tokens": 369
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ethylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 4856
+        "size": 4856,
+        "tokens": 1222
       }
     ]
   },
@@ -9189,55 +10368,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Etizolam.md",
         "displayName": "Drug Users Bible",
-        "size": 1427
+        "size": 1427,
+        "tokens": 371
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Etizolam.md",
         "displayName": "Erowid",
-        "size": 4829
+        "size": 4829,
+        "tokens": 1366
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Etizolam.md",
         "displayName": "Isomer Design",
-        "size": 830
+        "size": 438,
+        "tokens": 189
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Etizolam.md",
         "displayName": "PsychonautWiki",
-        "size": 39346
+        "size": 26371,
+        "tokens": 7051
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Etizolam.md",
         "displayName": "Safer Party",
-        "size": 3608
+        "size": 3608,
+        "tokens": 860
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Etizolam.md",
         "displayName": "The Drug Classroom",
-        "size": 3432
+        "size": 913,
+        "tokens": 244
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Etizolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 635
+        "size": 635,
+        "tokens": 192
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Etizolam.md",
         "displayName": "TripSit Wiki",
-        "size": 4842
+        "size": 4842,
+        "tokens": 1216
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Etizolam.md",
         "displayName": "Wikipedia",
-        "size": 7918
+        "size": 7918,
+        "tokens": 1896
       }
     ]
   },
@@ -9249,13 +10437,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Etodesnitazene.md",
         "displayName": "TripSit Factsheets",
-        "size": 107
+        "size": 107,
+        "tokens": 29
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Etodesnitazene.md",
         "displayName": "Wikipedia",
-        "size": 1083
+        "size": 1083,
+        "tokens": 260
       }
     ]
   },
@@ -9267,7 +10457,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Eutylone.md",
         "displayName": "Wikipedia",
-        "size": 903
+        "size": 903,
+        "tokens": 230
       }
     ]
   },
@@ -9279,19 +10470,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - F-Phenibut.md",
         "displayName": "Isomer Design",
-        "size": 684
+        "size": 350,
+        "tokens": 141
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - F-Phenibut.md",
         "displayName": "PsychonautWiki",
-        "size": 21839
+        "size": 17253,
+        "tokens": 4705
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - F-Phenibut.md",
         "displayName": "Wikipedia",
-        "size": 829
+        "size": 829,
+        "tokens": 232
       }
     ]
   },
@@ -9303,13 +10497,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fasoracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 1281
+        "size": 1281,
+        "tokens": 325
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fasoracetam.md",
         "displayName": "Wikipedia",
-        "size": 3891
+        "size": 3891,
+        "tokens": 943
       }
     ]
   },
@@ -9321,19 +10517,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Fenethylline.md",
         "displayName": "Isomer Design",
-        "size": 798
+        "size": 474,
+        "tokens": 202
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Fenethylline.md",
         "displayName": "PsychonautWiki",
-        "size": 16859
+        "size": 11953,
+        "tokens": 3121
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fenethylline.md",
         "displayName": "Wikipedia",
-        "size": 16488
+        "size": 16488,
+        "tokens": 4125
       }
     ]
   },
@@ -9345,61 +10544,71 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Fentanyl.md",
         "displayName": "DrugBank",
-        "size": 32587
+        "size": 18481,
+        "tokens": 4990
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Fentanyl.md",
         "displayName": "Drug Users Bible",
-        "size": 2869
+        "size": 2869,
+        "tokens": 698
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Fentanyl.md",
         "displayName": "Erowid",
-        "size": 3420
+        "size": 3420,
+        "tokens": 961
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Fentanyl.md",
         "displayName": "Isomer Design",
-        "size": 724
+        "size": 416,
+        "tokens": 171
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Fentanyl.md",
         "displayName": "PsychonautWiki",
-        "size": 34197
+        "size": 23774,
+        "tokens": 6142
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Fentanyl.md",
         "displayName": "Safer Party",
-        "size": 3254
+        "size": 3254,
+        "tokens": 758
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Fentanyl.md",
         "displayName": "The Drug Classroom",
-        "size": 1108
+        "size": 1108,
+        "tokens": 285
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 821
+        "size": 821,
+        "tokens": 320
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Fentanyl.md",
         "displayName": "TripSit Wiki",
-        "size": 5599
+        "size": 5599,
+        "tokens": 1377
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fentanyl.md",
         "displayName": "Wikipedia",
-        "size": 47845
+        "size": 47845,
+        "tokens": 11584
       }
     ]
   },
@@ -9411,31 +10620,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Flualprazolam.md",
         "displayName": "Isomer Design",
-        "size": 854
+        "size": 434,
+        "tokens": 182
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flualprazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 23045
+        "size": 18021,
+        "tokens": 4776
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Flualprazolam.md",
         "displayName": "Safer Party",
-        "size": 3768
+        "size": 3768,
+        "tokens": 892
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flualprazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 396
+        "size": 396,
+        "tokens": 128
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flualprazolam.md",
         "displayName": "Wikipedia",
-        "size": 1380
+        "size": 1380,
+        "tokens": 325
       }
     ]
   },
@@ -9447,25 +10661,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Flubromazepam.md",
         "displayName": "Isomer Design",
-        "size": 864
+        "size": 442,
+        "tokens": 182
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flubromazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 28032
+        "size": 19972,
+        "tokens": 5235
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flubromazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 451
+        "size": 451,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flubromazepam.md",
         "displayName": "Wikipedia",
-        "size": 904
+        "size": 904,
+        "tokens": 242
       }
     ]
   },
@@ -9477,25 +10695,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Flubromazolam.md",
         "displayName": "Isomer Design",
-        "size": 895
+        "size": 475,
+        "tokens": 196
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flubromazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 29216
+        "size": 20025,
+        "tokens": 5222
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flubromazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 618
+        "size": 618,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flubromazolam.md",
         "displayName": "Wikipedia",
-        "size": 1645
+        "size": 1645,
+        "tokens": 390
       }
     ]
   },
@@ -9507,13 +10729,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluclotizolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 706
+        "size": 706,
+        "tokens": 188
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fluclotizolam.md",
         "displayName": "Wikipedia",
-        "size": 281
+        "size": 281,
+        "tokens": 68
       }
     ]
   },
@@ -9525,49 +10749,57 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Flunitrazepam.md",
         "displayName": "DrugBank",
-        "size": 16822
+        "size": 9203,
+        "tokens": 2327
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Flunitrazepam.md",
         "displayName": "Erowid",
-        "size": 7797
+        "size": 7797,
+        "tokens": 2085
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Flunitrazepam.md",
         "displayName": "Isomer Design",
-        "size": 849
+        "size": 449,
+        "tokens": 187
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flunitrazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 30537
+        "size": 23385,
+        "tokens": 6102
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Flunitrazepam.md",
         "displayName": "Safer Party",
-        "size": 3444
+        "size": 3444,
+        "tokens": 821
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flunitrazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 471
+        "size": 471,
+        "tokens": 141
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Flunitrazepam.md",
         "displayName": "TripSit Wiki",
-        "size": 3603
+        "size": 3603,
+        "tokens": 924
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flunitrazepam.md",
         "displayName": "Wikipedia",
-        "size": 14401
+        "size": 14401,
+        "tokens": 3442
       }
     ]
   },
@@ -9579,25 +10811,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Flunitrazolam.md",
         "displayName": "Isomer Design",
-        "size": 872
+        "size": 448,
+        "tokens": 190
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Flunitrazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 28800
+        "size": 21202,
+        "tokens": 5505
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flunitrazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 594
+        "size": 594,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flunitrazolam.md",
         "displayName": "Wikipedia",
-        "size": 834
+        "size": 834,
+        "tokens": 207
       }
     ]
   },
@@ -9609,13 +10845,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluorolintane.md",
         "displayName": "TripSit Factsheets",
-        "size": 592
+        "size": 592,
+        "tokens": 157
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fluorolintane.md",
         "displayName": "Wikipedia",
-        "size": 395
+        "size": 395,
+        "tokens": 99
       }
     ]
   },
@@ -9627,13 +10865,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluorophenibut.md",
         "displayName": "TripSit Factsheets",
-        "size": 532
+        "size": 532,
+        "tokens": 142
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fluorophenibut.md",
         "displayName": "Wikipedia",
-        "size": 829
+        "size": 829,
+        "tokens": 232
       }
     ]
   },
@@ -9645,19 +10885,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Fluoxetine.md",
         "displayName": "DrugBank",
-        "size": 33834
+        "size": 17065,
+        "tokens": 4190
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluoxetine.md",
         "displayName": "TripSit Factsheets",
-        "size": 134
+        "size": 134,
+        "tokens": 36
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fluoxetine.md",
         "displayName": "Wikipedia",
-        "size": 33554
+        "size": 33554,
+        "tokens": 8039
       }
     ]
   },
@@ -9669,19 +10912,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Flurazepam.md",
         "displayName": "DrugBank",
-        "size": 20298
+        "size": 10017,
+        "tokens": 2482
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flurazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 760
+        "size": 760,
+        "tokens": 204
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flurazepam.md",
         "displayName": "Wikipedia",
-        "size": 7201
+        "size": 7201,
+        "tokens": 1675
       }
     ]
   },
@@ -9693,13 +10939,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flutazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 867
+        "size": 867,
+        "tokens": 228
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flutazolam.md",
         "displayName": "Wikipedia",
-        "size": 904
+        "size": 904,
+        "tokens": 231
       }
     ]
   },
@@ -9711,13 +10959,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Flutoprazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 842
+        "size": 842,
+        "tokens": 224
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Flutoprazepam.md",
         "displayName": "Wikipedia",
-        "size": 1826
+        "size": 1826,
+        "tokens": 446
       }
     ]
   },
@@ -9729,19 +10979,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Fluvoxamine.md",
         "displayName": "DrugBank",
-        "size": 19454
+        "size": 10934,
+        "tokens": 2674
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Fluvoxamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 134
+        "size": 134,
+        "tokens": 36
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fluvoxamine.md",
         "displayName": "Wikipedia",
-        "size": 12109
+        "size": 12109,
+        "tokens": 2950
       }
     ]
   },
@@ -9753,13 +11006,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Frankincense.md",
         "displayName": "Drug Users Bible",
-        "size": 4507
+        "size": 4507,
+        "tokens": 1098
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Frankincense.md",
         "displayName": "Wikipedia",
-        "size": 10357
+        "size": 10357,
+        "tokens": 2706
       }
     ]
   },
@@ -9771,13 +11026,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Furanylfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 822
+        "size": 822,
+        "tokens": 219
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Furanylfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1984
+        "size": 1984,
+        "tokens": 468
       }
     ]
   },
@@ -9789,13 +11046,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - G-130.md",
         "displayName": "TripSit Factsheets",
-        "size": 230
+        "size": 230,
+        "tokens": 61
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - G-130.md",
         "displayName": "Wikipedia",
-        "size": 645
+        "size": 645,
+        "tokens": 203
       }
     ]
   },
@@ -9807,13 +11066,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - GABA.md",
         "displayName": "TripSit Factsheets",
-        "size": 548
+        "size": 548,
+        "tokens": 147
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - GABA.md",
         "displayName": "Wikipedia",
-        "size": 13594
+        "size": 13594,
+        "tokens": 3233
       }
     ]
   },
@@ -9825,31 +11086,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - GBL.md",
         "displayName": "Isomer Design",
-        "size": 607
+        "size": 287,
+        "tokens": 98
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - GBL.md",
         "displayName": "PsychonautWiki",
-        "size": 39157
+        "size": 28270,
+        "tokens": 7324
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - GBL.md",
         "displayName": "Safer Party",
-        "size": 3256
+        "size": 3256,
+        "tokens": 781
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - GBL.md",
         "displayName": "TripSit Factsheets",
-        "size": 617
+        "size": 617,
+        "tokens": 190
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - GBL.md",
         "displayName": "Wikipedia",
-        "size": 10747
+        "size": 10747,
+        "tokens": 2650
       }
     ]
   },
@@ -9861,31 +11127,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - GHB.md",
         "displayName": "Drug Users Bible",
-        "size": 6065
+        "size": 6065,
+        "tokens": 1547
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - GHB.md",
         "displayName": "Safer Party",
-        "size": 2804
+        "size": 2804,
+        "tokens": 674
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - GHB.md",
         "displayName": "The Drug Classroom",
-        "size": 4331
+        "size": 1157,
+        "tokens": 308
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - GHB.md",
         "displayName": "TripSit Factsheets",
-        "size": 1455
+        "size": 1455,
+        "tokens": 393
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - GHB.md",
         "displayName": "Wikipedia",
-        "size": 27507
+        "size": 27507,
+        "tokens": 6763
       }
     ]
   },
@@ -9897,49 +11168,57 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Gabapentin.md",
         "displayName": "DrugBank",
-        "size": 35186
+        "size": 16242,
+        "tokens": 4044
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Gabapentin.md",
         "displayName": "Drug Users Bible",
-        "size": 3752
+        "size": 3752,
+        "tokens": 967
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Gabapentin.md",
         "displayName": "Erowid",
-        "size": 3226
+        "size": 3226,
+        "tokens": 880
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Gabapentin.md",
         "displayName": "Isomer Design",
-        "size": 641
+        "size": 329,
+        "tokens": 122
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Gabapentin.md",
         "displayName": "PsychonautWiki",
-        "size": 31798
+        "size": 20192,
+        "tokens": 5327
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Gabapentin.md",
         "displayName": "The Drug Classroom",
-        "size": 3650
+        "size": 774,
+        "tokens": 198
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Gabapentin.md",
         "displayName": "TripSit Factsheets",
-        "size": 461
+        "size": 461,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Gabapentin.md",
         "displayName": "Wikipedia",
-        "size": 31556
+        "size": 31556,
+        "tokens": 7593
       }
     ]
   },
@@ -9951,13 +11230,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ginkgo.md",
         "displayName": "Drug Users Bible",
-        "size": 4265
+        "size": 4265,
+        "tokens": 1043
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ginkgo.md",
         "displayName": "Wikipedia",
-        "size": 8617
+        "size": 8617,
+        "tokens": 2171
       }
     ]
   },
@@ -9969,13 +11250,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ginseng.md",
         "displayName": "Drug Users Bible",
-        "size": 3787
+        "size": 3787,
+        "tokens": 970
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ginseng.md",
         "displayName": "Wikipedia",
-        "size": 13313
+        "size": 13313,
+        "tokens": 3411
       }
     ]
   },
@@ -9987,13 +11270,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Glaucine.md",
         "displayName": "TripSit Factsheets",
-        "size": 471
+        "size": 471,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Glaucine.md",
         "displayName": "Wikipedia",
-        "size": 4139
+        "size": 4139,
+        "tokens": 1026
       }
     ]
   },
@@ -10005,19 +11290,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Glutethimide.md",
         "displayName": "DrugBank",
-        "size": 12393
+        "size": 12393,
+        "tokens": 3043
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Glutethimide.md",
         "displayName": "TripSit Factsheets",
-        "size": 555
+        "size": 555,
+        "tokens": 150
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Glutethimide.md",
         "displayName": "Wikipedia",
-        "size": 4210
+        "size": 4210,
+        "tokens": 1095
       }
     ]
   },
@@ -10029,13 +11317,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Grayanotoxin.md",
         "displayName": "PsychonautWiki",
-        "size": 18469
+        "size": 11119,
+        "tokens": 2981
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Grayanotoxin.md",
         "displayName": "Wikipedia",
-        "size": 9110
+        "size": 9110,
+        "tokens": 2131
       }
     ]
   },
@@ -10047,13 +11337,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Green_Tea.md",
         "displayName": "Drug Users Bible",
-        "size": 1559
+        "size": 1559,
+        "tokens": 385
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Green_Tea.md",
         "displayName": "Wikipedia",
-        "size": 25345
+        "size": 25345,
+        "tokens": 6584
       }
     ]
   },
@@ -10065,13 +11357,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Guarana.md",
         "displayName": "Drug Users Bible",
-        "size": 3839
+        "size": 3839,
+        "tokens": 986
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Guarana.md",
         "displayName": "Wikipedia",
-        "size": 10740
+        "size": 10740,
+        "tokens": 2559
       }
     ]
   },
@@ -10083,13 +11377,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Guayusa.md",
         "displayName": "Drug Users Bible",
-        "size": 1947
+        "size": 1947,
+        "tokens": 477
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Guayusa.md",
         "displayName": "Wikipedia",
-        "size": 4959
+        "size": 4959,
+        "tokens": 1230
       }
     ]
   },
@@ -10101,13 +11397,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HDEP-28.md",
         "displayName": "TripSit Factsheets",
-        "size": 624
+        "size": 624,
+        "tokens": 176
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HDEP-28.md",
         "displayName": "Wikipedia",
-        "size": 669
+        "size": 669,
+        "tokens": 194
       }
     ]
   },
@@ -10119,25 +11417,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - HOT-2.md",
         "displayName": "Isomer Design",
-        "size": 1518
+        "size": 1518,
+        "tokens": 403
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - HOT-2.md",
         "displayName": "The Drug Classroom",
-        "size": 2047
+        "size": 2047,
+        "tokens": 547
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HOT-2.md",
         "displayName": "TripSit Factsheets",
-        "size": 1173
+        "size": 1173,
+        "tokens": 324
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HOT-2.md",
         "displayName": "Wikipedia",
-        "size": 1795
+        "size": 1795,
+        "tokens": 515
       }
     ]
   },
@@ -10149,19 +11451,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - HOT-7.md",
         "displayName": "Isomer Design",
-        "size": 2046
+        "size": 2046,
+        "tokens": 547
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HOT-7.md",
         "displayName": "TripSit Factsheets",
-        "size": 969
+        "size": 969,
+        "tokens": 261
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HOT-7.md",
         "displayName": "Wikipedia",
-        "size": 1617
+        "size": 1617,
+        "tokens": 491
       }
     ]
   },
@@ -10173,19 +11478,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - HUPERZINE-A.md",
         "displayName": "DrugBank",
-        "size": 13990
+        "size": 5866,
+        "tokens": 1436
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - HUPERZINE-A.md",
         "displayName": "TripSit Factsheets",
-        "size": 997
+        "size": 997,
+        "tokens": 265
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HUPERZINE-A.md",
         "displayName": "Wikipedia",
-        "size": 3108
+        "size": 3108,
+        "tokens": 787
       }
     ]
   },
@@ -10197,19 +11505,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - HXE.md",
         "displayName": "Isomer Design",
-        "size": 671
+        "size": 390,
+        "tokens": 159
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - HXE.md",
         "displayName": "PsychonautWiki",
-        "size": 19994
+        "size": 18487,
+        "tokens": 4983
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HXE.md",
         "displayName": "Wikipedia",
-        "size": 377
+        "size": 377,
+        "tokens": 99
       }
     ]
   },
@@ -10221,19 +11532,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Halazepam.md",
         "displayName": "DrugBank",
-        "size": 14058
+        "size": 7045,
+        "tokens": 1748
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Halazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 771
+        "size": 771,
+        "tokens": 201
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Halazepam.md",
         "displayName": "Wikipedia",
-        "size": 1065
+        "size": 1065,
+        "tokens": 249
       }
     ]
   },
@@ -10245,25 +11559,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Haloperidol.md",
         "displayName": "DrugBank",
-        "size": 43990
+        "size": 27503,
+        "tokens": 6612
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Haloperidol.md",
         "displayName": "Isomer Design",
-        "size": 761
+        "size": 447,
+        "tokens": 187
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Haloperidol.md",
         "displayName": "PsychonautWiki",
-        "size": 13258
+        "size": 8963,
+        "tokens": 2402
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Haloperidol.md",
         "displayName": "Wikipedia",
-        "size": 18389
+        "size": 18389,
+        "tokens": 4341
       }
     ]
   },
@@ -10275,19 +11593,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Halothane.md",
         "displayName": "DrugBank",
-        "size": 15163
+        "size": 8717,
+        "tokens": 2120
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Halothane.md",
         "displayName": "TripSit Factsheets",
-        "size": 359
+        "size": 359,
+        "tokens": 94
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Halothane.md",
         "displayName": "Wikipedia",
-        "size": 8833
+        "size": 8833,
+        "tokens": 2075
       }
     ]
   },
@@ -10299,55 +11620,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Heroin.md",
         "displayName": "DrugBank",
-        "size": 20977
+        "size": 14323,
+        "tokens": 3484
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Heroin.md",
         "displayName": "Drug Users Bible",
-        "size": 11299
+        "size": 11299,
+        "tokens": 2900
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Heroin.md",
         "displayName": "Erowid",
-        "size": 21738
+        "size": 21738,
+        "tokens": 5639
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Heroin.md",
         "displayName": "Isomer Design",
-        "size": 800
+        "size": 486,
+        "tokens": 221
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Heroin.md",
         "displayName": "PsychonautWiki",
-        "size": 43081
+        "size": 31777,
+        "tokens": 8301
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Heroin.md",
         "displayName": "Safer Party",
-        "size": 2824
+        "size": 2824,
+        "tokens": 661
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Heroin.md",
         "displayName": "TripSit Factsheets",
-        "size": 884
+        "size": 884,
+        "tokens": 340
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Heroin.md",
         "displayName": "TripSit Wiki",
-        "size": 6484
+        "size": 6484,
+        "tokens": 1634
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Heroin.md",
         "displayName": "Wikipedia",
-        "size": 50338
+        "size": 50338,
+        "tokens": 12143
       }
     ]
   },
@@ -10359,25 +11689,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Hexedrone.md",
         "displayName": "Isomer Design",
-        "size": 678
+        "size": 344,
+        "tokens": 137
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hexedrone.md",
         "displayName": "PsychonautWiki",
-        "size": 12519
+        "size": 10086,
+        "tokens": 2699
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hexedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 384
+        "size": 384,
+        "tokens": 117
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hexedrone.md",
         "displayName": "Wikipedia",
-        "size": 887
+        "size": 887,
+        "tokens": 239
       }
     ]
   },
@@ -10389,13 +11723,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hexobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 592
+        "size": 592,
+        "tokens": 157
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hexobarbital.md",
         "displayName": "Wikipedia",
-        "size": 7650
+        "size": 7650,
+        "tokens": 1827
       }
     ]
   },
@@ -10407,7 +11743,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Homomazindol.md",
         "displayName": "TripSit Factsheets",
-        "size": 302
+        "size": 302,
+        "tokens": 76
       }
     ]
   },
@@ -10419,13 +11756,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Homosildenafil.md",
         "displayName": "TripSit Factsheets",
-        "size": 558
+        "size": 558,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Homosildenafil.md",
         "displayName": "Wikipedia",
-        "size": 820
+        "size": 820,
+        "tokens": 203
       }
     ]
   },
@@ -10437,13 +11776,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Hops.md",
         "displayName": "Drug Users Bible",
-        "size": 3355
+        "size": 3355,
+        "tokens": 848
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hops.md",
         "displayName": "Wikipedia",
-        "size": 20320
+        "size": 20320,
+        "tokens": 5035
       }
     ]
   },
@@ -10455,13 +11796,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Horny_Goat_Weed.md",
         "displayName": "Drug Users Bible",
-        "size": 4139
+        "size": 4139,
+        "tokens": 1100
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Horny_Goat_Weed.md",
         "displayName": "Wikipedia",
-        "size": 5014
+        "size": 5014,
+        "tokens": 1295
       }
     ]
   },
@@ -10473,43 +11816,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Hydrocodone.md",
         "displayName": "DrugBank",
-        "size": 35805
+        "size": 21249,
+        "tokens": 5619
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Hydrocodone.md",
         "displayName": "Erowid",
-        "size": 13981
+        "size": 13981,
+        "tokens": 3661
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Hydrocodone.md",
         "displayName": "Isomer Design",
-        "size": 744
+        "size": 418,
+        "tokens": 186
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hydrocodone.md",
         "displayName": "PsychonautWiki",
-        "size": 26021
+        "size": 21715,
+        "tokens": 5522
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hydrocodone.md",
         "displayName": "TripSit Factsheets",
-        "size": 610
+        "size": 610,
+        "tokens": 174
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Hydrocodone.md",
         "displayName": "TripSit Wiki",
-        "size": 9782
+        "size": 9782,
+        "tokens": 2441
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hydrocodone.md",
         "displayName": "Wikipedia",
-        "size": 14986
+        "size": 14986,
+        "tokens": 3550
       }
     ]
   },
@@ -10521,43 +11871,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Hydromorphone.md",
         "displayName": "DrugBank",
-        "size": 32206
+        "size": 16936,
+        "tokens": 4153
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Hydromorphone.md",
         "displayName": "Erowid",
-        "size": 2370
+        "size": 2370,
+        "tokens": 638
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Hydromorphone.md",
         "displayName": "Isomer Design",
-        "size": 779
+        "size": 449,
+        "tokens": 194
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Hydromorphone.md",
         "displayName": "PsychonautWiki",
-        "size": 26693
+        "size": 21843,
+        "tokens": 5711
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hydromorphone.md",
         "displayName": "TripSit Factsheets",
-        "size": 885
+        "size": 885,
+        "tokens": 344
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Hydromorphone.md",
         "displayName": "TripSit Wiki",
-        "size": 1593
+        "size": 1593,
+        "tokens": 439
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hydromorphone.md",
         "displayName": "Wikipedia",
-        "size": 16000
+        "size": 16000,
+        "tokens": 3815
       }
     ]
   },
@@ -10569,19 +11926,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Hydroxyzine.md",
         "displayName": "DrugBank",
-        "size": 30466
+        "size": 15463,
+        "tokens": 3831
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Hydroxyzine.md",
         "displayName": "TripSit Factsheets",
-        "size": 633
+        "size": 633,
+        "tokens": 169
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Hydroxyzine.md",
         "displayName": "Wikipedia",
-        "size": 11366
+        "size": 11366,
+        "tokens": 2689
       }
     ]
   },
@@ -10593,31 +11953,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ibogaine.md",
         "displayName": "Drug Users Bible",
-        "size": 5090
+        "size": 5090,
+        "tokens": 1261
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ibogaine.md",
         "displayName": "Isomer Design",
-        "size": 4852
+        "size": 4852,
+        "tokens": 1171
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Ibogaine.md",
         "displayName": "The Drug Classroom",
-        "size": 7290
+        "size": 1231,
+        "tokens": 324
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ibogaine.md",
         "displayName": "TripSit Factsheets",
-        "size": 1276
+        "size": 1276,
+        "tokens": 331
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ibogaine.md",
         "displayName": "Wikipedia",
-        "size": 33044
+        "size": 33044,
+        "tokens": 8243
       }
     ]
   },
@@ -10629,19 +11994,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Ibuprofen.md",
         "displayName": "DrugBank",
-        "size": 48986
+        "size": 30312,
+        "tokens": 8020
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ibuprofen.md",
         "displayName": "TripSit Factsheets",
-        "size": 522
+        "size": 522,
+        "tokens": 129
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ibuprofen.md",
         "displayName": "Wikipedia",
-        "size": 18892
+        "size": 18892,
+        "tokens": 4631
       }
     ]
   },
@@ -10653,13 +12021,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Imphepho.md",
         "displayName": "Drug Users Bible",
-        "size": 2556
+        "size": 2556,
+        "tokens": 700
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Imphepho.md",
         "displayName": "Wikipedia",
-        "size": 8440
+        "size": 8440,
+        "tokens": 2013
       }
     ]
   },
@@ -10671,13 +12041,15 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Indapex.md",
         "displayName": "Isomer Design",
-        "size": 5816
+        "size": 5816,
+        "tokens": 1465
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Indapex.md",
         "displayName": "TripSit Factsheets",
-        "size": 1044
+        "size": 1044,
+        "tokens": 294
       }
     ]
   },
@@ -10689,13 +12061,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Indapyrophenidone.md",
         "displayName": "TripSit Factsheets",
-        "size": 519
+        "size": 519,
+        "tokens": 144
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Indapyrophenidone.md",
         "displayName": "Wikipedia",
-        "size": 395
+        "size": 395,
+        "tokens": 101
       }
     ]
   },
@@ -10707,7 +12081,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Indian_Warrior.md",
         "displayName": "Wikipedia",
-        "size": 952
+        "size": 952,
+        "tokens": 230
       }
     ]
   },
@@ -10719,19 +12094,22 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Inhalants.md",
         "displayName": "Erowid",
-        "size": 1137
+        "size": 1137,
+        "tokens": 266
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Inhalants.md",
         "displayName": "PsychonautWiki",
-        "size": 42914
+        "size": 33365,
+        "tokens": 8370
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Inhalants.md",
         "displayName": "Wikipedia",
-        "size": 42948
+        "size": 42948,
+        "tokens": 10686
       }
     ]
   },
@@ -10743,13 +12121,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isomethadone.md",
         "displayName": "TripSit Factsheets",
-        "size": 783
+        "size": 783,
+        "tokens": 206
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Isomethadone.md",
         "displayName": "Wikipedia",
-        "size": 908
+        "size": 908,
+        "tokens": 223
       }
     ]
   },
@@ -10761,7 +12141,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isophenmetrazine.md",
         "displayName": "TripSit Factsheets",
-        "size": 746
+        "size": 746,
+        "tokens": 197
       }
     ]
   },
@@ -10773,25 +12154,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Isopropylphenidate.md",
         "displayName": "Drug Users Bible",
-        "size": 3898
+        "size": 3898,
+        "tokens": 988
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Isopropylphenidate.md",
         "displayName": "The Drug Classroom",
-        "size": 9999
+        "size": 9106,
+        "tokens": 2298
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isopropylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 624
+        "size": 624,
+        "tokens": 173
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Isopropylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 578
+        "size": 578,
+        "tokens": 137
       }
     ]
   },
@@ -10803,7 +12188,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Isopropylphenidine.md",
         "displayName": "Wikipedia",
-        "size": 1391
+        "size": 1391,
+        "tokens": 351
       }
     ]
   },
@@ -10815,19 +12201,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Isoproscaline.md",
         "displayName": "Isomer Design",
-        "size": 4456
+        "size": 4456,
+        "tokens": 1208
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Isoproscaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 738
+        "size": 738,
+        "tokens": 198
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Isoproscaline.md",
         "displayName": "Wikipedia",
-        "size": 1653
+        "size": 1653,
+        "tokens": 424
       }
     ]
   },
@@ -10839,13 +12228,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - JWH-018.md",
         "displayName": "Drug Users Bible",
-        "size": 2739
+        "size": 2739,
+        "tokens": 699
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - JWH-018.md",
         "displayName": "Wikipedia",
-        "size": 6353
+        "size": 6353,
+        "tokens": 1561
       }
     ]
   },
@@ -10857,13 +12248,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - JWH-073.md",
         "displayName": "Drug Users Bible",
-        "size": 1372
+        "size": 1372,
+        "tokens": 336
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - JWH-073.md",
         "displayName": "Wikipedia",
-        "size": 3278
+        "size": 3278,
+        "tokens": 816
       }
     ]
   },
@@ -10875,13 +12268,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Jenkem.md",
         "displayName": "TripSit Factsheets",
-        "size": 124
+        "size": 124,
+        "tokens": 33
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Jenkem.md",
         "displayName": "Wikipedia",
-        "size": 8097
+        "size": 8097,
+        "tokens": 2171
       }
     ]
   },
@@ -10893,25 +12288,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Kanna.md",
         "displayName": "Drug Users Bible",
-        "size": 3832
+        "size": 3832,
+        "tokens": 989
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Kanna.md",
         "displayName": "The Drug Classroom",
-        "size": 1298
+        "size": 1298,
+        "tokens": 340
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Kanna.md",
         "displayName": "TripSit Factsheets",
-        "size": 1064
+        "size": 1064,
+        "tokens": 268
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Kanna.md",
         "displayName": "Wikipedia",
-        "size": 9256
+        "size": 9256,
+        "tokens": 2330
       }
     ]
   },
@@ -10923,43 +12322,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Kava.md",
         "displayName": "DrugBank",
-        "size": 7684
+        "size": 3498,
+        "tokens": 851
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Kava.md",
         "displayName": "Drug Users Bible",
-        "size": 7683
+        "size": 7683,
+        "tokens": 1968
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Kava.md",
         "displayName": "Erowid",
-        "size": 8906
+        "size": 8906,
+        "tokens": 2504
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Kava.md",
         "displayName": "PsychonautWiki",
-        "size": 18923
+        "size": 16091,
+        "tokens": 4217
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Kava.md",
         "displayName": "TripSit Factsheets",
-        "size": 430
+        "size": 430,
+        "tokens": 131
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Kava.md",
         "displayName": "TripSit Wiki",
-        "size": 4857
+        "size": 4857,
+        "tokens": 1211
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Kava.md",
         "displayName": "Wikipedia",
-        "size": 36932
+        "size": 36932,
+        "tokens": 9144
       }
     ]
   },
@@ -10971,67 +12377,78 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Ketamine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 16021
+        "size": 16021,
+        "tokens": 4135
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - Ketamine.md",
         "displayName": "DrugBank",
-        "size": 28139
+        "size": 14126,
+        "tokens": 3413
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ketamine.md",
         "displayName": "Drug Users Bible",
-        "size": 4691
+        "size": 4691,
+        "tokens": 1187
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Ketamine.md",
         "displayName": "Erowid",
-        "size": 42819
+        "size": 42819,
+        "tokens": 11433
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Ketamine.md",
         "displayName": "Isomer Design",
-        "size": 904
+        "size": 369,
+        "tokens": 146
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Ketamine.md",
         "displayName": "PsychonautWiki",
-        "size": 78908
+        "size": 50777,
+        "tokens": 13567
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Ketamine.md",
         "displayName": "Safer Party",
-        "size": 3033
+        "size": 3033,
+        "tokens": 722
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Ketamine.md",
         "displayName": "The Drug Classroom",
-        "size": 713679
+        "size": 713679,
+        "tokens": 200655
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ketamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 3281
+        "size": 3281,
+        "tokens": 888
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Ketamine.md",
         "displayName": "TripSit Wiki",
-        "size": 16701
+        "size": 15061,
+        "tokens": 3860
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ketamine.md",
         "displayName": "Wikipedia",
-        "size": 31081
+        "size": 31081,
+        "tokens": 7489
       }
     ]
   },
@@ -11043,19 +12460,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Ketazolam.md",
         "displayName": "DrugBank",
-        "size": 14262
+        "size": 14262,
+        "tokens": 3548
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ketazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 555
+        "size": 555,
+        "tokens": 151
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ketazolam.md",
         "displayName": "Wikipedia",
-        "size": 2131
+        "size": 2131,
+        "tokens": 506
       }
     ]
   },
@@ -11067,13 +12487,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ketobemidone.md",
         "displayName": "TripSit Factsheets",
-        "size": 940
+        "size": 940,
+        "tokens": 240
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ketobemidone.md",
         "displayName": "Wikipedia",
-        "size": 3779
+        "size": 3779,
+        "tokens": 912
       }
     ]
   },
@@ -11085,7 +12507,8 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Khaini.md",
         "displayName": "Drug Users Bible",
-        "size": 3604
+        "size": 3604,
+        "tokens": 912
       }
     ]
   },
@@ -11097,13 +12520,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Khat.md",
         "displayName": "TripSit Factsheets",
-        "size": 452
+        "size": 452,
+        "tokens": 115
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Khat.md",
         "displayName": "Wikipedia",
-        "size": 36587
+        "size": 36587,
+        "tokens": 9041
       }
     ]
   },
@@ -11115,13 +12540,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Kola_Nut.md",
         "displayName": "Drug Users Bible",
-        "size": 1279
+        "size": 1279,
+        "tokens": 322
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Kola_Nut.md",
         "displayName": "Wikipedia",
-        "size": 7552
+        "size": 7552,
+        "tokens": 1836
       }
     ]
   },
@@ -11133,25 +12560,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Kratom.md",
         "displayName": "Drug Users Bible",
-        "size": 5933
+        "size": 5933,
+        "tokens": 1420
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Kratom.md",
         "displayName": "The Drug Classroom",
-        "size": 4193
+        "size": 1294,
+        "tokens": 322
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Kratom.md",
         "displayName": "TripSit Factsheets",
-        "size": 1086
+        "size": 1086,
+        "tokens": 282
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Kratom.md",
         "displayName": "Wikipedia",
-        "size": 31961
+        "size": 31961,
+        "tokens": 7741
       }
     ]
   },
@@ -11163,19 +12594,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - LAE-32.md",
         "displayName": "Isomer Design",
-        "size": 779
+        "size": 455,
+        "tokens": 204
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LAE-32.md",
         "displayName": "PsychonautWiki",
-        "size": 7164
+        "size": 6112,
+        "tokens": 1620
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - LAE-32.md",
         "displayName": "Wikipedia",
-        "size": 752
+        "size": 752,
+        "tokens": 202
       }
     ]
   },
@@ -11187,25 +12621,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - LSA.md",
         "displayName": "Disregard Everything I Say",
-        "size": 14521
+        "size": 14521,
+        "tokens": 3550
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - HBWS.md",
         "displayName": "Drug Users Bible",
-        "size": 1643
+        "size": 1643,
+        "tokens": 397
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - LSA.md",
         "displayName": "TripSit Factsheets",
-        "size": 1338
+        "size": 1338,
+        "tokens": 350
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - HBWS.md",
         "displayName": "Wikipedia",
-        "size": 3909
+        "size": 3909,
+        "tokens": 941
       }
     ]
   },
@@ -11217,61 +12655,71 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - LSD.md",
         "displayName": "Disregard Everything I Say",
-        "size": 11378
+        "size": 11378,
+        "tokens": 2807
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - LSD.md",
         "displayName": "DrugBank",
-        "size": 14514
+        "size": 8018,
+        "tokens": 1922
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - LSD.md",
         "displayName": "Drug Users Bible",
-        "size": 3998
+        "size": 3998,
+        "tokens": 966
       },
       {
         "id": "erowid",
         "fileName": "EROWID - LSD.md",
         "displayName": "Erowid",
-        "size": 43578
+        "size": 43578,
+        "tokens": 11710
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - LSD.md",
         "displayName": "Isomer Design",
-        "size": 33921
+        "size": 33921,
+        "tokens": 8527
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LSD.md",
         "displayName": "PsychonautWiki",
-        "size": 133892
+        "size": 75933,
+        "tokens": 20978
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - LSD.md",
         "displayName": "Safer Party",
-        "size": 3784
+        "size": 3784,
+        "tokens": 918
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - LSD.md",
         "displayName": "TripSit Factsheets",
-        "size": 1817
+        "size": 1817,
+        "tokens": 513
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - LSD.md",
         "displayName": "TripSit Wiki",
-        "size": 5146
+        "size": 5146,
+        "tokens": 1315
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - LSD.md",
         "displayName": "Wikipedia",
-        "size": 70312
+        "size": 70312,
+        "tokens": 17417
       }
     ]
   },
@@ -11283,31 +12731,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - LSM-775.md",
         "displayName": "Isomer Design",
-        "size": 811
+        "size": 495,
+        "tokens": 208
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LSM-775.md",
         "displayName": "PsychonautWiki",
-        "size": 31225
+        "size": 27485,
+        "tokens": 7482
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - LSM-775.md",
         "displayName": "The Drug Classroom",
-        "size": 3707
+        "size": 3570,
+        "tokens": 924
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - LSM-775.md",
         "displayName": "TripSit Factsheets",
-        "size": 388
+        "size": 388,
+        "tokens": 128
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - LSM-775.md",
         "displayName": "Wikipedia",
-        "size": 1252
+        "size": 1252,
+        "tokens": 319
       }
     ]
   },
@@ -11319,43 +12772,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - LSZ.md",
         "displayName": "Drug Users Bible",
-        "size": 1277
+        "size": 1277,
+        "tokens": 323
       },
       {
         "id": "erowid",
         "fileName": "EROWID - LSZ.md",
         "displayName": "Erowid",
-        "size": 8256
+        "size": 8256,
+        "tokens": 2199
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - LSZ.md",
         "displayName": "Isomer Design",
-        "size": 756
+        "size": 429,
+        "tokens": 204
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - LSZ.md",
         "displayName": "PsychonautWiki",
-        "size": 22887
+        "size": 15441,
+        "tokens": 4229
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - LSZ.md",
         "displayName": "TripSit Factsheets",
-        "size": 733
+        "size": 733,
+        "tokens": 204
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - LSZ.md",
         "displayName": "TripSit Wiki",
-        "size": 1216
+        "size": 1216,
+        "tokens": 340
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - LSZ.md",
         "displayName": "Wikipedia",
-        "size": 8520
+        "size": 8520,
+        "tokens": 2211
       }
     ]
   },
@@ -11367,7 +12827,8 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Lagochilus_inebrians.md",
         "displayName": "The Drug Classroom",
-        "size": 8013
+        "size": 7247,
+        "tokens": 1943
       }
     ]
   },
@@ -11379,13 +12840,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Lavender.md",
         "displayName": "Drug Users Bible",
-        "size": 1022
+        "size": 1022,
+        "tokens": 250
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lavender.md",
         "displayName": "Wikipedia",
-        "size": 13479
+        "size": 13479,
+        "tokens": 3414
       }
     ]
   },
@@ -11397,13 +12860,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Lean.md",
         "displayName": "Drug Users Bible",
-        "size": 5654
+        "size": 5654,
+        "tokens": 1430
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lean.md",
         "displayName": "Wikipedia",
-        "size": 12292
+        "size": 12292,
+        "tokens": 3204
       }
     ]
   },
@@ -11415,19 +12880,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Librium.md",
         "displayName": "DrugBank",
-        "size": 24902
+        "size": 13281,
+        "tokens": 3382
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Librium.md",
         "displayName": "TripSit Factsheets",
-        "size": 789
+        "size": 789,
+        "tokens": 206
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Librium.md",
         "displayName": "Wikipedia",
-        "size": 15003
+        "size": 15003,
+        "tokens": 3498
       }
     ]
   },
@@ -11439,31 +12907,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Lisdexamfetamine.md",
         "displayName": "DrugBank",
-        "size": 21941
+        "size": 13543,
+        "tokens": 3322
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Lisdexamfetamine.md",
         "displayName": "Isomer Design",
-        "size": 776
+        "size": 436,
+        "tokens": 183
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Lisdexamfetamine.md",
         "displayName": "PsychonautWiki",
-        "size": 39054
+        "size": 30040,
+        "tokens": 7784
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lisdexamfetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 751
+        "size": 751,
+        "tokens": 209
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lisdexamfetamine.md",
         "displayName": "Wikipedia",
-        "size": 31510
+        "size": 31510,
+        "tokens": 7374
       }
     ]
   },
@@ -11475,13 +12948,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lithium.md",
         "displayName": "TripSit Factsheets",
-        "size": 2820
+        "size": 2820,
+        "tokens": 683
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lithium.md",
         "displayName": "Wikipedia",
-        "size": 49804
+        "size": 49804,
+        "tokens": 12311
       }
     ]
   },
@@ -11493,13 +12968,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Loprazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 520
+        "size": 520,
+        "tokens": 150
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Loprazolam.md",
         "displayName": "Wikipedia",
-        "size": 7613
+        "size": 7613,
+        "tokens": 1756
       }
     ]
   },
@@ -11511,43 +12988,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Lorazepam.md",
         "displayName": "DrugBank",
-        "size": 29306
+        "size": 13293,
+        "tokens": 3295
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Lorazepam.md",
         "displayName": "Erowid",
-        "size": 2857
+        "size": 2857,
+        "tokens": 801
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Lorazepam.md",
         "displayName": "Isomer Design",
-        "size": 818
+        "size": 424,
+        "tokens": 182
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Lorazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 29659
+        "size": 18985,
+        "tokens": 5004
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Lorazepam.md",
         "displayName": "Safer Party",
-        "size": 3436
+        "size": 3436,
+        "tokens": 819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lorazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 530
+        "size": 530,
+        "tokens": 161
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lorazepam.md",
         "displayName": "Wikipedia",
-        "size": 29768
+        "size": 29768,
+        "tokens": 7012
       }
     ]
   },
@@ -11559,19 +13043,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Lormetazepam.md",
         "displayName": "DrugBank",
-        "size": 13665
+        "size": 8149,
+        "tokens": 2111
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Lormetazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 651
+        "size": 651,
+        "tokens": 177
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Lormetazepam.md",
         "displayName": "Wikipedia",
-        "size": 7880
+        "size": 7880,
+        "tokens": 1834
       }
     ]
   },
@@ -11583,7 +13070,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MALT.md",
         "displayName": "Wikipedia",
-        "size": 2921
+        "size": 2921,
+        "tokens": 736
       }
     ]
   },
@@ -11595,25 +13083,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MBDB.md",
         "displayName": "Isomer Design",
-        "size": 4672
+        "size": 4672,
+        "tokens": 1267
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - MBDB.md",
         "displayName": "Safer Party",
-        "size": 1142
+        "size": 1142,
+        "tokens": 292
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MBDB.md",
         "displayName": "TripSit Factsheets",
-        "size": 713
+        "size": 713,
+        "tokens": 208
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MBDB.md",
         "displayName": "Wikipedia",
-        "size": 6657
+        "size": 6657,
+        "tokens": 1688
       }
     ]
   },
@@ -11625,13 +13117,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MBZP.md",
         "displayName": "TripSit Factsheets",
-        "size": 454
+        "size": 454,
+        "tokens": 129
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MBZP.md",
         "displayName": "Wikipedia",
-        "size": 2783
+        "size": 2783,
+        "tokens": 658
       }
     ]
   },
@@ -11643,31 +13137,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - MCPP.md",
         "displayName": "Erowid",
-        "size": 3553
+        "size": 3553,
+        "tokens": 998
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MCPP.md",
         "displayName": "Isomer Design",
-        "size": 717
+        "size": 371,
+        "tokens": 136
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MCPP.md",
         "displayName": "PsychonautWiki",
-        "size": 31228
+        "size": 14796,
+        "tokens": 4065
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MCPP.md",
         "displayName": "TripSit Factsheets",
-        "size": 228
+        "size": 228,
+        "tokens": 102
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MCPP.md",
         "displayName": "Wikipedia",
-        "size": 875
+        "size": 875,
+        "tokens": 203
       }
     ]
   },
@@ -11679,55 +13178,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - MDA.md",
         "displayName": "Drug Users Bible",
-        "size": 5938
+        "size": 5938,
+        "tokens": 1499
       },
       {
         "id": "erowid",
         "fileName": "EROWID - MDA.md",
         "displayName": "Erowid",
-        "size": 12977
+        "size": 12977,
+        "tokens": 3519
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDA.md",
         "displayName": "Isomer Design",
-        "size": 12532
+        "size": 12532,
+        "tokens": 3314
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDA.md",
         "displayName": "PsychonautWiki",
-        "size": 49453
+        "size": 38075,
+        "tokens": 10251
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - MDA.md",
         "displayName": "Safer Party",
-        "size": 1233
+        "size": 1233,
+        "tokens": 317
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - MDA.md",
         "displayName": "The Drug Classroom",
-        "size": 4474
+        "size": 975,
+        "tokens": 252
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDA.md",
         "displayName": "TripSit Factsheets",
-        "size": 536
+        "size": 536,
+        "tokens": 165
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - MDA.md",
         "displayName": "TripSit Wiki",
-        "size": 6935
+        "size": 6935,
+        "tokens": 1819
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDA.md",
         "displayName": "Wikipedia",
-        "size": 13040
+        "size": 13040,
+        "tokens": 3305
       }
     ]
   },
@@ -11739,43 +13247,50 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - MDAI.md",
         "displayName": "Disregard Everything I Say",
-        "size": 7660
+        "size": 7660,
+        "tokens": 1924
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - MDAI.md",
         "displayName": "Drug Users Bible",
-        "size": 2995
+        "size": 2995,
+        "tokens": 756
       },
       {
         "id": "erowid",
         "fileName": "EROWID - MDAI.md",
         "displayName": "Erowid",
-        "size": 6750
+        "size": 6750,
+        "tokens": 1973
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDAI.md",
         "displayName": "Isomer Design",
-        "size": 669
+        "size": 359,
+        "tokens": 143
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDAI.md",
         "displayName": "PsychonautWiki",
-        "size": 29961
+        "size": 21607,
+        "tokens": 5852
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDAI.md",
         "displayName": "TripSit Factsheets",
-        "size": 479
+        "size": 479,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDAI.md",
         "displayName": "Wikipedia",
-        "size": 7252
+        "size": 7252,
+        "tokens": 1815
       }
     ]
   },
@@ -11787,37 +13302,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - MDEA.md",
         "displayName": "Erowid",
-        "size": 1648
+        "size": 1648,
+        "tokens": 441
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDEA.md",
         "displayName": "Isomer Design",
-        "size": 10001
+        "size": 10001,
+        "tokens": 2648
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDEA.md",
         "displayName": "PsychonautWiki",
-        "size": 41295
+        "size": 29649,
+        "tokens": 7879
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - MDEA.md",
         "displayName": "Safer Party",
-        "size": 1142
+        "size": 1142,
+        "tokens": 292
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDEA.md",
         "displayName": "TripSit Factsheets",
-        "size": 359
+        "size": 359,
+        "tokens": 108
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDEA.md",
         "displayName": "Wikipedia",
-        "size": 2049
+        "size": 2049,
+        "tokens": 495
       }
     ]
   },
@@ -11829,67 +13350,78 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - MDMA.md",
         "displayName": "Disregard Everything I Say",
-        "size": 12273
+        "size": 12273,
+        "tokens": 2850
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - MDMA.md",
         "displayName": "DrugBank",
-        "size": 15690
+        "size": 7902,
+        "tokens": 1844
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - MDMA.md",
         "displayName": "Drug Users Bible",
-        "size": 8319
+        "size": 8319,
+        "tokens": 2135
       },
       {
         "id": "erowid",
         "fileName": "EROWID - MDMA.md",
         "displayName": "Erowid",
-        "size": 42145
+        "size": 42145,
+        "tokens": 11481
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDMA.md",
         "displayName": "Isomer Design",
-        "size": 15279
+        "size": 15279,
+        "tokens": 3967
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDMA.md",
         "displayName": "PsychonautWiki",
-        "size": 107733
+        "size": 65349,
+        "tokens": 17003
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - MDMA.md",
         "displayName": "Safer Party",
-        "size": 5632
+        "size": 5632,
+        "tokens": 1394
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - MDMA.md",
         "displayName": "The Drug Classroom",
-        "size": 104459
+        "size": 78925,
+        "tokens": 20745
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 3732
+        "size": 3732,
+        "tokens": 958
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - MDMA.md",
         "displayName": "TripSit Wiki",
-        "size": 10932
+        "size": 10932,
+        "tokens": 2796
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDMA.md",
         "displayName": "Wikipedia",
-        "size": 57307
+        "size": 57307,
+        "tokens": 14066
       }
     ]
   },
@@ -11901,19 +13433,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDOH.md",
         "displayName": "Isomer Design",
-        "size": 2453
+        "size": 2453,
+        "tokens": 618
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDOH.md",
         "displayName": "TripSit Factsheets",
-        "size": 923
+        "size": 923,
+        "tokens": 252
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDOH.md",
         "displayName": "Wikipedia",
-        "size": 989
+        "size": 989,
+        "tokens": 264
       }
     ]
   },
@@ -11925,7 +13460,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDPA.md",
         "displayName": "TripSit Factsheets",
-        "size": 661
+        "size": 661,
+        "tokens": 173
       }
     ]
   },
@@ -11937,7 +13473,8 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - MDPHP.md",
         "displayName": "The Drug Classroom",
-        "size": 18294
+        "size": 17481,
+        "tokens": 4428
       }
     ]
   },
@@ -11949,37 +13486,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - MDPV.md",
         "displayName": "Erowid",
-        "size": 27769
+        "size": 27769,
+        "tokens": 8123
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MDPV.md",
         "displayName": "Isomer Design",
-        "size": 702
+        "size": 342,
+        "tokens": 145
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MDPV.md",
         "displayName": "PsychonautWiki",
-        "size": 36379
+        "size": 26930,
+        "tokens": 7145
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MDPV.md",
         "displayName": "TripSit Factsheets",
-        "size": 947
+        "size": 947,
+        "tokens": 340
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - MDPV.md",
         "displayName": "TripSit Wiki",
-        "size": 3827
+        "size": 3827,
+        "tokens": 1035
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MDPV.md",
         "displayName": "Wikipedia",
-        "size": 13657
+        "size": 13657,
+        "tokens": 3390
       }
     ]
   },
@@ -11991,13 +13534,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - MEAI.md",
         "displayName": "Drug Users Bible",
-        "size": 6692
+        "size": 6692,
+        "tokens": 1748
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MEAI.md",
         "displayName": "Wikipedia",
-        "size": 4343
+        "size": 4343,
+        "tokens": 1124
       }
     ]
   },
@@ -12009,19 +13554,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MEM.md",
         "displayName": "Isomer Design",
-        "size": 10584
+        "size": 10584,
+        "tokens": 2793
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MEM.md",
         "displayName": "TripSit Factsheets",
-        "size": 1029
+        "size": 1029,
+        "tokens": 276
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MEM.md",
         "displayName": "Wikipedia",
-        "size": 1234
+        "size": 1234,
+        "tokens": 308
       }
     ]
   },
@@ -12033,31 +13581,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - MET.md",
         "displayName": "Erowid",
-        "size": 8473
+        "size": 8473,
+        "tokens": 2302
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MET.md",
         "displayName": "Isomer Design",
-        "size": 753
+        "size": 399,
+        "tokens": 161
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MET.md",
         "displayName": "PsychonautWiki",
-        "size": 20724
+        "size": 17832,
+        "tokens": 4859
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MET.md",
         "displayName": "TripSit Factsheets",
-        "size": 840
+        "size": 840,
+        "tokens": 245
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MET.md",
         "displayName": "Wikipedia",
-        "size": 2568
+        "size": 2568,
+        "tokens": 684
       }
     ]
   },
@@ -12069,13 +13622,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MK-801.md",
         "displayName": "TripSit Factsheets",
-        "size": 759
+        "size": 759,
+        "tokens": 201
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MK-801.md",
         "displayName": "Wikipedia",
-        "size": 9966
+        "size": 9966,
+        "tokens": 2306
       }
     ]
   },
@@ -12087,19 +13642,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MPT.md",
         "displayName": "Isomer Design",
-        "size": 749
+        "size": 407,
+        "tokens": 163
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MPT.md",
         "displayName": "PsychonautWiki",
-        "size": 15753
+        "size": 11836,
+        "tokens": 3143
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MPT.md",
         "displayName": "Wikipedia",
-        "size": 1009
+        "size": 1009,
+        "tokens": 258
       }
     ]
   },
@@ -12111,19 +13669,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - MT-45.md",
         "displayName": "The Drug Classroom",
-        "size": 8596
+        "size": 7224,
+        "tokens": 1868
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MT-45.md",
         "displayName": "TripSit Factsheets",
-        "size": 1011
+        "size": 1011,
+        "tokens": 268
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MT-45.md",
         "displayName": "Wikipedia",
-        "size": 2044
+        "size": 2044,
+        "tokens": 515
       }
     ]
   },
@@ -12135,13 +13696,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MXM.md",
         "displayName": "TripSit Factsheets",
-        "size": 832
+        "size": 832,
+        "tokens": 211
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MXM.md",
         "displayName": "Wikipedia",
-        "size": 334
+        "size": 334,
+        "tokens": 89
       }
     ]
   },
@@ -12153,19 +13716,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MXiPr.md",
         "displayName": "Isomer Design",
-        "size": 609
+        "size": 405,
+        "tokens": 171
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MXiPr.md",
         "displayName": "PsychonautWiki",
-        "size": 25716
+        "size": 22934,
+        "tokens": 6144
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MXiPr.md",
         "displayName": "Wikipedia",
-        "size": 586
+        "size": 586,
+        "tokens": 162
       }
     ]
   },
@@ -12177,13 +13743,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Maconha_Brava.md",
         "displayName": "Drug Users Bible",
-        "size": 1370
+        "size": 1370,
+        "tokens": 381
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Maconha_Brava.md",
         "displayName": "Wikipedia",
-        "size": 1451
+        "size": 1451,
+        "tokens": 350
       }
     ]
   },
@@ -12195,13 +13763,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mad_Honey.md",
         "displayName": "Drug Users Bible",
-        "size": 5017
+        "size": 5017,
+        "tokens": 1229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mad_Honey.md",
         "displayName": "Wikipedia",
-        "size": 8974
+        "size": 8974,
+        "tokens": 2101
       }
     ]
   },
@@ -12213,13 +13783,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mapacho.md",
         "displayName": "Drug Users Bible",
-        "size": 4440
+        "size": 4440,
+        "tokens": 1185
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mapacho.md",
         "displayName": "Wikipedia",
-        "size": 6336
+        "size": 6336,
+        "tokens": 1639
       }
     ]
   },
@@ -12231,13 +13803,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Marihuanilla.md",
         "displayName": "Drug Users Bible",
-        "size": 3689
+        "size": 3689,
+        "tokens": 980
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Marihuanilla.md",
         "displayName": "Wikipedia",
-        "size": 1645
+        "size": 1645,
+        "tokens": 406
       }
     ]
   },
@@ -12249,19 +13823,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Marinol.md",
         "displayName": "DrugBank",
-        "size": 38400
+        "size": 29210,
+        "tokens": 7421
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Marinol.md",
         "displayName": "TripSit Factsheets",
-        "size": 576
+        "size": 576,
+        "tokens": 167
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Marinol.md",
         "displayName": "Wikipedia",
-        "size": 7292
+        "size": 7292,
+        "tokens": 1781
       }
     ]
   },
@@ -12273,13 +13850,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mebroqualone.md",
         "displayName": "TripSit Factsheets",
-        "size": 631
+        "size": 631,
+        "tokens": 179
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mebroqualone.md",
         "displayName": "Wikipedia",
-        "size": 662
+        "size": 662,
+        "tokens": 159
       }
     ]
   },
@@ -12291,31 +13870,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Meclofenoxate.md",
         "displayName": "Erowid",
-        "size": 826
+        "size": 826,
+        "tokens": 232
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Meclofenoxate.md",
         "displayName": "Isomer Design",
-        "size": 727
+        "size": 409,
+        "tokens": 153
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Meclofenoxate.md",
         "displayName": "PsychonautWiki",
-        "size": 9027
+        "size": 6473,
+        "tokens": 1724
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Meclofenoxate.md",
         "displayName": "TripSit Factsheets",
-        "size": 297
+        "size": 297,
+        "tokens": 85
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Meclofenoxate.md",
         "displayName": "Wikipedia",
-        "size": 1354
+        "size": 1354,
+        "tokens": 348
       }
     ]
   },
@@ -12327,13 +13911,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Meclonazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 724
+        "size": 724,
+        "tokens": 187
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Meclonazepam.md",
         "displayName": "Wikipedia",
-        "size": 1600
+        "size": 1600,
+        "tokens": 371
       }
     ]
   },
@@ -12345,13 +13931,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Medazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 779
+        "size": 779,
+        "tokens": 214
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Medazepam.md",
         "displayName": "Wikipedia",
-        "size": 1077
+        "size": 1077,
+        "tokens": 261
       }
     ]
   },
@@ -12363,19 +13951,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Mefloquine.md",
         "displayName": "DrugBank",
-        "size": 24790
+        "size": 15289,
+        "tokens": 3887
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mefloquine.md",
         "displayName": "Drug Users Bible",
-        "size": 3901
+        "size": 3901,
+        "tokens": 991
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mefloquine.md",
         "displayName": "Wikipedia",
-        "size": 13328
+        "size": 13328,
+        "tokens": 3183
       }
     ]
   },
@@ -12387,25 +13978,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Melatonin.md",
         "displayName": "DrugBank",
-        "size": 27002
+        "size": 17076,
+        "tokens": 4127
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Melatonin.md",
         "displayName": "Isomer Design",
-        "size": 16109
+        "size": 16109,
+        "tokens": 4106
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Melatonin.md",
         "displayName": "TripSit Factsheets",
-        "size": 770
+        "size": 770,
+        "tokens": 206
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Melatonin.md",
         "displayName": "Wikipedia",
-        "size": 24621
+        "size": 24621,
+        "tokens": 5933
       }
     ]
   },
@@ -12417,19 +14012,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Memantine.md",
         "displayName": "DrugBank",
-        "size": 27727
+        "size": 16009,
+        "tokens": 4200
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Memantine.md",
         "displayName": "TripSit Factsheets",
-        "size": 533
+        "size": 533,
+        "tokens": 156
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Memantine.md",
         "displayName": "Wikipedia",
-        "size": 18726
+        "size": 18726,
+        "tokens": 4883
       }
     ]
   },
@@ -12441,55 +14039,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mephedrone.md",
         "displayName": "Drug Users Bible",
-        "size": 8270
+        "size": 8270,
+        "tokens": 2109
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Mephedrone.md",
         "displayName": "Erowid",
-        "size": 42308
+        "size": 42308,
+        "tokens": 11975
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Mephedrone.md",
         "displayName": "Isomer Design",
-        "size": 668
+        "size": 340,
+        "tokens": 134
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Mephedrone.md",
         "displayName": "PsychonautWiki",
-        "size": 43966
+        "size": 28196,
+        "tokens": 7615
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Mephedrone.md",
         "displayName": "Safer Party",
-        "size": 2182
+        "size": 2182,
+        "tokens": 522
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Mephedrone.md",
         "displayName": "The Drug Classroom",
-        "size": 1688
+        "size": 1688,
+        "tokens": 467
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mephedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 1093
+        "size": 1093,
+        "tokens": 296
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Mephedrone.md",
         "displayName": "TripSit Wiki",
-        "size": 3741
+        "size": 3741,
+        "tokens": 991
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mephedrone.md",
         "displayName": "Wikipedia",
-        "size": 43244
+        "size": 43244,
+        "tokens": 10693
       }
     ]
   },
@@ -12501,13 +14108,15 @@ export const substances: SubstanceInfo[] = [
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Mephenaqualone.md",
         "displayName": "PsychonautWiki",
-        "size": 8213
+        "size": 7047,
+        "tokens": 1860
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mephenaqualone.md",
         "displayName": "Wikipedia",
-        "size": 933
+        "size": 933,
+        "tokens": 224
       }
     ]
   },
@@ -12519,13 +14128,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mephtetramine.md",
         "displayName": "TripSit Factsheets",
-        "size": 416
+        "size": 416,
+        "tokens": 100
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mephtetramine.md",
         "displayName": "Wikipedia",
-        "size": 2625
+        "size": 2625,
+        "tokens": 625
       }
     ]
   },
@@ -12537,31 +14148,36 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Mescaline.md",
         "displayName": "Disregard Everything I Say",
-        "size": 177
+        "size": 177,
+        "tokens": 46
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mescaline.md",
         "displayName": "Drug Users Bible",
-        "size": 3505
+        "size": 3505,
+        "tokens": 871
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Mescaline.md",
         "displayName": "Safer Party",
-        "size": 2853
+        "size": 2853,
+        "tokens": 684
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mescaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 2983
+        "size": 2983,
+        "tokens": 800
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mescaline.md",
         "displayName": "Wikipedia",
-        "size": 31062
+        "size": 31062,
+        "tokens": 7826
       }
     ]
   },
@@ -12573,13 +14189,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Metaclazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 666
+        "size": 666,
+        "tokens": 167
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Metaclazepam.md",
         "displayName": "Wikipedia",
-        "size": 895
+        "size": 895,
+        "tokens": 206
       }
     ]
   },
@@ -12591,19 +14209,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Metaxalone.md",
         "displayName": "DrugBank",
-        "size": 15308
+        "size": 8684,
+        "tokens": 2130
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Metaxalone.md",
         "displayName": "TripSit Factsheets",
-        "size": 602
+        "size": 602,
+        "tokens": 165
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Metaxalone.md",
         "displayName": "Wikipedia",
-        "size": 1816
+        "size": 1816,
+        "tokens": 438
       }
     ]
   },
@@ -12615,43 +14236,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Methadone.md",
         "displayName": "DrugBank",
-        "size": 45516
+        "size": 31220,
+        "tokens": 7687
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methadone.md",
         "displayName": "Erowid",
-        "size": 5414
+        "size": 5414,
+        "tokens": 1490
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methadone.md",
         "displayName": "Isomer Design",
-        "size": 701
+        "size": 391,
+        "tokens": 166
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methadone.md",
         "displayName": "PsychonautWiki",
-        "size": 30810
+        "size": 22212,
+        "tokens": 5777
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methadone.md",
         "displayName": "TripSit Factsheets",
-        "size": 566
+        "size": 566,
+        "tokens": 174
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Methadone.md",
         "displayName": "TripSit Wiki",
-        "size": 1614
+        "size": 1614,
+        "tokens": 408
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methadone.md",
         "displayName": "Wikipedia",
-        "size": 32029
+        "size": 32029,
+        "tokens": 7761
       }
     ]
   },
@@ -12663,25 +14291,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methallylescaline.md",
         "displayName": "Isomer Design",
-        "size": 5826
+        "size": 5826,
+        "tokens": 1582
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methallylescaline.md",
         "displayName": "PsychonautWiki",
-        "size": 20747
+        "size": 17458,
+        "tokens": 4659
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methallylescaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 875
+        "size": 875,
+        "tokens": 245
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methallylescaline.md",
         "displayName": "Wikipedia",
-        "size": 4552
+        "size": 4552,
+        "tokens": 1150
       }
     ]
   },
@@ -12693,19 +14325,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methamnetamine.md",
         "displayName": "Drug Users Bible",
-        "size": 5358
+        "size": 5358,
+        "tokens": 1378
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methamnetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 604
+        "size": 604,
+        "tokens": 165
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methamnetamine.md",
         "displayName": "Wikipedia",
-        "size": 791
+        "size": 791,
+        "tokens": 199
       }
     ]
   },
@@ -12717,55 +14352,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methamphetamine.md",
         "displayName": "Drug Users Bible",
-        "size": 8959
+        "size": 8959,
+        "tokens": 2311
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methamphetamine.md",
         "displayName": "Erowid",
-        "size": 24278
+        "size": 24278,
+        "tokens": 6222
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methamphetamine.md",
         "displayName": "Isomer Design",
-        "size": 718
+        "size": 392,
+        "tokens": 139
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methamphetamine.md",
         "displayName": "PsychonautWiki",
-        "size": 65333
+        "size": 39451,
+        "tokens": 10295
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Methamphetamine.md",
         "displayName": "Safer Party",
-        "size": 2760
+        "size": 2760,
+        "tokens": 668
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Methamphetamine.md",
         "displayName": "The Drug Classroom",
-        "size": 9363
+        "size": 7283,
+        "tokens": 1873
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methamphetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 1279
+        "size": 1279,
+        "tokens": 365
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Methamphetamine.md",
         "displayName": "TripSit Wiki",
-        "size": 6892
+        "size": 6892,
+        "tokens": 1673
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methamphetamine.md",
         "displayName": "Wikipedia",
-        "size": 40518
+        "size": 40518,
+        "tokens": 9667
       }
     ]
   },
@@ -12777,43 +14421,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Methaqualone.md",
         "displayName": "DrugBank",
-        "size": 13312
+        "size": 13312,
+        "tokens": 3271
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methaqualone.md",
         "displayName": "Erowid",
-        "size": 17728
+        "size": 17728,
+        "tokens": 4545
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methaqualone.md",
         "displayName": "Isomer Design",
-        "size": 688
+        "size": 372,
+        "tokens": 143
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methaqualone.md",
         "displayName": "PsychonautWiki",
-        "size": 20156
+        "size": 17400,
+        "tokens": 4610
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Methaqualone.md",
         "displayName": "The Drug Classroom",
-        "size": 124631
+        "size": 118330,
+        "tokens": 30553
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methaqualone.md",
         "displayName": "TripSit Factsheets",
-        "size": 575
+        "size": 575,
+        "tokens": 165
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methaqualone.md",
         "displayName": "Wikipedia",
-        "size": 12127
+        "size": 12127,
+        "tokens": 3222
       }
     ]
   },
@@ -12825,31 +14476,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methcathinone.md",
         "displayName": "Drug Users Bible",
-        "size": 4456
+        "size": 4456,
+        "tokens": 1137
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methcathinone.md",
         "displayName": "Isomer Design",
-        "size": 643
+        "size": 325,
+        "tokens": 124
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methcathinone.md",
         "displayName": "PsychonautWiki",
-        "size": 14374
+        "size": 12788,
+        "tokens": 3386
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Methcathinone.md",
         "displayName": "Safer Party",
-        "size": 2071
+        "size": 2071,
+        "tokens": 502
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methcathinone.md",
         "displayName": "Wikipedia",
-        "size": 8382
+        "size": 8382,
+        "tokens": 2075
       }
     ]
   },
@@ -12861,13 +14517,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 258
+        "size": 258,
+        "tokens": 71
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methedrone.md",
         "displayName": "Wikipedia",
-        "size": 11811
+        "size": 11811,
+        "tokens": 2865
       }
     ]
   },
@@ -12879,43 +14537,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methiopropamine.md",
         "displayName": "Drug Users Bible",
-        "size": 3108
+        "size": 3108,
+        "tokens": 785
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methiopropamine.md",
         "displayName": "Erowid",
-        "size": 13459
+        "size": 13459,
+        "tokens": 3645
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methiopropamine.md",
         "displayName": "Isomer Design",
-        "size": 692
+        "size": 358,
+        "tokens": 135
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methiopropamine.md",
         "displayName": "PsychonautWiki",
-        "size": 26210
+        "size": 19426,
+        "tokens": 5281
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Methiopropamine.md",
         "displayName": "The Drug Classroom",
-        "size": 28681
+        "size": 22995,
+        "tokens": 5883
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methiopropamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 541
+        "size": 541,
+        "tokens": 167
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methiopropamine.md",
         "displayName": "Wikipedia",
-        "size": 3889
+        "size": 3889,
+        "tokens": 1033
       }
     ]
   },
@@ -12927,55 +14592,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methoxetamine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 15224
+        "size": 15224,
+        "tokens": 3878
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methoxetamine.md",
         "displayName": "Drug Users Bible",
-        "size": 3015
+        "size": 3015,
+        "tokens": 744
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methoxetamine.md",
         "displayName": "Erowid",
-        "size": 23577
+        "size": 23577,
+        "tokens": 6745
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methoxetamine.md",
         "displayName": "Isomer Design",
-        "size": 782
+        "size": 335,
+        "tokens": 137
       },
       {
         "id": "nervewing",
         "fileName": "NERVEWING - Beyond MXE.md",
         "displayName": "NERVEWING",
-        "size": 14692
+        "size": 14692,
+        "tokens": 3810
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methoxetamine.md",
         "displayName": "PsychonautWiki",
-        "size": 31111
+        "size": 24719,
+        "tokens": 6635
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxetamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 2945
+        "size": 2945,
+        "tokens": 776
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Methoxetamine.md",
         "displayName": "TripSit Wiki",
-        "size": 5046
+        "size": 3753,
+        "tokens": 1026
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methoxetamine.md",
         "displayName": "Wikipedia",
-        "size": 7674
+        "size": 7674,
+        "tokens": 1908
       }
     ]
   },
@@ -12987,25 +14661,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methoxphenidine.md",
         "displayName": "Disregard Everything I Say",
-        "size": 9035
+        "size": 9035,
+        "tokens": 2156
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methoxphenidine.md",
         "displayName": "Drug Users Bible",
-        "size": 5929
+        "size": 5929,
+        "tokens": 1507
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxphenidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 717
+        "size": 717,
+        "tokens": 199
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methoxphenidine.md",
         "displayName": "Wikipedia",
-        "size": 2118
+        "size": 2118,
+        "tokens": 507
       }
     ]
   },
@@ -13017,13 +14695,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxyacetyl-Fentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 430
+        "size": 430,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methoxyacetyl-Fentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1035
+        "size": 1035,
+        "tokens": 235
       }
     ]
   },
@@ -13035,13 +14715,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxyketamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 738
+        "size": 738,
+        "tokens": 204
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methoxyketamine.md",
         "displayName": "Wikipedia",
-        "size": 583
+        "size": 583,
+        "tokens": 146
       }
     ]
   },
@@ -13053,13 +14735,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methoxypiperamide.md",
         "displayName": "TripSit Factsheets",
-        "size": 370
+        "size": 370,
+        "tokens": 98
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methoxypiperamide.md",
         "displayName": "Wikipedia",
-        "size": 543
+        "size": 543,
+        "tokens": 132
       }
     ]
   },
@@ -13071,13 +14755,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylmethaqualone.md",
         "displayName": "TripSit Factsheets",
-        "size": 949
+        "size": 949,
+        "tokens": 264
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methylmethaqualone.md",
         "displayName": "Wikipedia",
-        "size": 1037
+        "size": 1037,
+        "tokens": 250
       }
     ]
   },
@@ -13089,7 +14775,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylmorphenate.md",
         "displayName": "TripSit Factsheets",
-        "size": 323
+        "size": 323,
+        "tokens": 84
       }
     ]
   },
@@ -13101,37 +14788,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methylnaphthidate.md",
         "displayName": "Drug Users Bible",
-        "size": 2603
+        "size": 2603,
+        "tokens": 652
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methylnaphthidate.md",
         "displayName": "Isomer Design",
-        "size": 887
+        "size": 458,
+        "tokens": 186
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methylnaphthidate.md",
         "displayName": "PsychonautWiki",
-        "size": 20205
+        "size": 16422,
+        "tokens": 4403
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Methylnaphthidate.md",
         "displayName": "The Drug Classroom",
-        "size": 3187
+        "size": 2996,
+        "tokens": 774
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylnaphthidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 503
+        "size": 503,
+        "tokens": 156
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methylnaphthidate.md",
         "displayName": "Wikipedia",
-        "size": 1054
+        "size": 1054,
+        "tokens": 289
       }
     ]
   },
@@ -13143,49 +14836,57 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Methylone.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10592
+        "size": 10592,
+        "tokens": 2660
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methylone.md",
         "displayName": "Drug Users Bible",
-        "size": 5274
+        "size": 5274,
+        "tokens": 1331
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Methylone.md",
         "displayName": "Erowid",
-        "size": 21859
+        "size": 21859,
+        "tokens": 6279
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Methylone.md",
         "displayName": "Isomer Design",
-        "size": 640
+        "size": 312,
+        "tokens": 127
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Methylone.md",
         "displayName": "PsychonautWiki",
-        "size": 31930
+        "size": 24278,
+        "tokens": 6499
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Methylone.md",
         "displayName": "Safer Party",
-        "size": 870
+        "size": 870,
+        "tokens": 218
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 617
+        "size": 617,
+        "tokens": 187
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methylone.md",
         "displayName": "Wikipedia",
-        "size": 13683
+        "size": 13683,
+        "tokens": 3509
       }
     ]
   },
@@ -13197,37 +14898,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Methylphenidate.md",
         "displayName": "DrugBank",
-        "size": 43169
+        "size": 25048,
+        "tokens": 6632
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Methylphenidate.md",
         "displayName": "Drug Users Bible",
-        "size": 5844
+        "size": 5844,
+        "tokens": 1478
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Methylphenidate.md",
         "displayName": "Safer Party",
-        "size": 1629
+        "size": 1629,
+        "tokens": 389
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Methylphenidate.md",
         "displayName": "The Drug Classroom",
-        "size": 6234
+        "size": 1108,
+        "tokens": 311
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 976
+        "size": 976,
+        "tokens": 260
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 36654
+        "size": 36654,
+        "tokens": 8969
       }
     ]
   },
@@ -13239,19 +14946,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Methyprylon.md",
         "displayName": "DrugBank",
-        "size": 12394
+        "size": 5799,
+        "tokens": 1358
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Methyprylon.md",
         "displayName": "TripSit Factsheets",
-        "size": 574
+        "size": 574,
+        "tokens": 147
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Methyprylon.md",
         "displayName": "Wikipedia",
-        "size": 1739
+        "size": 1739,
+        "tokens": 423
       }
     ]
   },
@@ -13263,25 +14973,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Metizolam.md",
         "displayName": "Isomer Design",
-        "size": 879
+        "size": 465,
+        "tokens": 189
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Metizolam.md",
         "displayName": "PsychonautWiki",
-        "size": 26843
+        "size": 19806,
+        "tokens": 5098
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Metizolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 431
+        "size": 431,
+        "tokens": 129
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Metizolam.md",
         "displayName": "Wikipedia",
-        "size": 340
+        "size": 340,
+        "tokens": 84
       }
     ]
   },
@@ -13293,13 +15007,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mexamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 613
+        "size": 613,
+        "tokens": 150
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mexamine.md",
         "displayName": "Wikipedia",
-        "size": 5277
+        "size": 5277,
+        "tokens": 1466
       }
     ]
   },
@@ -13311,13 +15027,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mexazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 647
+        "size": 647,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mexazolam.md",
         "displayName": "Wikipedia",
-        "size": 2250
+        "size": 2250,
+        "tokens": 555
       }
     ]
   },
@@ -13329,31 +15047,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mexedrone.md",
         "displayName": "Drug Users Bible",
-        "size": 3646
+        "size": 3646,
+        "tokens": 948
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Mexedrone.md",
         "displayName": "Isomer Design",
-        "size": 640
+        "size": 363,
+        "tokens": 145
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Mexedrone.md",
         "displayName": "PsychonautWiki",
-        "size": 21277
+        "size": 16415,
+        "tokens": 4417
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Mexedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 580
+        "size": 580,
+        "tokens": 231
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mexedrone.md",
         "displayName": "Wikipedia",
-        "size": 622
+        "size": 622,
+        "tokens": 193
       }
     ]
   },
@@ -13365,13 +15088,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mexican_Tarragon.md",
         "displayName": "Drug Users Bible",
-        "size": 1200
+        "size": 1200,
+        "tokens": 293
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mexican_Tarragon.md",
         "displayName": "Wikipedia",
-        "size": 2706
+        "size": 2706,
+        "tokens": 651
       }
     ]
   },
@@ -13383,19 +15108,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MiPLA.md",
         "displayName": "Isomer Design",
-        "size": 722
+        "size": 409,
+        "tokens": 188
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MiPLA.md",
         "displayName": "PsychonautWiki",
-        "size": 32682
+        "size": 27623,
+        "tokens": 7448
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MiPLA.md",
         "displayName": "Wikipedia",
-        "size": 4744
+        "size": 4744,
+        "tokens": 1173
       }
     ]
   },
@@ -13407,31 +15135,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - MiPT.md",
         "displayName": "Erowid",
-        "size": 2153
+        "size": 2153,
+        "tokens": 586
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - MiPT.md",
         "displayName": "Isomer Design",
-        "size": 6951
+        "size": 6951,
+        "tokens": 1897
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - MiPT.md",
         "displayName": "PsychonautWiki",
-        "size": 14889
+        "size": 11489,
+        "tokens": 3107
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - MiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 1145
+        "size": 1145,
+        "tokens": 414
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - MiPT.md",
         "displayName": "Wikipedia",
-        "size": 3901
+        "size": 3901,
+        "tokens": 1022
       }
     ]
   },
@@ -13443,37 +15176,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Midazolam.md",
         "displayName": "DrugBank",
-        "size": 41711
+        "size": 26676,
+        "tokens": 6795
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Midazolam.md",
         "displayName": "Isomer Design",
-        "size": 817
+        "size": 423,
+        "tokens": 175
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Midazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 12231
+        "size": 8287,
+        "tokens": 2172
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Midazolam.md",
         "displayName": "Safer Party",
-        "size": 3436
+        "size": 3436,
+        "tokens": 819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Midazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 834
+        "size": 834,
+        "tokens": 311
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Midazolam.md",
         "displayName": "Wikipedia",
-        "size": 23357
+        "size": 23357,
+        "tokens": 5595
       }
     ]
   },
@@ -13485,19 +15224,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Moclobemide.md",
         "displayName": "DrugBank",
-        "size": 20836
+        "size": 11714,
+        "tokens": 2758
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Moclobemide.md",
         "displayName": "TripSit Factsheets",
-        "size": 494
+        "size": 494,
+        "tokens": 141
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Moclobemide.md",
         "displayName": "Wikipedia",
-        "size": 30562
+        "size": 30562,
+        "tokens": 7093
       }
     ]
   },
@@ -13509,55 +15251,64 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Modafinil.md",
         "displayName": "DrugBank",
-        "size": 18696
+        "size": 11449,
+        "tokens": 2742
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Modafinil.md",
         "displayName": "Drug Users Bible",
-        "size": 3648
+        "size": 3648,
+        "tokens": 956
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Modafinil.md",
         "displayName": "Erowid",
-        "size": 9391
+        "size": 9391,
+        "tokens": 2640
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Modafinil.md",
         "displayName": "Isomer Design",
-        "size": 750
+        "size": 372,
+        "tokens": 144
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Modafinil.md",
         "displayName": "PsychonautWiki",
-        "size": 35897
+        "size": 21843,
+        "tokens": 5741
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Modafinil.md",
         "displayName": "Safer Party",
-        "size": 4447
+        "size": 4447,
+        "tokens": 1071
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Modafinil.md",
         "displayName": "The Drug Classroom",
-        "size": 4981
+        "size": 1142,
+        "tokens": 323
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Modafinil.md",
         "displayName": "TripSit Factsheets",
-        "size": 431
+        "size": 431,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Modafinil.md",
         "displayName": "Wikipedia",
-        "size": 47606
+        "size": 47606,
+        "tokens": 11217
       }
     ]
   },
@@ -13569,13 +15320,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Morpheridine.md",
         "displayName": "TripSit Factsheets",
-        "size": 469
+        "size": 469,
+        "tokens": 124
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Morpheridine.md",
         "displayName": "Wikipedia",
-        "size": 1116
+        "size": 1116,
+        "tokens": 266
       }
     ]
   },
@@ -13587,37 +15340,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Morphine.md",
         "displayName": "DrugBank",
-        "size": 29599
+        "size": 18229,
+        "tokens": 4909
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Morphine.md",
         "displayName": "Drug Users Bible",
-        "size": 1562
+        "size": 1562,
+        "tokens": 396
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Morphine.md",
         "displayName": "Safer Party",
-        "size": 3361
+        "size": 3361,
+        "tokens": 792
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Morphine.md",
         "displayName": "The Drug Classroom",
-        "size": 1409
+        "size": 1409,
+        "tokens": 383
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Morphine.md",
         "displayName": "TripSit Factsheets",
-        "size": 889
+        "size": 889,
+        "tokens": 228
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Morphine.md",
         "displayName": "Wikipedia",
-        "size": 57530
+        "size": 57530,
+        "tokens": 13995
       }
     ]
   },
@@ -13629,13 +15388,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mugwort.md",
         "displayName": "Drug Users Bible",
-        "size": 2848
+        "size": 2848,
+        "tokens": 717
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mugwort.md",
         "displayName": "Wikipedia",
-        "size": 11984
+        "size": 11984,
+        "tokens": 3011
       }
     ]
   },
@@ -13647,13 +15408,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mullein.md",
         "displayName": "Drug Users Bible",
-        "size": 3433
+        "size": 3433,
+        "tokens": 861
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mullein.md",
         "displayName": "Wikipedia",
-        "size": 1428
+        "size": 1428,
+        "tokens": 398
       }
     ]
   },
@@ -13665,13 +15428,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Mulungu.md",
         "displayName": "Drug Users Bible",
-        "size": 3134
+        "size": 3134,
+        "tokens": 758
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Mulungu.md",
         "displayName": "Wikipedia",
-        "size": 2655
+        "size": 2655,
+        "tokens": 713
       }
     ]
   },
@@ -13683,13 +15448,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Fly_Agaric.md",
         "displayName": "Drug Users Bible",
-        "size": 3210
+        "size": 3210,
+        "tokens": 784
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Fly_Agaric.md",
         "displayName": "Wikipedia",
-        "size": 35133
+        "size": 35133,
+        "tokens": 8614
       }
     ]
   },
@@ -13701,19 +15468,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - N-Acetylcysteine.md",
         "displayName": "DrugBank",
-        "size": 28407
+        "size": 17941,
+        "tokens": 5026
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - N-Acetylcysteine.md",
         "displayName": "PsychonautWiki",
-        "size": 23154
+        "size": 10093,
+        "tokens": 2663
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - N-Acetylcysteine.md",
         "displayName": "Wikipedia",
-        "size": 14378
+        "size": 14378,
+        "tokens": 3397
       }
     ]
   },
@@ -13725,37 +15495,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - N-Ethylhexedrone.md",
         "displayName": "Drug Users Bible",
-        "size": 5488
+        "size": 5488,
+        "tokens": 1445
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - N-Ethylhexedrone.md",
         "displayName": "Isomer Design",
-        "size": 703
+        "size": 355,
+        "tokens": 142
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - N-Ethylhexedrone.md",
         "displayName": "PsychonautWiki",
-        "size": 40796
+        "size": 26771,
+        "tokens": 7226
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - N-Ethylhexedrone.md",
         "displayName": "The Drug Classroom",
-        "size": 10488
+        "size": 10052,
+        "tokens": 2538
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - N-Ethylhexedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 1004
+        "size": 1004,
+        "tokens": 277
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - N-Ethylhexedrone.md",
         "displayName": "Wikipedia",
-        "size": 7062
+        "size": 7062,
+        "tokens": 1755
       }
     ]
   },
@@ -13767,19 +15543,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - N-Methylbisfluoromodafinil.md",
         "displayName": "Isomer Design",
-        "size": 772
+        "size": 493,
+        "tokens": 187
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - N-Methylbisfluoromodafinil.md",
         "displayName": "PsychonautWiki",
-        "size": 18103
+        "size": 14555,
+        "tokens": 3862
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - N-Methylbisfluoromodafinil.md",
         "displayName": "Wikipedia",
-        "size": 3793
+        "size": 3793,
+        "tokens": 979
       }
     ]
   },
@@ -13791,13 +15570,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - NEB.md",
         "displayName": "TripSit Factsheets",
-        "size": 784
+        "size": 784,
+        "tokens": 211
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - NEB.md",
         "displayName": "Wikipedia",
-        "size": 473
+        "size": 473,
+        "tokens": 127
       }
     ]
   },
@@ -13809,31 +15590,36 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - NEP.md",
         "displayName": "Isomer Design",
-        "size": 680
+        "size": 342,
+        "tokens": 140
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - NEP.md",
         "displayName": "PsychonautWiki",
-        "size": 31034
+        "size": 23017,
+        "tokens": 6245
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - NEP.md",
         "displayName": "The Drug Classroom",
-        "size": 29771
+        "size": 29771,
+        "tokens": 7156
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - NEP.md",
         "displayName": "TripSit Factsheets",
-        "size": 465
+        "size": 465,
+        "tokens": 143
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - NEP.md",
         "displayName": "Wikipedia",
-        "size": 533
+        "size": 533,
+        "tokens": 164
       }
     ]
   },
@@ -13845,31 +15631,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - NM-2-AI.md",
         "displayName": "Drug Users Bible",
-        "size": 1390
+        "size": 1390,
+        "tokens": 354
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - NM-2-AI.md",
         "displayName": "Isomer Design",
-        "size": 693
+        "size": 367,
+        "tokens": 148
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - NM-2-AI.md",
         "displayName": "PsychonautWiki",
-        "size": 22582
+        "size": 18170,
+        "tokens": 4948
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - NM-2-AI.md",
         "displayName": "TripSit Factsheets",
-        "size": 323
+        "size": 323,
+        "tokens": 104
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - NM-2-AI.md",
         "displayName": "Wikipedia",
-        "size": 1645
+        "size": 1645,
+        "tokens": 462
       }
     ]
   },
@@ -13881,13 +15672,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - NSI-189.md",
         "displayName": "Drug Users Bible",
-        "size": 941
+        "size": 941,
+        "tokens": 238
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - NSI-189.md",
         "displayName": "Wikipedia",
-        "size": 10206
+        "size": 10206,
+        "tokens": 2496
       }
     ]
   },
@@ -13899,31 +15692,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Naloxone.md",
         "displayName": "DrugBank",
-        "size": 34686
+        "size": 23337,
+        "tokens": 6360
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Naloxone.md",
         "displayName": "Erowid",
-        "size": 2281
+        "size": 2281,
+        "tokens": 593
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Naloxone.md",
         "displayName": "Isomer Design",
-        "size": 732
+        "size": 412,
+        "tokens": 191
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Naloxone.md",
         "displayName": "PsychonautWiki",
-        "size": 20591
+        "size": 16100,
+        "tokens": 4174
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Naloxone.md",
         "displayName": "Wikipedia",
-        "size": 24915
+        "size": 24915,
+        "tokens": 5974
       }
     ]
   },
@@ -13935,13 +15733,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Naphyrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 448
+        "size": 448,
+        "tokens": 126
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Naphyrone.md",
         "displayName": "Wikipedia",
-        "size": 3301
+        "size": 3301,
+        "tokens": 881
       }
     ]
   },
@@ -13953,19 +15753,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Naproxen.md",
         "displayName": "DrugBank",
-        "size": 46164
+        "size": 21800,
+        "tokens": 5704
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Naproxen.md",
         "displayName": "TripSit Factsheets",
-        "size": 701
+        "size": 701,
+        "tokens": 181
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Naproxen.md",
         "displayName": "Wikipedia",
-        "size": 11882
+        "size": 11882,
+        "tokens": 2870
       }
     ]
   },
@@ -13977,13 +15780,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nefiracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 603
+        "size": 603,
+        "tokens": 165
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nefiracetam.md",
         "displayName": "Wikipedia",
-        "size": 1845
+        "size": 1845,
+        "tokens": 456
       }
     ]
   },
@@ -13995,13 +15800,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nicomorphine.md",
         "displayName": "TripSit Factsheets",
-        "size": 569
+        "size": 569,
+        "tokens": 153
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nicomorphine.md",
         "displayName": "Wikipedia",
-        "size": 4268
+        "size": 4268,
+        "tokens": 1045
       }
     ]
   },
@@ -14013,25 +15820,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Nicotine.md",
         "displayName": "DrugBank",
-        "size": 31448
+        "size": 14908,
+        "tokens": 3715
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Nicotine.md",
         "displayName": "Safer Party",
-        "size": 4387
+        "size": 4387,
+        "tokens": 1037
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nicotine.md",
         "displayName": "TripSit Factsheets",
-        "size": 709
+        "size": 709,
+        "tokens": 183
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nicotine.md",
         "displayName": "Wikipedia",
-        "size": 49344
+        "size": 49344,
+        "tokens": 12060
       }
     ]
   },
@@ -14043,25 +15854,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Nifoxipam.md",
         "displayName": "Isomer Design",
-        "size": 931
+        "size": 521,
+        "tokens": 212
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Nifoxipam.md",
         "displayName": "PsychonautWiki",
-        "size": 29342
+        "size": 20233,
+        "tokens": 5270
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nifoxipam.md",
         "displayName": "TripSit Factsheets",
-        "size": 476
+        "size": 476,
+        "tokens": 136
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nifoxipam.md",
         "displayName": "Wikipedia",
-        "size": 374
+        "size": 374,
+        "tokens": 93
       }
     ]
   },
@@ -14073,13 +15888,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nimetazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 650
+        "size": 650,
+        "tokens": 175
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nimetazepam.md",
         "displayName": "Wikipedia",
-        "size": 8119
+        "size": 8119,
+        "tokens": 1916
       }
     ]
   },
@@ -14091,13 +15908,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitemazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 591
+        "size": 591,
+        "tokens": 163
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nitemazepam.md",
         "displayName": "Wikipedia",
-        "size": 585
+        "size": 585,
+        "tokens": 146
       }
     ]
   },
@@ -14109,13 +15928,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitracaine.md",
         "displayName": "TripSit Factsheets",
-        "size": 569
+        "size": 569,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nitracaine.md",
         "displayName": "Wikipedia",
-        "size": 833
+        "size": 833,
+        "tokens": 207
       }
     ]
   },
@@ -14127,19 +15948,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Nitrazepam.md",
         "displayName": "DrugBank",
-        "size": 18572
+        "size": 10330,
+        "tokens": 2600
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitrazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 723
+        "size": 723,
+        "tokens": 201
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nitrazepam.md",
         "displayName": "Wikipedia",
-        "size": 24429
+        "size": 24429,
+        "tokens": 5631
       }
     ]
   },
@@ -14151,13 +15975,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitrazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 611
+        "size": 611,
+        "tokens": 164
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nitrazolam.md",
         "displayName": "Wikipedia",
-        "size": 937
+        "size": 937,
+        "tokens": 233
       }
     ]
   },
@@ -14169,67 +15995,78 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Nitrous.md",
         "displayName": "Disregard Everything I Say",
-        "size": 13722
+        "size": 13722,
+        "tokens": 3301
       },
       {
         "id": "drugbank",
         "fileName": "DRUGBANK - Nitrous.md",
         "displayName": "DrugBank",
-        "size": 11684
+        "size": 11684,
+        "tokens": 2937
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Nitrous.md",
         "displayName": "Drug Users Bible",
-        "size": 1505
+        "size": 1505,
+        "tokens": 387
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Nitrous.md",
         "displayName": "Erowid",
-        "size": 24111
+        "size": 24111,
+        "tokens": 6282
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Nitrous.md",
         "displayName": "Isomer Design",
-        "size": 542
+        "size": 228,
+        "tokens": 76
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Nitrous.md",
         "displayName": "PsychonautWiki",
-        "size": 46480
+        "size": 34119,
+        "tokens": 8911
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Nitrous.md",
         "displayName": "Safer Party",
-        "size": 1337
+        "size": 1337,
+        "tokens": 323
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Nitrous.md",
         "displayName": "The Drug Classroom",
-        "size": 92643
+        "size": 78347,
+        "tokens": 19649
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nitrous.md",
         "displayName": "TripSit Factsheets",
-        "size": 2124
+        "size": 2124,
+        "tokens": 557
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Nitrous.md",
         "displayName": "TripSit Wiki",
-        "size": 3609
+        "size": 3609,
+        "tokens": 958
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nitrous.md",
         "displayName": "Wikipedia",
-        "size": 35407
+        "size": 35407,
+        "tokens": 8690
       }
     ]
   },
@@ -14241,19 +16078,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Noopept.md",
         "displayName": "Drug Users Bible",
-        "size": 3325
+        "size": 3325,
+        "tokens": 849
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Noopept.md",
         "displayName": "TripSit Factsheets",
-        "size": 1186
+        "size": 1186,
+        "tokens": 309
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Noopept.md",
         "displayName": "Wikipedia",
-        "size": 2966
+        "size": 2966,
+        "tokens": 742
       }
     ]
   },
@@ -14265,13 +16105,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Nordazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 841
+        "size": 841,
+        "tokens": 216
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nordazepam.md",
         "displayName": "Wikipedia",
-        "size": 3894
+        "size": 3894,
+        "tokens": 914
       }
     ]
   },
@@ -14283,13 +16125,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Norflurazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 589
+        "size": 589,
+        "tokens": 157
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Norflurazepam.md",
         "displayName": "Wikipedia",
-        "size": 1016
+        "size": 1016,
+        "tokens": 262
       }
     ]
   },
@@ -14301,13 +16145,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Nutmeg.md",
         "displayName": "Drug Users Bible",
-        "size": 2462
+        "size": 2462,
+        "tokens": 642
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Nutmeg.md",
         "displayName": "Wikipedia",
-        "size": 13746
+        "size": 13746,
+        "tokens": 3345
       }
     ]
   },
@@ -14319,19 +16165,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - O-Desmethyltramadol.md",
         "displayName": "The Drug Classroom",
-        "size": 41966
+        "size": 38720,
+        "tokens": 10046
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - O-Desmethyltramadol.md",
         "displayName": "TripSit Factsheets",
-        "size": 812
+        "size": 812,
+        "tokens": 219
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - O-Desmethyltramadol.md",
         "displayName": "Wikipedia",
-        "size": 3971
+        "size": 3971,
+        "tokens": 945
       }
     ]
   },
@@ -14343,25 +16192,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - O-PCE.md",
         "displayName": "Isomer Design",
-        "size": 751
+        "size": 355,
+        "tokens": 145
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - O-PCE.md",
         "displayName": "PsychonautWiki",
-        "size": 24496
+        "size": 21278,
+        "tokens": 5819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - O-PCE.md",
         "displayName": "TripSit Factsheets",
-        "size": 505
+        "size": 505,
+        "tokens": 218
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - O-PCE.md",
         "displayName": "Wikipedia",
-        "size": 308
+        "size": 308,
+        "tokens": 87
       }
     ]
   },
@@ -14373,25 +16226,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Opium.md",
         "displayName": "DrugBank",
-        "size": 15520
+        "size": 12212,
+        "tokens": 2976
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Opium.md",
         "displayName": "Drug Users Bible",
-        "size": 2507
+        "size": 2507,
+        "tokens": 632
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Opium.md",
         "displayName": "TripSit Factsheets",
-        "size": 941
+        "size": 941,
+        "tokens": 239
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Opium.md",
         "displayName": "Wikipedia",
-        "size": 67584
+        "size": 67584,
+        "tokens": 16628
       }
     ]
   },
@@ -14403,25 +16260,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Oxazepam.md",
         "displayName": "DrugBank",
-        "size": 26263
+        "size": 11624,
+        "tokens": 2849
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Oxazepam.md",
         "displayName": "Safer Party",
-        "size": 3434
+        "size": 3434,
+        "tokens": 819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 745
+        "size": 745,
+        "tokens": 191
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Oxazepam.md",
         "displayName": "Wikipedia",
-        "size": 10744
+        "size": 10744,
+        "tokens": 2552
       }
     ]
   },
@@ -14433,13 +16294,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 383
+        "size": 383,
+        "tokens": 108
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Oxazolam.md",
         "displayName": "Wikipedia",
-        "size": 242
+        "size": 242,
+        "tokens": 65
       }
     ]
   },
@@ -14451,31 +16314,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Oxiracetam.md",
         "displayName": "Erowid",
-        "size": 781
+        "size": 781,
+        "tokens": 219
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Oxiracetam.md",
         "displayName": "Isomer Design",
-        "size": 680
+        "size": 368,
+        "tokens": 140
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Oxiracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 13519
+        "size": 8172,
+        "tokens": 2114
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxiracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 303
+        "size": 303,
+        "tokens": 88
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Oxiracetam.md",
         "displayName": "Wikipedia",
-        "size": 2882
+        "size": 2882,
+        "tokens": 707
       }
     ]
   },
@@ -14487,61 +16355,71 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Oxycodone.md",
         "displayName": "DrugBank",
-        "size": 37210
+        "size": 21883,
+        "tokens": 5932
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Oxycodone.md",
         "displayName": "Drug Users Bible",
-        "size": 4790
+        "size": 4790,
+        "tokens": 1246
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Oxycodone.md",
         "displayName": "Erowid",
-        "size": 21273
+        "size": 21273,
+        "tokens": 5631
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Oxycodone.md",
         "displayName": "Isomer Design",
-        "size": 778
+        "size": 456,
+        "tokens": 194
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Oxycodone.md",
         "displayName": "PsychonautWiki",
-        "size": 29574
+        "size": 22050,
+        "tokens": 5827
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Oxycodone.md",
         "displayName": "Safer Party",
-        "size": 2971
+        "size": 2971,
+        "tokens": 695
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Oxycodone.md",
         "displayName": "The Drug Classroom",
-        "size": 10174
+        "size": 1862,
+        "tokens": 538
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxycodone.md",
         "displayName": "TripSit Factsheets",
-        "size": 932
+        "size": 932,
+        "tokens": 360
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Oxycodone.md",
         "displayName": "TripSit Wiki",
-        "size": 8782
+        "size": 8782,
+        "tokens": 2467
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Oxycodone.md",
         "displayName": "Wikipedia",
-        "size": 40376
+        "size": 40376,
+        "tokens": 10203
       }
     ]
   },
@@ -14553,43 +16431,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Oxymorphone.md",
         "displayName": "DrugBank",
-        "size": 21928
+        "size": 12480,
+        "tokens": 3170
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Oxymorphone.md",
         "displayName": "Erowid",
-        "size": 2109
+        "size": 2109,
+        "tokens": 564
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Oxymorphone.md",
         "displayName": "Isomer Design",
-        "size": 780
+        "size": 454,
+        "tokens": 195
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Oxymorphone.md",
         "displayName": "PsychonautWiki",
-        "size": 22800
+        "size": 17342,
+        "tokens": 4433
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Oxymorphone.md",
         "displayName": "TripSit Factsheets",
-        "size": 785
+        "size": 785,
+        "tokens": 338
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Oxymorphone.md",
         "displayName": "TripSit Wiki",
-        "size": 3943
+        "size": 3943,
+        "tokens": 1019
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Oxymorphone.md",
         "displayName": "Wikipedia",
-        "size": 13126
+        "size": 13126,
+        "tokens": 3135
       }
     ]
   },
@@ -14601,19 +16486,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - PARGY-LAD.md",
         "displayName": "Isomer Design",
-        "size": 835
+        "size": 505,
+        "tokens": 229
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PARGY-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 29857
+        "size": 26309,
+        "tokens": 7195
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PARGY-LAD.md",
         "displayName": "Wikipedia",
-        "size": 777
+        "size": 777,
+        "tokens": 212
       }
     ]
   },
@@ -14625,13 +16513,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PCE.md",
         "displayName": "TripSit Factsheets",
-        "size": 465
+        "size": 465,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PCE.md",
         "displayName": "Wikipedia",
-        "size": 2462
+        "size": 2462,
+        "tokens": 678
       }
     ]
   },
@@ -14643,19 +16533,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - PCP.md",
         "displayName": "The Drug Classroom",
-        "size": 1396
+        "size": 1396,
+        "tokens": 378
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PCP.md",
         "displayName": "TripSit Factsheets",
-        "size": 2631
+        "size": 2631,
+        "tokens": 686
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PCP.md",
         "displayName": "Wikipedia",
-        "size": 15975
+        "size": 15975,
+        "tokens": 3907
       }
     ]
   },
@@ -14667,13 +16560,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PFBT.md",
         "displayName": "TripSit Factsheets",
-        "size": 562
+        "size": 562,
+        "tokens": 152
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PFBT.md",
         "displayName": "Wikipedia",
-        "size": 958
+        "size": 958,
+        "tokens": 265
       }
     ]
   },
@@ -14685,37 +16580,43 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - PMA.md",
         "displayName": "Erowid",
-        "size": 9601
+        "size": 9601,
+        "tokens": 2585
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - PMA.md",
         "displayName": "Isomer Design",
-        "size": 4535
+        "size": 4535,
+        "tokens": 1185
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PMA.md",
         "displayName": "PsychonautWiki",
-        "size": 23206
+        "size": 17731,
+        "tokens": 4668
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - PMA.md",
         "displayName": "The Drug Classroom",
-        "size": 5647
+        "size": 1370,
+        "tokens": 373
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PMA.md",
         "displayName": "TripSit Factsheets",
-        "size": 215
+        "size": 215,
+        "tokens": 67
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PMA.md",
         "displayName": "Wikipedia",
-        "size": 11048
+        "size": 11048,
+        "tokens": 2666
       }
     ]
   },
@@ -14727,25 +16628,29 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - PMMA.md",
         "displayName": "Erowid",
-        "size": 4152
+        "size": 4152,
+        "tokens": 1163
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - PMMA.md",
         "displayName": "Isomer Design",
-        "size": 3398
+        "size": 3398,
+        "tokens": 940
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PMMA.md",
         "displayName": "PsychonautWiki",
-        "size": 15522
+        "size": 12484,
+        "tokens": 3380
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PMMA.md",
         "displayName": "Wikipedia",
-        "size": 6129
+        "size": 6129,
+        "tokens": 1575
       }
     ]
   },
@@ -14757,13 +16662,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PRE-084.md",
         "displayName": "TripSit Factsheets",
-        "size": 440
+        "size": 440,
+        "tokens": 115
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PRE-084.md",
         "displayName": "Wikipedia",
-        "size": 297
+        "size": 297,
+        "tokens": 82
       }
     ]
   },
@@ -14775,19 +16682,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - PRL-8-53.md",
         "displayName": "Drug Users Bible",
-        "size": 1638
+        "size": 1638,
+        "tokens": 417
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PRL-8-53.md",
         "displayName": "TripSit Factsheets",
-        "size": 828
+        "size": 828,
+        "tokens": 224
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PRL-8-53.md",
         "displayName": "Wikipedia",
-        "size": 2237
+        "size": 2237,
+        "tokens": 568
       }
     ]
   },
@@ -14799,25 +16709,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - PRO-LAD.md",
         "displayName": "Isomer Design",
-        "size": 3398
+        "size": 3398,
+        "tokens": 1012
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - PRO-LAD.md",
         "displayName": "PsychonautWiki",
-        "size": 33302
+        "size": 29199,
+        "tokens": 8024
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PRO-LAD.md",
         "displayName": "TripSit Factsheets",
-        "size": 294
+        "size": 294,
+        "tokens": 90
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PRO-LAD.md",
         "displayName": "Wikipedia",
-        "size": 3107
+        "size": 3107,
+        "tokens": 836
       }
     ]
   },
@@ -14829,13 +16743,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PST.md",
         "displayName": "TripSit Factsheets",
-        "size": 678
+        "size": 678,
+        "tokens": 171
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PST.md",
         "displayName": "Wikipedia",
-        "size": 5798
+        "size": 5798,
+        "tokens": 1388
       }
     ]
   },
@@ -14847,13 +16763,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-10.md",
         "displayName": "TripSit Factsheets",
-        "size": 130
+        "size": 130,
+        "tokens": 36
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PV-10.md",
         "displayName": "Wikipedia",
-        "size": 5551
+        "size": 5551,
+        "tokens": 1316
       }
     ]
   },
@@ -14865,7 +16783,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-8.md",
         "displayName": "TripSit Factsheets",
-        "size": 491
+        "size": 491,
+        "tokens": 137
       }
     ]
   },
@@ -14877,7 +16796,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PV-9.md",
         "displayName": "TripSit Factsheets",
-        "size": 118
+        "size": 118,
+        "tokens": 34
       }
     ]
   },
@@ -14889,19 +16809,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pagoclone.md",
         "displayName": "The Drug Classroom",
-        "size": 40444
+        "size": 36677,
+        "tokens": 9403
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pagoclone.md",
         "displayName": "TripSit Factsheets",
-        "size": 376
+        "size": 376,
+        "tokens": 94
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pagoclone.md",
         "displayName": "Wikipedia",
-        "size": 3093
+        "size": 3093,
+        "tokens": 819
       }
     ]
   },
@@ -14913,19 +16836,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Paracetamol.md",
         "displayName": "DrugBank",
-        "size": 34366
+        "size": 34366,
+        "tokens": 9003
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Paracetamol.md",
         "displayName": "TripSit Factsheets",
-        "size": 652
+        "size": 652,
+        "tokens": 173
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Paracetamol.md",
         "displayName": "Wikipedia",
-        "size": 33478
+        "size": 33478,
+        "tokens": 7896
       }
     ]
   },
@@ -14937,13 +16863,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Parafluorofentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 661
+        "size": 661,
+        "tokens": 167
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Parafluorofentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1165
+        "size": 1165,
+        "tokens": 266
       }
     ]
   },
@@ -14955,19 +16883,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Paroxetine.md",
         "displayName": "DrugBank",
-        "size": 28899
+        "size": 28899,
+        "tokens": 7282
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Paroxetine.md",
         "displayName": "TripSit Factsheets",
-        "size": 133
+        "size": 133,
+        "tokens": 36
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Paroxetine.md",
         "displayName": "Wikipedia",
-        "size": 18365
+        "size": 18365,
+        "tokens": 4523
       }
     ]
   },
@@ -14979,13 +16910,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Passion_Flower.md",
         "displayName": "Drug Users Bible",
-        "size": 1447
+        "size": 1447,
+        "tokens": 346
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Passion_Flower.md",
         "displayName": "Wikipedia",
-        "size": 17942
+        "size": 17942,
+        "tokens": 4468
       }
     ]
   },
@@ -14997,19 +16930,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pemoline.md",
         "displayName": "DrugBank",
-        "size": 10211
+        "size": 10211,
+        "tokens": 2531
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pemoline.md",
         "displayName": "TripSit Factsheets",
-        "size": 487
+        "size": 487,
+        "tokens": 135
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pemoline.md",
         "displayName": "Wikipedia",
-        "size": 10281
+        "size": 10281,
+        "tokens": 2440
       }
     ]
   },
@@ -15021,19 +16957,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pentazocine.md",
         "displayName": "DrugBank",
-        "size": 13652
+        "size": 13652,
+        "tokens": 3403
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pentazocine.md",
         "displayName": "TripSit Factsheets",
-        "size": 679
+        "size": 679,
+        "tokens": 178
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pentazocine.md",
         "displayName": "Wikipedia",
-        "size": 5884
+        "size": 5884,
+        "tokens": 1388
       }
     ]
   },
@@ -15045,25 +16984,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pentedrone.md",
         "displayName": "Isomer Design",
-        "size": 674
+        "size": 344,
+        "tokens": 137
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pentedrone.md",
         "displayName": "PsychonautWiki",
-        "size": 30626
+        "size": 23555,
+        "tokens": 6430
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pentedrone.md",
         "displayName": "TripSit Factsheets",
-        "size": 689
+        "size": 689,
+        "tokens": 267
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pentedrone.md",
         "displayName": "Wikipedia",
-        "size": 1575
+        "size": 1575,
+        "tokens": 389
       }
     ]
   },
@@ -15075,31 +17018,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pentobarbital.md",
         "displayName": "DrugBank",
-        "size": 19596
+        "size": 10563,
+        "tokens": 2581
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pentobarbital.md",
         "displayName": "Isomer Design",
-        "size": 705
+        "size": 387,
+        "tokens": 166
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pentobarbital.md",
         "displayName": "PsychonautWiki",
-        "size": 21960
+        "size": 16307,
+        "tokens": 4253
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pentobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 705
+        "size": 705,
+        "tokens": 286
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pentobarbital.md",
         "displayName": "Wikipedia",
-        "size": 7292
+        "size": 7292,
+        "tokens": 1791
       }
     ]
   },
@@ -15111,19 +17059,22 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pentylone.md",
         "displayName": "The Drug Classroom",
-        "size": 6176
+        "size": 5090,
+        "tokens": 1331
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pentylone.md",
         "displayName": "TripSit Factsheets",
-        "size": 616
+        "size": 616,
+        "tokens": 171
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pentylone.md",
         "displayName": "Wikipedia",
-        "size": 754
+        "size": 754,
+        "tokens": 219
       }
     ]
   },
@@ -15135,37 +17086,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pethidine.md",
         "displayName": "DrugBank",
-        "size": 25512
+        "size": 14455,
+        "tokens": 3519
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Pethidine.md",
         "displayName": "Erowid",
-        "size": 1835
+        "size": 1835,
+        "tokens": 477
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pethidine.md",
         "displayName": "Isomer Design",
-        "size": 714
+        "size": 406,
+        "tokens": 155
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pethidine.md",
         "displayName": "PsychonautWiki",
-        "size": 24783
+        "size": 18418,
+        "tokens": 4795
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pethidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 499
+        "size": 499,
+        "tokens": 141
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pethidine.md",
         "displayName": "Wikipedia",
-        "size": 12601
+        "size": 12601,
+        "tokens": 3271
       }
     ]
   },
@@ -15177,13 +17134,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 758
+        "size": 758,
+        "tokens": 197
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenazepam.md",
         "displayName": "Wikipedia",
-        "size": 8685
+        "size": 8685,
+        "tokens": 2229
       }
     ]
   },
@@ -15195,19 +17154,22 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Phenethylamine.md",
         "displayName": "Isomer Design",
-        "size": 11323
+        "size": 11323,
+        "tokens": 2841
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenethylamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 563
+        "size": 563,
+        "tokens": 148
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenethylamine.md",
         "displayName": "Wikipedia",
-        "size": 13176
+        "size": 13176,
+        "tokens": 3236
       }
     ]
   },
@@ -15219,7 +17181,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenetrazine.md",
         "displayName": "TripSit Factsheets",
-        "size": 631
+        "size": 631,
+        "tokens": 170
       }
     ]
   },
@@ -15231,43 +17194,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Phenibut.md",
         "displayName": "Drug Users Bible",
-        "size": 1487
+        "size": 1487,
+        "tokens": 369
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Phenibut.md",
         "displayName": "Erowid",
-        "size": 6676
+        "size": 6676,
+        "tokens": 1723
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Phenibut.md",
         "displayName": "Isomer Design",
-        "size": 643
+        "size": 331,
+        "tokens": 130
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Phenibut.md",
         "displayName": "PsychonautWiki",
-        "size": 31766
+        "size": 23256,
+        "tokens": 6295
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Phenibut.md",
         "displayName": "The Drug Classroom",
-        "size": 161551
+        "size": 140913,
+        "tokens": 35359
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenibut.md",
         "displayName": "TripSit Factsheets",
-        "size": 452
+        "size": 452,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenibut.md",
         "displayName": "Wikipedia",
-        "size": 11841
+        "size": 11841,
+        "tokens": 2966
       }
     ]
   },
@@ -15279,19 +17249,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Phenmetrazine.md",
         "displayName": "DrugBank",
-        "size": 12808
+        "size": 12808,
+        "tokens": 3146
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenmetrazine.md",
         "displayName": "TripSit Factsheets",
-        "size": 652
+        "size": 652,
+        "tokens": 164
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenmetrazine.md",
         "displayName": "Wikipedia",
-        "size": 8156
+        "size": 8156,
+        "tokens": 1991
       }
     ]
   },
@@ -15303,31 +17276,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Phenobarbital.md",
         "displayName": "DrugBank",
-        "size": 26788
+        "size": 13281,
+        "tokens": 3367
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Phenobarbital.md",
         "displayName": "Isomer Design",
-        "size": 702
+        "size": 384,
+        "tokens": 161
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Phenobarbital.md",
         "displayName": "PsychonautWiki",
-        "size": 24734
+        "size": 17585,
+        "tokens": 4581
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 496
+        "size": 496,
+        "tokens": 203
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenobarbital.md",
         "displayName": "Wikipedia",
-        "size": 15471
+        "size": 15471,
+        "tokens": 3706
       }
     ]
   },
@@ -15339,19 +17317,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Phentermine.md",
         "displayName": "DrugBank",
-        "size": 28313
+        "size": 15729,
+        "tokens": 3903
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phentermine.md",
         "displayName": "TripSit Factsheets",
-        "size": 390
+        "size": 390,
+        "tokens": 103
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phentermine.md",
         "displayName": "Wikipedia",
-        "size": 13814
+        "size": 13814,
+        "tokens": 3365
       }
     ]
   },
@@ -15363,25 +17344,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Phenylpiracetam.md",
         "displayName": "Isomer Design",
-        "size": 743
+        "size": 413,
+        "tokens": 156
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Phenylpiracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 15545
+        "size": 10558,
+        "tokens": 2744
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Phenylpiracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 327
+        "size": 327,
+        "tokens": 93
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Phenylpiracetam.md",
         "displayName": "Wikipedia",
-        "size": 12333
+        "size": 12333,
+        "tokens": 3024
       }
     ]
   },
@@ -15393,13 +17378,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - PiPT.md",
         "displayName": "TripSit Factsheets",
-        "size": 756
+        "size": 756,
+        "tokens": 193
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - PiPT.md",
         "displayName": "Wikipedia",
-        "size": 1129
+        "size": 1129,
+        "tokens": 265
       }
     ]
   },
@@ -15411,19 +17398,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Picamilon.md",
         "displayName": "Drug Users Bible",
-        "size": 1142
+        "size": 1142,
+        "tokens": 285
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Picamilon.md",
         "displayName": "TripSit Factsheets",
-        "size": 714
+        "size": 714,
+        "tokens": 197
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Picamilon.md",
         "displayName": "Wikipedia",
-        "size": 2567
+        "size": 2567,
+        "tokens": 631
       }
     ]
   },
@@ -15435,13 +17425,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pinazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 696
+        "size": 696,
+        "tokens": 180
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pinazepam.md",
         "displayName": "Wikipedia",
-        "size": 1266
+        "size": 1266,
+        "tokens": 294
       }
     ]
   },
@@ -15453,19 +17445,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pipradrol.md",
         "displayName": "DrugBank",
-        "size": 12696
+        "size": 9304,
+        "tokens": 2280
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Pipradrol.md",
         "displayName": "Drug Users Bible",
-        "size": 3119
+        "size": 3119,
+        "tokens": 822
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pipradrol.md",
         "displayName": "Wikipedia",
-        "size": 3969
+        "size": 3969,
+        "tokens": 949
       }
     ]
   },
@@ -15477,43 +17472,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Piracetam.md",
         "displayName": "DrugBank",
-        "size": 19676
+        "size": 13793,
+        "tokens": 3257
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Piracetam.md",
         "displayName": "Erowid",
-        "size": 8132
+        "size": 8132,
+        "tokens": 2148
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Piracetam.md",
         "displayName": "Isomer Design",
-        "size": 622
+        "size": 312,
+        "tokens": 118
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Piracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 16728
+        "size": 11348,
+        "tokens": 3019
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Piracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 453
+        "size": 453,
+        "tokens": 135
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Piracetam.md",
         "displayName": "TripSit Wiki",
-        "size": 5564
+        "size": 5564,
+        "tokens": 1393
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Piracetam.md",
         "displayName": "Wikipedia",
-        "size": 7309
+        "size": 7309,
+        "tokens": 1780
       }
     ]
   },
@@ -15525,37 +17527,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pramiracetam.md",
         "displayName": "DrugBank",
-        "size": 8234
+        "size": 5077,
+        "tokens": 1190
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Pramiracetam.md",
         "displayName": "Erowid",
-        "size": 859
+        "size": 859,
+        "tokens": 218
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pramiracetam.md",
         "displayName": "Isomer Design",
-        "size": 729
+        "size": 409,
+        "tokens": 174
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pramiracetam.md",
         "displayName": "PsychonautWiki",
-        "size": 11817
+        "size": 9306,
+        "tokens": 2382
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pramiracetam.md",
         "displayName": "TripSit Factsheets",
-        "size": 275
+        "size": 275,
+        "tokens": 80
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pramiracetam.md",
         "displayName": "Wikipedia",
-        "size": 1691
+        "size": 1691,
+        "tokens": 399
       }
     ]
   },
@@ -15567,19 +17575,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Prazepam.md",
         "displayName": "DrugBank",
-        "size": 15317
+        "size": 15317,
+        "tokens": 3847
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Prazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 896
+        "size": 896,
+        "tokens": 237
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Prazepam.md",
         "displayName": "Wikipedia",
-        "size": 4972
+        "size": 4972,
+        "tokens": 1174
       }
     ]
   },
@@ -15591,49 +17602,57 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Pregabalin.md",
         "displayName": "DrugBank",
-        "size": 31765
+        "size": 15667,
+        "tokens": 3960
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Pregabalin.md",
         "displayName": "Drug Users Bible",
-        "size": 7239
+        "size": 7239,
+        "tokens": 1837
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Pregabalin.md",
         "displayName": "Erowid",
-        "size": 2663
+        "size": 2663,
+        "tokens": 737
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pregabalin.md",
         "displayName": "Isomer Design",
-        "size": 675
+        "size": 351,
+        "tokens": 143
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pregabalin.md",
         "displayName": "PsychonautWiki",
-        "size": 55821
+        "size": 36268,
+        "tokens": 9785
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pregabalin.md",
         "displayName": "The Drug Classroom",
-        "size": 77019
+        "size": 69392,
+        "tokens": 17788
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pregabalin.md",
         "displayName": "TripSit Factsheets",
-        "size": 469
+        "size": 469,
+        "tokens": 133
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pregabalin.md",
         "displayName": "Wikipedia",
-        "size": 27063
+        "size": 27063,
+        "tokens": 6591
       }
     ]
   },
@@ -15645,25 +17664,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Prochlorperazine.md",
         "displayName": "DrugBank",
-        "size": 30851
+        "size": 19208,
+        "tokens": 4698
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Prochlorperazine.md",
         "displayName": "Isomer Design",
-        "size": 764
+        "size": 438,
+        "tokens": 178
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Prochlorperazine.md",
         "displayName": "PsychonautWiki",
-        "size": 9751
+        "size": 7579,
+        "tokens": 2009
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Prochlorperazine.md",
         "displayName": "Wikipedia",
-        "size": 6074
+        "size": 6074,
+        "tokens": 1444
       }
     ]
   },
@@ -15675,19 +17698,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Progesterone.md",
         "displayName": "DrugBank",
-        "size": 47970
+        "size": 28559,
+        "tokens": 7115
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Progesterone.md",
         "displayName": "PsychonautWiki",
-        "size": 17173
+        "size": 10870,
+        "tokens": 2982
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Progesterone.md",
         "displayName": "Wikipedia",
-        "size": 34510
+        "size": 34510,
+        "tokens": 7946
       }
     ]
   },
@@ -15699,25 +17725,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Prolintane.md",
         "displayName": "Isomer Design",
-        "size": 671
+        "size": 353,
+        "tokens": 142
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Prolintane.md",
         "displayName": "PsychonautWiki",
-        "size": 22166
+        "size": 18401,
+        "tokens": 4906
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Prolintane.md",
         "displayName": "TripSit Factsheets",
-        "size": 429
+        "size": 429,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Prolintane.md",
         "displayName": "Wikipedia",
-        "size": 703
+        "size": 703,
+        "tokens": 187
       }
     ]
   },
@@ -15729,37 +17759,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Promethazine.md",
         "displayName": "DrugBank",
-        "size": 31256
+        "size": 16479,
+        "tokens": 4155
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Promethazine.md",
         "displayName": "Erowid",
-        "size": 1786
+        "size": 1786,
+        "tokens": 462
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Promethazine.md",
         "displayName": "Isomer Design",
-        "size": 707
+        "size": 391,
+        "tokens": 157
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Promethazine.md",
         "displayName": "PsychonautWiki",
-        "size": 20345
+        "size": 17391,
+        "tokens": 4563
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Promethazine.md",
         "displayName": "TripSit Factsheets",
-        "size": 269
+        "size": 269,
+        "tokens": 79
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Promethazine.md",
         "displayName": "Wikipedia",
-        "size": 10013
+        "size": 10013,
+        "tokens": 2409
       }
     ]
   },
@@ -15771,19 +17807,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Propofol.md",
         "displayName": "DrugBank",
-        "size": 22946
+        "size": 12212,
+        "tokens": 3122
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propofol.md",
         "displayName": "TripSit Factsheets",
-        "size": 1413
+        "size": 1413,
+        "tokens": 356
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Propofol.md",
         "displayName": "Wikipedia",
-        "size": 16494
+        "size": 16494,
+        "tokens": 3887
       }
     ]
   },
@@ -15795,13 +17834,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propoxyphene.md",
         "displayName": "TripSit Factsheets",
-        "size": 553
+        "size": 553,
+        "tokens": 146
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Propoxyphene.md",
         "displayName": "Wikipedia",
-        "size": 16957
+        "size": 16957,
+        "tokens": 4105
       }
     ]
   },
@@ -15813,19 +17854,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Propranolol.md",
         "displayName": "DrugBank",
-        "size": 26358
+        "size": 13622,
+        "tokens": 3387
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propranolol.md",
         "displayName": "TripSit Factsheets",
-        "size": 540
+        "size": 540,
+        "tokens": 147
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Propranolol.md",
         "displayName": "Wikipedia",
-        "size": 22257
+        "size": 22257,
+        "tokens": 5307
       }
     ]
   },
@@ -15837,37 +17881,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Propylhexedrine.md",
         "displayName": "DrugBank",
-        "size": 11892
+        "size": 11892,
+        "tokens": 2913
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Propylhexedrine.md",
         "displayName": "Erowid",
-        "size": 2556
+        "size": 2556,
+        "tokens": 686
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Propylhexedrine.md",
         "displayName": "Isomer Design",
-        "size": 644
+        "size": 322,
+        "tokens": 120
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Propylhexedrine.md",
         "displayName": "PsychonautWiki",
-        "size": 34234
+        "size": 27605,
+        "tokens": 7322
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propylhexedrine.md",
         "displayName": "TripSit Factsheets",
-        "size": 749
+        "size": 749,
+        "tokens": 251
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Propylhexedrine.md",
         "displayName": "Wikipedia",
-        "size": 15614
+        "size": 15614,
+        "tokens": 3707
       }
     ]
   },
@@ -15879,19 +17929,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Propylphenidate.md",
         "displayName": "Drug Users Bible",
-        "size": 4023
+        "size": 4023,
+        "tokens": 1086
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Propylphenidate.md",
         "displayName": "TripSit Factsheets",
-        "size": 441
+        "size": 441,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Propylphenidate.md",
         "displayName": "Wikipedia",
-        "size": 460
+        "size": 460,
+        "tokens": 113
       }
     ]
   },
@@ -15903,25 +17956,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Proscaline.md",
         "displayName": "Isomer Design",
-        "size": 3215
+        "size": 3215,
+        "tokens": 858
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Proscaline.md",
         "displayName": "PsychonautWiki",
-        "size": 15584
+        "size": 11376,
+        "tokens": 3097
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Proscaline.md",
         "displayName": "TripSit Factsheets",
-        "size": 653
+        "size": 653,
+        "tokens": 179
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Proscaline.md",
         "displayName": "Wikipedia",
-        "size": 3262
+        "size": 3262,
+        "tokens": 823
       }
     ]
   },
@@ -15933,13 +17990,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pseudoephrine.md",
         "displayName": "TripSit Factsheets",
-        "size": 691
+        "size": 691,
+        "tokens": 185
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pseudoephrine.md",
         "displayName": "Wikipedia",
-        "size": 14188
+        "size": 14188,
+        "tokens": 3324
       }
     ]
   },
@@ -15951,25 +18010,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Psilocin.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10239
+        "size": 10239,
+        "tokens": 2543
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Psilocin.md",
         "displayName": "Isomer Design",
-        "size": 13735
+        "size": 13735,
+        "tokens": 3631
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Psilocin.md",
         "displayName": "TripSit Factsheets",
-        "size": 602
+        "size": 602,
+        "tokens": 172
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Psilocin.md",
         "displayName": "Wikipedia",
-        "size": 10845
+        "size": 10845,
+        "tokens": 2818
       }
     ]
   },
@@ -15981,55 +18044,64 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Psilocybin_mushrooms.md",
         "displayName": "Disregard Everything I Say",
-        "size": 10251
+        "size": 10251,
+        "tokens": 2546
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Magic_Truffles.md",
         "displayName": "Drug Users Bible",
-        "size": 5689
+        "size": 5689,
+        "tokens": 1376
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Psilocybin_mushrooms.md",
         "displayName": "Erowid",
-        "size": 45784
+        "size": 45784,
+        "tokens": 12353
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Psilocybin_mushrooms.md",
         "displayName": "PsychonautWiki",
-        "size": 90655
+        "size": 65380,
+        "tokens": 17768
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Psilocybin_mushrooms.md",
         "displayName": "Safer Party",
-        "size": 2265
+        "size": 2265,
+        "tokens": 576
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Psilocybin_mushrooms.md",
         "displayName": "The Drug Classroom",
-        "size": 4777
+        "size": 845,
+        "tokens": 221
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Psilocybin_mushrooms.md",
         "displayName": "TripSit Factsheets",
-        "size": 2831
+        "size": 2831,
+        "tokens": 731
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Psilocybin_mushrooms.md",
         "displayName": "TripSit Wiki",
-        "size": 14326
+        "size": 14326,
+        "tokens": 3537
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Magic_Truffles.md",
         "displayName": "Wikipedia",
-        "size": 1830
+        "size": 1830,
+        "tokens": 437
       }
     ]
   },
@@ -16041,37 +18113,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Pyrazolam.md",
         "displayName": "Drug Users Bible",
-        "size": 1445
+        "size": 1445,
+        "tokens": 360
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Pyrazolam.md",
         "displayName": "Isomer Design",
-        "size": 867
+        "size": 453,
+        "tokens": 192
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Pyrazolam.md",
         "displayName": "PsychonautWiki",
-        "size": 27645
+        "size": 17003,
+        "tokens": 4453
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Pyrazolam.md",
         "displayName": "The Drug Classroom",
-        "size": 1973
+        "size": 1263,
+        "tokens": 362
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pyrazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 616
+        "size": 616,
+        "tokens": 240
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Pyrazolam.md",
         "displayName": "Wikipedia",
-        "size": 1122
+        "size": 1122,
+        "tokens": 281
       }
     ]
   },
@@ -16083,7 +18161,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Pyrophenidone.md",
         "displayName": "TripSit Factsheets",
-        "size": 644
+        "size": 644,
+        "tokens": 173
       }
     ]
   },
@@ -16095,19 +18174,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Quazepam.md",
         "displayName": "DrugBank",
-        "size": 18966
+        "size": 11500,
+        "tokens": 2840
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Quazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 588
+        "size": 588,
+        "tokens": 161
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Quazepam.md",
         "displayName": "Wikipedia",
-        "size": 9887
+        "size": 9887,
+        "tokens": 2301
       }
     ]
   },
@@ -16119,43 +18201,50 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Quetiapine.md",
         "displayName": "DrugBank",
-        "size": 34436
+        "size": 18331,
+        "tokens": 4816
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Quetiapine.md",
         "displayName": "Erowid",
-        "size": 2337
+        "size": 2337,
+        "tokens": 602
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Quetiapine.md",
         "displayName": "Isomer Design",
-        "size": 753
+        "size": 441,
+        "tokens": 185
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Quetiapine.md",
         "displayName": "PsychonautWiki",
-        "size": 35444
+        "size": 20439,
+        "tokens": 5371
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Quetiapine.md",
         "displayName": "The Drug Classroom",
-        "size": 73865
+        "size": 36313,
+        "tokens": 9122
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Quetiapine.md",
         "displayName": "TripSit Factsheets",
-        "size": 447
+        "size": 447,
+        "tokens": 121
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Quetiapine.md",
         "displayName": "Wikipedia",
-        "size": 20071
+        "size": 20071,
+        "tokens": 4852
       }
     ]
   },
@@ -16167,13 +18256,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Rapé.md",
         "displayName": "Drug Users Bible",
-        "size": 6722
+        "size": 6722,
+        "tokens": 1655
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Rapé.md",
         "displayName": "Wikipedia",
-        "size": 6336
+        "size": 6336,
+        "tokens": 1639
       }
     ]
   },
@@ -16185,13 +18276,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Rhodiola.md",
         "displayName": "Drug Users Bible",
-        "size": 1639
+        "size": 1639,
+        "tokens": 416
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Rhodiola.md",
         "displayName": "Wikipedia",
-        "size": 2986
+        "size": 2986,
+        "tokens": 680
       }
     ]
   },
@@ -16203,13 +18296,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Rilmazafone.md",
         "displayName": "TripSit Factsheets",
-        "size": 648
+        "size": 648,
+        "tokens": 178
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Rilmazafone.md",
         "displayName": "Wikipedia",
-        "size": 1332
+        "size": 1332,
+        "tokens": 350
       }
     ]
   },
@@ -16221,31 +18316,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Risperidone.md",
         "displayName": "DrugBank",
-        "size": 35512
+        "size": 18479,
+        "tokens": 4744
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Risperidone.md",
         "displayName": "Erowid",
-        "size": 1086
+        "size": 1086,
+        "tokens": 276
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Risperidone.md",
         "displayName": "Isomer Design",
-        "size": 835
+        "size": 521,
+        "tokens": 234
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Risperidone.md",
         "displayName": "PsychonautWiki",
-        "size": 7971
+        "size": 6682,
+        "tokens": 1790
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Risperidone.md",
         "displayName": "Wikipedia",
-        "size": 15058
+        "size": 15058,
+        "tokens": 3599
       }
     ]
   },
@@ -16257,13 +18357,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Rolicyclidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 779
+        "size": 779,
+        "tokens": 202
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Rolicyclidine.md",
         "displayName": "Wikipedia",
-        "size": 582
+        "size": 582,
+        "tokens": 143
       }
     ]
   },
@@ -16275,13 +18377,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Ronlax.md",
         "displayName": "TripSit Factsheets",
-        "size": 765
+        "size": 765,
+        "tokens": 203
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ronlax.md",
         "displayName": "Wikipedia",
-        "size": 2071
+        "size": 2071,
+        "tokens": 489
       }
     ]
   },
@@ -16293,19 +18397,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - SAM-e.md",
         "displayName": "DrugBank",
-        "size": 19952
+        "size": 13900,
+        "tokens": 3852
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - SAM-e.md",
         "displayName": "PsychonautWiki",
-        "size": 14843
+        "size": 8988,
+        "tokens": 2396
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - SAM-e.md",
         "displayName": "Wikipedia",
-        "size": 10300
+        "size": 10300,
+        "tokens": 2462
       }
     ]
   },
@@ -16317,13 +18424,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Saffron.md",
         "displayName": "Drug Users Bible",
-        "size": 3392
+        "size": 3392,
+        "tokens": 863
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Saffron.md",
         "displayName": "Wikipedia",
-        "size": 33624
+        "size": 33624,
+        "tokens": 8716
       }
     ]
   },
@@ -16335,13 +18444,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Sakae_Naa.md",
         "displayName": "Drug Users Bible",
-        "size": 3661
+        "size": 3661,
+        "tokens": 947
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sakae_Naa.md",
         "displayName": "Wikipedia",
-        "size": 1223
+        "size": 1223,
+        "tokens": 328
       }
     ]
   },
@@ -16353,25 +18464,29 @@ export const substances: SubstanceInfo[] = [
         "id": "disregardeverythingisay",
         "fileName": "DISREGARDEVERYTHINGISAY - Salvia.md",
         "displayName": "Disregard Everything I Say",
-        "size": 14543
+        "size": 14543,
+        "tokens": 3454
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Salvia.md",
         "displayName": "Drug Users Bible",
-        "size": 8595
+        "size": 8595,
+        "tokens": 2132
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Salvia.md",
         "displayName": "TripSit Factsheets",
-        "size": 803
+        "size": 803,
+        "tokens": 194
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Salvia.md",
         "displayName": "Wikipedia",
-        "size": 34188
+        "size": 34188,
+        "tokens": 8539
       }
     ]
   },
@@ -16383,25 +18498,29 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - Salvinorin_B_methoxymethyl_ether.md",
         "displayName": "Erowid",
-        "size": 6031
+        "size": 6031,
+        "tokens": 1490
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Salvinorin_B_methoxymethyl_ether.md",
         "displayName": "Isomer Design",
-        "size": 1067
+        "size": 746,
+        "tokens": 331
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Salvinorin_B_methoxymethyl_ether.md",
         "displayName": "PsychonautWiki",
-        "size": 3117
+        "size": 2194,
+        "tokens": 584
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Salvinorin_B_methoxymethyl_ether.md",
         "displayName": "Wikipedia",
-        "size": 856
+        "size": 856,
+        "tokens": 226
       }
     ]
   },
@@ -16413,13 +18532,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Sananga.md",
         "displayName": "Drug Users Bible",
-        "size": 4154
+        "size": 4154,
+        "tokens": 1021
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sananga.md",
         "displayName": "Wikipedia",
-        "size": 1302
+        "size": 1302,
+        "tokens": 345
       }
     ]
   },
@@ -16431,19 +18552,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Scopolamine.md",
         "displayName": "DrugBank",
-        "size": 37478
+        "size": 23031,
+        "tokens": 5827
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Scopolamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 535
+        "size": 535,
+        "tokens": 131
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Scopolamine.md",
         "displayName": "Wikipedia",
-        "size": 17517
+        "size": 17517,
+        "tokens": 4183
       }
     ]
   },
@@ -16455,31 +18579,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Secobarbital.md",
         "displayName": "DrugBank",
-        "size": 16515
+        "size": 16515,
+        "tokens": 4059
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Secobarbital.md",
         "displayName": "Isomer Design",
-        "size": 724
+        "size": 408,
+        "tokens": 183
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Secobarbital.md",
         "displayName": "PsychonautWiki",
-        "size": 22016
+        "size": 16570,
+        "tokens": 4285
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Secobarbital.md",
         "displayName": "TripSit Factsheets",
-        "size": 378
+        "size": 378,
+        "tokens": 110
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Secobarbital.md",
         "displayName": "Wikipedia",
-        "size": 6245
+        "size": 6245,
+        "tokens": 1526
       }
     ]
   },
@@ -16491,13 +18620,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Sentia.md",
         "displayName": "Drug Users Bible",
-        "size": 3944
+        "size": 3944,
+        "tokens": 1012
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sentia.md",
         "displayName": "Wikipedia",
-        "size": 15548
+        "size": 15548,
+        "tokens": 4023
       }
     ]
   },
@@ -16509,25 +18640,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Sertraline.md",
         "displayName": "DrugBank",
-        "size": 33876
+        "size": 17593,
+        "tokens": 4295
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Sertraline.md",
         "displayName": "The Drug Classroom",
-        "size": 50127
+        "size": 34113,
+        "tokens": 8470
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sertraline.md",
         "displayName": "TripSit Factsheets",
-        "size": 134
+        "size": 134,
+        "tokens": 36
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sertraline.md",
         "displayName": "Wikipedia",
-        "size": 30832
+        "size": 30832,
+        "tokens": 7326
       }
     ]
   },
@@ -16539,13 +18674,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Shirodhara.md",
         "displayName": "Drug Users Bible",
-        "size": 4282
+        "size": 4282,
+        "tokens": 1108
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Shirodhara.md",
         "displayName": "Wikipedia",
-        "size": 35613
+        "size": 35613,
+        "tokens": 8921
       }
     ]
   },
@@ -16557,25 +18694,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Sildenafil.md",
         "displayName": "DrugBank",
-        "size": 41160
+        "size": 29422,
+        "tokens": 7555
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Sildenafil.md",
         "displayName": "Safer Party",
-        "size": 688
+        "size": 688,
+        "tokens": 169
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sildenafil.md",
         "displayName": "TripSit Factsheets",
-        "size": 541
+        "size": 541,
+        "tokens": 136
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sildenafil.md",
         "displayName": "Wikipedia",
-        "size": 23617
+        "size": 23617,
+        "tokens": 5668
       }
     ]
   },
@@ -16587,19 +18728,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Sinicuichi.md",
         "displayName": "Drug Users Bible",
-        "size": 1227
+        "size": 1227,
+        "tokens": 308
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sinicuichi.md",
         "displayName": "TripSit Factsheets",
-        "size": 573
+        "size": 573,
+        "tokens": 148
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sinicuichi.md",
         "displayName": "Wikipedia",
-        "size": 1340
+        "size": 1340,
+        "tokens": 325
       }
     ]
   },
@@ -16611,13 +18755,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Skullcap.md",
         "displayName": "Drug Users Bible",
-        "size": 3843
+        "size": 3843,
+        "tokens": 996
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Skullcap.md",
         "displayName": "Wikipedia",
-        "size": 2044
+        "size": 2044,
+        "tokens": 517
       }
     ]
   },
@@ -16629,19 +18775,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Sonata.md",
         "displayName": "DrugBank",
-        "size": 18580
+        "size": 10478,
+        "tokens": 2582
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sonata.md",
         "displayName": "TripSit Factsheets",
-        "size": 558
+        "size": 558,
+        "tokens": 154
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sonata.md",
         "displayName": "Wikipedia",
-        "size": 22018
+        "size": 22018,
+        "tokens": 5949
       }
     ]
   },
@@ -16653,13 +18802,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - St._John's_Wort.md",
         "displayName": "Drug Users Bible",
-        "size": 3068
+        "size": 3068,
+        "tokens": 805
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - St._John's_Wort.md",
         "displayName": "Wikipedia",
-        "size": 25805
+        "size": 25805,
+        "tokens": 6340
       }
     ]
   },
@@ -16671,31 +18822,36 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Sufentanil.md",
         "displayName": "DrugBank",
-        "size": 31163
+        "size": 19408,
+        "tokens": 4748
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Sufentanil.md",
         "displayName": "Isomer Design",
-        "size": 824
+        "size": 508,
+        "tokens": 206
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Sufentanil.md",
         "displayName": "PsychonautWiki",
-        "size": 14692
+        "size": 10791,
+        "tokens": 2771
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sufentanil.md",
         "displayName": "TripSit Factsheets",
-        "size": 335
+        "size": 335,
+        "tokens": 103
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sufentanil.md",
         "displayName": "Wikipedia",
-        "size": 3089
+        "size": 3089,
+        "tokens": 736
       }
     ]
   },
@@ -16707,13 +18863,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Sulbutiamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 489
+        "size": 489,
+        "tokens": 126
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Sulbutiamine.md",
         "displayName": "Wikipedia",
-        "size": 3335
+        "size": 3335,
+        "tokens": 771
       }
     ]
   },
@@ -16725,13 +18883,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Syrian_Rue.md",
         "displayName": "Drug Users Bible",
-        "size": 5627
+        "size": 5627,
+        "tokens": 1414
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Syrian_Rue.md",
         "displayName": "Wikipedia",
-        "size": 29169
+        "size": 29169,
+        "tokens": 7466
       }
     ]
   },
@@ -16743,13 +18903,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - TH-PVP.md",
         "displayName": "TripSit Factsheets",
-        "size": 644
+        "size": 644,
+        "tokens": 177
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - TH-PVP.md",
         "displayName": "Wikipedia",
-        "size": 864
+        "size": 864,
+        "tokens": 209
       }
     ]
   },
@@ -16761,13 +18923,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - TMA.md",
         "displayName": "Drug Users Bible",
-        "size": 3910
+        "size": 3910,
+        "tokens": 1041
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - TMA.md",
         "displayName": "Wikipedia",
-        "size": 502
+        "size": 502,
+        "tokens": 203
       }
     ]
   },
@@ -16779,31 +18943,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - TMA-2.md",
         "displayName": "Erowid",
-        "size": 11139
+        "size": 11139,
+        "tokens": 3067
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - TMA-2.md",
         "displayName": "Isomer Design",
-        "size": 8688
+        "size": 8688,
+        "tokens": 2312
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - TMA-2.md",
         "displayName": "PsychonautWiki",
-        "size": 19330
+        "size": 14465,
+        "tokens": 3898
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - TMA-2.md",
         "displayName": "TripSit Factsheets",
-        "size": 797
+        "size": 797,
+        "tokens": 231
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - TMA-2.md",
         "displayName": "Wikipedia",
-        "size": 242
+        "size": 242,
+        "tokens": 80
       }
     ]
   },
@@ -16815,25 +18984,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - TMA-6.md",
         "displayName": "Isomer Design",
-        "size": 10760
+        "size": 10760,
+        "tokens": 2883
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - TMA-6.md",
         "displayName": "PsychonautWiki",
-        "size": 19317
+        "size": 15683,
+        "tokens": 4269
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - TMA-6.md",
         "displayName": "TripSit Factsheets",
-        "size": 794
+        "size": 794,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - TMA-6.md",
         "displayName": "Wikipedia",
-        "size": 3330
+        "size": 3330,
+        "tokens": 890
       }
     ]
   },
@@ -16845,19 +19018,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Tadalafil.md",
         "displayName": "DrugBank",
-        "size": 32014
+        "size": 18020,
+        "tokens": 4565
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tadalafil.md",
         "displayName": "TripSit Factsheets",
-        "size": 327
+        "size": 327,
+        "tokens": 88
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tadalafil.md",
         "displayName": "Wikipedia",
-        "size": 12949
+        "size": 12949,
+        "tokens": 3140
       }
     ]
   },
@@ -16869,19 +19045,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Tapentadol.md",
         "displayName": "DrugBank",
-        "size": 24671
+        "size": 15723,
+        "tokens": 4127
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tapentadol.md",
         "displayName": "TripSit Factsheets",
-        "size": 1047
+        "size": 1047,
+        "tokens": 264
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tapentadol.md",
         "displayName": "Wikipedia",
-        "size": 20222
+        "size": 20222,
+        "tokens": 4729
       }
     ]
   },
@@ -16893,37 +19072,43 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Temazepam.md",
         "displayName": "DrugBank",
-        "size": 31295
+        "size": 19407,
+        "tokens": 4741
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Temazepam.md",
         "displayName": "Erowid",
-        "size": 3266
+        "size": 3266,
+        "tokens": 887
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Temazepam.md",
         "displayName": "Isomer Design",
-        "size": 810
+        "size": 416,
+        "tokens": 178
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Temazepam.md",
         "displayName": "PsychonautWiki",
-        "size": 36115
+        "size": 23368,
+        "tokens": 6057
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Temazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 459
+        "size": 459,
+        "tokens": 134
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Temazepam.md",
         "displayName": "Wikipedia",
-        "size": 28395
+        "size": 28395,
+        "tokens": 6795
       }
     ]
   },
@@ -16935,7 +19120,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tetrahydrofuran-Fentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 405
+        "size": 405,
+        "tokens": 105
       }
     ]
   },
@@ -16947,13 +19133,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tetrazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 686
+        "size": 686,
+        "tokens": 177
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tetrazepam.md",
         "displayName": "Wikipedia",
-        "size": 5807
+        "size": 5807,
+        "tokens": 1355
       }
     ]
   },
@@ -16965,13 +19153,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Theacrine.md",
         "displayName": "TripSit Factsheets",
-        "size": 472
+        "size": 472,
+        "tokens": 124
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Theacrine.md",
         "displayName": "Wikipedia",
-        "size": 1556
+        "size": 1556,
+        "tokens": 392
       }
     ]
   },
@@ -16983,25 +19173,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Theanine.md",
         "displayName": "Drug Users Bible",
-        "size": 3811
+        "size": 3811,
+        "tokens": 958
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Theanine.md",
         "displayName": "PsychonautWiki",
-        "size": 21975
+        "size": 9570,
+        "tokens": 2541
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Theanine.md",
         "displayName": "TripSit Factsheets",
-        "size": 494
+        "size": 494,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Theanine.md",
         "displayName": "Wikipedia",
-        "size": 7438
+        "size": 7438,
+        "tokens": 1805
       }
     ]
   },
@@ -17013,13 +19207,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Theobromine.md",
         "displayName": "TripSit Factsheets",
-        "size": 670
+        "size": 670,
+        "tokens": 174
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Theobromine.md",
         "displayName": "Wikipedia",
-        "size": 5307
+        "size": 5307,
+        "tokens": 1342
       }
     ]
   },
@@ -17031,19 +19227,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Thiopental.md",
         "displayName": "DrugBank",
-        "size": 20845
+        "size": 11688,
+        "tokens": 2788
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Thiopental.md",
         "displayName": "TripSit Factsheets",
-        "size": 430
+        "size": 430,
+        "tokens": 107
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Thiopental.md",
         "displayName": "Wikipedia",
-        "size": 13610
+        "size": 13610,
+        "tokens": 3255
       }
     ]
   },
@@ -17055,19 +19254,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Thiopropamine.md",
         "displayName": "Drug Users Bible",
-        "size": 2880
+        "size": 2880,
+        "tokens": 720
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Thiopropamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 609
+        "size": 609,
+        "tokens": 162
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Thiopropamine.md",
         "displayName": "Wikipedia",
-        "size": 1131
+        "size": 1131,
+        "tokens": 295
       }
     ]
   },
@@ -17079,25 +19281,29 @@ export const substances: SubstanceInfo[] = [
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Tianeptine.md",
         "displayName": "Isomer Design",
-        "size": 837
+        "size": 521,
+        "tokens": 237
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Tianeptine.md",
         "displayName": "PsychonautWiki",
-        "size": 26454
+        "size": 16635,
+        "tokens": 4335
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tianeptine.md",
         "displayName": "TripSit Factsheets",
-        "size": 329
+        "size": 329,
+        "tokens": 99
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tianeptine.md",
         "displayName": "Wikipedia",
-        "size": 20443
+        "size": 20443,
+        "tokens": 4970
       }
     ]
   },
@@ -17109,13 +19315,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tiletamine.md",
         "displayName": "TripSit Factsheets",
-        "size": 844
+        "size": 844,
+        "tokens": 223
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tiletamine.md",
         "displayName": "Wikipedia",
-        "size": 1509
+        "size": 1509,
+        "tokens": 365
       }
     ]
   },
@@ -17127,19 +19335,22 @@ export const substances: SubstanceInfo[] = [
         "id": "saferparty",
         "fileName": "SAFERPARTY - Tilidine.md",
         "displayName": "Safer Party",
-        "size": 3452
+        "size": 3452,
+        "tokens": 819
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tilidine.md",
         "displayName": "TripSit Factsheets",
-        "size": 684
+        "size": 684,
+        "tokens": 187
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tilidine.md",
         "displayName": "Wikipedia",
-        "size": 5277
+        "size": 5277,
+        "tokens": 1293
       }
     ]
   },
@@ -17151,25 +19362,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Tizanidine.md",
         "displayName": "DrugBank",
-        "size": 27858
+        "size": 16526,
+        "tokens": 4026
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Tizanidine.md",
         "displayName": "Isomer Design",
-        "size": 638
+        "size": 383,
+        "tokens": 156
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Tizanidine.md",
         "displayName": "PsychonautWiki",
-        "size": 23085
+        "size": 15084,
+        "tokens": 3982
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tizanidine.md",
         "displayName": "Wikipedia",
-        "size": 4254
+        "size": 4254,
+        "tokens": 1027
       }
     ]
   },
@@ -17181,13 +19396,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Tobacco.md",
         "displayName": "Drug Users Bible",
-        "size": 164087
+        "size": 164087,
+        "tokens": 40857
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tobacco.md",
         "displayName": "Wikipedia",
-        "size": 43413
+        "size": 43413,
+        "tokens": 10677
       }
     ]
   },
@@ -17199,13 +19416,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tolibut.md",
         "displayName": "TripSit Factsheets",
-        "size": 307
+        "size": 307,
+        "tokens": 84
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tolibut.md",
         "displayName": "Wikipedia",
-        "size": 579
+        "size": 579,
+        "tokens": 156
       }
     ]
   },
@@ -17217,61 +19436,71 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Tramadol.md",
         "displayName": "DrugBank",
-        "size": 37682
+        "size": 37682,
+        "tokens": 9419
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Tramadol.md",
         "displayName": "Drug Users Bible",
-        "size": 3558
+        "size": 3558,
+        "tokens": 941
       },
       {
         "id": "erowid",
         "fileName": "EROWID - Tramadol.md",
         "displayName": "Erowid",
-        "size": 26794
+        "size": 26794,
+        "tokens": 7357
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - Tramadol.md",
         "displayName": "Isomer Design",
-        "size": 716
+        "size": 404,
+        "tokens": 169
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Tramadol.md",
         "displayName": "PsychonautWiki",
-        "size": 36521
+        "size": 23935,
+        "tokens": 6388
       },
       {
         "id": "saferparty",
         "fileName": "SAFERPARTY - Tramadol.md",
         "displayName": "Safer Party",
-        "size": 3519
+        "size": 3519,
+        "tokens": 835
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Tramadol.md",
         "displayName": "The Drug Classroom",
-        "size": 434758
+        "size": 349842,
+        "tokens": 88465
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Tramadol.md",
         "displayName": "TripSit Factsheets",
-        "size": 3289
+        "size": 3289,
+        "tokens": 823
       },
       {
         "id": "tripsit-wiki",
         "fileName": "TRIPSIT_WIKI - Tramadol.md",
         "displayName": "TripSit Wiki",
-        "size": 4441
+        "size": 4441,
+        "tokens": 1097
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Tramadol.md",
         "displayName": "Wikipedia",
-        "size": 27789
+        "size": 27789,
+        "tokens": 6846
       }
     ]
   },
@@ -17283,19 +19512,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Trazodone.md",
         "displayName": "DrugBank",
-        "size": 31178
+        "size": 16845,
+        "tokens": 4152
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Trazodone.md",
         "displayName": "TripSit Factsheets",
-        "size": 516
+        "size": 516,
+        "tokens": 136
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Trazodone.md",
         "displayName": "Wikipedia",
-        "size": 31774
+        "size": 31774,
+        "tokens": 7614
       }
     ]
   },
@@ -17307,19 +19539,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Triazolam.md",
         "displayName": "DrugBank",
-        "size": 18016
+        "size": 9447,
+        "tokens": 2436
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Triazolam.md",
         "displayName": "TripSit Factsheets",
-        "size": 635
+        "size": 635,
+        "tokens": 175
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Triazolam.md",
         "displayName": "Wikipedia",
-        "size": 9167
+        "size": 9167,
+        "tokens": 2155
       }
     ]
   },
@@ -17331,19 +19566,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Trihexyphenidyl.md",
         "displayName": "DrugBank",
-        "size": 21231
+        "size": 11779,
+        "tokens": 2919
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - Trihexyphenidyl.md",
         "displayName": "PsychonautWiki",
-        "size": 10801
+        "size": 8273,
+        "tokens": 2307
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Trihexyphenidyl.md",
         "displayName": "Wikipedia",
-        "size": 7497
+        "size": 7497,
+        "tokens": 1793
       }
     ]
   },
@@ -17355,13 +19593,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Troparil.md",
         "displayName": "TripSit Factsheets",
-        "size": 691
+        "size": 691,
+        "tokens": 186
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Troparil.md",
         "displayName": "Wikipedia",
-        "size": 2805
+        "size": 2805,
+        "tokens": 668
       }
     ]
   },
@@ -17373,31 +19613,36 @@ export const substances: SubstanceInfo[] = [
         "id": "erowid",
         "fileName": "EROWID - U-47700.md",
         "displayName": "Erowid",
-        "size": 3145
+        "size": 3145,
+        "tokens": 900
       },
       {
         "id": "isomerdesign",
         "fileName": "ISOMERDESIGN - U-47700.md",
         "displayName": "Isomer Design",
-        "size": 800
+        "size": 474,
+        "tokens": 207
       },
       {
         "id": "psychonautwiki",
         "fileName": "PSYCHONAUTWIKI - U-47700.md",
         "displayName": "PsychonautWiki",
-        "size": 30379
+        "size": 30379,
+        "tokens": 9145
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - U-47700.md",
         "displayName": "TripSit Factsheets",
-        "size": 772
+        "size": 772,
+        "tokens": 332
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - U-47700.md",
         "displayName": "Wikipedia",
-        "size": 4116
+        "size": 4116,
+        "tokens": 1056
       }
     ]
   },
@@ -17409,7 +19654,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - U-49900.md",
         "displayName": "TripSit Factsheets",
-        "size": 382
+        "size": 382,
+        "tokens": 110
       }
     ]
   },
@@ -17421,7 +19667,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - U-51754.md",
         "displayName": "TripSit Factsheets",
-        "size": 577
+        "size": 577,
+        "tokens": 160
       }
     ]
   },
@@ -17433,7 +19680,8 @@ export const substances: SubstanceInfo[] = [
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - UR-144.md",
         "displayName": "The Drug Classroom",
-        "size": 9254
+        "size": 6621,
+        "tokens": 1772
       }
     ]
   },
@@ -17445,13 +19693,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Ubulawu.md",
         "displayName": "Drug Users Bible",
-        "size": 1514
+        "size": 1514,
+        "tokens": 368
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Ubulawu.md",
         "displayName": "Wikipedia",
-        "size": 1343
+        "size": 1343,
+        "tokens": 350
       }
     ]
   },
@@ -17463,13 +19713,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Valerian_Root.md",
         "displayName": "Drug Users Bible",
-        "size": 3861
+        "size": 3861,
+        "tokens": 1007
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Valerian_Root.md",
         "displayName": "Wikipedia",
-        "size": 8278
+        "size": 8278,
+        "tokens": 2053
       }
     ]
   },
@@ -17481,13 +19733,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Valerylfentanyl.md",
         "displayName": "TripSit Factsheets",
-        "size": 321
+        "size": 321,
+        "tokens": 84
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Valerylfentanyl.md",
         "displayName": "Wikipedia",
-        "size": 1479
+        "size": 1479,
+        "tokens": 339
       }
     ]
   },
@@ -17499,19 +19753,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Viloxazine.md",
         "displayName": "DrugBank",
-        "size": 18968
+        "size": 13557,
+        "tokens": 3247
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Viloxazine.md",
         "displayName": "TripSit Factsheets",
-        "size": 500
+        "size": 500,
+        "tokens": 129
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Viloxazine.md",
         "displayName": "Wikipedia",
-        "size": 10097
+        "size": 10097,
+        "tokens": 2398
       }
     ]
   },
@@ -17523,7 +19780,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - W-15.md",
         "displayName": "TripSit Factsheets",
-        "size": 667
+        "size": 667,
+        "tokens": 179
       }
     ]
   },
@@ -17535,13 +19793,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - White_Sage.md",
         "displayName": "Drug Users Bible",
-        "size": 3336
+        "size": 3336,
+        "tokens": 850
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - White_Sage.md",
         "displayName": "Wikipedia",
-        "size": 4044
+        "size": 4044,
+        "tokens": 950
       }
     ]
   },
@@ -17553,13 +19813,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Wild_Dagga.md",
         "displayName": "Drug Users Bible",
-        "size": 2806
+        "size": 2806,
+        "tokens": 727
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Wild_Dagga.md",
         "displayName": "Wikipedia",
-        "size": 5052
+        "size": 5052,
+        "tokens": 1268
       }
     ]
   },
@@ -17571,13 +19833,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Wormwood.md",
         "displayName": "Drug Users Bible",
-        "size": 5098
+        "size": 5098,
+        "tokens": 1352
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Wormwood.md",
         "displayName": "Wikipedia",
-        "size": 9809
+        "size": 9809,
+        "tokens": 2703
       }
     ]
   },
@@ -17589,19 +19853,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - YERBA-MATE.md",
         "displayName": "Drug Users Bible",
-        "size": 2868
+        "size": 2868,
+        "tokens": 690
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - YERBA-MATE.md",
         "displayName": "TripSit Factsheets",
-        "size": 478
+        "size": 478,
+        "tokens": 127
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - YERBA-MATE.md",
         "displayName": "Wikipedia",
-        "size": 14823
+        "size": 14823,
+        "tokens": 3754
       }
     ]
   },
@@ -17613,19 +19880,22 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - YOPO.md",
         "displayName": "Drug Users Bible",
-        "size": 4449
+        "size": 4449,
+        "tokens": 1089
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - YOPO.md",
         "displayName": "TripSit Factsheets",
-        "size": 424
+        "size": 424,
+        "tokens": 121
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - YOPO.md",
         "displayName": "Wikipedia",
-        "size": 1474
+        "size": 1474,
+        "tokens": 434
       }
     ]
   },
@@ -17637,13 +19907,15 @@ export const substances: SubstanceInfo[] = [
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Yohimbe.md",
         "displayName": "Drug Users Bible",
-        "size": 3695
+        "size": 3695,
+        "tokens": 934
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Yohimbe.md",
         "displayName": "Wikipedia",
-        "size": 3683
+        "size": 3683,
+        "tokens": 917
       }
     ]
   },
@@ -17655,13 +19927,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Zolazepam.md",
         "displayName": "TripSit Factsheets",
-        "size": 897
+        "size": 897,
+        "tokens": 241
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Zolazepam.md",
         "displayName": "Wikipedia",
-        "size": 1017
+        "size": 1017,
+        "tokens": 255
       }
     ]
   },
@@ -17673,25 +19947,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Zolpidem.md",
         "displayName": "DrugBank",
-        "size": 35510
+        "size": 21736,
+        "tokens": 5388
       },
       {
         "id": "thedrugclassroom",
         "fileName": "THEDRUGCLASSROOM - Zolpidem.md",
         "displayName": "The Drug Classroom",
-        "size": 7929
+        "size": 1379,
+        "tokens": 397
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Zolpidem.md",
         "displayName": "TripSit Factsheets",
-        "size": 897
+        "size": 897,
+        "tokens": 230
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Zolpidem.md",
         "displayName": "Wikipedia",
-        "size": 21411
+        "size": 21411,
+        "tokens": 5234
       }
     ]
   },
@@ -17703,25 +19981,29 @@ export const substances: SubstanceInfo[] = [
         "id": "drugbank",
         "fileName": "DRUGBANK - Zopiclone.md",
         "displayName": "DrugBank",
-        "size": 21570
+        "size": 11825,
+        "tokens": 2887
       },
       {
         "id": "drugusersbible",
         "fileName": "DRUGUSERSBIBLE - Zopiclone.md",
         "displayName": "Drug Users Bible",
-        "size": 3937
+        "size": 3937,
+        "tokens": 1020
       },
       {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Zopiclone.md",
         "displayName": "TripSit Factsheets",
-        "size": 840
+        "size": 840,
+        "tokens": 229
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - Zopiclone.md",
         "displayName": "Wikipedia",
-        "size": 18711
+        "size": 18711,
+        "tokens": 4444
       }
     ]
   },
@@ -17733,13 +20015,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - α-PBP.md",
         "displayName": "TripSit Factsheets",
-        "size": 432
+        "size": 432,
+        "tokens": 130
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - α-PBP.md",
         "displayName": "Wikipedia",
-        "size": 568
+        "size": 568,
+        "tokens": 157
       }
     ]
   },
@@ -17751,7 +20035,8 @@ export const substances: SubstanceInfo[] = [
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - α-PCYP.md",
         "displayName": "Wikipedia",
-        "size": 518
+        "size": 518,
+        "tokens": 132
       }
     ]
   },
@@ -17763,13 +20048,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - α-PVT.md",
         "displayName": "TripSit Factsheets",
-        "size": 480
+        "size": 480,
+        "tokens": 132
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - α-PVT.md",
         "displayName": "Wikipedia",
-        "size": 965
+        "size": 965,
+        "tokens": 252
       }
     ]
   },
@@ -17781,13 +20068,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - αET.md",
         "displayName": "TripSit Factsheets",
-        "size": 1107
+        "size": 1107,
+        "tokens": 293
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - αET.md",
         "displayName": "Wikipedia",
-        "size": 10568
+        "size": 10568,
+        "tokens": 2634
       }
     ]
   },
@@ -17799,7 +20088,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βH-2C-B.md",
         "displayName": "TripSit Factsheets",
-        "size": 604
+        "size": 604,
+        "tokens": 196
       }
     ]
   },
@@ -17811,13 +20101,15 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-2C-B.md",
         "displayName": "TripSit Factsheets",
-        "size": 1058
+        "size": 1058,
+        "tokens": 312
       },
       {
         "id": "wikipedia",
         "fileName": "WIKIPEDIA - βk-2C-B.md",
         "displayName": "Wikipedia",
-        "size": 3869
+        "size": 3869,
+        "tokens": 1109
       }
     ]
   },
@@ -17829,7 +20121,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-2C-I.md",
         "displayName": "TripSit Factsheets",
-        "size": 616
+        "size": 616,
+        "tokens": 162
       }
     ]
   },
@@ -17841,7 +20134,8 @@ export const substances: SubstanceInfo[] = [
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - βk-IVP.md",
         "displayName": "TripSit Factsheets",
-        "size": 493
+        "size": 493,
+        "tokens": 134
       }
     ]
   }

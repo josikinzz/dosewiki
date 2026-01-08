@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PMMA";
-export const sources = [{"id":"erowid","fileName":"EROWID - PMMA.md","displayName":"Erowid","size":4152},{"id":"isomerdesign","fileName":"ISOMERDESIGN - PMMA.md","displayName":"Isomer Design","size":3398},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PMMA.md","displayName":"PsychonautWiki","size":15522},{"id":"wikipedia","fileName":"WIKIPEDIA - PMMA.md","displayName":"Wikipedia","size":6129}];
+export const sources = [{"id":"erowid","fileName":"EROWID - PMMA.md","displayName":"Erowid","size":4152,"tokens":1163},{"id":"isomerdesign","fileName":"ISOMERDESIGN - PMMA.md","displayName":"Isomer Design","size":3398,"tokens":940},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PMMA.md","displayName":"PsychonautWiki","size":12484,"tokens":3380},{"id":"wikipedia","fileName":"WIKIPEDIA - PMMA.md","displayName":"Wikipedia","size":6129,"tokens":1575}];
 export const contents: Record<string, string> = {
   "erowid": `# PMMA
 *Source: https://www.erowid.org/chemicals/pmma/pmma.shtml*
@@ -234,16 +234,7 @@ In February 2002, the European Council decided that PMMA shall be subjected by t
 
 - [PMMA (Wikipedia)](https://en.wikipedia.org/wiki/Para-Methoxy-N-methylamphetamine)
 - [PMMA (Erowid Vault)](https://www.erowid.org/chemicals/pmma/pmma.shtml)
-- [PMMA (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=130)
-
-## References
-1. ↑ ["Council Decision concerning control measures and criminal sanctions in respect of the new synthetic drug PMMA"](http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2002:063:0014:0014:EN:PDF).*Official Journal of the European Union*. Office for Official Publications of the European Communites (published March 6, 2003). February 28, 2002. p. 14.[OCLC](http://en.wikipedia.org/wiki/OCLC)[52224955](//www.worldcat.org/oclc/52224955). L 63.
-2. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-3. ↑ ["Vierzehnte Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl100s1414b.pdf%27%5D#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl100s1414b.pdf%27%5D__1576702069328)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-4. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-5. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-6. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-7. ↑ [https://www.federalregister.gov/documents/2021/06/25/2021-13460/schedules-of-controlled-substances-placement-of-para-methoxymethamphetamine-pmma-in-schedule-i](https://www.federalregister.gov/documents/2021/06/25/2021-13460/schedules-of-controlled-substances-placement-of-para-methoxymethamphetamine-pmma-in-schedule-i)NewPP limit report Cached time: 20251218075730 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.019 seconds CPU time usage: 0.265 seconds Real time usage: 0.469 seconds Preprocessor visited node count: 1432/1000000 Post‐expand include size: 66981/2097152 bytes Template argument size: 12249/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 7128/5000000 bytes Lua time usage: 0.120/7 seconds Lua virtual size: 7.41 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 366.107 1 -total 31.17% 114.112 4 Template:Citation_needed 18.81% 68.857 1 Template:Cite_magazine 18.57% 67.979 1 Template:Fix 17.36% 63.567 2 Template:Category_handler 17.23% 63.087 1 Template:SubstanceBox/PMMA 15.74% 57.613 1 Template:SubstanceBox 10.69% 39.124 4 Template:Cite_web 7.84% 28.702 1 Template:Effects/base 6.78% 24.807 1 Template:Effect_list`,
+- [PMMA (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=130)`,
   "wikipedia": `# Para-Methoxymethamphetamine
 *Source: https://en.wikipedia.org/wiki/Para-Methoxymethamphetamine*
 

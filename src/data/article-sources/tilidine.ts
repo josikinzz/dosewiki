@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Tilidine";
-export const sources = [{"id":"saferparty","fileName":"SAFERPARTY - Tilidine.md","displayName":"Safer Party","size":3452},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tilidine.md","displayName":"TripSit Factsheets","size":684},{"id":"wikipedia","fileName":"WIKIPEDIA - Tilidine.md","displayName":"Wikipedia","size":5277}];
+export const sources = [{"id":"saferparty","fileName":"SAFERPARTY - Tilidine.md","displayName":"Safer Party","size":3452,"tokens":819},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Tilidine.md","displayName":"TripSit Factsheets","size":684,"tokens":187},{"id":"wikipedia","fileName":"WIKIPEDIA - Tilidine.md","displayName":"Wikipedia","size":5277,"tokens":1293}];
 export const contents: Record<string, string> = {
   "saferparty": `# Tilidine
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*

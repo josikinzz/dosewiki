@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DALT";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DALT.md","displayName":"Isomer Design","size":4072},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DALT.md","displayName":"TripSit Factsheets","size":724},{"id":"wikipedia","fileName":"WIKIPEDIA - DALT.md","displayName":"Wikipedia","size":1318}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DALT.md","displayName":"Isomer Design","size":4072,"tokens":1104},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DALT.md","displayName":"TripSit Factsheets","size":724,"tokens":192},{"id":"wikipedia","fileName":"WIKIPEDIA - DALT.md","displayName":"Wikipedia","size":1318,"tokens":323}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DALT
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=tk&id=57*

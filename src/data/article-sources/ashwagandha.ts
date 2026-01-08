@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Ashwagandha";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ashwagandha.md","displayName":"TripSit Factsheets","size":603},{"id":"wikipedia","fileName":"WIKIPEDIA - Ashwagandha.md","displayName":"Wikipedia","size":5303}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Ashwagandha.md","displayName":"TripSit Factsheets","size":603,"tokens":169},{"id":"wikipedia","fileName":"WIKIPEDIA - Ashwagandha.md","displayName":"Wikipedia","size":5303,"tokens":1342}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Ashwagandha
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "DOPR";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOPR.md","displayName":"Isomer Design","size":7588},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOPR.md","displayName":"TripSit Factsheets","size":1168},{"id":"wikipedia","fileName":"WIKIPEDIA - DOPR.md","displayName":"Wikipedia","size":3203}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - DOPR.md","displayName":"Isomer Design","size":7588,"tokens":2015},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - DOPR.md","displayName":"TripSit Factsheets","size":1168,"tokens":332},{"id":"wikipedia","fileName":"WIKIPEDIA - DOPR.md","displayName":"Wikipedia","size":3203,"tokens":863}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# DOPR
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=71*

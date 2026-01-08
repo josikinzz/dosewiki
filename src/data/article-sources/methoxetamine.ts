@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methoxetamine";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methoxetamine.md","displayName":"Disregard Everything I Say","size":15224},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methoxetamine.md","displayName":"Drug Users Bible","size":3015},{"id":"erowid","fileName":"EROWID - Methoxetamine.md","displayName":"Erowid","size":23577},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methoxetamine.md","displayName":"Isomer Design","size":782},{"id":"nervewing","fileName":"NERVEWING - Beyond MXE.md","displayName":"NERVEWING","size":14692},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methoxetamine.md","displayName":"PsychonautWiki","size":31111},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxetamine.md","displayName":"TripSit Factsheets","size":2945},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Methoxetamine.md","displayName":"TripSit Wiki","size":5046},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxetamine.md","displayName":"Wikipedia","size":7674}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - Methoxetamine.md","displayName":"Disregard Everything I Say","size":15224,"tokens":3878},{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methoxetamine.md","displayName":"Drug Users Bible","size":3015,"tokens":744},{"id":"erowid","fileName":"EROWID - Methoxetamine.md","displayName":"Erowid","size":23577,"tokens":6745},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methoxetamine.md","displayName":"Isomer Design","size":335,"tokens":137},{"id":"nervewing","fileName":"NERVEWING - Beyond MXE.md","displayName":"NERVEWING","size":14692,"tokens":3810},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methoxetamine.md","displayName":"PsychonautWiki","size":24719,"tokens":6635},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methoxetamine.md","displayName":"TripSit Factsheets","size":2945,"tokens":776},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - Methoxetamine.md","displayName":"TripSit Wiki","size":3753,"tokens":1026},{"id":"wikipedia","fileName":"WIKIPEDIA - Methoxetamine.md","displayName":"Wikipedia","size":7674,"tokens":1908}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# Methoxetamine
 *Source: https://disregardeverythingisay.com/post/34190164501/mxe-broken-down-and-described*
@@ -588,17 +588,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CCNC1(CCCCC1=O)c1cccc(c1)OC\`
 
-**InChI:** \`InChI=1S/C15H21NO2/c1-3-16-15(10-5-4-9-14(15)17)12-7-6-8-13(11-12)18-2/h6-8,11,16H,3-5,9-10H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [24721792](https://www.chemspider.com/Chemical-Structure.24721792.html/)
-- [52911279](https://pubchem.ncbi.nlm.nih.gov/compound/52911279)
-- [Q903303](https://www.wikidata.org/wiki/Q903303)
-- [Methoxetamine](https://en.wikipedia.org/wiki/Methoxetamine)
-- [List of arylcyclohexylamines](https://en.wikipedia.org/wiki/Arylcyclohexylamine#List_of_arylcyclohexylamines)
-`,
+**InChI:** \`InChI=1S/C15H21NO2/c1-3-16-15(10-5-4-9-14(15)17)12-7-6-8-13(11-12)18-2/h6-8,11,16H,3-5,9-10H2,1-2H3\``,
   "nervewing": `# Beyond MXE
 
 *Source: http://nervewing.blogspot.com/2020/11/beyond-mxe.html*
@@ -898,26 +888,7 @@ In September 2014, the European Council decided that methoxetamine shall be subj
 ## Literature
 
 - Morris, H., & Wallach, J. (2014). From PCP to MXE: A comprehensive review of the non-medical use of dissociative drugs. Drug Testing and Analysis, 6(7–8), 614–632. [https://doi.org/10.1002/dta.1620](https://doi.org/10.1002/dta.1620)
-- Halberstadt, A. L., Slepak, N., Hyun, J., Buell, M. R., & Powell, S. B. (2016). The novel ketamine analog methoxetamine produces dissociative-like behavioral effects in rodents. Psychopharmacology, 233(7), 1215-1225. [https://doi.org/10.1007/s00213-016-4203-3](https://doi.org/10.1007/s00213-016-4203-3)
-
-## References
-1. ↑ 1.0 1.1 1.2 [Advisory Council on the Misuse of Drugs (ACMD) Methoxetamine report, 2012](https://www.gov.uk/government/publications/advisory-council-on-the-misuse-of-drugs-acmd-methoxetamine-report-2012)
-2. ↑ Morris, H. (2011),[Interview with a Ketamine Chemist](https://www.vice.com/en/article/ppzgk9/interview-with-ketamine-chemist-704-v18n2)
-3. ↑ Online sales of new psychoactive substances/‘legal highs’ | [http://www.emcdda.europa.eu/attachements.cfm/att_143801_EN_SnapshotSummary.pdf](http://www.emcdda.europa.eu/attachements.cfm/att_143801_EN_SnapshotSummary.pdf)
-4. ↑ Kjellgren, A., Jonsson, K. (1 July 2013).["Methoxetamine (MXE) – A Phenomenological Study of Experiences Induced by a "Legal High" from the Internet"](https://www.tandfonline.com/doi/full/10.1080/02791072.2013.803647).*Journal of Psychoactive Drugs*.**45**(3): 276–286.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1080/02791072.2013.803647](//doi.org/10.1080%2F02791072.2013.803647).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0279-1072](//www.worldcat.org/issn/0279-1072).
-5. ↑ Coppola, M., Mondola, R. (October 2012).["Methoxetamine: From drug of abuse to rapid-acting antidepressant"](https://linkinghub.elsevier.com/retrieve/pii/S030698771200312X).*Medical Hypotheses*.**79**(4): 504–507.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.mehy.2012.07.002](//doi.org/10.1016%2Fj.mehy.2012.07.002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0306-9877](//www.worldcat.org/issn/0306-9877).
-6. ↑ Morris, H., Wallach, J. (July 2014).["From PCP to MXE: a comprehensive review of the non-medical use of dissociative drugs: PCP to MXE"](https://onlinelibrary.wiley.com/doi/10.1002/dta.1620).*Drug Testing and Analysis*.**6**(7–8): 614–632.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.1620](//doi.org/10.1002%2Fdta.1620).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-7. ↑ ["Council Implementing Decision on subjecting 25I-NBOMe, AH-7921, MDPV and methoxetamine to control measures"](https://op.europa.eu/o/opportal-service/download-handler?identifier=025bb164-4937-11e4-a0cb-01aa75ed71a1&format=pdfa1a&language=en&productionSystem=cellar&part=).*Official Journal of the European Union*. Office for Official Publications of the European Communites (published October 1, 2014). September 25, 2014. pp. 22–26.[OCLC](http://en.wikipedia.org/wiki/OCLC)[52224955](//www.worldcat.org/oclc/52224955). L 287.
-8. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-9. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-10. ↑ "STATUS DECISION OF CONTROLLED AND NON-CONTROLLED SUBSTANCE(S)", [https://web.archive.org/web/20160409135922/http://isomerdesign.com/Cdsa/HC/StatusDecisions/A-2013-00235%20-%20PDFs/C-Methoxetamine-2011-01-31.pdf](https://web.archive.org/web/20160409135922/http://isomerdesign.com/Cdsa/HC/StatusDecisions/A-2013-00235%20-%20PDFs/C-Methoxetamine-2011-01-31.pdf) . Retrieved January 24th, 2017.
-11. ↑ 11.0 11.1 11.2 11.3 11.4 11.5 ["EMCDDA–Europol Joint Report on a new psychoactive substance: methoxetamine (2-(3-methoxyphenyl)-2-(ethylamino)cyclohexanone)"](http://www.emcdda.europa.eu/system/files/publications/818/TDAS14004ENN-1_465208.pdf)(PDF). European Monitoring Centre for Drugs and Drug Addiction (EMCDDA), Europol. January 2014: 14–15.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2810/28543](//doi.org/10.2810%2F28543).[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[978-92-9168-686-5](http://en.wikipedia.org/wiki/Special:BookSources/978-92-9168-686-5).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1977-7868](//www.worldcat.org/issn/1977-7868). Retrieved April 19, 2020.
-12. ↑ [Anlage I BtMG - Einzelnorm](http://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)
-13. ↑ [http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf](http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf)
-14. ↑ [新たに指定薬物４物質を麻薬に指定します（注意喚起）｜厚生労働省](https://www.mhlw.go.jp/seisakunitsuite/bunya/kenkou_iryou/iyakuhin/yakubuturanyou/oshirase/20160527-1.html), 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]
-15. ↑ Koninkrijksrelaties, M. van B. Z. en,[Opiumwet](https://wetten.overheid.nl/BWBR0001941/2017-05-25)
-16. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-17. ↑ [https://www.federalregister.gov/documents/2022/06/06/2022-11933/schedules-of-controlled-substances-placement-of-methoxetamine-mxe-in-schedule-i](https://www.federalregister.gov/documents/2022/06/06/2022-11933/schedules-of-controlled-substances-placement-of-methoxetamine-mxe-in-schedule-i)NewPP limit report Cached time: 20251218075610 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.078 seconds CPU time usage: 0.403 seconds Real time usage: 0.735 seconds Preprocessor visited node count: 1977/1000000 Post‐expand include size: 168006/2097152 bytes Template argument size: 24578/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 18877/5000000 bytes Lua time usage: 0.230/7 seconds Lua virtual size: 8.3 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 573.498 1 -total 22.14% 126.955 5 Template:Citation 15.49% 88.818 1 Template:SubstanceBox/Methoxetamine 14.81% 84.944 4 Template:Cite_journal 14.48% 83.037 1 Template:SubstanceBox 14.00% 80.293 2 Template:Citation_needed 12.47% 71.513 1 Template:Fix 11.65% 66.805 2 Template:Category_handler 10.36% 59.411 1 Template:Distinguish 9.60% 55.067 1 Template:Hatnote`,
+- Halberstadt, A. L., Slepak, N., Hyun, J., Buell, M. R., & Powell, S. B. (2016). The novel ketamine analog methoxetamine produces dissociative-like behavioral effects in rodents. Psychopharmacology, 233(7), 1215-1225. [https://doi.org/10.1007/s00213-016-4203-3](https://doi.org/10.1007/s00213-016-4203-3)`,
   "tripsit-factsheets": `# MXE
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mxe*
 
@@ -1084,27 +1055,7 @@ Methoxetamine is illegal in the US states Arizona[1], Florida[2], Indiana[3], Lo
 
 [Drugs-Forum](http://www.drugs-forum.com/forum/showwiki.php?title=Methoxetamine)
 
-[/r/Drugs FAQ](https://reddit.com/r/Drugs/comments/o9wam/rdrugs_ama_series_mxe_methoxetamine/?sort=top)
-
-## References
-
-- ↑ [http://www.azleg.gov/DocumentsForBill.asp?Session_ID=112&Bill_Number=HB2453](http://www.azleg.gov/DocumentsForBill.asp?Session_ID=112&Bill_Number=HB2453)
-
-- ↑ [http://www.leg.state.fl.us/Statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/0893.html](http://www.leg.state.fl.us/Statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/0893.html)
-
-- ↑ [http://www.in.gov/legislative/ic/2010/title35/ar31.5/ch2.html](http://www.in.gov/legislative/ic/2010/title35/ar31.5/ch2.html)
-
-- ↑ [http://www.legis.la.gov/legis/ViewDocument.aspx?d=850979&n=HB10%20Act](http://www.legis.la.gov/legis/ViewDocument.aspx?d=850979&n=HB10%20Act)
-
-- ↑ [https://www.revisor.mn.gov/statutes/?id=152.02](https://www.revisor.mn.gov/statutes/?id=152.02)
-
-- ↑ [http://www.legis.nd.gov/cencode/t19c03-1.pdf?20140721032549](http://www.legis.nd.gov/cencode/t19c03-1.pdf?20140721032549)
-
-- ↑ [http://www.legislature.state.oh.us/BillText130/130_HB_315_RH_N.html](http://www.legislature.state.oh.us/BillText130/130_HB_315_RH_N.html)
-
-- ↑ [http://lis.virginia.gov/cgi-bin/legp604.exe?000+cod+54.1-3446](http://lis.virginia.gov/cgi-bin/legp604.exe?000+cod+54.1-3446)
-
-- ↑ [http://www.legislation.gov.uk/uksi/2013/239/contents/made](http://www.legislation.gov.uk/uksi/2013/239/contents/made)`,
+[/r/Drugs FAQ](https://reddit.com/r/Drugs/comments/o9wam/rdrugs_ama_series_mxe_methoxetamine/?sort=top)`,
   "wikipedia": `# Methoxetamine
 *Source: https://en.wikipedia.org/wiki/Methoxetamine*
 

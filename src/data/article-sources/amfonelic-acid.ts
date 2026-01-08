@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Amfonelic acid";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Amfonelic acid.md","displayName":"TripSit Factsheets","size":892},{"id":"wikipedia","fileName":"WIKIPEDIA - Amfonelic acid.md","displayName":"Wikipedia","size":3068}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Amfonelic acid.md","displayName":"TripSit Factsheets","size":892,"tokens":224},{"id":"wikipedia","fileName":"WIKIPEDIA - Amfonelic acid.md","displayName":"Wikipedia","size":3068,"tokens":727}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Amfonelic acid
 *Source: TripSit Factsheets (tripsit.me)*

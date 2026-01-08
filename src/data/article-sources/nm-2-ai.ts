@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "NM-2-AI";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - NM-2-AI.md","displayName":"Drug Users Bible","size":1390},{"id":"isomerdesign","fileName":"ISOMERDESIGN - NM-2-AI.md","displayName":"Isomer Design","size":693},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - NM-2-AI.md","displayName":"PsychonautWiki","size":22582},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - NM-2-AI.md","displayName":"TripSit Factsheets","size":323},{"id":"wikipedia","fileName":"WIKIPEDIA - NM-2-AI.md","displayName":"Wikipedia","size":1645}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - NM-2-AI.md","displayName":"Drug Users Bible","size":1390,"tokens":354},{"id":"isomerdesign","fileName":"ISOMERDESIGN - NM-2-AI.md","displayName":"Isomer Design","size":367,"tokens":148},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - NM-2-AI.md","displayName":"PsychonautWiki","size":18170,"tokens":4948},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - NM-2-AI.md","displayName":"TripSit Factsheets","size":323,"tokens":104},{"id":"wikipedia","fileName":"WIKIPEDIA - NM-2-AI.md","displayName":"Wikipedia","size":1645,"tokens":462}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# NM2AI
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -51,16 +51,7 @@ general consensus in not being sure.
 
 **SMILES:** \`CNC1Cc2c(C1)cccc2\`
 
-**InChI:** \`InChI=1S/C10H13N/c1-11-10-6-8-4-2-3-5-9(8)7-10/h2-5,10-11H,6-7H2,1H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [13566342](https://www.chemspider.com/Chemical-Structure.13566342.html/)
-- [15023225](https://pubchem.ncbi.nlm.nih.gov/compound/15023225)
-- [Q20707155](https://www.wikidata.org/wiki/Q20707155)
-- [NM-2-AI](https://en.wikipedia.org/wiki/NM-2-AI)
-`,
+**InChI:** \`InChI=1S/C10H13N/c1-11-10-6-8-4-2-3-5-9(8)7-10/h2-5,10-11H,6-7H2,1H3\``,
   "psychonautwiki": `# NM-2-AI
 *Source: https://psychonautwiki.org/wiki/NM-2-AI*
 
@@ -191,18 +182,7 @@ NM-2-AI is currently believed to be a grey area compound within most parts of th
 ## External links
 
 - [NM-2-AI (Wikipedia)](https://en.wikipedia.org/wiki/NM-2-AI)
-- [NM-2-AI (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1327)
-
-## References
-1. ↑ 1.0 1.1 1.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-2. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-3. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-4. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-5. ↑ ["Anlage NpSG"](https://www.gesetze-im-internet.de/npsg/anlage.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-6. ↑ ["Gesetz zur Bekämpfung der Verbreitung neuer psychoaktiver Stoffe"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl116s2615.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl116s2615.pdf%27%5D__1576017393518)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 23, 2019.
-7. ↑ ["§ 4 NpSG"](https://www.gesetze-im-internet.de/npsg/__4.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 23, 2019.
-8. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-9. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075657 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.036 seconds CPU time usage: 0.273 seconds Real time usage: 0.532 seconds Preprocessor visited node count: 1296/1000000 Post‐expand include size: 88610/2097152 bytes Template argument size: 11133/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 12205/5000000 bytes Lua time usage: 0.170/7 seconds Lua virtual size: 7.8 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 410.858 1 -total 27.05% 111.118 3 Template:Cite_journal 16.54% 67.957 4 Template:Cite_web 15.16% 62.305 1 Template:Further 12.08% 49.652 1 Template:SubstanceBox/NM-2-AI 11.44% 46.998 1 Template:SubstanceBox 4.92% 20.232 1 Template:Effects/base 4.83% 19.825 1 Template:Citation 4.20% 17.248 1 Template:Effect_list 3.93% 16.160 1 Template:Cite_book`,
+- [NM-2-AI (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=1327)`,
   "tripsit-factsheets": `# NM-2-AI
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/nm-2-ai*
 

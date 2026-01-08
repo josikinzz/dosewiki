@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Camazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Camazepam.md","displayName":"TripSit Factsheets","size":638},{"id":"wikipedia","fileName":"WIKIPEDIA - Camazepam.md","displayName":"Wikipedia","size":3367}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Camazepam.md","displayName":"TripSit Factsheets","size":638,"tokens":170},{"id":"wikipedia","fileName":"WIKIPEDIA - Camazepam.md","displayName":"Wikipedia","size":3367,"tokens":771}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Camazepam
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Pinazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pinazepam.md","displayName":"TripSit Factsheets","size":696},{"id":"wikipedia","fileName":"WIKIPEDIA - Pinazepam.md","displayName":"Wikipedia","size":1266}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Pinazepam.md","displayName":"TripSit Factsheets","size":696,"tokens":180},{"id":"wikipedia","fileName":"WIKIPEDIA - Pinazepam.md","displayName":"Wikipedia","size":1266,"tokens":294}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Pinazepam
 *Source: TripSit Factsheets (tripsit.me)*

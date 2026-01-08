@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Nimetazepam";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nimetazepam.md","displayName":"TripSit Factsheets","size":650},{"id":"wikipedia","fileName":"WIKIPEDIA - Nimetazepam.md","displayName":"Wikipedia","size":8119}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Nimetazepam.md","displayName":"TripSit Factsheets","size":650,"tokens":175},{"id":"wikipedia","fileName":"WIKIPEDIA - Nimetazepam.md","displayName":"Wikipedia","size":8119,"tokens":1916}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Nimetazepam
 *Source: TripSit Factsheets (tripsit.me)*

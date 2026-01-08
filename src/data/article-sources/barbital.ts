@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Barbital";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Barbital.md","displayName":"TripSit Factsheets","size":421},{"id":"wikipedia","fileName":"WIKIPEDIA - Barbital.md","displayName":"Wikipedia","size":4762}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Barbital.md","displayName":"TripSit Factsheets","size":421,"tokens":108},{"id":"wikipedia","fileName":"WIKIPEDIA - Barbital.md","displayName":"Wikipedia","size":4762,"tokens":1198}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Barbital
 *Source: TripSit Factsheets (tripsit.me)*

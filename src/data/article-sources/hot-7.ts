@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "HOT-7";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-7.md","displayName":"Isomer Design","size":2046},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-7.md","displayName":"TripSit Factsheets","size":969},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-7.md","displayName":"Wikipedia","size":1617}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - HOT-7.md","displayName":"Isomer Design","size":2046,"tokens":547},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - HOT-7.md","displayName":"TripSit Factsheets","size":969,"tokens":261},{"id":"wikipedia","fileName":"WIKIPEDIA - HOT-7.md","displayName":"Wikipedia","size":1617,"tokens":491}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# HOT-7
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=88*

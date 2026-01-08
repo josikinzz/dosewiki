@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PCP";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - PCP.md","displayName":"The Drug Classroom","size":1396},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PCP.md","displayName":"TripSit Factsheets","size":2631},{"id":"wikipedia","fileName":"WIKIPEDIA - PCP.md","displayName":"Wikipedia","size":15975}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - PCP.md","displayName":"The Drug Classroom","size":1396,"tokens":378},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PCP.md","displayName":"TripSit Factsheets","size":2631,"tokens":686},{"id":"wikipedia","fileName":"WIKIPEDIA - PCP.md","displayName":"Wikipedia","size":15975,"tokens":3907}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# Phencyclidine (PCP)
 *Source: https://thedrugclassroom.com/video/phencyclidine-pcp/*

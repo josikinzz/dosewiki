@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25B-NBOMe";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 25B-NBOMe.md","displayName":"Disregard Everything I Say","size":10966},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25B-NBOMe.md","displayName":"Isomer Design","size":724},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25B-NBOMe.md","displayName":"PsychonautWiki","size":33777},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25B-NBOMe.md","displayName":"TripSit Factsheets","size":945},{"id":"wikipedia","fileName":"WIKIPEDIA - 25B-NBOMe.md","displayName":"Wikipedia","size":6240}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 25B-NBOMe.md","displayName":"Disregard Everything I Say","size":10966,"tokens":2645},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25B-NBOMe.md","displayName":"Isomer Design","size":353,"tokens":147},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25B-NBOMe.md","displayName":"PsychonautWiki","size":24709,"tokens":6627},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25B-NBOMe.md","displayName":"TripSit Factsheets","size":945,"tokens":299},{"id":"wikipedia","fileName":"WIKIPEDIA - 25B-NBOMe.md","displayName":"Wikipedia","size":6240,"tokens":1627}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 25B-NBOMe
 *Source: https://disregardeverythingisay.com/post/83025698345/25b-nbome-broken-down-and-described*
@@ -145,17 +145,7 @@ Click [here](http://psychonautwiki.org/wiki/25B-NBOMe) for a more comprehensiv
 
 **SMILES:** \`COc1cc(Br)c(cc1CCNCc1ccccc1OC)OC\`
 
-**InChI:** \`InChI=1S/C18H22BrNO3/c1-21-16-7-5-4-6-14(16)12-20-9-8-13-10-18(23-3)15(19)11-17(13)22-2/h4-7,10-11,20H,8-9,12H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8152636](https://www.chemspider.com/Chemical-Structure.8152636.html/)
-- [9977044](https://pubchem.ncbi.nlm.nih.gov/compound/9977044)
-- [Q4632126](https://www.wikidata.org/wiki/Q4632126)
-- [25B-NBOMe](https://en.wikipedia.org/wiki/25B-NBOMe)
-- [25-NB](https://en.wikipedia.org/wiki/25-NB)
-`,
+**InChI:** \`InChI=1S/C18H22BrNO3/c1-21-16-7-5-4-6-14(16)12-20-9-8-13-10-18(23-3)15(19)11-17(13)22-2/h4-7,10-11,20H,8-9,12H2,1-3H3\``,
   "psychonautwiki": `# 25B-NBOMe
 *Source: https://psychonautwiki.org/wiki/25B-NBOMe*
 
@@ -353,41 +343,7 @@ The overdose effects of NBOMes are typically a dangerously high [heart rate](htt
 
 - [25B-NBOMe (Wikipedia)](https://en.wikipedia.org/wiki/25B-NBOMe)
 - [25B-NBOMe (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=5526)
-- [25B-NBOMe (Disregard Everything I say)](http://disregardeverythingisay.com/post/83025698345/25b-nbome-broken-down-and-described)
-
-## References
-1. ↑ 1.0 1.1 1.2 1.3 1.4 [Erowid NBOMe (Other or Unknown NBOMe-Compound) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/nbome/nbome_death.shtml)
-2. ↑ 2.0 2.1 Heim, R. (2004).["Synthese und Pharmakologie potenter 5-HT2A-Rezeptoragonisten mit N-2 -Methoxybenzyl-Partialstruktur: Entwicklung eines neuen Struktur-Wirkungskonzepts"](https://refubium.fu-berlin.de/handle/fub188/11995)(in German).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.17169/refubium-16193](//doi.org/10.17169%2Frefubium-16193).
-3. ↑ 3.0 3.1 3.2 Hansen, M., Phonekeo, K., Paine, J. S., Leth-Petersen, S., Begtrup, M., Bräuner-Osborne, H., Kristensen, J. L. (19 March 2014).["Synthesis and Structure–Activity Relationships of N -Benzyl Phenethylamines as 5-HT 2A/2C Agonists"](https://pubs.acs.org/doi/10.1021/cn400216u).*ACS Chemical Neuroscience*.**5**(3): 243–249.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/cn400216u](//doi.org/10.1021%2Fcn400216u).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1948-7193](//www.worldcat.org/issn/1948-7193).
-4. ↑ [Erowid Bromo-Dragonfly Vault : Dosage](https://erowid.org/chemicals/bromo_dragonfly/bromo_dragonfly_dose.shtml)
-5. ↑ Silva, Maria Elena (2009).["Theoretical study of the interaction of agonists with the 5-HT2A receptor"](https://epub.uni-regensburg.de/id/eprint/12119).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.5283/EPUB.12119](//doi.org/10.5283%2FEPUB.12119).
-6. ↑ Silva, M. E., Heim, R., Strasser, A., Elz, S., Dove, S. (January 2011).["Theoretical studies on the interaction of partial agonists with the 5-HT2A receptor"](http://link.springer.com/10.1007/s10822-010-9400-2).*Journal of Computer-Aided Molecular Design*.**25**(1): 51–66.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s10822-010-9400-2](//doi.org/10.1007%2Fs10822-010-9400-2).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0920-654X](//www.worldcat.org/issn/0920-654X).
-7. ↑ [Designer Drug Identified As Cause Of Plano Teen’s Death](https://www.cbsnews.com/dfw/news/designer-drug-identified-as-cause-of-plano-teens-death/)
-8. ↑ Preclinical Safety Assessment of the 5-HT2A Receptor Agonist PET Radioligand [11C]Cimbi-36 | [https://bitnest.netfirms.com/external.php?id=%257DbxUgX%255DCY%2504%2505wzx%2519%2505VYL%2502RI%257E%2560d](https://bitnest.netfirms.com/external.php?id=%257DbxUgX%255DCY%2504%2505wzx%2519%2505VYL%2502RI%257E%2560d)
-9. ↑ [Erowid 25I-NBOMe (2C-I-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2ci_nbome/2ci_nbome_death.shtml)
-10. ↑ [Erowid 2C-C-NBOMe (25C-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2cc_nbome/2cc_nbome_death.shtml)
-11. ↑ Lützen, E., Holtkamp, M., Stamme, I., Schmid, R., Sperling, M., Pütz, M., Karst, U. (April 2020).["Multimodal imaging of hallucinogens 25C‐ and 25I‐NBOMe on blotter papers"](https://onlinelibrary.wiley.com/doi/10.1002/dta.2751).*Drug Testing and Analysis*.**12**(4): 465–471.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2751](//doi.org/10.1002%2Fdta.2751).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-12. ↑ Marchi, N. C., Scherer, J. N., Fara, L. S., Remy, L., Ornel, R., Reis, M., Zamboni, A., Paim, M., Fiorentin, T. R., Wayhs, C. A. Y., Von Diemen, L., Pechansky, F., Kessler, F. H. P., Limberger, R. P. (1 March 2019).["Clinical and Toxicological Profile of NBOMes: A Systematic Review"](https://www.sciencedirect.com/science/article/pii/S0033318218304882).*Psychosomatics*.**60**(2): 129–138.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.psym.2018.11.002](//doi.org/10.1016%2Fj.psym.2018.11.002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3182](//www.worldcat.org/issn/0033-3182).
-13. ↑ Yoon, K. S., Yun, J., Kim, Y.-H., Shin, J., Kim, S. J., Seo, J.-W., Hyun, S.-A., Suh, S. K., Cha, H. J. (1 April 2019).["2-(2,5-Dimethoxy-4-methylphenyl)-N-(2-methoxybenzyl)ethanamine (25D-NBOMe) and N-(2-methoxybenzyl)-2,5-dimethoxy-4-chlorophenethylamine (25C-NBOMe) induce adverse cardiac effects in vitro and in vivo"](https://www.sciencedirect.com/science/article/pii/S0378427418317533).*Toxicology Letters*.**304**: 50–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.toxlet.2019.01.004](//doi.org/10.1016%2Fj.toxlet.2019.01.004).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0378-4274](//www.worldcat.org/issn/0378-4274).
-14. ↑ [https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0190_disp.jpg](https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0190_disp.jpg)
-15. ↑ [https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0191_disp.jpg](https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0191_disp.jpg)
-16. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-17. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-18. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-19. ↑ 关于印发《非药用类麻醉药品和精神药品列管办法》的通知 | [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html)
-20. ↑ ["Achtundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl114s1999.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl114s1999.pdf%27%5D__1576023093735)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-21. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-22. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-23. ↑ Tabella 1 Stupefacenti dello Stato Italiano | [http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf](http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf)
-24. ↑ ["新たに４物質を麻薬に指定し、規制の強化を図ります"](https://www.mhlw.go.jp/stf/houdou/0000098723.html) (in Japanese). 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]. Retrieved May 2, 2022.
-25. ↑ [Zaudējis spēku - Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem](https://likumi.lv/doc.php?id=121086)
-26. ↑ [Misuse of Drugs Act 1975 No 116 (as at 07 December 2021), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-27. ↑ [Läkemedelsverkets författningssamling](http://www.lakemedelsverket.se/upload/lvfs/LVFS_2013-15.pdf)(PDF)
-28. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-29. ↑ [Başbakanlık Mevzuatı Geliştirme ve Yayın Genel Müdürlüğü](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3.htm)
-30. ↑ [https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf](https://resmigazete.gov.tr/eskiler/2014/01/20140125-3-1.pdf)
-31. ↑ [Misuse of Drugs Act 1971 (S.I. 2014/1106)](https://www.legislation.gov.uk/uksi/2014/1106/made), London: The Stationery Office Limited, 2014, retrieved 5 July 2017
-32. ↑ [http://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml](http://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml)NewPP limit report Cached time: 20251218074902 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.05 seconds CPU time usage: 0.408 seconds Real time usage: 0.842 seconds Preprocessor visited node count: 2437/1000000 Post‐expand include size: 180531/2097152 bytes Template argument size: 24959/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 32648/5000000 bytes Lua time usage: 0.340/7 seconds Lua virtual size: 8.58 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 694.440 1 -total 24.68% 171.404 11 Template:Citation 23.98% 166.494 7 Template:Cite_journal 18.06% 125.426 2 Template:Citation_needed 10.98% 76.257 2 Template:Fix 10.20% 70.861 4 Template:Category_handler 9.17% 63.659 1 Template:SubstanceBox/25B-NBOMe 8.58% 59.602 1 Template:SubstanceBox 5.98% 41.533 4 Template:Cite_web 4.12% 28.598 1 Template:Effects/base`,
+- [25B-NBOMe (Disregard Everything I say)](http://disregardeverythingisay.com/post/83025698345/25b-nbome-broken-down-and-described)`,
   "tripsit-factsheets": `# 25B-NBOMe
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/25b-nbome*
 

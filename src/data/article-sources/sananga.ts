@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Sananga";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sananga.md","displayName":"Drug Users Bible","size":4154},{"id":"wikipedia","fileName":"WIKIPEDIA - Sananga.md","displayName":"Wikipedia","size":1302}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Sananga.md","displayName":"Drug Users Bible","size":4154,"tokens":1021},{"id":"wikipedia","fileName":"WIKIPEDIA - Sananga.md","displayName":"Wikipedia","size":1302,"tokens":345}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Sananga
 *Source: Drug Users Bible by Dominic Milton Trott*

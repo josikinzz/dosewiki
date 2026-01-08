@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "25I-NBOMe";
-export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 25I-NBOMe.md","displayName":"Disregard Everything I Say","size":12897},{"id":"erowid","fileName":"EROWID - 25I-NBOMe.md","displayName":"Erowid","size":26527},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25I-NBOMe.md","displayName":"Isomer Design","size":727},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25I-NBOMe.md","displayName":"PsychonautWiki","size":46389},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 25I-NBOMe.md","displayName":"The Drug Classroom","size":73292},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBOMe.md","displayName":"TripSit Factsheets","size":817},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 25I-NBOMe.md","displayName":"TripSit Wiki","size":5757},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBOMe.md","displayName":"Wikipedia","size":15646}];
+export const sources = [{"id":"disregardeverythingisay","fileName":"DISREGARDEVERYTHINGISAY - 25I-NBOMe.md","displayName":"Disregard Everything I Say","size":12897,"tokens":3154},{"id":"erowid","fileName":"EROWID - 25I-NBOMe.md","displayName":"Erowid","size":26527,"tokens":7353},{"id":"isomerdesign","fileName":"ISOMERDESIGN - 25I-NBOMe.md","displayName":"Isomer Design","size":354,"tokens":147},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - 25I-NBOMe.md","displayName":"PsychonautWiki","size":34087,"tokens":9162},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - 25I-NBOMe.md","displayName":"The Drug Classroom","size":63637,"tokens":16952},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 25I-NBOMe.md","displayName":"TripSit Factsheets","size":817,"tokens":235},{"id":"tripsit-wiki","fileName":"TRIPSIT_WIKI - 25I-NBOMe.md","displayName":"TripSit Wiki","size":5401,"tokens":1352},{"id":"wikipedia","fileName":"WIKIPEDIA - 25I-NBOMe.md","displayName":"Wikipedia","size":15646,"tokens":4083}];
 export const contents: Record<string, string> = {
   "disregardeverythingisay": `# 25I-NBOMe
 *Source: https://disregardeverythingisay.com/post/49302181054/25i-nbome-broken-down-and-described*
@@ -482,17 +482,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`COc1cc(I)c(cc1CCNCc1ccccc1OC)OC\`
 
-**InChI:** \`InChI=1S/C18H22INO3/c1-21-16-7-5-4-6-14(16)12-20-9-8-13-10-18(23-3)15(19)11-17(13)22-2/h4-7,10-11,20H,8-9,12H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [8427392](https://www.chemspider.com/Chemical-Structure.8427392.html/)
-- [10251906](https://pubchem.ncbi.nlm.nih.gov/compound/10251906)
-- [Q4632141](https://www.wikidata.org/wiki/Q4632141)
-- [25I-NBOMe](https://en.wikipedia.org/wiki/25I-NBOMe)
-- [25-NB](https://en.wikipedia.org/wiki/25-NB)
-`,
+**InChI:** \`InChI=1S/C18H22INO3/c1-21-16-7-5-4-6-14(16)12-20-9-8-13-10-18(23-3)15(19)11-17(13)22-2/h4-7,10-11,20H,8-9,12H2,1-3H3\``,
   "psychonautwiki": `# 25I-NBOMe
 *Source: https://psychonautwiki.org/wiki/25I-NBOMe*
 
@@ -778,50 +768,7 @@ In September 2014, the European Council decided that 25I-NBOMe shall be subjecte
 
 ### Discussion
 
-- [25I-NBOMe, broken down and described (Disregard Everything I Say)](http://disregardeverythingisay.com/post/49302181054/25i-nbome-broken-down-and-described)
-
-## References
-1. ↑ 1.0 1.1 1.2 1.3 [Erowid 25I-NBOMe (2C-I-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2ci_nbome/2ci_nbome_death.shtml)
-2. ↑ 2.0 2.1 [Erowid NBOMe (Other or Unknown NBOMe-Compound) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/nbome/nbome_death.shtml)
-3. ↑ Heim, R. (2004).["Synthese und Pharmakologie potenter 5-HT2A-Rezeptoragonisten mit N-2 -Methoxybenzyl-Partialstruktur: Entwicklung eines neuen Struktur-Wirkungskonzepts"](https://refubium.fu-berlin.de/handle/fub188/11995).[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.17169/refubium-16193](//doi.org/10.17169%2Frefubium-16193). Retrieved 10 May 2013.
-4. ↑ Braden, M. R. (1 January 2007).["Towards a biophysical understanding of hallucinogen action"](http://proquest.umi.com/pqdlink?Ver=1&Exp=01-23-2014&FMT=7&DID=1417800971&RQT=309&attempt=1&cfc=1).*Theses and Dissertations Available from ProQuest*: 1–176. Retrieved 8 August 2012.
-5. ↑ 5.0 5.1 5.2 5.3 Ettrup, A., Hansen, M., Santini, M. A., Paine, J., Gillings, N., Palner, M., Lehel, S., Herth, M. M., Madsen, J., Kristensen, J., Begtrup, M., Knudsen, G. M. (April 2011). "Radiosynthesis and in vivo evaluation of a series of substituted 11C-phenethylamines as 5-HT (2A) agonist PET tracers".*European Journal of Nuclear Medicine and Molecular Imaging*.**38**(4): 681–693.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/s00259-010-1686-8](//doi.org/10.1007%2Fs00259-010-1686-8).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1619-7089](//www.worldcat.org/issn/1619-7089).
-6. ↑ Hansen, M. (2010).*Design and synthesis of selective serotonin receptor agonists for positron emission tomography imaging of the brain: PhD thesis*. Faculty of Pharmaceutical Sciences, University of Copenhagen.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9788792719003](http://en.wikipedia.org/wiki/Special:BookSources/9788792719003).
-7. ↑ 7.0 7.1 Nichols, D. E., Frescas, S. P., Chemel, B. R., Rehder, K. S., Zhong, D., Lewin, A. H. (1 June 2008). "High specific activity tritium-labeled N-(2-methoxybenzyl)-2,5-dimethoxy-4-iodophenethylamine (INBMeO): a high-affinity 5-HT2A receptor-selective agonist radioligand".*Bioorganic & Medicinal Chemistry*.**16**(11): 6116–6123.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.bmc.2008.04.050](//doi.org/10.1016%2Fj.bmc.2008.04.050).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1464-3391](//www.worldcat.org/issn/1464-3391).
-8. ↑ Geller, L. (2012),[Kids overdosing on new drug](https://www.nbc12.com/story/16964534/kids-overdosing-on-new-drug), WWBT NBC12
-9. ↑ New street drug causing concern among medics. Vanessa Araiza, WBRC, Feb 28, 2012, | [http://www.wsfa.com/story/16977573/new-street-drug-causing-concern-among-medics](http://www.wsfa.com/story/16977573/new-street-drug-causing-concern-among-medics)
-10. ↑ {{Citation | title=New drug N-bomb hits the street, terrifying parents, troubling cops | url= [https://www.nydailynews.com/news/national/new-synthetic-hallucinogen-n-bomb-killing-users-cops-article-1.1336327](https://www.nydailynews.com/news/national/new-synthetic-hallucinogen-n-bomb-killing-users-cops-article-1.1336327)
-11. ↑ Breaking Bad: Digital Drug Sales, Analog Drug Deaths. Craig Malisow, Houston Press, March 13, 2013 | [http://www.houstonpress.com/2013-03-14/news/motion-research-charles-carlton/](http://www.houstonpress.com/2013-03-14/news/motion-research-charles-carlton/)
-12. ↑ Martin, N. (2012),[21-year-old dies after one drop of new synthetic drug at Voodoo Fest](https://www.nola.com/news/crime_police/article_526a4b28-8e79-5b4c-8310-637c946b616c.html), NOLA
-13. ↑ New hallucinogenic drug 25B-NBOMe and 25I-NBOMe led to South Australian man's bizarre death | [http://www.adelaidenow.com.au/news/south-australia/new-hallucinogenic-drug-25b-nbome-and-25i-nbome-led-to-south-australian-mans-bizarre-death/story-e6frea83-1226472672220/](http://www.adelaidenow.com.au/news/south-australia/new-hallucinogenic-drug-25b-nbome-and-25i-nbome-led-to-south-australian-mans-bizarre-death/story-e6frea83-1226472672220/)
-14. ↑ [Erowid 2C-C-NBOMe (25C-NBOMe) Vault : Fatalities / Deaths](https://www.erowid.org/chemicals/2cc_nbome/2cc_nbome_death.shtml)
-15. ↑ Lützen, E., Holtkamp, M., Stamme, I., Schmid, R., Sperling, M., Pütz, M., Karst, U. (April 2020).["Multimodal imaging of hallucinogens 25C‐ and 25I‐NBOMe on blotter papers"](https://onlinelibrary.wiley.com/doi/10.1002/dta.2751).*Drug Testing and Analysis*.**12**(4): 465–471.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2751](//doi.org/10.1002%2Fdta.2751).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-16. ↑ Marchi, N. C., Scherer, J. N., Fara, L. S., Remy, L., Ornel, R., Reis, M., Zamboni, A., Paim, M., Fiorentin, T. R., Wayhs, C. A. Y., Von Diemen, L., Pechansky, F., Kessler, F. H. P., Limberger, R. P. (1 March 2019).["Clinical and Toxicological Profile of NBOMes: A Systematic Review"](https://www.sciencedirect.com/science/article/pii/S0033318218304882).*Psychosomatics*.**60**(2): 129–138.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.psym.2018.11.002](//doi.org/10.1016%2Fj.psym.2018.11.002).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0033-3182](//www.worldcat.org/issn/0033-3182).
-17. ↑ Yoon, K. S., Yun, J., Kim, Y.-H., Shin, J., Kim, S. J., Seo, J.-W., Hyun, S.-A., Suh, S. K., Cha, H. J. (1 April 2019).["2-(2,5-Dimethoxy-4-methylphenyl)-N-(2-methoxybenzyl)ethanamine (25D-NBOMe) and N-(2-methoxybenzyl)-2,5-dimethoxy-4-chlorophenethylamine (25C-NBOMe) induce adverse cardiac effects in vitro and in vivo"](https://www.sciencedirect.com/science/article/pii/S0378427418317533).*Toxicology Letters*.**304**: 50–57.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.toxlet.2019.01.004](//doi.org/10.1016%2Fj.toxlet.2019.01.004).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0378-4274](//www.worldcat.org/issn/0378-4274).
-18. ↑ [https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0190_disp.jpg](https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0190_disp.jpg)
-19. ↑ [https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0191_disp.jpg](https://psychonautwiki.org/wiki/File:Nbome_death_news_i2013e0191_disp.jpg)
-20. ↑ ["Council Implementing Decision on subjecting 25I-NBOMe, AH-7921, MDPV and methoxetamine to control measures"](https://op.europa.eu/o/opportal-service/download-handler?identifier=025bb164-4937-11e4-a0cb-01aa75ed71a1&format=pdfa1a&language=en&productionSystem=cellar&part=).*Official Journal of the European Union*. Office for Official Publications of the European Communites (published October 1, 2014). September 25, 2014. pp. 22–26.[OCLC](http://en.wikipedia.org/wiki/OCLC)[52224955](//www.worldcat.org/oclc/52224955). L 287.
-21. ↑ [https://web.archive.org/web/20160602092257/https://www.legislation.gov.au/Details/F2015L01534/Html/Text#_Toc420496379](https://web.archive.org/web/20160602092257/https://www.legislation.gov.au/Details/F2015L01534/Html/Text#_Toc420496379)
-22. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-23. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-24. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-25. ↑ [http://www.sfda.gov.cn/WS01/CL0056/130753.html](http://www.sfda.gov.cn/WS01/CL0056/130753.html) | 关于印发《非药用类麻醉药品和精神药品列管办法》的通知
-26. ↑ 26.0 26.1 26.2 26.3 26.4 26.5 ["25I-NBOMe: EMCDDA–Europol Joint Report on a new psychoactive substance: 25I-NBOMe (4-iodo-2,5-dimethoxy-N-(2-methoxybenzyl)phenethylamine)"](http://www.emcdda.europa.eu/system/files/publications/817/TDAS14003ENN_466654.pdf)(PDF). European Monitoring Centre for Drugs and Drug Addiction. 2014.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.2810/27828](//doi.org/10.2810%2F27828).[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[978-92-9168-682-7](http://en.wikipedia.org/wiki/Special:BookSources/978-92-9168-682-7).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1977-7868](//www.worldcat.org/issn/1977-7868). Retrieved February 18, 2020.
-27. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-28. ↑ ["Achtundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?startbk=Bundesanzeiger_BGBl&jumpTo=bgbl114s1999.pdf#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl114s1999.pdf%27%5D__1576023093735)(PDF)(in German). Bundesanzeiger Verlag. Retrieved December 11, 2019.
-29. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 11, 2019.
-30. ↑ [http://www.health.gov.il/LegislationLibrary/25574413.pdf](http://www.health.gov.il/LegislationLibrary/25574413.pdf)
-31. ↑ Tabella 1 Stupefacenti dello Stato Italiano | [http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf](http://www.salute.gov.it/imgs/C_17_pagineAree_3729_listaFile_itemName_0_file.pdf)
-32. ↑ [新たに４物質を麻薬に指定し、規制の強化を図ります ｜報道発表資料｜厚生労働省](https://www.mhlw.go.jp/stf/houdou/0000098723.html), 厚生労働省 [Ministry of Health, Labour and Welfare (MHLW)]
-33. ↑ [Zaudējis spēku - Noteikumi par Latvijā kontrolējamajām narkotiskajām vielām, psihotropajām vielām un prekursoriem](https://likumi.lv/doc.php?id=121086)
-34. ↑ [https://wetten.overheid.nl/BWBR0001941/2024-04-16#BijlageI](https://wetten.overheid.nl/BWBR0001941/2024-04-16#BijlageI)
-35. ↑ [Misuse of Drugs Act 1975 No 116 (as at 07 December 2021), Public Act – New Zealand Legislation](https://www.legislation.govt.nz/act/public/1975/0116/latest/whole.html)
-36. ↑ Takács, I. G. (2013),[Colored City: Recreational drug use in Belgrade](https://drogriporter.hu/en/node2329/)
-37. ↑ [http://www.dreptonline.ro/legislatie/legea_194_2011_comba](http://www.dreptonline.ro/legislatie/legea_194_2011_comba)
-38. ↑ [Läkemedelsverkets författningssamling](http://www.lakemedelsverket.se/upload/lvfs/LVFS_2013-15.pdf)(PDF)
-39. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-40. ↑ [The Misuse of Drugs Act 1971 (Ketamine etc.) (Amendment) Order 2014](https://www.legislation.gov.uk/uksi/2014/1106/made)
-41. ↑ [http://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml](http://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml)NewPP limit report Cached time: 20251218074919 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.082 seconds CPU time usage: 0.511 seconds Real time usage: 1.046 seconds Preprocessor visited node count: 2826/1000000 Post‐expand include size: 242974/2097152 bytes Template argument size: 37715/2097152 bytes Highest expansion depth: 13/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 42676/5000000 bytes Lua time usage: 0.410/7 seconds Lua virtual size: 8.61 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 871.497 1 -total 58.32% 508.230 1 Template:Reflist 23.27% 202.831 12 Template:Citation 19.88% 173.281 7 Template:Cite_journal 16.34% 142.414 7 Template:Citation_needed 10.29% 89.652 2 Template:Fix 9.57% 83.422 4 Template:Category_handler 8.49% 73.963 6 Template:Cite_web 7.26% 63.302 1 Template:SubstanceBox/25I-NBOMe 6.88% 59.938 1 Template:SubstanceBox`,
+- [25I-NBOMe, broken down and described (Disregard Everything I Say)](http://disregardeverythingisay.com/post/49302181054/25i-nbome-broken-down-and-described)`,
   "thedrugclassroom": `# 25I-NBOMe
 *Source: https://thedrugclassroom.com/video/25i-nbome/*
 
@@ -2236,116 +2183,7 @@ DEA obtained medical examiner and postmortem toxicology reports from various sta
 
 ## Test Results
 
----
-
-## References
-
-**(2017)** [Bad trip due to 25I-NBOMe: a case report from the EU project SPICE II plus.](https://www.ncbi.nlm.nih.gov/pubmed/28471280)
-
-**(2017)** [Identification of 25I-NBOMe in two intoxications cases with severe hallucinations](http://www.sciencedirect.com/science/article/pii/S2352007816302232)
-
-**(2017)** [Pharmacology and Toxicology of N-Benzylphenethylamine (“NBOMe”) Hallucinogens.](https://www.ncbi.nlm.nih.gov/pubmed/28097528)
-
-**(2017)** [Retrospective identification of 25I-NBOMe metabolites in an intoxication case](http://www.sciencedirect.com/science/article/pii/S235200781730001X)
-
-**(2016)** [Schedules of Controlled Substances: Placement of Three Synthetic Phenethylamines Into Schedule I. Final rule.](https://www.ncbi.nlm.nih.gov/pubmed/27726316)
-
-**(2016)** [25I-NBOMe: The legal LSD](http://www.sciencedirect.com/science/article/pii/S0924933816000109)
-
-**(2016)** [Assessing the impact of laws controlling the online availability of 25I-NBOMe, AH-7921, MDPV and MXE – outcomes of a semi-automated e-shop monitoring](http://www.tandfonline.com/doi/abs/10.1080/09687637.2016.1275526?tokenDomain=eprints&tokenAccess=mVBJyke2ybw3V6BRISkA&forwardService=showFullText&doi=10.1080%2F09687637.2016.1275526&doi=10.1080%2F09687637.2016.1275526&journalCode=idep20)
-
-**(2016)** [Characterization of the hepatic cytochrome P450 enzymes involved in the metabolism of 25I-NBOMe and 25I-NBOH.](https://www.ncbi.nlm.nih.gov/pubmed/27400739)
-
-**(2016)** [25C-NBOMe and 25I-NBOMe metabolite studies in human hepatocytes, in vivo mouse and human urine with high-resolution mass spectrometry.](https://www.ncbi.nlm.nih.gov/pubmed/27448631)
-
-**(2015)** [N-Benzyl-5-methoxytryptamines as Potent Serotonin 5-HT2 Receptor Family Agonists and Comparison with a Series of Phenethylamine Analogues](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4505863/?report=classic)
-
-**(2015)** [Receptor interaction profiles of novel N-2-methoxybenzyl (NBOMe) derivatives of 2,5-dimethoxy-substituted phenethylamines (2C drugs).](https://www.ncbi.nlm.nih.gov/pubmed/26318099)
-
-**(2015)** [A Note on the Docking of some Hallucinogens to the 5-HT2A Receptor.](http://www.scholarsresearchlibrary.com/articles/a-note-on-the-docking-of-some-hallucinogens-to-the-5ht2a-receptor.pdf)
-
-**(2015)** [Fatal Intoxications with 25B-NBOMe and 25I-NBOMe in Indiana During 2014.](https://www.ncbi.nlm.nih.gov/pubmed/26378133)
-
-**(2015)** [NBOMe: a new dangerous drug similar to LSD](http://www.scielo.br/scielo.php?script=sci_arttext&pid=S1516-44462015000400015&lng=en&nrm=iso&tlng=en)
-
-**(2015)** [A Case Review of the First Analytically Confirmed 25I-NBOMe-Related Death in Washington State.](https://www.ncbi.nlm.nih.gov/pubmed/26378143)
-
-**(2015)** [Identification of Metabolite Biomarkers of the Designer Hallucinogen 25I-NBOMe in Mouse Hepatic Microsomal Preparations and Human Urine Samples Associated with Clinical Intoxication.](https://www.ncbi.nlm.nih.gov/pubmed/26378134)
-
-**(2015)** [Evolution of the NBOMes: 25C- and 25B- Sold as 25I-NBOMe.](https://www.ncbi.nlm.nih.gov/pubmed/25387562)
-
-**(2015)** [2C-I-NBOMe, an “N-bomb” that kills with “Smiles”. Toxicological and legislative aspects.](https://www.ncbi.nlm.nih.gov/pubmed/24785196)
-
-**(2015)** [NBOMe: new potent hallucinogens–pharmacology, analytical methods, toxicities, fatalities: a review.](https://www.ncbi.nlm.nih.gov/pubmed/26400534)
-
-**(2015)** [Toxicities associated with NBOMe ingestion-a novel class of potent hallucinogens: a review of the literature.](https://www.ncbi.nlm.nih.gov/pubmed/25659919)
-
-**(2015)** [Prevalence of use and acute toxicity associated with the use of NBOMe drugs.](https://www.ncbi.nlm.nih.gov/pubmed/25658166)
-
-**(2015)** [25I-NBOMe related death in Australia: A case report](http://www.sciencedirect.com/science/article/pii/S0379073815000730)
-
-**(2015)** [NBOMe and 2C substitute phenylethylamine exposures reported to the National Poison Data System.](https://www.ncbi.nlm.nih.gov/pubmed/26065360)
-
-**(2015)** [Severe poisoning after self-reported use of 2-(4-iodo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine, a novel substituted amphetamine: a case series.](https://www.ncbi.nlm.nih.gov/pubmed/25983267)
-
-**(2015)** [Rapid detection of NBOME’s and other NPS on blotter papers by direct ATR-FTIR spectrometry.](https://www.ncbi.nlm.nih.gov/pubmed/25965305)
-
-**(2015)** [Analysis of 25I-NBOMe, 25B-NBOMe, 25C-NBOMe and Other Dimethoxyphenyl-N-[(2-Methoxyphenyl) Methyl]Ethanamine Derivatives on Blotter Paper.](https://www.ncbi.nlm.nih.gov/pubmed/26378135)
-
-**(2015)** [Studies on the metabolism and toxicological detection of the new psychoactive designer drug 2-(4-iodo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine (25I-NBOMe) in human and rat urine using GC-MS, LC-MS(n), and LC-HR-MS/MS.](https://www.ncbi.nlm.nih.gov/pubmed/26108532)
-
-**(2014)** [EMCDDA–Europol Joint Report on a new psychoactive substance: 25I-NBOMe](http://www.emcdda.europa.eu/publications/joint-report/25I-NBOMe)
-
-**(2014)** [The NBOMe hallucinogenic drug series: Patterns of use, characteristics of users and self-reported effects in a large international sample.](https://www.ncbi.nlm.nih.gov/pubmed/24569095)
-
-**(2014)** [Effects of the hallucinogen 2,5-dimethoxy-4-iodophenethylamine (2C-I) and superpotent N-benzyl derivatives on the head twitch response.](https://www.ncbi.nlm.nih.gov/pubmed/24012658)
-
-**(2014)** [NBOMe designer drug exposures reported to Texas poison centers.](https://www.ncbi.nlm.nih.gov/pubmed/25115175)
-
-**(2013)** [Severe clinical toxicity associated with analytically confirmed recreational use of 25I-NBOMe: case series.](https://www.ncbi.nlm.nih.gov/pubmed/23731373)
-
-**(2014)** [Lithium- Fatal toxicities when combined with 25I-NBOMe: case report](http://docslide.net/documents/lithium-5889da250141e.html)
-
-**(2014)** [Characterization of Eleven 2,5-Dimethoxy-N-(2-methoxybenzyl)-phenethylamine (NBOMe) Derivatives and Differentiation from their 3-and 4-Methoxybenzyl Analogues -Part II](https://www.researchgate.net/publication/279176059_Characterization_of_Eleven_25-Dimethoxy-N-2-methoxybenzyl-phenethylamine_NBOMe_Derivatives_and_Differentiation_from_their_3-and_4-Methoxybenzyl_Analogues_-Part_II)
-
-**(2014)** [Characterization of Eleven 2,5-Dimethoxy-N-(2-methoxybenzyl)phenethylamine (NBOMe) Derivatives and Differentiation from their 3- and 4-Methoxybenzyl Analogues – Part I](https://www.dea.gov/pr/microgram-journals/2012/mj9_84-109.pdf)
-
-**(2014)** [New psychoactive substances as adulterants of controlled drugs. A worrying phenomenon?](https://www.ncbi.nlm.nih.gov/pubmed/24470121)
-
-**(2014)** [“My friend said it was good LSD”: a suicide attempt following analytically confirmed 25I-NBOMe ingestion.](https://www.ncbi.nlm.nih.gov/pubmed/25364988)
-
-**(2014)** [Postmortem detection of 25I-NBOMe [2-(4-iodo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine] in fluids and tissues determined by high performance liquid chromatography with tandem mass spectrometry from a traumatic death.](https://www.ncbi.nlm.nih.gov/pubmed/24215811)
-
-**(2014)** [Pathological findings in 2 cases of fatal 25I-NBOMe toxicity.](https://www.ncbi.nlm.nih.gov/pubmed/24457586)
-
-**(2014)** [2-(4-Iodo-2,5-dimethoxyphenyl)-N-[(2-methoxyphenyl)methyl]ethanamine (25I-NBOMe): clinical case with unique confirmatory testing.](https://www.ncbi.nlm.nih.gov/pubmed/23872917)
-
-**(2014)** [25I‐NBOMe Critical Review Report](http://www.who.int/medicines/areas/quality_safety/4_19_review.pdf)
-
-**(2014)** [Report on the risk assessment of 2-(4-iodo-2,5-dimethoxyphenyl)-N-(2-methoxybenzyl)ethanamine (25I-NBOMe) in the framework of the Council Decision on new psychoactive substances](http://www.emcdda.europa.eu/publications/risk-assessment/25I-NBOMe)
-
-**(2013)** [The NBOMe series: a novel, dangerous group of hallucinogenic drugs.](https://www.ncbi.nlm.nih.gov/pubmed/24172126)
-
-**(2013)** [Schedules of controlled substances: temporary placement of three synthetic phenethylamines into Schedule I. Final order.](https://www.ncbi.nlm.nih.gov/pubmed/24236337)
-
-**(2013)** [High-performance liquid chromatography tandem mass spectrometry method for the determination of 2CC-NBOMe and 25I-NBOMe in human serum.](https://www.ncbi.nlm.nih.gov/pubmed/23893863)
-
-**(2013)** [A case of 25I-NBOMe (25-I) intoxication: a new potent 5-HT2A agonist designer drug.](https://www.ncbi.nlm.nih.gov/pubmed/23473462)
-
-**(2013)** [Severe clinical toxicity associated with analytically confirmed recreational use of 25I-NBOMe: case series.](https://www.ncbi.nlm.nih.gov/pubmed/23731373)
-
-**(2013)** [NBOMe — a very different kettle of fish](https://www.mja.com.au/journal/2013/199/5/nbome-very-different-kettle-fish)
-
-**(2013)** [Multi-organ failure associated with ingestion of synthetic street drug 25I](http://journals.lww.com/ccmjournal/Abstract/2013/12001/1127___Multi_Organ_Failure_Associated_With.1079.aspx)
-
-**(2011)** [Radiosynthesis and in vivo evaluation of a series of substituted 11C-phenethylamines as 5-HT (2A) agonist PET tracers.](https://www.ncbi.nlm.nih.gov/pubmed/21174090)
-
-**(2010)** [Radiosynthesis and evaluation of 11C-CIMBI-5 as a 5-HT2A receptor agonist radioligand for PET.](https://www.ncbi.nlm.nih.gov/pubmed/20956470)
-
-**(2010)** [Design and Synthesis of Selective Serotonin Receptor Agonists for Positron Emission Tomography Imaging of the Brain](https://drive.google.com/file/d/0BwXelgjm5BeEaEJJU0lPa1NnaGM/view)
-
-**(2006)** [Molecular Interaction of Serotonin 5-HT2A Receptor Residues Phe339(6.51) and Phe340(6.52) with Superpotent N-Benzyl Phenethylamine Agonists](http://molpharm.aspetjournals.org/content/70/6/1956)
-`,
+---`,
   "tripsit-factsheets": `# 25I-NBOMe
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/25i-nbome*
 
@@ -2525,15 +2363,7 @@ The UK Home Office announced that 25I-NBOMe would be made a class A drug on 10th
 
 [Erowid](https://www.erowid.org/chemicals/nbome/)
 
-[/r/Drugs FAQ](https://www.reddit.com/r/Drugs/comments/14wua3/rdrugs_faq_series_nbome_series_aka_25xnbome/?sort=top)
-
-## References
-
-- ↑ [http://www.rg.ru/2011/10/19/narko-dok.html](http://www.rg.ru/2011/10/19/narko-dok.html)
-
-- ↑ [http://www.legislation.gov.uk/ukdsi/2014/9780111110904](http://www.legislation.gov.uk/ukdsi/2014/9780111110904)
-
-- ↑ [http://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml](https://www.justice.gov/dea/divisions/hq/2013/hq111513.shtml)`,
+[/r/Drugs FAQ](https://www.reddit.com/r/Drugs/comments/14wua3/rdrugs_faq_series_nbome_series_aka_25xnbome/?sort=top)`,
   "wikipedia": `# 25I-NBOMe
 *Source: https://en.wikipedia.org/wiki/25I-NBOMe*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Dibutylone";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dibutylone.md","displayName":"TripSit Factsheets","size":152},{"id":"wikipedia","fileName":"WIKIPEDIA - Dibutylone.md","displayName":"Wikipedia","size":588}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Dibutylone.md","displayName":"TripSit Factsheets","size":152,"tokens":39},{"id":"wikipedia","fileName":"WIKIPEDIA - Dibutylone.md","displayName":"Wikipedia","size":588,"tokens":143}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Dibutylone
 *Source: TripSit Factsheets (tripsit.me)*

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mexedrone";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mexedrone.md","displayName":"Drug Users Bible","size":3646},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Mexedrone.md","displayName":"Isomer Design","size":640},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Mexedrone.md","displayName":"PsychonautWiki","size":21277},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexedrone.md","displayName":"TripSit Factsheets","size":580},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexedrone.md","displayName":"Wikipedia","size":622}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mexedrone.md","displayName":"Drug Users Bible","size":3646,"tokens":948},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Mexedrone.md","displayName":"Isomer Design","size":363,"tokens":145},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Mexedrone.md","displayName":"PsychonautWiki","size":16415,"tokens":4417},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Mexedrone.md","displayName":"TripSit Factsheets","size":580,"tokens":231},{"id":"wikipedia","fileName":"WIKIPEDIA - Mexedrone.md","displayName":"Wikipedia","size":622,"tokens":193}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Mexedrone
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -104,15 +104,7 @@ was a new untested chemical). It certainly isn't one which I would ever use agai
 
 **SMILES:** \`COCC(C(=O)c1ccc(cc1)C)NC\`
 
-**InChI:** \`InChI=1S/C12H17NO2/c1-9-4-6-10(7-5-9)12(14)11(13-2)8-15-3/h4-7,11,13H,8H2,1-3H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [75601285](https://www.chemspider.com/Chemical-Structure.75601285.html/)
-- [129318262](https://pubchem.ncbi.nlm.nih.gov/compound/129318262)
-- [Mexedrone](https://en.wikipedia.org/wiki/Mexedrone)
-`,
+**InChI:** \`InChI=1S/C12H17NO2/c1-9-4-6-10(7-5-9)12(14)11(13-2)8-15-3/h4-7,11,13H,8H2,1-3H3\``,
   "psychonautwiki": `# Mexedrone
 *Source: https://psychonautwiki.org/wiki/Mexedrone*
 
@@ -242,19 +234,7 @@ Mexedrone is not a controlled substance in most countries, meaning it is ostensi
 
 ### Discussion
 
-- [Mexedrone (Bluelight)](https://www.bluelight.org/xf/threads/764088)
-
-## References
-1. ↑ Welsh Emerging Drugs & Identification of Novel Substances Project | [http://www.wedinos.org/db/materials/view/00716](http://www.wedinos.org/db/materials/view/00716)
-2. ↑ Sommerlad, N., Bagot, M. (2015),[Dangerous untested legal high - dubbed new Meow Meow - is flooding UK streets](http://www.mirror.co.uk/news/uk-news/dangerously-untested-legal-high-dubbed-6622118)
-3. ↑ New Legal High Similar To Banned Mephedrone Set To Sweep Britain | [http://www.unilad.co.uk/drugs/new-legal-high-similar-to-banned-mephedrone-set-to-sweep-britain/](http://www.unilad.co.uk/drugs/new-legal-high-similar-to-banned-mephedrone-set-to-sweep-britain/)
-4. ↑ McLaughlin, G., Morris, N., Kavanagh, P. V., Power, J. D., Dowling, G., Twamley, B., O’Brien, J., Talbot, B., Walther, D., Partilla, J. S., Baumann, M. H., Brandt, S. D. (March 2017).["Synthesis, characterization and monoamine transporter activity of the new psychoactive substance mexedrone and its N-methoxy positional isomer, N-methoxymephedrone"](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5336524/).*Drug testing and analysis*.**9**(3): 358–368.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.2053](//doi.org/10.1002%2Fdta.2053).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7603](//www.worldcat.org/issn/1942-7603).
-5. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-6. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-7. ↑ New blanket ban on synthetic illegal drugs is approved (Portuguese) | [http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil/219201/pop_up?_101_INSTANCE_FXrpx9qY7FbU_viewMode=print&_101_INSTANCE_FXrpx9qY7FbU_languageId=pt_BR](http://portal.anvisa.gov.br/noticias/-/asset_publisher/FXrpx9qY7FbU/content/combate-a-drogas-ilicitas-sinteticas-fica-mais-facil/219201/pop_up?_101_INSTANCE_FXrpx9qY7FbU_viewMode=print&_101_INSTANCE_FXrpx9qY7FbU_languageId=pt_BR)
-8. ↑ [Regeringskansliets rättsdatabaser](https://rkrattsbaser.gov.se/sfst?fritext=mexedron&upph=false&sort=desc)
-9. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-10. ↑ [Psychoactive Substances Act 2016](https://www.legislation.gov.uk/ukpga/2016/2/contents/enacted)NewPP limit report Cached time: 20251218075620 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.032 seconds CPU time usage: 0.256 seconds Real time usage: 0.486 seconds Preprocessor visited node count: 1274/1000000 Post‐expand include size: 77999/2097152 bytes Template argument size: 7896/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 11966/5000000 bytes Lua time usage: 0.160/7 seconds Lua virtual size: 7.23 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 375.349 1 -total 25.31% 95.013 3 Template:Citation 19.95% 74.891 3 Template:Cite_journal 17.22% 64.652 1 Template:Further 15.40% 57.814 1 Template:SubstanceBox/Mexedrone 14.55% 54.609 1 Template:SubstanceBox 6.91% 25.938 1 Template:Effects/base 6.06% 22.757 1 Template:Effect_list 5.11% 19.179 1 Template:Cite_web 5.07% 19.044 2 Template:Effect_column`,
+- [Mexedrone (Bluelight)](https://www.bluelight.org/xf/threads/764088)`,
   "tripsit-factsheets": `# Mexedrone
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mexedrone*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "34-CTMP";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 34-CTMP.md","displayName":"Wikipedia","size":2749}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 34-CTMP.md","displayName":"Wikipedia","size":2749,"tokens":742}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 3,4-Dichloromethylphenidate
 *Source: https://en.wikipedia.org/wiki/3,4-Dichloromethylphenidate*

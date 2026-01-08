@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2-MDP";
-export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 2-MDP.md","displayName":"Wikipedia","size":922}];
+export const sources = [{"id":"wikipedia","fileName":"WIKIPEDIA - 2-MDP.md","displayName":"Wikipedia","size":922,"tokens":244}];
 export const contents: Record<string, string> = {
   "wikipedia": `# 2-MDP
 *Source: https://en.wikipedia.org/wiki/2-MDP*

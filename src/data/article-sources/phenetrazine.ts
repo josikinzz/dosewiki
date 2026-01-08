@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Phenetrazine";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenetrazine.md","displayName":"TripSit Factsheets","size":631}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Phenetrazine.md","displayName":"TripSit Factsheets","size":631,"tokens":170}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Phenetrazine
 *Source: TripSit Factsheets (tripsit.me)*

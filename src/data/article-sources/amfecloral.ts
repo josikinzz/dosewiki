@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Amfecloral";
-export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Amfecloral.md","displayName":"TripSit Factsheets","size":419},{"id":"wikipedia","fileName":"WIKIPEDIA - Amfecloral.md","displayName":"Wikipedia","size":3342}];
+export const sources = [{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Amfecloral.md","displayName":"TripSit Factsheets","size":419,"tokens":112},{"id":"wikipedia","fileName":"WIKIPEDIA - Amfecloral.md","displayName":"Wikipedia","size":3342,"tokens":835}];
 export const contents: Record<string, string> = {
   "tripsit-factsheets": `# Amfecloral
 *Source: TripSit Factsheets (tripsit.me)*

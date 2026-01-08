@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "AM-2201";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-2201.md","displayName":"Drug Users Bible","size":2502},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AM-2201.md","displayName":"TripSit Factsheets","size":559},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-2201.md","displayName":"Wikipedia","size":1291}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - AM-2201.md","displayName":"Drug Users Bible","size":2502,"tokens":617},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - AM-2201.md","displayName":"TripSit Factsheets","size":559,"tokens":150},{"id":"wikipedia","fileName":"WIKIPEDIA - AM-2201.md","displayName":"Wikipedia","size":1291,"tokens":339}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# AM-2201
 *Source: Drug Users Bible by Dominic Milton Trott*

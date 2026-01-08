@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "PMA";
-export const sources = [{"id":"erowid","fileName":"EROWID - PMA.md","displayName":"Erowid","size":9601},{"id":"isomerdesign","fileName":"ISOMERDESIGN - PMA.md","displayName":"Isomer Design","size":4535},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PMA.md","displayName":"PsychonautWiki","size":23206},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - PMA.md","displayName":"The Drug Classroom","size":5647},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PMA.md","displayName":"TripSit Factsheets","size":215},{"id":"wikipedia","fileName":"WIKIPEDIA - PMA.md","displayName":"Wikipedia","size":11048}];
+export const sources = [{"id":"erowid","fileName":"EROWID - PMA.md","displayName":"Erowid","size":9601,"tokens":2585},{"id":"isomerdesign","fileName":"ISOMERDESIGN - PMA.md","displayName":"Isomer Design","size":4535,"tokens":1185},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - PMA.md","displayName":"PsychonautWiki","size":17731,"tokens":4668},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - PMA.md","displayName":"The Drug Classroom","size":1370,"tokens":373},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - PMA.md","displayName":"TripSit Factsheets","size":215,"tokens":67},{"id":"wikipedia","fileName":"WIKIPEDIA - PMA.md","displayName":"Wikipedia","size":11048,"tokens":2666}];
 export const contents: Record<string, string> = {
   "erowid": `# PMA
 *Source: https://www.erowid.org/chemicals/pma/*
@@ -365,23 +365,7 @@ Internationally, PMA is a Schedule I substance under the Convention on Psychotro
 
 - [para-Methoxyamphetamine (Wikipedia)](https://en.wikipedia.org/wiki/Para-Methoxyamphetamine)
 - [PMA (Erowid Vault)](https://www.erowid.org/chemicals/pma/)
-- [PMA (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=97)
-
-## References
-1. ↑ [para-Methoxyamphetamine](https://en.wikipedia.org/w/index.php?title=Para-Methoxyamphetamine&oldid=1092760206), 2022
-2. ↑ Greenwald, M. K., Lundahl, L. H., Steinmiller, C. L. (December 2010).["Sustained Release d-Amphetamine Reduces Cocaine but not 'Speedball'-Seeking in Buprenorphine-Maintained Volunteers: A Test of Dual-Agonist Pharmacotherapy for Cocaine/Heroin Polydrug Abusers"](http://www.nature.com/articles/npp2010175).*Neuropsychopharmacology*.**35**(13): 2624–2637.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1038/npp.2010.175](//doi.org/10.1038%2Fnpp.2010.175).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0893-133X](//www.worldcat.org/issn/0893-133X).
-3. ↑ Siciliano, C. A., Saha, K., Calipari, E. S., Fordahl, S. C., Chen, R., Khoshbouei, H., Jones, S. R. (10 January 2018).["Amphetamine Reverses Escalated Cocaine Intake via Restoration of Dopamine Transporter Conformation"](https://www.jneurosci.org/lookup/doi/10.1523/JNEUROSCI.2604-17.2017).*The Journal of Neuroscience*.**38**(2): 484–497.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1523/JNEUROSCI.2604-17.2017](//doi.org/10.1523%2FJNEUROSCI.2604-17.2017).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0270-6474](//www.worldcat.org/issn/0270-6474).
-4. ↑ Krystal, J. H., Perry, E. B., Gueorguieva, R., Belger, A., Madonick, S. H., Abi-Dargham, A., Cooper, T. B., MacDougall, L., Abi-Saab, W., D’Souza, D. C. (1 September 2005).["Comparative and Interactive Human Psychopharmacologic Effects of Ketamine and Amphetamine: Implications for Glutamatergic and Dopaminergic Model Psychoses and Cognitive Function"](http://archpsyc.jamanetwork.com/article.aspx?doi=10.1001/archpsyc.62.9.985).*Archives of General Psychiatry*.**62**(9): 985.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1001/archpsyc.62.9.985](//doi.org/10.1001%2Farchpsyc.62.9.985).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0003-990X](//www.worldcat.org/issn/0003-990X).
-5. ↑ ["List of psychotropic substances under international control (Green List)"](http://web.archive.org/web/20070302130637/http://www.incb.org/pdf/e/list/green.pdf)(PDF)(23rd ed.). International Narcotics Control Board (INCB). August 2003. Archived from[the original](http://www.incb.org/pdf/e/list/green.pdf)(PDF)on March 2, 2007.
-6. ↑ SMG (Suchtmittelgesetz = Drug Law Austria | [https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10011056](https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10011056)
-7. ↑ [http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7](http://portal.anvisa.gov.br/documents/10181/3115436/%281%29RDC_130_2016_.pdf/fc7ea407-3ff5-4fc1-bcfe-2f37504d28b7)
-8. ↑ Branch, L. S. (2022),[Consolidated federal laws of Canada, Controlled Drugs and Substances Act](https://laws-lois.justice.gc.ca/eng/acts/C-38.8/page-12.html)
-9. ↑ ["Erste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav#__bgbl__%2F%2F*%5B%40attr_id%3D%27bgbl184s1081.pdf%27%5D__1576029878276)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-10. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-11. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-12. ↑ Resolution of the Government of the Russian Federation | [https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347](https://www.consultant.ru/cons/cgi/online.cgi?req=doc&base=LAW&n=314201&fld=134&dst=100034,0&rnd=0.41568319511755825#047741519652799347)
-13. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-14. ↑ [https://www.deadiversion.usdoj.gov/schedules/orangebook/c_cs_alpha.pdf](https://www.deadiversion.usdoj.gov/schedules/orangebook/c_cs_alpha.pdf)NewPP limit report Cached time: 20251218075728 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.028 seconds CPU time usage: 0.319 seconds Real time usage: 0.621 seconds Preprocessor visited node count: 1706/1000000 Post‐expand include size: 92735/2097152 bytes Template argument size: 12237/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 15582/5000000 bytes Lua time usage: 0.200/7 seconds Lua virtual size: 7.91 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 511.422 1 -total 25.51% 130.482 1 Template:Citation_needed 16.78% 85.827 1 Template:Fix 16.65% 85.128 2 Template:Citation 15.80% 80.827 3 Template:Cite_journal 15.78% 80.677 2 Template:Category_handler 14.55% 74.409 1 Template:SubstanceBox/PMA 13.67% 69.935 1 Template:SubstanceBox 9.71% 49.669 5 Template:Cite_web 4.67% 23.906 1 Template:Effects/base`,
+- [PMA (PiHKAL / Isomer Design)](https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=97)`,
   "thedrugclassroom": `# PMA
 *Source: https://thedrugclassroom.com/video/paramethoxyamphetamine/*
 
@@ -437,64 +421,7 @@ Onset: 01:00 – 02:00 (some reports claim over 2 hours)
 
 ## Supplementary Videos
 
----
-
-## References
-
-**(2016)** [A fatal case of paramethoxyamphetamine poisoning and its detection in hair.](https://www.ncbi.nlm.nih.gov/pubmed/27396905)
-
-**(2013)** [A review of impurity profiling and synthetic route of manufacture of methylamphetamine, 3,4-methylenedioxymethylamphetamine, amphetamine, dimethylamphetamine and p-methoxyamphetamine.](https://www.ncbi.nlm.nih.gov/pubmed/23182870)
-
-**(2012)** [Severe paramethoxymethamphetamine (PMMA) and paramethoxyamphetamine (PMA) outbreak in Israel.](https://www.ncbi.nlm.nih.gov/pubmed/22148985)
-
-**(2008)** [Fatal paramethoxy-amphetamine (PMA) poisoning in the Australian Capital Territory](https://www.researchgate.net/publication/5458427_Fatal_paramethoxy-amphetamine_PMA_poisoning_in_the_Australian_Capital_Territory)
-
-**(2007)** [The effects of co-administration of 3,4-methylenedioxymethamphetamine (“ecstasy”) or para-methoxyamphetamine and moclobemide at elevated ambient temperatures on striatal 5-HT, body temperature and behavior in rats.](https://www.ncbi.nlm.nih.gov/pubmed/17306465)
-
-**(2007)** [Pharmacological and behavioral determinants of cocaine, methamphetamine, 3,4-methylenedioxymethamphetamine, and para-methoxyamphetamine-induced hyperthermia.](https://www.ncbi.nlm.nih.gov/pubmed/17530474)
-
-**(2005)** [Effects of 3,4-methylenedioxymethamphetamine and related amphetamines on autonomic and behavioral thermoregulation.](https://www.ncbi.nlm.nih.gov/pubmed/15904952)
-
-**(2005)** [Differences in the in vivo dynamics of neurotransmitter release and serotonin uptake after acute para-methoxyamphetamine and 3,4-methylenedioxymethamphetamine revealed by chronoamperometry.](https://www.ncbi.nlm.nih.gov/pubmed/15979209)
-
-**(2005)** [Effects of 3,4-methylenedioxymethamphetamine (MDMA, ‘Ecstasy’) and para-methoxyamphetamine on striatal 5-HT when co-administered with moclobemide.](https://www.ncbi.nlm.nih.gov/pubmed/15804499)
-
-**(2003)** [Report on the risk assessment of PMMA in the framework of the joint action on new synthetic drugs](http://www.emcdda.europa.eu/publications/risk-assessments/pmma)
-
-**(2003)** [A fatal paramethoxymethamphetamine intoxication.](https://www.ncbi.nlm.nih.gov/pubmed/12935573)
-
-**(2003)** [Paramethoxyamphetamine (PMA) poisoning; a ‘party drug’ with lethal effects.](https://www.ncbi.nlm.nih.gov/pubmed/14616331)
-
-**(2003)** [Anise oil as para-methoxyamphetamine (PMA) precursor.](https://www.ncbi.nlm.nih.gov/pubmed/12742705)
-
-**(2002)** [Death and paramethoxyamphetamine – an evolving problem. [Response]](https://www.ncbi.nlm.nih.gov/pubmed/12381261)
-
-**(2002)** [Death and paramethoxyamphetamine — an evolving problem.](https://www.ncbi.nlm.nih.gov/pubmed/12065017)
-
-**(2001)** [Three cases of fatal paramethoxyamphetamine overdose.](https://www.ncbi.nlm.nih.gov/pubmed/11599618)
-
-**(2001)** [Fatalities Caused by the MDMA-related Drug Paramethoxyamphetamine (PMA)](https://www.ncbi.nlm.nih.gov/labs/articles/11599617/)
-
-**(2001)** [Poisoning with the recreational drug paramethoxyamphetamine (“death”).](https://www.ncbi.nlm.nih.gov/pubmed/11386590)
-
-**(2000)** [The hallucinogen PMA: Dancing with death](https://erowid.org/chemicals/pma/pma_dea_intellbrief.pdf)
-
-**(2000)** [Differential behavioural and neurochemical effects of para-methoxyamphetamine and 3,4-methylenedioxymethamphetamine in the rat.](https://www.ncbi.nlm.nih.gov/pubmed/11041537)
-
-**(1998)** [Hyperpyrexia associated with fatal paramethoxyamphetamine (PMA) abuse.](https://www.ncbi.nlm.nih.gov/pubmed/9481084)
-
-**(1998)** [Recent paramethoxyamphetamine deaths.](https://www.ncbi.nlm.nih.gov/pubmed/9547415)
-
-**(1984)** [The stimulus properties of para-methoxyamphetamine: a nonessential serotonergic component.](https://www.ncbi.nlm.nih.gov/pubmed/6546992)
-
-**(1975)** [Comparison of cardiovascular, hyperthermic, and toxic effects of para-methoxyamphetamine (PMA) and 3, 4-methylenedioxyamphetamine (MDA).](https://www.ncbi.nlm.nih.gov/pubmed/1174022)
-
-**(1974)** [PMA deaths in Ontario](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1947522/)
-
-**(1971)** [Effect of para-methoxyamphetamine on catecholamine metabolism in the mouse brain.](https://www.ncbi.nlm.nih.gov/pubmed/5132700)
-
-**(1932)** [dl-beta-Phenylisopropylamines](https://erowid.org/archive/rhodium/chemistry/meth.alles.html)
-`,
+---`,
   "tripsit-factsheets": `# PMA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/pma*
 

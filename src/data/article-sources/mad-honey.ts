@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Mad_Honey";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mad_Honey.md","displayName":"Drug Users Bible","size":5017},{"id":"wikipedia","fileName":"WIKIPEDIA - Mad_Honey.md","displayName":"Wikipedia","size":8974}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Mad_Honey.md","displayName":"Drug Users Bible","size":5017,"tokens":1229},{"id":"wikipedia","fileName":"WIKIPEDIA - Mad_Honey.md","displayName":"Wikipedia","size":8974,"tokens":2101}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Mad Honey
 *Source: Drug Users Bible by Dominic Milton Trott*

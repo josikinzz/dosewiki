@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "2C-T-4";
-export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2C-T-4.md","displayName":"Isomer Design","size":6647},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-T-4.md","displayName":"TripSit Factsheets","size":932},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-T-4.md","displayName":"Wikipedia","size":3233}];
+export const sources = [{"id":"isomerdesign","fileName":"ISOMERDESIGN - 2C-T-4.md","displayName":"Isomer Design","size":6647,"tokens":1813},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - 2C-T-4.md","displayName":"TripSit Factsheets","size":932,"tokens":281},{"id":"wikipedia","fileName":"WIKIPEDIA - 2C-T-4.md","displayName":"Wikipedia","size":3233,"tokens":911}];
 export const contents: Record<string, string> = {
   "isomerdesign": `# 2C-T-4
 *Source: https://isomerdesign.com/PiHKAL/read.php?domain=pk&id=41*

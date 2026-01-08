@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "UR-144";
-export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - UR-144.md","displayName":"The Drug Classroom","size":9254}];
+export const sources = [{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - UR-144.md","displayName":"The Drug Classroom","size":6621,"tokens":1772}];
 export const contents: Record<string, string> = {
   "thedrugclassroom": `# UR-144
 *Source: https://thedrugclassroom.com/video/ur-144/*
@@ -201,40 +201,5 @@ A couple papers have detailed its impact on driving performance. It’s clear th
 
 ## Test Videos
 
----
-
-## References
-
-**(2015)** [Concentrations of APINACA, 5F-APINACA, UR-144 and its degradant product in blood samples from six impaired drivers compared to previous reported concentrations of other synthetic cannabinoids.](https://www.ncbi.nlm.nih.gov/pubmed/25485949)
-
-**(2015)** [Effects of Bioisosteric Fluorine in Synthetic Cannabinoid Designer Drugs JWH-018, AM-2201, UR-144, XLR-11, PB-22, 5F-PB-22, APICA, and STS-135](http://pubs.acs.org/doi/abs/10.1021/acschemneuro.5b00107)
-
-**(2015)** [The Influence of Synthetic Cannabinoid UR-144 on Human Psychomotor Performance–A Case Report Demonstrating Road Traffic Risks.](https://www.ncbi.nlm.nih.gov/pubmed/25794331)
-
-**(2015)** [Cytochrome P450-mediated metabolism of the synthetic cannabinoids UR-144 and XLR-11](http://onlinelibrary.wiley.com/doi/10.1002/dta.1860/full)
-
-**(2014)** [Enzyme-linked immunosorbent assay (ELISA) for the detection of use of the synthetic cannabinoid agonists UR-144 and XLR-11 in human urine.](https://www.ncbi.nlm.nih.gov/pubmed/24908262)
-
-**(2014)** [UR-144 – Critical Review Report](http://www.who.int/medicines/areas/quality_safety/4_8_Review.pdf)
-
-**(2014)** [Quantitative Measurement of XLR11 and UR-144 in Oral Fluid by LC–MS-MS](http://jat.oxfordjournals.org/content/early/2014/05/07/jat.bku040.full)
-
-**(2014)** [XLR-11 and UR-144 in Washington state and state of Alaska driving cases.](https://www.ncbi.nlm.nih.gov/pubmed/25217547)
-
-**(2013)** [Synthetic cannabinoid use associated with acute kidney injury.](https://www.ncbi.nlm.nih.gov/pubmed/23473465)
-
-**(2013)** [UR-144 in products sold via the Internet: identification of related compounds and characterization of pyrolysis products.](https://www.ncbi.nlm.nih.gov/pubmed/23315949)
-
-**(2013)** [Toxicological findings of synthetic cannabinoids in recreational users.](https://www.ncbi.nlm.nih.gov/pubmed/23970540)
-
-**(2013)** [UR-144 (TCMP-018; KM-X1) and XLR11 (5-F-UR-144)](https://www.deadiversion.usdoj.gov/drug_chem_info/spice/spice_ur144_xlr11.pdf)
-
-**(2013)** [A fatal case involving several synthetic cannabinoids](https://www.gtfch.org/cms/images/stories/media/tk/tk80_4/SchaeferEtAl.pdf)
-
-**(2013)** [Gas and liquid chromatography-mass spectrometry detection of the urinary metabolites of UR-144 and its major pyrolysis product.](https://www.ncbi.nlm.nih.gov/pubmed/23592743)
-
-**(2013)** [Analysis of UR-144 and its pyrolysis product in blood and their metabolites in urine.](https://www.ncbi.nlm.nih.gov/pubmed/24314536)
-
-**(2012)** [Detection of urinary metabolites of AM-2201 and UR-144, two novel synthetic cannabinoids.](https://www.ncbi.nlm.nih.gov/pubmed/23042760)
-`,
+---`,
 };

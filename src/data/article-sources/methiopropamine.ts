@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methiopropamine";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methiopropamine.md","displayName":"Drug Users Bible","size":3108},{"id":"erowid","fileName":"EROWID - Methiopropamine.md","displayName":"Erowid","size":13459},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methiopropamine.md","displayName":"Isomer Design","size":692},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methiopropamine.md","displayName":"PsychonautWiki","size":26210},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methiopropamine.md","displayName":"The Drug Classroom","size":28681},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methiopropamine.md","displayName":"TripSit Factsheets","size":541},{"id":"wikipedia","fileName":"WIKIPEDIA - Methiopropamine.md","displayName":"Wikipedia","size":3889}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methiopropamine.md","displayName":"Drug Users Bible","size":3108,"tokens":785},{"id":"erowid","fileName":"EROWID - Methiopropamine.md","displayName":"Erowid","size":13459,"tokens":3645},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methiopropamine.md","displayName":"Isomer Design","size":358,"tokens":135},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methiopropamine.md","displayName":"PsychonautWiki","size":19426,"tokens":5281},{"id":"thedrugclassroom","fileName":"THEDRUGCLASSROOM - Methiopropamine.md","displayName":"The Drug Classroom","size":22995,"tokens":5883},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Methiopropamine.md","displayName":"TripSit Factsheets","size":541,"tokens":167},{"id":"wikipedia","fileName":"WIKIPEDIA - Methiopropamine.md","displayName":"Wikipedia","size":3889,"tokens":1033}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# MPA
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -367,16 +367,7 @@ Content & design © 1995-2025 Erowid.org. Permission required before publicly re
 
 **SMILES:** \`CNC(Cc1cccs1)C\`
 
-**InChI:** \`InChI=1S/C8H13NS/c1-7(9-2)6-8-4-3-5-10-8/h3-5,7,9H,6H2,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [385727](https://www.chemspider.com/Chemical-Structure.385727.html/)
-- [436156](https://pubchem.ncbi.nlm.nih.gov/compound/436156)
-- [Q11343731](https://www.wikidata.org/wiki/Q11343731)
-- [Methiopropamine](https://en.wikipedia.org/wiki/Methiopropamine)
-`,
+**InChI:** \`InChI=1S/C8H13NS/c1-7(9-2)6-8-4-3-5-10-8/h3-5,7,9H,6H2,1-2H3\``,
   "psychonautwiki": `# Methiopropamine
 *Source: https://psychonautwiki.org/wiki/Methiopropamine*
 
@@ -534,26 +525,7 @@ Abuse of compounds within the stimulant class at high dosages for prolonged peri
 - [Methiopropamine (Wikipedia)](https://en.wikipedia.org/wiki/Methiopropamine)
 - [Methiopropamine (Erowid Vault)](https://www.erowid.org/chemicals/methiopropamine/methiopropamine.shtml)
 - [Methiopropamine (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2444)
-- [Methiopropamine (MyCrew)](http://www.mycrew.org.uk/drugs-information/mpa-methiopropamine)
-
-## References
-1. ↑ Blicke, F. F., Burckhalter, J. H. (March 1942).["α-Thienylaminoalkanes"](https://pubs.acs.org/doi/abs/10.1021/ja01255a001).*Journal of the American Chemical Society*.**64**(3): 477–480.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1021/ja01255a001](//doi.org/10.1021%2Fja01255a001).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0002-7863](//www.worldcat.org/issn/0002-7863).
-2. ↑ Angelov, D., O’Brien, J., Kavanagh, P. (March 2013). "The syntheses of 1-(2-thienyl)-2-(methylamino) propane (methiopropamine) and its 3-thienyl isomer for use as reference standards".*Drug Testing and Analysis*.**5**(3): 145–149.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/dta.298](//doi.org/10.1002%2Fdta.298).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1942-7611](//www.worldcat.org/issn/1942-7611).
-3. ↑ Iversen, L., Gibbons, S., Treble, R., Setola, V., Huang, X.-P., Roth, B. L. (30 January 2013).["Neurochemical profiles of some novel psychoactive substances"](https://www.sciencedirect.com/science/article/pii/S0014299912010114).*European Journal of Pharmacology*.**700**(1): 147–151.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1016/j.ejphar.2012.12.006](//doi.org/10.1016%2Fj.ejphar.2012.12.006).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0014-2999](//www.worldcat.org/issn/0014-2999).
-4. ↑ 4.0 4.1 4.2 Shoptaw, S. J., Kao, U., Ling, W. (21 January 2009). Cochrane Drugs and Alcohol Group, ed.["Treatment for amphetamine psychosis"](https://doi.wiley.com/10.1002/14651858.CD003026.pub3).*Cochrane Database of Systematic Reviews*.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1002/14651858.CD003026.pub3](//doi.org/10.1002%2F14651858.CD003026.pub3).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1465-1858](//www.worldcat.org/issn/1465-1858).
-5. ↑ Hofmann, F. G. (1983).*A handbook on drug and alcohol abuse: the biomedical aspects*(2nd ed ed.). Oxford University Press.[ISBN](http://en.wikipedia.org/wiki/International_Standard_Book_Number)[9780195030563](http://en.wikipedia.org/wiki/Special:BookSources/9780195030563). CS1 maint: Extra text ( [link](/w/index.php?title=Category:CS1_maint:_Extra_text&action=edit&redlink=1) )
-6. ↑ Talaie, H.; Panahandeh, R.; Fayaznouri, M. R.; Asadi, Z.; Abdollahi, M. (2009). "Dose-independent occurrence of seizure with tramadol".*Journal of Medical Toxicology*.**5**(2): 63–67.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1007/BF03161089](//doi.org/10.1007%2FBF03161089).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1937-6995](//www.worldcat.org/issn/1937-6995).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[1556-9039](//www.worldcat.org/issn/1556-9039).[OCLC](http://en.wikipedia.org/wiki/OCLC)[163567183](//www.worldcat.org/oclc/163567183).
-7. ↑ Gillman, P. K. (2005).["Monoamine oxidase inhibitors, opioid analgesics and serotonin toxicity"](https://bjanaesthesia.org/article/S0007-0912(17)34956-5/fulltext).*British Journal of Anaesthesia*.**95**(4): 434–441.[doi](http://en.wikipedia.org/wiki/Digital_object_identifier):[10.1093/bja/aei210](//doi.org/10.1093%2Fbja%2Faei210).[eISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number#Electronic_ISSN)[1471-6771](//www.worldcat.org/issn/1471-6771).[ISSN](http://en.wikipedia.org/wiki/International_Standard_Serial_Number)[0007-0912](//www.worldcat.org/issn/0007-0912).[OCLC](http://en.wikipedia.org/wiki/OCLC)[01537271](//www.worldcat.org/oclc/01537271).[PMID](http://en.wikipedia.org/wiki/PubMed_Identifier)[16051647](//www.ncbi.nlm.nih.gov/pubmed/16051647).
-8. ↑ [https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig](https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2019_II_167/BGBLA_2019_II_167.pdfsig)
-9. ↑ ["关于印发《非药用类麻醉药品和精神药品列管办法》的通知"](https://web.archive.org/web/20170210033939/www.sfda.gov.cn/WS01/CL0056/130753.html)(in Chinese). China Food and Drug Administration. Archived from[the original](http://www.sfda.gov.cn/WS01/CL0056/130753.html)on February 10, 2017. Retrieved December 28, 2019.
-10. ↑ [Arrêté du 22 février 1990 fixant la liste des substances classées comme stupéfiants](https://www.legifrance.gouv.fr/loda/id/JORFTEXT000000533085/2020-11-20/)
-11. ↑ ["Anlage I BtMG"](https://www.gesetze-im-internet.de/btmg_1981/anlage_i.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 28, 2019.
-12. ↑ ["Siebenundzwanzigste Verordnung zur Änderung betäubungsmittelrechtlicher Vorschriften"](https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F*%5B%40attr_id%3D%27bgbl113s2274.pdf%27%5D)(in German). Bundesanzeiger Verlag. Retrieved December 18, 2019.
-13. ↑ ["§ 29 BtMG"](https://www.gesetze-im-internet.de/btmg_1981/__29.html)(in German). Bundesministerium der Justiz und für Verbraucherschutz. Retrieved December 18, 2019.
-14. ↑ ["Verordnung des EDI über die Verzeichnisse der Betäubungsmittel, psychotropen Stoffe, Vorläuferstoffe und Hilfschemikalien"](https://www.admin.ch/opc/de/classified-compilation/20101220/index.html)(in German). Bundeskanzlei [Federal Chancellery of Switzerland]. Retrieved January 1, 2020.
-15. ↑ [The Misuse of Drugs Act 1971 (Amendment) (No. 2) Order 2017](https://www.legislation.gov.uk/uksi/2017/1114/made)
-16. ↑ [http://www.deadiversion.usdoj.gov/21cfr/cfr/1308/1308_11.htm](http://www.deadiversion.usdoj.gov/21cfr/cfr/1308/1308_11.htm)
-17. ↑ [Statutes & Constitution :View Statutes : Online Sunshine](http://leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0800-0899/0893/0893.html)NewPP limit report Cached time: 20251218075607 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.05 seconds CPU time usage: 0.363 seconds Real time usage: 0.688 seconds Preprocessor visited node count: 1965/1000000 Post‐expand include size: 123488/2097152 bytes Template argument size: 10329/2097152 bytes Highest expansion depth: 12/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 21084/5000000 bytes Lua time usage: 0.230/7 seconds Lua virtual size: 8.45 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 22Transclusion expansion time report (%,ms,calls,template) 100.00% 544.216 1 -total 25.51% 138.855 6 Template:Cite_journal 15.58% 84.776 2 Template:Citation_needed 13.38% 72.842 1 Template:Fix 12.45% 67.766 2 Template:Category_handler 11.63% 63.281 1 Template:Further 11.56% 62.916 5 Template:Cite_web 11.15% 60.692 1 Template:SubstanceBox/Methiopropamine 10.40% 56.583 1 Template:SubstanceBox 6.37% 34.684 3 Template:Citation`,
+- [Methiopropamine (MyCrew)](http://www.mycrew.org.uk/drugs-information/mpa-methiopropamine)`,
   "thedrugclassroom": `# Methiopropamine
 *Source: https://thedrugclassroom.com/video/methiopropamine/*
 
@@ -973,56 +945,7 @@ An overdose can produce tachycardia, hypertension, hyperthermia, hallucinations,
 - No biological samples were available, but the product in question was tested. 
 - Shown to contain 2-amino-indane, n-methyl-2-amino-indane, methiopropamine, and lidocaine.
 
----
-
-## References
-
-Angelov, D., O’Brien, J., & Kavanagh, P. (2013). The syntheses of 1-(2-thienyl)-2-(methylamino) propane (methiopropamine) and its 3-thienyl isomer for use as reference standards. *Drug Testing and Analysis* , *5* (3), 145–149. https://doi.org/10.1002/dta.298
-
-Anne, S., Tse, R., & Cala, A. D. (2015). A fatal case of isolated methiopropamine (1-(Thiophen-2-yl)-2-methylaminopropane) toxicity: A case report. *American Journal of Forensic Medicine and Pathology* , *36* (3), 205–206. https://doi.org/10.1097/PAF.0000000000000170
-
-Archer, J. R. H., Dargan, P. I., Hudson, S., & Wood, D. M. (2013). Analysis of anonymous pooled urine from portable urinals in central london confirms the significant use of novel psychoactive substances. *Qjm* , *106* (2), 147–152. https://doi.org/10.1093/qjmed/hcs219
-
-Archer, J. R. H., Dargan, P. I., Lee, H. M. D., Hudson, S., & Wood, D. M. (2014). Trend analysis of anonymised pooled urine from portable street urinals in central London identifies variation in the use of novel psychoactive substances. *Clinical Toxicology* , *52* (3), 160–165. https://doi.org/10.3109/15563650.2014.885982
-
-Archer, J. R. H., Hudson, S., Jackson, O., Yamamoto, T., Lovett, C., Lee, H. M., … Wood, D. M. (2015). Analysis of anonymized pooled urine in nine UK cities: Variation in classical recreational drug, novel psychoactive substance and anabolic steroid use. *Qjm* , *108* (12), 929–933. https://doi.org/10.1093/qjmed/hcv058
-
-Blicke, F. F. (1942). α-Thienylaminoalkanes. Journal of the American Chemical Society.
-
-Bouso, E. D., Gardner, E. A., O’Brien, J. E., Talbot, B., & Kavanagh, P. V. (2014). Characterization of the pyrolysis products of methiopropamine. *Drug Testing and Analysis* , *6* (7–8), 676–683. https://doi.org/10.1002/dta.1571
-
-Casale, J. F., & Hays, P. a. (2017). Methiopropamine : An Analytical Profile. *Microgram Journal* , *8* (2), 58–61.
-
-Cunningham, A. (2013). Introduction to the topic of new drugs. *EMCDDA* , (May).
-
-DANGEROUS DRUGS The Misuse of Drugs Act 1971 ( Temporary Class Drug ) ( No . 2 ) Order 2016. (2016), *2011* (10), 1–4.
-
-Daniela, A., & D, A. R. (2016). 36th International Congress of the European Association of Poisons Centres and Clinical Toxicologists (EAPCCT) 24-27 May, 2016, Madrid, Spain. *Clinical Toxicology* , *54* (4), 344–519. https://doi.org/10.3109/15563650.2016.1165952
-
-Daveluy, A., Castaing, N., Cherifi, H., Richeval, C., Humbert, L., Faure, I., … Titier, K. (2016). Acute methiopropamine intoxication after “synthacaine” consumption. *Journal of Analytical Toxicology* , *40* (9), 758–760. https://doi.org/10.1093/jat/bkw073
-
-Deslandes, G., Monteil-Ganière, C., Grégoire, M., Allard, S., Marion, M., & Bouquié, R. (2017). “Synthacaines”: A mosaic of substances for a wide range of effects, from a case. *Toxicologie Analytique et Clinique* , *29* (1), 134–138. https://doi.org/10.1016/j.toxac.2017.01.003
-
-Iversen, L., Gibbons, S., Treble, R., Setola, V., Huang, X. P., & Roth, B. L. (2013). Neurochemical profiles of some novel psychoactive substances. *European Journal of Pharmacology* , *700* (1–3), 147–151. https://doi.org/10.1016/j.ejphar.2012.12.006
-
-Kinyua, J., Covaci, A., Maho, W., McCall, A.-K., Neels, H., & van Nuijs, A. L. N. (2015). Sewage-based epidemiology in monitoring the use of new psychoactive substances: Validation and application of an analytical method using LC-MS/MS. *Drug Testing and Analysis* , *7* (9), 812–818. https://doi.org/10.1002/dta.1777
-
-Lee, H. M. i. D., Wood, D. M., Hudson, S., Archer, J. R. H., & Dargan, P. I. (2014). Acute toxicity associated with analytically confirmed recreational use of methiopropamine (1-(thiophen-2-yl)-2-methylaminopropane). *Journal of Medical Toxicology : Official Journal of the American College of Medical Toxicology* , *10* (3), 299–302. https://doi.org/10.1007/s13181-014-0399-y
-
-Tuv, S. S., Bergh, M. S. S., Vindenes, V., & Karinen, R. (2016). Methiopropamine in blood samples from drivers suspected of being under the influence of drugs. *Traffic Injury Prevention* , *17* (1), 1–4. https://doi.org/10.1080/15389588.2015.1036157
-
-Vermette-Marcotte, A. E., Dargan, P. I., Archer, J. R. H., Gosselin, S., & Wood, D. M. (2014). An Internet snapshot study to compare the international availability of the novel psychoactive substance methiopropamine. *Clinical Toxicology* , *52* (7), 678–681. https://doi.org/10.3109/15563650.2014.933346
-
-Welter-Luedeke, J., & Maurer, H. H. (2016). New Psychoactive Substances: Chemistry, Pharmacology, Metabolism, and Detectability of Amphetamine Derivatives with Modified Ring Systems. *Therapeutic Drug Monitoring* , *38* (1), 4–11. https://doi.org/10.1097/FTD.0000000000000240
-
-Welter, J., Meyer, M. R., Wolf, E., Weinmann, W., Kavanagh, P., & Maurer, H. H. (2013). 2-Methiopropamine, a thiophene analogue of methamphetamine: Studies on its metabolism and detectability in the rat and human using GC-MS and LC-(HR)-MS techniques. *Analytical and Bioanalytical Chemistry* , *405* (10), 3125–3135. https://doi.org/10.1007/s00216-013-6741-4
-
-WHO. (2016). Methiopropamine ( MPA ) Critical Review Report, (November), 14–18.
-
-Yoon, H. S., Cai, W. T., Lee, Y. H., Park, K. T., Lee, Y. S., & Kim, J. H. (2016). The expression of methiopropamine-induced locomotor sensitization requires dopamine D2, but not D1, receptor activation in the rat. *Behavioural Brain Research* , *311* , 403–407. https://doi.org/10.1016/j.bbr.2016.05.060
-
-Yoon, H. S., Kim, W. Y., Ku, M. J., Cho, B. R., Kwak, M. J., & Kim, J. H. (2017). Chronic methiopropamine modifies preference of choice in rat gambling task. *European Psychiatry* , *41* , S866–S867. https://doi.org/10.1016/j.eurpsy.2017.01.1736
-`,
+---`,
   "tripsit-factsheets": `# MPA
 *Source: https://tripbot.tripsit.me/api/tripsit/getDrug/mpa*
 

@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Methcathinone";
-export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methcathinone.md","displayName":"Drug Users Bible","size":4456},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methcathinone.md","displayName":"Isomer Design","size":643},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methcathinone.md","displayName":"PsychonautWiki","size":14374},{"id":"saferparty","fileName":"SAFERPARTY - Methcathinone.md","displayName":"Safer Party","size":2071},{"id":"wikipedia","fileName":"WIKIPEDIA - Methcathinone.md","displayName":"Wikipedia","size":8382}];
+export const sources = [{"id":"drugusersbible","fileName":"DRUGUSERSBIBLE - Methcathinone.md","displayName":"Drug Users Bible","size":4456,"tokens":1137},{"id":"isomerdesign","fileName":"ISOMERDESIGN - Methcathinone.md","displayName":"Isomer Design","size":325,"tokens":124},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Methcathinone.md","displayName":"PsychonautWiki","size":12788,"tokens":3386},{"id":"saferparty","fileName":"SAFERPARTY - Methcathinone.md","displayName":"Safer Party","size":2071,"tokens":502},{"id":"wikipedia","fileName":"WIKIPEDIA - Methcathinone.md","displayName":"Wikipedia","size":8382,"tokens":2075}];
 export const contents: Record<string, string> = {
   "drugusersbible": `# Catnip
 *Source: Drug Users Bible by Dominic Milton Trott*
@@ -113,16 +113,7 @@ taken to conduct the experiment in a more determined manner.
 
 **SMILES:** \`CNC(C(=O)c1ccccc1)C\`
 
-**InChI:** \`InChI=1S/C10H13NO/c1-8(11-2)10(12)9-6-4-3-5-7-9/h3-8,11H,1-2H3\`
-
-## External References
-
-- [](https://en.wikipedia.org/wiki/Markush_structure)
-- [1519](https://www.chemspider.com/Chemical-Structure.1519.html/)
-- [1576](https://pubchem.ncbi.nlm.nih.gov/compound/1576)
-- [Q420643](https://www.wikidata.org/wiki/Q420643)
-- [Methcathinone](https://en.wikipedia.org/wiki/Methcathinone)
-`,
+**InChI:** \`InChI=1S/C10H13NO/c1-8(11-2)10(12)9-6-4-3-5-7-9/h3-8,11H,1-2H3\``,
   "psychonautwiki": `# Methcathinone
 *Source: https://psychonautwiki.org/wiki/Methcathinone*
 
@@ -242,15 +233,7 @@ Additional experience reports can be found here:
 
 - [Methcathinone (Wikipedia)](https://en.wikipedia.org/wiki/Methcathinone)
 - [Methcathinone (Isomer Design)](https://isomerdesign.com/PiHKAL/explore.php?id=2003)
-- [Methcathinone (DrugBank)](https://go.drugbank.com/drugs/DB15339)
-
-## References
-1. ↑ Cathinone derivatives: A review of their chemistry, pharmacology and toxicology | DOI 10.1002/dta.31
-2. ↑ [https://www.nejm.org/doi/full/10.1056/NEJMoa072488](https://www.nejm.org/doi/full/10.1056/NEJMoa072488)
-3. ↑ [https://www.incb.org/incb/en/psychotropics/green-list.html](https://www.incb.org/incb/en/psychotropics/green-list.html)
-4. ↑ ["POISONS STANDARD DECEMBER 2019"](https://www.legislation.gov.au/Details/F2019L01471). Office of Parliamentary Counsel. Retrieved December 19, 2019.
-H,H,H,H,H,CH 3 ,H
-NewPP limit report Cached time: 20251218075605 Cache expiry: 1209600 Dynamic content: false Complications: [] [SMW] In‐text annotation parser time: 0.033 seconds CPU time usage: 0.209 seconds Real time usage: 0.333 seconds Preprocessor visited node count: 974/1000000 Post‐expand include size: 83033/2097152 bytes Template argument size: 17703/2097152 bytes Highest expansion depth: 11/40 Expensive parser function count: 0/100 Unstrip recursion depth: 0/20 Unstrip post‐expand size: 2115/5000000 bytes Lua time usage: 0.050/7 seconds Lua virtual size: 6.05 MB/50 MB Lua estimated memory usage: 0 bytes ExtLoops count: 11Transclusion expansion time report (%,ms,calls,template) 100.00% 242.388 1 -total 47.40% 114.896 1 Template:Reflist 41.85% 101.429 1 Template:Cite_web 25.50% 61.801 1 Template:SubstanceBox/Methcathinone 23.94% 58.031 1 Template:SubstanceBox 9.92% 24.053 1 Template:Effects/base 8.49% 20.573 1 Template:Experience_reports 8.39% 20.327 1 Template:Effect_list 6.79% 16.451 2 Template:Effect_column 2.58% 6.242 1 Template:Effects/physical`,
+- [Methcathinone (DrugBank)](https://go.drugbank.com/drugs/DB15339)`,
   "saferparty": `# Methcathinone
 *Source: [SaferParty](https://saferparty.ch) - Drug Checking Service (Switzerland)*
 
