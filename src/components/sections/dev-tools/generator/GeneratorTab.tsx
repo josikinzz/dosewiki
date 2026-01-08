@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowDown01,
   ArrowDownZA,
@@ -45,6 +46,7 @@ import {
   type SourceInfo,
   type SubstanceModule,
 } from "../../../../data/article-sources";
+import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 
 const STORAGE_KEYS = {
   API_KEY: "articleGenerator_apiKey",
@@ -175,6 +177,9 @@ export const GeneratorTab = memo(function GeneratorTab({
   const [streamedOutput, setStreamedOutput] = useState("");
   const [generationError, setGenerationError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Output view mode (yaml or preview)
+  const [outputViewMode, setOutputViewMode] = useState<"yaml" | "preview">("yaml");
 
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
@@ -704,31 +709,48 @@ export const GeneratorTab = memo(function GeneratorTab({
         <SectionCard delay={0.25}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Generated Output</h2>
-            <div className="flex gap-2">
-              <Button
-                variant="glass"
-                size="pill"
-                onClick={handleCopy}
+            <div className="flex items-center gap-3">
+              <Tabs
+                value={outputViewMode}
+                onValueChange={(v) => setOutputViewMode(v as "yaml" | "preview")}
               >
-                <Copy className="h-3.5 w-3.5" />
-                Copy
-              </Button>
-              <Button
-                variant="glass"
-                size="pill"
-                onClick={handleDownload}
-              >
-                <Download className="h-3.5 w-3.5" />
-                Download
-              </Button>
+                <TabsList>
+                  <TabsTrigger value="yaml">YAML</TabsTrigger>
+                  <TabsTrigger value="preview" disabled={isGenerating}>
+                    Preview
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <div className="flex gap-2">
+                <Button
+                  variant="glass"
+                  size="pill"
+                  onClick={handleCopy}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy
+                </Button>
+                <Button
+                  variant="glass"
+                  size="pill"
+                  onClick={handleDownload}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download
+                </Button>
+              </div>
             </div>
           </div>
-          <JsonEditor
-            id="generated-output"
-            value={streamedOutput}
-            onChange={setStreamedOutput}
-            minHeight={400}
-          />
+          {outputViewMode === "yaml" ? (
+            <JsonEditor
+              id="generated-output"
+              value={streamedOutput}
+              onChange={setStreamedOutput}
+              minHeight={400}
+            />
+          ) : (
+            <GeneratorOutputPreview yamlContent={streamedOutput} />
+          )}
         </SectionCard>
       )}
 

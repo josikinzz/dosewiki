@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FlaskConical, Info, Menu, Sparkles, Wrench, X } from "lucide-react";
+import { FlaskConical, Info, Menu, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
@@ -15,18 +15,9 @@ interface HeaderProps {
 
 export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
-  const articleView: AppView =
-    currentView.type === "substance"
-      ? currentView
-      : { type: "substance", slug: defaultSlug };
-
-  const effectsView: AppView = { type: "effects" };
-  const devView: AppView = { type: "dev", tab: "edit" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
-    { label: "Substances", view: substancesView, icon: FlaskConical },
-    { label: "Effects", view: effectsView, icon: Sparkles },
-    { label: "Dev Tools", view: devView, icon: Wrench },
+    { label: "Substance Index", view: substancesView, icon: FlaskConical },
   ];
   const aboutHash = viewToHash(aboutView);
   const isAboutActive = currentView.type === "about";
@@ -39,10 +30,6 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
         currentView.type === "substance" ||
         currentView.type === "mechanism"
       );
-    }
-
-    if (itemView.type === "effects") {
-      return currentView.type === "effects" || currentView.type === "effect";
     }
 
     return itemView.type === currentView.type;
@@ -126,10 +113,10 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
           />
         </div>
 
-        <div className="hidden flex-shrink-0 items-center gap-4 md:flex gap-fallback-row-4">
+        <div className="ml-2 hidden flex-shrink-0 items-center gap-6 md:flex gap-fallback-row-6">
           <nav className="flex items-center gap-6 text-sm text-white/80 gap-fallback-row-6">
             {navItems.map(({ label, view, icon: Icon }) => {
-              const itemHash = viewToHash(view.type === "substance" ? articleView : view);
+              const itemHash = viewToHash(view);
               const active = isActive(view);
 
               return (
@@ -195,7 +182,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
             >
               <nav className="flex flex-col gap-2 text-sm gap-fallback-col-2">
                 {navItems.map(({ label, view, icon: Icon }) => {
-                  const itemHash = viewToHash(view.type === "substance" ? articleView : view);
+                  const itemHash = viewToHash(view);
                   const active = isActive(view);
                   return (
                     <a

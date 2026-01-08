@@ -265,8 +265,8 @@ export function SubstanceArticle({
               />
             ) : null}
 
-            <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
             <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
+            <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
             <AddictionCard summary={content.addictionSummary} />
             <InteractionsSection interactions={content.interactions} />
             <ToleranceSection tolerance={content.tolerance} />
@@ -319,8 +319,8 @@ export function SubstanceArticle({
                       />
                     ) : null}
 
-                    <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
                     <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
+                    <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
                     <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
                     <ToleranceSection tolerance={content.tolerance} />
                     <AddictionCard summary={content.addictionSummary} />
