@@ -13,6 +13,7 @@ import { DevModePage } from "./components/pages/DevModePage";
 import { AboutPage } from "./components/pages/AboutPage";
 import { useLibrary } from "./data/ArticlesProvider";
 import { querySearchWithData } from "./data/builders/search";
+import { RouteAnnouncer } from "./components/common/RouteAnnouncer";
 import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
 import { parsePath, viewToPath } from "./utils/routing";
@@ -20,6 +21,42 @@ import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
 import { SubstanceArticle } from "./components/pages/SubstanceArticle";
+
+/**
+ * Generate a human-readable page title for screen reader announcements.
+ */
+function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string }>): string {
+  switch (view.type) {
+    case "substances":
+      return "Substance Index";
+    case "substance": {
+      const record = substanceBySlug.get(view.slug);
+      return record ? `${record.name} - Substance Profile` : "Substance Profile";
+    }
+    case "category":
+      return `${view.categoryKey} Category`;
+    case "effects":
+      return "Effects Index";
+    case "effect":
+      return `${view.effectSlug} Effect`;
+    case "mechanism":
+      return `${view.mechanismSlug} Mechanism`;
+    case "classification":
+      return `${view.slug} ${view.classification === "chemical" ? "Chemical" : "Psychoactive"} Class`;
+    case "interactions":
+      return "Drug Interactions";
+    case "search":
+      return `Search Results for "${view.query}"`;
+    case "about":
+      return "About dose.wiki";
+    case "contributor":
+      return `Contributor Profile`;
+    case "dev":
+      return `Developer Tools - ${view.tab}`;
+    default:
+      return "dose.wiki";
+  }
+}
 
 const DEFAULT_VIEW: AppView = { type: "substances" };
 const HARM_REDUCTION_DISMISS_KEY = "dosewiki:harmReductionBannerDismissed";
@@ -242,6 +279,9 @@ export default function App() {
     [activeSlug, content],
   );
 
+  // Ref for main content focus management
+  const mainRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     const container = contentScrollRef.current;
     if (!container) {
@@ -249,7 +289,18 @@ export default function App() {
     }
 
     container.scrollTo({ top: 0, left: 0 });
+
+    // Move focus to main content on navigation (skip DevMode to preserve editing focus)
+    if (view.type !== "dev" && mainRef.current) {
+      mainRef.current.focus();
+    }
   }, [view]);
+
+  // Generate page title for screen reader announcements
+  const pageTitle = useMemo(
+    () => getPageTitle(effectiveView, substanceBySlug),
+    [effectiveView, substanceBySlug],
+  );
 
   const activeRouteKey: RouteKey | undefined = useMemo(() => {
     if (!content || !defaultRoute) {
@@ -269,6 +320,17 @@ export default function App() {
 
   return (
     <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-fuchsia-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2 focus:ring-offset-[#0f0a1f]"
+      >
+        Skip to main content
+      </a>
+
+      {/* Route announcer for screen readers */}
+      <RouteAnnouncer message={pageTitle} />
+
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-3xl" />
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
@@ -284,7 +346,7 @@ export default function App() {
             onTabChange={(tab) => navigate({ type: "dev", tab })}
           />
         ) : view.type === "substances" ? (
-        <main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
           <DosagesPage
             groups={dosageCategoryGroups}
             onSelectDrug={selectSubstance}
@@ -296,7 +358,7 @@ export default function App() {
           const detail = getCategoryDetail(view.categoryKey);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Category not found.</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -308,13 +370,13 @@ export default function App() {
           }
 
           return (
-            <main>
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
               <CategoryPage detail={detail} onSelectDrug={selectSubstance} />
             </main>
           );
         })()
       ) : view.type === "search" ? (
-        <main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
           <SearchResultsPage
             query={view.query}
             results={querySearchWithData(view.query, library)}
@@ -324,7 +386,7 @@ export default function App() {
           />
         </main>
       ) : view.type === "effects" ? (
-        <main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
           <EffectsPage effects={effectSummaries} onSelectEffect={selectEffect} />
         </main>
       ) : view.type === "effect" ? (
@@ -332,7 +394,7 @@ export default function App() {
           const detail = getEffectDetail(view.effectSlug);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Effect not found.</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -344,7 +406,7 @@ export default function App() {
           }
 
           return (
-            <main>
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
               <EffectDetailPage
                 detail={detail}
                 onSelectDrug={selectSubstance}
@@ -358,7 +420,7 @@ export default function App() {
           const detail = getMechanismDetail(view.mechanismSlug);
           if (!detail) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Mechanism not found.</p>
                   <p className="mt-2 text-sm text-white/70">Select a mechanism badge from a substance to explore related entries.</p>
@@ -368,7 +430,7 @@ export default function App() {
           }
 
           return (
-            <main>
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
               <MechanismDetailPage
                 detail={detail}
                 onSelectDrug={selectSubstance}
@@ -389,7 +451,7 @@ export default function App() {
           if (!detail) {
             const descriptor = view.classification === "chemical" ? "Chemical class" : "Psychoactive class";
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">{descriptor} not found.</p>
                   <p className="mt-2 text-sm text-white/70">Select a class tag from a substance profile to view related entries.</p>
@@ -399,13 +461,13 @@ export default function App() {
           }
 
           return (
-            <main>
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
               <ClassificationDetailPage detail={detail} onSelectDrug={selectSubstance} />
             </main>
           );
         })()
       ) : view.type === "interactions" ? (
-        <main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
           <InteractionsPage
             substances={substanceRecords}
             initialPrimarySlug={view.primarySlug}
@@ -415,7 +477,7 @@ export default function App() {
           />
         </main>
       ) : view.type === "about" ? (
-        <main>
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
           <AboutPage />
         </main>
       ) : view.type === "contributor" ? (
@@ -428,7 +490,7 @@ export default function App() {
 
           if (!isKnownProfile && history.length === 0) {
             return (
-              <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
                 <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
                   <p className="text-lg font-semibold text-white">Contributor not found.</p>
                   <p className="mt-2 text-sm text-white/70">
@@ -471,7 +533,7 @@ export default function App() {
           );
         })()
       ) : (
-        <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+        <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
           <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
             <p className="text-lg font-semibold text-white">No substances in database.</p>
             <p className="mt-2 text-sm text-white/70">

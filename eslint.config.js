@@ -1,0 +1,68 @@
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import globals from 'globals';
+
+export default tseslint.config(
+  {
+    ignores: [
+      'dist/**',
+      'dist-inline/**',
+      'coverage/**',
+      'public/**',
+      'scripts/**',
+      'node_modules/**',
+      '*.config.js',
+      '*.config.ts',
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    plugins: {
+      'jsx-a11y': jsxA11y,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.es2020,
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    rules: {
+      // Accessibility rules (WCAG AA compliance)
+      ...jsxA11y.configs.recommended.rules,
+
+      // Allow unused vars prefixed with underscore
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+
+      // Relax some rules for existing codebase
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-empty-function': 'off',
+
+      // Critical accessibility rules
+      'jsx-a11y/alt-text': 'error',
+      'jsx-a11y/aria-props': 'error',
+      'jsx-a11y/aria-role': 'error',
+      'jsx-a11y/aria-unsupported-elements': 'error',
+      'jsx-a11y/role-has-required-aria-props': 'error',
+      'jsx-a11y/role-supports-aria-props': 'error',
+
+      // Allow certain patterns common in this codebase
+      'jsx-a11y/click-events-have-key-events': 'warn',
+      'jsx-a11y/no-static-element-interactions': 'warn',
+      'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+    },
+  },
+);
