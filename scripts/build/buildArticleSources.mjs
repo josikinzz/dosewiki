@@ -71,6 +71,12 @@ function processContent(content, sourceKey) {
 }
 
 async function buildArticleSources() {
+  // Skip if source directory doesn't exist (article-sources already generated)
+  if (!fs.existsSync(ARTICLES_DIR)) {
+    console.log("Source directory not found, skipping article source generation (using pre-built modules)");
+    return;
+  }
+
   // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
