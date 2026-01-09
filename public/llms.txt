@@ -1,0 +1,97 @@
+# dose.wiki - Substance Information Database for Harm Reduction
+
+## Purpose
+dose.wiki is a harm reduction focused reference database providing dosage, duration,
+effects, and safety information for psychoactive substances. The goal is to provide
+accurate, evidence-based information to help people make informed decisions.
+
+## Site Structure
+
+### Main Pages
+- / - Home page with featured substances
+- /substances - Complete index of all substances
+- /effects - Index of subjective effects
+- /interactions - Drug interaction checker
+- /about - About page and contributor information
+
+### Substance Articles
+Each substance has a dedicated page at /{substance-slug} (e.g., /lsd, /mdma, /ketamine).
+Substance slugs are lowercase, hyphenated versions of the substance name.
+
+### Classification Pages
+- /category/{key} - Psychoactive category pages (e.g., /category/psychedelic)
+- /chemical/{slug} - Chemical class pages (e.g., /chemical/tryptamine)
+- /psychoactive/{slug} - Psychoactive class pages
+- /mechanism/{slug} - Mechanism of action pages
+
+## Data Structure
+
+Each substance article contains structured data in the following format:
+
+### Identification
+- Common name, alternative names, and synonyms
+- IUPAC name and molecular formula
+- CAS number and SMILES notation
+
+### Classification
+- Psychoactive class (e.g., Psychedelic, Stimulant, Depressant)
+- Chemical class (e.g., Tryptamine, Phenethylamine, Benzodiazepine)
+
+### Dosage Information
+- Route-specific dosing (oral, insufflated, intravenous, etc.)
+- Dose ranges: threshold, light, moderate, strong, heavy
+- Bioavailability by route
+- Dosage notes and warnings
+
+### Duration Information
+- Route-specific timing
+- Stages: onset, come-up, peak, offset, after-effects
+- Total duration estimates
+
+### Effects
+- Subjective effects organized by category
+- Sensory, cognitive, and physical effects
+- Effect intensity notes
+
+### Pharmacology
+- Mechanism of action
+- Half-life and metabolism
+- Drug interactions
+
+### Safety Information
+- Harm potential assessment
+- Addiction liability
+- Toxicity information
+- Risk factors and contraindications
+
+### Legality
+- International scheduling status
+- Country-specific legal status
+
+### Citations
+- Academic and institutional sources
+- Links to primary research
+
+## API Access
+
+dose.wiki is a client-side single-page application. Article data is embedded in the
+JavaScript bundle. There is no public REST API, but the structured data is available
+in the page source via JSON-LD schema.org markup.
+
+## Content Guidelines
+
+- Information is provided for harm reduction purposes only
+- Content is sourced from academic literature and established databases
+- Dosage information should not be interpreted as recommendations
+- Users should always verify information from multiple sources
+
+## Technical Notes
+
+- The site uses client-side routing (React SPA)
+- Substance pages have prerendered content for SEO
+- JSON-LD structured data is included for machine parsing
+- Sitemap available at /sitemap.xml
+
+## Contact
+
+For questions or corrections, please visit the About page at /about.

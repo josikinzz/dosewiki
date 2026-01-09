@@ -302,6 +302,26 @@ export default function App() {
     [effectiveView, substanceBySlug],
   );
 
+  // Update canonical link and document title for SEO
+  useEffect(() => {
+    const path = viewToPath(effectiveView);
+    const canonicalUrl = `https://dose.wiki${path}`;
+
+    // Update or create canonical link
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+
+    // Update document title
+    document.title = effectiveView.type === "substances"
+      ? "dose.wiki - Substance Information Database"
+      : `${pageTitle} | dose.wiki`;
+  }, [effectiveView, pageTitle]);
+
   const activeRouteKey: RouteKey | undefined = useMemo(() => {
     if (!content || !defaultRoute) {
       return undefined;

@@ -1,0 +1,24 @@
+# dose.wiki Robots.txt
+# Harm reduction substance information database
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://dose.wiki/sitemap.xml
+
+# Disallow development tools from indexing
+Disallow: /dev/
+Disallow: /dev
+
+# Disallow share redirect pages (they redirect to main content)
+Disallow: /share/
+
+# Allow all crawlers to access substance pages and indexes
+Allow: /substances
+Allow: /effects
+Allow: /interactions
+Allow: /about
+
+# Crawl-delay for politeness (optional, not all crawlers respect this)
+Crawl-delay: 1

@@ -6,8 +6,8 @@
   "scripts": {
     "predev": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
-    "build": "vite build",
+    "prebuild": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs && node scripts/build/generateSitemap.mjs",
+    "build": "vite build && node scripts/build/buildPrerenderedPages.mjs",
     "prebuild:inline": "node scripts/build/generateEmbedLogo.mjs && node scripts/build/buildCompressedArticles.mjs && node scripts/build/buildSocialSharePages.mjs && node scripts/build/buildArticleSources.mjs",
     "build:inline": "vite build --mode inline --outDir dist-inline",
     "preview": "vite preview",
