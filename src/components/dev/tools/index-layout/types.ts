@@ -4,7 +4,7 @@ import type {
   ManualCategorySection,
   ManualIndexConfig,
   ManualSectionLink,
-} from "../../../../data/manualIndexLoader";
+} from "../../../../data/builders/manualIndexLoader";
 
 export type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig, ManualSectionLink };
 
@@ -44,20 +44,20 @@ export const DATASET_CONFIG: Record<
   psychoactive: {
     label: "Psychoactive",
     description: "Substances grouped by psychoactive class (e.g. Psychedelics, Stimulants)",
-    getter: (config) => config.psychoactive,
-    setter: (config, next) => ({ ...config, psychoactive: next }),
+    getter: (config) => config.categories,
+    setter: (config, next) => ({ ...config, categories: next }),
   },
   chemical: {
     label: "Chemical",
     description: "Substances grouped by chemical structure (e.g. Phenethylamines, Tryptamines)",
-    getter: (config) => config.chemical,
-    setter: (config, next) => ({ ...config, chemical: next }),
+    getter: (config) => config.categories,
+    setter: (config, next) => ({ ...config, categories: next }),
   },
   mechanism: {
     label: "Mechanism",
     description: "Substances grouped by mechanism of action (e.g. 5-HT agonists, GABA modulators)",
-    getter: (config) => config.mechanism,
-    setter: (config, next) => ({ ...config, mechanism: next }),
+    getter: (config) => config.categories,
+    setter: (config, next) => ({ ...config, categories: next }),
   },
 };
 

@@ -2,7 +2,7 @@ import type {
   ManualCategoryDefinition,
   ManualCategorySection,
   ManualSectionLink,
-} from "../../../../data/manualIndexLoader";
+} from "../../../../data/builders/manualIndexLoader";
 import { allSubstancesBySlug } from "../../../../data/builders/library";
 import { slugify } from "../../../../utils/slug";
 import type { SlugStatus, SlugIssue, SubstanceOption } from "./types";

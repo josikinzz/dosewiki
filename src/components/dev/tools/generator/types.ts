@@ -60,11 +60,13 @@ export interface SourceSelectorProps {
   onCancel: () => void;
 }
 
+export type OutputViewMode = "yaml" | "preview" | "form";
+
 export interface OutputSectionProps {
   streamedOutput: string;
   onOutputChange: (value: string) => void;
-  outputViewMode: "yaml" | "preview";
-  onViewModeChange: (mode: "yaml" | "preview") => void;
+  outputViewMode: OutputViewMode;
+  onViewModeChange: (mode: OutputViewMode) => void;
   isGenerating: boolean;
   onCopy: () => void;
   onDownload: () => void;

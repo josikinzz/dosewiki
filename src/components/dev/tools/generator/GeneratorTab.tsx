@@ -1,4 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MutableRefObject } from "react";
+import yaml from "yaml";
 import { SectionCard } from "../../../common/SectionCard";
 import { DiffPreview } from "../../../common/DiffPreview";
 import { JsonEditor } from "../../../common/JsonEditor";
@@ -14,15 +15,26 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ArrowDown01,
   ArrowDownZA,
   ArrowUp10,
   ArrowUpAZ,
+  AlertCircle,
+  AlertTriangle,
   Bot,
   Check,
   CheckCircle,
   Copy,
   Download,
+  FileEdit,
   FileText,
   FlaskConical,
   Loader2,
@@ -33,7 +45,6 @@ import {
   Search,
   Sparkles,
   X,
-  AlertTriangle,
 } from "lucide-react";
 import {
   MODEL_OPTIONS,
@@ -56,8 +67,12 @@ import {
   stripDxmSection,
   normalizeWhitespace,
   type GeneratorTabProps,
+  type OutputViewMode,
 } from "./types";
 import { useDevMode } from "../../DevModeContext";
+import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
+import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
+import type { SubstanceArticle } from "../../../../schema";
 
 export const GeneratorTab = memo(function GeneratorTab({
   generatorPrompt,
@@ -141,8 +156,17 @@ export const GeneratorTab = memo(function GeneratorTab({
   const [generationError, setGenerationError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Output view mode (yaml or preview)
-  const [outputViewMode, setOutputViewMode] = useState<"yaml" | "preview">("yaml");
+  // Output view mode (yaml, preview, or form)
+  const [outputViewMode, setOutputViewMode] = useState<OutputViewMode>("yaml");
+
+  // Form state for bidirectional sync
+  const formRef = useRef<UseArticleFormReturn | null>(null);
+  const [formDirty, setFormDirty] = useState(false);
+  const [formParseError, setFormParseError] = useState<string | null>(null);
+
+  // Existing article detection
+  const [existingArticleDetected, setExistingArticleDetected] = useState<SubstanceArticle | null>(null);
+  const [showExistingArticleModal, setShowExistingArticleModal] = useState(false);
 
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
@@ -263,11 +287,46 @@ export const GeneratorTab = memo(function GeneratorTab({
       });
   }, [selectedSubstanceSlug]);
 
-  // Reset sources when substance changes
+  // Reset sources and form state when substance changes
   useEffect(() => {
     setSelectedSourceIds(new Set());
     setFullscreenSourceId(null);
+    setFormDirty(false);
+    setFormParseError(null);
+    formRef.current = null;
   }, [selectedSubstanceSlug]);
+
+  // Switch to YAML tab when generation starts
+  useEffect(() => {
+    if (isGenerating) {
+      setOutputViewMode("yaml");
+    }
+  }, [isGenerating]);
+
+  // Detect existing articles when substance is selected
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setExistingArticleDetected(null);
+      return;
+    }
+
+    const substance = substances.find((s) => s.slug === selectedSubstanceSlug);
+    if (!substance) return;
+
+    const substanceName = substance.name.toLowerCase();
+    const existing = articles.find(
+      (a) =>
+        a.identification?.common_name?.toLowerCase() === substanceName ||
+        a.title?.toLowerCase() === substanceName
+    );
+
+    if (existing) {
+      setExistingArticleDetected(existing);
+      setShowExistingArticleModal(true);
+    } else {
+      setExistingArticleDetected(null);
+    }
+  }, [selectedSubstanceSlug, articles]);
 
   // Toggle source selection
   const toggleSource = useCallback((sourceId: string) => {
@@ -387,6 +446,55 @@ export const GeneratorTab = memo(function GeneratorTab({
     navigator.clipboard.writeText(streamedOutput);
   }, [streamedOutput]);
 
+  // Handle output view mode change with bidirectional sync
+  const handleOutputViewModeChange = useCallback((mode: OutputViewMode) => {
+    // Sync Form → YAML when leaving form tab
+    if (outputViewMode === "form" && formDirty && formRef.current) {
+      const values = formRef.current.methods.getValues();
+      const yamlOutput = yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+      setStreamedOutput(yamlOutput);
+      setFormDirty(false);
+    }
+
+    // Sync YAML → Form when entering form tab
+    if (mode === "form") {
+      const parseResult = parseGeneratedYaml(streamedOutput);
+      if (parseResult.success && parseResult.data) {
+        setFormParseError(null);
+        // Form will receive the parsed article as prop and reset via useEffect
+      } else {
+        setFormParseError(parseResult.error ?? "Failed to parse YAML");
+      }
+    }
+
+    setOutputViewMode(mode);
+  }, [outputViewMode, formDirty, streamedOutput]);
+
+  // Handle form mutations
+  const handleFormMutate = useCallback(() => {
+    setFormDirty(true);
+  }, []);
+
+  // Handle existing article modal actions
+  const handleLoadExisting = useCallback(() => {
+    if (existingArticleDetected) {
+      const yamlOutput = yaml.stringify(existingArticleDetected, { lineWidth: 0, nullStr: "" });
+      setStreamedOutput(yamlOutput);
+      setShowExistingArticleModal(false);
+      setOutputViewMode("form");
+    }
+  }, [existingArticleDetected]);
+
+  const handleGenerateNew = useCallback(() => {
+    setShowExistingArticleModal(false);
+    // Continue with normal generation flow
+  }, []);
+
+  const handleCancelExisting = useCallback(() => {
+    setShowExistingArticleModal(false);
+    setSelectedSubstanceSlug(null);
+  }, []);
+
   // Download YAML
   const handleDownload = useCallback(() => {
     const selectedSubstance = substances.find((s) => s.slug === selectedSubstanceSlug);
@@ -399,8 +507,8 @@ export const GeneratorTab = memo(function GeneratorTab({
     URL.revokeObjectURL(url);
   }, [streamedOutput, selectedSubstanceSlug]);
 
-  // Save to database
-  const handleSaveToDatabase = useCallback(() => {
+  // Save to database (draft or publish)
+  const handleSaveToDatabase = useCallback((mode: "draft" | "publish" = "draft") => {
     if (!streamedOutput || isGenerating) return;
 
     setIsSaving(true);
@@ -408,27 +516,52 @@ export const GeneratorTab = memo(function GeneratorTab({
     setSaveSuccess(false);
 
     try {
-      const parseResult = parseGeneratedYaml(streamedOutput);
-      if (!parseResult.success || !parseResult.data) {
-        throw new Error(parseResult.error ?? "Failed to parse YAML");
+      // Get article from form if in form mode, else parse YAML
+      let article: SubstanceArticle;
+      if (outputViewMode === "form" && formRef.current) {
+        article = formRef.current.methods.getValues();
+      } else {
+        const parseResult = parseGeneratedYaml(streamedOutput);
+        if (!parseResult.success || !parseResult.data) {
+          throw new Error(parseResult.error ?? "Failed to parse YAML");
+        }
+        article = parseResult.data;
       }
 
-      // Find next available ID
-      const maxId = articles.reduce((max, a) => Math.max(max, typeof a.id === "number" ? a.id : 0), 0);
-      const newId = maxId + 1;
+      // Check if updating existing article by common_name
+      const commonName = article.identification?.common_name?.toLowerCase();
+      const existingIndex = articles.findIndex(
+        (a) => a.identification?.common_name?.toLowerCase() === commonName
+      );
 
-      // Add article directly with assigned ID (SubstanceArticle schema)
-      const articleWithId = { ...parseResult.data, id: newId };
-      applyArticlesTransform((prev) => [...prev, articleWithId]);
+      if (existingIndex >= 0) {
+        // Update existing article, preserve its ID
+        const existingId = articles[existingIndex].id;
+        applyArticlesTransform((prev) => {
+          const next = [...prev];
+          next[existingIndex] = { ...article, id: existingId };
+          return next;
+        });
+      } else {
+        // Create new article with next available ID
+        const maxId = articles.reduce((max, a) => Math.max(max, typeof a.id === "number" ? a.id : 0), 0);
+        const newId = maxId + 1;
+        applyArticlesTransform((prev) => [...prev, { ...article, id: newId }]);
+      }
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
+
+      // If publishing, scroll to commit panel
+      if (mode === "publish" && commitPanel) {
+        // The commit panel is visible, user can proceed to commit
+      }
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Failed to save");
     } finally {
       setIsSaving(false);
     }
-  }, [streamedOutput, isGenerating, articles, applyArticlesTransform]);
+  }, [streamedOutput, isGenerating, articles, applyArticlesTransform, outputViewMode, commitPanel]);
 
   const selectedSubstance = useMemo(
     () => substances.find((s) => s.slug === selectedSubstanceSlug),
@@ -712,14 +845,25 @@ export const GeneratorTab = memo(function GeneratorTab({
       {streamedOutput && (
         <SectionCard delay={0.25}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Generated Output</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-white">Generated Output</h2>
+              {formDirty && outputViewMode === "form" && (
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
+                  Unsaved changes
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               <Tabs
                 value={outputViewMode}
-                onValueChange={(v) => setOutputViewMode(v as "yaml" | "preview")}
+                onValueChange={(v) => handleOutputViewModeChange(v as OutputViewMode)}
               >
                 <TabsList>
                   <TabsTrigger value="yaml">YAML</TabsTrigger>
+                  <TabsTrigger value="form" disabled={isGenerating}>
+                    <FileEdit className="mr-1.5 h-3.5 w-3.5" />
+                    Form
+                  </TabsTrigger>
                   <TabsTrigger value="preview" disabled={isGenerating}>
                     Preview
                   </TabsTrigger>
@@ -729,7 +873,7 @@ export const GeneratorTab = memo(function GeneratorTab({
                 <Button
                   variant="glass"
                   size="pill"
-                  onClick={handleSaveToDatabase}
+                  onClick={() => handleSaveToDatabase("draft")}
                   disabled={isGenerating || isSaving || !streamedOutput}
                 >
                   {isSaving ? (
@@ -739,7 +883,7 @@ export const GeneratorTab = memo(function GeneratorTab({
                   ) : (
                     <Save className="h-3.5 w-3.5" />
                   )}
-                  {saveSuccess ? "Saved!" : "Save to Database"}
+                  {saveSuccess ? "Saved!" : "Save Draft"}
                 </Button>
                 <Button
                   variant="glass"
@@ -766,14 +910,66 @@ export const GeneratorTab = memo(function GeneratorTab({
               {saveError}
             </div>
           )}
-          {outputViewMode === "yaml" ? (
+          {outputViewMode === "yaml" && (
             <JsonEditor
               id="generated-output"
               value={streamedOutput}
               onChange={setStreamedOutput}
               minHeight={400}
             />
-          ) : (
+          )}
+          {outputViewMode === "form" && (
+            (() => {
+              if (formParseError) {
+                return (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+                    <div className="mb-4 flex items-center gap-2 text-red-400">
+                      <AlertCircle className="h-5 w-5" />
+                      <span className="font-medium">Failed to parse YAML</span>
+                    </div>
+                    <p className="mb-4 text-sm text-white/70">{formParseError}</p>
+                    <Button
+                      variant="glass"
+                      size="pill"
+                      onClick={() => handleOutputViewModeChange("yaml")}
+                    >
+                      Switch to YAML
+                    </Button>
+                  </div>
+                );
+              }
+              const parseResult = parseGeneratedYaml(streamedOutput);
+              if (!parseResult.success || !parseResult.data) {
+                return (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
+                    <div className="mb-4 flex items-center gap-2 text-red-400">
+                      <AlertCircle className="h-5 w-5" />
+                      <span className="font-medium">Failed to parse YAML</span>
+                    </div>
+                    <p className="mb-4 text-sm text-white/70">{parseResult.error ?? "Unknown error"}</p>
+                    <Button
+                      variant="glass"
+                      size="pill"
+                      onClick={() => handleOutputViewModeChange("yaml")}
+                    >
+                      Switch to YAML
+                    </Button>
+                  </div>
+                );
+              }
+              return (
+                <div className="rounded-xl border border-white/10 bg-slate-950/40 p-6">
+                  <ArticleDraftFormFieldsRHF
+                    idPrefix="generator-form"
+                    article={parseResult.data}
+                    onMutate={handleFormMutate}
+                    formRef={formRef}
+                  />
+                </div>
+              );
+            })()
+          )}
+          {outputViewMode === "preview" && (
             <GeneratorOutputPreview yamlContent={streamedOutput} />
           )}
         </SectionCard>
@@ -908,6 +1104,36 @@ export const GeneratorTab = memo(function GeneratorTab({
           <DiffPreview diffText={promptDiff} />
         </SectionCard>
       )}
+
+      {/* Existing Article Modal */}
+      <Dialog open={showExistingArticleModal} onOpenChange={setShowExistingArticleModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Existing Article Found</DialogTitle>
+            <DialogDescription>
+              An article for "{existingArticleDetected?.identification?.common_name || existingArticleDetected?.title}" already exists in the database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-white/70">
+              Would you like to load the existing article for editing, or generate a new one from sources?
+            </p>
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button variant="glass" onClick={handleLoadExisting}>
+              <FileEdit className="mr-2 h-4 w-4" />
+              Load Existing
+            </Button>
+            <Button variant="glass" onClick={handleGenerateNew}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate New
+            </Button>
+            <Button variant="ghost" onClick={handleCancelExisting}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDevMode } from "../../../dev/DevModeContext";
-import type { ManualSectionLinkType } from "../../../../data/manualIndexLoader";
+import type { ManualSectionLinkType } from "../../../../data/builders/manualIndexLoader";
 import { allSubstanceRecords } from "../../../../data/builders/library";
 import { getCategoryIcon } from "../../../../data/config/categoryIcons";
 import { slugify } from "../../../../utils/slug";
@@ -40,10 +40,12 @@ import {
   type IndexLayoutTabProps,
   type SubstanceOption,
   type SlugStatus,
+  type SlugIssue,
   type AddSlugFilterMode,
   type ManualDatasetKey,
   type ManualCategoryDefinition,
   type ManualCategorySection,
+  type ManualIndexConfig,
   type ManualSectionLink,
 } from "./types";
 
