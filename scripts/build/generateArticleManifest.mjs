@@ -15,7 +15,7 @@ const SOURCE_DISPLAY_NAMES = {
   EROWID: "Erowid",
   ISOMERDESIGN: "Isomer Design",
   DRUGBANK: "DrugBank",
-  DISREGARDEVERYTHINGISAY: "DEIA",
+  DISREGARDEVERYTHINGISAY: "DEIS",
   PROTESTKIT: "Protest Kit",
   BLUELIGHT: "Bluelight",
   DMTURNER: "D.M. Turner",

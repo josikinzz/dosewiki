@@ -16,6 +16,8 @@
     "merge:articles": "node scripts/data/merge-articles-json.mjs",
     "generate:manifest": "node scripts/build/generateArticleManifest.mjs",
     "generate:schema": "tsx scripts/generate/generateSchemaUtils.ts",
+    "parse:sources": "tsx scripts/parse-sources.ts --stats",
+    "parse:sources:verbose": "tsx scripts/parse-sources.ts --verbose --stats",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   BadgeCheck,
   Copy,
+  Database,
   Download,
   Edit3,
   Eye,
@@ -70,6 +71,7 @@ import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { GeneratorTab } from "../dev/tools/generator/GeneratorTab";
+import { ParsedDataTab } from "../dev/tools/parsed-data/ParsedDataTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
 
@@ -123,7 +125,8 @@ type DevModeTab =
   | "index-layout"
   | "about"
   | "layout-lab"
-  | "generator";
+  | "generator"
+  | "parsed-data";
 
 type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
 
@@ -2581,6 +2584,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
               <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Generator</span>
             </Button>
+            <Button
+              variant="tabSecondary"
+              size="tabSecondary"
+              onClick={() => handleTabChange("parsed-data")}
+              data-active={activeTab === "parsed-data"}
+              aria-pressed={activeTab === "parsed-data"}
+            >
+              <Database className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Parsed Data</span>
+            </Button>
           </div>
         )}
 
@@ -3380,6 +3393,8 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           onCopyPrompt={handleGeneratorPromptCopy}
           commitPanel={commitPanel}
         />
+      ) : activeTab === "parsed-data" ? (
+        <ParsedDataTab />
       ) : null}
       </div>
     </main>

@@ -7,7 +7,8 @@ export type DevTab =
   | "index-layout"
   | "about"
   | "layout-lab"
-  | "generator";
+  | "generator"
+  | "parsed-data";
 
 export type AppView =
   | { type: "substances" }
