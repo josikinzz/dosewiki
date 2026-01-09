@@ -19,6 +19,8 @@ export interface RouteInfo {
   units?: string;
   dosage: DoseEntry[];
   duration: DoseEntry[];
+  bioavailability?: string;
+  notes?: string;
 }
 
 export interface HeroBadge {

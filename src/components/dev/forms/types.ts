@@ -3,12 +3,11 @@ import type { ArticleDraftFormController } from "../../../hooks/useArticleDraftF
 import type {
   ArticleDraftForm,
   DoseRangeForm,
-  DurationForm,
-  DurationStagePayload,
+  DurationStagesForm,
   ToleranceForm,
 } from "../../../utils/forms/articleDraftForm";
 
-export type { ArticleDraftForm, DoseRangeForm, DurationForm, DurationStagePayload, ToleranceForm };
+export type { ArticleDraftForm, DoseRangeForm, DurationStagesForm, ToleranceForm };
 export type { ArticleDraftFormController };
 export type { TagOption };
 
@@ -32,11 +31,10 @@ export type DosageDurationFieldsProps = {
   form: ArticleDraftForm;
   handleRouteFieldChange: ArticleDraftFormController["handleRouteFieldChange"];
   handleDoseRangeFieldChange: ArticleDraftFormController["handleDoseRangeFieldChange"];
-  handleDurationFieldChange: ArticleDraftFormController["handleDurationFieldChange"];
   handleDurationRouteStageChange: ArticleDraftFormController["handleDurationRouteStageChange"];
   addRouteEntry: ArticleDraftFormController["addRouteEntry"];
   removeRouteEntry: ArticleDraftFormController["removeRouteEntry"];
-  applyDurationDefaultsToRoute: ArticleDraftFormController["applyDurationDefaultsToRoute"];
+  applyDurationFromRoute: ArticleDraftFormController["applyDurationFromRoute"];
 };
 
 export type ChemistryFieldsProps = {
@@ -53,6 +51,7 @@ export type SubjectiveEffectsFieldsProps = {
   idPrefix: string;
   form: ArticleDraftForm;
   handleFieldChange: ArticleDraftFormController["handleFieldChange"];
+  handleTagFieldChange: ArticleDraftFormController["handleTagFieldChange"];
 };
 
 export type AddictionFieldsProps = {
@@ -64,6 +63,7 @@ export type AddictionFieldsProps = {
 export type InteractionsFieldsProps = {
   form: ArticleDraftForm;
   handleFieldChange: ArticleDraftFormController["handleFieldChange"];
+  handleTagFieldChange: ArticleDraftFormController["handleTagFieldChange"];
 };
 
 export type ToleranceFieldsProps = {
@@ -71,6 +71,7 @@ export type ToleranceFieldsProps = {
   form: ArticleDraftForm;
   handleFieldChange: ArticleDraftFormController["handleFieldChange"];
   handleToleranceFieldChange: ArticleDraftFormController["handleToleranceFieldChange"];
+  handleToleranceCrossToleranceChange: ArticleDraftFormController["handleToleranceCrossToleranceChange"];
 };
 
 export type NotesFieldsProps = {
@@ -96,26 +97,17 @@ export const doseRangeLabels: Array<[keyof DoseRangeForm, string]> = [
   ["heavy", "Heavy"],
 ];
 
-export const durationLabels: Array<[keyof DurationForm, string, string]> = [
-  ["totalDuration", "Total", "e.g., 6-8 hours"],
+export const durationStageLabels: Array<[keyof DurationStagesForm, string, string]> = [
+  ["totalDuration", "Total Duration", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
   ["comeUp", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
-  ["afterEffects", "After effects", "e.g., Residual stimulation"],
+  ["afterEffects", "After Effects", "e.g., Residual stimulation"],
 ];
 
-export const routeDurationLabels: Array<[keyof DurationStagePayload, string, string]> = [
-  ["total_duration", "Total", "e.g., 6-8 hours"],
-  ["onset", "Onset", "e.g., 15-30 minutes"],
-  ["come_up", "Come-up", "e.g., 30-60 minutes"],
-  ["peak", "Peak", "e.g., 2-3 hours"],
-  ["offset", "Offset", "e.g., ~2 hours"],
-  ["after_effects", "After effects", "e.g., Residual stimulation"],
-];
-
-export const toleranceLabels: Array<[keyof ToleranceForm, string]> = [
-  ["fullTolerance", "Full tolerance"],
-  ["halfTolerance", "Half tolerance"],
-  ["zeroTolerance", "Baseline reset"],
+export const toleranceLabels: Array<[keyof Omit<ToleranceForm, "crossTolerance">, string]> = [
+  ["fullTolerance", "Full Tolerance"],
+  ["halfTolerance", "Half Tolerance"],
+  ["baselineTolerance", "Baseline Reset"],
 ];

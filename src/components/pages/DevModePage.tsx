@@ -55,26 +55,37 @@ import {
 } from "../../data/changelog/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/data/changelog";
 import { DiffPreview } from "../common/DiffPreview";
-import { useArticleDraftForm } from "../../hooks/useArticleDraftForm";
-import {
-  ArticleDraftForm,
-  ArticleDraftPayload,
-  buildArticleFromDraft,
-  createEmptyArticleDraftForm,
-  hydrateArticleDraftForm,
-} from "../../utils/forms/articleDraftForm";
+import { useArticleForm, type UseArticleFormReturn } from "../../hooks/useArticleForm";
+import { useSaveArticlesMutation, useAuthMutation } from "../../hooks/useApiMutations";
+import type { SubstanceArticle } from "../../schema";
+import { createEmptyArticle } from "../../data/schema";
 import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
 import { AboutEditorTab } from "../dev/tools/about/AboutEditorTab";
 import { LayoutLabTab } from "../dev/tools/layout-lab/LayoutLabTab";
 import { slugify } from "../../utils/slug";
-import { viewToHash } from "../../utils/routing";
+import { viewToPath } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
 import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
+import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { GeneratorTab } from "../dev/tools/generator/GeneratorTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
+
+// Helper to stringify articles as YAML for human-readable display
+const toYaml = (value: unknown): string => {
+  try {
+    return yamlStringify(value, { lineWidth: 0 });
+  } catch {
+    return "# Failed to serialize as YAML";
+  }
+};
+
+// Helper to parse YAML input
+const fromYaml = (value: string): unknown => {
+  return yamlParse(value);
+};
 import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +96,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArticleDraftFormFields } from "../dev/forms/ArticleDraftFormFields";
+import { ArticleDraftFormFieldsRHF } from "../dev/forms/ArticleDraftFormFieldsRHF";
 import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 
@@ -185,60 +196,17 @@ const formatArticleLabel = (article: unknown, index: number) => {
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-const mergeArticleWithOriginal = (original: unknown, draft: ArticleDraftPayload) => {
+// Merge draft SubstanceArticle with original, preserving id from original if not set
+const mergeArticleWithOriginal = (original: unknown, draft: ArticleRecord): ArticleRecord => {
   if (!original || typeof original !== "object") {
-    return { ...draft };
+    return draft;
   }
 
-  const originalRecord = original as Record<string, unknown>;
-  const originalDrugInfo =
-    originalRecord.drug_info && typeof originalRecord.drug_info === "object"
-      ? (originalRecord.drug_info as Record<string, unknown>)
-      : {};
-
-  const mergedDrugInfo = {
-    ...originalDrugInfo,
-    ...draft.drug_info,
-    dosages: {
-      ...(typeof originalDrugInfo.dosages === "object" && originalDrugInfo.dosages !== null
-        ? (originalDrugInfo.dosages as Record<string, unknown>)
-        : {}),
-      routes_of_administration: draft.drug_info.dosages.routes_of_administration,
-    },
-    duration: {
-      ...(typeof originalDrugInfo.duration === "object" && originalDrugInfo.duration !== null
-        ? (originalDrugInfo.duration as Record<string, unknown>)
-        : {}),
-      ...draft.drug_info.duration,
-    },
-    tolerance: {
-      ...(typeof originalDrugInfo.tolerance === "object" && originalDrugInfo.tolerance !== null
-        ? (originalDrugInfo.tolerance as Record<string, unknown>)
-        : {}),
-      ...draft.drug_info.tolerance,
-    },
-    interactions: {
-      ...(typeof originalDrugInfo.interactions === "object" && originalDrugInfo.interactions !== null
-        ? (originalDrugInfo.interactions as Record<string, unknown>)
-        : {}),
-      ...draft.drug_info.interactions,
-    },
-    citations: draft.drug_info.citations,
-  };
-
-  const merged: Record<string, unknown> = {
-    ...originalRecord,
+  const originalArticle = original as ArticleRecord;
+  return {
     ...draft,
-    drug_info: mergedDrugInfo,
+    id: draft.id ?? originalArticle.id,
   };
-
-  delete merged.content;
-
-  if (draft.id === undefined && originalRecord.id !== undefined) {
-    merged.id = originalRecord.id;
-  }
-
-  return merged;
 };
 
 const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArticleSummary | null => {
@@ -249,8 +217,8 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
   const entry = record as {
     id?: unknown;
     title?: unknown;
-    drug_info?: {
-      drug_name?: unknown;
+    identification?: {
+      common_name?: unknown;
     };
   };
 
@@ -270,10 +238,10 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
   }
 
   const rawTitle = typeof entry.title === "string" ? entry.title.trim() : "";
-  const drugName = typeof entry.drug_info?.drug_name === "string" ? entry.drug_info.drug_name.trim() : "";
+  const commonName = typeof entry.identification?.common_name === "string" ? entry.identification.common_name.trim() : "";
 
-  const title = rawTitle || drugName || `Article ${index + 1}`;
-  const slugSource = drugName || title || `article-${idValue}`;
+  const title = rawTitle || commonName || `Article ${index + 1}`;
+  const slugSource = commonName || title || `article-${idValue}`;
   const slug = slugify(slugSource) || `article-${idValue}`;
 
   return {
@@ -333,15 +301,22 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setStagedArticleLabel(null);
     setStagedArticleId(null);
   }, [setCreatorNotice, setIsNewArticleStaged, setStagedArticleLabel, setStagedArticleId]);
-  const newArticleController = useArticleDraftForm({
-    initialState: createEmptyArticleDraftForm(),
-    onMutate: handleCreatorMutate,
-  });
-  const {
-    form: newArticleForm,
-    resetForm: resetNewArticleFormState,
-    replaceForm: replaceNewArticleForm,
-  } = newArticleController;
+  // RHF form ref for new article creation
+  const newArticleFormRef = useRef<UseArticleFormReturn | null>(null);
+  // Track form values reactively for UI updates
+  const [newArticleValues, setNewArticleValues] = useState<SubstanceArticle>(() => createEmptyArticle());
+  // Update tracked values when form changes
+  const handleNewArticleMutate = useCallback(() => {
+    handleCreatorMutate();
+    const values = newArticleFormRef.current?.methods.getValues();
+    if (values) {
+      setNewArticleValues(values);
+    }
+  }, [handleCreatorMutate]);
+  const resetNewArticleFormState = useCallback(() => {
+    newArticleFormRef.current?.resetForm();
+    setNewArticleValues(createEmptyArticle());
+  }, []);
   const [username, setUsername] = useState("");
   const [usernameDraft, setUsernameDraft] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
@@ -351,8 +326,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const [lastVerifiedAt, setLastVerifiedAt] = useState<string | null>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isVerifyingCredentials, setIsVerifyingCredentials] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
+  const saveArticlesMutation = useSaveArticlesMutation();
+  const authMutation = useAuthMutation();
+  const isSaving = saveArticlesMutation.isPending;
   const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
@@ -403,21 +380,27 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     );
   }, [originalArticle, selectedArticle, selectedIndex]);
   const selectedArticleSlug = selectedArticleSummary?.slug ?? null;
-  const hydratedSelectedForm = useMemo(() => hydrateArticleDraftForm(selectedArticle), [selectedArticle]);
+  // RHF form ref for edit article
+  const editArticleFormRef = useRef<UseArticleFormReturn | null>(null);
+  // Track edit form values reactively for UI updates
+  const [editArticleValues, setEditArticleValues] = useState<SubstanceArticle | undefined>(selectedArticle);
+  // Update tracked values when form changes
   const handleEditArticleMutate = useCallback(() => {
     setNotice(null);
+    const values = editArticleFormRef.current?.methods.getValues();
+    if (values) {
+      setEditArticleValues(values);
+    }
   }, [setNotice]);
-  const editArticleController = useArticleDraftForm({
-    initialState: hydratedSelectedForm,
-    onMutate: handleEditArticleMutate,
-  });
-  const {
-    form: editArticleForm,
-    replaceForm: replaceEditArticleForm,
-  } = editArticleController;
+  const resetEditArticleForm = useCallback((article?: SubstanceArticle) => {
+    editArticleFormRef.current?.resetForm(article);
+    if (article) {
+      setEditArticleValues(article);
+    }
+  }, []);
   const draftState = useMemo(() => {
     try {
-      return { value: JSON.parse(editorValue) as unknown, isValid: true };
+      return { value: fromYaml(editorValue) as unknown, isValid: true };
     } catch {
       return { value: null, isValid: false };
     }
@@ -659,7 +642,8 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   const hasStoredCredentials = trimmedUsername.length > 0 && trimmedAdminPassword.length > 0;
   const isCommitDisabled = isSaving || !hasStoredCredentials || hasInvalidJsonDraft || !hasPendingChanges;
-  const newArticlePayload = useMemo(() => buildArticleFromDraft(newArticleForm), [newArticleForm]);
+  // newArticleValues is already a SubstanceArticle, no conversion needed
+  const newArticlePayload = newArticleValues;
   const [newArticleJsonDraft, setNewArticleJsonDraft] = useState(() =>
     JSON.stringify(newArticlePayload, null, 2),
   );
@@ -677,14 +661,14 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNewArticleJsonError(null);
   }, [newArticlePayload]);
   const isNewArticleValid = useMemo(() => {
-    const hasTitle = newArticleForm.title.trim().length > 0;
-    const hasDrugName = newArticleForm.drugName.trim().length > 0;
-    const hasRoute = newArticleForm.routes.some(
-      (route) => route.route.trim().length > 0 && route.units.trim().length > 0,
+    const hasTitle = (newArticleValues.title ?? "").trim().length > 0;
+    const hasCommonName = (newArticleValues.identification?.common_name ?? "").trim().length > 0;
+    const hasRoute = (newArticleValues.dosage?.routes ?? []).some(
+      (route) => (route.route ?? "").trim().length > 0,
     );
 
-    return hasTitle && hasDrugName && hasRoute;
-  }, [newArticleForm]);
+    return hasTitle && hasCommonName && hasRoute;
+  }, [newArticleValues]);
   const isNewArticleJsonValid = newArticleJsonError === null;
   const isCreateCommitDisabled =
     isCommitDisabled || !isNewArticleValid || !isNewArticleJsonValid;
@@ -908,7 +892,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const handleChangeLogArticleSelect = useCallback((value: string) => {
     setChangeLogFilters((previous) => ({
       ...previous,
-      articleSlug: value === "" ? null : value,
+      articleSlug: value === "__all__" ? null : value,
     }));
   }, []);
 
@@ -1027,23 +1011,12 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       }
 
       try {
-        const authResponse = await fetch("/api/auth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: candidateUsername, password: candidatePassword }),
+        const authResult = await authMutation.mutateAsync({
+          username: candidateUsername,
+          password: candidatePassword,
         });
 
-        const authPayload = await authResponse.json().catch(() => ({}));
-        if (!authResponse.ok || authPayload.authorized !== true) {
-          const reason = typeof authPayload.error === "string" ? authPayload.error : "Authentication failed.";
-          throw new Error(reason);
-        }
-
-        const matchedKey =
-          typeof authPayload.key === "string" && authPayload.key.trim().length > 0
-            ? authPayload.key.trim()
-            : candidateUsername;
-
+        const matchedKey = authResult.key;
         const verifiedAt = new Date().toISOString();
 
         setPasswordKey(matchedKey);
@@ -1086,7 +1059,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         throw new Error(reason);
       }
     },
-    [adminPassword, persistCredentialsToLocalStorage, showPasswordNotice, username],
+    [adminPassword, authMutation, persistCredentialsToLocalStorage, showPasswordNotice, username],
   );
 
   useEffect(
@@ -1365,40 +1338,40 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   }, [selectedIndex]);
 
   useEffect(() => {
-    replaceEditArticleForm(hydratedSelectedForm, { emitMutate: false });
+    // Reset form when selected article changes
+    resetEditArticleForm(selectedArticle);
     if (!selectedArticle) {
       setEditorValue("{}");
     } else {
-      setEditorValue(JSON.stringify(selectedArticle, null, 2));
+      setEditorValue(toYaml(selectedArticle));
     }
     setDraftMode("ui");
     if (previousArticleIndexRef.current !== selectedIndex) {
       setNotice(null);
     }
     previousArticleIndexRef.current = selectedIndex;
-  }, [hydratedSelectedForm, replaceEditArticleForm, selectedArticle, selectedIndex]);
+  }, [resetEditArticleForm, selectedArticle, selectedIndex]);
 
   useEffect(() => {
     if (draftMode !== "ui") {
       return;
     }
 
-    const draftPayload = buildArticleFromDraft(editArticleForm);
-    const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
-    setEditorValue(JSON.stringify(merged, null, 2));
-  }, [draftMode, editArticleForm, selectedArticle]);
+    // editArticleValues is already a SubstanceArticle
+    const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
+    setEditorValue(toYaml(merged));
+  }, [draftMode, editArticleValues, selectedArticle]);
 
   const switchToJsonMode = useCallback(() => {
     if (draftMode === "json") {
       return;
     }
 
-    const draftPayload = buildArticleFromDraft(editArticleForm);
-    const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
-    setEditorValue(JSON.stringify(merged, null, 2));
+    const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
+    setEditorValue(toYaml(merged));
     setDraftMode("json");
     setNotice(null);
-  }, [draftMode, editArticleForm, selectedArticle]);
+  }, [draftMode, editArticleValues, selectedArticle]);
 
   const switchToUiMode = useCallback(() => {
     if (draftMode === "ui") {
@@ -1406,46 +1379,45 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
 
     try {
-      const parsed = JSON.parse(editorValue);
+      const parsed = fromYaml(editorValue);
       if (!parsed || typeof parsed !== "object") {
         throw new Error("Parsed data must be an object");
       }
 
-      const hydrated = hydrateArticleDraftForm(parsed);
-      replaceEditArticleForm(hydrated, { emitMutate: false });
+      // YAML is parsed directly as SubstanceArticle
+      resetEditArticleForm(parsed as SubstanceArticle);
       setDraftMode("ui");
       setNotice(null);
     } catch (error) {
-      const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+      const reason = error instanceof Error ? error.message : "Unable to parse YAML.";
       setNotice({ type: "error", message: `Switch failed: ${reason}` });
     }
-  }, [draftMode, editorValue, replaceEditArticleForm]);
+  }, [draftMode, editorValue, resetEditArticleForm]);
 
   const handleDraftModeChange = useCallback((mode: "ui" | "json") => {
     if (mode === "json") {
       if (draftMode === "json") return;
-      const draftPayload = buildArticleFromDraft(editArticleForm);
-      const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
-      setEditorValue(JSON.stringify(merged, null, 2));
+      const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
+      setEditorValue(toYaml(merged));
       setDraftMode("json");
       setNotice(null);
     } else {
       if (draftMode === "ui") return;
       try {
-        const parsed = JSON.parse(editorValue);
+        const parsed = fromYaml(editorValue);
         if (!parsed || typeof parsed !== "object") {
           throw new Error("Parsed data must be an object");
         }
-        const hydrated = hydrateArticleDraftForm(parsed);
-        replaceEditArticleForm(hydrated, { emitMutate: false });
+        // YAML is parsed directly as SubstanceArticle
+        resetEditArticleForm(parsed as SubstanceArticle);
         setDraftMode("ui");
         setNotice(null);
       } catch (error) {
-        const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+        const reason = error instanceof Error ? error.message : "Unable to parse YAML.";
         setNotice({ type: "error", message: `Switch failed: ${reason}` });
       }
     }
-  }, [draftMode, editArticleForm, selectedArticle, editorValue, replaceEditArticleForm]);
+  }, [draftMode, editArticleValues, selectedArticle, editorValue, resetEditArticleForm]);
 
   const handleEditorChange = useCallback(
     (value: string) => {
@@ -1475,28 +1447,28 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
 
     if (hasInvalidJsonDraft) {
-      setNotice({ type: "error", message: "Fix JSON syntax before saving." });
+      setNotice({ type: "error", message: "Fix YAML syntax before saving." });
       return;
     }
 
     if (draftMode === "ui") {
-      const draftPayload = buildArticleFromDraft(editArticleForm);
-      const merged = mergeArticleWithOriginal(selectedArticle, draftPayload);
+      // editArticleValues is already a SubstanceArticle
+      const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
       updateArticleAt(selectedIndex, merged);
       setNotice({ type: "success", message: "Article updated in draft dataset." });
       return;
     }
 
     try {
-      const parsed = JSON.parse(editorValue);
+      const parsed = fromYaml(editorValue);
       if (!parsed || typeof parsed !== "object") {
         throw new Error("Parsed data must be an object");
       }
 
-      updateArticleAt(selectedIndex, parsed);
+      updateArticleAt(selectedIndex, parsed as ArticleRecord);
       setNotice({ type: "success", message: "Article updated in draft dataset." });
     } catch (error) {
-      const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
+      const reason = error instanceof Error ? error.message : "Unable to parse YAML.";
       setNotice({ type: "error", message: reason });
     }
   };
@@ -1504,10 +1476,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const resetArticle = () => {
     resetArticleAt(selectedIndex);
     const original = getOriginalArticle(selectedIndex);
-    const hydrated = hydrateArticleDraftForm(original);
-    replaceEditArticleForm(hydrated, { emitMutate: false });
+    // Reset form with original article directly
+    resetEditArticleForm(original);
     if (original) {
-      setEditorValue(JSON.stringify(original, null, 2));
+      setEditorValue(toYaml(original));
     } else {
       setEditorValue("{}");
     }
@@ -1520,9 +1492,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setSelectedIndex(0);
     const first = getOriginalArticle(0);
     if (first) {
-      setEditorValue(JSON.stringify(first, null, 2));
+      setEditorValue(toYaml(first));
     }
-    replaceEditArticleForm(hydrateArticleDraftForm(first), { emitMutate: false });
+    // Reset form with first article directly
+    resetEditArticleForm(first);
     setDraftMode("ui");
     setNotice({ type: "success", message: "All articles restored." });
   };
@@ -1530,6 +1503,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const downloadDraft = () => {
     setNotice(null);
     const fileName = `articles-dev-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    // Download as JSON for storage format (articles.json)
     const payload = JSON.stringify(articles, null, 2);
     const blob = new Blob([payload], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -1545,7 +1519,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   const downloadArticle = () => {
     if (hasInvalidJsonDraft) {
-      setNotice({ type: "error", message: "Fix JSON syntax before downloading the article." });
+      setNotice({ type: "error", message: "Fix YAML syntax before downloading the article." });
       return;
     }
 
@@ -1623,8 +1597,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       return null;
     }
 
-    const parsedExistingId = Number.parseInt(newArticleForm.id.trim(), 10);
-    const hasExistingId = Number.isFinite(parsedExistingId);
+    const existingId = newArticleValues.id;
+    const parsedExistingId = typeof existingId === "number" ? existingId : null;
+    const hasExistingId = parsedExistingId !== null && Number.isFinite(parsedExistingId);
     const conflictingIndex = hasExistingId
       ? articles.findIndex((record) => {
           if (!record) {
@@ -1646,17 +1621,19 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         ? nextAvailableArticleId
         : parsedExistingId;
 
-    const normalizedForm: ArticleDraftForm = {
-      ...newArticleForm,
-      id: assignedId.toString(),
-    };
-    replaceNewArticleForm(normalizedForm, { emitMutate: false });
+    // Update form with assigned ID
+    newArticleFormRef.current?.methods.setValue("id", assignedId);
 
-    const draftPayload = buildArticleFromDraft(normalizedForm);
+    // Get the updated values with assigned ID
+    const draftPayload: SubstanceArticle = {
+      ...newArticleValues,
+      id: assignedId,
+    };
 
     let stagedArticles: ArticleRecord[] | null = null;
     applyArticlesTransform((previous) => {
-      const stagedArticle = draftPayload as (typeof previous)[number];
+      // TODO: draftPayload is old schema, needs refactoring
+      const stagedArticle = draftPayload as unknown as (typeof previous)[number];
       const next = [...previous];
       const targetIndex = next.findIndex((record) => {
         if (!record) {
@@ -1691,7 +1668,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       return null;
     }
 
-    const stagedLabel = normalizedForm.title.trim() || normalizedForm.drugName.trim() || `Article ${assignedId}`;
+    const stagedLabel = (draftPayload.title ?? "").trim() || (draftPayload.identification?.common_name ?? "").trim() || `Article ${assignedId}`;
     const noticeParts: string[] = [];
 
     if (!hasExistingId) {
@@ -1712,13 +1689,11 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   }, [
     applyArticlesTransform,
     articles,
-    buildArticleFromDraft,
     isNewArticleJsonValid,
     newArticleJsonError,
     isNewArticleValid,
-    newArticleForm,
+    newArticleValues,
     nextAvailableArticleId,
-    replaceNewArticleForm,
     setCreatorNotice,
     setIsNewArticleStaged,
     setStagedArticleId,
@@ -1728,7 +1703,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   const handleSaveToGitHub = useCallback(async () => {
     if (hasInvalidJsonDraft) {
-      setGithubNotice({ type: "error", message: "Fix JSON syntax before committing." });
+      setGithubNotice({ type: "error", message: "Fix YAML syntax before committing." });
       return;
     }
 
@@ -1796,7 +1771,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
     try {
-      setIsSaving(true);
       setGithubNotice({ type: "success", message: "Verifying credentials…" });
 
       const credentials = await verifyDevCredentials();
@@ -1806,34 +1780,21 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         message: `Credentials verified for ${credentials.key}. Saving to GitHub…`,
       });
 
-      const saveResponse = await fetch("/api/save-articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password,
-          articlesData: articlesForCommit,
-          commitMessage,
-          changelogMarkdown: combinedMarkdown,
-          changedArticles: datasetChangelogForCommit.articles,
-          psychoactiveIndexManualData: psychoactiveIndexManual,
-          aboutMarkdown,
-          aboutSubtitleMarkdown: aboutSubtitle,
-          aboutConfig: { founderProfileKeys: aboutFounderKeys },
-          generatorPrompt: hasGeneratorPromptChanges ? generatorPrompt : undefined,
-        }),
+      const result = await saveArticlesMutation.mutateAsync({
+        username: credentials.username,
+        password: credentials.password,
+        articlesData: articlesForCommit,
+        commitMessage,
+        changelogMarkdown: combinedMarkdown,
+        changedArticles: datasetChangelogForCommit.articles,
+        psychoactiveIndexManualData: psychoactiveIndexManual,
+        aboutMarkdown,
+        aboutSubtitleMarkdown: aboutSubtitle,
+        aboutConfig: { founderProfileKeys: aboutFounderKeys },
+        generatorPrompt: hasGeneratorPromptChanges ? generatorPrompt : undefined,
       });
 
-      const result = await saveResponse.json().catch(() => ({}));
-
-      if (!saveResponse.ok) {
-        throw new Error(result.details || result.error || "Save failed.");
-      }
-
-      const resolvedKey =
-        typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
-          ? result.submittedBy.trim()
-          : credentials.key;
+      const resolvedKey = result.submittedBy?.trim() || credentials.key;
       setPasswordKey(resolvedKey);
 
       const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
@@ -1858,7 +1819,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       const reason = error instanceof Error ? error.message : "Unexpected error.";
       setGithubNotice({ type: "error", message: reason });
     } finally {
-      setIsSaving(false);
       window.setTimeout(() => setGithubNotice(null), 10000);
     }
   }, [
@@ -1886,6 +1846,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     getOriginalPsychoactiveIndexManual,
     setPasswordKey,
     verifyDevCredentials,
+    saveArticlesMutation,
   ]);
 
   const handleDeleteArticle = useCallback(async () => {
@@ -1932,29 +1893,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         summarizeArticle: (article, index) => extractChangeLogSummary(article, index),
       });
 
-      const saveResponse = await fetch("/api/save-articles", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password,
-          articlesData: nextArticles,
-          commitMessage,
-          changelogMarkdown: deletionChangelog.markdown,
-          changedArticles: deletionChangelog.articles,
-        }),
+      const result = await saveArticlesMutation.mutateAsync({
+        username: credentials.username,
+        password: credentials.password,
+        articlesData: nextArticles,
+        commitMessage,
+        changelogMarkdown: deletionChangelog.markdown,
+        changedArticles: deletionChangelog.articles,
       });
 
-      const result = await saveResponse.json().catch(() => ({}));
-
-      if (!saveResponse.ok) {
-        throw new Error(result.details || result.error || "Delete failed.");
-      }
-
-      const resolvedKey =
-        typeof result.submittedBy === "string" && result.submittedBy.trim().length > 0
-          ? result.submittedBy.trim()
-          : credentials.key;
+      const resolvedKey = result.submittedBy?.trim() || credentials.key;
       setPasswordKey(resolvedKey);
 
       replaceArticles(nextArticles);
@@ -2001,6 +1949,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     onTabChange,
     pushChangeLogNotice,
     replaceArticles,
+    saveArticlesMutation,
     selectedArticle,
     selectedArticleSummary,
     selectedIndex,
@@ -2123,8 +2072,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           throw new Error("Article JSON must be an object.");
         }
 
-        const hydrated = hydrateArticleDraftForm(parsed);
-        replaceNewArticleForm(hydrated);
+        // JSON is parsed directly as SubstanceArticle
+        newArticleFormRef.current?.resetForm(parsed as SubstanceArticle);
+        setNewArticleValues(parsed as SubstanceArticle);
         setNewArticleJsonError(null);
       } catch (error) {
         const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
@@ -2132,7 +2082,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         newArticleJsonUpdateSourceRef.current = null;
       }
     },
-    [replaceNewArticleForm],
+    [],
   );
 
   const switchToCreateJsonMode = useCallback(() => {
@@ -2155,15 +2105,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         throw new Error("Article JSON must be an object.");
       }
 
-      const hydrated = hydrateArticleDraftForm(parsed);
-      replaceNewArticleForm(hydrated);
+      // JSON is parsed directly as SubstanceArticle
+      newArticleFormRef.current?.resetForm(parsed as SubstanceArticle);
+      setNewArticleValues(parsed as SubstanceArticle);
       setCreateDraftMode("ui");
       setCreatorNotice(null);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unable to parse JSON.";
       setCreatorNotice({ type: "error", message: `Switch failed: ${reason}` });
     }
-  }, [createDraftMode, newArticleJsonDraft, replaceNewArticleForm, setCreatorNotice]);
+  }, [createDraftMode, newArticleJsonDraft, setCreatorNotice]);
 
   const handleCreateDraftModeChange = useCallback((mode: "ui" | "json") => {
     if (mode === "json") {
@@ -2177,8 +2128,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
           throw new Error("Article JSON must be an object.");
         }
-        const hydrated = hydrateArticleDraftForm(parsed);
-        replaceNewArticleForm(hydrated);
+        // JSON is parsed directly as SubstanceArticle
+        newArticleFormRef.current?.resetForm(parsed as SubstanceArticle);
+        setNewArticleValues(parsed as SubstanceArticle);
         setCreateDraftMode("ui");
         setCreatorNotice(null);
       } catch (error) {
@@ -2186,7 +2138,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         setCreatorNotice({ type: "error", message: `Switch failed: ${reason}` });
       }
     }
-  }, [createDraftMode, newArticleJsonDraft, replaceNewArticleForm, setCreatorNotice]);
+  }, [createDraftMode, newArticleJsonDraft, setCreatorNotice]);
 
   const copyNewArticleJson = useCallback(async () => {
     try {
@@ -2198,7 +2150,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   }, [newArticleJsonDraft]);
 
   const downloadNewArticleJson = useCallback(() => {
-    const baseLabel = newArticleForm.title.trim() || newArticleForm.drugName.trim() || "new-substance";
+    const baseLabel = (newArticleValues.title ?? "").trim() || (newArticleValues.identification?.common_name ?? "").trim() || "new-substance";
     const slug = toFileSlug(baseLabel || "new-substance");
     const fileName = `new-article-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
     const blob = new Blob([newArticleJsonDraft], { type: "application/json" });
@@ -2211,7 +2163,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
-  }, [newArticleForm.drugName, newArticleForm.title, newArticleJsonDraft]);
+  }, [newArticleValues.identification?.common_name, newArticleValues.title, newArticleJsonDraft]);
 
   const handleClassificationChange = (value: string) => {
     if (!value) {
@@ -2851,12 +2803,17 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
             <SectionCard className="min-w-0 space-y-5 bg-white/[0.04]">
               <div className="space-y-1">
                 <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
-                <p className="text-sm text-white/65">Switch between structured form controls and raw JSON as you refine a record.</p>
+                <p className="text-sm text-white/65">Switch between structured form controls and raw YAML as you refine a record.</p>
               </div>
-              <UiJsonToggle mode={draftMode} onModeChange={handleDraftModeChange} />
+              <UiJsonToggle mode={draftMode} onModeChange={handleDraftModeChange} jsonLabel="YAML view" />
               {draftMode === "ui" ? (
                 <div className="space-y-8">
-                  <ArticleDraftFormFields idPrefix="edit-article" controller={editArticleController} />
+                  <ArticleDraftFormFieldsRHF
+                    idPrefix="edit-article"
+                    article={selectedArticle}
+                    onMutate={handleEditArticleMutate}
+                    formRef={editArticleFormRef}
+                  />
                 </div>
               ) : (
                 <JsonEditor
@@ -3047,10 +3004,15 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
             <UiJsonToggle
               mode={createDraftMode}
               onModeChange={handleCreateDraftModeChange}
+              jsonLabel="YAML view"
             />
             {createDraftMode === "ui" ? (
               <div className="space-y-8">
-                <ArticleDraftFormFields idPrefix="new-article" controller={newArticleController} />
+                <ArticleDraftFormFieldsRHF
+                  idPrefix="new-article"
+                  onMutate={handleNewArticleMutate}
+                  formRef={newArticleFormRef}
+                />
               </div>
             ) : (
               <JsonEditor
@@ -3126,14 +3088,14 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
                   Article
                 </label>
                 <Select
-                  value={changeLogFilters.articleSlug ?? ""}
+                  value={changeLogFilters.articleSlug ?? "__all__"}
                   onValueChange={handleChangeLogArticleSelect}
                 >
                   <SelectTrigger id="change-log-article">
                     <SelectValue placeholder="All articles" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All articles</SelectItem>
+                    <SelectItem value="__all__">All articles</SelectItem>
                     {changeLogArticleOptions.map((option) => (
                       <SelectItem key={option.slug} value={option.slug}>
                         {option.title}
@@ -3327,7 +3289,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
                       <div className="flex flex-wrap gap-2">
                         {entry.articles.map((article) => {
-                          const href = viewToHash({ type: "substance", slug: article.slug });
+                          const href = viewToPath({ type: "substance", slug: article.slug });
                           return (
                             <Button
                               key={`${entry.id}-${article.slug}`}

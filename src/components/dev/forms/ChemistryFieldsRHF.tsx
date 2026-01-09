@@ -1,22 +1,31 @@
-import { TagMultiSelect } from "../../common/TagMultiSelect";
+/**
+ * RHF-based Chemistry and Pharmacology fields component.
+ */
+
+import { useFormContext } from "react-hook-form";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { SectionHeader, CharacterCount, helperTextClass } from "./FormHelpers";
-import type { ChemistryFieldsProps } from "./types";
+import { SectionHeader, helperTextClass } from "./FormHelpers";
+import { ControlledTagMultiSelect } from "./rhf";
+import type { TagOption } from "../../../data/config/tagOptions";
+import type { SubstanceArticle } from "../../../schema";
 
-export const ChemistryFields = ({
+export type ChemistryFieldsRHFProps = {
+  idPrefix: string;
+  chemicalClassOptions: TagOption[];
+  psychoactiveClassOptions: TagOption[];
+  mechanismOptions: TagOption[];
+};
+
+export function ChemistryFieldsRHF({
   idPrefix,
-  form,
-  handleFieldChange,
-  handleTagFieldChange,
   chemicalClassOptions,
   psychoactiveClassOptions,
   mechanismOptions,
-}: ChemistryFieldsProps) => {
-  const handleChemicalClassChange = handleTagFieldChange("chemicalClasses");
-  const handlePsychoactiveClassChange = handleTagFieldChange("psychoactiveClasses");
-  const handleMechanismChange = handleTagFieldChange("mechanismEntries");
+}: ChemistryFieldsRHFProps) {
+  const { register } = useFormContext<SubstanceArticle>();
 
   return (
     <section className="space-y-6">
@@ -25,39 +34,35 @@ export const ChemistryFields = ({
         description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
       />
       <div className="grid gap-4 md:grid-cols-2">
-        <TagMultiSelect
+        <ControlledTagMultiSelect
+          name="classification.chemical_class"
           label="Chemical class"
           helperText="Use the + button to browse chemical classes. Type when filtering or adding a new descriptor."
           placeholder="Filter or create chemical classes"
-          value={form.chemicalClasses}
-          onChange={handleChemicalClassChange}
           options={chemicalClassOptions}
           addButtonLabel="Add chemical class"
           openStrategy="button"
         />
-        <TagMultiSelect
+        <ControlledTagMultiSelect
+          name="classification.psychoactive_class"
           label="Psychoactive class"
           helperText="Tap the + button to open the picker. Type to filter or capture a brand-new psychoactive class."
           placeholder="Filter or create psychoactive classes"
-          value={form.psychoactiveClasses}
-          onChange={handlePsychoactiveClassChange}
           options={psychoactiveClassOptions}
           addButtonLabel="Add psychoactive class"
           openStrategy="button"
         />
-    </div>
-    <div className="space-y-2">
-      <TagMultiSelect
-        label="Mechanism of action"
-        helperText="Use the + button to pick existing targets. Type only when filtering or defining a new mechanism."
-        placeholder="Filter or create mechanisms"
-        value={form.mechanismEntries}
-        onChange={handleMechanismChange}
-        options={mechanismOptions}
-        addButtonLabel="Add mechanism of action"
-        openStrategy="button"
-      />
-        <CharacterCount value={form.mechanismOfAction} />
+      </div>
+      <div className="space-y-2">
+        <ControlledTagMultiSelect
+          name="pharmacology.mechanism_of_action"
+          label="Mechanism of action"
+          helperText="Use the + button to pick existing targets. Type only when filtering or defining a new mechanism."
+          placeholder="Filter or create mechanisms"
+          options={mechanismOptions}
+          addButtonLabel="Add mechanism of action"
+          openStrategy="button"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-half-life`}>
@@ -65,12 +70,11 @@ export const ChemistryFields = ({
         </Label>
         <Input
           id={`${idPrefix}-half-life`}
-          value={form.halfLife}
-          onChange={handleFieldChange("halfLife")}
+          {...register("pharmacology.half_life")}
           placeholder="e.g., ~3.6 hours"
         />
         <p className={helperTextClass}>Shown in the Chemistry & Pharmacology card under kinetics.</p>
       </div>
     </section>
   );
-};
+}

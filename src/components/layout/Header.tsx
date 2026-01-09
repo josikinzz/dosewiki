@@ -3,7 +3,7 @@ import { FlaskConical, Info, Menu, Wrench, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
-import { viewToHash } from "../../utils/routing";
+import { viewToPath } from "../../utils/routing";
 import { GlobalSearch } from "../common/GlobalSearch";
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +21,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
     { label: "Substance Index", view: substancesView, icon: FlaskConical },
     { label: "Dev Tools", view: devView, icon: Wrench },
   ];
-  const aboutHash = viewToHash(aboutView);
+  const aboutPath = viewToPath(aboutView);
   const isAboutActive = currentView.type === "about";
 
   const isActive = (itemView: AppView) => {
@@ -122,13 +122,13 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
         <div className="ml-2 hidden flex-shrink-0 items-center gap-6 md:flex gap-fallback-row-6">
           <nav className="flex items-center gap-6 text-sm text-white/80 gap-fallback-row-6">
             {navItems.map(({ label, view, icon: Icon }) => {
-              const itemHash = viewToHash(view);
+              const itemPath = viewToPath(view);
               const active = isActive(view);
 
               return (
                 <a
                   key={label}
-                  href={itemHash}
+                  href={itemPath}
                   onClick={(event) => {
                     event.preventDefault();
                     handleNavigate(view);
@@ -149,7 +149,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
             })}
           </nav>
           <a
-            href={aboutHash}
+            href={aboutPath}
             onClick={(event) => {
               event.preventDefault();
               handleNavigate(aboutView);
@@ -188,12 +188,12 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
             >
               <nav className="flex flex-col gap-2 text-sm gap-fallback-col-2">
                 {navItems.map(({ label, view, icon: Icon }) => {
-                  const itemHash = viewToHash(view);
+                  const itemPath = viewToPath(view);
                   const active = isActive(view);
                   return (
                     <a
                       key={label}
-                      href={itemHash}
+                      href={itemPath}
                       onClick={(event) => {
                         event.preventDefault();
                         handleNavigate(view);
@@ -212,7 +212,7 @@ export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
                 })}
               </nav>
               <a
-                href={aboutHash}
+                href={aboutPath}
                 onClick={(event) => {
                   event.preventDefault();
                   handleNavigate(aboutView);

@@ -39,17 +39,6 @@ interface SubstanceArticleProps {
 
 const FALLBACK_MOLECULE_LABEL = "Molecule artwork unavailable";
 
-type DatasetArticle = {
-  id?: number | string;
-  title?: unknown;
-  drug_info?: {
-    drug_name?: unknown;
-  } & Record<string, unknown>;
-  [key: string]: unknown;
-};
-
-const datasetArticles = articles as DatasetArticle[];
-
 const extractArticleId = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -163,29 +152,21 @@ export function SubstanceArticle({
 
   const rawArticle = useMemo(() => {
     if (record.id !== null) {
-      const byId = datasetArticles.find((article) => extractArticleId(article?.id) === record.id);
+      const byId = articles.find((article) => extractArticleId(article?.id) === record.id);
       if (byId) {
         return byId;
       }
     }
 
-    return datasetArticles.find((article) => {
+    return articles.find((article) => {
       if (!article || typeof article !== "object") {
         return false;
       }
 
-      const drugName = (() => {
-        const rawDrugInfo = article?.drug_info;
-        if (!rawDrugInfo || typeof rawDrugInfo !== "object") {
-          return "";
-        }
-
-        const candidate = (rawDrugInfo as { drug_name?: unknown }).drug_name;
-        return typeof candidate === "string" ? candidate.trim() : "";
-      })();
-
+      // SubstanceArticle schema uses identification.common_name
+      const commonName = article.identification?.common_name?.trim() ?? "";
       const title = typeof article.title === "string" ? article.title.trim() : "";
-      const slugSource = drugName || title;
+      const slugSource = commonName || title;
 
       if (!slugSource) {
         return false;

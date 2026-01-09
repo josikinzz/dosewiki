@@ -12,8 +12,9 @@ async function main() {
     throw new Error('Expected articles.json to contain an array');
   }
 
+  // SubstanceArticle schema: identification.common_name
   const names = articles
-    .map((article) => article?.drug_info?.drug_name || article?.title || '')
+    .map((article) => article?.identification?.common_name || article?.title || '')
     .map((name) => name.trim())
     .filter((name) => name.length > 0);
 

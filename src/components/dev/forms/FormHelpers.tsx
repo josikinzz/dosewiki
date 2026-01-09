@@ -24,11 +24,11 @@ export const SectionHeader = ({ title, description }: SectionHeaderProps) => (
 );
 
 export const CharacterCount = ({ value }: CharacterCountProps) => (
-  <p className="text-[11px] text-right text-white/40">{value.length} characters</p>
+  <p className="text-[11px] text-right text-white/40">{(value ?? "").length} characters</p>
 );
 
 export const ListPreview = ({ items, emptyLabel }: ListPreviewProps) => {
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return <p className={helperTextClass}>{emptyLabel}</p>;
   }
 

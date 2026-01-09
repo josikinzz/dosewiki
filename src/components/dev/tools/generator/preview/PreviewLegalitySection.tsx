@@ -3,7 +3,7 @@ import Masonry from "react-masonry-css";
 import { Globe, Scale } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 3,
@@ -12,7 +12,7 @@ const MASONRY_BREAKPOINTS = {
 };
 
 interface PreviewLegalitySectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 // Country code to full name mapping

@@ -2,10 +2,10 @@ import { memo, useState } from "react";
 import { ExternalLink, TestTubeDiagonal, ChevronDown, ChevronUp } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewReagentSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 // Standard reagent display order

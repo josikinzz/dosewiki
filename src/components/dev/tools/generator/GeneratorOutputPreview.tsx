@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { AlertTriangle } from "lucide-react";
 import { parseGeneratedYaml } from "./yamlParser";
-import type { GeneratedArticle } from "../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../schema";
 import {
   PreviewHeroSection,
   PreviewDosageDurationCard,

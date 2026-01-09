@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -17,7 +17,7 @@ const MASONRY_BREAKPOINTS = {
 };
 
 interface PreviewToleranceSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 const TOLERANCE_ITEMS = [

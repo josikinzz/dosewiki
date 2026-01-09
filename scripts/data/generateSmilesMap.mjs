@@ -38,7 +38,8 @@ async function loadArticles() {
 function extractUniqueIupacNames(articles) {
   const names = new Set();
   for (const article of articles) {
-    const iupac = article?.drug_info?.IUPAC_name;
+    // SubstanceArticle schema: identification.iupac_name
+    const iupac = article?.identification?.iupac_name;
     if (typeof iupac !== 'string') continue;
     const trimmed = iupac.trim();
     if (!trimmed) continue;

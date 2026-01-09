@@ -60,28 +60,25 @@ async function syncCitations(articleMap) {
       continue;
     }
 
-    const unifiedCitations = unifiedArticle?.drug_info?.citations ?? [];
+    // SubstanceArticle schema: citations at top level with { name, url } structure
+    const unifiedCitations = unifiedArticle?.citations ?? [];
     if (!Array.isArray(unifiedCitations) || unifiedCitations.length === 0) {
       continue;
     }
 
-    if (!article.drug_info) {
-      article.drug_info = {};
-    }
-
-    if (!Array.isArray(article.drug_info.citations)) {
-      article.drug_info.citations = [];
+    if (!Array.isArray(article.citations)) {
+      article.citations = [];
     }
 
     const existing = new Set(
-      article.drug_info.citations
-        .map((citation) => normalizeUrl(citation?.reference))
+      article.citations
+        .map((citation) => normalizeUrl(citation?.url))
         .filter(Boolean)
     );
 
     const missing = [];
     for (const citation of unifiedCitations) {
-      const normalized = normalizeUrl(citation?.reference);
+      const normalized = normalizeUrl(citation?.url);
       if (normalized && !existing.has(normalized)) {
         missing.push(citation);
         existing.add(normalized);
@@ -89,7 +86,7 @@ async function syncCitations(articleMap) {
     }
 
     if (missing.length > 0) {
-      article.drug_info.citations.push(...missing);
+      article.citations.push(...missing);
       await writeFile(filePath, `${JSON.stringify(article, null, 2)}\n`);
       changed.push({ file: entry.name, added: missing.length });
     }

@@ -3,8 +3,21 @@ import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import XLSX from 'xlsx';
 
+/**
+ * Export Dose Spreadsheet - Updated for SubstanceArticle Schema
+ *
+ * Exports dosage and duration data from articles.json to Excel format.
+ *
+ * SubstanceArticle schema structure:
+ * - article.identification.common_name (string)
+ * - article.dosage.routes[].route (string)
+ * - article.dosage.routes[].dose_ranges.{threshold,light,moderate,strong,heavy} ({ min, max, unit })
+ * - article.duration.routes[].route (string)
+ * - article.duration.routes[].stages.{onset,peak,offset,...} ({ min, max, unit })
+ */
+
 const routeSynonymData = JSON.parse(
-  fs.readFileSync(new URL('../../src/data/routeSynonyms.json', import.meta.url), 'utf8'),
+  fs.readFileSync(new URL('../../src/data/mappings/routeSynonyms.json', import.meta.url), 'utf8'),
 );
 
 const CANONICAL_ROUTES = routeSynonymData.canonicalRoutes ?? [];
@@ -41,13 +54,8 @@ const DURATION_STAGE_KEYS = [
   'come_up',
   'peak',
   'offset',
-  'comedown',
   'after_effects',
 ];
-
-const DURATION_STAGE_ALIASES = {
-  come_up: ['comeup'],
-};
 
 const DURATION_LABELS = {
   total_duration: 'Total',
@@ -55,7 +63,6 @@ const DURATION_LABELS = {
   come_up: 'Come-up',
   peak: 'Peak',
   offset: 'Offset',
-  comedown: 'Come-down',
   after_effects: 'After effects',
 };
 
@@ -297,140 +304,124 @@ function nonEmpty(value) {
   return trimmed.length > 0 ? trimmed : '';
 }
 
-function buildDosageNote(dosages, routes) {
-  if (!dosages) {
+/**
+ * Format a structured dose range { min, max, unit } to a display string.
+ */
+function formatDoseRange(doseRange) {
+  if (!doseRange || typeof doseRange !== 'object') {
     return '';
   }
 
-  const segments = [];
-  const explicitNote = nonEmpty(dosages.note);
-  if (explicitNote) {
-    segments.push(explicitNote);
-  }
+  const { min, max, unit } = doseRange;
+  const unitStr = nonEmpty(unit);
 
-  const unitSet = new Set();
-  if (Array.isArray(routes)) {
-    for (const route of routes) {
-      const unit = nonEmpty(route?.units);
-      if (unit) {
-        unitSet.add(unit);
-      }
+  if (min != null && max != null) {
+    if (min === max) {
+      return unitStr ? `${min} ${unitStr}` : `${min}`;
     }
+    return unitStr ? `${min}-${max} ${unitStr}` : `${min}-${max}`;
   }
-  if (unitSet.size > 0) {
-    segments.push(`Units: ${Array.from(unitSet).join(', ')}`);
+  if (min != null) {
+    return unitStr ? `${min}+ ${unitStr}` : `${min}+`;
   }
-
-  const formulation = nonEmpty(dosages.formulation);
-  if (formulation) {
-    segments.push(`Formulation: ${formulation}`);
+  if (max != null) {
+    return unitStr ? `<${max} ${unitStr}` : `<${max}`;
   }
-
-  const administration = nonEmpty(dosages.administration_notes);
-  if (administration) {
-    segments.push(administration);
-  }
-
-  return segments.join(' ');
+  return '';
 }
 
-function extractStageValues(source) {
-  const result = new Map();
-  if (!source || typeof source !== 'object') {
-    return result;
-  }
-
-  for (const key of DURATION_STAGE_KEYS) {
-    const raw = source[key];
-    const value = nonEmpty(raw);
-    if (value) {
-      result.set(key, value);
-      continue;
-    }
-
-    const aliases = DURATION_STAGE_ALIASES[key] ?? [];
-    for (const alias of aliases) {
-      const aliasValue = nonEmpty(source[alias]);
-      if (aliasValue) {
-        result.set(key, aliasValue);
-        break;
-      }
-    }
-  }
-
-  return result;
-}
-
-function mergeStageMaps(primary, secondary) {
-  const merged = new Map(secondary);
-  for (const [key, value] of primary) {
-    merged.set(key, value);
-  }
-  return merged;
-}
-
-function selectRouteDurationEntry(duration, normalizedRoute, canonicalRoutes) {
-  if (!duration || typeof duration !== 'object') {
-    return undefined;
-  }
-
-  const entries = Array.isArray(duration.routes_of_administration)
-    ? duration.routes_of_administration
-    : undefined;
-  if (!entries) {
-    return undefined;
-  }
-
-  const canonicalSet = new Set((canonicalRoutes ?? []).map((entry) => entry.toLowerCase()));
-
-  return entries.find((entry) => {
-    if (!entry || typeof entry !== 'object') {
-      return false;
-    }
-    const entryNormalized = normalizeRouteTokenInternal(entry.route);
-    if (entryNormalized && entryNormalized === normalizedRoute) {
-      return true;
-    }
-
-    const entryCanonicalRoutes = Array.isArray(entry.canonical_routes)
-      ? entry.canonical_routes.map((route) => route.toLowerCase())
-      : [];
-
-    for (const canonical of entryCanonicalRoutes) {
-      if (canonicalSet.has(canonical)) {
-        return true;
-      }
-    }
-    return false;
-  });
-}
-
-function buildDurationSummary(duration, routeLabel, canonicalRoutes) {
-  if (!duration || typeof duration !== 'object') {
+/**
+ * Extract unit from dose ranges (first non-empty unit found).
+ */
+function extractUnit(doseRanges) {
+  if (!doseRanges || typeof doseRanges !== 'object') {
     return '';
   }
 
-  const normalizedRoute = normalizeRouteTokenInternal(routeLabel);
-  const generalStages = extractStageValues(duration.general || duration);
+  for (const key of DOSE_KEYS) {
+    const range = doseRanges[key];
+    if (range?.unit) {
+      return nonEmpty(range.unit);
+    }
+  }
+  return '';
+}
 
-  const routeEntry = selectRouteDurationEntry(duration, normalizedRoute, canonicalRoutes);
-  const routeStages = routeEntry
-    ? extractStageValues(routeEntry.stages || routeEntry)
-    : new Map();
-
-  const merged = mergeStageMaps(routeStages, generalStages);
-  if (merged.size === 0) {
+/**
+ * Format a structured duration stage { min, max, unit } to a display string.
+ */
+function formatDurationStage(stage) {
+  if (!stage || typeof stage !== 'object') {
     return '';
   }
 
+  const { min, max, unit } = stage;
+  const unitStr = nonEmpty(unit);
+
+  if (min != null && max != null) {
+    if (min === max) {
+      return unitStr ? `${min} ${unitStr}` : `${min}`;
+    }
+    return unitStr ? `${min}-${max} ${unitStr}` : `${min}-${max}`;
+  }
+  if (min != null) {
+    return unitStr ? `${min}+ ${unitStr}` : `${min}+`;
+  }
+  if (max != null) {
+    return unitStr ? `<${max} ${unitStr}` : `<${max}`;
+  }
+  return '';
+}
+
+/**
+ * Find matching duration route for a given route label.
+ */
+function findDurationRoute(durationRoutes, routeLabel, canonicalRoutes) {
+  if (!Array.isArray(durationRoutes) || durationRoutes.length === 0) {
+    return null;
+  }
+
+  const normalizedTarget = normalizeRouteTokenInternal(routeLabel);
+  const canonicalSet = new Set((canonicalRoutes ?? []).map((r) => r.toLowerCase()));
+
+  // Try to find exact match
+  for (const durationRoute of durationRoutes) {
+    const durationRouteLabel = normalizeRouteTokenInternal(durationRoute?.route);
+    if (durationRouteLabel && durationRouteLabel === normalizedTarget) {
+      return durationRoute;
+    }
+
+    // Check canonical routes match
+    const durationCanonical = resolveCanonicalRoutes(durationRoute?.route || '');
+    for (const canonical of durationCanonical) {
+      if (canonicalSet.has(canonical.toLowerCase())) {
+        return durationRoute;
+      }
+    }
+  }
+
+  // Fallback to first route if no match
+  return durationRoutes[0];
+}
+
+/**
+ * Build duration summary from duration route stages.
+ */
+function buildDurationSummary(durationRoute) {
+  if (!durationRoute?.stages) {
+    return '';
+  }
+
+  const stages = durationRoute.stages;
   const parts = [];
+
   for (const key of DURATION_STAGE_KEYS) {
-    const value = merged.get(key);
-    if (!value) {
-      continue;
+    const stage = stages[key];
+    const formatted = formatDurationStage(stage);
+    if (formatted) {
+      const label = DURATION_LABELS[key] ?? key;
+      parts.push(`${label}: ${formatted}`);
     }
-    const label = DURATION_LABELS[key] ?? key;
-    parts.push(`${label}: ${value}`);
   }
 
   return parts.join(' · ');
@@ -539,8 +530,8 @@ function createFlatRows(substances, routeOrderIndex) {
         moderate: '',
         strong: '',
         heavy: '',
-        dosageNote: substance.dosageNote,
-        durationSummary: substance.generalDurationSummary,
+        dosageNote: '',
+        durationSummary: '',
       });
       continue;
     }
@@ -558,7 +549,7 @@ function createFlatRows(substances, routeOrderIndex) {
         moderate: route.doses.moderate,
         strong: route.doses.strong,
         heavy: route.doses.heavy,
-        dosageNote: substance.dosageNote,
+        dosageNote: route.dosageNote || '',
         durationSummary: route.durationSummary,
       });
     }
@@ -570,7 +561,7 @@ function createFlatRows(substances, routeOrderIndex) {
 async function main() {
   const root = process.cwd();
   const articlesPath = path.join(root, 'src/data/articles.json');
-  const outputDir = path.join(root, 'notes and plans');
+  const outputDir = path.join(root, 'notes and plans/exports');
   const outputPath = path.join(outputDir, 'dose-equivalent-table.xlsx');
 
   await mkdir(outputDir, { recursive: true });
@@ -586,24 +577,26 @@ async function main() {
     }
 
     const articleId = typeof article.id === 'number' ? article.id : '';
-    const drugInfo = article.drug_info || {};
-    const substanceName = nonEmpty(drugInfo.drug_name) || nonEmpty(article.title) || 'Unknown substance';
+
+    // SubstanceArticle schema: identification.common_name
+    const identification = article.identification || {};
+    const substanceName = nonEmpty(identification.common_name) || nonEmpty(article.title) || 'Unknown substance';
     const slug = substanceName ? slugify(substanceName) : '';
 
-    const dosages = drugInfo.dosages || {};
-    const rawRoutes = Array.isArray(dosages.routes_of_administration)
-      ? dosages.routes_of_administration.filter((route) => route && typeof route === 'object')
+    // SubstanceArticle schema: dosage.routes[]
+    const dosage = article.dosage || {};
+    const rawRoutes = Array.isArray(dosage.routes)
+      ? dosage.routes.filter((route) => route && typeof route === 'object')
       : [];
 
-    const dosageNote = buildDosageNote(dosages, rawRoutes);
-    const generalDurationSummary = buildDurationSummary(drugInfo.duration, '', []);
+    // SubstanceArticle schema: duration.routes[]
+    const duration = article.duration || {};
+    const durationRoutes = Array.isArray(duration.routes) ? duration.routes : [];
 
     const substanceEntry = {
       substanceName,
       slug,
       articleId,
-      dosageNote,
-      generalDurationSummary,
       routes: new Map(),
     };
 
@@ -651,21 +644,29 @@ async function main() {
         });
       }
 
+      // SubstanceArticle schema: dose_ranges are structured { min, max, unit }
       const doseRanges = route.dose_ranges || {};
+      const units = extractUnit(doseRanges);
+
+      // Find matching duration route
+      const matchingDurationRoute = findDurationRoute(durationRoutes, routeLabel, canonicalRoutes);
+      const durationSummary = buildDurationSummary(matchingDurationRoute);
+
       const routeData = {
         key: routeKey,
         displayLabel,
         canonicalRoutes,
         originalLabel: routeLabel,
-        units: nonEmpty(route.units),
+        units,
         doses: {
-          threshold: nonEmpty(doseRanges.threshold),
-          light: nonEmpty(doseRanges.light),
-          moderate: nonEmpty(doseRanges.moderate),
-          strong: nonEmpty(doseRanges.strong),
-          heavy: nonEmpty(doseRanges.heavy),
+          threshold: formatDoseRange(doseRanges.threshold),
+          light: formatDoseRange(doseRanges.light),
+          moderate: formatDoseRange(doseRanges.moderate),
+          strong: formatDoseRange(doseRanges.strong),
+          heavy: formatDoseRange(doseRanges.heavy),
         },
-        durationSummary: buildDurationSummary(drugInfo.duration, routeLabel, canonicalRoutes),
+        dosageNote: nonEmpty(route.notes),
+        durationSummary,
       };
       routeData.score = computeRouteScore(routeData);
 

@@ -50,6 +50,7 @@ import {
 import {
   deepClone,
   areCategoriesEqual,
+  areManualsEqual,
   areSectionsEqual,
   collectAllSlugs,
   collectCategorySlugs,

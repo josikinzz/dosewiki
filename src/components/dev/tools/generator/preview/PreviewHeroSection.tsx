@@ -2,10 +2,10 @@ import { memo, useMemo } from "react";
 import { Eye, FlaskConical, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import moleculeMappings from "@/data/mappings/moleculeSvgMappings.json";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewHeroSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 // Get molecule URL by matching article title

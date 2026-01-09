@@ -1,15 +1,11 @@
+import type { SubstanceArticle } from "../../schema";
 import articlesSource from "../../data/articles";
 import { slugifyDrugName } from "../../data/builders/contentBuilder";
-import {
-  ensureNormalizedTagList,
-  joinNormalizedValues,
-  tokenizeTagField,
-  toTrimmedArray,
-} from "./tagDelimiters";
+import { ensureNormalizedTagList, joinNormalizedValues } from "./tagDelimiters";
 
-type ArticleRecord = (typeof articlesSource)[number];
+type ArticleRecord = SubstanceArticle;
 
-export type TagField = "categories" | "chemical_class" | "psychoactive_class" | "mechanism_of_action";
+export type TagField = "index_categories" | "chemical_class" | "psychoactive_class" | "mechanism_of_action";
 
 export interface TagArticleRef {
   index: number;
@@ -74,22 +70,21 @@ export type TagDeleteMutation = {
 export type TagMutation = TagRenameMutation | TagMoveMutation | TagDeleteMutation;
 
 export const TAG_FIELDS: TagField[] = [
-  "categories",
+  "index_categories",
   "chemical_class",
   "psychoactive_class",
   "mechanism_of_action",
 ];
 
 export const TAG_FIELD_LABELS: Record<TagField, string> = {
-  categories: "Categories",
+  index_categories: "Index Categories",
   chemical_class: "Chemical Class",
   psychoactive_class: "Psychoactive Class",
   mechanism_of_action: "Mechanism of Action",
 };
 
 type FieldConfig = {
-  kind: "array" | "string";
-  getter: (article: ArticleRecord) => unknown;
+  getter: (article: ArticleRecord) => string[];
   setter: (article: ArticleRecord, values: string[]) => ArticleRecord;
 };
 
@@ -134,23 +129,19 @@ const parseSlug = (value: unknown): string | undefined => {
 };
 
 const deriveArticleSlug = (article: ArticleRecord): string | undefined => {
-  const info =
-    typeof article === "object" && article !== null && "drug_info" in article
-      ? ((article as { drug_info?: unknown }).drug_info as { [key: string]: unknown } | undefined)
-      : undefined;
+  const identification = article.identification;
 
-  const drugName = info ? parseTitle(info.drug_name) : undefined;
-  const title = parseTitle((article as { title?: unknown }).title);
-  const substitutiveName = info ? parseTitle(info.substitutive_name) : undefined;
-  const iupacName = info ? parseTitle(info.IUPAC_name) : undefined;
-  const botanicalName = info ? parseTitle(info.botanical_name) : undefined;
+  const commonName = parseTitle(identification?.common_name);
+  const title = parseTitle(article.title);
+  const substitutiveName = parseTitle(identification?.substitutive_name);
+  const iupacName = parseTitle(identification?.iupac_name);
 
-  const candidates = [drugName, title, substitutiveName, iupacName, botanicalName].filter(
-    (value): value is string => Boolean(value),
+  const candidates = [commonName, title, substitutiveName, iupacName].filter(
+    (value): value is string => Boolean(value)
   );
   const baseName = candidates.find((value) => !value.includes("(")) ?? candidates[0];
 
-  const fallbackId = parseId((article as { id?: unknown }).id);
+  const fallbackId = parseId(article.id);
   const fallback = fallbackId !== undefined ? `article-${fallbackId}` : baseName;
 
   const primary = baseName ?? fallback;
@@ -162,62 +153,51 @@ const deriveArticleSlug = (article: ArticleRecord): string | undefined => {
 };
 
 const cloneArticle = (article: ArticleRecord): ArticleRecord => {
-  return {
-    ...article,
-    drug_info: {
-      ...(article.drug_info ?? {}),
-    },
-  } as ArticleRecord;
+  return structuredClone(article);
 };
 
+/**
+ * Field configurations for SubstanceArticle schema.
+ * All tag fields in SubstanceArticle are arrays.
+ */
 const fieldConfigs: Record<TagField, FieldConfig> = {
-  categories: {
-    kind: "array",
-    getter: (article) => article.drug_info?.categories,
+  index_categories: {
+    getter: (article) => ensureNormalizedTagList(article.index_categories || []),
     setter: (article, values) => {
       const next = cloneArticle(article);
-      next.drug_info = {
-        ...(next.drug_info ?? {}),
-        categories: ensureNormalizedTagList(values),
-      };
+      next.index_categories = ensureNormalizedTagList(values);
       return next;
     },
   },
   chemical_class: {
-    kind: "string",
-    getter: (article) => article.drug_info?.chemical_class,
+    getter: (article) => ensureNormalizedTagList(article.classification?.chemical_class || []),
     setter: (article, values) => {
-      const normalized = ensureNormalizedTagList(values);
       const next = cloneArticle(article);
-      next.drug_info = {
-        ...(next.drug_info ?? {}),
-        chemical_class: normalized.length > 0 ? joinNormalizedValues(normalized, "; ") : "",
+      next.classification = {
+        ...next.classification,
+        chemical_class: ensureNormalizedTagList(values),
       };
       return next;
     },
   },
   psychoactive_class: {
-    kind: "string",
-    getter: (article) => article.drug_info?.psychoactive_class,
+    getter: (article) => ensureNormalizedTagList(article.classification?.psychoactive_class || []),
     setter: (article, values) => {
-      const normalized = ensureNormalizedTagList(values);
       const next = cloneArticle(article);
-      next.drug_info = {
-        ...(next.drug_info ?? {}),
-        psychoactive_class: normalized.length > 0 ? joinNormalizedValues(normalized, "; ") : "",
+      next.classification = {
+        ...next.classification,
+        psychoactive_class: ensureNormalizedTagList(values),
       };
       return next;
     },
   },
   mechanism_of_action: {
-    kind: "string",
-    getter: (article) => article.drug_info?.mechanism_of_action,
+    getter: (article) => ensureNormalizedTagList(article.pharmacology?.mechanism_of_action || []),
     setter: (article, values) => {
-      const normalized = ensureNormalizedTagList(values);
       const next = cloneArticle(article);
-      next.drug_info = {
-        ...(next.drug_info ?? {}),
-        mechanism_of_action: normalized.length > 0 ? joinNormalizedValues(normalized, "; ") : "",
+      next.pharmacology = {
+        ...next.pharmacology,
+        mechanism_of_action: ensureNormalizedTagList(values),
       };
       return next;
     },
@@ -226,32 +206,19 @@ const fieldConfigs: Record<TagField, FieldConfig> = {
 
 const readFieldValues = (article: ArticleRecord, field: TagField): string[] => {
   const config = fieldConfigs[field];
-  const raw = config.getter(article);
-
-  switch (field) {
-    case "categories":
-      return ensureNormalizedTagList(toTrimmedArray(raw));
-    case "chemical_class":
-      return tokenizeTagField(raw, { splitOnComma: true, splitOnSlash: true });
-    case "psychoactive_class":
-      return tokenizeTagField(raw, { splitOnComma: true, splitOnSlash: true });
-    case "mechanism_of_action":
-      return tokenizeTagField(raw, { splitOnComma: false, splitOnSlash: true });
-    default:
-      return [];
-  }
+  return config.getter(article);
 };
 
 export const buildTagRegistry = (articles: ArticleRecord[]): TagRegistry => {
   const byField: Record<TagField, TagUsage[]> = {
-    categories: [],
+    index_categories: [],
     chemical_class: [],
     psychoactive_class: [],
     mechanism_of_action: [],
   };
 
   const byKey: Record<TagField, Map<string, TagUsage>> = {
-    categories: new Map(),
+    index_categories: new Map(),
     chemical_class: new Map(),
     psychoactive_class: new Map(),
     mechanism_of_action: new Map(),
@@ -290,7 +257,7 @@ export const buildTagRegistry = (articles: ArticleRecord[]): TagRegistry => {
 
         if (!seen.has(key)) {
           usage.count += 1;
-          const slug = parseSlug((article as { slug?: unknown }).slug) ?? deriveArticleSlug(article);
+          const slug = deriveArticleSlug(article);
           usage.articleRefs.push({ index, id, title, slug });
           seen.add(key);
         }
@@ -344,7 +311,12 @@ const upsertValue = (values: string[], label: string): string[] => {
   return ensureNormalizedTagList(next);
 };
 
-const applyRename = (article: ArticleRecord, field: TagField, fromTag: string, toTag: string): {
+const applyRename = (
+  article: ArticleRecord,
+  field: TagField,
+  fromTag: string,
+  toTag: string
+): {
   article: ArticleRecord;
   before: string[];
   after: string[];
@@ -364,7 +336,10 @@ const applyRename = (article: ArticleRecord, field: TagField, fromTag: string, t
   const fromKey = toTagKey(normalizedFrom);
   const nextValues = ensureNormalizedTagList(replaceValuesByKey(values, fromKey, normalizedTo));
 
-  if (nextValues.length === values.length && nextValues.every((value, index) => value === values[index])) {
+  if (
+    nextValues.length === values.length &&
+    nextValues.every((value, index) => value === values[index])
+  ) {
     return { article, before: values, after: nextValues, changed: false };
   }
 
@@ -372,7 +347,11 @@ const applyRename = (article: ArticleRecord, field: TagField, fromTag: string, t
   return { article: nextArticle, before: values, after: nextValues, changed: true };
 };
 
-const applyDelete = (article: ArticleRecord, field: TagField, tag: string): {
+const applyDelete = (
+  article: ArticleRecord,
+  field: TagField,
+  tag: string
+): {
   article: ArticleRecord;
   before: string[];
   after: string[];
@@ -399,7 +378,7 @@ const applyDelete = (article: ArticleRecord, field: TagField, tag: string): {
 
 const applyMove = (
   article: ArticleRecord,
-  mutation: TagMoveMutation,
+  mutation: TagMoveMutation
 ): {
   article: ArticleRecord;
   sourceBefore: string[];
@@ -418,6 +397,8 @@ const applyMove = (
       sourceAfter: [],
       targetBefore: [],
       targetAfter: [],
+      sourceChanged: false,
+      targetChanged: false,
       changed: false,
     };
   }
@@ -441,10 +422,15 @@ const applyMove = (
 
   const sourceChanged =
     !keepCopy &&
-    (sourceAfter.length !== sourceBefore.length || sourceAfter.some((value, index) => toTagKey(value) !== toTagKey(sourceBefore[index] ?? "")));
+    (sourceAfter.length !== sourceBefore.length ||
+      sourceAfter.some(
+        (value, index) => toTagKey(value) !== toTagKey(sourceBefore[index] ?? "")
+      ));
   const targetChanged =
     targetAfter.length !== targetBefore.length ||
-    targetAfter.some((value, index) => toTagKey(value) !== toTagKey(targetBefore[index] ?? ""));
+    targetAfter.some(
+      (value, index) => toTagKey(value) !== toTagKey(targetBefore[index] ?? "")
+    );
 
   if (!sourceChanged && !targetChanged) {
     return {
@@ -479,7 +465,10 @@ const applyMove = (
   };
 };
 
-export const applyTagMutation = (articles: ArticleRecord[], mutation: TagMutation): TagMutationResult => {
+export const applyTagMutation = (
+  articles: ArticleRecord[],
+  mutation: TagMutation
+): TagMutationResult => {
   const nextArticles: ArticleRecord[] = [];
   const changes: ArticleChange[] = [];
 
@@ -488,13 +477,22 @@ export const applyTagMutation = (articles: ArticleRecord[], mutation: TagMutatio
     const perArticleChanges: FieldChange[] = [];
 
     if (mutation.type === "rename") {
-      const { article: updated, before, after, changed } = applyRename(article, mutation.field, mutation.fromTag, mutation.toTag);
+      const { article: updated, before, after, changed } = applyRename(
+        article,
+        mutation.field,
+        mutation.fromTag,
+        mutation.toTag
+      );
       nextArticle = updated;
       if (changed) {
         perArticleChanges.push({ field: mutation.field, before, after });
       }
     } else if (mutation.type === "delete") {
-      const { article: updated, before, after, changed } = applyDelete(article, mutation.field, mutation.tag);
+      const { article: updated, before, after, changed } = applyDelete(
+        article,
+        mutation.field,
+        mutation.tag
+      );
       nextArticle = updated;
       if (changed) {
         perArticleChanges.push({ field: mutation.field, before, after });
@@ -513,10 +511,18 @@ export const applyTagMutation = (articles: ArticleRecord[], mutation: TagMutatio
       nextArticle = updated;
       if (changed) {
         if (sourceChanged) {
-          perArticleChanges.push({ field: mutation.sourceField, before: sourceBefore, after: sourceAfter });
+          perArticleChanges.push({
+            field: mutation.sourceField,
+            before: sourceBefore,
+            after: sourceAfter,
+          });
         }
         if (targetChanged) {
-          perArticleChanges.push({ field: mutation.targetField, before: targetBefore, after: targetAfter });
+          perArticleChanges.push({
+            field: mutation.targetField,
+            before: targetBefore,
+            after: targetAfter,
+          });
         }
       }
     }
@@ -551,7 +557,7 @@ export const summarizeMutation = (result: TagMutationResult) => {
 export const getTagUsage = (
   registry: TagRegistry,
   field: TagField,
-  keyOrLabel: string,
+  keyOrLabel: string
 ): TagUsage | undefined => {
   const key = toTagKey(keyOrLabel);
   return registry.byKey[field].get(key);
@@ -559,13 +565,13 @@ export const getTagUsage = (
 
 export const buildEmptyRegistry = (): TagRegistry => ({
   byField: {
-    categories: [],
+    index_categories: [],
     chemical_class: [],
     psychoactive_class: [],
     mechanism_of_action: [],
   },
   byKey: {
-    categories: new Map(),
+    index_categories: new Map(),
     chemical_class: new Map(),
     psychoactive_class: new Map(),
     mechanism_of_action: new Map(),

@@ -3,7 +3,7 @@ import Masonry from "react-masonry-css";
 import { AlertOctagon, Heart, Skull, Syringe, Zap } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -11,7 +11,7 @@ const MASONRY_BREAKPOINTS = {
 };
 
 interface PreviewHarmPotentialSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 export const PreviewHarmPotentialSection = memo(function PreviewHarmPotentialSection({

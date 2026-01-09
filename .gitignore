@@ -6,6 +6,9 @@ dist/
 dist-inline/
 public/share/
 
+# Test coverage
+coverage/
+
 # Logs & env
 npm-debug.log*
 npm-dev.log

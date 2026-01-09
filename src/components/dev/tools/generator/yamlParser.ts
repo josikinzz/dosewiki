@@ -1,15 +1,15 @@
 import { parse, YAMLParseError } from "yaml";
-import type { GeneratedArticle } from "../types/generatorSchema";
+import { substanceArticleSchema, type SubstanceArticle } from "../../../../schema";
 
 export interface ParseResult {
   success: boolean;
-  data?: GeneratedArticle;
+  data?: SubstanceArticle;
   error?: string;
   lineNumber?: number;
 }
 
 /**
- * Parses a YAML string into a GeneratedArticle object.
+ * Parses a YAML string into a SubstanceArticle object.
  * Handles malformed YAML gracefully with informative error messages.
  */
 export function parseGeneratedYaml(yamlString: string): ParseResult {
@@ -42,12 +42,24 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
       };
     }
 
-    // Return the parsed data with defensive defaults
+    // Normalize first (fills in defaults for missing fields)
     const article = normalizeArticle(parsed);
+
+    // Validate with Zod
+    const validation = substanceArticleSchema.safeParse(article);
+
+    if (!validation.success) {
+      // Return first validation error for user feedback
+      const firstIssue = validation.error.issues[0];
+      return {
+        success: false,
+        error: `Validation error at ${firstIssue.path.join(".")}: ${firstIssue.message}`,
+      };
+    }
 
     return {
       success: true,
-      data: article,
+      data: validation.data,
     };
   } catch (error) {
     if (error instanceof YAMLParseError) {
@@ -69,10 +81,10 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
 }
 
 /**
- * Normalizes the parsed YAML into a proper GeneratedArticle with defaults.
+ * Normalizes the parsed YAML into a proper SubstanceArticle with defaults.
  * This provides defensive parsing to handle missing or malformed fields.
  */
-function normalizeArticle(raw: Record<string, unknown>): GeneratedArticle {
+function normalizeArticle(raw: Record<string, unknown>): SubstanceArticle {
   return {
     id: typeof raw.id === "number" ? raw.id : null,
     title: getString(raw.title),
@@ -117,7 +129,7 @@ function getObject(value: unknown): Record<string, unknown> {
     : {};
 }
 
-function normalizeIdentification(raw: unknown): GeneratedArticle["identification"] {
+function normalizeIdentification(raw: unknown): SubstanceArticle["identification"] {
   const obj = getObject(raw);
   return {
     common_name: getString(obj.common_name),
@@ -133,7 +145,7 @@ function normalizeIdentification(raw: unknown): GeneratedArticle["identification
   };
 }
 
-function normalizeClassification(raw: unknown): GeneratedArticle["classification"] {
+function normalizeClassification(raw: unknown): SubstanceArticle["classification"] {
   const obj = getObject(raw);
   return {
     psychoactive_class: getStringArray(obj.psychoactive_class),
@@ -141,7 +153,7 @@ function normalizeClassification(raw: unknown): GeneratedArticle["classification
   };
 }
 
-function normalizeDoseRange(raw: unknown): GeneratedArticle["dosage"]["routes"][0]["dose_ranges"]["threshold"] {
+function normalizeDoseRange(raw: unknown): SubstanceArticle["dosage"]["routes"][0]["dose_ranges"]["threshold"] {
   const obj = getObject(raw);
   return {
     min: getNumber(obj.min),
@@ -150,7 +162,7 @@ function normalizeDoseRange(raw: unknown): GeneratedArticle["dosage"]["routes"][
   };
 }
 
-function normalizeDoseRanges(raw: unknown): GeneratedArticle["dosage"]["routes"][0]["dose_ranges"] {
+function normalizeDoseRanges(raw: unknown): SubstanceArticle["dosage"]["routes"][0]["dose_ranges"] {
   const obj = getObject(raw);
   return {
     threshold: normalizeDoseRange(obj.threshold),
@@ -161,7 +173,7 @@ function normalizeDoseRanges(raw: unknown): GeneratedArticle["dosage"]["routes"]
   };
 }
 
-function normalizeDosageRoute(raw: unknown): GeneratedArticle["dosage"]["routes"][0] {
+function normalizeDosageRoute(raw: unknown): SubstanceArticle["dosage"]["routes"][0] {
   const obj = getObject(raw);
   return {
     route: getString(obj.route),
@@ -171,7 +183,7 @@ function normalizeDosageRoute(raw: unknown): GeneratedArticle["dosage"]["routes"
   };
 }
 
-function normalizePlateauDosing(raw: unknown): GeneratedArticle["dosage"]["plateau_dosing"] {
+function normalizePlateauDosing(raw: unknown): SubstanceArticle["dosage"]["plateau_dosing"] {
   if (!raw) return null;
   const obj = getObject(raw);
   if (Object.keys(obj).length === 0) return null;
@@ -194,7 +206,7 @@ function normalizePlateauDosing(raw: unknown): GeneratedArticle["dosage"]["plate
   };
 }
 
-function normalizeDosage(raw: unknown): GeneratedArticle["dosage"] {
+function normalizeDosage(raw: unknown): SubstanceArticle["dosage"] {
   const obj = getObject(raw);
   const routes = Array.isArray(obj.routes)
     ? obj.routes.map(normalizeDosageRoute)
@@ -206,7 +218,7 @@ function normalizeDosage(raw: unknown): GeneratedArticle["dosage"] {
   };
 }
 
-function normalizeDurationStage(raw: unknown): GeneratedArticle["duration"]["routes"][0]["stages"]["onset"] {
+function normalizeDurationStage(raw: unknown): SubstanceArticle["duration"]["routes"][0]["stages"]["onset"] {
   const obj = getObject(raw);
   return {
     min: getNumber(obj.min),
@@ -215,7 +227,7 @@ function normalizeDurationStage(raw: unknown): GeneratedArticle["duration"]["rou
   };
 }
 
-function normalizeDurationStages(raw: unknown): GeneratedArticle["duration"]["routes"][0]["stages"] {
+function normalizeDurationStages(raw: unknown): SubstanceArticle["duration"]["routes"][0]["stages"] {
   const obj = getObject(raw);
   return {
     onset: normalizeDurationStage(obj.onset),
@@ -227,7 +239,7 @@ function normalizeDurationStages(raw: unknown): GeneratedArticle["duration"]["ro
   };
 }
 
-function normalizeDurationRoute(raw: unknown): GeneratedArticle["duration"]["routes"][0] {
+function normalizeDurationRoute(raw: unknown): SubstanceArticle["duration"]["routes"][0] {
   const obj = getObject(raw);
   return {
     route: getString(obj.route),
@@ -235,7 +247,7 @@ function normalizeDurationRoute(raw: unknown): GeneratedArticle["duration"]["rou
   };
 }
 
-function normalizeDuration(raw: unknown): GeneratedArticle["duration"] {
+function normalizeDuration(raw: unknown): SubstanceArticle["duration"] {
   const obj = getObject(raw);
   const routes = Array.isArray(obj.routes)
     ? obj.routes.map(normalizeDurationRoute)
@@ -244,7 +256,7 @@ function normalizeDuration(raw: unknown): GeneratedArticle["duration"] {
   return { routes };
 }
 
-function normalizeSubjectiveEffects(raw: unknown): GeneratedArticle["subjective_effects"] {
+function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_effects"] {
   const obj = getObject(raw);
   const sensory = getObject(obj.sensory);
   const notes = getObject(obj.notes);
@@ -269,7 +281,7 @@ function normalizeSubjectiveEffects(raw: unknown): GeneratedArticle["subjective_
   };
 }
 
-function normalizePharmacology(raw: unknown): GeneratedArticle["pharmacology"] {
+function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {
   const obj = getObject(raw);
   const receptorBinding = getObject(obj.receptor_binding);
 
@@ -289,7 +301,7 @@ function normalizePharmacology(raw: unknown): GeneratedArticle["pharmacology"] {
   };
 }
 
-function normalizeInteractions(raw: unknown): GeneratedArticle["interactions"] {
+function normalizeInteractions(raw: unknown): SubstanceArticle["interactions"] {
   const obj = getObject(raw);
   return {
     dangerous: getStringArray(obj.dangerous),
@@ -307,7 +319,7 @@ function normalizeReagentTesting(raw: unknown): Record<string, string> {
   return result;
 }
 
-function normalizeHarmPotential(raw: unknown): GeneratedArticle["harm_potential"] {
+function normalizeHarmPotential(raw: unknown): SubstanceArticle["harm_potential"] {
   const obj = getObject(raw);
   const toxicity = getObject(obj.toxicity);
   const risks = getObject(obj.risks);
@@ -330,7 +342,7 @@ function normalizeHarmPotential(raw: unknown): GeneratedArticle["harm_potential"
   };
 }
 
-function normalizeTolerance(raw: unknown): GeneratedArticle["tolerance"] {
+function normalizeTolerance(raw: unknown): SubstanceArticle["tolerance"] {
   const obj = getObject(raw);
   return {
     full_tolerance: getString(obj.full_tolerance),
@@ -340,7 +352,7 @@ function normalizeTolerance(raw: unknown): GeneratedArticle["tolerance"] {
   };
 }
 
-function normalizeLegality(raw: unknown): GeneratedArticle["legality"] {
+function normalizeLegality(raw: unknown): SubstanceArticle["legality"] {
   const obj = getObject(raw);
   const countries = getObject(obj.countries);
 
@@ -359,7 +371,7 @@ function normalizeLegality(raw: unknown): GeneratedArticle["legality"] {
   };
 }
 
-function normalizeCitations(raw: unknown): GeneratedArticle["citations"] {
+function normalizeCitations(raw: unknown): SubstanceArticle["citations"] {
   if (!Array.isArray(raw)) return [];
 
   return raw.map((item) => {
@@ -371,7 +383,7 @@ function normalizeCitations(raw: unknown): GeneratedArticle["citations"] {
   });
 }
 
-function normalizeComparisons(raw: unknown): GeneratedArticle["comparisons"] {
+function normalizeComparisons(raw: unknown): SubstanceArticle["comparisons"] {
   // Handle both formats:
   // 1. comparisons: [...] (flat array - preferred)
   // 2. comparisons: { items: [...] } (legacy nested format)

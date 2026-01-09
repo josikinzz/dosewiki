@@ -1,16 +1,14 @@
 /**
- * Transforms raw KnowDrugs article entries into the normalized structures
- * consumed by the UI. The source JSON ships fields like `drug_info`,
- * `dosages.routes_of_administration`, and `subjective_effects` that we
- * restructure into `SubstanceContent` for components.
+ * Transforms SubstanceArticle entries into the normalized structures
+ * consumed by the UI. The source JSON uses the structured SubstanceArticle
+ * schema which we transform into SubstanceContent for components.
  */
-import { Atom, BrainCircuit, BrainCog, Cog, FlaskRound, Hexagon, Timer, TrendingDown } from "lucide-react";
+import { Atom, BrainCircuit, BrainCog, Cog, FlaskRound, Hexagon, TrendingDown } from "lucide-react";
 
 import type {
   SubstanceContent,
   RouteInfo,
   RouteKey,
-  DoseEntryDetail,
   HeroBadge,
   InteractionGroup,
   InteractionTarget,
@@ -21,110 +19,27 @@ import type {
   MoleculeAsset,
   NameVariant,
 } from "../../types/content";
+import type {
+  SubstanceArticle,
+  DoseRange,
+  DoseRanges,
+  DosageRoute,
+  DurationStage,
+  DurationStages,
+  DurationRoute,
+  Interactions,
+  Tolerance,
+  Citation,
+  Pharmacology,
+  Classification,
+  Identification,
+  SubjectiveEffects,
+  HarmPotential,
+} from "../../schema";
 import { slugify } from "../../utils/slug";
-import { tokenizeTagString } from "../../utils/data/tagDelimiters";
 import { getCategoryIcon } from "../config/categoryIcons";
 import { canonicalizeRouteLabel } from "../routeSynonyms";
 import moleculeSvgMappings from "../mappings/moleculeSvgMappings.json";
-
-type RawDoseRangePrimitive = string | number | null | undefined;
-
-interface RawDoseRangeDetail {
-  [key: string]: RawDoseRangePrimitive;
-}
-
-type RawDoseRangeValue = RawDoseRangePrimitive | RawDoseRangeDetail;
-
-interface RawDoseRanges {
-  [key: string]: RawDoseRangeValue;
-}
-
-interface RawRouteDefinition {
-  route?: string;
-  units?: string;
-  dose_ranges?: RawDoseRanges;
-}
-
-type RawClinicalDoseMap = Record<string, RawDoseRangeValue>;
-
-interface RawDosages {
-  note?: string | null;
-  routes_of_administration?: RawRouteDefinition[];
-  clinical_dosing?: RawClinicalDoseMap | null;
-  route?: string | null;
-  formulation?: string | null;
-  administration_notes?: string | null;
-}
-
-interface LegacyDurationStages {
-  total_duration?: string | null;
-  onset?: string | null;
-  come_up?: string | null;
-  comeup?: string | null;
-  peak?: string | null;
-  offset?: string | null;
-  comedown?: string | null;
-  after_effects?: string | null;
-}
-
-interface StructuredDurationRoute {
-  route?: string | null;
-  canonical_routes?: string[] | null;
-  stages?: LegacyDurationStages | null;
-}
-
-interface StructuredDuration {
-  general?: LegacyDurationStages | null;
-  routes_of_administration?: StructuredDurationRoute[] | null;
-}
-
-type RawDuration = LegacyDurationStages | StructuredDuration;
-
-interface RawInteractions {
-  dangerous?: string[];
-  unsafe?: string[];
-  caution?: string[];
-}
-
-interface RawTolerance {
-  full_tolerance?: string | null;
-  half_tolerance?: string | null;
-  zero_tolerance?: string | null;
-  cross_tolerances?: string[];
-}
-
-interface RawCitation {
-  name?: string | null;
-  reference?: string | null;
-}
-
-interface RawDrugInfo {
-  drug_name?: string | null;
-  substitutive_name?: string | null;
-  IUPAC_name?: string | null;
-  botanical_name?: string | null;
-  alternative_name?: string | null;
-  chemical_class?: string | null;
-  psychoactive_class?: string | null;
-  dosages?: RawDosages;
-  duration?: RawDuration;
-  addiction_potential?: string | null;
-  interactions?: RawInteractions;
-  notes?: string | null;
-  subjective_effects?: string[];
-  tolerance?: RawTolerance;
-  half_life?: string | null;
-  mechanism_of_action?: string | null;
-  citations?: RawCitation[];
-  categories?: string[];
-}
-
-interface RawArticle {
-  id?: number;
-  title?: string | null;
-  drug_info?: RawDrugInfo;
-  "index-category"?: string | null;
-}
 
 export interface SubstanceRecord {
   id: number | null;
@@ -155,16 +70,10 @@ const DURATION_LABELS: Record<string, string> = {
   come_up: "Come-up",
   peak: "Peak",
   offset: "Offset",
-  comedown: "Come-down",
   after_effects: "After effects",
 };
 
 type DurationStageKey = keyof typeof DURATION_LABELS;
-type StageValueMap = Partial<Record<DurationStageKey, string>>;
-
-const DURATION_STAGE_ALIASES: Partial<Record<DurationStageKey, string[]>> = {
-  come_up: ["comeup"],
-};
 
 interface MoleculeMappingEntry {
   filename: string;
@@ -234,46 +143,6 @@ function cleanString(value: string | null | undefined): string | undefined {
   return value.trim();
 }
 
-function formatClinicalPopulationLabel(key: string): string {
-  const titleized = titleize(key);
-  if (!/[0-9]/.test(titleized)) {
-    return titleized;
-  }
-  return titleized.replace(/(\d+)\s+(?=\d)/g, (match) => match.trim() + "-");
-}
-
-function toDoseValueString(value: RawDoseRangePrimitive): string | undefined {
-  if (value === null || value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) {
-      return undefined;
-    }
-    return cleanString(String(value));
-  }
-
-  if (typeof value === "string") {
-    return cleanString(value);
-  }
-
-  return undefined;
-}
-
-function normalizeDoseDetailLabel(key: string): string {
-  const trimmed = key.trim();
-  if (trimmed.length === 0) {
-    return "";
-  }
-
-  if (trimmed.toLowerCase() === "bac") {
-    return "BAC";
-  }
-
-  return titleize(trimmed);
-}
-
 function cleanStringArray(values: unknown): string[] {
   if (!Array.isArray(values)) {
     return [];
@@ -281,6 +150,212 @@ function cleanStringArray(values: unknown): string[] {
   return values
     .map((entry) => (isNonEmpty(entry) ? entry.trim() : undefined))
     .filter((entry): entry is string => Boolean(entry));
+}
+
+// Format a DoseRange { min, max, unit } into a display string like "10-25 mg"
+function formatDoseRange(range: DoseRange | null | undefined): string | undefined {
+  if (!range) {
+    return undefined;
+  }
+  const { min, max, unit } = range;
+  if (min == null && max == null) {
+    return undefined;
+  }
+  const unitStr = cleanString(unit) || "";
+  if (min != null && max != null) {
+    return `${min}-${max} ${unitStr}`.trim();
+  }
+  if (min != null) {
+    return `${min}+ ${unitStr}`.trim();
+  }
+  if (max != null) {
+    return `<${max} ${unitStr}`.trim();
+  }
+  return undefined;
+}
+
+// Format a DurationStage { min, max, unit } into a display string like "30-60 minutes"
+function formatDurationStage(stage: DurationStage | null | undefined): string | undefined {
+  if (!stage) {
+    return undefined;
+  }
+  const { min, max, unit } = stage;
+  if (min == null && max == null) {
+    return undefined;
+  }
+  const unitStr = cleanString(unit) || "";
+  if (min != null && max != null) {
+    return `${min}-${max} ${unitStr}`.trim();
+  }
+  if (min != null) {
+    return `${min}+ ${unitStr}`.trim();
+  }
+  if (max != null) {
+    return `<${max} ${unitStr}`.trim();
+  }
+  return undefined;
+}
+
+// Build dosage entries from SubstanceArticle DoseRanges
+function buildDoseEntries(ranges: DoseRanges | null | undefined): RouteInfo["dosage"] {
+  if (!ranges) {
+    return [];
+  }
+
+  const doseKeys: Array<keyof DoseRanges> = ["threshold", "light", "moderate", "strong", "heavy"];
+
+  return doseKeys
+    .map((key) => {
+      const range = ranges[key];
+      const value = formatDoseRange(range);
+      if (!value) {
+        return null;
+      }
+      return {
+        label: titleize(key),
+        value,
+      };
+    })
+    .filter((entry): entry is { label: string; value: string } => entry !== null);
+}
+
+// Build duration entries from SubstanceArticle DurationStages
+function buildDurationEntries(stages: DurationStages | null | undefined): RouteInfo["duration"] {
+  if (!stages) {
+    return [];
+  }
+
+  const stageKeys: Array<[keyof DurationStages, string]> = [
+    ["onset", "Onset"],
+    ["come_up", "Come-up"],
+    ["peak", "Peak"],
+    ["offset", "Offset"],
+    ["after_effects", "After effects"],
+    ["total_duration", "Total"],
+  ];
+
+  return stageKeys
+    .map(([key, label]) => {
+      const stage = stages[key];
+      const value = formatDurationStage(stage);
+      if (!value) {
+        return null;
+      }
+      return { label, value };
+    })
+    .filter((entry): entry is { label: string; value: string } => entry !== null);
+}
+
+// Find matching duration route for a dosage route
+function findDurationRoute(
+  durationRoutes: DurationRoute[] | undefined,
+  routeLabel: string,
+): DurationRoute | undefined {
+  if (!durationRoutes || durationRoutes.length === 0) {
+    return undefined;
+  }
+
+  const normalizedLabel = routeLabel.trim().toLowerCase();
+
+  // Try direct match first
+  const directMatch = durationRoutes.find((dr) => {
+    const drRoute = cleanString(dr.route);
+    return drRoute && drRoute.toLowerCase() === normalizedLabel;
+  });
+
+  if (directMatch) {
+    return directMatch;
+  }
+
+  // Try canonical route matching
+  const canonical = canonicalizeRouteLabel(routeLabel);
+  for (const canonicalRoute of canonical.canonicalRoutes) {
+    const match = durationRoutes.find((dr) => {
+      const drRoute = cleanString(dr.route);
+      return drRoute && drRoute.toLowerCase() === canonicalRoute.toLowerCase();
+    });
+    if (match) {
+      return match;
+    }
+  }
+
+  // Fall back to first route
+  return durationRoutes[0];
+}
+
+// Build routes from SubstanceArticle dosage and duration
+function buildRoutes(
+  dosageRoutes: DosageRoute[] | undefined,
+  durationRoutes: DurationRoute[] | undefined,
+) {
+  const routes: Record<RouteKey, RouteInfo> = {};
+  const routeOrder: RouteKey[] = [];
+  const units = new Set<string>();
+
+  if (dosageRoutes && dosageRoutes.length > 0) {
+    dosageRoutes.forEach((dosageRoute, index) => {
+      const routeLabel = cleanString(dosageRoute.route);
+      if (!routeLabel) {
+        return;
+      }
+
+      const key = slugifyDrugName(routeLabel, `route-${index}`);
+      const dosageEntries = buildDoseEntries(dosageRoute.dose_ranges);
+
+      // Find matching duration for this route
+      const matchingDuration = findDurationRoute(durationRoutes, routeLabel);
+      const durationEntries = buildDurationEntries(matchingDuration?.stages);
+
+      // Extract unit from dose ranges
+      const firstRange = dosageRoute.dose_ranges?.threshold ||
+                         dosageRoute.dose_ranges?.light ||
+                         dosageRoute.dose_ranges?.moderate;
+      const unit = cleanString(firstRange?.unit);
+      if (unit) {
+        units.add(unit);
+      }
+
+      routes[key] = {
+        label: routeLabel,
+        units: unit,
+        dosage: dosageEntries,
+        duration: durationEntries,
+        bioavailability: cleanString(dosageRoute.bioavailability),
+        notes: cleanString(dosageRoute.notes),
+      };
+
+      if (!routeOrder.includes(key)) {
+        routeOrder.push(key);
+      }
+    });
+  }
+
+  // If no dosage routes but we have duration routes, create routes from duration
+  if (routeOrder.length === 0 && durationRoutes && durationRoutes.length > 0) {
+    durationRoutes.forEach((durationRoute, index) => {
+      const routeLabel = cleanString(durationRoute.route) || "General";
+      const key = slugifyDrugName(routeLabel, `route-${index}`);
+      const durationEntries = buildDurationEntries(durationRoute.stages);
+
+      if (durationEntries.length > 0) {
+        routes[key] = {
+          label: routeLabel,
+          dosage: [],
+          duration: durationEntries,
+        };
+        routeOrder.push(key);
+      }
+    });
+  }
+
+  const unitsNote = units.size > 0 ? `Units: ${Array.from(units).join(", ")}` : "";
+
+  return {
+    routes,
+    routeOrder,
+    note: unitsNote,
+    unitsNote,
+  };
 }
 
 interface ParsedMechanismEntry {
@@ -307,444 +382,6 @@ function parseMechanismEntry(entry: string): ParsedMechanismEntry {
   }
 
   return { base: trimmed };
-}
-
-function splitToList(value: string | null | undefined): string[] {
-  const cleaned = cleanString(value);
-  if (!cleaned) {
-    return [];
-  }
-  return tokenizeTagString(cleaned, { splitOnComma: true, splitOnSlash: true });
-}
-
-function buildDoseEntries(ranges?: RawDoseRanges): RouteInfo["dosage"] {
-  if (!ranges) {
-    return [];
-  }
-
-  return Object.entries(ranges)
-    .map(([key, rawValue]) => {
-      const label = titleize(key);
-
-      if (typeof rawValue === "string" || typeof rawValue === "number" || rawValue === null || rawValue === undefined) {
-        const value = toDoseValueString(rawValue);
-        if (!value) {
-          return null;
-        }
-        return {
-          label,
-          value,
-        };
-      }
-
-      if (rawValue && typeof rawValue === "object") {
-        const detailEntries: Array<{ label: string; value: string }> = [];
-        let description: string | undefined;
-
-        Object.entries(rawValue as RawDoseRangeDetail).forEach(([detailKey, detailValue]) => {
-          const value = toDoseValueString(detailValue);
-          if (!value) {
-            return;
-          }
-
-          if (detailKey.trim().toLowerCase() === "effects") {
-            description = value;
-            return;
-          }
-
-          const detailLabel = normalizeDoseDetailLabel(detailKey);
-          if (detailLabel.length === 0) {
-            return;
-          }
-
-          detailEntries.push({
-            label: detailLabel,
-            value,
-          });
-        });
-
-        if (detailEntries.length === 0 && !description) {
-          return null;
-        }
-
-        const primaryValue = detailEntries.length === 1 ? detailEntries[0]!.value : undefined;
-
-        return {
-          label,
-          value: primaryValue,
-          details: detailEntries.length > 0 ? detailEntries : undefined,
-          description,
-        };
-      }
-
-      return null;
-    })
-    .filter((entry): entry is RouteInfo["dosage"][number] => entry !== null);
-}
-
-function formatClinicalDetailValue(value: RawDoseRangeValue): string | undefined {
-  if (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    value === null ||
-    value === undefined
-  ) {
-    return toDoseValueString(value as RawDoseRangePrimitive);
-  }
-
-  if (value && typeof value === "object") {
-    const nestedValues: string[] = [];
-
-    Object.entries(value as RawDoseRangeDetail).forEach(([nestedKey, nestedValue]) => {
-      const formatted = formatClinicalDetailValue(nestedValue as RawDoseRangeValue);
-      if (!formatted) {
-        return;
-      }
-
-      const nestedLabel = normalizeDoseDetailLabel(nestedKey);
-      if (nestedLabel.length > 0) {
-        nestedValues.push(`${nestedLabel}: ${formatted}`);
-      } else {
-        nestedValues.push(formatted);
-      }
-    });
-
-    if (nestedValues.length > 0) {
-      return nestedValues.join("; ");
-    }
-  }
-
-  return undefined;
-}
-
-function buildClinicalDoseEntries(clinical?: RawClinicalDoseMap | null): RouteInfo["dosage"] {
-  if (!clinical || typeof clinical !== "object") {
-    return [];
-  }
-
-  return Object.entries(clinical)
-    .map(([populationKey, rawValue]) => {
-      const label = formatClinicalPopulationLabel(populationKey);
-      if (!label) {
-        return null;
-      }
-
-      if (
-        typeof rawValue === "string" ||
-        typeof rawValue === "number" ||
-        rawValue === null ||
-        rawValue === undefined
-      ) {
-        const value = toDoseValueString(rawValue as RawDoseRangePrimitive);
-        if (!value) {
-          return null;
-        }
-        return {
-          label,
-          value,
-        } satisfies RouteInfo["dosage"][number];
-      }
-
-      if (rawValue && typeof rawValue === "object") {
-        const details: DoseEntryDetail[] = [];
-
-        Object.entries(rawValue as RawDoseRangeDetail).forEach(([detailKey, detailValue]) => {
-          const detailLabel = normalizeDoseDetailLabel(detailKey);
-          if (detailLabel.length === 0) {
-            return;
-          }
-
-          const formattedValue = formatClinicalDetailValue(detailValue as RawDoseRangeValue);
-          if (!formattedValue) {
-            return;
-          }
-
-          details.push({
-            label: detailLabel,
-            value: formattedValue,
-          });
-        });
-
-        if (details.length === 0) {
-          return null;
-        }
-
-        return {
-          label,
-          details,
-        } satisfies RouteInfo["dosage"][number];
-      }
-
-      return null;
-    })
-    .filter((entry): entry is RouteInfo["dosage"][number] => entry !== null);
-}
-
-function buildClinicalDosingRoute(
-  dosages: RawDosages | undefined,
-  structuredDuration: StructuredDuration | undefined,
-  generalStageMap: StageValueMap,
-  routes: Record<RouteKey, RouteInfo>,
-): { key: RouteKey; info: RouteInfo } | null {
-  if (!dosages?.clinical_dosing) {
-    return null;
-  }
-
-  const dosageEntries = buildClinicalDoseEntries(dosages.clinical_dosing);
-  if (dosageEntries.length === 0) {
-    return null;
-  }
-
-  const routeLabel = cleanString(dosages.route) ?? "Clinical";
-  const canonical = canonicalizeRouteLabel(routeLabel);
-  const routeSpecificStageMap = structuredDuration
-    ? getRouteStageMap(structuredDuration, routeLabel, canonical.canonicalRoutes)
-    : {};
-  const mergedStageMap = mergeStageMaps(routeSpecificStageMap, generalStageMap);
-  const durationEntries = convertStageMapToEntries(mergedStageMap);
-
-  const baseKey = slugifyDrugName(routeLabel, "clinical-route");
-  let key = baseKey;
-  let attempt = 1;
-  while (routes[key]) {
-    key = slugifyDrugName(`${routeLabel}-${attempt}`, `clinical-route-${attempt}`);
-    attempt += 1;
-    if (attempt > 10) {
-      break;
-    }
-  }
-
-  return {
-    key,
-    info: {
-      label: routeLabel,
-      dosage: dosageEntries,
-      duration: durationEntries,
-    },
-  };
-}
-
-function isStructuredDurationValue(duration?: RawDuration): duration is StructuredDuration {
-  if (!duration || typeof duration !== "object") {
-    return false;
-  }
-  return (
-    Object.prototype.hasOwnProperty.call(duration, "general") ||
-    Object.prototype.hasOwnProperty.call(duration, "routes_of_administration")
-  );
-}
-
-function extractStageValues(source?: LegacyDurationStages | null): StageValueMap {
-  const values: StageValueMap = {};
-  if (!source || typeof source !== "object") {
-    return values;
-  }
-
-  (Object.keys(DURATION_LABELS) as DurationStageKey[]).forEach((stageKey) => {
-    const raw = (source as Record<string, unknown>)[stageKey];
-    let value = cleanString(typeof raw === "string" ? raw : null);
-
-    if (!value) {
-      const aliases = DURATION_STAGE_ALIASES[stageKey] ?? [];
-      for (const alias of aliases) {
-        const aliasRaw = (source as Record<string, unknown>)[alias];
-        value = cleanString(typeof aliasRaw === "string" ? aliasRaw : null);
-        if (value) {
-          break;
-        }
-      }
-    }
-
-    if (value) {
-      values[stageKey] = value;
-    }
-  });
-
-  return values;
-}
-
-function hasStageValues(map: StageValueMap): boolean {
-  return Object.keys(map).some((stageKey) => Boolean(map[stageKey as DurationStageKey]));
-}
-
-function mergeStageMaps(primary: StageValueMap, fallback: StageValueMap): StageValueMap {
-  const merged: StageValueMap = {};
-  (Object.keys(DURATION_LABELS) as DurationStageKey[]).forEach((stageKey) => {
-    const value = primary[stageKey] ?? fallback[stageKey];
-    if (value) {
-      merged[stageKey] = value;
-    }
-  });
-  return merged;
-}
-
-function convertStageMapToEntries(stageMap: StageValueMap): RouteInfo["duration"] {
-  return (Object.entries(DURATION_LABELS) as Array<[DurationStageKey, string]>)
-    .map(([stageKey, label]) => {
-      const value = stageMap[stageKey];
-      if (!value) {
-        return null;
-      }
-      return {
-        label,
-        value,
-      };
-    })
-    .filter((entry): entry is RouteInfo["duration"][number] => entry !== null);
-}
-
-function getRouteStageMap(
-  duration: StructuredDuration | undefined,
-  routeLabel: string,
-  canonicalRoutes: string[],
-): StageValueMap {
-  if (!duration || !Array.isArray(duration.routes_of_administration)) {
-    return {};
-  }
-
-  const normalizedLabel = routeLabel.trim().toLowerCase();
-  const entries = duration.routes_of_administration.filter((entry): entry is StructuredDurationRoute => Boolean(entry));
-
-  const directMatch = entries.find((entry) => {
-    if (!entry || typeof entry.route !== "string") {
-      return false;
-    }
-    return entry.route.trim().toLowerCase() === normalizedLabel;
-  });
-
-  if (directMatch) {
-    return extractStageValues(directMatch.stages ?? null);
-  }
-
-  for (const canonical of canonicalRoutes) {
-    const match = entries.find((entry) =>
-      Array.isArray(entry.canonical_routes) &&
-      entry.canonical_routes.some((candidate) =>
-        typeof candidate === "string" && candidate.trim().toLowerCase() === canonical,
-      ),
-    );
-    if (match) {
-      return extractStageValues(match.stages ?? null);
-    }
-  }
-
-  return {};
-}
-
-function selectFallbackStageMap(
-  structuredDuration: StructuredDuration | undefined,
-  generalStages: StageValueMap,
-): StageValueMap {
-  if (hasStageValues(generalStages)) {
-    return generalStages;
-  }
-
-  if (!structuredDuration || !Array.isArray(structuredDuration.routes_of_administration)) {
-    return generalStages;
-  }
-
-  for (const entry of structuredDuration.routes_of_administration) {
-    const stageMap = extractStageValues(entry?.stages ?? null);
-    if (hasStageValues(stageMap)) {
-      return stageMap;
-    }
-  }
-
-  return generalStages;
-}
-
-function buildUnitsNote(units: Set<string>): string {
-  if (units.size === 0) {
-    return "";
-  }
-  const entries = Array.from(units);
-  return `Units: ${entries.join(", ")}`;
-}
-
-function buildRoutes(dosages: RawDosages | undefined, duration: RawDuration | undefined) {
-  const routes: Record<RouteKey, RouteInfo> = {};
-  const routeOrder: RouteKey[] = [];
-  const units = new Set<string>();
-  const explicitNote =
-    typeof dosages?.note === "string" ? cleanString(dosages.note) : undefined;
-
-  const structuredDuration = isStructuredDurationValue(duration) ? duration : undefined;
-  const generalStageMap = structuredDuration
-    ? extractStageValues(structuredDuration.general ?? null)
-    : extractStageValues(duration as LegacyDurationStages | undefined);
-
-  (dosages?.routes_of_administration ?? []).forEach((definition, index) => {
-    const routeLabel = cleanString(definition.route);
-    if (!routeLabel) {
-      return;
-    }
-
-    const canonical = canonicalizeRouteLabel(routeLabel);
-    const routeSpecificStageMap = structuredDuration
-      ? getRouteStageMap(structuredDuration, routeLabel, canonical.canonicalRoutes)
-      : {};
-
-    const mergedStageMap = mergeStageMaps(routeSpecificStageMap, generalStageMap);
-    const durationEntries = convertStageMapToEntries(mergedStageMap);
-
-    const key = slugifyDrugName(routeLabel, `route-${index}`);
-    const dosageEntries = buildDoseEntries(definition.dose_ranges);
-    const unit = cleanString(definition.units);
-    if (unit) {
-      units.add(unit);
-    }
-
-    routes[key] = {
-      label: routeLabel,
-      units: unit,
-      dosage: dosageEntries,
-      duration: durationEntries,
-    };
-
-    if (!routeOrder.includes(key)) {
-      routeOrder.push(key);
-    }
-  });
-
-  const clinicalRoute = buildClinicalDosingRoute(dosages, structuredDuration, generalStageMap, routes);
-  if (clinicalRoute) {
-    routes[clinicalRoute.key] = clinicalRoute.info;
-    if (!routeOrder.includes(clinicalRoute.key)) {
-      routeOrder.push(clinicalRoute.key);
-    }
-  }
-
-  if (routeOrder.length === 0) {
-    const fallbackMap = selectFallbackStageMap(structuredDuration, generalStageMap);
-    const fallbackEntries = convertStageMapToEntries(fallbackMap);
-    if (fallbackEntries.length > 0) {
-      const fallbackKey: RouteKey = "general";
-      routes[fallbackKey] = {
-        label: "General",
-        dosage: [],
-        duration: fallbackEntries,
-      };
-      routeOrder.push(fallbackKey);
-    }
-  }
-
-  const unitsNote = buildUnitsNote(units);
-  const formulationNote = cleanString(dosages?.formulation);
-  const administrationNote = cleanString(dosages?.administration_notes);
-  const noteSegments = [
-    explicitNote,
-    unitsNote,
-    formulationNote ? `Formulation: ${formulationNote}` : undefined,
-    administrationNote,
-  ].filter((segment): segment is string => Boolean(segment));
-  const combinedNote = noteSegments.length === 0 ? "" : noteSegments.join(" ");
-
-  return {
-    routes,
-    routeOrder,
-    note: combinedNote,
-    unitsNote,
-  };
 }
 
 function extractInteractionDetails(value: string): { base: string; rationale?: string } {
@@ -779,7 +416,7 @@ function hashInteractionLabel(value: string): string {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
     hash = (hash << 5) - hash + value.charCodeAt(index);
-    hash |= 0; // Convert to 32bit integer
+    hash |= 0;
   }
   return Math.abs(hash).toString(36);
 }
@@ -808,7 +445,7 @@ function buildInteractionItem(entry: string): InteractionTarget {
   } satisfies InteractionTarget;
 }
 
-function buildInteractionGroups(interactions?: RawInteractions): InteractionGroup[] {
+function buildInteractionGroups(interactions: Interactions | undefined): InteractionGroup[] {
   if (!interactions) {
     return [];
   }
@@ -818,9 +455,8 @@ function buildInteractionGroups(interactions?: RawInteractions): InteractionGrou
   return severityOrder
     .map((severity) => {
       const listKey = severity === "danger" ? "dangerous" : severity;
-      const items = cleanStringArray((interactions as Record<string, unknown>)[listKey]).map((entry) =>
-        buildInteractionItem(entry),
-      );
+      const rawItems = (interactions as Record<string, unknown>)[listKey];
+      const items = cleanStringArray(rawItems).map((entry) => buildInteractionItem(entry));
 
       if (items.length === 0) {
         return null;
@@ -835,7 +471,7 @@ function buildInteractionGroups(interactions?: RawInteractions): InteractionGrou
     .filter((group): group is InteractionGroup => group !== null);
 }
 
-function buildToleranceEntries(tolerance?: RawTolerance): ToleranceEntry[] {
+function buildToleranceEntries(tolerance: Tolerance | undefined): ToleranceEntry[] {
   if (!tolerance) {
     return [];
   }
@@ -852,12 +488,12 @@ function buildToleranceEntries(tolerance?: RawTolerance): ToleranceEntry[] {
     entries.push({ label: "Half tolerance", description: half });
   }
 
-  const zero = cleanString(tolerance.zero_tolerance);
-  if (zero) {
-    entries.push({ label: "Baseline reset", description: zero });
+  const baseline = cleanString(tolerance.baseline_tolerance);
+  if (baseline) {
+    entries.push({ label: "Baseline reset", description: baseline });
   }
 
-  const cross = cleanStringArray(tolerance.cross_tolerances);
+  const cross = cleanStringArray(tolerance.cross_tolerance);
   if (cross.length > 0) {
     entries.push({ label: "Cross tolerance", description: cross.map(titleize).join(", ") });
   }
@@ -865,35 +501,36 @@ function buildToleranceEntries(tolerance?: RawTolerance): ToleranceEntry[] {
   return entries;
 }
 
-function buildInfoSections(info: RawDrugInfo): InfoSection[] {
+function buildInfoSections(
+  identification: Identification | undefined,
+  classification: Classification | undefined,
+  pharmacology: Pharmacology | undefined,
+): InfoSection[] {
   const items: InfoSection["items"] = [];
 
-  const substitutiveName = cleanString(info.substitutive_name);
+  const substitutiveName = cleanString(identification?.substitutive_name);
   if (substitutiveName) {
     items.push({ label: "Substitutive name", value: substitutiveName, icon: Atom });
   }
 
-  const iupacName = cleanString(info.IUPAC_name);
+  const iupacName = cleanString(identification?.iupac_name);
   if (iupacName) {
     items.push({ label: "IUPAC name", value: iupacName, icon: FlaskRound });
   }
 
-  const chemicalClass = cleanString(info.chemical_class);
+  const chemicalClass = classification?.chemical_class?.join("; ");
   if (chemicalClass) {
     items.push({ label: "Chemical class", value: chemicalClass, icon: Hexagon });
   }
 
-  const mechanism = cleanString(info.mechanism_of_action);
-  if (mechanism) {
-    const entries = mechanism
-      .split(";")
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-
+  // Mechanism of action from pharmacology (now an array)
+  const mechanismArray = pharmacology?.mechanism_of_action;
+  if (mechanismArray && mechanismArray.length > 0) {
+    const mechanism = mechanismArray.join("; ");
     const seen = new Set<string>();
     const chips: InfoSectionItemChip[] = [];
 
-    entries.forEach((entry) => {
+    mechanismArray.forEach((entry) => {
       const { base, qualifier } = parseMechanismEntry(entry);
       const normalizedBase = base.trim();
       if (!normalizedBase) {
@@ -929,17 +566,15 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
     });
   }
 
-  const psychoClass = cleanString(info.psychoactive_class);
+  const psychoClass = classification?.psychoactive_class?.join("; ");
   if (psychoClass) {
     items.push({ label: "Psychoactive class", value: psychoClass, icon: BrainCircuit });
   }
 
-  const halfLife = cleanString(info.half_life);
+  const halfLife = cleanString(pharmacology?.half_life);
   if (halfLife) {
     items.push({ label: "Half-life", value: halfLife, icon: TrendingDown });
   }
-
-
 
   if (items.length === 0) {
     return [];
@@ -954,7 +589,7 @@ function buildInfoSections(info: RawDrugInfo): InfoSection[] {
   ];
 }
 
-function buildHeroBadges(info: RawDrugInfo, categories: string[], normalizedKeys: string[]): HeroBadge[] {
+function buildHeroBadges(categories: string[], normalizedKeys: string[]): HeroBadge[] {
   const badges: HeroBadge[] = [];
   const seen = new Set<string>();
 
@@ -975,7 +610,8 @@ function buildHeroBadges(info: RawDrugInfo, categories: string[], normalizedKeys
 
   return badges;
 }
-function buildCitations(citations?: RawCitation[]): CitationEntry[] {
+
+function buildCitations(citations: Citation[] | undefined): CitationEntry[] {
   if (!Array.isArray(citations)) {
     return [];
   }
@@ -986,7 +622,7 @@ function buildCitations(citations?: RawCitation[]): CitationEntry[] {
       if (!label) {
         return null;
       }
-      const href = cleanString(citation.reference);
+      const href = cleanString(citation.url);
       return {
         label,
         href,
@@ -1008,36 +644,7 @@ function buildPlaceholder(name: string): string {
     .join(" ");
 }
 
-function splitAlternativeValues(value: string): string[] {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return [];
-  }
-
-  const primarySegments = trimmed
-    .split(";")
-    .map((segment) => segment.trim())
-    .filter((segment) => segment.length > 0);
-
-  const expanded: string[] = [];
-
-  primarySegments.forEach((segment) => {
-    if (segment.includes(" / ")) {
-      segment
-        .split("/")
-        .map((entry) => entry.trim())
-        .filter((entry) => entry.length > 0)
-        .forEach((entry) => expanded.push(entry));
-      return;
-    }
-
-    expanded.push(segment);
-  });
-
-  return expanded;
-}
-
-function buildNameVariants(info: RawDrugInfo, baseName: string): NameVariant[] {
+function buildNameVariants(identification: Identification | undefined, baseName: string): NameVariant[] {
   const variants: NameVariant[] = [];
   const seen = new Set<string>();
 
@@ -1046,25 +653,16 @@ function buildNameVariants(info: RawDrugInfo, baseName: string): NameVariant[] {
     seen.add(baseKey);
   }
 
-  const normalize = (value: string) => value.trim();
-
   const addVariant = (
     kind: NameVariant["kind"],
     label: string,
-    rawValue?: string | null,
-    options?: { splitDelimited?: boolean },
+    values: string[] | string | null | undefined,
   ) => {
-    const cleaned = cleanString(rawValue);
-    if (!cleaned) {
-      return;
-    }
+    const valueArray = Array.isArray(values) ? values : (cleanString(values) ? [values as string] : []);
+    const cleanedValues: string[] = [];
 
-    const shouldSplit = options?.splitDelimited ?? false;
-    const candidateValues = shouldSplit ? splitAlternativeValues(cleaned) : [cleaned];
-    const values: string[] = [];
-
-    candidateValues.forEach((entry) => {
-      const normalizedEntry = normalize(entry);
+    valueArray.forEach((entry) => {
+      const normalizedEntry = cleanString(entry);
       if (!normalizedEntry) {
         return;
       }
@@ -1079,28 +677,49 @@ function buildNameVariants(info: RawDrugInfo, baseName: string): NameVariant[] {
       }
 
       seen.add(key);
-      values.push(normalizedEntry);
+      cleanedValues.push(normalizedEntry);
     });
 
-    if (values.length > 0) {
+    if (cleanedValues.length > 0) {
       variants.push({
         kind,
         label,
-        values,
+        values: cleanedValues,
       });
     }
   };
 
-  addVariant("substitutive", "Substitutive name", info.substitutive_name);
-  addVariant("iupac", "IUPAC name", info.IUPAC_name);
-  addVariant("botanical", "Botanical name", info.botanical_name, { splitDelimited: true });
-  addVariant("alternative", "Alternative names", info.alternative_name, { splitDelimited: true });
+  addVariant("substitutive", "Substitutive name", identification?.substitutive_name);
+  addVariant("iupac", "IUPAC name", identification?.iupac_name);
+  addVariant("alternative", "Alternative names", identification?.alternative_names);
 
   return variants;
 }
 
-function extractAlternativeNames(info: RawDrugInfo, baseName: string): string[] {
-  return buildNameVariants(info, baseName).flatMap((variant) => variant.values);
+// Flatten subjective effects from categorized structure to flat array
+function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): string[] {
+  if (!effects) {
+    return [];
+  }
+
+  const allEffects: string[] = [];
+
+  // Flatten sensory effects
+  if (effects.sensory) {
+    const sensory = effects.sensory;
+    allEffects.push(...cleanStringArray(sensory.visual));
+    allEffects.push(...cleanStringArray(sensory.auditory));
+    allEffects.push(...cleanStringArray(sensory.tactile));
+    allEffects.push(...cleanStringArray(sensory.olfactory));
+    allEffects.push(...cleanStringArray(sensory.gustatory));
+    allEffects.push(...cleanStringArray(sensory.multisensory));
+  }
+
+  // Add cognitive and physical effects
+  allEffects.push(...cleanStringArray(effects.cognitive));
+  allEffects.push(...cleanStringArray(effects.physical));
+
+  return allEffects;
 }
 
 export function slugifyDrugName(name: string, fallback: string): string {
@@ -1111,19 +730,19 @@ export function slugifyDrugName(name: string, fallback: string): string {
   return normalizeKey(fallback) || "article";
 }
 
-export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | null {
-  const info = article.drug_info;
-  if (!info) {
-    return null;
-  }
+export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord | null {
+  const identification = article.identification;
+  const classification = article.classification;
+  const pharmacology = article.pharmacology;
+  const harmPotential = article.harm_potential;
 
-  const substitutiveName = cleanString(info.substitutive_name);
-  const iupacName = cleanString(info.IUPAC_name);
-  const botanicalName = cleanString(info.botanical_name);
-  const drugName = cleanString(info.drug_name);
+  // Determine base name from identification
+  const commonName = cleanString(identification?.common_name);
+  const substitutiveName = cleanString(identification?.substitutive_name);
+  const iupacName = cleanString(identification?.iupac_name);
   const titleName = cleanString(article.title);
 
-  const candidateNames = [drugName, titleName, substitutiveName, iupacName, botanicalName].filter(
+  const candidateNames = [commonName, titleName, substitutiveName, iupacName].filter(
     (value): value is string => Boolean(value),
   );
 
@@ -1136,19 +755,20 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
   const id = typeof article.id === "number" ? article.id : null;
   const slug = slugifyDrugName(baseName, id !== null ? `article-${id}` : baseName);
 
-  const categories = cleanStringArray(info.categories);
+  // Categories derived from classification
+  const psychoactiveClasses = cleanStringArray(classification?.psychoactive_class);
+  const chemicalClasses = cleanStringArray(classification?.chemical_class);
+  const categories = [...psychoactiveClasses, ...chemicalClasses];
   const normalizedCategories = categories.map((category) => normalizeKey(category));
-  const rawIndexCategory = cleanString(article["index-category"]) ?? "";
-  const indexCategories = rawIndexCategory
-    ? tokenizeTagString(rawIndexCategory, { splitOnComma: false, splitOnSlash: true })
-    : [];
+
+  // Index categories from article
+  const indexCategories = cleanStringArray(article.index_categories);
   const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
   const isHidden = normalizedIndexCategories.includes("hidden");
-  const chemicalClasses = splitToList(info.chemical_class);
-  const psychoactiveClasses = splitToList(info.psychoactive_class);
-  const nameVariants = buildNameVariants(info, baseName);
+
+  const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);
-  const referenceName = substitutiveName ?? iupacName ?? botanicalName ?? null;
+  const referenceName = substitutiveName ?? iupacName ?? null;
   const displayAliases = referenceName
     ? aliases.filter(
         (alias) =>
@@ -1156,26 +776,35 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
       )
     : aliases;
 
-  const { routes, routeOrder, note } = buildRoutes(info.dosages, info.duration);
+  const { routes, routeOrder, note } = buildRoutes(
+    article.dosage?.routes,
+    article.duration?.routes,
+  );
+
+  // Get addiction summary from harm_potential
+  const addictionSummary = cleanString(harmPotential?.addiction_liability) ?? "";
+
+  // Flatten subjective effects
+  const subjectiveEffects = flattenSubjectiveEffects(article.subjective_effects);
 
   const content: SubstanceContent = {
     name: baseName,
-    subtitle: "",
+    subtitle: cleanString(article.summary) ?? "",
     aliases: displayAliases,
     nameVariants,
     moleculePlaceholder: buildPlaceholder(baseName),
-    heroBadges: buildHeroBadges(info, categories, normalizedCategories),
+    heroBadges: buildHeroBadges(categories, normalizedCategories),
     categoryKeys: normalizedCategories,
     dosageUnitsNote: note,
     routes,
     routeOrder,
-    addictionSummary: cleanString(info.addiction_potential) ?? "",
-    subjectiveEffects: cleanStringArray(info.subjective_effects),
-    interactions: buildInteractionGroups(info.interactions),
-    tolerance: buildToleranceEntries(info.tolerance),
-    notes: cleanString(info.notes) ?? "",
-    citations: buildCitations(info.citations),
-    infoSections: buildInfoSections(info),
+    addictionSummary,
+    subjectiveEffects,
+    interactions: buildInteractionGroups(article.interactions),
+    tolerance: buildToleranceEntries(article.tolerance),
+    notes: cleanString(article.summary) ?? "",
+    citations: buildCitations(article.citations),
+    infoSections: buildInfoSections(identification, classification, pharmacology),
     categories,
   };
 
@@ -1222,5 +851,3 @@ export function buildSubstanceRecord(article: RawArticle): SubstanceRecord | nul
     content,
   };
 }
-
-

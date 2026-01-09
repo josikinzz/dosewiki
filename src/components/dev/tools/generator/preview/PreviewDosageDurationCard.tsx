@@ -3,10 +3,10 @@ import { Clock, Pill } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { GeneratedArticle, DosageRoute, DurationRoute, DoseRange, DurationStage } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle, DosageRoute, DurationRoute, DoseRange, DurationStage } from "../../../../../schema";
 
 interface PreviewDosageDurationCardProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 function formatDose(range: DoseRange): string {

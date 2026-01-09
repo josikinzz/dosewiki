@@ -11,6 +11,7 @@ import { AvatarUpload } from "./AvatarUpload";
 import { LinkManager } from "./LinkManager";
 import { BioEditor } from "./BioEditor";
 import { toFormState, normalizeFormState, formatFileSize, inferAvatarMimeType } from "./utils.tsx";
+import { useSaveProfileMutation } from "../../../hooks/useApiMutations";
 import {
   MAX_BIO_LENGTH,
   MAX_LINKS,
@@ -31,8 +32,9 @@ export function ProfileEditorTab({
 }: ProfileEditorTabProps) {
   const [form, setForm] = useState<ProfileFormState>(() => toFormState(profile));
   const [notice, setNotice] = useState<ChangeNotice | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const saveProfileMutation = useSaveProfileMutation();
+  const isSaving = saveProfileMutation.isPending;
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -232,86 +234,67 @@ export function ProfileEditorTab({
     }
 
     try {
-      setIsSaving(true);
       setNotice({ type: "success", message: "Verifying credentials…" });
       const credentials = await verifyCredentials();
       setNotice({ type: "success", message: "Preparing profile update…" });
 
-      let avatarUploadPayload: { fileName: string; mimeType: string; base64Data: string } | null = null;
+      let avatarUploadPayload: { filename: string; mimeType: string; base64: string } | undefined;
       if (avatarFile) {
         const inferredMimeType = inferAvatarMimeType(avatarFile);
         if (!inferredMimeType) {
           setNotice({ type: "error", message: "Avatar must be a PNG or JPG image." });
-          setIsSaving(false);
           return;
         }
 
         setNotice({ type: "success", message: "Preparing avatar upload…" });
-        const base64Data = await readFileAsBase64(avatarFile);
+        const base64 = await readFileAsBase64(avatarFile);
         avatarUploadPayload = {
-          fileName: avatarFile.name,
+          filename: avatarFile.name,
           mimeType: inferredMimeType,
-          base64Data,
+          base64,
         };
       }
 
       setNotice({ type: "success", message: "Saving profile…" });
 
-      const payload: Record<string, unknown> = {
-        displayName: normalizedForm.displayName,
-        bio: normalizedForm.bio,
-        links: normalizedForm.links,
-      };
-
-      if (!avatarFile && normalizedForm.avatarUrl.length > 0) {
-        payload.avatarUrl = normalizedForm.avatarUrl;
-      }
-
-      const requestBody: Record<string, unknown> = {
+      const result = await saveProfileMutation.mutateAsync({
         username: credentials.username,
         password: credentials.password,
-        profile: payload,
-      };
-
-      if (avatarUploadPayload) {
-        requestBody.avatarUpload = avatarUploadPayload;
-      }
-
-      const response = await fetch("/api/save-user-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+        profile: {
+          key: profile.key,
+          displayName: normalizedForm.displayName,
+          bio: normalizedForm.bio,
+          links: normalizedForm.links,
+          avatarUrl: !avatarFile && normalizedForm.avatarUrl.length > 0 ? normalizedForm.avatarUrl : undefined,
+        },
+        avatarUpload: avatarUploadPayload,
       });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const message = typeof result.error === "string" ? result.error : "Unable to save profile.";
-        setNotice({ type: "error", message });
-        return;
-      }
 
       if (result.unchanged) {
         setNotice({ type: "success", message: "Profile already up to date." });
         return;
       }
 
-      const nextProfile = result.profile;
-      if (nextProfile) {
-        onProfileUpdated(nextProfile, credentials.key);
-        setForm(toFormState(nextProfile));
-        setAvatarFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
+      // Use profile from API response if available, otherwise construct from form
+      const updatedProfile = result.profile ?? {
+        ...profile,
+        displayName: normalizedForm.displayName,
+        bio: normalizedForm.bio,
+        links: normalizedForm.links,
+        avatarUrl: result.avatarUrl ?? normalizedForm.avatarUrl,
+      };
+
+      onProfileUpdated(updatedProfile, credentials.key);
+      setForm(toFormState(updatedProfile));
+      setAvatarFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
 
       setNotice({ type: "success", message: "Profile saved successfully." });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to verify credentials.";
+      const message = error instanceof Error ? error.message : "Unable to save profile.";
       setNotice({ type: "error", message });
-    } finally {
-      setIsSaving(false);
     }
   };
 

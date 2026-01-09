@@ -2,10 +2,10 @@ import { memo } from "react";
 import { AlertCircle, AlertTriangle, ShieldAlert, Skull } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewInteractionsSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 const INTERACTION_CATEGORIES = [

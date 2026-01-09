@@ -58,7 +58,6 @@ import {
   type GeneratorTabProps,
 } from "./types";
 import { useDevMode } from "../../DevModeContext";
-import { convertGeneratedToRawArticle } from "../../../../utils/data/articleConverter";
 
 export const GeneratorTab = memo(function GeneratorTab({
   generatorPrompt,
@@ -418,9 +417,9 @@ export const GeneratorTab = memo(function GeneratorTab({
       const maxId = articles.reduce((max, a) => Math.max(max, typeof a.id === "number" ? a.id : 0), 0);
       const newId = maxId + 1;
 
-      // Convert and add
-      const rawArticle = convertGeneratedToRawArticle(parseResult.data, newId);
-      applyArticlesTransform((prev) => [...prev, rawArticle]);
+      // Add article directly with assigned ID (SubstanceArticle schema)
+      const articleWithId = { ...parseResult.data, id: newId };
+      applyArticlesTransform((prev) => [...prev, articleWithId]);
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);

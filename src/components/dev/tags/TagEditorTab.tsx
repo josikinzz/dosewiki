@@ -43,11 +43,11 @@ export function TagEditorTab({
   const { articles, replaceArticles } = useDevMode();
 
   const [registryVersion, setRegistryVersion] = useState(0);
-  const [activeField, setActiveField] = useState<TagField>("categories");
+  const [activeField, setActiveField] = useState<TagField>("index_categories");
   const [selected, setSelected] = useState<SelectedTag | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [renameValue, setRenameValue] = useState("");
-  const [moveTargetField, setMoveTargetField] = useState<TagField>(() => getDefaultTargetField("categories"));
+  const [moveTargetField, setMoveTargetField] = useState<TagField>(() => getDefaultTargetField("index_categories"));
   const [moveLabel, setMoveLabel] = useState("");
   const [keepSourceCopy, setKeepSourceCopy] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
@@ -56,9 +56,12 @@ export function TagEditorTab({
 
   const registry = useMemo(() => buildTagRegistry(articles), [articles, registryVersion]);
 
-  const fieldTags = registry.byField[activeField];
+  const fieldTags = registry.byField[activeField] ?? [];
 
   const filteredTags = useMemo(() => {
+    if (!fieldTags || fieldTags.length === 0) {
+      return [];
+    }
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
       return fieldTags;

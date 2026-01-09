@@ -1,71 +1,71 @@
 import { AppView, DevTab } from "../types/navigation";
 
-export function viewToHash(view: AppView): string {
+export function viewToPath(view: AppView): string {
   switch (view.type) {
     case "substances":
-      return "#/substances";
+      return "/substances";
     case "effects":
-      return "#/effects";
+      return "/effects";
     case "interactions": {
       const primary = view.primarySlug?.trim();
       const secondary = view.secondarySlug?.trim();
       if (primary && secondary) {
-        return `#/interactions/${primary}/${secondary}`;
+        return `/interactions/${primary}/${secondary}`;
       }
       if (primary) {
-        return `#/interactions/${primary}`;
+        return `/interactions/${primary}`;
       }
-      return "#/interactions";
+      return "/interactions";
     }
     case "about":
-      return "#/about";
+      return "/about";
     case "category":
-      return `#/category/${view.categoryKey}`;
+      return `/category/${view.categoryKey}`;
     case "effect":
-      return `#/effect/${view.effectSlug}`;
+      return `/effect/${view.effectSlug}`;
     case "mechanism":
       return view.qualifierSlug
-        ? `#/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
-        : `#/mechanism/${view.mechanismSlug}`;
+        ? `/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
+        : `/mechanism/${view.mechanismSlug}`;
     case "classification": {
       const base = view.classification === "chemical" ? "chemical" : "psychoactive";
       const slug = view.slug.trim();
-      return slug.length > 0 ? `#/${base}/${slug}` : `#/${base}`;
+      return slug.length > 0 ? `/${base}/${slug}` : `/${base}`;
     }
     case "search": {
       const query = view.query.trim();
-      return query.length > 0 ? `#/search/${encodeURIComponent(query)}` : "#/search";
+      return query.length > 0 ? `/search/${encodeURIComponent(query)}` : "/search";
     }
     case "substance": {
       const slug = view.slug.trim();
-      return slug.length > 0 ? `#/substance/${slug}` : "#/substance";
+      return slug.length > 0 ? `/${slug}` : "/substances";
     }
     case "contributor": {
       const key = view.profileKey.trim();
-      return key.length > 0 ? `#/contributors/${encodeURIComponent(key)}` : "#/contributors";
+      return key.length > 0 ? `/contributors/${encodeURIComponent(key)}` : "/contributors";
     }
     case "dev": {
       const tab = view.tab;
       const slug = view.slug?.trim();
       if (slug) {
-        return `#/dev/${tab}/${slug}`;
+        return `/dev/${tab}/${slug}`;
       }
-      return `#/dev/${tab}`;
+      return `/dev/${tab}`;
     }
     default:
-      return "#/substances";
+      return "/substances";
   }
 }
 
-export function parseHash(
-  hashValue: string | undefined,
+export function parsePath(
+  pathValue: string | undefined,
   defaultSlug: string | null,
   defaultView: AppView = { type: "substances" },
 ): AppView {
   const resolveDefault = () => defaultView;
   try {
-    const source = typeof hashValue === "string" ? hashValue : typeof window !== "undefined" ? window.location.hash : "";
-    const raw = source.replace(/^#/, "");
+    const source = typeof pathValue === "string" ? pathValue : typeof window !== "undefined" ? window.location.pathname : "";
+    const raw = source.replace(/^\//, "");
 
     if (!raw) {
       return resolveDefault();
@@ -132,7 +132,7 @@ export function parseHash(
           try {
             query = decodeURIComponent(querySegment);
           } catch (error) {
-            console.warn("Failed to decode search query from hash", error);
+            console.warn("Failed to decode search query from path", error);
             query = querySegment;
           }
         }
@@ -151,7 +151,7 @@ export function parseHash(
           try {
             return { type: "contributor", profileKey: decodeURIComponent(slug) };
           } catch (error) {
-            console.warn("Failed to decode contributor key from hash", error);
+            console.warn("Failed to decode contributor key from path", error);
             return { type: "contributor", profileKey: slug };
           }
         }
@@ -188,10 +188,11 @@ export function parseHash(
         return { type: "dev", tab };
       }
       default:
-        return resolveDefault();
+        // Treat any unrecognized path as a substance slug (e.g., /lsd -> substance lsd)
+        return { type: "substance", slug: root };
     }
   } catch (error) {
-    console.warn("Failed to parse hash", hashValue, error);
+    console.warn("Failed to parse path", pathValue, error);
     return resolveDefault();
   }
 }

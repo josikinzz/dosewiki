@@ -182,3 +182,12 @@ export const generateUniqueKey = (base: string, existing: Set<string>): string =
 };
 
 export const ensureString = (value: string): string => value.trim();
+
+/**
+ * Compare two manual configurations (arrays of ManualCategoryDefinition).
+ * This is effectively an alias for areCategoriesEqual since manuals are category arrays.
+ */
+export const areManualsEqual = (
+  first: readonly ManualCategoryDefinition[],
+  second: readonly ManualCategoryDefinition[],
+): boolean => areCategoriesEqual(first, second);

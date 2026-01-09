@@ -4,5 +4,10 @@
       "memory": 1024,
       "maxDuration": 10
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/share/:path*", "destination": "/share/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

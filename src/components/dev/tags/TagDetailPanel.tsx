@@ -1,7 +1,7 @@
 import { SectionCard } from "../../common/SectionCard";
 import { Badge } from "@/components/ui/badge";
 
-import { viewToHash } from "../../../utils/routing";
+import { viewToPath } from "../../../utils/routing";
 import { TAG_FIELD_LABELS } from "../../../utils/data/tagRegistry";
 import type { TagDetailPanelProps } from "./types";
 
@@ -28,7 +28,7 @@ export function TagDetailPanel({ selectedUsage }: TagDetailPanelProps) {
           {selectedUsage.articleRefs.map((ref) => {
             const label = ref.title?.trim()?.length ? ref.title : `Article ${ref.index + 1}`;
             const identifier = typeof ref.id === "number" ? `#${ref.id}` : `Index ${ref.index + 1}`;
-            const href = ref.slug ? viewToHash({ type: "substance", slug: ref.slug }) : undefined;
+            const href = ref.slug ? viewToPath({ type: "substance", slug: ref.slug }) : undefined;
 
             if (!href) {
               return (

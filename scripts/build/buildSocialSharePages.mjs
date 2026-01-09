@@ -327,29 +327,31 @@ const buildShareHtml = ({
 `;
 };
 
+// Build share entries using SubstanceArticle schema
 const buildShareEntries = async () => {
   const articles = await readJson(ARTICLES_PATH);
   const entries = [];
 
   for (const article of articles) {
-    const info = article?.drug_info;
-    if (!info) {
+    // SubstanceArticle schema: identification, classification, dosage, duration at top level
+    const identification = article?.identification;
+    if (!identification) {
       continue;
     }
 
-    const rawIndexCategory = cleanString(article?.["index-category"]);
-    const normalizedIndexCategories = parseIndexCategoryTokens(rawIndexCategory ?? "");
+    // Check if hidden (index_categories is an array in SubstanceArticle)
+    const indexCategories = Array.isArray(article?.index_categories) ? article.index_categories : [];
+    const normalizedIndexCategories = indexCategories.map(cat => cleanString(cat)?.toLowerCase()).filter(Boolean);
     if (normalizedIndexCategories.includes("hidden")) {
       continue;
     }
 
-    const substitutiveName = cleanString(info.substitutive_name);
-    const iupacName = cleanString(info.IUPAC_name);
-    const botanicalName = cleanString(info.botanical_name);
-    const drugName = cleanString(info.drug_name);
+    const commonName = cleanString(identification.common_name);
+    const substitutiveName = cleanString(identification.substitutive_name);
+    const iupacName = cleanString(identification.iupac_name);
     const titleName = cleanString(article?.title);
 
-    const candidateNames = [drugName, titleName, substitutiveName, iupacName, botanicalName].filter(Boolean);
+    const candidateNames = [commonName, titleName, substitutiveName, iupacName].filter(Boolean);
     const preferredName = candidateNames.find((value) => !value.includes("("));
     const baseName = preferredName ?? candidateNames[0];
     if (!baseName) {
@@ -360,22 +362,27 @@ const buildShareEntries = async () => {
     const fallback = id !== null ? `article-${id}` : baseName;
     const slug = slugifyDrugName(baseName, fallback);
 
-    const categories = Array.isArray(info.categories)
-      ? info.categories.map((entry) => cleanString(entry)).filter(Boolean)
-      : [];
+    // Categories from classification (psychoactive_class + chemical_class arrays)
+    const classification = article?.classification;
+    const psychoactiveClasses = Array.isArray(classification?.psychoactive_class) ? classification.psychoactive_class : [];
+    const chemicalClasses = Array.isArray(classification?.chemical_class) ? classification.chemical_class : [];
+    const categories = [...psychoactiveClasses, ...chemicalClasses].map(c => cleanString(c)).filter(Boolean);
 
-    const routeDefinitions = Array.isArray(info?.dosages?.routes_of_administration)
-      ? info.dosages.routes_of_administration
-      : [];
-    const primaryRoute = routeDefinitions.find((route) => cleanString(route?.route)) ?? routeDefinitions[0];
+    // Dosage from article.dosage.routes (SubstanceArticle schema)
+    const dosageRoutes = Array.isArray(article?.dosage?.routes) ? article.dosage.routes : [];
+    const primaryRoute = dosageRoutes.find((route) => cleanString(route?.route)) ?? dosageRoutes[0];
     const routeLabel = cleanString(primaryRoute?.route);
-    const routeUnits = cleanString(primaryRoute?.units);
+    // Extract unit from first dose range
+    const firstRange = primaryRoute?.dose_ranges?.threshold || primaryRoute?.dose_ranges?.light || primaryRoute?.dose_ranges?.moderate;
+    const routeUnits = cleanString(firstRange?.unit);
     const dosageSummary = primaryRoute ? formatDoseSummary(primaryRoute.dose_ranges) : undefined;
-    const durationSummary = formatDurationSummary(info?.duration, routeLabel);
+
+    // Duration from article.duration (SubstanceArticle schema)
+    const durationSummary = formatDurationSummary(article?.duration, routeLabel);
 
     const description = buildDescription(categories.slice(0, 4), routeLabel, routeUnits, dosageSummary, durationSummary);
-    const redirectPath = `/#/substance/${slug}`;
-    const appUrl = `${BASE_URL}/${redirectPath.replace(/^\//, "")}`;
+    const redirectPath = `/${slug}`;
+    const appUrl = `${BASE_URL}${redirectPath}`;
 
     const imageUrl = `${BASE_URL}${SHARE_IMAGE_PATH}`;
     const imageAlt = SHARE_IMAGE_ALT;

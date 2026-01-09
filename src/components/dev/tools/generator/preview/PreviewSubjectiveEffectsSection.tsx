@@ -3,10 +3,10 @@ import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows } from "lucide-react"
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import { Badge } from "@/components/ui/badge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewSubjectiveEffectsSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 const SENSORY_CATEGORIES = [

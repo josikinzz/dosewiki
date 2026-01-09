@@ -2,10 +2,10 @@ import { memo } from "react";
 import { BookOpen, ExternalLink } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
-import type { GeneratedArticle } from "../../../../../types/generatorSchema";
+import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewCitationsSectionProps {
-  article: GeneratedArticle;
+  article: SubstanceArticle;
 }
 
 export const PreviewCitationsSection = memo(function PreviewCitationsSection({

@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import type { TagOption } from "../data/tagOptions";
-import { tokenizeTagField } from "../utils/data/tagDelimiters";
 import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
 import { useDevMode } from "../components/dev/DevModeContext";
 
@@ -10,16 +9,18 @@ export interface DevTagOptionsResult {
   categories: TagOption[];
   chemicalClasses: TagOption[];
   psychoactiveClasses: TagOption[];
-  mechanismEntries: TagOption[];
+  mechanismOfAction: TagOption[];
   indexCategories: TagOption[];
 }
 
-const mapUsagesToOptions = (registry: TagRegistry, field: TagField): TagOption[] =>
-  registry.byField[field].map((usage) => ({
+const mapUsagesToOptions = (registry: TagRegistry, field: TagField): TagOption[] => {
+  const usages = registry.byField[field] ?? [];
+  return usages.map((usage) => ({
     value: usage.tag,
     label: usage.tag,
     count: usage.count,
   }));
+};
 
 export function useDevTagOptions(): DevTagOptionsResult {
   const { articles } = useDevMode();
@@ -29,19 +30,14 @@ export function useDevTagOptions(): DevTagOptionsResult {
     const indexCategoryAccumulator = new Map<string, { label: string; count: number }>();
 
     articles.forEach((article) => {
-      const raw = typeof article["index-category"] === "string" ? article["index-category"] : "";
-      if (!raw) {
-        return;
-      }
-
-      const tags = tokenizeTagField(raw, { splitOnComma: false, splitOnSlash: true });
-      if (tags.length === 0) {
+      const indexCats = Array.isArray(article.index_categories) ? article.index_categories : [];
+      if (indexCats.length === 0) {
         return;
       }
 
       const seen = new Set<string>();
-      tags.forEach((tag) => {
-        const label = tag.trim();
+      indexCats.forEach((tag) => {
+        const label = typeof tag === "string" ? tag.trim() : "";
         if (!label) {
           return;
         }
@@ -63,10 +59,10 @@ export function useDevTagOptions(): DevTagOptionsResult {
 
     return {
       registry,
-      categories: mapUsagesToOptions(registry, "categories"),
+      categories: mapUsagesToOptions(registry, "index_categories"),
       chemicalClasses: mapUsagesToOptions(registry, "chemical_class"),
       psychoactiveClasses: mapUsagesToOptions(registry, "psychoactive_class"),
-      mechanismEntries: mapUsagesToOptions(registry, "mechanism_of_action"),
+      mechanismOfAction: mapUsagesToOptions(registry, "mechanism_of_action"),
       indexCategories,
     };
   }, [articles]);
