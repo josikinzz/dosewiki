@@ -11,39 +11,51 @@ import { ClassificationDetailPage } from "./components/pages/ClassificationDetai
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import { DevModePage } from "./components/pages/DevModePage";
 import { AboutPage } from "./components/pages/AboutPage";
-import {
-  substanceRecords,
-  substanceBySlug,
-  dosageCategoryGroups,
-  getCategoryDetail,
-  findCategoryByKey,
-  normalizeCategoryKey,
-  effectSummaries,
-  getEffectDetail,
-  getEffectSummary,
-  getMechanismDetail,
-  getMechanismSummary,
-  getChemicalClassDetail,
-  getPsychoactiveClassDetail,
-} from "./data/builders/library";
-import { lsdMetadata } from "./data/lsd";
-import { querySearch } from "./data/builders/search";
+import { useLibrary } from "./data/ArticlesProvider";
+import { querySearchWithData } from "./data/builders/search";
 import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
-import { parseHash, viewToHash } from "./utils/routing";
+import { parsePath, viewToPath } from "./utils/routing";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
 import { SubstanceArticle } from "./components/pages/SubstanceArticle";
 
-const firstSubstance = substanceRecords[0] ?? null;
-const DEFAULT_SLUG = lsdMetadata?.slug ?? firstSubstance?.slug ?? null;
-const DEFAULT_RECORD = DEFAULT_SLUG ? substanceBySlug.get(DEFAULT_SLUG) ?? null : null;
 const DEFAULT_VIEW: AppView = { type: "substances" };
 const HARM_REDUCTION_DISMISS_KEY = "dosewiki:harmReductionBannerDismissed";
 
 export default function App() {
-  const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
+  // Get library data from context
+  const library = useLibrary();
+  const {
+    substanceRecords,
+    substanceBySlug,
+    dosageCategoryGroups,
+    effectSummaries,
+    getCategoryDetail,
+    findCategoryByKey,
+    normalizeCategoryKey,
+    getEffectDetail,
+    getEffectSummary,
+    getMechanismDetail,
+    getMechanismSummary,
+    getChemicalClassDetail,
+    getPsychoactiveClassDetail,
+  } = library;
+
+  // Compute default slug from substance records
+  const defaultSlug = useMemo(() => {
+    // Try to find LSD first
+    const lsd = substanceRecords.find(
+      (r) => r.slug === "lsd" || r.name.toLowerCase() === "lsd",
+    );
+    if (lsd) return lsd.slug;
+
+    // Fall back to first substance
+    return substanceRecords[0]?.slug ?? null;
+  }, [substanceRecords]);
+
+  const [view, setView] = useState<AppView>(() => parsePath(undefined, defaultSlug, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(() => {
     if (typeof window === "undefined") {
@@ -53,36 +65,36 @@ export default function App() {
   });
 
   const isInvalidSubstanceView = view.type === "substance" &&
-    (DEFAULT_SLUG === null || !substanceBySlug.has(view.slug));
+    (defaultSlug === null || !substanceBySlug.has(view.slug));
 
   useEffect(() => {
     if (!isInvalidSubstanceView) {
       return;
     }
 
-    if (DEFAULT_SLUG) {
-      const fallbackView: AppView = { type: "substance", slug: DEFAULT_SLUG };
+    if (defaultSlug) {
+      const fallbackView: AppView = { type: "substance", slug: defaultSlug };
       setView(fallbackView);
 
       if (typeof window !== "undefined") {
-        const fallbackHash = viewToHash(fallbackView);
-        if (window.location.hash !== fallbackHash) {
-          window.history.replaceState(null, "", fallbackHash);
+        const fallbackPath = viewToPath(fallbackView);
+        if (window.location.pathname !== fallbackPath) {
+          window.history.replaceState(null, "", fallbackPath);
         }
       }
     } else {
       // No substances exist - redirect to index
       setView({ type: "substances" });
-      if (typeof window !== "undefined" && window.location.hash !== "#/substances") {
-        window.history.replaceState(null, "", "#/substances");
+      if (typeof window !== "undefined" && window.location.pathname !== "/substances") {
+        window.history.replaceState(null, "", "/substances");
       }
     }
   }, [isInvalidSubstanceView]);
 
   const effectiveView = useMemo<AppView>(() => {
     if (isInvalidSubstanceView) {
-      if (DEFAULT_SLUG) {
-        return { type: "substance", slug: DEFAULT_SLUG };
+      if (defaultSlug) {
+        return { type: "substance", slug: defaultSlug };
       }
       return { type: "substances" };
     }
@@ -90,18 +102,19 @@ export default function App() {
   }, [isInvalidSubstanceView, view]);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      setView(parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
+    const handlePopState = () => {
+      setView(parsePath(undefined, defaultSlug, DEFAULT_VIEW));
     };
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const navigate = useCallback((nextView: AppView) => {
-    const nextHash = viewToHash(nextView);
-    if (window.location.hash !== nextHash) {
-      window.location.hash = nextHash;
+    const nextPath = viewToPath(nextView);
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, "", nextPath);
+      setView(nextView);
     } else {
       setView(nextView);
     }
@@ -117,14 +130,14 @@ export default function App() {
     if (definition) {
       navigate({ type: "category", categoryKey: definition.key });
     }
-  }, [navigate]);
+  }, [navigate, normalizeCategoryKey, findCategoryByKey]);
 
   const selectEffect = useCallback((identifier: string) => {
     const summary = getEffectSummary(identifier);
     if (summary) {
       navigate({ type: "effect", effectSlug: summary.slug });
     }
-  }, [navigate]);
+  }, [navigate, getEffectSummary]);
 
   const selectMechanism = useCallback(
     (mechanismSlug: string, qualifierSlug?: string) => {
@@ -140,7 +153,7 @@ export default function App() {
 
       navigate({ type: "mechanism", mechanismSlug: summary.slug });
     },
-    [navigate],
+    [navigate, getMechanismSummary],
   );
 
   const selectClassification = useCallback(
@@ -155,10 +168,10 @@ export default function App() {
 
       navigate({ type: "classification", classification, slug: detail.slug });
     },
-    [navigate],
+    [navigate, getChemicalClassDetail, getPsychoactiveClassDetail],
   );
 
-  const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : DEFAULT_SLUG;
+  const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : defaultSlug;
   const activeRecord = activeSlug ? substanceBySlug.get(activeSlug) ?? null : null;
   const content = activeRecord?.content ?? null;
 
@@ -261,7 +274,7 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={effectiveView} defaultSlug={DEFAULT_SLUG} onNavigate={navigate} />
+      <Header currentView={effectiveView} defaultSlug={defaultSlug} onNavigate={navigate} />
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
@@ -304,7 +317,7 @@ export default function App() {
         <main>
           <SearchResultsPage
             query={view.query}
-            results={querySearch(view.query)}
+            results={querySearchWithData(view.query, library)}
             onSelectSubstance={selectSubstance}
             onSelectCategory={selectCategory}
             onSelectEffect={selectEffect}

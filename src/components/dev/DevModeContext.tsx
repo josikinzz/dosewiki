@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
-import articlesSource from "../../data/articles";
+import { useLibrary } from "../../data/ArticlesProvider";
+import type { SubstanceArticle } from "../../schema";
 import psychoactiveIndexManualSource from "../../data/indexes/psychoactiveIndexManual.json";
 import chemicalIndexManualSource from "../../data/indexes/chemicalIndexManual.json";
 import mechanismIndexManualSource from "../../data/indexes/mechanismIndexManual.json";
@@ -16,7 +17,7 @@ import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
 import type { DevTab } from "../../types/navigation";
 
-type ArticleRecord = (typeof articlesSource)[number];
+type ArticleRecord = SubstanceArticle;
 
 type DevModeOpenOptions = {
   tab?: DevTab;
@@ -78,6 +79,11 @@ const DevModeContext = createContext<DevModeContextValue | undefined>(undefined)
 const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
 export function DevModeProvider({ children }: { children: ReactNode }) {
+  // Get articles from the library context (already loaded by ArticlesProvider)
+  const library = useLibrary();
+  const articlesSource = library.articles;
+
+  // Store original articles in ref (initialized once when provider mounts)
   const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
   const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(originalArticlesRef.current));
   const originalManualIndexRef = useRef<ManualPsychoactiveIndexConfig>(
@@ -106,13 +112,13 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [aboutFounderKeys, setAboutFounderKeys] = useState<string[]>(() => [...aboutFounderKeysSource]);
   const originalGeneratorPromptRef = useRef<string>(generatorPromptSource);
   const [generatorPrompt, setGeneratorPrompt] = useState<string>(() => generatorPromptSource);
-  const lastVisitedHashRef = useRef<string | null>(null);
+  const lastVisitedPathRef = useRef<string | null>(null);
 
-  const isDevHash = useCallback((value: string | null | undefined) => {
+  const isDevPath = useCallback((value: string | null | undefined) => {
     if (typeof value !== "string") {
       return false;
     }
-    return value.startsWith("#/dev");
+    return value.startsWith("/dev");
   }, []);
 
   const open = useCallback((options?: DevModeOpenOptions) => {
@@ -120,48 +126,52 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const currentHash = window.location.hash || "#/substances";
-    if (!isDevHash(currentHash)) {
-      lastVisitedHashRef.current = currentHash;
+    const currentPath = window.location.pathname || "/substances";
+    if (!isDevPath(currentPath)) {
+      lastVisitedPathRef.current = currentPath;
     }
 
     const requestedTab = options?.tab ?? "edit";
     const slug = options?.slug?.trim();
-    const nextHash = slug && slug.length > 0 ? `#/dev/${requestedTab}/${slug}` : `#/dev/${requestedTab}`;
+    const nextPath = slug && slug.length > 0 ? `/dev/${requestedTab}/${slug}` : `/dev/${requestedTab}`;
 
-    if (window.location.hash !== nextHash) {
-      window.location.hash = nextHash;
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState(null, "", nextPath);
+      window.dispatchEvent(new PopStateEvent("popstate"));
       return;
     }
 
-    if (!isDevHash(window.location.hash)) {
-      window.location.hash = nextHash;
+    if (!isDevPath(window.location.pathname)) {
+      window.history.pushState(null, "", nextPath);
+      window.dispatchEvent(new PopStateEvent("popstate"));
       return;
     }
 
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  }, [isDevHash]);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [isDevPath]);
 
   const close = useCallback(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const fallback = lastVisitedHashRef.current && !isDevHash(lastVisitedHashRef.current)
-      ? lastVisitedHashRef.current
-      : "#/substances";
+    const fallback = lastVisitedPathRef.current && !isDevPath(lastVisitedPathRef.current)
+      ? lastVisitedPathRef.current
+      : "/substances";
 
-    if (window.location.hash !== fallback) {
-      window.location.hash = fallback;
+    if (window.location.pathname !== fallback) {
+      window.history.pushState(null, "", fallback);
+      window.dispatchEvent(new PopStateEvent("popstate"));
       return;
     }
 
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      window.location.hash = "#/substances";
+      window.history.pushState(null, "", "/substances");
+      window.dispatchEvent(new PopStateEvent("popstate"));
     }
-  }, [isDevHash]);
+  }, [isDevPath]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
     setArticles((previous) => {

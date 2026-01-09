@@ -63,6 +63,10 @@ export default defineConfig(({ mode }) => {
   const config: UserConfig = {
     base: './',
     plugins: [react(), ...(inline ? [singleFilePlugin()] : [])],
+    define: {
+      // Flag for inline builds to enable synchronous data loading
+      'import.meta.env.VITE_INLINE_BUILD': JSON.stringify(inline ? 'true' : 'false'),
+    },
     esbuild: {
       target: 'es2017',
     },

@@ -298,3 +298,184 @@ export function querySearch(query: string, limit?: number): SearchMatch[] {
 
   return matches;
 }
+
+// Types needed for lazy-loaded search
+import type { SubstanceRecord } from "./contentBuilder";
+import type { LibraryData } from "../ArticlesProvider";
+
+/**
+ * Build search index from library data (for lazy loading).
+ */
+function buildSearchIndex(library: LibraryData): IndexedEntry[] {
+  const substanceEntries: SearchEntry[] = library.substanceRecords.map((record) => {
+    const categories = record.content.categories ?? [];
+    const heroBadges = record.content.heroBadges ?? [];
+    const heroLabels = heroBadges
+      .map((badge) => badge.label)
+      .filter((label): label is string => Boolean(label));
+
+    const chemicalClasses = record.chemicalClasses;
+    const psychoactiveClasses = record.psychoactiveClasses;
+    const mechanismInfo = extractMechanismInfo(record);
+
+    const meta: SearchEntryMeta[] = [];
+
+    const chemicalLabel = joinWithSeparator(chemicalClasses);
+    if (chemicalLabel) {
+      meta.push({
+        label: chemicalClasses.length === 1 ? "Chemical class" : "Chemical classes",
+        value: chemicalLabel,
+      });
+    }
+
+    const psychoactiveLabel = joinWithSeparator(psychoactiveClasses);
+    if (psychoactiveLabel) {
+      meta.push({
+        label: psychoactiveClasses.length === 1 ? "Psychoactive class" : "Psychoactive classes",
+        value: psychoactiveLabel,
+      });
+    }
+
+    const mechanismLabel = joinWithSeparator(mechanismInfo.labels);
+    if (mechanismLabel) {
+      meta.push({
+        label: mechanismInfo.labels.length === 1 ? "Mechanism" : "Mechanisms",
+        value: mechanismLabel,
+      });
+    }
+
+    const aliasLabel = joinWithSeparator(record.aliases);
+
+    const keywordSources = [
+      keywordize(record.name),
+      keywordize(record.slug),
+      ...record.aliases.map((entry) => keywordize(entry)),
+      ...chemicalClasses.map((entry) => keywordize(entry)),
+      ...psychoactiveClasses.map((entry) => keywordize(entry)),
+      ...categories.map((entry) => keywordize(entry)),
+      ...heroLabels.map((entry) => keywordize(entry)),
+      ...mechanismInfo.keywordSources,
+    ];
+
+    const fallbackSubtitle = record.content.subtitle?.trim();
+    const secondaryLabel = aliasLabel || (meta.length === 0 ? fallbackSubtitle : undefined);
+
+    return {
+      id: `substance:${record.slug}`,
+      type: "substance" as const,
+      label: record.name,
+      secondary: secondaryLabel,
+      slug: record.slug,
+      keywords: mergeKeywords(...keywordSources),
+      meta: meta.length > 0 ? meta : undefined,
+    };
+  });
+
+  const categoryEntries: SearchEntry[] = library.dosageCategoryGroups.map((group) => {
+    const definition = library.findCategoryByKey(group.key);
+    const label = definition?.name ?? group.name;
+    const aliases = definition?.aliases ?? [];
+    const keywordSources = [
+      keywordize(label),
+      keywordize(group.key),
+      ...aliases.map((alias) => keywordize(alias)),
+    ];
+
+    return {
+      id: `category:${group.key}`,
+      type: "category" as const,
+      label,
+      secondary: `${group.total} substance${group.total === 1 ? "" : "s"}`,
+      slug: group.key,
+      icon: definition?.icon,
+      count: group.total,
+      keywords: mergeKeywords(...keywordSources),
+    };
+  });
+
+  const effectEntries: SearchEntry[] = library.effectSummaries.map((effect) => {
+    const keywordSources = [keywordize(effect.name), keywordize(effect.slug)];
+
+    return {
+      id: `effect:${effect.slug}`,
+      type: "effect" as const,
+      label: effect.name,
+      secondary: `${effect.total} matching substance${effect.total === 1 ? "" : "s"}`,
+      slug: effect.slug,
+      keywords: mergeKeywords(...keywordSources),
+    };
+  });
+
+  const entryPool = [...substanceEntries, ...categoryEntries, ...effectEntries];
+
+  return entryPool.map((entry) => ({
+    ...entry,
+    keywords: mergeKeywords(entry.keywords, keywordize(entry.label)),
+    labelLower: entry.label.toLowerCase(),
+  }));
+}
+
+// Cache for lazy-loaded search index
+let cachedSearchIndex: IndexedEntry[] | null = null;
+let cachedLibrary: LibraryData | null = null;
+
+/**
+ * Query search using library data (for lazy loading).
+ * Caches the search index for subsequent queries with the same library.
+ */
+export function querySearchWithData(
+  query: string,
+  library: LibraryData,
+  limit?: number,
+): SearchMatch[] {
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) {
+    return [];
+  }
+
+  // Rebuild index if library changed
+  if (library !== cachedLibrary) {
+    cachedSearchIndex = buildSearchIndex(library);
+    cachedLibrary = library;
+  }
+
+  const searchIndex = cachedSearchIndex!;
+
+  const matches: SearchMatch[] = [];
+  searchIndex.forEach((entry) => {
+    const score = computeScore(entry, normalized);
+    if (score === null) {
+      return;
+    }
+
+    const { labelLower: _labelLower, ...rest } = entry;
+    matches.push({
+      ...rest,
+      score,
+    });
+  });
+
+  matches.sort((a, b) => {
+    if (a.score !== b.score) {
+      return a.score - b.score;
+    }
+    if (a.type !== b.type) {
+      const order: Record<SearchEntryType, number> = {
+        substance: 0,
+        category: 1,
+        effect: 2,
+      };
+      return order[a.type] - order[b.type];
+    }
+    if (a.count && b.count && a.count !== b.count) {
+      return b.count - a.count;
+    }
+    return a.label.localeCompare(b.label);
+  });
+
+  if (typeof limit === "number") {
+    return matches.slice(0, Math.max(limit, 0));
+  }
+
+  return matches;
+}
