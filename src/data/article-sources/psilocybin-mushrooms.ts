@@ -508,8 +508,6 @@ DOSAGE REFERENCES
  *[Psychedelics Encyclopedia](https://erowid.org/library/books/psychedelics_encyclopedia.shtml)* , by Peter Stafford 
  *[Psilocybin Mushrooms of the World](https://erowid.org/library/books/psilocybe_mushrooms.shtml)* , Paul Stamets
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to plants](https://erowid.org/plants/) ] [ [back to mushrooms](https://erowid.org/plants/mushrooms/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - Sep 15, 2016

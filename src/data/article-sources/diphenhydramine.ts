@@ -1478,8 +1478,6 @@ Notes
  
 1. As with any powerful psychoactive substance, high doses are more likely to induce difficult experiences, negative side effects, allergic responses, etc.
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to pharms](https://erowid.org/pharms/) ] [ [back to diphenhydramine](https://erowid.org/pharms/diphenhydramine/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - Feb 21, 2015

@@ -71,12 +71,6 @@ NOTES #
  
 The range of doses and effects reported for 5-MeO-DALT is unusually broad. Some reports for 5-MeO-DALT may actually be describing ingestion of other substances misrepresented as 5-MeO-DALT, complicating its profile.
  
-CAUTION & DISCLAIMER #
- 
-Every individual reacts differently to every chemical. 
- 
- Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
- 
 RELATED RESOURCES #
  
 RELATED LINKS #

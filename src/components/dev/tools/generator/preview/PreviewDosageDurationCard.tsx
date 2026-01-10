@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { Clock, Pill } from "lucide-react";
+import { ChartNoAxesCombined, ChartColumnIncreasing, ChartLine } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -9,13 +9,14 @@ interface PreviewDosageDurationCardProps {
   article: SubstanceArticle;
 }
 
-function formatDose(range: DoseRange): string {
+function formatDose(range: DoseRange, isThreshold = false): string {
   if (range.min === null && range.max === null) return "N/A";
   if (range.min !== null && range.max !== null) {
     return `${range.min}-${range.max} ${range.unit}`;
   }
   if (range.min !== null) {
-    return `${range.min}+ ${range.unit}`;
+    // Threshold uses "~X" prefix, others use "X+" suffix
+    return isThreshold ? `~${range.min} ${range.unit}` : `${range.min}+ ${range.unit}`;
   }
   return `${range.max} ${range.unit}`;
 }
@@ -36,31 +37,31 @@ function capitalizeRoute(route: string): string {
 }
 
 const DOSE_TIERS = [
-  { key: "threshold", label: "Threshold", color: "bg-emerald-500/20 text-emerald-300" },
-  { key: "light", label: "Light", color: "bg-sky-500/20 text-sky-300" },
-  { key: "moderate", label: "Moderate", color: "bg-amber-500/20 text-amber-300" },
-  { key: "strong", label: "Strong", color: "bg-orange-500/20 text-orange-300" },
-  { key: "heavy", label: "Heavy", color: "bg-rose-500/20 text-rose-300" },
+  { key: "threshold", label: "Threshold", borderColor: "border-emerald-400/50" },
+  { key: "light", label: "Light", borderColor: "border-sky-400/50" },
+  { key: "moderate", label: "Moderate", borderColor: "border-amber-400/50" },
+  { key: "strong", label: "Strong", borderColor: "border-orange-400/50" },
+  { key: "heavy", label: "Heavy", borderColor: "border-rose-400/50" },
 ] as const;
 
 const DURATION_STAGES = [
-  { key: "onset", label: "Onset" },
-  { key: "come_up", label: "Come Up" },
-  { key: "peak", label: "Peak" },
-  { key: "offset", label: "Offset" },
-  { key: "after_effects", label: "After Effects" },
-  { key: "total_duration", label: "Total" },
+  { key: "onset", label: "Onset", borderColor: "border-emerald-400/50" },
+  { key: "come_up", label: "Come Up", borderColor: "border-orange-400/50" },
+  { key: "peak", label: "Peak", borderColor: "border-rose-400/50" },
+  { key: "offset", label: "Offset", borderColor: "border-orange-400/50" },
+  { key: "after_effects", label: "After Effects", borderColor: "border-sky-400/50" },
+  { key: "total_duration", label: "Total", borderColor: "border-fuchsia-400/50" },
 ] as const;
 
 function DosagePanel({ route }: { route: DosageRoute }) {
-  const hasNotes = route.notes.trim().length > 0;
-  const hasBioavailability = route.bioavailability.trim().length > 0;
+  const hasNotes = route.notes?.trim().length > 0;
+  const hasBioavailability = route.bioavailability?.trim().length > 0;
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 font-semibold text-white">
-          <Pill className="h-4 w-4 text-fuchsia-200" />
+          <ChartColumnIncreasing className="h-4 w-4 text-fuchsia-200" />
           Dosage
         </h4>
         {hasBioavailability && (
@@ -69,15 +70,15 @@ function DosagePanel({ route }: { route: DosageRoute }) {
           </span>
         )}
       </div>
-      <div className="space-y-2">
-        {DOSE_TIERS.map(({ key, label, color }) => {
+      <div className="space-y-1.5">
+        {DOSE_TIERS.map(({ key, label, borderColor }) => {
           const range = route.dose_ranges[key as keyof typeof route.dose_ranges];
-          const value = formatDose(range);
+          const value = formatDose(range, key === "threshold");
           if (value === "N/A") return null;
           return (
-            <div key={key} className="flex items-center justify-between text-sm">
-              <span className={`rounded px-2 py-0.5 ${color}`}>{label}</span>
-              <span className="font-mono text-white/80">{value}</span>
+            <div key={key} className={`flex items-center justify-between rounded-lg border-l-2 ${borderColor} bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]`}>
+              <span className="font-medium text-white/80">{label}</span>
+              <span className="font-mono text-xs text-white/70">{value}</span>
             </div>
           );
         })}
@@ -95,18 +96,18 @@ function DurationPanel({ route }: { route: DurationRoute }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-        <Clock className="h-4 w-4 text-fuchsia-200" />
+        <ChartLine className="h-4 w-4 text-fuchsia-200" />
         Duration
       </h4>
-      <div className="space-y-2">
-        {DURATION_STAGES.map(({ key, label }) => {
+      <div className="space-y-1.5">
+        {DURATION_STAGES.map(({ key, label, borderColor }) => {
           const stage = route.stages[key as keyof typeof route.stages];
           const value = formatDuration(stage);
           if (value === "N/A") return null;
           return (
-            <div key={key} className="flex items-center justify-between text-sm">
-              <span className="text-white/60">{label}</span>
-              <span className="font-mono text-white/80">{value}</span>
+            <div key={key} className={`flex items-center justify-between rounded-lg border-l-2 ${borderColor} bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]`}>
+              <span className="text-white/70 font-medium">{label}</span>
+              <span className="font-mono text-xs text-white/70">{value}</span>
             </div>
           );
         })}
@@ -140,7 +141,7 @@ export const PreviewDosageDurationCard = memo(function PreviewDosageDurationCard
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Pill} label="Dosage & Duration" />
+        <IconBadge icon={ChartNoAxesCombined} label="Dosage & Duration" />
         Dosage & Duration
       </h2>
 

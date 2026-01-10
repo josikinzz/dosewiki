@@ -147,12 +147,6 @@ NOTES #
  
 Some reports for 4-MEO-PCP may actually describe the ingestion of other substances that have been misrepresented as 4-MEO-PCP, complicating its profile.
  
-CAUTION & DISCLAIMER #
- 
-Every individual reacts differently to every chemical. 
- 
- Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
- 
 RELATED RESOURCES #
  
 RELATED LINKS #

@@ -269,23 +269,30 @@ const modifiedArticles = articles.map(article => {
       }
 
       const name = formatInteractionName(target);
+      // Include note in parentheses if available
+      const entry = info.note ? `${name} (${info.note})` : name;
 
       if (severity === "dangerous") {
-        dangerous.push(name);
+        dangerous.push(entry);
         stats.dangerousCount++;
       } else if (severity === "unsafe") {
-        unsafe.push(name);
+        unsafe.push(entry);
         stats.unsafeCount++;
       } else if (severity === "caution") {
-        caution.push(name);
+        caution.push(entry);
         stats.cautionCount++;
       }
     }
 
-    // Sort for consistency
-    dangerous.sort();
-    unsafe.sort();
-    caution.sort();
+    // Sort by substance name (extract name before any parenthetical note)
+    const sortByName = (a, b) => {
+      const nameA = a.replace(/\s*\(.*$/, "").toLowerCase();
+      const nameB = b.replace(/\s*\(.*$/, "").toLowerCase();
+      return nameA.localeCompare(nameB);
+    };
+    dangerous.sort(sortByName);
+    unsafe.sort(sortByName);
+    caution.sort(sortByName);
 
     updated.interactions = { dangerous, unsafe, caution };
 

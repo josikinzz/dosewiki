@@ -53,11 +53,14 @@ export type UseArticleFormReturn = {
   // Field arrays
   dosageRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "dosage.routes">>;
   durationRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "duration.routes">>;
+  sourceCitations: ReturnType<typeof useFieldArray<SubstanceArticle, "source_citations">>;
   citations: ReturnType<typeof useFieldArray<SubstanceArticle, "citations">>;
   comparisons: ReturnType<typeof useFieldArray<SubstanceArticle, "comparisons">>;
   // Helpers
   addDosageRoute: () => void;
   removeDosageRoute: (index: number) => void;
+  addSourceCitation: () => void;
+  removeSourceCitation: (index: number) => void;
   addCitation: () => void;
   removeCitation: (index: number) => void;
   applyDurationFromRoute: (fromIndex: number, toIndex: number) => void;
@@ -105,6 +108,11 @@ export function useArticleForm({
   const durationRoutes = useFieldArray({
     control,
     name: "duration.routes",
+  });
+
+  const sourceCitations = useFieldArray({
+    control,
+    name: "source_citations",
   });
 
   const citations = useFieldArray({
@@ -173,6 +181,17 @@ export function useArticleForm({
     [dosageRoutes, durationRoutes]
   );
 
+  const addSourceCitation = useCallback(() => {
+    sourceCitations.append(createEmptyCitation());
+  }, [sourceCitations]);
+
+  const removeSourceCitation = useCallback(
+    (index: number) => {
+      sourceCitations.remove(index);
+    },
+    [sourceCitations]
+  );
+
   const addCitation = useCallback(() => {
     citations.append(createEmptyCitation());
   }, [citations]);
@@ -219,10 +238,13 @@ export function useArticleForm({
     methods,
     dosageRoutes,
     durationRoutes,
+    sourceCitations,
     citations,
     comparisons,
     addDosageRoute,
     removeDosageRoute,
+    addSourceCitation,
+    removeSourceCitation,
     addCitation,
     removeCitation,
     applyDurationFromRoute,

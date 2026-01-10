@@ -41,10 +41,14 @@ export const parsers: Record<string, SourceParser> = {
   wikipedia: wikipediaParser,
 };
 
-// Source priority for conflict resolution
-// NOTE: Priority system removed - all data from all sources is now preserved
-// Consumers can implement their own deduplication/priority logic
-// export const sourcePriority: Record<string, Record<string, number>> = { ... };
+// Source priority for pharmacology fields (lower number = higher priority)
+// DrugBank > PsychonautWiki > Wikipedia > others
+export const pharmacologySourcePriority: Record<string, number> = {
+  drugbank: 1,
+  psychonautwiki: 2,
+  wikipedia: 3,
+  // All others default to 99
+};
 
 /**
  * Get parser for a given source ID
@@ -121,21 +125,17 @@ export function aggregateResults(
       }
     }
 
-    // Pharmacology: same merge pattern
+    // Pharmacology: collect all results for priority-based merging later
     if (result.pharmacology) {
       if (!aggregated.pharmacology) {
-        aggregated.pharmacology = { ...result.pharmacology };
-      } else {
-        aggregated.pharmacology.sources = [
-          ...(aggregated.pharmacology.sources || []),
-          ...(result.pharmacology.sources || []),
-        ];
-        for (const [key, value] of Object.entries(result.pharmacology)) {
-          if (key !== "sources" && value && !(aggregated.pharmacology as Record<string, unknown>)[key]) {
-            (aggregated.pharmacology as Record<string, unknown>)[key] = value;
-          }
-        }
+        aggregated.pharmacology = { sources: [] };
       }
+      // Store source with its data for later priority resolution
+      (aggregated.pharmacology as Record<string, unknown>)[`_src_${sourceId}`] = result.pharmacology;
+      aggregated.pharmacology.sources = [
+        ...(aggregated.pharmacology.sources || []),
+        ...(result.pharmacology.sources || []),
+      ];
     }
 
     // HarmReduction: append all rules/risks
@@ -194,7 +194,34 @@ export function aggregateResults(
     });
   }
 
-  // NO SORTING - keep source processing order
+  // Resolve pharmacology fields by priority (Wikipedia > PsychonautWiki > DrugBank)
+  if (aggregated.pharmacology) {
+    const pharm = aggregated.pharmacology as Record<string, unknown>;
+    const sourceKeys = Object.keys(pharm).filter((k) => k.startsWith("_src_"));
+
+    // Sort sources by priority
+    sourceKeys.sort((a, b) => {
+      const srcA = a.replace("_src_", "");
+      const srcB = b.replace("_src_", "");
+      const prioA = pharmacologySourcePriority[srcA] ?? 99;
+      const prioB = pharmacologySourcePriority[srcB] ?? 99;
+      return prioA - prioB;
+    });
+
+    // Merge fields in priority order (highest priority source wins for each field)
+    const pharmacologyFields = ["halfLife", "bioavailability", "metabolism", "receptors", "mechanismOfAction"];
+    for (const srcKey of sourceKeys) {
+      const srcData = pharm[srcKey] as Record<string, unknown>;
+      for (const field of pharmacologyFields) {
+        if (srcData[field] && !pharm[field]) {
+          pharm[field] = srcData[field];
+        }
+      }
+      // Clean up temporary source data
+      delete pharm[srcKey];
+    }
+  }
+
   return aggregated;
 }
 

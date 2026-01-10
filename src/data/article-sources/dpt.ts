@@ -68,8 +68,6 @@ DPT is a synthetic tryptamine most similar in nature to DMT. It is weakly active
 **Onset : immediate Duration : 30 - 60 minutes Normal After Effects : 2 - 4 hours**
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to dpt](https://erowid.org/chemicals/dpt/) ]
  
 - Created by Erowid - Dec 1, 1998 | Created by Erowid - Dec 1, 1998 | Modified - Feb 21, 2015

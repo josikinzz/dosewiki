@@ -208,12 +208,6 @@ Caution : Dose information should not be taken as recommendations. [ see below ]
  
 6-APB is an uncommon synthetic empathogenic stimulant that is most often found in powder form that is taken orally. Wide variability in dose response has been reported. While doses producing strong effects are commonly reported, fewer reports are currently available about effects at doses lower than 75 mg.
  
-CAUTION & DISCLAIMER #
- 
-Every individual reacts differently to every chemical. 
- 
- Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
- 
 RELATED RESOURCES #
  
 RELATED LINKS #

@@ -373,8 +373,6 @@ by Erowid
 **Onset : immediate Duration : 2 - 5 hours Normal After Effects : 2 - 4 hours**
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to 5meo_mipt](https://erowid.org/chemicals/5meo_mipt/) ]
  
 - Created by Erowid - Jul 8, 2005 | Created by Erowid - Jul 8, 2005 | Modified - Feb 21, 2015

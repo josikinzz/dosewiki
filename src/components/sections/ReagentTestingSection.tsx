@@ -385,13 +385,14 @@ export function ReagentTestingSection({
       {!hasStaticData && (
         <div className="mt-4 flex items-center justify-end gap-2">
           <span className="text-xs text-white/50">Powered by</span>
+          <img src="/favicons/protestkit.png" alt="" className="h-5 w-5 rounded -mr-1" />
           <a
             href="https://protestkit.eu"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-fuchsia-200 transition hover:text-fuchsia-100"
+            className="text-xs font-semibold text-fuchsia-200 transition hover:text-fuchsia-100"
           >
-            ProtestKit.eu
+            PROtestkit.eu
           </a>
           <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
         </div>

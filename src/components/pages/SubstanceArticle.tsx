@@ -252,7 +252,7 @@ export function SubstanceArticle({
             <InteractionsSection interactions={content.interactions} />
             <ToleranceSection tolerance={content.tolerance} />
             <NotesSection notes={content.notes} />
-            <CitationsSection citations={content.citations} />
+            <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
           </div>
         </main>
       </div>
@@ -306,7 +306,7 @@ export function SubstanceArticle({
                     <ToleranceSection tolerance={content.tolerance} />
                     <AddictionCard summary={content.addictionSummary} />
                     <NotesSection notes={content.notes} />
-                    <CitationsSection citations={content.citations} />
+                    <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
                   </>
                 ) : (
                   <div className="space-y-4">

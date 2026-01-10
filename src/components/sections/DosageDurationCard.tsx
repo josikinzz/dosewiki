@@ -1,4 +1,4 @@
-import { ChartNoAxesCombined, Scale, Timer } from 'lucide-react';
+import { ChartNoAxesCombined, ChartColumnIncreasing, ChartLine } from 'lucide-react';
 import { SectionCard } from '../common/SectionCard';
 import { IconBadge } from '../common/IconBadge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -93,7 +93,7 @@ export function DosageDurationCard({
       <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
         <div>
           <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
-            <Scale className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            <ChartColumnIncreasing className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
             <span>Dosage ({resolveLabel(activeRouteKey)})</span>
           </h3>
           <div className="space-y-1.5">
@@ -105,7 +105,7 @@ export function DosageDurationCard({
                 return (
                   <div
                     key={entry.label}
-                    className="rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
+                    className="rounded-xl border-l-2 border-fuchsia-500/40 bg-white/[0.03] px-4 py-2.5 text-sm text-white/80 ring-1 ring-white/10 transition odd:bg-white/[0.07] hover:bg-white/10"
                   >
                     <div className="flex flex-col gap-2">
                       <div className="flex items-start justify-between gap-4">
@@ -138,7 +138,7 @@ export function DosageDurationCard({
         </div>
         <div>
           <h3 className="mb-2.5 flex items-center gap-2 text-sm font-semibold text-white/85">
-            <Timer className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+            <ChartLine className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
             <span>Duration ({resolveLabel(activeRouteKey)})</span>
           </h3>
           <div className="space-y-1.5">
@@ -146,7 +146,7 @@ export function DosageDurationCard({
               activeRoute.duration.map((entry) => (
                 <div
                   key={entry.label}
-                  className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.06] px-4 py-2 text-sm text-white/80 ring-1 ring-white/10 transition hover:bg-white/10"
+                  className="flex items-center justify-between gap-4 rounded-xl border-l-2 border-fuchsia-500/40 bg-white/[0.03] px-4 py-2.5 text-sm text-white/80 ring-1 ring-white/10 transition odd:bg-white/[0.07] hover:bg-white/10"
                 >
                   <span className="font-semibold text-white/90">{entry.label}</span>
                   <span className="text-white/75">{entry.value}</span>

@@ -24,6 +24,7 @@ import type {
 import {
   createEmptyParserResult,
   extractSection,
+  extractSubsections,
   extractBulletList,
   extractLabeledBullets,
   parseDoseRange,
@@ -953,43 +954,55 @@ export class WikipediaParser implements SourceParser {
   parse(content: string, substanceName: string): ParserResult {
     const result = createEmptyParserResult();
 
+    /**
+     * Clean section text for LLM consumption
+     */
+    const cleanSectionText = (text: string): string => {
+      let cleaned = stripReferences(cleanMarkdown(text))
+        .replace(/\s+/g, " ")
+        .trim();
+      // Remove leading section headers that got included (may be multiple)
+      cleaned = cleaned.replace(/^((Pharmacokinetics|Pharmacology|Metabolism|Absorption|Elimination|Bioavailability|Half-life)\s+)+/i, "");
+      // Remove "citation needed" markers
+      cleaned = cleaned.replace(/\s*citation needed\s*/gi, " ").trim();
+      // Ensure ends with punctuation
+      if (cleaned.length > 0 && !/[.!?]$/.test(cleaned)) {
+        cleaned += ".";
+      }
+      return cleaned;
+    };
+
     // Parse Pharmacology section
     const pharmacoSection = extractSection(content, "Pharmacology", 2);
     if (pharmacoSection) {
       const pharmacology: Partial<ParsedPharmacology> = { sources: [this.sourceId] };
 
-      // Look for half-life mentions - capture full sentence(s), not just to first period
-      const halfLifeMatch = pharmacoSection.match(/half[- ]?life[^.]*(?:\.[^.]*){0,2}/i);
-      if (halfLifeMatch) {
-        pharmacology.halfLife = cleanMarkdown(halfLifeMatch[0]);
+      // Check for subsections - extract complete text, no sentence splitting
+      const subsections = extractSubsections(pharmacoSection, 3);
+
+      const halfLifeSubsection = subsections.get("half-life") || subsections.get("elimination");
+      if (halfLifeSubsection) {
+        const cleaned = cleanSectionText(halfLifeSubsection);
+        if (cleaned.length > 10) pharmacology.halfLife = cleaned;
       }
 
-      // Look for bioavailability - capture full context
-      const bioMatch = pharmacoSection.match(/bioavailability[^.]*(?:\.[^.]*){0,1}/i);
-      if (bioMatch) {
-        pharmacology.bioavailability = cleanMarkdown(bioMatch[0]);
+      const bioSubsection = subsections.get("bioavailability") || subsections.get("absorption");
+      if (bioSubsection) {
+        const cleaned = cleanSectionText(bioSubsection);
+        if (cleaned.length > 10) pharmacology.bioavailability = cleaned;
       }
 
-      // Look for mechanism of action
-      const mechanismSection = extractSection(pharmacoSection, "Pharmacodynamics", 3);
-      if (mechanismSection) {
-        // Pre-strip markdown links to avoid URL periods causing truncation
-        const sectionWithoutLinks = stripMarkdownLinks(mechanismSection);
-        const mechanisms: string[] = [];
-        const mechanismPatterns = [
-          /acts?\s+as\s+(?:an?\s+)?([^.]+(?:agonist|antagonist|inhibitor))/gi,
-          /([^.]+(?:agonist|antagonist|inhibitor))\s+(?:at|of)\s+(?:the\s+)?([^.]+)/gi,
-        ];
+      const metabolismSubsection = subsections.get("metabolism");
+      if (metabolismSubsection) {
+        const cleaned = cleanSectionText(metabolismSubsection);
+        if (cleaned.length > 10) pharmacology.metabolism = cleaned;
+      }
 
-        for (const pattern of mechanismPatterns) {
-          let match;
-          while ((match = pattern.exec(sectionWithoutLinks)) !== null) {
-            mechanisms.push(match[1].trim());
-          }
-        }
-
-        if (mechanisms.length > 0) {
-          pharmacology.mechanismOfAction = mechanisms;
+      // If no specific subsections found, store full pharmacology section for LLM
+      if (!pharmacology.halfLife && !pharmacology.bioavailability && !pharmacology.metabolism) {
+        const fullSection = cleanSectionText(pharmacoSection);
+        if (fullSection.length > 50) {
+          pharmacology.metabolism = fullSection;
         }
       }
 
@@ -998,8 +1011,8 @@ export class WikipediaParser implements SourceParser {
         result.sectionsExtracted.push("pharmacology");
       }
 
-      // Also capture full Pharmacology section as narrative (no truncation)
-      const pharmacoNarrative = stripReferences(cleanMarkdown(pharmacoSection));
+      // Also capture full Pharmacology section as narrative
+      const pharmacoNarrative = cleanSectionText(pharmacoSection);
       if (pharmacoNarrative.length >= 100) {
         result.narrativeContent.generalNotes.push({
           source: this.sourceId,

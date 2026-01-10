@@ -1,7 +1,10 @@
-import { Leaf, MessageSquarePlus } from "lucide-react";
+import { useState } from "react";
+import { Leaf, MessageSquarePlus, ChevronDown, Ellipsis } from "lucide-react";
 
 import type { HeroBadge, MoleculeAsset, NameVariant } from "../../types/content";
 import { Button } from "@/components/ui/button";
+
+const MAX_VISIBLE_NAMES = 5;
 
 interface HeroProps {
   title: string;
@@ -28,6 +31,8 @@ export function Hero({
   badgeVariant = "default",
   onCategorySelect,
 }: HeroProps) {
+  const [expandedVariants, setExpandedVariants] = useState<Set<string>>(new Set());
+  const [aliasesExpanded, setAliasesExpanded] = useState(false);
   const isCompactBadges = badgeVariant === "compact";
   const displayedAssets = (moleculeAssets?.length ? moleculeAssets : moleculeAsset ? [moleculeAsset] : []).slice(0, 3);
   const hasMolecule = displayedAssets.length > 0;
@@ -121,24 +126,78 @@ export function Hero({
         </h1>
         {hasHeroVariantLines ? (
           <div className="flex flex-col items-center gap-2">
-            {heroVariantLines.map((line) => (
-              <p key={line.key} className={variantLineClasses}>
-                <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
-                <span className="flex flex-wrap items-center justify-center gap-2 text-white/80">
-                  {line.values.map((value, index) => (
-                    <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
-                      <span className="italic">{value}</span>
-                      {index < line.values.length - 1 ? (
+            {heroVariantLines.map((line) => {
+              const isExpanded = expandedVariants.has(line.key);
+              const hasMore = line.values.length > MAX_VISIBLE_NAMES;
+              const visibleValues = isExpanded ? line.values : line.values.slice(0, MAX_VISIBLE_NAMES);
+
+              return (
+                <p key={line.key} className={variantLineClasses}>
+                  <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+                  <span className="flex flex-wrap items-center justify-center gap-2 text-white/80">
+                    {visibleValues.map((value, index) => (
+                      <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
+                        <span className="italic">{value}</span>
+                        {index < visibleValues.length - 1 ? (
+                          <span className="text-white/65">·</span>
+                        ) : null}
+                      </span>
+                    ))}
+                    {hasMore && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExpandedVariants((prev) => {
+                            const next = new Set(prev);
+                            if (isExpanded) {
+                              next.delete(line.key);
+                            } else {
+                              next.add(line.key);
+                            }
+                            return next;
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2 py-0.5 text-fuchsia-400 transition-colors hover:bg-fuchsia-400/20 hover:text-fuchsia-300"
+                      >
+                        <Ellipsis className="h-3 w-3" />
+                        <ChevronDown className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                      </button>
+                    )}
+                  </span>
+                </p>
+              );
+            })}
+          </div>
+        ) : hasAliases ? (
+          (() => {
+            const hasMore = aliases.length > MAX_VISIBLE_NAMES;
+            const visibleAliases = aliasesExpanded ? aliases : aliases.slice(0, MAX_VISIBLE_NAMES);
+
+            return (
+              <p className={defaultLineClasses}>
+                <span className="flex flex-wrap items-center justify-center gap-2">
+                  {visibleAliases.map((alias, index) => (
+                    <span key={`alias-${alias}-${index}`} className="flex items-center gap-2">
+                      <span>{alias}</span>
+                      {index < visibleAliases.length - 1 ? (
                         <span className="text-white/65">·</span>
                       ) : null}
                     </span>
                   ))}
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={() => setAliasesExpanded(!aliasesExpanded)}
+                      className="inline-flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2 py-0.5 text-fuchsia-400 transition-colors hover:bg-fuchsia-400/20 hover:text-fuchsia-300"
+                    >
+                      <Ellipsis className="h-3 w-3" />
+                      <ChevronDown className={`h-3 w-3 transition-transform ${aliasesExpanded ? "rotate-180" : ""}`} />
+                    </button>
+                  )}
                 </span>
               </p>
-            ))}
-          </div>
-        ) : hasAliases ? (
-          <p className={defaultLineClasses}>{aliases.join(" · ")}</p>
+            );
+          })()
         ) : shouldShowSubtitle ? (
           <p className={defaultLineClasses}>{subtitle}</p>
         ) : null}

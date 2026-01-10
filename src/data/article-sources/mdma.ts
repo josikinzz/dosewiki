@@ -949,9 +949,6 @@ MDMA generally comes in the form of small tablets, capsules, or white powder. Wh
  **Overdose Effects:** 
  Vomiting, headaches and dizziness may result from too high a dose of MDMA. Some people are considerably more sensitive to MDMA than others. Be careful if you are using MDMA for the first time or using material of an unknown purity and strength. Always start low.
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
- 
 REFERENCES #
  
 1. Harris DS, Baggott M, Mendelson J, Mendelson JE, Jones RT. ["Subjective and hormonal effects of 3,4-methylenedioxymethamphetamine (MDMA) in humans"](https://erowid.org/references/1410) *Psychopharmacology (Berl)* . 2002;162:396-405.

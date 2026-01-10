@@ -109,10 +109,8 @@ export interface ParsedHarmReduction {
 }
 
 export interface ParsedTolerance {
-  fullTolerance?: string;
-  halfTolerance?: string;
-  baselineTolerance?: string;
-  crossTolerances?: string[];
+  /** Raw tolerance text extracted from source - to be formatted by LLM */
+  rawText: string;
   source: string;
 }
 

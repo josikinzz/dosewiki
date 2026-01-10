@@ -196,6 +196,28 @@ function formatDurationStage(stage: DurationStage | null | undefined): string | 
   return undefined;
 }
 
+// Format threshold specially: min-only shows as "~X" instead of "X+"
+function formatThresholdRange(range: DoseRange | null | undefined): string | undefined {
+  if (!range) {
+    return undefined;
+  }
+  const { min, max, unit } = range;
+  if (min == null && max == null) {
+    return undefined;
+  }
+  const unitStr = cleanString(unit) || "";
+  if (min != null && max != null) {
+    return `${min}-${max} ${unitStr}`.trim();
+  }
+  if (min != null) {
+    return `~${min} ${unitStr}`.trim();
+  }
+  if (max != null) {
+    return `<${max} ${unitStr}`.trim();
+  }
+  return undefined;
+}
+
 // Build dosage entries from SubstanceArticle DoseRanges
 function buildDoseEntries(ranges: DoseRanges | null | undefined): RouteInfo["dosage"] {
   if (!ranges) {
@@ -207,7 +229,8 @@ function buildDoseEntries(ranges: DoseRanges | null | undefined): RouteInfo["dos
   return doseKeys
     .map((key) => {
       const range = ranges[key];
-      const value = formatDoseRange(range);
+      // Use special formatting for threshold (shows "~X" instead of "X+")
+      const value = key === "threshold" ? formatThresholdRange(range) : formatDoseRange(range);
       if (!value) {
         return null;
       }
@@ -631,6 +654,26 @@ function buildCitations(citations: Citation[] | undefined): CitationEntry[] {
     .filter((entry): entry is CitationEntry => entry !== null);
 }
 
+function buildSourceCitations(sourceCitations: Citation[] | undefined): CitationEntry[] {
+  if (!Array.isArray(sourceCitations)) {
+    return [];
+  }
+
+  return sourceCitations
+    .map((citation) => {
+      const label = cleanString(citation.name);
+      if (!label) {
+        return null;
+      }
+      const href = cleanString(citation.url);
+      return {
+        label,
+        href,
+      };
+    })
+    .filter((entry): entry is CitationEntry => entry !== null);
+}
+
 function buildPlaceholder(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) {
@@ -804,6 +847,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     tolerance: buildToleranceEntries(article.tolerance),
     reagentTesting: article.reagent_testing ?? {},
     notes: cleanString(article.summary) ?? "",
+    sourceCitations: buildSourceCitations(article.source_citations),
     citations: buildCitations(article.citations),
     infoSections: buildInfoSections(identification, classification, pharmacology),
     categories,

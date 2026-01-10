@@ -1314,9 +1314,6 @@ Ketamine Hydrochloride is most commonly used as a veterinary anaesthetic. It is 
  Normal After Effects : 2 - 4 hours 
  Although some recreational users do inject ketamine I.V., it is uncommon to inject ketamine intravenously. It is commonly used medically for surgical anaesthesia via IV. The book 'Introduction to Pharmacology' by 'Mary Kaye Asperheim and Justin Favaro' 12th edition chapter 12. Page 107.
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
- 
 Revision History #
  
 - v1.0 - Jan 19, 1997 - Erowid - First version.

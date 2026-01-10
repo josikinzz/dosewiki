@@ -479,12 +479,6 @@ NOTES #
  
 Many reports of 4-methylmethcathinone use involve redosing ("boosting" / "bumping") multiple times. Users sometimes mix oral and insufflated, taking some 4-methylmethcathinone orally, then insufflating some, then taking more orally. Because of the common desire to recapture the pleasurable initial high, redoses are sometimes higher than the initial dose or are spaced closely together in time. Many users report having difficulty not redosing after using a strong dose if more 4-methylmethcathinone is available when they are starting to come down. Experience reports in which users find themselves unexpectedly consuming a gram or more of 4-methymethcathinone are common.
  
-CAUTION & DISCLAIMER #
- 
-Every individual reacts differently to every chemical. 
- 
- Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
- 
 RELATED RESOURCES #
  
 RELATED LINKS #

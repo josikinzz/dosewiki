@@ -120,36 +120,56 @@ function parseChemicalInformation(content: string, sourceId: string): Partial<Pa
 
 // === Pharmacology Parsing ===
 
+/**
+ * Clean section text for LLM consumption
+ * - Removes markdown formatting
+ * - Removes citation markers (both [1] style and standalone numbers)
+ * - Preserves complete natural language text and decimal numbers
+ */
+function cleanSectionText(text: string): string {
+  let cleaned = stripReferences(cleanMarkdown(text));
+  // Normalize whitespace first (newlines become spaces)
+  cleaned = cleaned.replace(/\s+/g, " ").trim();
+  // Remove citation numbers that appear after punctuation, before capital letter
+  cleaned = cleaned.replace(/([.!?)])\s+\d{1,3}(?:,\s*\d{1,3})*\s+([A-Z])/g, "$1 $2");
+  // Remove trailing citation numbers (preserve existing period if present)
+  cleaned = cleaned.replace(/\s+\d{1,3}(?:,\s*\d{1,3})*\.?$/, "");
+  // Remove leading section headers that got included (may be multiple)
+  cleaned = cleaned.replace(/^((Pharmacokinetics|Pharmacology|Metabolism|Absorption|Elimination|Bioavailability|Half-life)\s+)+/i, "");
+  // Remove "Label" artifacts from DrugBank
+  cleaned = cleaned.replace(/\s*Label\s*\.?/gi, "").trim();
+  // Ensure ends with period if it doesn't end with punctuation
+  if (cleaned.length > 0 && !/[.!?]$/.test(cleaned)) {
+    cleaned += ".";
+  }
+  // Fix any double periods
+  cleaned = cleaned.replace(/\.+/g, ".");
+  return cleaned;
+}
+
 function parsePharmacologySection(
   content: string,
   sourceId: string
 ): Partial<ParsedPharmacology> {
   const pharmacology: Partial<ParsedPharmacology> = { sources: [sourceId] };
 
-  // Parse Half-life (Fix 6: Enhanced reference stripping)
+  // Extract complete sections - minimal processing for LLM consumption
   const halfLifeSection = extractSection(content, "Half-life", 3);
   if (halfLifeSection) {
-    let cleaned = cleanMarkdown(halfLifeSection);
-    // Remove inline citation numbers (standalone numbers on their own lines like "\n10\n")
-    cleaned = cleaned.replace(/\n\d{1,3}\n/g, " ");
-    // Remove trailing reference numbers
-    cleaned = cleaned.replace(/\s*\d{1,3}\s*$/, "").trim();
-    // Clean up multiple spaces
-    cleaned = cleaned.replace(/\s+/g, " ");
-    if (cleaned) pharmacology.halfLife = cleaned;
+    const cleaned = cleanSectionText(halfLifeSection);
+    if (cleaned.length > 10) pharmacology.halfLife = cleaned;
   }
 
-  // Parse Absorption for bioavailability
   const absorptionSection = extractSection(content, "Absorption", 3);
   if (absorptionSection) {
-    const bioMatch = absorptionSection.match(/bioavailability[:\s]+(?:is\s+)?(?:around\s+)?(\d+[%\d\-–\s]*%?)/i);
-    if (bioMatch) pharmacology.bioavailability = bioMatch[1].trim();
+    const cleaned = cleanSectionText(absorptionSection);
+    if (cleaned.length > 10) pharmacology.bioavailability = cleaned;
   }
 
-  // Parse Metabolism (no truncation - full metabolism pathway info)
   const metabolismSection = extractSection(content, "Metabolism", 3);
   if (metabolismSection) {
-    pharmacology.metabolism = stripReferences(cleanMarkdown(metabolismSection));
+    const cleaned = cleanSectionText(metabolismSection);
+    if (cleaned.length > 10) pharmacology.metabolism = cleaned;
   }
 
   // Parse Mechanism of Action

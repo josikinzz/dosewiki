@@ -117,6 +117,7 @@ export interface SubstanceContent {
   tolerance: ToleranceEntry[];
   reagentTesting: Record<string, string>;
   notes: string;
+  sourceCitations: CitationEntry[];
   citations: CitationEntry[];
   infoSections?: InfoSection[];
   categories?: string[];

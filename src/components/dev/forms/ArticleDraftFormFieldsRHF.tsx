@@ -19,6 +19,7 @@ import {
   ToleranceFieldsRHF,
   NotesFieldsRHF,
 } from "./ContentFieldsRHF";
+import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
 
 export type ArticleDraftFormFieldsRHFProps = {
@@ -35,7 +36,7 @@ export function ArticleDraftFormFieldsRHF({
   formRef,
 }: ArticleDraftFormFieldsRHFProps) {
   const articleForm = useArticleForm({ article, onMutate });
-  const { methods, dosageRoutes, durationRoutes, citations, addDosageRoute, removeDosageRoute, addCitation, removeCitation, applyDurationFromRoute } = articleForm;
+  const { methods, dosageRoutes, durationRoutes, sourceCitations, citations, addDosageRoute, removeDosageRoute, addSourceCitation, removeSourceCitation, addCitation, removeCitation, applyDurationFromRoute } = articleForm;
 
   // Expose form methods to parent via ref
   if (formRef) {
@@ -77,6 +78,12 @@ export function ArticleDraftFormFieldsRHF({
         <InteractionsFieldsRHF />
         <ToleranceFieldsRHF idPrefix={idPrefix} />
         <NotesFieldsRHF idPrefix={idPrefix} />
+        <SourceCitationsFieldsRHF
+          idPrefix={idPrefix}
+          sourceCitations={sourceCitations}
+          addSourceCitation={addSourceCitation}
+          removeSourceCitation={removeSourceCitation}
+        />
         <CitationsFieldsRHF
           idPrefix={idPrefix}
           citations={citations}

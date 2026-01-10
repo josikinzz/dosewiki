@@ -84,7 +84,7 @@ interface SubstanceData {
   effects: Array<{ name: string; source: string }>;
   interactions: Array<{ substance: string; source: string; severity?: string; description?: string }>;
   legal: Array<{ country: string; status: string; source: string }>;
-  tolerance: Array<{ source: string; crossTolerances?: string[] }>;
+  tolerance: Array<{ source: string; rawText?: string }>;
   chemistry?: {
     sources: string[];
     formula?: string;
@@ -168,7 +168,7 @@ function generateFieldCoverageSummary(data: ParsedData): string {
     if (sub.interactions?.length) stats["interactions"] = (stats["interactions"] || 0) + 1;
     if (sub.legal?.length) stats["legal"] = (stats["legal"] || 0) + 1;
     if (sub.tolerance?.length) stats["tolerance"] = (stats["tolerance"] || 0) + 1;
-    if (sub.tolerance?.some(t => t.crossTolerances?.length)) stats["crossTolerances"] = (stats["crossTolerances"] || 0) + 1;
+    if (sub.tolerance?.some(t => t.rawText?.length)) stats["toleranceWithText"] = (stats["toleranceWithText"] || 0) + 1;
 
     // Narrative
     if (sub.narrativeContent?.generalNotes?.length) stats["narrative.generalNotes"] = (stats["narrative.generalNotes"] || 0) + 1;
@@ -190,7 +190,7 @@ function generateFieldCoverageSummary(data: ParsedData): string {
   output += `| interactions | ${stats["interactions"] || 0} | ${formatPct(stats["interactions"] || 0)} |\n`;
   output += `| legal | ${stats["legal"] || 0} | ${formatPct(stats["legal"] || 0)} |\n`;
   output += `| tolerance | ${stats["tolerance"] || 0} | ${formatPct(stats["tolerance"] || 0)} |\n`;
-  output += `| crossTolerances | ${stats["crossTolerances"] || 0} | ${formatPct(stats["crossTolerances"] || 0)} |\n`;
+  output += `| toleranceWithText | ${stats["toleranceWithText"] || 0} | ${formatPct(stats["toleranceWithText"] || 0)} |\n`;
 
   // Chemistry
   output += "\n### Chemistry Fields\n\n";

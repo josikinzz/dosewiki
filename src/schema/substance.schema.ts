@@ -265,6 +265,7 @@ export const substanceArticleSchema = z.object({
   harm_potential: harmPotentialSchema,
   tolerance: toleranceSchema,
   legality: legalitySchema,
+  source_citations: z.array(citationSchema).optional(),
   citations: z.array(citationSchema),
 });
 

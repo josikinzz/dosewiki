@@ -1650,12 +1650,6 @@ NOTES #
  
  **ULTRACET** : Ultracet is produced by Ortho-McNeil Pharmaceutical. It comes in tablet form and is taken orally. Each tablet contains both 37.5 mg tramadol and 325 mg acetaminophen/paracetamol. Acetaminophen can cause liver problems at high doses. It may not be safe for heavy alcohol drinkers or those with liver problems to take even moderately high levels of acetaminophen.
  
-CAUTION & DISCLAIMER #
- 
-Every individual reacts differently to every chemical. 
- 
- Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
- 
 RELATED RESOURCES #
  
 RELATED LINKS #

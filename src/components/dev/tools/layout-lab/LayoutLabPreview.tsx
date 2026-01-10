@@ -89,7 +89,7 @@ export function LayoutLabPreview({
           <ToleranceSection tolerance={content.tolerance} />
           <AddictionCard summary={content.addictionSummary} />
           <NotesSection notes={content.notes} />
-          <CitationsSection citations={content.citations} />
+          <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
           {content.heroBadges.length > 0 ? (
             <div className="flex flex-wrap gap-2 pt-4">
               {content.heroBadges.map((badge) => (

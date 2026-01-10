@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { useLibrary } from "../../data/ArticlesProvider";
 import type { SubstanceArticle } from "../../schema";
@@ -86,6 +86,13 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   // Store original articles in ref (initialized once when provider mounts)
   const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
   const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(originalArticlesRef.current));
+
+  // Sync articles when source data changes (e.g., hot reload updates articles.json)
+  useEffect(() => {
+    originalArticlesRef.current = deepClone(articlesSource);
+    setArticles(deepClone(articlesSource));
+  }, [articlesSource]);
+
   const originalManualIndexRef = useRef<ManualPsychoactiveIndexConfig>(
     deepClone(psychoactiveIndexManualSource as ManualPsychoactiveIndexConfig),
   );

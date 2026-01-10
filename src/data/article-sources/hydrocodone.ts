@@ -1387,8 +1387,6 @@ Hydrocodone is most commonly sold as "Vicodin", produced by Knoll Laboratories. 
  
  Acetaminophen/paracetamol can cause liver problems at high doses. It may not be safe for heavy alcohol drinkers or those with liver problems to take more than 2 or 3 Vicodin tablets at one time. Some people take more than this recreationally, but it is generally not a good idea.
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to pharms](https://erowid.org/pharms/) ] [ [back to hydrocodone](https://erowid.org/pharms/hydrocodone/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - May 10, 2016

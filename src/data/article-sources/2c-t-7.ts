@@ -363,8 +363,6 @@ Insufflated / Nasal
 - Fatality 2: 30 -35 mg
 **Onset : 5 - 60 minutes* Duration : 2 - 5 hours Normal After Effects : 2 - 4 hours**
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to 2ct7](https://erowid.org/chemicals/2ct7/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - Feb 21, 2015

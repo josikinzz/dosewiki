@@ -410,49 +410,38 @@ function parseLegalStatus(content: string, sourceId: string): LegalParseResult {
 // === Tolerance Parsing ===
 
 function parseTolerance(content: string, sourceId: string): ParsedTolerance | undefined {
-  // PsychonautWiki often has tolerance info in Toxicity section or standalone
-  const tolerancePatterns = [
-    /tolerance.*?develops.*?(\d+[\s-]*\d*\s*(?:days?|weeks?|months?))/i,
-    /full\s*tolerance.*?(\d+[\s-]*\d*\s*(?:days?|weeks?|months?))/i,
-    /half\s*tolerance.*?(\d+[\s-]*\d*\s*(?:days?|weeks?|months?))/i,
-    /baseline.*?(\d+[\s-]*\d*\s*(?:days?|weeks?|months?))/i,
+  // Look for sections about tolerance/addiction and extract content
+  // Common headings: "### Tolerance and addiction potential", "### Tolerance", "### Dependence and abuse potential"
+  const patterns = [
+    // Markdown headings about tolerance/addiction/dependence
+    /#{2,4}\s*(?:tolerance|dependence|addiction)[^#\n]*\n([\s\S]*?)(?=\n#{2,4}\s|$)/i,
+    // Bold headings containing "tolerance"
+    /\*\*[^*]*tolerance[^*]*:?\*\*\s*\n?([\s\S]*?)(?=\n\*\*[A-Z]|\n#{2,4}|$)/i,
   ];
 
-  const tolerance: ParsedTolerance = { source: sourceId };
-  let foundAny = false;
-
-  for (const pattern of tolerancePatterns) {
+  for (const pattern of patterns) {
     const match = content.match(pattern);
-    if (match) {
-      const timeframe = match[1];
-      const fullText = match[0].toLowerCase();
+    if (match && match[1]) {
+      let rawText = stripMarkdownLinks(match[1])
+        .replace(/\s+/g, " ")
+        .trim();
 
-      if (fullText.includes("full")) {
-        tolerance.fullTolerance = timeframe;
-        foundAny = true;
-      } else if (fullText.includes("half")) {
-        tolerance.halfTolerance = timeframe;
-        foundAny = true;
-      } else if (fullText.includes("baseline")) {
-        tolerance.baselineTolerance = timeframe;
-        foundAny = true;
+      // Skip if this is actually a warning/interactions section
+      if (rawText.startsWith("*Warning") || rawText.startsWith("Warning")) {
+        continue;
+      }
+
+      // Only return if we have meaningful content
+      if (rawText.length > 100) {
+        return {
+          rawText,
+          source: sourceId,
+        };
       }
     }
   }
 
-  // Look for cross-tolerance mentions
-  // Pre-strip markdown links to avoid URL periods causing truncation
-  const contentWithoutLinks = stripMarkdownLinks(content);
-  const crossMatch = contentWithoutLinks.match(/cross[- ]?tolerance.*?(?:with|to)\s+([^.]+)/i);
-  if (crossMatch) {
-    tolerance.crossTolerances = crossMatch[1]
-      .split(/,|and/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && s.length < 100);
-    foundAny = true;
-  }
-
-  return foundAny ? tolerance : undefined;
+  return undefined;
 }
 
 // === Chemistry/Pharmacology Parsing ===
@@ -669,6 +658,26 @@ function parseSubjectiveEffectsIntro(content: string, sourceId: string): string 
   return undefined;
 }
 
+/**
+ * Clean section text for LLM consumption
+ * - Removes markdown formatting and citations
+ * - Preserves complete natural language text
+ */
+function cleanSectionText(text: string): string {
+  let cleaned = stripReferences(cleanMarkdown(text))
+    .replace(/\s+/g, " ")
+    .trim();
+  // Remove leading section headers that got included (may be multiple)
+  cleaned = cleaned.replace(/^((Pharmacokinetics|Pharmacology|Metabolism|Absorption|Elimination|Bioavailability|Half-life)\s+)+/i, "");
+  // Remove "citation needed" markers
+  cleaned = cleaned.replace(/\s*citation needed\s*/gi, " ").trim();
+  // Ensure ends with punctuation
+  if (cleaned.length > 0 && !/[.!?]$/.test(cleaned)) {
+    cleaned += ".";
+  }
+  return cleaned;
+}
+
 function parsePharmacology(
   content: string,
   sourceId: string
@@ -678,43 +687,47 @@ function parsePharmacology(
 
   const pharmacology: Partial<ParsedPharmacology> = { sources: [sourceId] };
 
-  // Look for half-life
-  const halfLifeMatch = section.match(/half[- ]?life[:\s]+of?\s*([^.]+)/i);
-  if (halfLifeMatch) pharmacology.halfLife = cleanMarkdown(halfLifeMatch[1]);
+  // Check for subsections (### Half-life, ### Metabolism, etc.)
+  const subsections = extractSubsections(section, 3);
 
-  // Look for bioavailability
-  const bioMatch = section.match(/bioavailability[:\s]+of?\s*([^.]+)/i);
-  if (bioMatch) pharmacology.bioavailability = cleanMarkdown(bioMatch[1]);
+  // Extract complete subsections - no sentence splitting
+  const halfLifeSubsection = subsections.get("half-life");
+  if (halfLifeSubsection) {
+    const cleaned = cleanSectionText(halfLifeSubsection);
+    if (cleaned.length > 10) pharmacology.halfLife = cleaned;
+  }
 
-  // Look for mechanism mentions
-  // Pre-strip markdown links to avoid URL periods causing truncation
-  const sectionWithoutLinks = stripMarkdownLinks(section);
-  const mechanisms: string[] = [];
-  const mechanismPatterns = [
-    /acts?\s+as\s+(?:an?\s+)?([^.]+(?:agonist|antagonist|inhibitor|reuptake))/gi,
-    /(?:agonist|antagonist|inhibitor)\s+(?:at|of)\s+([^.]+)/gi,
-  ];
+  const bioSubsection = subsections.get("bioavailability");
+  if (bioSubsection) {
+    const cleaned = cleanSectionText(bioSubsection);
+    if (cleaned.length > 10) pharmacology.bioavailability = cleaned;
+  }
 
-  for (const pattern of mechanismPatterns) {
-    let match;
-    while ((match = pattern.exec(sectionWithoutLinks)) !== null) {
-      mechanisms.push(match[1].trim());
+  const metabolismSubsection = subsections.get("metabolism");
+  if (metabolismSubsection) {
+    const cleaned = cleanSectionText(metabolismSubsection);
+    if (cleaned.length > 10) pharmacology.metabolism = cleaned;
+  }
+
+  // If no specific subsections, store the full pharmacology section for LLM context
+  if (!pharmacology.halfLife && !pharmacology.bioavailability && !pharmacology.metabolism) {
+    const fullSection = cleanSectionText(section);
+    if (fullSection.length > 50) {
+      // Store as general pharmacology text - LLM can extract what it needs
+      pharmacology.metabolism = fullSection;
     }
   }
 
-  if (mechanisms.length > 0) {
-    pharmacology.mechanismOfAction = mechanisms;
-  }
-
-  // Extract receptor information
+  // Extract receptor information (this is structured data, regex is appropriate)
   const receptors: Array<{ name: string; action: string }> = [];
-  const receptorMatch = section.matchAll(
-    /(\d+-HT\s*\d*[A-Z]?|dopamine|serotonin|norepinephrine|GABA|glutamate|NMDA|opioid|cannabinoid)\s+(?:receptor)?\s*(agonist|antagonist|inhibitor|partial\s+agonist)/gi
-  );
-  for (const match of receptorMatch) {
+  const receptorPattern =
+    /(\d+-HT\s*\d*[A-Z]?|[Dd]opamine|[Ss]erotonin|[Nn]orepinephrine|GABA[_-]?[AB]?|[Gg]lutamate|NMDA|[Oo]pioid|[Cc]annabinoid|[Aa]drenergic|[Mm]uscarinic|[Nn]icotinic|[Hh]istamine|[Ss]igma|[Aa]lpha-?\d?|[Bb]eta-?\d?)\s+(?:receptor)?\s*(agonist|antagonist|inhibitor|partial\s+agonist|inverse\s+agonist|modulator|reuptake\s+inhibitor)/gi;
+
+  const receptorMatches = section.matchAll(receptorPattern);
+  for (const match of receptorMatches) {
     receptors.push({
-      name: match[1],
-      action: match[2],
+      name: match[1].trim(),
+      action: match[2].trim().toLowerCase(),
     });
   }
 

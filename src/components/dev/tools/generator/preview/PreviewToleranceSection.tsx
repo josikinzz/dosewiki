@@ -77,16 +77,9 @@ export const PreviewToleranceSection = memo(function PreviewToleranceSection({
               <Merge className="h-4 w-4 text-fuchsia-200" />
               Cross Tolerance
             </span>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {tolerance.cross_tolerance.map((item, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/80"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
+            <p className="mt-2 text-sm text-white/90">
+              {tolerance.cross_tolerance.join(", ")}
+            </p>
           </div>
         )}
       </Masonry>

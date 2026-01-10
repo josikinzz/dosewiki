@@ -1,30 +1,35 @@
-import { Library } from "lucide-react";
+import { Library, BookOpen } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { CitationEntry } from "../../types/content";
+import { getFaviconForUrl } from "../../data/config/sourceFavicons";
 
 interface CitationsSectionProps {
+  sourceCitations: CitationEntry[];
   citations: CitationEntry[];
 }
 
-export function CitationsSection({ citations }: CitationsSectionProps) {
-  if (!citations || citations.length === 0) {
-    return null;
-  }
-
+function CitationList({ citations }: { citations: CitationEntry[] }) {
   return (
-    <SectionCard delay={0.35}>
-      <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-        <IconBadge icon={Library} label="Citations" />
-        Citations
-      </h2>
-      <ul className="mt-3 space-y-2 text-sm">
-        {citations.map((citation) => (
+    <ul className="mt-3 space-y-2 text-sm">
+      {citations.map((citation) => {
+        const favicon = citation.href ? getFaviconForUrl(citation.href) : null;
+
+        return (
           <li
             key={`${citation.label}-${citation.href ?? ''}`}
             className="flex items-center gap-2 text-white/85"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+            {favicon ? (
+              <img
+                src={favicon}
+                alt=""
+                className="h-4 w-4 rounded-sm"
+                loading="lazy"
+              />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+            )}
             {citation.href ? (
               <a
                 href={citation.href}
@@ -40,8 +45,41 @@ export function CitationsSection({ citations }: CitationsSectionProps) {
               </span>
             )}
           </li>
-        ))}
-      </ul>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function CitationsSection({ sourceCitations, citations }: CitationsSectionProps) {
+  const hasSourceCitations = sourceCitations && sourceCitations.length > 0;
+  const hasCitations = citations && citations.length > 0;
+
+  if (!hasSourceCitations && !hasCitations) {
+    return null;
+  }
+
+  return (
+    <SectionCard delay={0.35}>
+      {hasSourceCitations && (
+        <div>
+          <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+            <IconBadge icon={Library} label="Sources" />
+            Sources
+          </h2>
+          <CitationList citations={sourceCitations} />
+        </div>
+      )}
+
+      {hasCitations && (
+        <div className={hasSourceCitations ? "mt-6" : ""}>
+          <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+            <IconBadge icon={BookOpen} label="Further Reading" />
+            Further Reading
+          </h2>
+          <CitationList citations={citations} />
+        </div>
+      )}
     </SectionCard>
   );
 }

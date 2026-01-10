@@ -381,8 +381,6 @@ Note: Oral dosages are based on Jonathan Ott's presentation at the San Francisco
 ---
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to 5meo_dmt](https://erowid.org/chemicals/5meo_dmt/) ]
  
 - Created by Erowid - Feb 14, 1999 | Created by Erowid - Feb 14, 1999 | Modified - Feb 21, 2015

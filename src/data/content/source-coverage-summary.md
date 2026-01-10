@@ -47,7 +47,7 @@ Total Substances: 679
 | duration | 520 | 76.6% |
 | effects | 360 | 53.0% |
 | interactions | 362 | 53.3% |
-| legal | 214 | 31.5% |
+| legal | 325 | 47.9% |
 | tolerance | 195 | 28.7% |
 | crossTolerances | 192 | 28.3% |
 
@@ -107,8 +107,8 @@ Total Substances: 679
 | **Erowid** | 53 (8%) | 38 (6%) | 42 (6%) | - | 103 (15%) | - |
 | **DEIS** | 24 (4%) | 19 (3%) | 41 (6%) | - | 28 (4%) | - |
 | **DUB** | 43 (6%) | 85 (13%) | - | - | - | - |
-| **DrugClass** | 55 (8%) | 63 (9%) | 33 (5%) | - | - | - |
-| **Wikipedia** | - | - | - | - | 31 (5%) | - |
+| **DrugClass** | 55 (8%) | 63 (9%) | 33 (5%) | - | 28 (4%) | - |
+| **Wikipedia** | - | - | - | - | 263 (39%) | - |
 | **TS-Combos** | - | - | - | 203 (30%) | - | - |
 
 ### Chemistry Fields by Source
@@ -145,7 +145,7 @@ Total Substances: 679
 | **TS-Facts** | 73KB | 355 (52%) | - | - | - | - | - | - |
 | **TS-Wiki** | 111KB | 42 (6%) | 35 (5%) | 30 (4%) | - | - | 10 (1%) | - |
 | **PsychWiki** | 777KB | 227 (33%) | 65 (10%) | 226 (33%) | 230 (34%) | 88 (13%) | - | - |
-| **DrugBank** | 413KB | 133 (20%) | - | - | 122 (18%) | - | 112 (16%) | - |
+| **DrugBank** | 413KB | 264 (39%) | - | - | 122 (18%) | - | 112 (16%) | - |
 | **Erowid** | 187KB | 60 (9%) | 14 (2%) | 6 (1%) | 8 (1%) | 46 (7%) | 20 (3%) | - |
 | **Isomer** | 551KB | - | - | - | - | - | - | - |
 | **SaferParty** | 40KB | - | - | - | - | 50 (7%) | 5 (1%) | - |
@@ -313,22 +313,22 @@ This shows narrative content complements structured data:
 - overview (42), history (35), chemistry (30), harmReduction (10), after_effects (9)
 
 **PsychWiki** (234 substances, 7 section types):
-- pharmacology (230), chemistry (226), effects (88), history (65), overview (26), research (5), forms (3)
+- pharmacology (230), overview (227), chemistry (226), effects (88), history (65), research (5), forms (3)
 
 **DrugBank** (133 substances, 4 section types):
-- overview (133), uses (126), pharmacology (122), harmReduction (112)
+- overview (264), uses (126), pharmacology (122), harmReduction (112)
 
 **Erowid** (60 substances, 9 section types):
 - overview (60), effects (46), terminology (30), dosage (26), harmReduction (20), history (14), pharmacology (8), production (7), chemistry (6)
 
-**Isomer** (67 substances, 1 section types):
-- commentary (67) - Full Shulgin commentary from PiHKAL/TiHKAL
+**Isomer** (67 substances, 2 section types):
+- commentary (136), synthesis (74)
 
 **SaferParty** (50 substances, 3 section types):
 - effects (50), dosage (26), harmReduction (5)
 
-**DEIS** (39 substances, 3 section types):
-- conclusion (39), experience (11), tolerance_narrative (7)
+**DEIS** (39 substances, 4 section types):
+- conclusion (39), overview (30), experience (11), tolerance_narrative (7)
 
 **DUB** (166 substances, 1 section types):
 - experience (166) - Full trip reports

@@ -138,8 +138,6 @@ Little data exists about the dosage range in humans for TMA-2 and the following 
 - Heavy: 60+ mg
 **Onset : 30 - 90 minutes Duration : 7-10 hours Normal After Effects : up to 6 additional hours**
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to tma2](https://erowid.org/chemicals/tma2/) ]
  
 - Created by Erowid - Jul 19, 2005 | Created by Erowid - Jul 19, 2005 | Modified - Feb 21, 2015

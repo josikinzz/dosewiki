@@ -513,25 +513,18 @@ function parseInteractionsSection(content: string, sourceId: string): ParsedInte
 // === Tolerance Parsing ===
 
 function parseToleranceSection(content: string, sourceId: string): ParsedTolerance | undefined {
+  // Extract the Tolerance section as raw text for LLM processing
   const toleranceSection = extractSection(content, "Tolerance", 2);
-  if (!toleranceSection) return undefined;
+  if (!toleranceSection || toleranceSection.trim().length < 50) return undefined;
 
-  const bullets = extractLabeledBullets(toleranceSection);
-  const tolerance: ParsedTolerance = { source: sourceId };
+  const cleanedText = toleranceSection
+    .replace(/\s+/g, " ")
+    .trim();
 
-  for (const bullet of bullets) {
-    const label = bullet.label.toLowerCase();
-    const value = bullet.value;
-
-    if (label.includes("full")) tolerance.fullTolerance = value;
-    else if (label.includes("half")) tolerance.halfTolerance = value;
-    else if (label.includes("baseline") || label.includes("zero")) tolerance.baselineTolerance = value;
-    else if (label.includes("cross")) {
-      tolerance.crossTolerances = value.split(/[,;]/).map((s) => s.trim());
-    }
-  }
-
-  return Object.keys(tolerance).length > 1 ? tolerance : undefined;
+  return {
+    rawText: cleanedText,
+    source: sourceId,
+  };
 }
 
 // === Classification/Metadata Parsing ===

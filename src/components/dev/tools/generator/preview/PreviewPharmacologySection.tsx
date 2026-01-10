@@ -1,6 +1,6 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Beaker, Brain } from "lucide-react";
+import { Beaker, Brain, ChevronDown, Ellipsis } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { SubstanceArticle } from "../../../../../schema";
@@ -15,6 +15,22 @@ function mechanismToSlug(moa: string): string {
   return moa.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+// Parse mechanism entry to extract base name and optional qualifier
+function parseMechanismEntry(entry: string): { base: string; qualifier?: string } {
+  const match = entry.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+  if (match) {
+    const base = match[1].trim();
+    const qualifier = match[2]?.trim();
+    if (base.length > 0) {
+      return {
+        base,
+        qualifier: qualifier && qualifier.length > 0 ? qualifier : undefined,
+      };
+    }
+  }
+  return { base: entry.trim() };
+}
+
 interface PreviewPharmacologySectionProps {
   article: SubstanceArticle;
   /** Called when a mechanism of action is clicked */
@@ -26,6 +42,7 @@ export const PreviewPharmacologySection = memo(function PreviewPharmacologySecti
   onSelectMechanism,
 }: PreviewPharmacologySectionProps) {
   const { pharmacology } = article;
+  const [showReceptorBinding, setShowReceptorBinding] = useState(false);
 
   const hasMoA = pharmacology.mechanism_of_action.length > 0;
   const hasReceptorBinding = Object.keys(pharmacology.receptor_binding).length > 0;
@@ -53,49 +70,87 @@ export const PreviewPharmacologySection = memo(function PreviewPharmacologySecti
         className="flex w-full gap-4"
         columnClassName="flex flex-col gap-4"
       >
-        {/* Mechanism of Action */}
+        {/* Mechanism of Action (with expandable Receptor Binding) */}
         {hasMoA && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+          <div className="relative rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Brain className="h-4 w-4 text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
-              {pharmacology.mechanism_of_action.map((moa, idx) => (
-                <li
-                  key={idx}
-                  className={`flex items-center gap-2 text-sm text-white/80 ${
-                    onSelectMechanism ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
-                  }`}
-                  onClick={onSelectMechanism ? () => onSelectMechanism(mechanismToSlug(moa)) : undefined}
+              {pharmacology.mechanism_of_action.map((moa, idx) => {
+                const { base, qualifier } = parseMechanismEntry(moa);
+                return (
+                  <li
+                    key={idx}
+                    className={`flex items-center gap-2 text-sm text-white/80 ${
+                      onSelectMechanism ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
+                    }`}
+                    onClick={onSelectMechanism ? () => onSelectMechanism(mechanismToSlug(moa)) : undefined}
+                  >
+                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      {base}
+                      {qualifier && (
+                        <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                          {qualifier}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {/* Expandable additional mechanisms from receptor binding data */}
+            {hasReceptorBinding && (
+              <>
+                {showReceptorBinding && (
+                  <ul className="mt-4 space-y-2 border-t border-white/10 pt-4 pb-6">
+                    {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
+                      <li key={receptor} className="flex items-center gap-2 text-sm text-white/80">
+                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                        {receptor} {value}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  onClick={() => setShowReceptorBinding(!showReceptorBinding)}
+                  className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2.5 py-1 text-fuchsia-400 hover:bg-fuchsia-400/20 hover:text-fuchsia-300 transition-colors"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
-                  {moa}
+                  <Ellipsis className="h-3 w-3" />
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform ${showReceptorBinding ? "rotate-180" : ""}`}
+                  />
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Standalone Mechanism of Action from receptor binding (only when no MoA exists) */}
+        {!hasMoA && hasReceptorBinding && (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <Brain className="h-4 w-4 text-fuchsia-200" />
+              Mechanism of Action
+            </h3>
+            <ul className="space-y-2">
+              {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
+                <li key={receptor} className="flex items-center gap-2 text-sm text-white/80">
+                  <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                  {receptor} {value}
                 </li>
               ))}
             </ul>
           </div>
         )}
 
-        {/* Receptor Binding */}
-        {hasReceptorBinding && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-white">Receptor Binding</h3>
-            <div className="space-y-2">
-              {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
-                <div key={receptor} className="flex items-center justify-between text-sm">
-                  <span className="text-white/60">{receptor}</span>
-                  <span className="font-mono text-white/80">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Metabolism & Metabolites */}
         {(hasMetabolism || hasMetabolites) && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-white">Metabolism</h3>
+            <h3 className="mb-3 font-semibold text-white">Metabolism</h3>
             {hasMetabolism && (
               <p className="text-sm text-white/80">{pharmacology.metabolism}</p>
             )}

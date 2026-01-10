@@ -198,9 +198,6 @@ by Erowid
 **Onset : 20 - 45 minutes Peak : T + 45 - 60 minutes Duration : 4 - 5 hours Normal After Effects : 1 - 2 hours**
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
- 
 ---
  
  

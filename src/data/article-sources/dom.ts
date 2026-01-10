@@ -259,8 +259,6 @@ DOM is a phenethylamine found in tablet, liquid, or powder form. It is generally
 **Onset : 1 - 2 hours Duration : 12 - 20 hours (depending on dosage) Normal After Effects : 6 - 12 hours**
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to dom](https://erowid.org/chemicals/dom/) ]
  
 - Created by Erowid - Jan 31, 2006 | Created by Erowid - Jan 31, 2006 | Modified - Feb 21, 2015

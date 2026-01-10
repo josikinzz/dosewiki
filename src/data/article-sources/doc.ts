@@ -174,8 +174,6 @@ DOC is a phenethylamine found most frequently in powder form. It is generally in
 **Onset : 0.5 - 2.5 hours Duration : 8 - 20 hours (depending on dosage) Normal After Effects : 6 - 12 hours**
  
  
-**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
- 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to doc](https://erowid.org/chemicals/doc/) ]
  
 - Created by Erowid - Mar 3, 2006 | Created by Erowid - Mar 3, 2006 | Modified - Feb 21, 2015

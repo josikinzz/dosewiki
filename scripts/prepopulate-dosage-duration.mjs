@@ -165,27 +165,83 @@ function transformDoseRanges(ranges) {
     }
   }
 
+  // Auto-populate threshold from light.min if threshold is empty
+  // Display will show as "~25 µg" (threshold typically only has min)
+  if (result.threshold.min == null && result.threshold.max == null) {
+    if (result.light.min != null) {
+      result.threshold.min = result.light.min;
+      result.threshold.unit = result.light.unit;
+    }
+  }
+
+  // Auto-populate heavy from strong.max if heavy is empty
+  // Display will show as "250+ µg" (heavy typically only has min)
+  if (result.heavy.min == null && result.heavy.max == null) {
+    if (result.strong.max != null) {
+      result.heavy.min = result.strong.max;
+      result.heavy.unit = result.strong.unit;
+    }
+  }
+
   return result;
 }
 
 function selectBestDosagePerRoute(dosageEntries) {
   if (!dosageEntries || dosageEntries.length === 0) return [];
 
-  // Group all entries by normalized route
-  const byRoute = new Map();
+  // Group entries by source to track order within each source
+  const bySource = new Map();
+  for (const entry of dosageEntries) {
+    const source = entry.source;
+    if (!bySource.has(source)) {
+      bySource.set(source, []);
+    }
+    bySource.get(source).push(entry);
+  }
 
+  // Find the highest-priority source that has routes
+  const sortedSources = Array.from(bySource.keys()).sort(
+    (a, b) => getSourcePriority(a) - getSourcePriority(b)
+  );
+  const primarySource = sortedSources[0];
+  const primaryRoutes = bySource.get(primarySource) || [];
+
+  // Build ordered route list from primary source
+  const routeOrderFromPrimary = primaryRoutes.map(e => normalizeRoute(e.route));
+
+  // Collect best data for each route (may come from different sources)
+  const byRoute = new Map();
   for (const entry of dosageEntries) {
     const route = normalizeRoute(entry.route);
+    const sourcePriority = getSourcePriority(entry.source);
     const existing = byRoute.get(route);
 
-    // Keep the highest priority source for each route
-    if (!existing || getSourcePriority(entry.source) < getSourcePriority(existing.source)) {
+    if (!existing || sourcePriority < getSourcePriority(existing.source)) {
       byRoute.set(route, entry);
     }
   }
 
-  // Return all unique routes (from any source)
-  return Array.from(byRoute.values());
+  // Build final list: routes from primary source first (in order), then any additional routes
+  const result = [];
+  const added = new Set();
+
+  // Add routes in primary source order
+  for (const route of routeOrderFromPrimary) {
+    if (byRoute.has(route) && !added.has(route)) {
+      result.push(byRoute.get(route));
+      added.add(route);
+    }
+  }
+
+  // Add any remaining routes not in primary source
+  for (const [route, entry] of byRoute) {
+    if (!added.has(route)) {
+      result.push(entry);
+      added.add(route);
+    }
+  }
+
+  return result;
 }
 
 function transformDosage(parsedDosage) {
@@ -239,21 +295,81 @@ function transformStages(stages) {
   return result;
 }
 
+function countFilledDurationFields(stages) {
+  if (!stages) return 0;
+  let count = 0;
+  for (const stage of Object.values(stages)) {
+    if (stage && (stage.min != null || stage.max != null)) {
+      count++;
+    }
+  }
+  return count;
+}
+
 function selectBestDurationPerRoute(durationEntries) {
   if (!durationEntries || durationEntries.length === 0) return [];
 
-  const byRoute = new Map();
+  // Group entries by source to track order within each source
+  const bySource = new Map();
+  for (const entry of durationEntries) {
+    const source = entry.source;
+    if (!bySource.has(source)) {
+      bySource.set(source, []);
+    }
+    bySource.get(source).push(entry);
+  }
 
+  // Find the highest-priority source that has routes
+  const sortedSources = Array.from(bySource.keys()).sort(
+    (a, b) => getSourcePriority(a) - getSourcePriority(b)
+  );
+  const primarySource = sortedSources[0];
+  const primaryRoutes = bySource.get(primarySource) || [];
+
+  // Build ordered route list from primary source
+  const routeOrderFromPrimary = primaryRoutes.map(e => normalizeRoute(e.route));
+
+  // Collect best data for each route (prefer most complete, then highest priority)
+  const byRoute = new Map();
   for (const entry of durationEntries) {
     const route = normalizeRoute(entry.route);
+    const sourcePriority = getSourcePriority(entry.source);
     const existing = byRoute.get(route);
 
-    if (!existing || getSourcePriority(entry.source) < getSourcePriority(existing.source)) {
+    if (!existing) {
       byRoute.set(route, entry);
+    } else {
+      const newCount = countFilledDurationFields(entry.stages);
+      const existingCount = countFilledDurationFields(existing.stages);
+
+      if (newCount > existingCount) {
+        byRoute.set(route, entry);
+      } else if (newCount === existingCount &&
+                 sourcePriority < getSourcePriority(existing.source)) {
+        byRoute.set(route, entry);
+      }
     }
   }
 
-  return Array.from(byRoute.values());
+  // Build final list: routes from primary source first (in order), then any additional routes
+  const result = [];
+  const added = new Set();
+
+  for (const route of routeOrderFromPrimary) {
+    if (byRoute.has(route) && !added.has(route)) {
+      result.push(byRoute.get(route));
+      added.add(route);
+    }
+  }
+
+  for (const [route, entry] of byRoute) {
+    if (!added.has(route)) {
+      result.push(entry);
+      added.add(route);
+    }
+  }
+
+  return result;
 }
 
 function transformDuration(parsedDuration) {
