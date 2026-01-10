@@ -73,8 +73,8 @@ export function Hero({
     ? "mt-4 flex flex-wrap justify-center gap-3 gap-fallback-wrap-3"
     : "mt-6 flex flex-wrap justify-center gap-4 gap-fallback-wrap-4";
   const badgeIconClasses = isCompactBadges
-    ? "h-4 w-4 text-fuchsia-200"
-    : "h-5 w-5 text-fuchsia-200";
+    ? "h-4 w-4 text-fuchsia-300"
+    : "h-5 w-5 text-fuchsia-300";
   const badgeLabelClasses = isCompactBadges
     ? "text-sm font-medium tracking-tight"
     : "font-medium tracking-wide";
@@ -133,7 +133,7 @@ export function Hero({
 
               return (
                 <p key={line.key} className={variantLineClasses}>
-                  <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+                  <line.Icon className="h-4 w-4 text-fuchsia-300" aria-hidden="true" focusable="false" />
                   <span className="flex flex-wrap items-center justify-center gap-2 text-white/80">
                     {visibleValues.map((value, index) => (
                       <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">

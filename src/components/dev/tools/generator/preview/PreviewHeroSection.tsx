@@ -109,7 +109,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
 
         return (
           <div className="mt-2 flex items-start gap-3 text-base text-white/60">
-            <MessageSquareQuote className="mt-0.5 h-5 w-5 flex-shrink-0 text-white/40" />
+            <MessageSquareQuote className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
             <span className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
                 <span key={`name-${name}-${index}`}>
@@ -135,7 +135,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
       {/* Botanical name */}
       {identification.botanical_name && (
         <div className="mt-1.5 flex items-start gap-3 text-base text-white/60">
-          <Leaf className="mt-0.5 h-5 w-5 flex-shrink-0 text-white/40" />
+          <Leaf className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
           <span className="italic">{identification.botanical_name}</span>
         </div>
       )}
@@ -145,7 +145,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         <div className="mt-6 space-y-4">
           {classification.psychoactive_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <BrainCog className="mt-0.5 h-5 w-5 flex-shrink-0 text-white/50" />
+              <BrainCog className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
               <div>
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Psychoactive Class
@@ -171,7 +171,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
           )}
           {classification.chemical_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <Hexagon className="mt-0.5 h-5 w-5 flex-shrink-0 text-white/50" />
+              <Hexagon className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
               <div>
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Chemical Class

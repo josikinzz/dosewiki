@@ -123,7 +123,7 @@ export function InfoSectionItemCard({
   return (
     <article className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20">
       <h3 className={mergedHeadingClasses}>
-        {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" /> : null}
+        {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-300" aria-hidden="true" focusable="false" /> : null}
         <span>{label}</span>
       </h3>
       <div>{valueNode}</div>

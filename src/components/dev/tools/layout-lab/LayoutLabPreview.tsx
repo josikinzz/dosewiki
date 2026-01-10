@@ -61,7 +61,7 @@ export function LayoutLabPreview({
               <div className="mt-4 flex flex-col gap-2">
             {heroVariantLines.map((line) => (
               <p key={line.key} className={variantLineClasses}>
-                <line.Icon className="h-4 w-4 text-fuchsia-200" aria-hidden="true" focusable="false" />
+                <line.Icon className="h-4 w-4 text-fuchsia-300" aria-hidden="true" focusable="false" />
                     <span className="flex flex-wrap items-center gap-2 text-white/80">
                       {line.values.map((value, index) => (
                         <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
