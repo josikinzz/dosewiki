@@ -281,6 +281,12 @@ NOTES #
  
 Due to its potency, misjudging the dose of 2C-C-NBOMe carries very real risks. A substantial dosage error could lead to undesirable or dangerous effects. If 2C-C-NBOMe is in in pure powder form, small breezes, accidental inhalation, or touching the eyes or mouth after handling could result in full-blown effects or dangerous overdoses. Because of these dangers, 2C-C-NBOMe powder should be labeled clearly and handled with laboratory methods (goggles, gloves, mask) to minimize risks.
  
+CAUTION & DISCLAIMER #
+ 
+Every individual reacts differently to every chemical. 
+ 
+ Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
+ 
 RELATED RESOURCES #
  
 RELATED LINKS #

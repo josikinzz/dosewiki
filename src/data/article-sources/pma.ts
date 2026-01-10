@@ -71,6 +71,8 @@ by Erowid
  
 Pure PMA is a white powder, but forms found on the street can also be somewhat beige, pink, or yellowish. Recently is has been found most frequently in pressed pill form sold as MDMA (ecstasy). There is very little available information about safe recreational dosages for PMA. Doses as low as 60 mg can cause significant and alarming increase in blood pressure, body temperature and pulse. The most concerning aspect of this is that if PMA is sold as ecstasy, some people will take multiple pills, increasing chances of a PMA overdose significantly.
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to pma](https://erowid.org/chemicals/pma/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - Feb 21, 2015

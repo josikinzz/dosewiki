@@ -7,6 +7,8 @@ import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 import { TagMultiSelect, type TagMultiSelectProps } from "../../../common/TagMultiSelect";
 import type { SubstanceArticle } from "../../../../schema";
 
+// NOTE: Subjective effects fields are now Record<string, EffectEntry[]> and need
+// a different component to handle the flexible subcategory structure.
 type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "index_categories"
   | "identification.alternative_names"
@@ -14,14 +16,6 @@ type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "classification.chemical_class"
   | "pharmacology.mechanism_of_action"
   | "pharmacology.metabolites"
-  | "subjective_effects.sensory.visual"
-  | "subjective_effects.sensory.auditory"
-  | "subjective_effects.sensory.tactile"
-  | "subjective_effects.sensory.olfactory"
-  | "subjective_effects.sensory.gustatory"
-  | "subjective_effects.sensory.multisensory"
-  | "subjective_effects.cognitive"
-  | "subjective_effects.physical"
   | "interactions.dangerous"
   | "interactions.unsafe"
   | "interactions.caution"

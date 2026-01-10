@@ -266,8 +266,8 @@ function transformLegality(parsedLegal, parsedInternational) {
           const cleanedNotes = cleanCitationNeeded(entry.notes);
           result.international.push(cleanedNotes);
         } else {
-          // Fallback to just treaty name
-          result.international.push(entry.treaty);
+          // Fallback to treaty name wrapped in a complete sentence
+          result.international.push(`Controlled internationally under the ${entry.treaty}.`);
         }
       }
     }

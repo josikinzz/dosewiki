@@ -32,6 +32,8 @@ MDE generally comes in either tablet form or as a whitish powder. It is also fre
  Duration : 2 - 4 hours 
  Normal After Effects : 3 - 6 hours 
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to mde](https://erowid.org/chemicals/mde/) ]
  
 - Created by Erowid - Jan 1, 2000 | Created by Erowid - Jan 1, 2000 | Modified - Feb 21, 2015

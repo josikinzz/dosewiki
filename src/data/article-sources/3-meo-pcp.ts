@@ -195,6 +195,12 @@ Erowid's estimated doses for 3-MeO-PCP are higher than the dose summaries provid
  
  3-MeO-PCP is a dissociative. That means that what many people are looking for is an effect that is be experienced lying or sitting down. Doses as low as 10 or 15 mg in someone without tolerance could cause walking to be clumsy and potentially dangerous if unsupervised.
  
+CAUTION & DISCLAIMER #
+ 
+Every individual reacts differently to every chemical. 
+ 
+ Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
+ 
 RELATED RESOURCES #
  
 RELATED LINKS #

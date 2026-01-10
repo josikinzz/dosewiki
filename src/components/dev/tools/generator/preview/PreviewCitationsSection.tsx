@@ -30,7 +30,7 @@ function CitationList({
               <img
                 src={favicon}
                 alt=""
-                className="mt-0.5 h-5 w-5 shrink-0 rounded-sm"
+                className="mt-0.5 h-5 w-5 shrink-0 rounded"
                 loading="lazy"
               />
             ) : (

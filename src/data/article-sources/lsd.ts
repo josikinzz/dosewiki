@@ -961,6 +961,12 @@ Liquid
 Gelatin
  Also known as "window panes". Gelatin LSD is made by mixing liquid LSD with gelatin and forming it into small, thin squares. The benefit of this method is that less of the LSD is exposed to sun and air which break down lysergic acid diethylamide. A single square of gelatin is commonly stronger than a single blotter tab of LSD. (Rough estimate 50 - 150 ug per square).
  
+CAUTION & DISCLAIMER #
+ 
+Every individual reacts differently to every chemical. 
+ 
+ Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
+ 
 RELATED RESOURCES #
  
 RELATED LINKS #

@@ -25,7 +25,7 @@ export type SubjectiveEffectsFieldsRHFProps = {
 };
 
 export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFieldsRHFProps) {
-  const { register, watch } = useFormContext<SubstanceArticle>();
+  const { register } = useFormContext<SubstanceArticle>();
 
   return (
     <section className="space-y-6">
@@ -33,34 +33,14 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
         title="Subjective Effects"
         description="Powers the badge cloud on the Substance page."
       />
-      <div className="space-y-4">
-        <ControlledTagMultiSelect
-          name="subjective_effects.cognitive"
-          label="Cognitive Effects"
-          helperText="Mental effects like euphoria, anxiety, time distortion."
-          placeholder="Add cognitive effects"
-          options={[]}
-          addButtonLabel="Add effect"
-          openStrategy="focus"
-        />
-        <ControlledTagMultiSelect
-          name="subjective_effects.physical"
-          label="Physical Effects"
-          helperText="Bodily effects like muscle relaxation, nausea, increased heart rate."
-          placeholder="Add physical effects"
-          options={[]}
-          addButtonLabel="Add effect"
-          openStrategy="focus"
-        />
-        <ControlledTagMultiSelect
-          name="subjective_effects.sensory.visual"
-          label="Visual Effects"
-          helperText="Visual sensory effects like color enhancement, patterns, geometry."
-          placeholder="Add visual effects"
-          options={[]}
-          addButtonLabel="Add effect"
-          openStrategy="focus"
-        />
+      {/* Subjective effects now use a flexible subcategory structure.
+          Edit effects directly in articles.json for now. A dedicated editor component
+          for the new Record<string, EffectEntry[]> structure is planned. */}
+      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+        <p className="text-sm text-white/60">
+          Subjective effects now support flexible subcategories with per-effect descriptions.
+          Edit effects directly in <code className="text-fuchsia-300">articles.json</code> or use the YAML generator.
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor={`${idPrefix}-effects-overview`}>Effects Overview</Label>

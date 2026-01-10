@@ -1020,6 +1020,8 @@ Ephedrine is a common central nervous system stimulant present in the herb Ephed
  
  There have been deaths associated with higher dose use of Ephedrine. Overdose can lead to dangerously increased pulse rate, blood pressure, and body temperature. Overdoses are treated like those of other stimulant overdoses.
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to ephedrine](https://erowid.org/chemicals/ephedrine/) ]
  
 - Created by Erowid - Feb 21, 2003 | Created by Erowid - Feb 21, 2003 | Modified - Feb 21, 2015

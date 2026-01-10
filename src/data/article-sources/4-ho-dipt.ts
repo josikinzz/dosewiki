@@ -35,6 +35,8 @@ by Erowid
 **Onset : 20 - 60 minutes (depending on form and stomach contents) Duration : 2 - 3 hours Normal After Effects : 1 - 4 hours**
  
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to 4_ho_dipt](https://erowid.org/chemicals/4_ho_dipt/) ]
  
 - Created by Erowid - Jul 15, 2003 | Created by Erowid - Jul 15, 2003 | Modified - Feb 21, 2015

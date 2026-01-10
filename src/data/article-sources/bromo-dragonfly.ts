@@ -131,6 +131,8 @@ Bromo-Dragonfly is a chemical which has very little history of human use and was
  
 ---
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to chemicals](https://erowid.org/chemicals/) ] [ [back to bromo_dragonfly](https://erowid.org/chemicals/bromo_dragonfly/) ]
  
 - Created by Erowid - Unknown | Created by Erowid - Unknown | Modified - Feb 21, 2015

@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Globe, Scale } from "lucide-react";
+import { Globe, MapPin, Scale } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { SubstanceArticle } from "../../../../../schema";
@@ -39,6 +39,7 @@ const COUNTRY_CODES: Record<string, string> = {
   "Brazil": "br",
   "Mexico": "mx",
   "Russia": "ru",
+  "Chile": "cl",
   "China": "cn",
   "India": "in",
   "South Africa": "za",
@@ -150,7 +151,10 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
       {/* Countries */}
       {hasCountries && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-white">By Country</h3>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <MapPin className="h-4 w-4 text-fuchsia-200" />
+            By Country
+          </h3>
           <Masonry
             breakpointCols={MASONRY_BREAKPOINTS}
             className="flex w-full gap-3"

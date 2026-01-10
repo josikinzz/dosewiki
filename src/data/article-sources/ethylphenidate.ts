@@ -129,6 +129,12 @@ As of late 2016, ethylphenidate quality/purity appears to vary widely, complicat
  
  People report increasing side effects and nasal problems with higher and/or more frequent doses.
  
+CAUTION & DISCLAIMER #
+ 
+Every individual reacts differently to every chemical. 
+ 
+ Erowid's dosage information is a summary of data gathered from users, research, and other resources. This information is intended to describe the range of dosages people report using. It should not be construed as a recommendation of any sort. Individuals can respond very differently to the same dosage. What is safe for one can be deadly for another.
+ 
 RELATED RESOURCES #
  
 RELATED LINKS #

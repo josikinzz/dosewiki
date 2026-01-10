@@ -1,4 +1,5 @@
-import { ExternalLink, TestTubeDiagonal } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, TestTubeDiagonal, Ellipsis, ChevronDown } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { useReagentData } from "../../hooks/useReagentData";
@@ -293,6 +294,8 @@ function ReagentRow({ result }: { result: ReagentResult }) {
   );
 }
 
+const COLLAPSED_LIMIT = 4;
+
 /**
  * Loading skeleton while fetching from API.
  */
@@ -326,6 +329,8 @@ export function ReagentTestingSection({
   aliases = [],
   reagentTesting,
 }: ReagentTestingSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   // Check if we have static data
   const hasStaticData = reagentTesting && Object.keys(reagentTesting).length > 0;
 
@@ -363,6 +368,9 @@ export function ReagentTestingSection({
     return null;
   }
 
+  const hasMore = sortedReagents.length > COLLAPSED_LIMIT;
+  const visibleReagents = isExpanded ? sortedReagents : sortedReagents.slice(0, COLLAPSED_LIMIT);
+
   return (
     <SectionCard delay={0.2}>
       <div className="flex flex-col gap-3">
@@ -375,10 +383,21 @@ export function ReagentTestingSection({
         </p>
       </div>
 
-      <div className="scrollbar-always-visible mt-6 max-h-[400px] space-y-3 overflow-y-scroll rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-        {sortedReagents.map((result) => (
+      <div className={`relative mt-6 space-y-3 rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] ${hasMore ? "pb-14" : ""}`}>
+        {visibleReagents.map((result) => (
           <ReagentRow key={result.reagent} result={result} />
         ))}
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-3 py-1.5 text-fuchsia-400 transition-colors hover:bg-fuchsia-400/20 hover:text-fuchsia-300"
+          >
+            <Ellipsis className="h-4 w-4" />
+            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+          </button>
+        )}
       </div>
 
       {/* Attribution footer - show ProtestKit for API data, no attribution for static */}

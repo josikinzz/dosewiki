@@ -9,11 +9,50 @@ interface CitationsSectionProps {
   citations: CitationEntry[];
 }
 
-function CitationList({ citations }: { citations: CitationEntry[] }) {
+function CitationList({ citations, large = false }: { citations: CitationEntry[]; large?: boolean }) {
   return (
     <ul className="mt-3 space-y-2 text-sm">
       {citations.map((citation) => {
         const favicon = citation.href ? getFaviconForUrl(citation.href) : null;
+
+        if (large) {
+          return (
+            <li
+              key={`${citation.label}-${citation.href ?? ''}`}
+              className="grid grid-cols-[auto_1fr] grid-rows-[auto_auto] gap-x-4 gap-y-0.5 rounded-lg border border-white/10 bg-white/5 p-4 text-white/85"
+            >
+              <div className="row-span-2 self-center">
+                {favicon ? (
+                  <img
+                    src={favicon}
+                    alt=""
+                    className="h-10 w-10 rounded"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="h-10 w-10 rounded bg-fuchsia-500/20" />
+                )}
+              </div>
+              {citation.href ? (
+                <a
+                  href={citation.href}
+                  className="cursor-pointer font-medium text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {citation.label}
+                </a>
+              ) : (
+                <span className="font-medium transition-colors hover:text-white">
+                  {citation.label}
+                </span>
+              )}
+              <span className="text-xs text-white/40 truncate max-w-md">
+                {citation.href ? new URL(citation.href).hostname : ''}
+              </span>
+            </li>
+          );
+        }
 
         return (
           <li
@@ -24,7 +63,7 @@ function CitationList({ citations }: { citations: CitationEntry[] }) {
               <img
                 src={favicon}
                 alt=""
-                className="h-4 w-4 rounded-sm"
+                className="h-5 w-5 rounded"
                 loading="lazy"
               />
             ) : (
@@ -67,7 +106,7 @@ export function CitationsSection({ sourceCitations, citations }: CitationsSectio
             <IconBadge icon={Library} label="Sources" />
             Sources
           </h2>
-          <CitationList citations={sourceCitations} />
+          <CitationList citations={sourceCitations} large />
         </div>
       )}
 

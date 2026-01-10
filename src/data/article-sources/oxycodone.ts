@@ -1801,6 +1801,8 @@ Oxycodone is available in several forms. Percocet contains between 2.5-10 mg oxy
  
  Some people choose to insufflate (snort) oxycodone in order to deliver a more rapid onset. Note that snorting any substance can result in injury to nasal passags, sinuses, throat, etc and crushed tablets include binders and inert ingredients that do not rapidly dissolve.
  
+**Every individual reacts differently to every chemical. Know your Body - Know your Mind - Know your Substance - Know your Source. Erowid's dosage information is a summary of data gathered from users, research, and other resources and should not be construed as recommendations. Individuals can respond differently to the same dosage. What is safe for one can be deadly for another. Start low with new substances. Have trusted companion/guide/sitter/friend present and/or available.**
+ 
 [ [back to pharms](https://erowid.org/pharms/) ] [ [back to oxycodone](https://erowid.org/pharms/oxycodone/) ]
  
 - Created by Erowid - Jan 25, 2008 | Created by Erowid - Jan 25, 2008 | Modified - May 10, 2016

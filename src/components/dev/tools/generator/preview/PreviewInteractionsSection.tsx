@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { AlertCircle, AlertTriangle, ExternalLink, ShieldAlert, Skull } from "lucide-react";
+import { memo, useState } from "react";
+import { AlertCircle, AlertTriangle, ExternalLink, Maximize2, Minimize2, ShieldAlert, Skull } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import type { SubstanceArticle } from "../../../../../schema";
@@ -46,6 +46,20 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
 }: PreviewInteractionsSectionProps) {
   const { interactions } = article;
 
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (key: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   const hasDangerous = interactions.dangerous.length > 0;
   const hasUnsafe = interactions.unsafe.length > 0;
   const hasCaution = interactions.caution.length > 0;
@@ -79,7 +93,7 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
               <div className="my-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
               {(() => {
-                // Parse all items and split into with/without rationale
+                // Parse all items to extract substance and rationale
                 const parsed = items.map((item) => {
                   const match = item.match(/^(.+?)\s*\((.+)\)$/);
                   return {
@@ -88,46 +102,61 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
                     rationale: match ? match[2].trim() : null,
                   };
                 });
-                const withRationale = parsed.filter((p) => p.rationale);
-                const withoutRationale = parsed.filter((p) => !p.rationale);
 
                 return (
-                  <div className="space-y-2.5">
-                    {/* Items with rationales - alternating row backgrounds */}
-                    {withRationale.map((item, idx) => (
-                      <div
-                        key={item.raw}
-                        className={`rounded-lg px-3 py-2 ring-1 ring-white/10 ${
-                          idx % 2 === 0 ? "bg-white/[0.03]" : "bg-white/[0.07]"
-                        }`}
-                      >
-                        <span
-                          className={`text-sm font-semibold text-white ${
-                            onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
-                          }`}
-                          onClick={onSelectInteraction ? () => onSelectInteraction(item.substance) : undefined}
-                        >
-                          {item.substance}
-                        </span>
-                        <p className="mt-1 text-xs text-white/50 leading-relaxed">{item.rationale}</p>
-                      </div>
-                    ))}
-                    {/* Items without rationales - horizontal chips */}
-                    {withoutRationale.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {withoutRationale.map((item) => (
-                          <span
+                  <div className="flex flex-wrap gap-2">
+                    {parsed.map((item) => {
+                      const isExpanded = expandedItems.has(item.raw);
+                      const hasRationale = !!item.rationale;
+
+                      // Expanded state - full-width inline card
+                      if (isExpanded && hasRationale) {
+                        return (
+                          <div
                             key={item.raw}
-                            className={`rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10 ${
-                              onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 hover:bg-white/10 transition-colors" : ""
-                            }`}
+                            className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-white/[0.08] backdrop-blur-sm ring-1 ring-white/15 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] px-4 py-3 my-1"
+                          >
+                            <button
+                              onClick={() => toggleExpand(item.raw)}
+                              className="absolute top-3 right-3 rounded p-1 transition hover:bg-white/10"
+                              aria-label={`Collapse ${item.substance}`}
+                            >
+                              <Minimize2 className="h-4 w-4 text-white/50" />
+                            </button>
+                            <span className="text-sm font-semibold text-white pr-8">
+                              {item.substance}
+                            </span>
+                            <p className="text-sm text-white/60 leading-relaxed">
+                              {item.rationale}
+                            </p>
+                          </div>
+                        );
+                      }
+
+                      // Collapsed state - compact badge
+                      return (
+                        <span
+                          key={item.raw}
+                          className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
+                        >
+                          <span
+                            className={onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""}
                             onClick={onSelectInteraction ? () => onSelectInteraction(item.substance) : undefined}
                           >
                             {item.substance}
                           </span>
-                        ))}
-                      </div>
-                    )}
+                          {hasRationale && (
+                            <button
+                              onClick={() => toggleExpand(item.raw)}
+                              className="rounded p-0.5 transition hover:bg-white/10"
+                              aria-label={`Expand ${item.substance}`}
+                            >
+                              <Maximize2 className="h-3.5 w-3.5 text-white/50" />
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
                   </div>
                 );
               })()}

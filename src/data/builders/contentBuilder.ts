@@ -739,6 +739,31 @@ function buildNameVariants(identification: Identification | undefined, baseName:
   return variants;
 }
 
+// Extract effect names from a flexible effect category (Record<string, { note, effects }>)
+function extractEffectNames(category: Record<string, { note: string; effects: { name: string; description: string }[] }> | undefined): string[] {
+  if (!category || typeof category !== "object") {
+    return [];
+  }
+
+  const names: string[] = [];
+  for (const subcategory of Object.values(category)) {
+    if (!subcategory || typeof subcategory !== "object") {
+      continue;
+    }
+    const effects = subcategory.effects;
+    if (!Array.isArray(effects)) {
+      continue;
+    }
+    for (const entry of effects) {
+      const name = cleanString(entry?.name);
+      if (name) {
+        names.push(name);
+      }
+    }
+  }
+  return names;
+}
+
 // Flatten subjective effects from categorized structure to flat array
 function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): string[] {
   if (!effects) {
@@ -747,20 +772,20 @@ function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): strin
 
   const allEffects: string[] = [];
 
-  // Flatten sensory effects
+  // Flatten sensory effects (each sense now has { note, subcategories })
   if (effects.sensory) {
     const sensory = effects.sensory;
-    allEffects.push(...cleanStringArray(sensory.visual));
-    allEffects.push(...cleanStringArray(sensory.auditory));
-    allEffects.push(...cleanStringArray(sensory.tactile));
-    allEffects.push(...cleanStringArray(sensory.olfactory));
-    allEffects.push(...cleanStringArray(sensory.gustatory));
-    allEffects.push(...cleanStringArray(sensory.multisensory));
+    allEffects.push(...extractEffectNames(sensory.visual?.subcategories));
+    allEffects.push(...extractEffectNames(sensory.auditory?.subcategories));
+    allEffects.push(...extractEffectNames(sensory.tactile?.subcategories));
+    allEffects.push(...extractEffectNames(sensory.olfactory?.subcategories));
+    allEffects.push(...extractEffectNames(sensory.gustatory?.subcategories));
+    allEffects.push(...extractEffectNames(sensory.multisensory?.subcategories));
   }
 
-  // Add cognitive and physical effects
-  allEffects.push(...cleanStringArray(effects.cognitive));
-  allEffects.push(...cleanStringArray(effects.physical));
+  // Add cognitive and physical effects (still Record<string, EffectEntry[]>)
+  allEffects.push(...extractEffectNames(effects.cognitive));
+  allEffects.push(...extractEffectNames(effects.physical));
 
   return allEffects;
 }

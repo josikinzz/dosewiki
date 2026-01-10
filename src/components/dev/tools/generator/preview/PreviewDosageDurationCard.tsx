@@ -37,20 +37,20 @@ function capitalizeRoute(route: string): string {
 }
 
 const DOSE_TIERS = [
-  { key: "threshold", label: "Threshold", borderColor: "border-emerald-400/50" },
-  { key: "light", label: "Light", borderColor: "border-sky-400/50" },
-  { key: "moderate", label: "Moderate", borderColor: "border-amber-400/50" },
-  { key: "strong", label: "Strong", borderColor: "border-orange-400/50" },
-  { key: "heavy", label: "Heavy", borderColor: "border-rose-400/50" },
+  { key: "threshold", label: "Threshold", gradientFrom: "from-emerald-400/50" },
+  { key: "light", label: "Light", gradientFrom: "from-sky-400/50" },
+  { key: "moderate", label: "Moderate", gradientFrom: "from-amber-400/50" },
+  { key: "strong", label: "Strong", gradientFrom: "from-orange-400/50" },
+  { key: "heavy", label: "Heavy", gradientFrom: "from-rose-400/50" },
 ] as const;
 
 const DURATION_STAGES = [
-  { key: "onset", label: "Onset", borderColor: "border-emerald-400/50" },
-  { key: "come_up", label: "Come Up", borderColor: "border-orange-400/50" },
-  { key: "peak", label: "Peak", borderColor: "border-rose-400/50" },
-  { key: "offset", label: "Offset", borderColor: "border-orange-400/50" },
-  { key: "after_effects", label: "After Effects", borderColor: "border-sky-400/50" },
-  { key: "total_duration", label: "Total", borderColor: "border-fuchsia-400/50" },
+  { key: "onset", label: "Onset" },
+  { key: "come_up", label: "Come Up" },
+  { key: "peak", label: "Peak" },
+  { key: "offset", label: "Offset" },
+  { key: "after_effects", label: "After Effects" },
+  { key: "total_duration", label: "Total" },
 ] as const;
 
 function DosagePanel({ route }: { route: DosageRoute }) {
@@ -71,14 +71,15 @@ function DosagePanel({ route }: { route: DosageRoute }) {
         )}
       </div>
       <div className="space-y-1.5">
-        {DOSE_TIERS.map(({ key, label, borderColor }) => {
+        {DOSE_TIERS.map(({ key, label, gradientFrom }) => {
           const range = route.dose_ranges[key as keyof typeof route.dose_ranges];
           const value = formatDose(range, key === "threshold");
           if (value === "N/A") return null;
           return (
-            <div key={key} className={`flex items-center justify-between rounded-lg border-l-2 ${borderColor} bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]`}>
-              <span className="font-medium text-white/80">{label}</span>
-              <span className="font-mono text-xs text-white/70">{value}</span>
+            <div key={key} className="relative flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07] overflow-hidden">
+              <div className={`absolute left-0 top-0 bottom-0 w-3/4 bg-gradient-to-r ${gradientFrom} to-transparent rounded-l-lg pointer-events-none`} />
+              <span className="relative font-medium text-white/80">{label}</span>
+              <span className="relative font-mono text-xs text-white/70">{value}</span>
             </div>
           );
         })}
@@ -100,12 +101,12 @@ function DurationPanel({ route }: { route: DurationRoute }) {
         Duration
       </h4>
       <div className="space-y-1.5">
-        {DURATION_STAGES.map(({ key, label, borderColor }) => {
+        {DURATION_STAGES.map(({ key, label }) => {
           const stage = route.stages[key as keyof typeof route.stages];
           const value = formatDuration(stage);
           if (value === "N/A") return null;
           return (
-            <div key={key} className={`flex items-center justify-between rounded-lg border-l-2 ${borderColor} bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]`}>
+            <div key={key} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]">
               <span className="text-white/70 font-medium">{label}</span>
               <span className="font-mono text-xs text-white/70">{value}</span>
             </div>

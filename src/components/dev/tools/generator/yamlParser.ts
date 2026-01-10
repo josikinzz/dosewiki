@@ -129,6 +129,70 @@ function getObject(value: unknown): Record<string, unknown> {
     : {};
 }
 
+/**
+ * Normalizes an array of effects to EffectEntry[] format.
+ */
+function normalizeEffectsArray(effects: unknown): { name: string; description: string }[] {
+  if (!Array.isArray(effects)) return [];
+  return effects
+    .map((effect) => {
+      if (typeof effect === "string") {
+        return { name: effect, description: "" };
+      }
+      if (effect && typeof effect === "object") {
+        return {
+          name: getString((effect as Record<string, unknown>).name),
+          description: getString((effect as Record<string, unknown>).description),
+        };
+      }
+      return null;
+    })
+    .filter((e): e is { name: string; description: string } => e !== null && e.name.length > 0);
+}
+
+/**
+ * Converts effect data to the flexible Record<string, { note, effects }> format.
+ * Supports:
+ * - Legacy format: string[] (converts to { General: { note: "", effects: [...] } })
+ * - Old format: { subcategory: [{ name, description }] }
+ * - New format: { subcategory: { note, effects: [...] } }
+ */
+function getEffectCategory(value: unknown): Record<string, { note: string; effects: { name: string; description: string }[] }> {
+  // Handle legacy string array format
+  if (Array.isArray(value)) {
+    const effects = normalizeEffectsArray(value);
+    return effects.length > 0 ? { General: { note: "", effects } } : {};
+  }
+
+  // Handle structured format
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const result: Record<string, { note: string; effects: { name: string; description: string }[] }> = {};
+    for (const [subcategory, subcategoryData] of Object.entries(value)) {
+      // New format: { note, effects }
+      if (subcategoryData && typeof subcategoryData === "object" && !Array.isArray(subcategoryData) && "effects" in subcategoryData) {
+        const obj = subcategoryData as Record<string, unknown>;
+        const effects = normalizeEffectsArray(obj.effects);
+        if (effects.length > 0 || getString(obj.note)) {
+          result[subcategory] = {
+            note: getString(obj.note),
+            effects,
+          };
+        }
+      }
+      // Old format: subcategory is directly an array of effects
+      else if (Array.isArray(subcategoryData)) {
+        const effects = normalizeEffectsArray(subcategoryData);
+        if (effects.length > 0) {
+          result[subcategory] = { note: "", effects };
+        }
+      }
+    }
+    return result;
+  }
+
+  return {};
+}
+
 function normalizeIdentification(raw: unknown): SubstanceArticle["identification"] {
   const obj = getObject(raw);
   return {
@@ -142,6 +206,7 @@ function normalizeIdentification(raw: unknown): SubstanceArticle["identification
     molecular_formula: getString(obj.molecular_formula),
     molecular_weight: getString(obj.molecular_weight),
     skeletal_structure_image: getString(obj.skeletal_structure_image),
+    botanical_name: getString(obj.botanical_name),
   };
 }
 
@@ -256,6 +321,34 @@ function normalizeDuration(raw: unknown): SubstanceArticle["duration"] {
   return { routes };
 }
 
+/**
+ * Converts sense data to the { note, subcategories } format.
+ * Supports both:
+ * - Legacy format: Record<string, EffectEntry[]> (wraps in { note: "", subcategories: ... })
+ * - New format: { note, subcategories }
+ */
+function getSenseCategory(value: unknown): { note: string; subcategories: Record<string, { name: string; description: string }[]> } {
+  if (!value || typeof value !== "object") {
+    return { note: "", subcategories: {} };
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  // Check if it's the new format with explicit note and subcategories
+  if ("subcategories" in obj) {
+    return {
+      note: getString(obj.note),
+      subcategories: getEffectCategory(obj.subcategories),
+    };
+  }
+
+  // Legacy format: treat the whole object as subcategories
+  return {
+    note: "",
+    subcategories: getEffectCategory(value),
+  };
+}
+
 function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_effects"] {
   const obj = getObject(raw);
   const sensory = getObject(obj.sensory);
@@ -269,15 +362,15 @@ function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_
       physical: getString(notes.physical),
     },
     sensory: {
-      visual: getStringArray(sensory.visual),
-      auditory: getStringArray(sensory.auditory),
-      tactile: getStringArray(sensory.tactile),
-      olfactory: getStringArray(sensory.olfactory),
-      gustatory: getStringArray(sensory.gustatory),
-      multisensory: getStringArray(sensory.multisensory),
+      visual: getSenseCategory(sensory.visual),
+      auditory: getSenseCategory(sensory.auditory),
+      tactile: getSenseCategory(sensory.tactile),
+      olfactory: getSenseCategory(sensory.olfactory),
+      gustatory: getSenseCategory(sensory.gustatory),
+      multisensory: getSenseCategory(sensory.multisensory),
     },
-    cognitive: getStringArray(obj.cognitive),
-    physical: getStringArray(obj.physical),
+    cognitive: getEffectCategory(obj.cognitive),
+    physical: getEffectCategory(obj.physical),
   };
 }
 
