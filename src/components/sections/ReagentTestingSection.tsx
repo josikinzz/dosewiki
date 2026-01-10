@@ -8,6 +8,7 @@ import type { ReagentResult, ReagentColor } from "../../types/reagent";
 interface ReagentTestingSectionProps {
   substanceName: string;
   aliases?: string[];
+  reagentTesting?: Record<string, string>;
 }
 
 /**
@@ -27,7 +28,139 @@ const REAGENT_INFO: Record<string, { name: string; short: string }> = {
   scott_desc: { name: "Scott", short: "SC" },
   zimm_desc: { name: "Zimmermann", short: "ZM" },
   morr_desc: { name: "Morris", short: "MR" },
+  // Static data format uses simple names
+  marquis: { name: "Marquis", short: "MQ" },
+  mecke: { name: "Mecke", short: "ME" },
+  mandelin: { name: "Mandelin", short: "MD" },
+  liebermann: { name: "Liebermann", short: "LB" },
+  ehrlich: { name: "Ehrlich", short: "EH" },
+  hofmann: { name: "Hofmann", short: "HM" },
+  simon: { name: "Simon's", short: "SM" },
+  robadope: { name: "Robadope", short: "RB" },
+  froehde: { name: "Froehde", short: "FR" },
+  gallic: { name: "Gallic Acid", short: "GA" },
+  scott: { name: "Scott", short: "SC" },
+  zimmermann: { name: "Zimmermann", short: "ZM" },
+  morris: { name: "Morris", short: "MR" },
+  folin: { name: "Folin", short: "FO" },
 };
+
+/**
+ * Map of common color names to numeric IDs (matching REAGENT_UI_COLORS).
+ */
+const COLOR_NAME_TO_ID: Record<string, number> = {
+  // Whites/Grays/Blacks
+  white: 0,
+  clear: 0,
+  colorless: 0,
+  gray: 2,
+  grey: 2,
+  black: 3,
+  // Blues
+  blue: 5,
+  "light blue": 4,
+  "dark blue": 6,
+  // Greens
+  green: 8,
+  "light green": 7,
+  "dark green": 9,
+  olive: 9,
+  // Yellows
+  yellow: 11,
+  "pale yellow": 10,
+  gold: 12,
+  amber: 12,
+  // Oranges
+  orange: 14,
+  "dark orange": 15,
+  // Reds
+  red: 20,
+  "light red": 19,
+  "dark red": 21,
+  maroon: 21,
+  // Pinks
+  pink: 23,
+  "light pink": 22,
+  // Purples
+  purple: 24,
+  "light purple": 25,
+  "dark purple": 27,
+  violet: 26,
+  // Browns
+  brown: 16,
+  "dark brown": 17,
+  tan: 16,
+  // Creams
+  cream: 13,
+  peach: 13,
+};
+
+/**
+ * Parse color names from a description string like "purple → black" or "yellow/orange".
+ * Returns ReagentColor objects with proper numeric IDs.
+ */
+function parseColorsFromDescription(desc: string): ReagentColor[] {
+  const normalized = desc.toLowerCase().trim();
+
+  // Check for "no reaction" variants
+  if (
+    normalized.includes("no reaction") ||
+    normalized.includes("no change") ||
+    normalized === "none" ||
+    normalized === "n/a"
+  ) {
+    return [{ id: 2, name: "gray", simple: true, simpleColorId: 2 }];
+  }
+
+  // Split by arrows, slashes, commas, "to", or dashes
+  const parts = normalized
+    .split(/[→>\/,\-]|(?:\s+to\s+)/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  const colors: ReagentColor[] = [];
+
+  for (const part of parts) {
+    // Try exact match first
+    if (COLOR_NAME_TO_ID[part] !== undefined) {
+      colors.push({ id: COLOR_NAME_TO_ID[part], name: part, simple: true, simpleColorId: COLOR_NAME_TO_ID[part] });
+      continue;
+    }
+
+    // Try to find a color name within the part
+    for (const [colorName, colorId] of Object.entries(COLOR_NAME_TO_ID)) {
+      if (part.includes(colorName)) {
+        colors.push({ id: colorId, name: colorName, simple: true, simpleColorId: colorId });
+        break;
+      }
+    }
+  }
+
+  return colors.length > 0 ? colors : [{ id: 2, name: "gray", simple: true, simpleColorId: 2 }];
+}
+
+/**
+ * Transform static reagent testing data into ReagentResult array.
+ */
+function transformStaticData(reagentTesting: Record<string, string>): ReagentResult[] {
+  return Object.entries(reagentTesting)
+    .filter(([, value]) => value.trim().length > 0)
+    .map(([reagent, description]) => {
+      const normalized = description.toLowerCase().trim();
+      const isNoReaction =
+        normalized.includes("no reaction") ||
+        normalized.includes("no change") ||
+        normalized === "none" ||
+        normalized === "n/a";
+
+      return {
+        reagent,
+        isReacting: !isNoReaction,
+        colors: parseColorsFromDescription(description),
+        hint: description,
+      };
+    });
+}
 
 function getReagentDisplayName(reagentKey: string): string {
   return REAGENT_INFO[reagentKey]?.name ?? reagentKey.replace(/_desc$/, "");
@@ -46,7 +179,7 @@ function getBadgeGradient(result: ReagentResult): string {
   if (!result.isReacting || colors.length === 0) {
     return "#4a4a4a"; // Neutral gray for no reaction
   }
-  const hexColors = colors.map(c => c.hex || getReagentColorHex(c.id));
+  const hexColors = colors.map(c => getReagentColorHex(c.id));
   if (hexColors.length === 1) {
     return hexColors[0]; // Solid color for single-color reactions
   }
@@ -73,7 +206,7 @@ function getDarkenedGradient(result: ReagentResult): string {
   }
   // Darken and desaturate each color
   const mutedHexColors = colors.map(c => {
-    const hex = c.hex || getReagentColorHex(c.id);
+    const hex = getReagentColorHex(c.id);
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -186,21 +319,47 @@ function LoadingSkeleton() {
 
 /**
  * Reagent Testing Section component.
- * Fetches and displays colorimetric reagent test results from ProtestKit API.
+ * Uses static data from articles when available, falls back to ProtestKit API.
  */
 export function ReagentTestingSection({
   substanceName,
   aliases = [],
+  reagentTesting,
 }: ReagentTestingSectionProps) {
-  const { data, isLoading } = useReagentData(substanceName, aliases);
+  // Check if we have static data
+  const hasStaticData = reagentTesting && Object.keys(reagentTesting).length > 0;
 
-  // Show loading skeleton while fetching
-  if (isLoading) {
+  // Only fetch from API if no static data
+  const { data: apiData, isLoading } = useReagentData(
+    hasStaticData ? "" : substanceName,
+    hasStaticData ? [] : aliases
+  );
+
+  // If no static data and loading API, show skeleton
+  if (!hasStaticData && isLoading) {
     return <LoadingSkeleton />;
   }
 
-  // Hide section if no data or no reagents
-  if (!data || !data.reagents || data.reagents.length === 0) {
+  // Get reagent results from static data or API
+  const reagents: ReagentResult[] = hasStaticData
+    ? transformStaticData(reagentTesting)
+    : (apiData?.reagents ?? []);
+
+  // Hide section if no data
+  if (reagents.length === 0) {
+    return null;
+  }
+
+  // Sort: reacting reagents first
+  const sortedReagents = reagents
+    .filter(isValidReagentResult)
+    .sort((a, b) => {
+      if (a.isReacting && !b.isReacting) return -1;
+      if (!a.isReacting && b.isReacting) return 1;
+      return 0;
+    });
+
+  if (sortedReagents.length === 0) {
     return null;
   }
 
@@ -217,32 +376,26 @@ export function ReagentTestingSection({
       </div>
 
       <div className="scrollbar-always-visible mt-6 max-h-[400px] space-y-3 overflow-y-scroll rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
-        {data.reagents
-          .filter(isValidReagentResult)
-          .sort((a, b) => {
-            // Reacting reagents first
-            if (a.isReacting && !b.isReacting) return -1;
-            if (!a.isReacting && b.isReacting) return 1;
-            return 0;
-          })
-          .map((result) => (
-            <ReagentRow key={result.reagent} result={result} />
-          ))}
+        {sortedReagents.map((result) => (
+          <ReagentRow key={result.reagent} result={result} />
+        ))}
       </div>
 
-      {/* Attribution footer */}
-      <div className="mt-4 flex items-center justify-end gap-2">
-        <span className="text-xs text-white/50">Powered by</span>
-        <a
-          href="https://protestkit.eu"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-fuchsia-200 transition hover:text-fuchsia-100"
-        >
-          ProtestKit.eu
-        </a>
-        <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
-      </div>
+      {/* Attribution footer - show ProtestKit for API data, no attribution for static */}
+      {!hasStaticData && (
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <span className="text-xs text-white/50">Powered by</span>
+          <a
+            href="https://protestkit.eu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-fuchsia-200 transition hover:text-fuchsia-100"
+          >
+            ProtestKit.eu
+          </a>
+          <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
+        </div>
+      )}
     </SectionCard>
   );
 }

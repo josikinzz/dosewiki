@@ -115,6 +115,7 @@ export interface SubstanceContent {
   subjectiveEffects: string[];
   interactions: InteractionGroup[];
   tolerance: ToleranceEntry[];
+  reagentTesting: Record<string, string>;
   notes: string;
   citations: CitationEntry[];
   infoSections?: InfoSection[];

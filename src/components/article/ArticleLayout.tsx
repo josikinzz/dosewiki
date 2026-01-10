@@ -8,10 +8,10 @@ import {
   PreviewInteractionsSection,
   PreviewToleranceSection,
   PreviewHarmPotentialSection,
-  PreviewReagentSection,
   PreviewLegalitySection,
   PreviewCitationsSection,
 } from "../dev/tools/generator/preview";
+import { ReagentTestingSection } from "../sections/ReagentTestingSection";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -65,7 +65,11 @@ export const ArticleLayout = memo(function ArticleLayout({
       />
       <PreviewToleranceSection article={article} />
       <PreviewHarmPotentialSection article={article} />
-      <PreviewReagentSection article={article} />
+      <ReagentTestingSection
+        substanceName={article.identification?.common_name || article.title || ""}
+        aliases={article.identification?.alternative_names || []}
+        reagentTesting={article.reagent_testing}
+      />
       <PreviewLegalitySection article={article} />
       <PreviewCitationsSection article={article} />
     </div>

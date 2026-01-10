@@ -802,6 +802,7 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     subjectiveEffects,
     interactions: buildInteractionGroups(article.interactions),
     tolerance: buildToleranceEntries(article.tolerance),
+    reagentTesting: article.reagent_testing ?? {},
     notes: cleanString(article.summary) ?? "",
     citations: buildCitations(article.citations),
     infoSections: buildInfoSections(identification, classification, pharmacology),

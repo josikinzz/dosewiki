@@ -246,7 +246,7 @@ export function SubstanceArticle({
               />
             ) : null}
 
-            <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
+            <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
             <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
             <AddictionCard summary={content.addictionSummary} />
             <InteractionsSection interactions={content.interactions} />
@@ -300,7 +300,7 @@ export function SubstanceArticle({
                       />
                     ) : null}
 
-                    <ReagentTestingSection substanceName={content.name} aliases={content.aliases} />
+                    <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
                     <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
                     <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
                     <ToleranceSection tolerance={content.tolerance} />
