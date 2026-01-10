@@ -206,7 +206,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
 
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
-        <div className="mt-3 space-y-1">
+        <div className="mt-3 space-y-1 pb-10">
           {identification.substitutive_name && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">Substitutive name:</span>{" "}
@@ -216,7 +216,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
           {identification.iupac_name && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">IUPAC:</span>{" "}
-              <span className="font-mono text-xs">{identification.iupac_name}</span>
+              <span className="break-all font-mono text-xs">{identification.iupac_name}</span>
             </p>
           )}
           {identification.cas_number && (
@@ -240,7 +240,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
           {identification.smiles && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">SMILES:</span>{" "}
-              <code className="rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
+              <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
                 {identification.smiles}
               </code>
             </p>
@@ -248,7 +248,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
           {identification.inchi_key && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">InChI Key:</span>{" "}
-              <code className="rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
+              <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
                 {identification.inchi_key}
               </code>
             </p>

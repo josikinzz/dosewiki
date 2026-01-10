@@ -180,6 +180,7 @@ export const subjectiveEffectsSchema = z.object({
   sensory: sensoryEffectsSchema,
   cognitive: effectCategorySchema,
   physical: effectCategorySchema,
+  progressive_stages: effectCategorySchema.optional(),
 });
 
 // ============================================================================

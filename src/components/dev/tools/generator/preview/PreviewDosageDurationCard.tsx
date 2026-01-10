@@ -85,9 +85,12 @@ function DosagePanel({ route }: { route: DosageRoute }) {
         })}
       </div>
       {hasNotes && (
-        <p className="mt-3 border-t border-white/10 pt-3 text-xs text-white/60">
-          {route.notes}
-        </p>
+        <div className="mt-3 pt-3">
+          <div className="mb-3 h-px bg-gradient-to-r from-white/15 via-white/10 to-transparent" />
+          <p className="text-xs text-white/60 whitespace-pre-line">
+            {route.notes}
+          </p>
+        </div>
       )}
     </div>
   );

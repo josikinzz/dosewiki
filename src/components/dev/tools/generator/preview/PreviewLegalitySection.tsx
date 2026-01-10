@@ -161,15 +161,22 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
             columnClassName="flex flex-col gap-3"
           >
             {countries.map(([countryName, info]) => {
-              // Merge status and notes into single text, avoiding duplication
-              const fullText = info.notes && !info.status.includes(info.notes.slice(0, 20))
-                ? `${info.status} ${info.notes}`.trim()
-                : info.status || info.notes || "";
-
               const countryCode = getCountryCode(countryName);
               const isExpanded = expandedCards.has(countryName);
+              const hasNotes = info.notes?.trim().length > 0;
+              const displayText = hasNotes ? info.notes : info.status;
               // Rough estimate: 4 lines at ~60 chars per line
-              const isLongText = fullText.length > 240;
+              const isLongText = displayText.length > 240;
+
+              // Status badge color based on status text
+              const statusLower = info.status?.toLowerCase() || "";
+              const statusColor = statusLower.includes("illegal") || statusLower.includes("prohibited")
+                ? "bg-red-500/20 text-red-300"
+                : statusLower.includes("legal") || statusLower.includes("uncontrolled")
+                ? "bg-emerald-500/20 text-emerald-300"
+                : statusLower.includes("controlled") || statusLower.includes("schedule")
+                ? "bg-amber-500/20 text-amber-300"
+                : "bg-white/10 text-white/70";
 
               return (
                 <div
@@ -183,9 +190,16 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
                       className="absolute right-3 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
                     />
                   )}
-                  <span className={`font-medium text-white ${countryCode ? "pr-8" : ""}`}>{countryName}</span>
-                  <p className={`mt-1 text-xs text-white/70 ${!isExpanded && isLongText ? "line-clamp-4" : ""}`}>
-                    {fullText}
+                  <div className={`flex items-center gap-2 ${countryCode ? "pr-8" : ""}`}>
+                    <span className="font-medium text-white">{countryName}</span>
+                    {info.status && hasNotes && (
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor}`}>
+                        {info.status}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`mt-1 text-xs text-white/70 whitespace-pre-line ${!isExpanded && isLongText ? "line-clamp-4" : ""}`}>
+                    {displayText}
                   </p>
                   {isLongText && (
                     <div className="mt-2 flex justify-end">

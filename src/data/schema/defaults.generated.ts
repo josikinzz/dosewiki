@@ -47,15 +47,34 @@ export function createEmptyArticle(): SubstanceArticle {
       physical: ""
     },
     sensory: {
-      visual: [],
-      auditory: [],
-      tactile: [],
-      olfactory: [],
-      gustatory: [],
-      multisensory: []
+      visual: {
+        note: "",
+        subcategories: {}
+      },
+      auditory: {
+        note: "",
+        subcategories: {}
+      },
+      tactile: {
+        note: "",
+        subcategories: {}
+      },
+      olfactory: {
+        note: "",
+        subcategories: {}
+      },
+      gustatory: {
+        note: "",
+        subcategories: {}
+      },
+      multisensory: {
+        note: "",
+        subcategories: {}
+      }
     },
-    cognitive: [],
-    physical: []
+    cognitive: {},
+    physical: {},
+    progressive_stages: null
   },
   comparisons: [],
   pharmacology: {
@@ -98,6 +117,7 @@ export function createEmptyArticle(): SubstanceArticle {
     international: [],
     countries: {}
   },
+  source_citations: null,
   citations: []
 };
 }

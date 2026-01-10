@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows, Maximize2, Minimize2, ArrowUp, Waves, Shapes, ScanEye, type LucideIcon } from "lucide-react";
+import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows, Ellipsis, ChevronDown, ArrowUp, ArrowDown, Waves, Shapes, ScanEye, ListOrdered, TrendingUp, Loader, House, TrendingDown, type LucideIcon } from "lucide-react";
 import { SectionCard } from "../../../../common/SectionCard";
 import { IconBadge } from "../../../../common/IconBadge";
 import { cn } from "@/lib/utils";
@@ -23,16 +23,24 @@ const SENSORY_CATEGORIES = [
 /** Icons for specific subcategory names */
 const SUBCATEGORY_ICONS: Record<string, LucideIcon> = {
   "Enhancements": ArrowUp,
+  "Suppressions": ArrowDown,
   "Distortions": Waves,
   "Geometry": Shapes,
   "Hallucinatory States": ScanEye,
+  "1. Taking Off": TrendingUp,
+  "2. The Waiting Room": Loader,
+  "3. The Other Side": House,
+  "4. Coming Down": TrendingDown,
 };
 
-/** Check if an effect category has any effects */
+/** Check if an effect category has any effects or notes */
 function hasEffects(category: EffectCategory | undefined): boolean {
   if (!category || typeof category !== "object") return false;
   return Object.values(category).some(
-    (sub) => sub && Array.isArray(sub.effects) && sub.effects.length > 0
+    (sub) => sub && (
+      (Array.isArray(sub.effects) && sub.effects.length > 0) ||
+      (sub.note?.trim().length > 0)
+    )
   );
 }
 
@@ -104,10 +112,11 @@ function EffectBadge({
         <button
           type="button"
           onClick={onToggle}
-          className="absolute top-3 right-3 p-1 rounded hover:bg-white/10 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400"
+          className="absolute top-3 right-3 p-1 rounded hover:bg-white/10 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 flex items-center gap-0.5"
           aria-label="Collapse"
         >
-          <Minimize2 className="h-4 w-4 text-white/85" />
+          <Ellipsis className="h-3 w-3 text-white/85" />
+          <ChevronDown className="h-3 w-3 text-white/85 rotate-180 transition-transform" />
         </button>
         <div className="flex flex-wrap items-center gap-2 pr-8">
           <span className="text-xs font-semibold text-white/85">
@@ -140,7 +149,10 @@ function EffectBadge({
     >
       {effect.name}
       {hasDescription && (
-        <Maximize2 className="h-4 w-4" />
+        <>
+          <Ellipsis className="h-3 w-3" />
+          <ChevronDown className="h-3 w-3 transition-transform" />
+        </>
       )}
     </button>
   );
@@ -169,6 +181,55 @@ function EffectsGroup({
           onSelectEffect={onSelectEffect}
         />
       ))}
+    </div>
+  );
+}
+
+/** Collapsible stage component for progressive stages */
+function CollapsibleStage({
+  name,
+  note,
+  isExpanded,
+  onToggle,
+}: {
+  name: string;
+  note: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const StageIcon = SUBCATEGORY_ICONS[name];
+  const hasIcon = !!StageIcon;
+
+  return (
+    <div className="rounded-lg bg-white/[0.02] ring-1 ring-white/5 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className={cn(
+          "w-full flex items-center justify-between gap-2 p-3 text-left transition",
+          "hover:bg-white/[0.03]",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          {hasIcon && <StageIcon className="h-4 w-4 text-fuchsia-300/70" />}
+          <span className="text-sm font-semibold text-white/70">{name}</span>
+        </div>
+        <div className="flex items-center gap-1 text-white/50">
+          <Ellipsis className="h-4 w-4" />
+          <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+        </div>
+      </button>
+      {isExpanded && note && (
+        <div className="px-3 pb-3">
+          <p className={cn(
+            "text-xs text-white/50 italic leading-relaxed",
+            hasIcon ? "pl-6" : "pl-0"
+          )}>
+            {note}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -239,6 +300,7 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
 
   const hasCognitive = hasEffects(subjective_effects.cognitive);
   const hasPhysical = hasEffects(subjective_effects.physical);
+  const hasProgressiveStages = hasEffects(subjective_effects.progressive_stages);
   const hasComparisons = comparisons && comparisons.length > 0;
   const hasOverviewNote = subjective_effects.notes?.overview?.trim().length > 0;
   const hasCognitiveNote = subjective_effects.notes?.cognitive?.trim().length > 0;
@@ -249,7 +311,7 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
     ({ key }) => hasSenseEffects(subjective_effects.sensory[key as keyof typeof subjective_effects.sensory])
   );
 
-  if (!hasAnySensory && !hasCognitive && !hasPhysical && !hasComparisons && !hasOverviewNote) {
+  if (!hasAnySensory && !hasCognitive && !hasPhysical && !hasProgressiveStages && !hasComparisons && !hasOverviewNote) {
     return null;
   }
 
@@ -326,6 +388,30 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
                   isGeneral={subcategory === "General"}
                 />
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Progressive Stages Card */}
+        {hasProgressiveStages && subjective_effects.progressive_stages && (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+              <ListOrdered className="h-4 w-4 text-fuchsia-200" />
+              Progressive Stages
+            </h3>
+            <div className="space-y-2">
+              {getSubcategories(subjective_effects.progressive_stages).map((stageName) => {
+                const stageData = getSubcategoryData(subjective_effects.progressive_stages!, stageName);
+                return (
+                  <CollapsibleStage
+                    key={stageName}
+                    name={stageName}
+                    note={stageData.note}
+                    isExpanded={expandedEffect === stageName}
+                    onToggle={() => toggleEffect(stageName)}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
