@@ -10,12 +10,20 @@ const MASONRY_BREAKPOINTS = {
   768: 1,
 };
 
+// Convert mechanism text to slug for navigation
+function mechanismToSlug(moa: string): string {
+  return moa.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 interface PreviewPharmacologySectionProps {
   article: SubstanceArticle;
+  /** Called when a mechanism of action is clicked */
+  onSelectMechanism?: (slug: string, qualifier?: string) => void;
 }
 
 export const PreviewPharmacologySection = memo(function PreviewPharmacologySection({
   article,
+  onSelectMechanism,
 }: PreviewPharmacologySectionProps) {
   const { pharmacology } = article;
 
@@ -54,7 +62,13 @@ export const PreviewPharmacologySection = memo(function PreviewPharmacologySecti
             </h3>
             <ul className="space-y-2">
               {pharmacology.mechanism_of_action.map((moa, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
+                <li
+                  key={idx}
+                  className={`flex items-center gap-2 text-sm text-white/80 ${
+                    onSelectMechanism ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
+                  }`}
+                  onClick={onSelectMechanism ? () => onSelectMechanism(mechanismToSlug(moa)) : undefined}
+                >
                   <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
                   {moa}
                 </li>

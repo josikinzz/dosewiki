@@ -7,6 +7,8 @@ import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewSubjectiveEffectsSectionProps {
   article: SubstanceArticle;
+  /** Called when an effect badge is clicked */
+  onSelectEffect?: (effect: string) => void;
 }
 
 const SENSORY_CATEGORIES = [
@@ -20,6 +22,7 @@ const SENSORY_CATEGORIES = [
 
 export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEffectsSection({
   article,
+  onSelectEffect,
 }: PreviewSubjectiveEffectsSectionProps) {
   const { subjective_effects } = article;
 
@@ -88,7 +91,11 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {effects.map((effect, effectIdx) => (
-                        <Badge key={effectIdx} variant="effect">
+                        <Badge
+                          key={effectIdx}
+                          variant={onSelectEffect ? "effectInteractive" : "effect"}
+                          onClick={onSelectEffect ? () => onSelectEffect(effect) : undefined}
+                        >
                           {effect}
                         </Badge>
                       ))}
@@ -117,7 +124,11 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
             )}
             <div className="flex flex-wrap gap-2">
               {subjective_effects.cognitive.map((effect, idx) => (
-                <Badge key={idx} variant="effect">
+                <Badge
+                  key={idx}
+                  variant={onSelectEffect ? "effectInteractive" : "effect"}
+                  onClick={onSelectEffect ? () => onSelectEffect(effect) : undefined}
+                >
                   {effect}
                 </Badge>
               ))}
@@ -142,7 +153,11 @@ export const PreviewSubjectiveEffectsSection = memo(function PreviewSubjectiveEf
             )}
             <div className="flex flex-wrap gap-2">
               {subjective_effects.physical.map((effect, idx) => (
-                <Badge key={idx} variant="effect">
+                <Badge
+                  key={idx}
+                  variant={onSelectEffect ? "effectInteractive" : "effect"}
+                  onClick={onSelectEffect ? () => onSelectEffect(effect) : undefined}
+                >
                   {effect}
                 </Badge>
               ))}

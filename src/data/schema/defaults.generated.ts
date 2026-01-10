@@ -24,7 +24,8 @@ export function createEmptyArticle(): SubstanceArticle {
     cas_number: "",
     molecular_formula: "",
     molecular_weight: "",
-    skeletal_structure_image: ""
+    skeletal_structure_image: "",
+    botanical_name: null
   },
   summary: "",
   classification: {

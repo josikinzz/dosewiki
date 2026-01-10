@@ -146,10 +146,57 @@ function parseSubstance(
 }
 
 /**
+ * Load existing parsed data to preserve manually edited entries
+ */
+function loadExistingParsedData(outputPath: string): Record<string, ParsedSubstanceData> | null {
+  try {
+    if (fs.existsSync(outputPath)) {
+      const existing = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+      return existing.substances || null;
+    }
+  } catch {
+    // Ignore errors, just return null
+  }
+  return null;
+}
+
+/**
+ * Preserve manually edited legal entries from existing data
+ */
+function preserveManualEdits(
+  newData: Record<string, ParsedSubstanceData>,
+  existingData: Record<string, ParsedSubstanceData> | null
+): number {
+  if (!existingData) return 0;
+
+  let preserved = 0;
+
+  for (const [slug, existing] of Object.entries(existingData)) {
+    if (!newData[slug] || !existing.legal) continue;
+
+    // Check if any legal entries are manually edited
+    const manualEntries = existing.legal.filter(
+      (e: { manuallyEdited?: boolean }) => e.manuallyEdited === true
+    );
+
+    if (manualEntries.length > 0) {
+      // Replace the entire legal array with the manually edited version
+      newData[slug].legal = existing.legal;
+      preserved++;
+    }
+  }
+
+  return preserved;
+}
+
+/**
  * Main execution
  */
 async function main() {
   console.log("🔬 Source Parser - Extracting structured data from article sources\n");
+
+  // Load existing data to preserve manual edits
+  const existingData = loadExistingParsedData(options.output);
 
   const substanceFiles = getSubstanceFiles();
   console.log(`Found ${substanceFiles.length} substance files\n`);
@@ -242,6 +289,12 @@ async function main() {
       }
       console.log();
     }
+  }
+
+  // Preserve manually edited legal entries from existing data
+  const preservedCount = preserveManualEdits(substances, existingData);
+  if (preservedCount > 0) {
+    console.log(`🔒 Preserved ${preservedCount} substances with manually edited legal data\n`);
   }
 
   // Create output

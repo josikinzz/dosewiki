@@ -6,6 +6,12 @@ import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewHeroSectionProps {
   article: SubstanceArticle;
+  /** Called when a category tag is clicked */
+  onSelectCategory?: (categoryKey: string) => void;
+  /** Called when a classification badge is clicked */
+  onSelectClassification?: (type: "psychoactive" | "chemical", label: string) => void;
+  /** Whether to show the "Preview" indicator badge (default: true in dev context) */
+  showPreviewBadge?: boolean;
 }
 
 // Get molecule URL by matching article title
@@ -20,6 +26,9 @@ function getMoleculeUrl(title: string): string | null {
 
 export const PreviewHeroSection = memo(function PreviewHeroSection({
   article,
+  onSelectCategory,
+  onSelectClassification,
+  showPreviewBadge = true,
 }: PreviewHeroSectionProps) {
   const { title, identification, classification, summary, index_categories } = article;
 
@@ -43,11 +52,13 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
 
   return (
     <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-fuchsia-950/40 via-purple-950/30 to-slate-950/50 p-6 shadow-lg">
-      {/* Preview badge indicator */}
-      <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-300">
-        <Eye className="h-3 w-3" />
-        Preview
-      </div>
+      {/* Preview badge indicator (only shown in dev context) */}
+      {showPreviewBadge && (
+        <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-300">
+          <Eye className="h-3 w-3" />
+          Preview
+        </div>
+      )}
 
       {/* Molecule SVG - floated right for text wrapping */}
       {moleculeUrl && (
@@ -61,6 +72,58 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
       {/* Title */}
       {hasTitle && (
         <h1 className="text-3xl font-bold text-white">{title}</h1>
+      )}
+
+      {/* Also known as - directly under title */}
+      {identification.alternative_names && identification.alternative_names.length > 0 && (
+        <p className="mt-1 text-sm text-white/50">
+          Also known as: {identification.alternative_names.join(", ")}
+        </p>
+      )}
+
+      {/* Classification badges */}
+      {hasClassification && (
+        <div className="mt-4 space-y-3">
+          {classification.psychoactive_class.length > 0 && (
+            <div>
+              <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-white/50">
+                Psychoactive Class
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {classification.psychoactive_class.map((cls) => (
+                  <Badge
+                    key={cls}
+                    variant="secondary"
+                    className={`gap-1.5 ${onSelectClassification ? "cursor-pointer hover:bg-fuchsia-500/30 transition-colors" : ""}`}
+                    onClick={onSelectClassification ? () => onSelectClassification("psychoactive", cls) : undefined}
+                  >
+                    <FlaskConical className="h-3 w-3" />
+                    {cls}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          {classification.chemical_class.length > 0 && (
+            <div>
+              <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-white/50">
+                Chemical Class
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {classification.chemical_class.map((cls) => (
+                  <Badge
+                    key={cls}
+                    variant="outline"
+                    className={`gap-1.5 ${onSelectClassification ? "cursor-pointer hover:bg-white/10 transition-colors" : ""}`}
+                    onClick={onSelectClassification ? () => onSelectClassification("chemical", cls) : undefined}
+                  >
+                    {cls}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Identification details */}
@@ -88,12 +151,6 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
             <p className="text-sm text-white/60">
               <span className="font-medium text-white/80">CAS:</span>{" "}
               {identification.cas_number}
-            </p>
-          )}
-          {identification.alternative_names && identification.alternative_names.length > 0 && (
-            <p className="text-sm text-white/60">
-              <span className="font-medium text-white/80">Also known as:</span>{" "}
-              {identification.alternative_names.join(", ")}
             </p>
           )}
           {identification.molecular_formula && (
@@ -124,30 +181,16 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         </div>
       )}
 
-      {/* Classification badges */}
-      {hasClassification && (
-        <div className="mt-5 flex flex-wrap gap-2">
-          {classification.psychoactive_class.map((cls) => (
-            <Badge key={cls} variant="secondary" className="gap-1.5">
-              <FlaskConical className="h-3 w-3" />
-              {cls}
-            </Badge>
-          ))}
-          {classification.chemical_class.map((cls) => (
-            <Badge key={cls} variant="outline" className="gap-1.5">
-              {cls}
-            </Badge>
-          ))}
-        </div>
-      )}
-
       {/* Index categories */}
       {hasCategories && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {index_categories.map((cat) => (
             <span
               key={cat}
-              className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-xs text-white/50"
+              className={`inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-xs text-white/50 ${
+                onSelectCategory ? "cursor-pointer hover:bg-white/10 hover:text-white/70 transition-colors" : ""
+              }`}
+              onClick={onSelectCategory ? () => onSelectCategory(cat) : undefined}
             >
               <Tag className="h-2.5 w-2.5" />
               {cat}

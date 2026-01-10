@@ -20,6 +20,7 @@ import type {
   ParsedEffect,
   ParsedInteraction,
   ParsedLegalStatus,
+  ParsedInternationalLaw,
   ParsedTolerance,
   ParsedPharmacology,
   ParsedChemistry,
@@ -38,6 +39,7 @@ import {
   cleanMarkdown,
   stripMarkdownLinks,
   stripReferences,
+  extractStatusAndNotes,
 } from "./base";
 
 // === Dosage & Duration Parsing ===
@@ -344,11 +346,43 @@ function parseToxicitySection(
 
 // === Legal Status Parsing ===
 
-function parseLegalStatus(content: string, sourceId: string): ParsedLegalStatus[] {
+interface LegalParseResult {
+  legal: ParsedLegalStatus[];
+  internationalLaw: ParsedInternationalLaw[];
+}
+
+function parseLegalStatus(content: string, sourceId: string): LegalParseResult {
   const section = extractSection(content, "Legal status", 2);
-  if (!section) return [];
+  if (!section) return { legal: [], internationalLaw: [] };
 
   const statuses: ParsedLegalStatus[] = [];
+  const treaties: ParsedInternationalLaw[] = [];
+
+  // === Extract UN Conventions from intro paragraph ===
+  // The intro paragraph is before the first bullet point
+  const introMatch = section.match(/^([\s\S]*?)(?=\n\s*-\s*\*\*)/);
+  const intro = introMatch ? introMatch[1] : section;
+
+  if (intro.includes("1971 Convention") || intro.includes("Convention on Psychotropic Substances")) {
+    treaties.push({
+      treaty: "UN Convention on Psychotropic Substances 1971",
+      source: sourceId,
+    });
+  }
+  if (intro.includes("1961 Convention") || intro.includes("Single Convention on Narcotic")) {
+    treaties.push({
+      treaty: "Single Convention on Narcotic Drugs 1961",
+      source: sourceId,
+    });
+  }
+  if (intro.includes("1988 Convention") || intro.includes("Against Illicit Traffic")) {
+    treaties.push({
+      treaty: "UN Convention Against Illicit Traffic 1988",
+      source: sourceId,
+    });
+  }
+
+  // === Parse country entries ===
   const lines = section.split("\n");
 
   for (const line of lines) {
@@ -356,19 +390,21 @@ function parseLegalStatus(content: string, sourceId: string): ParsedLegalStatus[
     const match = line.match(/^\s*-\s*\*\*([^*:]+)\*\*\s*:\s*(.+)$/);
     if (match) {
       const country = normalizeCountry(match[1].trim());
-      const status = stripReferences(cleanMarkdown(match[2]));
+      const fullText = stripReferences(cleanMarkdown(match[2]));
 
-      if (status.length > 0 && status.length < 1000) {
+      if (fullText.length > 0 && fullText.length < 1000) {
+        const { status, notes } = extractStatusAndNotes(fullText);
         statuses.push({
           country,
           status,
+          details: notes || undefined,
           source: sourceId,
         });
       }
     }
   }
 
-  return statuses;
+  return { legal: statuses, internationalLaw: treaties };
 }
 
 // === Tolerance Parsing ===
@@ -711,7 +747,9 @@ export class PsychonautWikiParser implements SourceParser {
     result.harmReduction = harmReduction;
 
     // Parse legal status
-    result.legal = parseLegalStatus(content, this.sourceId);
+    const legalResult = parseLegalStatus(content, this.sourceId);
+    result.legal = legalResult.legal;
+    result.internationalLaw = legalResult.internationalLaw;
 
     // Parse tolerance
     result.tolerance = parseTolerance(content, this.sourceId);
@@ -728,6 +766,7 @@ export class PsychonautWikiParser implements SourceParser {
     if (result.effects.length > 0) result.sectionsExtracted.push("effects");
     if (result.interactions.length > 0) result.sectionsExtracted.push("interactions");
     if (result.legal.length > 0) result.sectionsExtracted.push("legal");
+    if (result.internationalLaw.length > 0) result.sectionsExtracted.push("international_law");
     if (result.tolerance) result.sectionsExtracted.push("tolerance");
     if (result.chemistry) result.sectionsExtracted.push("chemistry");
     if (result.pharmacology) result.sectionsExtracted.push("pharmacology");

@@ -18,6 +18,7 @@ import type {
   ParsedDurationRoute,
   ParsedEffect,
   ParsedLegalStatus,
+  ParsedInternationalLaw,
   ParsedHarmReduction,
   DoseRange,
   DurationRange,
@@ -27,6 +28,8 @@ import {
   createEmptyParserResult,
   extractBulletList,
   cleanMarkdown,
+  normalizeCountry,
+  extractStatusAndNotes,
 } from "./base";
 
 // === Section Extraction ===
@@ -342,15 +345,41 @@ function parseEffectsSection(content: string, sourceId: string): ParsedEffect[] 
 
 // === Legal Status Parsing ===
 
-function parseLegalSection(content: string, sourceId: string): ParsedLegalStatus[] {
+interface LegalParseResult {
+  legal: ParsedLegalStatus[];
+  internationalLaw: ParsedInternationalLaw[];
+}
+
+function parseLegalSection(content: string, sourceId: string): LegalParseResult {
   // Try markdown section first
   const lawSection = extractErowidMarkdownSection(content, "Law") ||
                      extractErowidSubsection(content, "Law");
-  if (!lawSection) return [];
+  if (!lawSection) return { legal: [], internationalLaw: [] };
 
   const statuses: ParsedLegalStatus[] = [];
+  const treaties: ParsedInternationalLaw[] = [];
 
-  // Look for U.S. Federal section
+  // === Extract UN Conventions ===
+  if (lawSection.includes("1971 Convention") || lawSection.includes("Psychotropic Substances")) {
+    treaties.push({
+      treaty: "UN Convention on Psychotropic Substances 1971",
+      source: sourceId,
+    });
+  }
+  if (lawSection.includes("1961 Convention") || lawSection.includes("Single Convention on Narcotic")) {
+    treaties.push({
+      treaty: "Single Convention on Narcotic Drugs 1961",
+      source: sourceId,
+    });
+  }
+  if (lawSection.includes("1988 Convention") || lawSection.includes("Against Illicit Traffic")) {
+    treaties.push({
+      treaty: "UN Convention Against Illicit Traffic 1988",
+      source: sourceId,
+    });
+  }
+
+  // === Look for U.S. Federal section ===
   const federalSection = extractErowidSubsection(lawSection, "U.S. FEDERAL LAW");
   if (federalSection) {
     // Look for schedule information
@@ -376,11 +405,12 @@ function parseLegalSection(content: string, sourceId: string): ParsedLegalStatus
     }
   }
 
-  // Parse international law entries
+  // === Parse international law entries ===
   const internationalSection = extractErowidSubsection(lawSection, "INTERNATIONAL LAW");
   if (internationalSection) {
-    // Look for country headers with # markers
-    const countryPattern = /^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*#\s*$/gm;
+    // Look for country headers with # markers: "Australia #", "Canada #", etc.
+    // More flexible pattern to catch various country name formats
+    const countryPattern = /^([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)\s*#\s*$/gm;
     let countryMatch: RegExpExecArray | null;
     const countryMatches: Array<{ name: string; index: number }> = [];
 
@@ -388,23 +418,27 @@ function parseLegalSection(content: string, sourceId: string): ParsedLegalStatus
       countryMatches.push({ name: countryMatch[1], index: countryMatch.index });
     }
 
-    for (let i = 0; i < countryMatches.length && statuses.length < 10; i++) {
-      const country = countryMatches[i].name;
-      const startIdx = countryMatches[i].index + country.length + 2;
+    for (let i = 0; i < countryMatches.length; i++) {
+      const rawCountry = countryMatches[i].name;
+      const startIdx = countryMatches[i].index + rawCountry.length + 2;
       const endIdx = countryMatches[i + 1]?.index ?? internationalSection.length;
       const countryContent = internationalSection.slice(startIdx, endIdx).trim();
 
       if (countryContent.length > 5) {
+        const cleaned = cleanMarkdown(countryContent);
+        const { status, notes } = extractStatusAndNotes(cleaned);
+
         statuses.push({
-          country,
-          status: cleanMarkdown(countryContent),  // No truncation - full legal details
+          country: normalizeCountry(rawCountry),
+          status,
+          details: notes || undefined,
           source: sourceId,
         });
       }
     }
   }
 
-  return statuses;
+  return { legal: statuses, internationalLaw: treaties };
 }
 
 // === Harm Reduction Parsing ===
@@ -601,7 +635,11 @@ export class ErowidParser implements SourceParser {
     result.dosage = parseDosageSection(content, this.sourceId);
     result.duration = parseDurationSection(content, this.sourceId);
     result.effects = parseEffectsSection(content, this.sourceId);
-    result.legal = parseLegalSection(content, this.sourceId);
+
+    const legalResult = parseLegalSection(content, this.sourceId);
+    result.legal = legalResult.legal;
+    result.internationalLaw = legalResult.internationalLaw;
+
     result.harmReduction = parseHarmSection(content, this.sourceId);
 
     // Track extracted structured sections
@@ -609,6 +647,7 @@ export class ErowidParser implements SourceParser {
     if (result.duration.length > 0) result.sectionsExtracted.push("duration");
     if (result.effects.length > 0) result.sectionsExtracted.push("effects");
     if (result.legal.length > 0) result.sectionsExtracted.push("legal");
+    if (result.internationalLaw.length > 0) result.sectionsExtracted.push("international_law");
     if (result.harmReduction) result.sectionsExtracted.push("harm_reduction");
 
     // === Extract narrative content (no truncation) ===

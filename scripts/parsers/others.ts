@@ -17,6 +17,7 @@ import type {
   ParsedDurationRoute,
   ParsedEffect,
   ParsedLegalStatus,
+  ParsedInternationalLaw,
   ParsedHarmReduction,
 } from "./types";
 
@@ -33,6 +34,7 @@ import {
   stripMarkdownLinks,
   stripReferences,
   detectInteractionSeverity,
+  extractStatusAndNotes,
 } from "./base";
 
 // ============================================
@@ -884,6 +886,59 @@ export class DrugClassroomParser implements SourceParser {
       }
     }
 
+    // Parse Legal Status section
+    // Drug Classroom format: "## Legal Status" with "#### Country" subsections
+    const legalSection = extractSection(content, "Legal Status", 2);
+    if (legalSection) {
+      // Extract UN Convention mentions
+      if (legalSection.includes("1971 Convention") || legalSection.includes("Convention on Psychotropic Substances")) {
+        result.internationalLaw.push({
+          treaty: "UN Convention on Psychotropic Substances 1971",
+          source: this.sourceId,
+        });
+      }
+      if (legalSection.includes("1961 Convention") || legalSection.includes("Single Convention on Narcotic")) {
+        result.internationalLaw.push({
+          treaty: "Single Convention on Narcotic Drugs 1961",
+          source: this.sourceId,
+        });
+      }
+
+      // Parse country subsections (#### US, #### Other countries, etc.)
+      const countryPattern = /####\s*([^\n]+)([\s\S]*?)(?=####|##|$)/gi;
+      let match;
+
+      while ((match = countryPattern.exec(legalSection)) !== null) {
+        const countryRaw = match[1].trim();
+        const fullText = cleanMarkdown(match[2]).trim();
+
+        // Skip meta headers and empty content
+        if (!countryRaw || !fullText || countryRaw.toLowerCase().includes("check your local")) continue;
+
+        // Normalize country name (handle "US (as of January 2017)" -> "United States")
+        let country = countryRaw;
+        if (country.toLowerCase().startsWith("us ") || country.toLowerCase() === "us") {
+          country = "United States";
+        }
+        // Remove date annotations like "(as of January 2017)"
+        country = country.replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+        const normalized = normalizeCountry(country);
+        if (normalized) {
+          const { status, notes } = extractStatusAndNotes(fullText);
+          result.legal.push({
+            country: normalized,
+            status: status || fullText,
+            details: notes || undefined,
+            source: this.sourceId,
+          });
+        }
+      }
+
+      if (result.legal.length > 0) result.sectionsExtracted.push("legal");
+      if (result.internationalLaw.length > 0) result.sectionsExtracted.push("international_law");
+    }
+
     return result;
   }
 }
@@ -955,26 +1010,225 @@ export class WikipediaParser implements SourceParser {
     }
 
     // Parse Legal status section
-    const legalSection = extractSection(content, "Legal status", 2);
+    // Try multiple section names and header levels:
+    // 1. H2 "Legal status" (direct)
+    // 2. H2 "Regulation" (singular - e.g. kratom)
+    // 3. H2 "Regulations" (plural - e.g. caffeine)
+    // 4. H2 "Legality" (another alternative)
+    // 5. H3 "Legal status"/"Regulation"/"Regulations" under H2 "Society and culture"
+    // 6. H3 at root level (e.g. zolpidem has ### Regulation at root)
+    let legalSection = extractSection(content, "Legal status", 2);
+    if (!legalSection) {
+      legalSection = extractSection(content, "Regulation", 2);
+    }
+    if (!legalSection) {
+      legalSection = extractSection(content, "Regulations", 2);
+    }
+    if (!legalSection) {
+      legalSection = extractSection(content, "Legality", 2);
+    }
+    if (!legalSection) {
+      // Check for nested legal section under "Society and culture"
+      const societySection = extractSection(content, "Society and culture", 2);
+      if (societySection) {
+        // Extract H3 "Legal status", "Regulation", "Regulations", or "Legality" from within
+        legalSection = extractSection(societySection, "Legal status", 3);
+        if (!legalSection) {
+          legalSection = extractSection(societySection, "Regulation", 3);
+        }
+        if (!legalSection) {
+          legalSection = extractSection(societySection, "Regulations", 3);
+        }
+        if (!legalSection) {
+          legalSection = extractSection(societySection, "Legality", 3);
+        }
+      }
+    }
+    if (!legalSection) {
+      // Try H3 directly at content level (e.g. zolpidem has ### Regulation at root)
+      legalSection = extractSection(content, "Legal status", 3);
+    }
+    if (!legalSection) {
+      legalSection = extractSection(content, "Regulation", 3);
+    }
+    if (!legalSection) {
+      legalSection = extractSection(content, "Regulations", 3);
+    }
     if (legalSection) {
-      // Wikipedia often has subsections by country
-      const countryPattern = /####?\s*([^\n]+)([\s\S]*?)(?=####?|###|##|$)/gi;
+      // === Extract International Law section content ===
+      // Try to get the "International law" subsection for context
+      const intlSection = extractSection(legalSection, "International law", 4) ||
+                          extractSection(legalSection, "International", 4);
+      const intlNotes = intlSection ? cleanMarkdown(intlSection).trim() : "";
+
+      // === Extract UN Conventions with context ===
+      if (legalSection.includes("1971 Convention") || legalSection.includes("Convention on Psychotropic Substances")) {
+        result.internationalLaw.push({
+          treaty: "UN Convention on Psychotropic Substances 1971",
+          notes: intlNotes || undefined,
+          source: this.sourceId,
+        });
+      }
+      if (legalSection.includes("1961 Convention") || legalSection.includes("Single Convention on Narcotic")) {
+        result.internationalLaw.push({
+          treaty: "Single Convention on Narcotic Drugs 1961",
+          notes: intlNotes || undefined,
+          source: this.sourceId,
+        });
+      }
+      if (legalSection.includes("1988 Convention") || legalSection.includes("Against Illicit Traffic")) {
+        result.internationalLaw.push({
+          treaty: "UN Convention Against Illicit Traffic 1988",
+          notes: intlNotes || undefined,
+          source: this.sourceId,
+        });
+      }
+
+      // Wikipedia has two formats:
+      // 1. Line-based: "CountryName - description" (most common)
+      // 2. Header-based: "#### Country" followed by content (less common)
+
+      // First try line-based format: "CountryName - description"
+      // Matches lines like "Israel - DMT is illegal...", "United States - ..."
+      const linePattern = /^([A-Z][A-Za-z\s]+)\s+[-–—]\s+(.+)$/gm;
       let match;
 
-      while ((match = countryPattern.exec(legalSection)) !== null) {
-        const country = match[1].trim();
-        const statusContent = cleanMarkdown(match[2]);  // No truncation - full legal details
+      while ((match = linePattern.exec(legalSection)) !== null) {
+        const countryRaw = match[1].trim();
+        const description = match[2].trim();
 
-        if (country && statusContent && !country.toLowerCase().includes("see also")) {
+        // Skip continent headers and meta text
+        const skipTerms = ["see also", "references", "asia", "europe", "north-america", "oceania", "other"];
+        if (skipTerms.some(term => countryRaw.toLowerCase().includes(term))) continue;
+
+        const normalized = normalizeCountry(countryRaw);
+        if (normalized && description) {
+          const { status, notes } = extractStatusAndNotes(description);
           result.legal.push({
-            country: normalizeCountry(country),
-            status: statusContent,
+            country: normalized,
+            status,
+            details: notes || undefined,
             source: this.sourceId,
           });
         }
       }
 
+      // Fallback: try header-based format if no line matches found
+      if (result.legal.length === 0) {
+        // Match H3 or H4 headers (3-4 hashes) for country subsections
+        const headerPattern = /#{3,4}\s*([^\n]+)([\s\S]*?)(?=#{3,4}|##|$)/gi;
+        while ((match = headerPattern.exec(legalSection)) !== null) {
+          const headerText = match[1].trim();
+          const fullText = cleanMarkdown(match[2]);
+
+          // Skip non-country headers (regions, meta sections, section titles)
+          const skipHeaders = [
+            "see also", "references", "international law", "by continent",
+            "fda", "dea", "public response", "scheduling", "assessment",
+            "asean", "south america", "europe", "asia", "north america",
+            "oceania", "africa", "middle east",
+            // Section titles that might be extracted as headers
+            "regulation", "regulations", "legal status", "legality",
+            "age limits", "historic", "history"
+          ];
+          if (skipHeaders.some(term => headerText.toLowerCase().includes(term))) continue;
+          if (!headerText || !fullText) continue;
+
+          const normalized = normalizeCountry(headerText);
+          if (normalized) {
+            const { status, notes } = extractStatusAndNotes(fullText);
+            result.legal.push({
+              country: normalized,
+              status,
+              details: notes || undefined,
+              source: this.sourceId,
+            });
+          }
+        }
+      }
+
+      // Fallback 2: Try prose format "In [Country], [substance] is [status]"
+      // e.g. "In Australia, morphine is classified as a Schedule 8 drug"
+      if (result.legal.length === 0) {
+        const prosePattern = /\bIn\s+((?:the\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*),?\s+\w+\s+(?:is|are)\s+(?:classified as\s+)?(?:a\s+)?(.+?)(?:\.|$)/gm;
+        while ((match = prosePattern.exec(legalSection)) !== null) {
+          let countryRaw = match[1].trim();
+          const statusText = match[2].trim();
+
+          // Clean up "the" prefix (e.g., "the Netherlands" -> "Netherlands")
+          countryRaw = countryRaw.replace(/^the\s+/i, "");
+
+          const normalized = normalizeCountry(countryRaw);
+          if (normalized && statusText) {
+            const { status, notes } = extractStatusAndNotes(statusText);
+            result.legal.push({
+              country: normalized,
+              status: status || statusText,
+              details: notes || undefined,
+              source: this.sourceId,
+            });
+          }
+        }
+      }
+
+      // Fallback 3: Try comma-separated inline format
+      // e.g. "a Schedule I drug in Canada, a List I drug in the Netherlands, and a Class A substance in the UK"
+      // Also handles: "PCP is a Schedule II substance in the US"
+      // Also handles: "It is a Schedule I drug by the Controlled Drugs and Substances act in Canada"
+      if (result.legal.length === 0) {
+        // Skip list for common non-country words
+        const skipWords = ["which", "that", "this", "some", "many", "most", "all", "any", "certain"];
+
+        // Pattern 1: "[status] by/under [act name] in [Country]" - for formats like PCP
+        // Runs FIRST so it gets priority over the more generic direct pattern
+        // Matches: "Schedule I drug by the Controlled Drugs and Substances act in Canada"
+        const byActPattern = /(?:a\s+)?((?:Schedule|Class|List|Anlage)\s+[^\s,]+(?:\s+\w+)?)\s+(?:by|under)\s+(?:the\s+)?[^,]+?\s+in\s+(?:the\s+)?([A-Z]{2,3}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)(?=\s*[,.\s]|$)/gi;
+        while ((match = byActPattern.exec(legalSection)) !== null) {
+          const statusRaw = match[1].trim();
+          const countryRaw = match[2].trim();
+
+          if (statusRaw.length > 60) continue;
+          if (skipWords.includes(countryRaw.toLowerCase())) continue;
+
+          const normalized = normalizeCountry(countryRaw);
+          if (normalized) {
+            result.legal.push({
+              country: normalized,
+              status: statusRaw,
+              source: this.sourceId,
+            });
+          }
+        }
+
+        // Pattern 2: "[status] in [Country]" - direct format (within same sentence)
+        // Uses [^,.] to avoid crossing sentence boundaries
+        // Matches: "Schedule II substance in the US", "List I drug in the Netherlands"
+        const directPattern = /(?:a\s+)?([^,.]+?)\s+in\s+(?:the\s+)?([A-Z]{2,3}|[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)(?=\s*[,.\s]|$)/gi;
+        while ((match = directPattern.exec(legalSection)) !== null) {
+          // Strip leading "and " from status (from comma-separated lists like "X in A, Y in B, and Z in C")
+          const statusRaw = match[1].trim().replace(/^and\s+/i, "");
+          const countryRaw = match[2].trim();
+
+          if (statusRaw.length > 80) continue;
+          if (!statusRaw.match(/schedule|class|list|anlage|controlled|illegal|legal|substance/i)) continue;
+          if (skipWords.includes(countryRaw.toLowerCase())) continue;
+          // Skip if status contains "by" or "under" followed by act references - handled by byActPattern
+          if (statusRaw.match(/\s+(?:by|under)\s+(?:the\s+)?(?:\w+\s+){2,}/i)) continue;
+
+          const normalized = normalizeCountry(countryRaw);
+          // Only add if not already present (byActPattern has priority)
+          if (normalized && !result.legal.some(l => l.country === normalized)) {
+            result.legal.push({
+              country: normalized,
+              status: statusRaw,
+              source: this.sourceId,
+            });
+          }
+        }
+      }
+
       if (result.legal.length > 0) result.sectionsExtracted.push("legal");
+      if (result.internationalLaw.length > 0) result.sectionsExtracted.push("international_law");
     }
 
     // Parse Adverse effects section

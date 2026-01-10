@@ -122,6 +122,7 @@ export const identificationSchema = z.object({
   molecular_formula: z.string(),
   molecular_weight: z.string(),
   skeletal_structure_image: z.string(),
+  botanical_name: z.string().default(""),
 });
 
 /** Classification section */

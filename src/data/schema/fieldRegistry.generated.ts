@@ -93,6 +93,12 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
     default: "",
     isNullable: false,
   },
+  "identification.botanical_name": {
+    path: "identification.botanical_name",
+    type: "text",
+    default: null,
+    isNullable: false,
+  },
   "summary": {
     path: "summary",
     type: "text",
@@ -466,6 +472,7 @@ export const FIELD_PATHS = [
   "identification.molecular_formula",
   "identification.molecular_weight",
   "identification.skeletal_structure_image",
+  "identification.botanical_name",
   "summary",
   "classification.psychoactive_class",
   "classification.chemical_class",

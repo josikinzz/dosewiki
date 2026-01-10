@@ -480,6 +480,7 @@ export function createEmptyParserResult(): ParserResult {
     effects: [],
     interactions: [],
     legal: [],
+    internationalLaw: [],
     narrativeContent: {
       experienceReports: [],
       synthesis: [],
@@ -558,29 +559,276 @@ export function detectEffectCategory(
 // === Legal Status Parsing ===
 
 const COUNTRY_ALIASES: Record<string, string> = {
+  // United States
   usa: "United States",
   us: "United States",
+  "u.s.": "United States",
+  "u.s.a.": "United States",
   "united states": "United States",
+  "united states of america": "United States",
+  america: "United States",
+  // United Kingdom
   uk: "United Kingdom",
+  "u.k.": "United Kingdom",
   "united kingdom": "United Kingdom",
   gb: "United Kingdom",
+  "great britain": "United Kingdom",
+  britain: "United Kingdom",
+  england: "United Kingdom",
+  // Germany
   de: "Germany",
   germany: "Germany",
+  deutschland: "Germany",
+  // France
   fr: "France",
   france: "France",
+  // Canada
   ca: "Canada",
   canada: "Canada",
+  // Australia
   au: "Australia",
   australia: "Australia",
+  // Netherlands
   nl: "Netherlands",
   netherlands: "Netherlands",
+  "the netherlands": "Netherlands",
+  holland: "Netherlands",
+  // Switzerland
   ch: "Switzerland",
   switzerland: "Switzerland",
+  schweiz: "Switzerland",
+  suisse: "Switzerland",
+  // Italy
+  it: "Italy",
+  italy: "Italy",
+  italia: "Italy",
+  // Spain
+  es: "Spain",
+  spain: "Spain",
+  espana: "Spain",
+  españa: "Spain",
+  // Brazil
+  br: "Brazil",
+  brazil: "Brazil",
+  brasil: "Brazil",
+  // Sweden
+  se: "Sweden",
+  sweden: "Sweden",
+  sverige: "Sweden",
+  // Norway
+  no: "Norway",
+  norway: "Norway",
+  norge: "Norway",
+  // Denmark
+  dk: "Denmark",
+  denmark: "Denmark",
+  danmark: "Denmark",
+  // Austria
+  at: "Austria",
+  austria: "Austria",
+  österreich: "Austria",
+  osterreich: "Austria",
+  // Belgium
+  be: "Belgium",
+  belgium: "Belgium",
+  belgique: "Belgium",
+  belgie: "Belgium",
+  // Poland
+  pl: "Poland",
+  poland: "Poland",
+  polska: "Poland",
+  // Czech Republic
+  cz: "Czech Republic",
+  "czech republic": "Czech Republic",
+  czechia: "Czech Republic",
+  // Russia
+  ru: "Russia",
+  russia: "Russia",
+  "russian federation": "Russia",
+  // Japan
+  jp: "Japan",
+  japan: "Japan",
+  // China
+  cn: "China",
+  china: "China",
+  // New Zealand
+  nz: "New Zealand",
+  "new zealand": "New Zealand",
+  // Portugal
+  pt: "Portugal",
+  portugal: "Portugal",
+  // Ireland
+  ie: "Ireland",
+  ireland: "Ireland",
+  // Finland
+  fi: "Finland",
+  finland: "Finland",
+  // Hungary
+  hu: "Hungary",
+  hungary: "Hungary",
+  // Israel
+  il: "Israel",
+  israel: "Israel",
+  // South Africa
+  za: "South Africa",
+  "south africa": "South Africa",
+  // Mexico
+  mx: "Mexico",
+  mexico: "Mexico",
+  // Argentina
+  ar: "Argentina",
+  argentina: "Argentina",
+  // India
+  in: "India",
+  india: "India",
+  // Singapore
+  sg: "Singapore",
+  singapore: "Singapore",
+  // Latvia
+  lv: "Latvia",
+  latvia: "Latvia",
+  // Romania
+  ro: "Romania",
+  romania: "Romania",
+  // Slovakia
+  sk: "Slovakia",
+  slovakia: "Slovakia",
+  // Slovenia
+  si: "Slovenia",
+  slovenia: "Slovenia",
+  // Croatia
+  hr: "Croatia",
+  croatia: "Croatia",
+  // Estonia
+  ee: "Estonia",
+  estonia: "Estonia",
+  // Lithuania
+  lt: "Lithuania",
+  lithuania: "Lithuania",
+  // Greece
+  gr: "Greece",
+  greece: "Greece",
+  // Turkey
+  tr: "Turkey",
+  turkey: "Turkey",
+  // Thailand
+  th: "Thailand",
+  thailand: "Thailand",
+  // South Korea
+  kr: "South Korea",
+  "south korea": "South Korea",
+  korea: "South Korea",
+  // Taiwan
+  tw: "Taiwan",
+  taiwan: "Taiwan",
+  // Hong Kong
+  hk: "Hong Kong",
+  "hong kong": "Hong Kong",
+  // Malaysia
+  my: "Malaysia",
+  malaysia: "Malaysia",
+  // Indonesia
+  id: "Indonesia",
+  indonesia: "Indonesia",
+  // Philippines
+  ph: "Philippines",
+  philippines: "Philippines",
+  // Vietnam
+  vn: "Vietnam",
+  vietnam: "Vietnam",
+  // Colombia
+  co: "Colombia",
+  colombia: "Colombia",
+  // Chile
+  cl: "Chile",
+  chile: "Chile",
+  // Peru
+  pe: "Peru",
+  peru: "Peru",
+  // Ecuador
+  ec: "Ecuador",
+  ecuador: "Ecuador",
+  // Uruguay
+  uy: "Uruguay",
+  uruguay: "Uruguay",
 };
 
 export function normalizeCountry(country: string): string {
   const lower = country.toLowerCase().trim();
   return COUNTRY_ALIASES[lower] || country;
+}
+
+/**
+ * Clean "citation needed" markers from text
+ */
+function cleanCitationNeeded(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/\s*\[?citation needed\]?\s*/gi, " ")
+    .replace(/\s*\[?\[citation needed\]\]?\s*/gi, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/**
+ * Extract legal classification (status) and additional notes from a full legal text.
+ *
+ * Examples:
+ * - "Schedule I controlled substance" → { status: "Schedule I", notes: "controlled substance" }
+ * - "Class A drug under the Misuse of Drugs Act" → { status: "Class A", notes: "drug under the Misuse of Drugs Act" }
+ * - "Illegal since 2015" → { status: "Illegal since 2015", notes: "" }
+ */
+export function extractStatusAndNotes(fullText: string): { status: string; notes: string } {
+  if (!fullText || fullText.trim() === "") {
+    return { status: "", notes: "" };
+  }
+
+  // Clean citation needed markers first
+  const text = cleanCitationNeeded(fullText.trim());
+
+  // Try to extract classification patterns (Schedule X, Class X, Anlage X, etc.)
+  const classificationPatterns = [
+    /^(Schedule\s+[IVX0-9]+)/i,
+    /^(Class\s+[A-C])/i,
+    /^(Anlage\s+[IVX0-9]+)/i,
+    /^(List\s+[IVX0-9]+)/i,
+    /^(Tabella\s+[IVX0-9]+)/i,
+    /^(Förteckning\s+[IVX0-9]+)/i,
+    /^(Category\s+[A-Z0-9]+)/i,
+    /^(Controlled)/i,
+    /^(Prohibited)/i,
+    /^(Illegal)/i,
+    /^(Legal)/i,
+    /^(Uncontrolled)/i,
+    /^(Decriminalized)/i,
+    /^(Not scheduled)/i,
+  ];
+
+  for (const pattern of classificationPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const status = match[1];
+      const remainder = text.slice(match[0].length).replace(/^[\s,\-–:]+/, "").trim();
+      return { status, notes: remainder };
+    }
+  }
+
+  // If no classification found and text is short, use it as status
+  if (text.length < 80) {
+    return { status: text, notes: "" };
+  }
+
+  // For longer text, use first sentence as status (no length limit)
+  const sentenceEnd = text.search(/[.!?](?:\s|$)/);
+  if (sentenceEnd > 0) {
+    return {
+      status: text.slice(0, sentenceEnd + 1).trim(),
+      notes: text.slice(sentenceEnd + 1).trim()
+    };
+  }
+
+  // No sentence break found - use full text as status (no truncation)
+  return { status: text, notes: "" };
 }
 
 // === Interaction Severity Detection ===

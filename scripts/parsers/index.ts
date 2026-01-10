@@ -83,6 +83,7 @@ export function aggregateResults(
     effects: [],
     interactions: [],
     legal: [],
+    internationalLaw: [],
     narrativeContent: {
       experienceReports: [],
       synthesis: [],
@@ -100,6 +101,7 @@ export function aggregateResults(
     aggregated.effects.push(...result.effects);
     aggregated.interactions.push(...result.interactions);
     aggregated.legal.push(...result.legal);
+    aggregated.internationalLaw.push(...result.internationalLaw);
 
     // Chemistry: merge fields, track all sources
     if (result.chemistry) {

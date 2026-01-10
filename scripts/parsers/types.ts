@@ -93,6 +93,13 @@ export interface ParsedLegalStatus {
   source: string;
 }
 
+export interface ParsedInternationalLaw {
+  treaty: string;
+  schedule?: string;
+  notes?: string;
+  source: string;
+}
+
 export interface ParsedHarmReduction {
   rules: string[];
   shortTermRisks?: string[];
@@ -133,6 +140,7 @@ export interface ParsedSubstanceData {
   effects: ParsedEffect[];
   interactions: ParsedInteraction[];
   legal: ParsedLegalStatus[];
+  internationalLaw: ParsedInternationalLaw[];
   tolerance?: ParsedTolerance[];
   pharmacology?: ParsedPharmacology;
   harmReduction?: ParsedHarmReduction;
@@ -165,6 +173,7 @@ export interface ParserResult {
   effects: ParsedEffect[];
   interactions: ParsedInteraction[];
   legal: ParsedLegalStatus[];
+  internationalLaw: ParsedInternationalLaw[];
   tolerance?: ParsedTolerance;
   pharmacology?: Partial<ParsedPharmacology>;
   harmReduction?: Partial<ParsedHarmReduction>;

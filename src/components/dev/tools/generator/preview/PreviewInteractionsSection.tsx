@@ -6,6 +6,8 @@ import type { SubstanceArticle } from "../../../../../schema";
 
 interface PreviewInteractionsSectionProps {
   article: SubstanceArticle;
+  /** Called when an interaction substance is clicked */
+  onSelectInteraction?: (substance: string) => void;
 }
 
 const INTERACTION_CATEGORIES = [
@@ -37,6 +39,7 @@ const INTERACTION_CATEGORIES = [
 
 export const PreviewInteractionsSection = memo(function PreviewInteractionsSection({
   article,
+  onSelectInteraction,
 }: PreviewInteractionsSectionProps) {
   const { interactions } = article;
 
@@ -79,7 +82,14 @@ export const PreviewInteractionsSection = memo(function PreviewInteractionsSecti
 
                   return (
                     <li key={idx} className="text-sm leading-snug">
-                      <span className="font-medium text-white">{substance}</span>
+                      <span
+                        className={`font-medium text-white ${
+                          onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
+                        }`}
+                        onClick={onSelectInteraction ? () => onSelectInteraction(substance) : undefined}
+                      >
+                        {substance}
+                      </span>
                       {rationale && (
                         <span className="text-white/60"> - {rationale}</span>
                       )}

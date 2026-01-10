@@ -20,7 +20,8 @@ import { parsePath, viewToPath } from "./utils/routing";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
-import { SubstanceArticle } from "./components/pages/SubstanceArticle";
+import { SubstanceArticlePage } from "./components/pages/SubstanceArticlePage";
+import { slugify } from "./utils/slug";
 
 /**
  * Generate a human-readable page title for screen reader announcements.
@@ -65,6 +66,7 @@ export default function App() {
   // Get library data from context
   const library = useLibrary();
   const {
+    articles,
     substanceRecords,
     substanceBySlug,
     dosageCategoryGroups,
@@ -91,6 +93,16 @@ export default function App() {
     // Fall back to first substance
     return substanceRecords[0]?.slug ?? null;
   }, [substanceRecords]);
+
+  // Create a map of raw articles by slug for the new article layout
+  const articlesBySlug = useMemo(() => {
+    const map = new Map<string, (typeof articles)[0]>();
+    for (const article of articles) {
+      const slug = slugify(article.title);
+      map.set(slug, article);
+    }
+    return map;
+  }, [articles]);
 
   const [view, setView] = useState<AppView>(() => parsePath(undefined, defaultSlug, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
@@ -210,6 +222,7 @@ export default function App() {
 
   const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : defaultSlug;
   const activeRecord = activeSlug ? substanceBySlug.get(activeSlug) ?? null : null;
+  const activeArticle = activeSlug ? articlesBySlug.get(activeSlug) ?? null : null;
   const content = activeRecord?.content ?? null;
 
   const handleInteractionSelectionChange = useCallback(
@@ -528,30 +541,14 @@ export default function App() {
             />
           );
         })()
-      ) : activeRecord && content ? (
-        (() => {
-          const harmReductionBannerNode = isBannerDismissed
-            ? null
-            : (
-              <HarmReductionBanner
-                citations={content.citations}
-                onDismiss={dismissHarmReductionBanner}
-              />
-            );
-
-          return (
-            <SubstanceArticle
-              record={activeRecord}
-              activeRouteKey={activeRouteKey}
-              onRouteChange={handleRouteChange}
-              onSelectCategory={selectCategory}
-              onSelectEffect={selectEffect}
-              onSelectMechanism={selectMechanism}
-              onSelectClassification={selectClassification}
-              harmReductionBanner={harmReductionBannerNode}
-            />
-          );
-        })()
+      ) : activeArticle ? (
+        <SubstanceArticlePage
+          article={activeArticle}
+          onSelectCategory={selectCategory}
+          onSelectEffect={selectEffect}
+          onSelectMechanism={selectMechanism}
+          onSelectClassification={selectClassification}
+        />
       ) : (
         <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
           <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
