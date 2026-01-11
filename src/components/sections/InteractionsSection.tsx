@@ -1,47 +1,52 @@
-import { useState } from "react";
-import type { LucideIcon } from "lucide-react";
+import { memo, useState } from "react";
 import { AlertCircle, AlertTriangle, ExternalLink, Maximize2, Minimize2, ShieldAlert, Skull } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import { InteractionGroup } from "../../types/content";
+import type { SubstanceArticle } from "../../schema";
 
 interface InteractionsSectionProps {
-  interactions: InteractionGroup[];
-  layoutVariant?: "masonry" | "stacked";
+  article: SubstanceArticle;
+  /** Called when an interaction substance is clicked */
+  onSelectInteraction?: (substance: string) => void;
 }
 
-const severityStyles: Record<InteractionGroup["severity"], { border: string; bg: string; Icon: LucideIcon; iconClass: string; label: string; definition: string }> = {
-  danger: {
-    border: "border-rose-500/40",
-    bg: "bg-rose-500/10",
-    Icon: Skull,
-    iconClass: "text-rose-200",
+const INTERACTION_CATEGORIES = [
+  {
+    key: "dangerous",
     label: "Dangerous",
+    icon: Skull,
+    borderClass: "border-rose-500/40",
+    bgClass: "bg-rose-500/10",
+    iconClass: "text-rose-300",
     definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
   },
-  unsafe: {
-    border: "border-rose-400/35",
-    bg: "bg-rose-400/10",
-    Icon: AlertTriangle,
-    iconClass: "text-rose-200",
+  {
+    key: "unsafe",
     label: "Unsafe",
+    icon: AlertTriangle,
+    borderClass: "border-orange-500/40",
+    bgClass: "bg-orange-500/10",
+    iconClass: "text-orange-300",
     definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
   },
-  caution: {
-    border: "border-rose-300/30",
-    bg: "bg-rose-300/10",
-    Icon: AlertCircle,
-    iconClass: "text-rose-200",
+  {
+    key: "caution",
     label: "Caution",
+    icon: AlertCircle,
+    borderClass: "border-amber-500/40",
+    bgClass: "bg-amber-500/10",
+    iconClass: "text-amber-300",
     definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
   },
-};
+] as const;
 
-export function InteractionsSection({ interactions, layoutVariant = "masonry" }: InteractionsSectionProps) {
+export const InteractionsSection = memo(function InteractionsSection({
+  article,
+  onSelectInteraction,
+}: InteractionsSectionProps) {
+  const { interactions } = article;
+
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const isStacked = layoutVariant === "stacked";
-  const containerClasses = isStacked ? "flex flex-col gap-4" : "[column-gap:1.5rem] columns-1 md:columns-3";
-  const cardSpacingClasses = isStacked ? "" : "mb-4 break-inside-avoid break-inside-avoid-column last:mb-0";
 
   const toggleExpand = (key: string) => {
     setExpandedItems((prev) => {
@@ -55,87 +60,106 @@ export function InteractionsSection({ interactions, layoutVariant = "masonry" }:
     });
   };
 
+  const hasDangerous = interactions.dangerous.length > 0;
+  const hasUnsafe = interactions.unsafe.length > 0;
+  const hasCaution = interactions.caution.length > 0;
+
+  if (!hasDangerous && !hasUnsafe && !hasCaution) {
+    return null;
+  }
+
   return (
-    <SectionCard delay={0.2} className="space-y-4">
-      <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+    <SectionCard delay={0}>
+      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
         <IconBadge icon={ShieldAlert} label="Interactions" />
         Interactions
       </h2>
-      <div className={containerClasses}>
-        {interactions.map((group) => {
-          const { border, bg, Icon, iconClass, label, definition } = severityStyles[group.severity];
-          const expandedInGroup = group.items.filter(
-            (item) => item.rationale && expandedItems.has(`${item.slug}-${item.raw}`)
-          );
+
+      {/* Single column layout */}
+      <div className="flex flex-col gap-4">
+        {INTERACTION_CATEGORIES.map(({ key, label, icon: Icon, borderClass, bgClass, iconClass, definition }) => {
+          const items = interactions[key as keyof typeof interactions];
+          if (items.length === 0) return null;
 
           return (
             <div
-              key={group.label}
-              className={`${cardSpacingClasses} rounded-xl p-4 ring-1 ring-white/10 ${border} ${bg} transition hover:border-white/20 hover:bg-white/12`}
+              key={key}
+              className={`rounded-xl border p-4 ${borderClass} ${bgClass}`}
             >
-              <h3 className="flex items-center gap-2 font-semibold">
-                <Icon className={`h-5 w-5 ${iconClass}`} aria-hidden="true" focusable="false" />
-                <span>{label}</span>
+              <h3 className="flex items-center gap-2 font-semibold text-white">
+                <Icon className={`h-5 w-5 ${iconClass}`} />
+                {label}
               </h3>
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
+              <div className="my-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+              {(() => {
+                // Parse all items to extract substance and rationale
+                const parsed = items.map((item) => {
+                  const match = item.match(/^(.+?)\s*\((.+)\)$/);
+                  return {
+                    raw: item,
+                    substance: match ? match[1].trim() : item,
+                    rationale: match ? match[2].trim() : null,
+                  };
+                });
 
-              <div className="mt-3 space-y-2.5">
-                {/* All items as compact badges */}
-                <div className="flex flex-wrap gap-2">
-                  {group.items.map((item) => {
-                    const key = `${item.slug}-${item.raw}`;
-                    const isExpanded = expandedItems.has(key);
-                    const hasRationale = !!item.rationale;
+                return (
+                  <div className="flex flex-wrap gap-2">
+                    {parsed.map((item) => {
+                      const isExpanded = expandedItems.has(item.raw);
+                      const hasRationale = !!item.rationale;
 
-                    return (
-                      <span
-                        key={key}
-                        className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
-                      >
-                        {item.display}
-                        {hasRationale && (
-                          <button
-                            onClick={() => toggleExpand(key)}
-                            className="rounded p-0.5 transition hover:bg-white/10"
-                            aria-label={isExpanded ? `Collapse ${item.display}` : `Expand ${item.display}`}
+                      // Expanded state - full-width inline card
+                      if (isExpanded && hasRationale) {
+                        return (
+                          <div
+                            key={item.raw}
+                            className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-white/[0.08] backdrop-blur-sm ring-1 ring-white/15 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] px-4 py-3 my-1"
                           >
-                            {isExpanded ? (
-                              <Minimize2 className="h-3.5 w-3.5 text-white/50" />
-                            ) : (
-                              <Maximize2 className="h-3.5 w-3.5 text-white/50" />
-                            )}
-                          </button>
-                        )}
-                      </span>
-                    );
-                  })}
-                </div>
+                            <button
+                              onClick={() => toggleExpand(item.raw)}
+                              className="absolute top-3 right-3 rounded p-1 transition hover:bg-white/10"
+                              aria-label={`Collapse ${item.substance}`}
+                            >
+                              <Minimize2 className="h-4 w-4 text-white/50" />
+                            </button>
+                            <span className="text-sm font-semibold text-white pr-8">
+                              {item.substance}
+                            </span>
+                            <p className="text-sm text-white/60 leading-relaxed">
+                              {item.rationale}
+                            </p>
+                          </div>
+                        );
+                      }
 
-                {/* Expanded cards for items with rationales */}
-                {expandedInGroup.map((item, idx) => {
-                  const key = `${item.slug}-${item.raw}`;
-                  return (
-                    <div
-                      key={`expanded-${key}`}
-                      className={`rounded-lg px-3 py-2 ring-1 ring-white/10 ${
-                        idx % 2 === 0 ? "bg-white/[0.03]" : "bg-white/[0.07]"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-white">{item.display}</span>
-                        <button
-                          onClick={() => toggleExpand(key)}
-                          className="rounded p-1 transition hover:bg-white/10"
-                          aria-label={`Collapse ${item.display}`}
+                      // Collapsed state - compact badge
+                      return (
+                        <span
+                          key={item.raw}
+                          className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
                         >
-                          <Minimize2 className="h-3.5 w-3.5 text-white/50" />
-                        </button>
-                      </div>
-                      <p className="mt-1 text-xs text-white/50 leading-relaxed">{item.rationale}</p>
-                    </div>
-                  );
-                })}
-              </div>
+                          <span
+                            className={onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""}
+                            onClick={onSelectInteraction ? () => onSelectInteraction(item.substance) : undefined}
+                          >
+                            {item.substance}
+                          </span>
+                          {hasRationale && (
+                            <button
+                              onClick={() => toggleExpand(item.raw)}
+                              className="rounded p-0.5 transition hover:bg-white/10"
+                              aria-label={`Expand ${item.substance}`}
+                            >
+                              <Maximize2 className="h-3.5 w-3.5 text-white/50" />
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
@@ -157,4 +181,4 @@ export function InteractionsSection({ interactions, layoutVariant = "masonry" }:
       </div>
     </SectionCard>
   );
-}
+});

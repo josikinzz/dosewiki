@@ -1,17 +1,15 @@
 import { memo } from "react";
 import type { SubstanceArticle } from "../../schema";
-import {
-  PreviewHeroSection,
-  PreviewDosageDurationCard,
-  PreviewPharmacologySection,
-  PreviewSubjectiveEffectsSection,
-  PreviewInteractionsSection,
-  PreviewToleranceSection,
-  PreviewHarmPotentialSection,
-  PreviewLegalitySection,
-  PreviewCitationsSection,
-} from "../dev/tools/generator/preview";
-import { ReagentTestingSection } from "../sections/ReagentTestingSection";
+import { HeroSection } from "../sections/HeroSection";
+import { DosageDurationSection } from "../sections/DosageDurationSection";
+import { SubjectiveEffectsSection } from "../sections/SubjectiveEffectsSection";
+import { PharmacologySection } from "../sections/PharmacologySection";
+import { InteractionsSection } from "../sections/InteractionsSection";
+import { ToleranceSection } from "../sections/ToleranceSection";
+import { HarmPotentialSection } from "../sections/HarmPotentialSection";
+import { ReagentSection } from "../sections/ReagentSection";
+import { LegalitySection } from "../sections/LegalitySection";
+import { CitationsSection } from "../sections/CitationsSection";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -29,7 +27,7 @@ export interface ArticleLayoutProps {
 
 /**
  * Unified article layout component that renders a substance article
- * using the Preview* section components.
+ * using section components from /sections/.
  *
  * This component is used for both the public article pages and the
  * Generator preview tab, ensuring consistent visual design.
@@ -44,34 +42,30 @@ export const ArticleLayout = memo(function ArticleLayout({
 }: ArticleLayoutProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
-      <PreviewHeroSection
+      <HeroSection
         article={article}
         onSelectCategory={onSelectCategory}
         onSelectClassification={onSelectClassification}
         showPreviewBadge={false}
       />
-      <PreviewDosageDurationCard article={article} />
-      <PreviewSubjectiveEffectsSection
+      <DosageDurationSection article={article} />
+      <SubjectiveEffectsSection
         article={article}
         onSelectEffect={onSelectEffect}
       />
-      <PreviewPharmacologySection
+      <PharmacologySection
         article={article}
         onSelectMechanism={onSelectMechanism}
       />
-      <PreviewInteractionsSection
+      <InteractionsSection
         article={article}
         onSelectInteraction={onSelectInteraction}
       />
-      <PreviewToleranceSection article={article} />
-      <PreviewHarmPotentialSection article={article} />
-      <ReagentTestingSection
-        substanceName={article.identification?.common_name || article.title || ""}
-        aliases={article.identification?.alternative_names || []}
-        reagentTesting={article.reagent_testing}
-      />
-      <PreviewLegalitySection article={article} />
-      <PreviewCitationsSection article={article} />
+      <ToleranceSection article={article} />
+      <HarmPotentialSection article={article} />
+      <ReagentSection article={article} />
+      <LegalitySection article={article} />
+      <CitationsSection article={article} />
     </div>
   );
 });

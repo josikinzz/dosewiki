@@ -1,16 +1,17 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Globe, MapPin, Scale } from "lucide-react";
-import { SectionCard } from "../../../../common/SectionCard";
-import { IconBadge } from "../../../../common/IconBadge";
-import type { SubstanceArticle } from "../../../../../schema";
+import { Globe, MapPin, Scale, Ellipsis, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SectionCard } from "../common/SectionCard";
+import { IconBadge } from "../common/IconBadge";
+import type { SubstanceArticle } from "../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
   640: 1,
 };
 
-interface PreviewLegalitySectionProps {
+interface LegalitySectionProps {
   article: SubstanceArticle;
 }
 
@@ -98,9 +99,9 @@ function getCountryCode(name: string): string | null {
   return null;
 }
 
-export const PreviewLegalitySection = memo(function PreviewLegalitySection({
+export const LegalitySection = memo(function LegalitySection({
   article,
-}: PreviewLegalitySectionProps) {
+}: LegalitySectionProps) {
   const { legality } = article;
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
@@ -164,7 +165,21 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
               const countryCode = getCountryCode(countryName);
               const isExpanded = expandedCards.has(countryName);
               const hasNotes = info.notes?.trim().length > 0;
-              const displayText = hasNotes ? info.notes : info.status;
+
+              // Only show status as badge if it's short (1-2 words)
+              const statusWordCount = info.status?.trim().split(/\s+/).length || 0;
+              const showStatusAsBadge = statusWordCount <= 2 && hasNotes;
+
+              // Build display text: if status is long, show it first, then notes
+              let displayText: string;
+              if (showStatusAsBadge) {
+                displayText = info.notes || info.status;
+              } else if (hasNotes) {
+                displayText = `${info.status}\n\n${info.notes}`;
+              } else {
+                displayText = info.status;
+              }
+
               // Rough estimate: 4 lines at ~60 chars per line
               const isLongText = displayText.length > 240;
 
@@ -192,22 +207,27 @@ export const PreviewLegalitySection = memo(function PreviewLegalitySection({
                   )}
                   <div className={`flex items-center gap-2 ${countryCode ? "pr-8" : ""}`}>
                     <span className="font-medium text-white">{countryName}</span>
-                    {info.status && hasNotes && (
+                    {showStatusAsBadge && info.status && (
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor}`}>
                         {info.status}
                       </span>
                     )}
                   </div>
-                  <p className={`mt-1 text-xs text-white/70 whitespace-pre-line ${!isExpanded && isLongText ? "line-clamp-4" : ""}`}>
+                  <p className={cn(
+                    "mt-1 text-xs leading-[1.125rem] text-white/70 whitespace-pre-line",
+                    !isExpanded && isLongText && "max-h-[3.375rem] overflow-hidden"
+                  )}>
                     {displayText}
                   </p>
                   {isLongText && (
-                    <div className="mt-2 flex justify-end">
+                    <div className="flex justify-end mt-1">
                       <button
                         onClick={() => toggleExpanded(countryName)}
-                        className="text-xs text-fuchsia-400 hover:text-fuchsia-300 transition-colors"
+                        className="flex items-center gap-0.5 text-white/50 hover:text-white/70 transition-colors"
+                        aria-label={isExpanded ? "Collapse" : "Expand"}
                       >
-                        {isExpanded ? "Show less" : "Show more..."}
+                        <Ellipsis className="h-4 w-4" />
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
                       </button>
                     </div>
                   )}

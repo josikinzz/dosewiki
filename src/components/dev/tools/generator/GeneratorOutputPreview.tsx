@@ -2,18 +2,16 @@ import { memo } from "react";
 import { AlertTriangle } from "lucide-react";
 import { parseGeneratedYaml } from "./yamlParser";
 import type { SubstanceArticle } from "../../../../schema";
-import {
-  PreviewHeroSection,
-  PreviewDosageDurationCard,
-  PreviewPharmacologySection,
-  PreviewSubjectiveEffectsSection,
-  PreviewInteractionsSection,
-  PreviewToleranceSection,
-  PreviewHarmPotentialSection,
-  PreviewReagentSection,
-  PreviewLegalitySection,
-  PreviewCitationsSection,
-} from "./preview";
+import { HeroSection } from "../../../sections/HeroSection";
+import { DosageDurationSection } from "../../../sections/DosageDurationSection";
+import { SubjectiveEffectsSection } from "../../../sections/SubjectiveEffectsSection";
+import { PharmacologySection } from "../../../sections/PharmacologySection";
+import { InteractionsSection } from "../../../sections/InteractionsSection";
+import { ToleranceSection } from "../../../sections/ToleranceSection";
+import { HarmPotentialSection } from "../../../sections/HarmPotentialSection";
+import { ReagentSection } from "../../../sections/ReagentSection";
+import { LegalitySection } from "../../../sections/LegalitySection";
+import { CitationsSection } from "../../../sections/CitationsSection";
 
 interface GeneratorOutputPreviewProps {
   yamlContent: string;
@@ -54,16 +52,16 @@ export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
 
   return (
     <div className="space-y-6">
-      <PreviewHeroSection article={article} />
-      <PreviewDosageDurationCard article={article} />
-      <PreviewSubjectiveEffectsSection article={article} />
-      <PreviewPharmacologySection article={article} />
-      <PreviewInteractionsSection article={article} />
-      <PreviewToleranceSection article={article} />
-      <PreviewHarmPotentialSection article={article} />
-      <PreviewReagentSection article={article} />
-      <PreviewLegalitySection article={article} />
-      <PreviewCitationsSection article={article} />
+      <HeroSection article={article} />
+      <DosageDurationSection article={article} />
+      <SubjectiveEffectsSection article={article} />
+      <PharmacologySection article={article} />
+      <InteractionsSection article={article} />
+      <ToleranceSection article={article} />
+      <HarmPotentialSection article={article} />
+      <ReagentSection article={article} />
+      <LegalitySection article={article} />
+      <CitationsSection article={article} />
     </div>
   );
 });

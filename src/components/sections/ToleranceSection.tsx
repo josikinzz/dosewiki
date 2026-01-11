@@ -1,4 +1,5 @@
-import type { LucideIcon } from "lucide-react";
+import { memo } from "react";
+import Masonry from "react-masonry-css";
 import {
   ArrowDownWideNarrow,
   ArrowUpWideNarrow,
@@ -8,46 +9,80 @@ import {
 } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import { ToleranceEntry } from "../../types/content";
+import type { SubstanceArticle } from "../../schema";
 
-interface ToleranceSectionProps {
-  tolerance: ToleranceEntry[];
-}
-
-const toleranceIconMap: Record<string, LucideIcon> = {
-  "Full tolerance": ArrowUpWideNarrow,
-  "Half tolerance": CircleSlash2,
-  "Baseline reset": ArrowDownWideNarrow,
-  "Cross tolerance": Merge,
+const MASONRY_BREAKPOINTS = {
+  default: 2,
+  640: 1,
 };
 
-export function ToleranceSection({ tolerance }: ToleranceSectionProps) {
+interface ToleranceSectionProps {
+  article: SubstanceArticle;
+}
+
+const TOLERANCE_ITEMS = [
+  { key: "full_tolerance", label: "Full Tolerance", icon: ArrowUpWideNarrow },
+  { key: "half_tolerance", label: "Half Tolerance", icon: CircleSlash2 },
+  { key: "baseline_tolerance", label: "Baseline Reset", icon: ArrowDownWideNarrow },
+] as const;
+
+export const ToleranceSection = memo(function ToleranceSection({
+  article,
+}: ToleranceSectionProps) {
+  const { tolerance } = article;
+
+  const hasFull = tolerance.full_tolerance.trim().length > 0;
+  const hasHalf = tolerance.half_tolerance.trim().length > 0;
+  const hasBaseline = tolerance.baseline_tolerance.trim().length > 0;
+  const hasCross = tolerance.cross_tolerance.length > 0;
+
+  if (!hasFull && !hasHalf && !hasBaseline && !hasCross) {
+    return null;
+  }
+
   return (
-    <SectionCard delay={0.25}>
-      <div className="flex flex-col gap-3">
-        <h2 className="flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-          <IconBadge icon={TrendingUp} label="Tolerance" />
-          Tolerance
-        </h2>
-      </div>
-      <div className="mt-6 columns-1 gap-4 sm:columns-2">
-        {tolerance.map((entry) => {
-          const Icon = toleranceIconMap[entry.label];
+    <SectionCard delay={0}>
+      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+        <IconBadge icon={TrendingUp} label="Tolerance" />
+        Tolerance
+      </h2>
+
+      <Masonry
+        breakpointCols={MASONRY_BREAKPOINTS}
+        className="flex w-full gap-4"
+        columnClassName="flex flex-col gap-4"
+      >
+        {TOLERANCE_ITEMS.map(({ key, label, icon: Icon }) => {
+          const value = tolerance[key as keyof typeof tolerance];
+          if (typeof value !== "string" || value.trim().length === 0) return null;
 
           return (
-            <article
-              key={entry.label}
-              className="mb-4 break-inside-avoid rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white/85 shadow-[0_10px_30px_-18px_rgba(168,85,247,0.45)] transition hover:border-fuchsia-400/40 hover:bg-white/8 last:mb-0"
+            <div
+              key={key}
+              className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8"
             >
               <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
-                {Icon ? <Icon aria-hidden className="h-4 w-4 text-fuchsia-200" /> : null}
-                {entry.label}
+                <Icon className="h-4 w-4 text-fuchsia-200" />
+                {label}
               </span>
-              <p className="mt-2 text-base text-white/90">{entry.description}</p>
-            </article>
+              <p className="mt-2 text-sm text-white/90">{value}</p>
+            </div>
           );
         })}
-      </div>
+
+        {/* Cross Tolerance */}
+        {hasCross && (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8">
+            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
+              <Merge className="h-4 w-4 text-fuchsia-200" />
+              Cross Tolerance
+            </span>
+            <p className="mt-2 text-sm text-white/90">
+              {tolerance.cross_tolerance.join(", ")}
+            </p>
+          </div>
+        )}
+      </Masonry>
     </SectionCard>
   );
-}
+});

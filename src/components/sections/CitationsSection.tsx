@@ -1,124 +1,107 @@
-import { Library, BookOpen } from "lucide-react";
+import { memo } from "react";
+import { BookOpen, Library, ExternalLink } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import type { CitationEntry } from "../../types/content";
+import type { SubstanceArticle, Citation } from "../../schema";
 import { getFaviconForUrl } from "../../data/config/sourceFavicons";
 
 interface CitationsSectionProps {
-  sourceCitations: CitationEntry[];
-  citations: CitationEntry[];
+  article: SubstanceArticle;
 }
 
-function CitationList({ citations, large = false }: { citations: CitationEntry[]; large?: boolean }) {
+function CitationList({
+  citations,
+  startIndex = 0,
+}: {
+  citations: Citation[];
+  startIndex?: number;
+}) {
   return (
-    <ul className="mt-3 space-y-2 text-sm">
-      {citations.map((citation) => {
-        const favicon = citation.href ? getFaviconForUrl(citation.href) : null;
-
-        if (large) {
-          return (
-            <li
-              key={`${citation.label}-${citation.href ?? ''}`}
-              className="grid grid-cols-[auto_1fr] grid-rows-[auto_auto] gap-x-4 gap-y-0.5 rounded-lg border border-white/10 bg-white/5 p-4 text-white/85"
-            >
-              <div className="row-span-2 self-center">
-                {favicon ? (
-                  <img
-                    src={favicon}
-                    alt=""
-                    className="h-10 w-10 rounded"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="h-10 w-10 rounded bg-fuchsia-500/20" />
-                )}
-              </div>
-              {citation.href ? (
-                <a
-                  href={citation.href}
-                  className="cursor-pointer font-medium text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {citation.label}
-                </a>
-              ) : (
-                <span className="font-medium transition-colors hover:text-white">
-                  {citation.label}
-                </span>
-              )}
-              <span className="text-xs text-white/40 truncate max-w-md">
-                {citation.href ? new URL(citation.href).hostname : ''}
-              </span>
-            </li>
-          );
-        }
+    <ol className="space-y-2">
+      {citations.map((citation, idx) => {
+        const favicon = citation.url ? getFaviconForUrl(citation.url) : null;
 
         return (
           <li
-            key={`${citation.label}-${citation.href ?? ''}`}
-            className="flex items-center gap-2 text-white/85"
+            key={idx}
+            className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
           >
             {favicon ? (
               <img
                 src={favicon}
                 alt=""
-                className="h-5 w-5 rounded"
+                className="mt-0.5 h-5 w-5 shrink-0 rounded"
                 loading="lazy"
               />
             ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
-            )}
-            {citation.href ? (
-              <a
-                href={citation.href}
-                className="cursor-pointer text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {citation.label}
-              </a>
-            ) : (
-              <span className="transition-colors hover:text-white">
-                {citation.label}
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
+                {startIndex + idx + 1}
               </span>
             )}
+            <div className="min-w-0 flex-1">
+              <span className="text-sm text-white/80">{citation.name}</span>
+              {citation.url && (
+                <a
+                  href={citation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
+                >
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{citation.url}</span>
+                </a>
+              )}
+            </div>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }
 
-export function CitationsSection({ sourceCitations, citations }: CitationsSectionProps) {
-  const hasSourceCitations = sourceCitations && sourceCitations.length > 0;
-  const hasCitations = citations && citations.length > 0;
+export const CitationsSection = memo(function CitationsSection({
+  article,
+}: CitationsSectionProps) {
+  const sourceCitations = article.source_citations ?? [];
+  const { citations } = article;
+
+  const hasSourceCitations = sourceCitations.length > 0;
+  const hasCitations = citations.length > 0;
 
   if (!hasSourceCitations && !hasCitations) {
     return null;
   }
 
+  const totalCitations = sourceCitations.length + citations.length;
+
   return (
-    <SectionCard delay={0.35}>
+    <SectionCard delay={0}>
       {hasSourceCitations && (
         <div>
-          <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+          <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
             <IconBadge icon={Library} label="Sources" />
             Sources
           </h2>
-          <CitationList citations={sourceCitations} large />
+          <CitationList citations={sourceCitations} startIndex={0} />
         </div>
       )}
 
       {hasCitations && (
         <div className={hasSourceCitations ? "mt-6" : ""}>
-          <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
+          <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
             <IconBadge icon={BookOpen} label="Further Reading" />
             Further Reading
           </h2>
-          <CitationList citations={citations} />
+          <CitationList
+            citations={citations}
+            startIndex={sourceCitations.length}
+          />
         </div>
       )}
+
+      <p className="mt-4 text-xs text-white/50">
+        {totalCitations} source{totalCitations !== 1 ? "s" : ""} cited
+      </p>
     </SectionCard>
   );
-}
+});

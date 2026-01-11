@@ -1,22 +1,22 @@
 import { memo } from "react";
 import Masonry from "react-masonry-css";
 import { AlertOctagon, Heart, Skull, Syringe, Zap } from "lucide-react";
-import { SectionCard } from "../../../../common/SectionCard";
-import { IconBadge } from "../../../../common/IconBadge";
-import type { SubstanceArticle } from "../../../../../schema";
+import { SectionCard } from "../common/SectionCard";
+import { IconBadge } from "../common/IconBadge";
+import type { SubstanceArticle } from "../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
   768: 1,
 };
 
-interface PreviewHarmPotentialSectionProps {
+interface HarmPotentialSectionProps {
   article: SubstanceArticle;
 }
 
-export const PreviewHarmPotentialSection = memo(function PreviewHarmPotentialSection({
+export const HarmPotentialSection = memo(function HarmPotentialSection({
   article,
-}: PreviewHarmPotentialSectionProps) {
+}: HarmPotentialSectionProps) {
   const { harm_potential } = article;
 
   const hasAddiction = harm_potential.addiction_liability.trim().length > 0;

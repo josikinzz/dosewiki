@@ -1,10 +1,10 @@
 import { memo, useState } from "react";
 import { ExternalLink, TestTubeDiagonal, ChevronDown, ChevronUp } from "lucide-react";
-import { SectionCard } from "../../../../common/SectionCard";
-import { IconBadge } from "../../../../common/IconBadge";
-import type { SubstanceArticle } from "../../../../../schema";
+import { SectionCard } from "../common/SectionCard";
+import { IconBadge } from "../common/IconBadge";
+import type { SubstanceArticle } from "../../schema";
 
-interface PreviewReagentSectionProps {
+interface ReagentSectionProps {
   article: SubstanceArticle;
 }
 
@@ -182,7 +182,7 @@ function getReagentShortCode(name: string): string {
 /**
  * Single reagent result row - gradient bar design matching ReagentTestingSection
  */
-function PreviewReagentRow({
+function ReagentRow({
   reagent,
   description,
 }: {
@@ -259,9 +259,9 @@ function PreviewReagentRow({
 
 const COLLAPSED_LIMIT = 4;
 
-export const PreviewReagentSection = memo(function PreviewReagentSection({
+export const ReagentSection = memo(function ReagentSection({
   article,
-}: PreviewReagentSectionProps) {
+}: ReagentSectionProps) {
   const { reagent_testing } = article;
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -313,7 +313,7 @@ export const PreviewReagentSection = memo(function PreviewReagentSection({
 
       <div className="space-y-3 rounded-xl bg-black/20 p-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
         {visibleEntries.map(([reagent, description]) => (
-          <PreviewReagentRow
+          <ReagentRow
             key={reagent}
             reagent={reagent}
             description={description}

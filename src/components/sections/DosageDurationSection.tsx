@@ -1,11 +1,11 @@
 import { memo, useMemo } from "react";
 import { ChartNoAxesCombined, ChartColumnIncreasing, ChartLine } from "lucide-react";
-import { SectionCard } from "../../../../common/SectionCard";
-import { IconBadge } from "../../../../common/IconBadge";
+import { SectionCard } from "../common/SectionCard";
+import { IconBadge } from "../common/IconBadge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { SubstanceArticle, DosageRoute, DurationRoute, DoseRange, DurationStage } from "../../../../../schema";
+import type { SubstanceArticle, DosageRoute, DurationRoute, DoseRange, DurationStage } from "../../schema";
 
-interface PreviewDosageDurationCardProps {
+interface DosageDurationSectionProps {
   article: SubstanceArticle;
 }
 
@@ -120,9 +120,9 @@ function DurationPanel({ route }: { route: DurationRoute }) {
   );
 }
 
-export const PreviewDosageDurationCard = memo(function PreviewDosageDurationCard({
+export const DosageDurationSection = memo(function DosageDurationSection({
   article,
-}: PreviewDosageDurationCardProps) {
+}: DosageDurationSectionProps) {
   const { dosage, duration } = article;
 
   // Collect unique routes from both dosage and duration

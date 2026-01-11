@@ -1,9 +1,9 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
 import { Beaker, Brain, ChevronDown, Ellipsis } from "lucide-react";
-import { SectionCard } from "../../../../common/SectionCard";
-import { IconBadge } from "../../../../common/IconBadge";
-import type { SubstanceArticle } from "../../../../../schema";
+import { SectionCard } from "../common/SectionCard";
+import { IconBadge } from "../common/IconBadge";
+import type { SubstanceArticle } from "../../schema";
 
 const MASONRY_BREAKPOINTS = {
   default: 2,
@@ -31,16 +31,16 @@ function parseMechanismEntry(entry: string): { base: string; qualifier?: string 
   return { base: entry.trim() };
 }
 
-interface PreviewPharmacologySectionProps {
+interface PharmacologySectionProps {
   article: SubstanceArticle;
   /** Called when a mechanism of action is clicked */
   onSelectMechanism?: (slug: string, qualifier?: string) => void;
 }
 
-export const PreviewPharmacologySection = memo(function PreviewPharmacologySection({
+export const PharmacologySection = memo(function PharmacologySection({
   article,
   onSelectMechanism,
-}: PreviewPharmacologySectionProps) {
+}: PharmacologySectionProps) {
   const { pharmacology } = article;
   const [showReceptorBinding, setShowReceptorBinding] = useState(false);
 

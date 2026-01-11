@@ -1,9 +1,9 @@
 import { memo, useMemo, useState } from "react";
-import { Eye, Tag, MessageSquareQuote, Leaf, BrainCog, Hexagon, ChevronDown, Ellipsis } from "lucide-react";
+import { Eye, Tag, MessageSquareQuote, Leaf, BrainCog, Hexagon, ChevronDown, Ellipsis, BookOpenText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import moleculeMappings from "@/data/mappings/moleculeSvgMappings.json";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
-import type { SubstanceArticle } from "../../../../../schema";
+import type { SubstanceArticle } from "../../schema";
 
 const MAX_VISIBLE_NAMES = 5;
 
@@ -18,7 +18,7 @@ function getIconKeyFromClass(className: string): string {
     .toLowerCase();
 }
 
-interface PreviewHeroSectionProps {
+interface HeroSectionProps {
   article: SubstanceArticle;
   /** Called when a category tag is clicked */
   onSelectCategory?: (categoryKey: string) => void;
@@ -38,12 +38,12 @@ function getMoleculeUrl(title: string): string | null {
   return match ? `/molecules/${encodeURI(match.filename)}` : null;
 }
 
-export const PreviewHeroSection = memo(function PreviewHeroSection({
+export const HeroSection = memo(function HeroSection({
   article,
   onSelectCategory,
   onSelectClassification,
   showPreviewBadge = true,
-}: PreviewHeroSectionProps) {
+}: HeroSectionProps) {
   const { title, identification, classification, summary, index_categories } = article;
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -87,18 +87,37 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         </div>
       )}
 
-      {/* Molecule SVG - floated right */}
+      {/* Molecule SVG - floated right on md+, hidden on mobile (shown below title instead) */}
       {moleculeUrl && (
         <img
           src={moleculeUrl}
           alt={`${title} molecule structure`}
-          className="float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
+          className="hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
         />
       )}
 
       {/* Title */}
       {hasTitle && (
         <h1 className="font-display text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">{title}</h1>
+      )}
+
+      {/* Molecule SVG - centered below title on mobile only */}
+      {moleculeUrl && (
+        <div className="flex justify-center my-5 md:hidden">
+          <img
+            src={moleculeUrl}
+            alt={`${title} molecule structure`}
+            className="h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
+          />
+        </div>
+      )}
+
+      {/* Substitutive name */}
+      {identification.substitutive_name && (
+        <div className="mt-3 flex items-start gap-3 text-base text-white/60">
+          <BookOpenText className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+          <span>{identification.substitutive_name}</span>
+        </div>
       )}
 
       {/* Alternative names - directly under title */}
@@ -108,7 +127,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
         const visibleNames = namesExpanded ? names : names.slice(0, MAX_VISIBLE_NAMES);
 
         return (
-          <div className="mt-2 flex items-start gap-3 text-base text-white/60">
+          <div className="mt-3 flex items-start gap-3 text-base text-white/60">
             <MessageSquareQuote className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
             <span className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
@@ -134,7 +153,7 @@ export const PreviewHeroSection = memo(function PreviewHeroSection({
 
       {/* Botanical name */}
       {identification.botanical_name && (
-        <div className="mt-1.5 flex items-start gap-3 text-base text-white/60">
+        <div className="mt-3 flex items-start gap-3 text-base text-white/60">
           <Leaf className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
           <span className="italic">{identification.botanical_name}</span>
         </div>
