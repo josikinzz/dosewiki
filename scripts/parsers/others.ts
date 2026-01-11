@@ -293,12 +293,63 @@ export class DEISParser implements SourceParser {
       }
     }
 
+    // Try **Dosage:** section header format (e.g., MDMA)
+    if (result.dosage.length === 0) {
+      const dosageSectionMatch = content.match(/\*\*Dosage:\*\*([\s\S]*?)(?=\*\*Physical|\*\*Cognitive|\n\n[A-Z]|$)/i);
+      if (dosageSectionMatch) {
+        const ranges = this.parseDoseLabels(dosageSectionMatch[1]);
+        if (Object.keys(ranges).length > 0) {
+          result.dosage.push({
+            route: "Oral",
+            source: this.sourceId,
+            confidence: "medium",
+            ranges,
+          });
+        }
+      }
+    }
+
+    // Special case: LSA-style articles where dosage comes AFTER effects sections
+    // Look for seed-specific dosage sections: **Morning Glory Seeds**, **Hawaiian Baby Woodrose Seeds**
+    if (result.dosage.length === 0) {
+      // Morning Glory Seeds section
+      const mgMatch = content.match(/\*\*Morning\s*Glory\s*Seeds?\*\*([\s\S]*?)(?=\*\*Hawaiian|\*\*Physical|$)/i);
+      if (mgMatch) {
+        const ranges = this.parseDoseLabels(mgMatch[1]);
+        if (Object.keys(ranges).length > 0) {
+          result.dosage.push({
+            route: "Oral",
+            source: this.sourceId,
+            confidence: "medium",
+            ranges,
+            notes: "Morning Glory Seeds",
+          });
+        }
+      }
+
+      // Hawaiian Baby Woodrose Seeds section
+      const hbwrMatch = content.match(/\*\*Hawaiian\s*Baby\s*Woodrose\s*Seeds?\*\*([\s\S]*?)(?=\*\*Morning|\*\*Physical|$)/i);
+      if (hbwrMatch) {
+        const ranges = this.parseDoseLabels(hbwrMatch[1]);
+        if (Object.keys(ranges).length > 0) {
+          result.dosage.push({
+            route: "Oral",
+            source: this.sourceId,
+            confidence: "medium",
+            ranges,
+            notes: "Hawaiian Baby Woodrose Seeds",
+          });
+        }
+      }
+    }
+
     if (result.dosage.length > 0) result.sectionsExtracted.push("dosage");
 
     // === DURATION PARSING ===
     // Similar to dosage: can be in Duration(Route) section or at top level
+    // Format can be: "Duration (Oral)" or "**Duration (oral)**" with bold markers
     const durationRoutePattern =
-      /Duration\s*\(([^)]+)\)([\s\S]*?)(?=Duration\s*\(|Dosage|Click|Physical|Cognitive|Visual|$)/gi;
+      /\*{0,2}Duration\s*\(([^)]+)\)\*{0,2}([\s\S]*?)(?=\*{0,2}Duration\s*\(|Dosage|Click|Physical|Cognitive|Visual|$)/gi;
 
     while ((match = durationRoutePattern.exec(content)) !== null) {
       const routeName = match[1].trim();
@@ -477,22 +528,34 @@ export class DEISParser implements SourceParser {
     return result;
   }
 
-  // Parse *Label* : value patterns for dosage
+  // Parse *Label* or **Label** : value patterns for dosage
+  // DEIS uses both italic (*) and bold (**) formatting for dose labels
   private parseDoseLabels(content: string): ParsedDosageRoute["ranges"] {
     const ranges: ParsedDosageRoute["ranges"] = {};
 
+    // Patterns support both *Label* (italic) and **Label** (bold) formats
+    // Also handles space before colon: *Label :* value
     const labelPatterns = [
-      { pattern: /\*Threshold\*\s*:\s*([^\n*]+)/i, field: "threshold" },
-      { pattern: /\*Light\*\s*:\s*([^\n*]+)/i, field: "light" },
-      { pattern: /\*Common\*\s*:\s*([^\n*]+)/i, field: "common" },
-      { pattern: /\*Strong\*\s*:\s*([^\n*]+)/i, field: "strong" },
-      { pattern: /\*(?:Heavy|K[- ]?Hole)\*\s*:\s*([^\n*]+)/i, field: "heavy" },
+      { pattern: /\*\*?Threshold\s*:?\*\*?\s*:?\s*\*?([^\n*]+)/i, field: "threshold" },
+      { pattern: /\*\*?Light\s*:?\*\*?\s*:?\s*\*?([^\n*]+)/i, field: "light" },
+      { pattern: /\*\*?Common\s*:?\*\*?\s*:?\s*\*?([^\n*]+)/i, field: "common" },
+      { pattern: /\*\*?Strong\s*:?\*\*?\s*:?\s*\*?([^\n*]+)/i, field: "strong" },
+      { pattern: /\*\*?(?:Heavy|K[- ]?Hole)\s*:?\*\*?\s*:?\s*\*?([^\n*]+)/i, field: "heavy" },
     ];
 
     for (const { pattern, field } of labelPatterns) {
       const labelMatch = content.match(pattern);
       if (labelMatch) {
-        const parsed = parseDoseRange(labelMatch[1]);
+        // Clean up the value - remove trailing asterisks and slashes
+        let value = labelMatch[1].trim();
+        // Handle "50 - 100 seeds* / *1.5 - 3 g*" format - take first part before /
+        if (value.includes("/")) {
+          value = value.split("/")[0].trim();
+        }
+        // Remove trailing asterisks
+        value = value.replace(/\*+$/, "").trim();
+
+        const parsed = parseDoseRange(value);
         if (parsed) {
           (ranges as Record<string, unknown>)[field] = parsed;
         }
@@ -503,15 +566,25 @@ export class DEISParser implements SourceParser {
   }
 
   // Parse *Label* : value patterns for duration
+  // DEIS uses inconsistent formats:
+  // - "*Onset* : 20 minutes" (standard)
+  // - "*Onset : *20 minutes" (asterisk after colon)
+  // - "*Onset :* 20 minutes" (asterisk after colon with space)
   private parseDurationLabels(content: string): ParsedDurationRoute["stages"] {
     const stages: ParsedDurationRoute["stages"] = {};
 
+    // Patterns handle multiple DEIS format variations:
+    // - "*Label* : value" (standard)
+    // - "*Label :* value" (asterisk after colon)
+    // - " Label :* value" (leading space, no opening asterisk)
+    // - " Normal After Effects* : value" (asterisk after label name)
     const stagePatterns = [
-      { pattern: /\*Onset\*\s*:\s*([^\n*]+)/i, field: "onset" },
-      { pattern: /\*Peak\*\s*:\s*([^\n*]+)/i, field: "peak" },
-      { pattern: /\*(?:Total\s+)?Duration\*\s*:\s*([^\n*]+)/i, field: "total" },
-      { pattern: /\*Come\s*down\*\s*:\s*([^\n*]+)/i, field: "offset" },
-      { pattern: /\*(?:After\s*Effects?|Normal After Effects)\*\s*:\s*([^\n*]+)/i, field: "afterEffects" },
+      { pattern: /\*?Onset\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "onset" },
+      { pattern: /\*?Peak\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "peak" },
+      { pattern: /\*?(?:Total\s+)?Duration\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "total" },
+      { pattern: /\*?Come\s*up\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "comeUp" },
+      { pattern: /\*?Come\s*down\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "offset" },
+      { pattern: /\*?(?:After\s*Effects?|Normal\s+After\s+Effects?)\s*\*?\s*:\s*\*?\s*([^\n*]+)/i, field: "afterEffects" },
     ];
 
     for (const { pattern, field } of stagePatterns) {
@@ -634,19 +707,10 @@ export class DrugUsersBibleParser implements SourceParser {
           }
         }
 
-        // Parse max dose
-        if (label.includes("max") && label.includes("dose")) {
-          const parsed = parseDoseRange(bullet.value);
-          if (parsed) {
-            result.dosage.push({
-              route: extractedRoute,
-              source: this.sourceId,
-              confidence: "low",
-              ranges: { strong: parsed },
-              notes: "Maximum dose experienced by author",
-            });
-          }
-        }
+        // NOTE: "Maximum Dose Experienced" is NOT parsed as dosage data.
+        // It represents the author's cumulative session consumption (e.g., "80mg+30mg+55mg"),
+        // not a dosage tier recommendation. This data is valuable as experience narrative
+        // but should not be mixed with harm reduction dosage guidelines from TripSit/PW/Erowid.
       }
 
       if (result.dosage.length > 0) result.sectionsExtracted.push("dosage");
@@ -678,22 +742,46 @@ export class DrugClassroomParser implements SourceParser {
     const result = createEmptyParserResult();
 
     // Drug Classroom has more academic format
-    // Parse Dose section
-    const doseSection = extractSection(content, "Dose", 2);
+    // Parse Dose section - try multiple header variants
+    let doseSection = extractSection(content, "Dose", 2);
+
+    // Try alternate header: "## ROAs and Dose" (used by 4-ho-met)
+    if (!doseSection) {
+      doseSection = extractSection(content, "ROAs and Dose", 2);
+    }
+
+    // Try "# Section 1: Routes of Administration, Timeline, and Dose" (used by 3-meo-pcp, nep)
+    if (!doseSection) {
+      const section1Match = content.match(/#\s*Section\s*1[:\s]+Routes.*?Dose([\s\S]*?)(?=#\s*Section\s*2|$)/i);
+      if (section1Match) {
+        doseSection = section1Match[1];
+      }
+    }
+
     if (doseSection) {
-      // Look for route subsections (#### Oral, #### Insufflated)
-      const routePattern = /####\s*([^\n]+)([\s\S]*?)(?=####|##|$)/gi;
-      let match;
-
-      while ((match = routePattern.exec(doseSection)) !== null) {
-        const routeName = match[1].trim();
-        const routeContent = match[2];
-
+      // Helper to extract dose ranges from content block
+      const extractDoseRanges = (routeContent: string): ParsedDosageRoute["ranges"] => {
         const ranges: ParsedDosageRoute["ranges"] = {};
         const labelPatterns = [
-          { pattern: /Light[:\s]+([^\n]+)/i, field: "light" },
-          { pattern: /Common[:\s]+([^\n]+)/i, field: "common" },
-          { pattern: /Strong[:\s]+([^\n]+)/i, field: "strong" },
+          // Standard recreational dose tiers (with optional leading dash for bullet lists)
+          { pattern: /-?\s*Light[:\s]+([^\n]+)/i, field: "light" },
+          { pattern: /-?\s*Common[:\s]+([^\n]+)/i, field: "common" },
+          { pattern: /-?\s*Strong[:\s]+([^\n]+)/i, field: "strong" },
+          { pattern: /-?\s*Threshold[:\s]+([^\n]+)/i, field: "threshold" },
+          { pattern: /-?\s*Heavy[:\s]+([^\n]+)/i, field: "heavy" },
+          // Medical/pharmaceutical dose labels (map to common/light)
+          { pattern: /Initial[:\s]+([^\n]+)/i, field: "light" },
+          { pattern: /Maintenance[:\s]+([^\n]+)/i, field: "common" },
+          // Range-based labels (for ibogaine, lagochilus, ur-144)
+          { pattern: /(?:Total\s+)?Range[:\s]+([^\n]+)/i, field: "common" },
+          { pattern: /Most\s+common\s+range[:\s]+([^\n]+)/i, field: "common" },
+          { pattern: /Total[:\s]+([^\n]+)/i, field: "common" },
+          // Medical condition-based dosing (quetiapine style: "- Schizophrenia: 750 mg/d")
+          { pattern: /-\s*(?:Schizophrenia|Bipolar[^:]*|Depression)[:\s]+([^\n]+)/i, field: "common" },
+          // Form-based medical dosing (bupropion style: "SR: 400 mg")
+          { pattern: /(?:SR|IR|XR|XL)[:\s]+(\d+(?:\s*(?:and|,)\s*\d+)*\s*mg)/i, field: "common" },
+          // Prose extraction for "X to Y mg/d" patterns (pagoclone style)
+          { pattern: /was\s+([\d.]+\s*(?:to|–|-)\s*[\d.]+\s*mg(?:\/d)?)/i, field: "common" },
         ];
 
         for (const { pattern, field } of labelPatterns) {
@@ -705,8 +793,27 @@ export class DrugClassroomParser implements SourceParser {
             }
           }
         }
+        return ranges;
+      };
+
+      // Helper to clean route name (strip qualifiers like "(tentative)", "(HCl)", etc.)
+      const cleanRouteName = (routeName: string): string => {
+        return routeName.replace(/\s*\([^)]+\)\s*/g, "").trim();
+      };
+
+      let foundRoutes = false;
+
+      // Strategy 1: Look for #### Route subsections (e.g., #### Oral, #### Insufflated)
+      const h4RoutePattern = /####\s*([^\n]+)([\s\S]*?)(?=####|##|$)/gi;
+      let match;
+
+      while ((match = h4RoutePattern.exec(doseSection)) !== null) {
+        const routeName = cleanRouteName(match[1].trim());
+        const routeContent = match[2];
+        const ranges = extractDoseRanges(routeContent);
 
         if (Object.keys(ranges).length > 0) {
+          foundRoutes = true;
           result.dosage.push({
             route: normalizeRoute(routeName),
             source: this.sourceId,
@@ -716,35 +823,156 @@ export class DrugClassroomParser implements SourceParser {
         }
       }
 
-      if (result.dosage.length > 0) result.sectionsExtracted.push("dosage");
-    }
+      // Strategy 2: Try **Route** or **Route (qualifier)** bold format
+      if (!foundRoutes) {
+        const boldRoutePattern = /\*\*([A-Za-z]+(?:\s*\([^)]+\))?)\*\*\s*\n([\s\S]*?)(?=\*\*[A-Za-z]+|## |---|\n\n[A-Z]|$)/gi;
+        while ((match = boldRoutePattern.exec(doseSection)) !== null) {
+          const routeName = cleanRouteName(match[1].trim());
+          // Skip non-route headers (dose/doses/timeline are subsection headers, not routes)
+          if (["dose", "doses", "timeline", "note", "warning", "caution", "importance", "comfort", "forms", "maximum", "recreational", "medical"].includes(routeName.toLowerCase())) continue;
 
-    // Parse Timeline section
-    const timelineSection = extractSection(content, "Timeline", 2);
-    if (timelineSection) {
-      const routePattern = /####\s*([^\n]+)([\s\S]*?)(?=####|##|$)/gi;
-      let match;
+          const routeContent = match[2];
+          const ranges = extractDoseRanges(routeContent);
 
-      while ((match = routePattern.exec(timelineSection)) !== null) {
-        const routeName = match[1].trim();
-        const routeContent = match[2];
+          if (Object.keys(ranges).length > 0) {
+            foundRoutes = true;
+            result.dosage.push({
+              route: normalizeRoute(routeName),
+              source: this.sourceId,
+              confidence: "medium",
+              ranges,
+            });
+          }
+        }
+      }
 
-        const stages: ParsedDurationRoute["stages"] = {};
-        const stagePatterns = [
-          { pattern: /Total[:\s]+([^\n]+)/i, field: "total" },
-          { pattern: /Onset[:\s]+([^\n]+)/i, field: "onset" },
-          { pattern: /Strongest[:\s]+([^\n]+)/i, field: "peak" },
-        ];
+      // Strategy 3: Try plain text route headers (e.g., "Oral (HCl)" on its own line)
+      if (!foundRoutes) {
+        // Note: Don't use 'g' flag with match() when you need capture groups
+        const plainRoutePattern = /^((?:Oral|Intranasal|Inhalation|Insufflated|IV|IM|Rectal|Sublingual|Smoked|Vaporized|Vapourized|Transdermal)(?:\s*\([^)]+\))?)\s*$/im;
+        const lines = doseSection.split("\n");
+        let currentRoute: string = "Oral";
+        let currentContent = "";
+        let anyRouteMatched = false;  // Track if we actually found any route headers
 
-        for (const { pattern, field } of stagePatterns) {
-          const stageMatch = routeContent.match(pattern);
-          if (stageMatch) {
-            const parsed = parseDurationRange(stageMatch[1]);
-            if (parsed) {
-              (stages as Record<string, unknown>)[field] = parsed;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const routeMatch = line.match(plainRoutePattern);
+
+          if (routeMatch && routeMatch[1]) {
+            anyRouteMatched = true;
+            // Save previous route's content if any
+            if (currentContent) {
+              const ranges = extractDoseRanges(currentContent);
+              if (Object.keys(ranges).length > 0) {
+                foundRoutes = true;
+                result.dosage.push({
+                  route: normalizeRoute(cleanRouteName(currentRoute)),
+                  source: this.sourceId,
+                  confidence: "medium",
+                  ranges,
+                });
+              }
+            }
+            currentRoute = routeMatch[1];
+            currentContent = "";
+          } else {
+            currentContent += line + "\n";
+          }
+        }
+
+        // Don't forget the last route - but ONLY if we found at least one route header
+        if (anyRouteMatched && currentContent) {
+          const ranges = extractDoseRanges(currentContent);
+          if (Object.keys(ranges).length > 0) {
+            foundRoutes = true;
+            result.dosage.push({
+              route: normalizeRoute(cleanRouteName(currentRoute)),
+              source: this.sourceId,
+              confidence: "medium",
+              ranges,
+            });
+          }
+        }
+      }
+
+      // Strategy 4: Try ### Route + **Dose** subsection format (used by NEP, 3-meo-pcp)
+      // Format: ### Intranasal \n\n **Dose** \n - Light: 10-20 mg \n **Timeline** \n ...
+      // Note: Use (?<!#) negative lookbehind to match exactly ### not ####
+      if (!foundRoutes) {
+        const h3RoutePattern = /(?<!#)###\s*([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*\n([\s\S]*?)(?=(?<!#)###|##|$)/gi;
+        while ((match = h3RoutePattern.exec(doseSection)) !== null) {
+          const routeName = cleanRouteName(match[1].trim());
+          const routeContent = match[2];
+
+          // Look for **Dose** or **Doses** subsection within this route
+          const doseSubsectionMatch = routeContent.match(/\*\*Doses?\*\*\s*\n([\s\S]*?)(?=\*\*Timeline\*\*|\*\*[A-Z]|$)/i);
+          if (doseSubsectionMatch) {
+            const ranges = extractDoseRanges(doseSubsectionMatch[1]);
+            if (Object.keys(ranges).length > 0) {
+              foundRoutes = true;
+              result.dosage.push({
+                route: normalizeRoute(routeName),
+                source: this.sourceId,
+                confidence: "medium",
+                ranges,
+              });
             }
           }
         }
+      }
+
+      // Strategy 5: Fallback - no route subsections, parse whole section as default Oral
+      if (!foundRoutes) {
+        const ranges = extractDoseRanges(doseSection);
+        if (Object.keys(ranges).length > 0) {
+          result.dosage.push({
+            route: "Oral",
+            source: this.sourceId,
+            confidence: "low",
+            ranges,
+          });
+        }
+      }
+
+      if (result.dosage.length > 0) result.sectionsExtracted.push("dosage");
+    }
+
+    // Parse Timeline section - supports both ## Timeline and **Timeline** formats
+    let timelineSection = extractSection(content, "Timeline", 2);
+
+    // Try alternate header: "## ROAs and Timeline"
+    if (!timelineSection) {
+      timelineSection = extractSection(content, "ROAs and Timeline", 2);
+    }
+
+    // Also try **Timeline** bold header format
+    if (!timelineSection) {
+      const boldMatch = content.match(/\*\*Timeline\*\*([\s\S]*?)(?=\n\*\*[A-Z][a-z]+\*\*\s*\n(?!Total|Onset)|## |$)/i);
+      if (boldMatch) {
+        timelineSection = boldMatch[1];
+      }
+    }
+
+    // For Section 1 format (NEP, 3-meo-pcp), duration is embedded in route subsections
+    // We'll extract it during the route parsing below if no dedicated section exists
+
+    if (timelineSection) {
+      // Helper to clean route name (strip qualifiers)
+      const cleanRouteName = (routeName: string): string => {
+        return routeName.replace(/\s*\([^)]+\)\s*/g, "").trim();
+      };
+
+      // Try #### Route subsections first
+      let routePattern = /####\s*([^\n]+)([\s\S]*?)(?=####|##|$)/gi;
+      let match;
+      let foundRoutes = false;
+
+      while ((match = routePattern.exec(timelineSection)) !== null) {
+        foundRoutes = true;
+        const routeName = cleanRouteName(match[1].trim());
+        const routeContent = match[2];
+        const stages = this.parseTimelineStages(routeContent);
 
         if (Object.keys(stages).length > 0) {
           result.duration.push({
@@ -756,7 +984,124 @@ export class DrugClassroomParser implements SourceParser {
         }
       }
 
+      // Try **Route** bold subsections (e.g., **Oral**)
+      if (!foundRoutes) {
+        routePattern = /\*\*([A-Za-z]+(?:\s*\([^)]+\))?)\*\*\s*\n([\s\S]*?)(?=\*\*[A-Za-z]+|## |---|\n\n[A-Z]|$)/gi;
+        while ((match = routePattern.exec(timelineSection)) !== null) {
+          const routeName = cleanRouteName(match[1].trim());
+          // Skip non-route headers
+          if (["timeline", "note", "warning", "caution"].includes(routeName.toLowerCase())) continue;
+
+          foundRoutes = true;
+          const routeContent = match[2];
+          const stages = this.parseTimelineStages(routeContent);
+
+          if (Object.keys(stages).length > 0) {
+            result.duration.push({
+              route: normalizeRoute(routeName),
+              source: this.sourceId,
+              confidence: "medium",
+              stages,
+            });
+          }
+        }
+      }
+
+      // Try plain text route headers (e.g., "Oral (HCl)" on its own line)
+      if (!foundRoutes) {
+        // Note: Don't use 'g' flag with match() when you need capture groups
+        const plainRoutePattern = /^((?:Oral|Intranasal|Inhalation|Insufflated|IV|IM|Rectal|Sublingual|Smoked|Vaporized|Vapourized|Transdermal)(?:\s*\([^)]+\))?)\s*$/im;
+        const lines = timelineSection.split("\n");
+        let currentRoute: string = "Oral";
+        let currentContent = "";
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const routeMatch = line.match(plainRoutePattern);
+
+          if (routeMatch && routeMatch[1]) {
+            // Save previous route's content if any
+            if (currentContent) {
+              const stages = this.parseTimelineStages(currentContent);
+              if (Object.keys(stages).length > 0) {
+                foundRoutes = true;
+                result.duration.push({
+                  route: normalizeRoute(cleanRouteName(currentRoute)),
+                  source: this.sourceId,
+                  confidence: "medium",
+                  stages,
+                });
+              }
+            }
+            currentRoute = routeMatch[1];
+            currentContent = "";
+          } else {
+            currentContent += line + "\n";
+          }
+        }
+
+        // Don't forget the last route
+        if (currentContent) {
+          const stages = this.parseTimelineStages(currentContent);
+          if (Object.keys(stages).length > 0) {
+            foundRoutes = true;
+            result.duration.push({
+              route: normalizeRoute(cleanRouteName(currentRoute)),
+              source: this.sourceId,
+              confidence: "medium",
+              stages,
+            });
+          }
+        }
+      }
+
+      // Fallback: no route subsections, parse the whole section as default Oral
+      if (!foundRoutes) {
+        const stages = this.parseTimelineStages(timelineSection);
+        if (Object.keys(stages).length > 0) {
+          result.duration.push({
+            route: "Oral",
+            source: this.sourceId,
+            confidence: "low",
+            stages,
+          });
+        }
+      }
+
       if (result.duration.length > 0) result.sectionsExtracted.push("duration");
+    }
+
+    // For Section 1 format (NEP, 3-meo-pcp), extract duration from ### Route + **Timeline** subsections
+    // This runs if we didn't get duration from a dedicated ## Timeline section
+    if (result.duration.length === 0) {
+      // Look for Section 1 format
+      const section1Match = content.match(/#\s*Section\s*1[:\s]+Routes.*?Dose([\s\S]*?)(?=#\s*Section\s*2|$)/i);
+      if (section1Match) {
+        const section1Content = section1Match[1];
+        const h3RoutePattern = /###\s*([A-Za-z]+(?:\s+[A-Za-z]+)?)\s*\n([\s\S]*?)(?=###|##|$)/gi;
+        let routeMatch;
+
+        while ((routeMatch = h3RoutePattern.exec(section1Content)) !== null) {
+          const routeName = routeMatch[1].trim().replace(/\s*\([^)]+\)\s*/g, "");
+          const routeContent = routeMatch[2];
+
+          // Look for **Timeline** subsection within this route
+          const timelineSubsectionMatch = routeContent.match(/\*\*Timeline\*\*\s*\n([\s\S]*?)(?=\*\*[A-Z]|###|$)/i);
+          if (timelineSubsectionMatch) {
+            const stages = this.parseTimelineStages(timelineSubsectionMatch[1]);
+            if (Object.keys(stages).length > 0) {
+              result.duration.push({
+                route: normalizeRoute(routeName),
+                source: this.sourceId,
+                confidence: "medium",
+                stages,
+              });
+            }
+          }
+        }
+
+        if (result.duration.length > 0) result.sectionsExtracted.push("duration");
+      }
     }
 
     // Parse Effects section
@@ -941,6 +1286,49 @@ export class DrugClassroomParser implements SourceParser {
     }
 
     return result;
+  }
+
+  // Helper to parse timeline stages from content
+  private parseTimelineStages(content: string): ParsedDurationRoute["stages"] {
+    const stages: ParsedDurationRoute["stages"] = {};
+
+    // Helper to clean duration value before parsing
+    // Handles: parenthetical notes, tilde prefix, variant labels
+    const cleanDurationValue = (value: string): string => {
+      let cleaned = value.trim();
+      // Remove tilde prefix (approximate indicator)
+      cleaned = cleaned.replace(/^~\s*/, "");
+      // Remove parenthetical notes at end: "4 – 9 hours (usually...)" -> "4 – 9 hours"
+      cleaned = cleaned.replace(/\s*\([^)]+\)\s*$/, "").trim();
+      return cleaned;
+    };
+
+    // Patterns support variants like "Total (medical):" or "Total (recreational):"
+    // We take the first match found for each stage type
+    const stagePatterns = [
+      { pattern: /Total(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "total" },
+      { pattern: /Onset(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "onset" },
+      { pattern: /Strongest(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "peak" },
+      { pattern: /Peak(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "peak" },
+      { pattern: /Come\s*down(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "offset" },
+      { pattern: /After\s*effects?(?:\s*\([^)]+\))?[:\s]+([^\n]+)/i, field: "afterEffects" },
+    ];
+
+    for (const { pattern, field } of stagePatterns) {
+      // Skip if we already have this stage (e.g., Peak vs Strongest)
+      if ((stages as Record<string, unknown>)[field]) continue;
+
+      const stageMatch = content.match(pattern);
+      if (stageMatch) {
+        const cleanedValue = cleanDurationValue(stageMatch[1]);
+        const parsed = parseDurationRange(cleanedValue);
+        if (parsed) {
+          (stages as Record<string, unknown>)[field] = parsed;
+        }
+      }
+    }
+
+    return stages;
   }
 }
 

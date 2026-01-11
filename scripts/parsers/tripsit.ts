@@ -176,13 +176,29 @@ function parseDosageTable(content: string, sourceId: string): ParsedDosageRoute[
 
 // === Duration Parsing ===
 
+/**
+ * Detect all routes mentioned in inline multi-route duration format.
+ * E.g., "Insufflated: 10-15, Oral: 60-90 minutes" -> ["Insufflated", "Oral"]
+ */
+function detectInlineRoutes(content: string): string[] {
+  const routes = new Set<string>();
+  const routePattern = /\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):/gi;
+
+  let match;
+  while ((match = routePattern.exec(content)) !== null) {
+    routes.add(match[1]);
+  }
+
+  return Array.from(routes);
+}
+
 function parseDurationSection(content: string, sourceId: string): ParsedDurationRoute[] {
   const durationSection = extractSection(content, "Duration", 2);
   if (!durationSection) return [];
 
   const routes: ParsedDurationRoute[] = [];
 
-  // First try route subsections
+  // First try route subsections (### Route headers)
   const routeSubsections = extractSubsections(durationSection, 3);
 
   if (routeSubsections.size > 0) {
@@ -191,9 +207,24 @@ function parseDurationSection(content: string, sourceId: string): ParsedDuration
       if (duration) routes.push(duration);
     }
   } else {
-    // Flat duration section
-    const duration = parseDurationContent(durationSection, sourceId, "Oral");
-    if (duration) routes.push(duration);
+    // Flat duration section - check for inline multi-route format
+    const inlineRoutes = detectInlineRoutes(durationSection);
+
+    if (inlineRoutes.length > 1) {
+      // Parse duration for EACH route mentioned in the inline format
+      for (const routeName of inlineRoutes) {
+        const duration = parseDurationContent(durationSection, sourceId, routeName);
+        if (duration) routes.push(duration);
+      }
+    } else if (inlineRoutes.length === 1) {
+      // Single route specified inline (e.g., "Onset: Oral: 60-90 minutes")
+      const duration = parseDurationContent(durationSection, sourceId, inlineRoutes[0]);
+      if (duration) routes.push(duration);
+    } else {
+      // No routes specified - default to Oral
+      const duration = parseDurationContent(durationSection, sourceId, "Oral");
+      if (duration) routes.push(duration);
+    }
   }
 
   return routes;
@@ -233,14 +264,16 @@ function parseNestedDurationDict(
 }
 
 /**
- * Parse inline multi-route duration format:
- * "Insufflated: 5-10, Intravenous: 0-2, Oral: 20-70 minutes"
+ * Parse inline route duration format:
+ * Multi-route: "Insufflated: 5-10, Intravenous: 0-2, Oral: 20-70 minutes"
+ * Single-route: "Oral: 60-90 minutes"
  */
 function parseInlineMultiRouteDuration(
   value: string
 ): Map<string, { value: string; unit: string }> | null {
-  // Check for pattern like "Route: value, Route: value unit"
-  if (!value.includes(":") || !value.includes(",")) {
+  // Check for pattern like "Route: value" (colon after route name)
+  // Must have a route name followed by colon and a number
+  if (!value.match(/\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):\s*[\d]/i)) {
     return null;
   }
 
@@ -250,10 +283,10 @@ function parseInlineMultiRouteDuration(
   const unitMatch = value.match(/(minutes?|hours?|mins?|hrs?)$/i);
   const unit = unitMatch ? unitMatch[1] : "hours";
 
-  // Split by comma and parse each
-  const parts = value.split(",");
+  // Split by comma (if present) and parse each part
+  const parts = value.includes(",") ? value.split(",") : [value];
   for (const part of parts) {
-    const routeMatch = part.match(/([A-Za-z]+):\s*([\d.-]+)/);
+    const routeMatch = part.match(/\b(Oral|Insufflated|Smoked|Inhaled|Intravenous|Intramuscular|Sublingual|Rectal|Vapourized|Vaporized|IV|IM):\s*([\d.-]+)/i);
     if (routeMatch) {
       result.set(routeMatch[1], { value: routeMatch[2], unit });
     }

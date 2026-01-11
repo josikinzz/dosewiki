@@ -74,30 +74,85 @@ function extractErowidSubsection(content: string, sectionName: string): string |
 // === Dosage Parsing ===
 
 function parseDosageSection(content: string, sourceId: string): ParsedDosageRoute[] {
-  // Try markdown section first, then fallback to old pattern
+  // Try multiple section formats in order of specificity
   const dosageSection = extractErowidMarkdownSection(content, "Dosage") ||
                         extractErowidSubsection(content, "DOSAGE DESCRIPTION") ||
-                        extractErowidSubsection(content, "Dose");
+                        extractErowidSubsection(content, "DOSAGE") ||
+                        extractErowidSubsection(content, "Dose") ||
+                        extractErowidSubsection(content, "DOSE");
 
-  if (!dosageSection) return [];
+  // If no dedicated section found, try to find dosage data anywhere in content
+  // by looking for dose tier labels with numeric values
+  const searchContent = dosageSection || content;
+
+  if (!dosageSection && !content.match(/-?\s*(Threshold|Light|Common|Moderate|Strong|Heavy):?\s*[≤<]?~?\d/i)) {
+    return [];
+  }
 
   const routes: ParsedDosageRoute[] = [];
 
   // Find route blocks: **Oral**, **Insufflated**, **Smoked**, **IM**, **IV**, etc.
-  // Split content by route headers
-  const routePattern = /\*\*([A-Za-z/]+)\*\*/g;
-  const routeMatches = [...dosageSection.matchAll(routePattern)];
+  // Also handles format: **Insufflated / Nasal Ketamine Dosages** -> extracts "Insufflated"
+  const routePattern = /\*\*([^*]+)\*\*/g;
+  const routeMatches = [...searchContent.matchAll(routePattern)];
 
   if (routeMatches.length > 0) {
     // Process each route
     for (let i = 0; i < routeMatches.length; i++) {
-      const routeName = routeMatches[i][1];
+      let routeName = routeMatches[i][1].trim();
       const startIdx = routeMatches[i].index! + routeMatches[i][0].length;
-      const endIdx = routeMatches[i + 1]?.index ?? dosageSection.length;
-      const routeContent = dosageSection.slice(startIdx, endIdx);
+      const endIdx = routeMatches[i + 1]?.index ?? searchContent.length;
+      const routeContent = searchContent.slice(startIdx, endIdx);
 
-      // Skip if this looks like a header rather than actual dose content
-      if (routeName.toLowerCase().includes("dosage") || routeName.length > 20) {
+      // Skip non-route headers like "( very tentative )" or "many" or "Created by..."
+      if (routeName.startsWith("(") ||
+          routeName.toLowerCase().includes("created by") ||
+          routeName.toLowerCase() === "many" ||
+          routeName.toLowerCase().includes("onset") ||
+          routeName.toLowerCase().includes("every individual")) {
+        continue;
+      }
+
+      // Extract route from various Erowid formats:
+      // Format 1: "Insufflated / Nasal Ketamine Dosages" -> "Insufflated"
+      // Format 2: "Oral 2C-I Dosages" -> "Oral"
+      // Format 3: "DPT Dosage - Oral" -> "Oral"
+      // Format 4: "LSD Oral Dosages" -> "Oral"
+      // Format 5: "DPT Dosages - Smoked/Vaporized Freebase Oil" -> "Smoked"
+
+      // Handle "Substance Dosage - Route" format (e.g., "DPT Dosage - Oral")
+      const dashMatch = routeName.match(/dosages?\s*[-–]\s*(.+)/i);
+      if (dashMatch) {
+        routeName = dashMatch[1].split(/\s*[\/,]\s*/)[0].trim();
+      }
+      // Handle "Route Substance Dosages" format (e.g., "Insufflated / Nasal Ketamine Dosages")
+      else if (routeName.toLowerCase().includes("dosage")) {
+        const beforeDosage = routeName.split(/\s+dosages?/i)[0].trim();
+        // Take first route if multiple listed (e.g., "Insufflated / Nasal" -> "Insufflated")
+        routeName = beforeDosage.split(/\s*[\/,]\s*/)[0].trim();
+      }
+
+      // Known route names
+      const knownRoutes = ["oral", "insufflated", "nasal", "smoked", "im", "i.m.", "iv", "i.v.",
+                           "intravenous", "intramuscular", "sublingual", "buccal", "rectal",
+                           "transdermal", "inhaled", "vaporized", "vapourised"];
+
+      // Extract just the route name if substance name is included
+      // E.g., "Oral 2C-I" -> "Oral", "LSD Oral" -> "Oral"
+      const routeWords = routeName.split(/\s+/);
+      if (routeWords.length > 1) {
+        // Check if first word is a known route
+        if (knownRoutes.includes(routeWords[0].toLowerCase())) {
+          routeName = routeWords[0];
+        }
+        // Check if last word is a known route (for "LSD Oral" format)
+        else if (knownRoutes.includes(routeWords[routeWords.length - 1].toLowerCase())) {
+          routeName = routeWords[routeWords.length - 1];
+        }
+      }
+
+      // Skip if not a known route
+      if (!knownRoutes.includes(routeName.toLowerCase())) {
         continue;
       }
 
@@ -109,7 +164,7 @@ function parseDosageSection(content: string, sourceId: string): ParsedDosageRout
           source: sourceId,
           confidence: "medium",
           ranges,
-          notes: extractDosageNotes(dosageSection),
+          notes: extractDosageNotes(searchContent),
         });
       }
     }
@@ -117,14 +172,14 @@ function parseDosageSection(content: string, sourceId: string): ParsedDosageRout
 
   // Fallback: if no routes found, try to parse as generic dose ranges
   if (routes.length === 0) {
-    const ranges = parseErowidDoseRanges(dosageSection);
+    const ranges = parseErowidDoseRanges(searchContent);
     if (Object.keys(ranges).length > 0) {
       routes.push({
         route: "Oral",
         source: sourceId,
-        confidence: "low",
+        confidence: dosageSection ? "low" : "very-low",
         ranges,
-        notes: extractDosageNotes(dosageSection),
+        notes: extractDosageNotes(searchContent),
       });
     }
   }
@@ -157,19 +212,17 @@ function normalizeRouteName(route: string): string {
 function parseErowidDoseRanges(content: string): ParsedDosageRoute["ranges"] {
   const ranges: ParsedDosageRoute["ranges"] = {};
 
-  // Pattern for labeled ranges: "- Threshold: 2 - 5 mg" or "- Light: 5-15mg"
-  const labeledPattern = /-\s*(Threshold|Light|Common|Moderate|Strong|Heavy):\s*(?:~)?(\d+(?:\.\d+)?)\s*[-–]?\s*(\d+(?:\.\d+)?)?\s*(mg|µg|ug|g|ml)/gi;
+  // Helper to normalize unit strings
+  const normalizeUnit = (unit: string): string => {
+    const u = unit.toLowerCase().trim();
+    if (u === "grams" || u === "gram") return "g";
+    if (u === "µg" || u === "ug" || u === "mcg") return "µg";
+    return u;
+  };
 
-  let match: RegExpExecArray | null;
-  while ((match = labeledPattern.exec(content)) !== null) {
-    const label = match[1].toLowerCase();
-    const min = parseFloat(match[2]);
-    const max = match[3] ? parseFloat(match[3]) : min;
-    const unit = match[4].toLowerCase();
-
-    const range: DoseRange = { min, max, unit };
-
-    switch (label) {
+  // Helper to assign range to appropriate tier
+  const assignRange = (label: string, range: DoseRange) => {
+    switch (label.toLowerCase()) {
       case "threshold":
         ranges.threshold = range;
         break;
@@ -187,6 +240,65 @@ function parseErowidDoseRanges(content: string): ParsedDosageRoute["ranges"] {
         ranges.heavy = range;
         break;
     }
+  };
+
+  let match: RegExpExecArray | null;
+
+  // Pattern 1: Standard labeled ranges with optional compound units
+  // Handles: "- Threshold: 2.5 mg Psilocybin", "- Light: 5-15mg", "- Common: 0.066 gram"
+  // Also handles threshold symbols: "≤0.3 mg", "<0.2 mg"
+  const labeledPattern = /-?\s*(Threshold|Light|Common|Moderate|Strong|Heavy):?\s*[≤<]?~?(\d+(?:\.\d+)?)\s*[-–]?\s*(\d+(?:\.\d+)?)?\s*(mg|µg|ug|mcg|g|grams?|gram|ml)(?:\s+\w+)?/gi;
+
+  while ((match = labeledPattern.exec(content)) !== null) {
+    const label = match[1];
+    const min = parseFloat(match[2]);
+    const max = match[3] ? parseFloat(match[3]) : min;
+    const unit = normalizeUnit(match[4]);
+
+    assignRange(label, { min, max, unit });
+  }
+
+  // Pattern 2: Pipe-separated format (Erowid ketamine style)
+  // "- Threshold | .1 mg / lb | 10 - 15 mg"
+  if (Object.keys(ranges).length === 0) {
+    const pipePattern = /-\s*(Threshold|Light|Common|Moderate|Strong|Heavy|The K Hole)\s*\|[^|]+\|\s*(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*(mg|µg|ug|g|grams?|ml)/gi;
+
+    while ((match = pipePattern.exec(content)) !== null) {
+      let label = match[1];
+      if (label.toLowerCase() === "the k hole") label = "heavy";
+
+      const min = parseFloat(match[2]);
+      const max = parseFloat(match[3]);
+      const unit = normalizeUnit(match[4]);
+
+      assignRange(label, { min, max, unit });
+    }
+  }
+
+  // Pattern 3: Bullet list format without colon (psilocybin-mushrooms style)
+  // "- Threshold  2.5 mg" or "- Light  2.5 - 10 mg"
+  if (Object.keys(ranges).length === 0) {
+    const bulletPattern = /-\s*(Threshold|Light|Common|Moderate|Strong|Heavy)\s+[≤<]?(\d+(?:\.\d+)?)\s*[-–]?\s*(\d+(?:\.\d+)?)?\s*(mg|µg|ug|g|grams?|gram|ml)(?:\s+\w+)?/gi;
+
+    while ((match = bulletPattern.exec(content)) !== null) {
+      const label = match[1];
+      const min = parseFloat(match[2]);
+      const max = match[3] ? parseFloat(match[3]) : min;
+      const unit = normalizeUnit(match[4]);
+
+      assignRange(label, { min, max, unit });
+    }
+  }
+
+  // Pattern 4: Plus notation for heavy doses (e.g., "Heavy: 50 mg +", "900+ mg")
+  if (!ranges.heavy) {
+    const heavyPlusPattern = /-?\s*Heavy:?\s*(\d+(?:\.\d+)?)\s*\+?\s*(mg|µg|ug|g|grams?|ml)|(\d+(?:\.\d+)?)\s*\+\s*(mg|µg|ug|g|grams?|ml)/gi;
+    match = heavyPlusPattern.exec(content);
+    if (match) {
+      const min = parseFloat(match[1] || match[3]);
+      const unit = normalizeUnit(match[2] || match[4]);
+      ranges.heavy = { min, max: min, unit };
+    }
   }
 
   return ranges;
@@ -203,19 +315,36 @@ function extractDosageNotes(section: string): string | undefined {
 // === Duration Parsing ===
 
 function parseDurationSection(content: string, sourceId: string): ParsedDurationRoute[] {
-  // Duration is typically inside ## Effects section under DURATION #
+  // Try multiple section formats in order of specificity
   const effectsSection = extractErowidMarkdownSection(content, "Effects");
   const durationSubsection = effectsSection
     ? extractErowidSubsection(effectsSection, "DURATION")
-    : extractErowidSubsection(content, "DURATION");
+    : extractErowidSubsection(content, "DURATION") ||
+      extractErowidSubsection(content, "Duration") ||
+      extractErowidMarkdownSection(content, "Duration");
 
-  if (!durationSubsection) return [];
+  // Check if duration data exists anywhere in full content
+  // Pattern includes space before colon to catch formats like "Onset : 20 - 70 minutes"
+  const hasDurationData = content.match(/-?\s*(Total Duration|Duration|Onset|Peak|Plateau|Coming Up|Coming Down|After Effects|Normal After Effects)\s*:?\s*\d/i);
+
+  // If duration subsection exists but is empty/just caution text, fall back to full content
+  let searchContent = durationSubsection || content;
+  if (durationSubsection) {
+    // Check if the subsection actually has numeric duration data
+    const subsectionHasData = durationSubsection.match(/(Onset|Duration|Peak|Coming)\s*:?\s*\d/i);
+    if (!subsectionHasData && hasDurationData) {
+      // Duration section exists but is empty, use full content instead
+      searchContent = content;
+    }
+  }
+
+  if (!durationSubsection && !hasDurationData) return [];
 
   const routes: ParsedDurationRoute[] = [];
 
   // Find route blocks within duration section
   const routePattern = /\*\*([A-Za-z/]+)\*\*/g;
-  const routeMatches = [...durationSubsection.matchAll(routePattern)];
+  const routeMatches = [...searchContent.matchAll(routePattern)];
 
   if (routeMatches.length > 0) {
     for (let i = 0; i < routeMatches.length; i++) {
@@ -227,8 +356,8 @@ function parseDurationSection(content: string, sourceId: string): ParsedDuration
       }
 
       const startIdx = routeMatches[i].index! + routeMatches[i][0].length;
-      const endIdx = routeMatches[i + 1]?.index ?? durationSubsection.length;
-      const routeContent = durationSubsection.slice(startIdx, endIdx);
+      const endIdx = routeMatches[i + 1]?.index ?? searchContent.length;
+      const routeContent = searchContent.slice(startIdx, endIdx);
 
       const stages = parseErowidDurationStages(routeContent);
 
@@ -245,12 +374,12 @@ function parseDurationSection(content: string, sourceId: string): ParsedDuration
 
   // Fallback: parse as single route if no route headers found
   if (routes.length === 0) {
-    const stages = parseErowidDurationStages(durationSubsection);
+    const stages = parseErowidDurationStages(searchContent);
     if (Object.keys(stages).length > 0) {
       routes.push({
         route: "Oral",
         source: sourceId,
-        confidence: "medium",
+        confidence: durationSubsection ? "medium" : "low",
         stages,
       });
     }
@@ -262,30 +391,84 @@ function parseDurationSection(content: string, sourceId: string): ParsedDuration
 function parseErowidDurationStages(content: string): ParsedDurationRoute["stages"] {
   const stages: ParsedDurationRoute["stages"] = {};
 
-  // Pattern for labeled stages: "- Total Duration: 4 - 8 hrs" or "- Onset: 45-75 mins"
+  // Stage name patterns to look for (including variations)
   const stagePatterns: Array<{ names: string[]; key: keyof ParsedDurationRoute["stages"] }> = [
-    { names: ["Total Duration", "Total"], key: "total" },
+    { names: ["Total Duration", "Total", "Duration"], key: "total" },
     { names: ["Onset"], key: "onset" },
-    { names: ["Coming Up", "Come Up", "Comeup"], key: "comeUp" },
+    { names: ["Coming Up", "Come Up", "Comeup", "Come-up"], key: "comeUp" },
     { names: ["Peak", "Plateau"], key: "peak" },
-    { names: ["Coming Down", "Come Down", "Comedown", "Offset"], key: "offset" },
-    { names: ["After Effects", "Aftereffects", "After-effects"], key: "afterEffects" },
+    { names: ["Coming Down", "Come Down", "Comedown", "Come-down", "Offset"], key: "offset" },
+    { names: ["Normal After Effects", "After Effects", "Aftereffects", "After-effects", "After effects"], key: "afterEffects" },
   ];
+
+  // Helper to normalize time unit
+  const normalizeTimeUnit = (unit: string): "hours" | "minutes" => {
+    const u = unit.toLowerCase();
+    if (u.startsWith("h") || u === "hours" || u === "hour" || u === "hrs" || u === "hr") {
+      return "hours";
+    }
+    return "minutes";
+  };
 
   for (const { names, key } of stagePatterns) {
     for (const name of names) {
-      const pattern = new RegExp(
-        `-?\\s*${name}:\\s*(\\d+(?:\\.\\d+)?)\\s*[-–]\\s*(\\d+(?:\\.\\d+)?)\\s*(mins?|minutes?|hrs?|hours?)`,
+      // Escape special regex chars in name
+      const escapedName = name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+      // Pattern 1: Range format with optional space before colon
+      // Handles: "- Total Duration: 4 - 8 hrs", "Onset : 20 - 70 minutes", "Duration : 3 - 5 hours"
+      // Also handles extra text in parentheses: "Onset : 20 - 70 minutes (depending on...)"
+      const rangePattern = new RegExp(
+        `-?\\s*${escapedName}\\s*:?\\s*(\\d+(?:\\.\\d+)?)\\s*[-–]\\s*(\\d+(?:\\.\\d+)?)\\s*(mins?|minutes?|hrs?|hours?|secs?|seconds?)`,
         "i"
       );
-      const match = content.match(pattern);
+      let match = content.match(rangePattern);
       if (match) {
-        const range: DurationRange = {
-          min: parseFloat(match[1]),
-          max: parseFloat(match[2]),
-          unit: match[3].toLowerCase().startsWith("h") ? "hours" : "minutes",
-        };
-        stages[key] = range;
+        let unit = normalizeTimeUnit(match[3]);
+        let min = parseFloat(match[1]);
+        let max = parseFloat(match[2]);
+
+        // Convert seconds to minutes
+        if (match[3].toLowerCase().startsWith("sec")) {
+          min = min / 60;
+          max = max / 60;
+          unit = "minutes";
+        }
+
+        stages[key] = { min, max, unit };
+        break;
+      }
+
+      // Pattern 2: "up to X hours/minutes" format (e.g., "Normal After Effects : up to 24 hours")
+      const upToPattern = new RegExp(
+        `-?\\s*${escapedName}\\s*:?\\s*up\\s+to\\s+(\\d+(?:\\.\\d+)?)\\s*(mins?|minutes?|hrs?|hours?)`,
+        "i"
+      );
+      match = content.match(upToPattern);
+      if (match) {
+        const unit = normalizeTimeUnit(match[2]);
+        const value = parseFloat(match[1]);
+        stages[key] = { min: 0, max: value, unit };
+        break;
+      }
+
+      // Pattern 3: Single value format "- Total: 6 hours" or "Onset: 30 minutes"
+      const singlePattern = new RegExp(
+        `-?\\s*${escapedName}\\s*:?\\s*(\\d+(?:\\.\\d+)?)\\s*(mins?|minutes?|hrs?|hours?|secs?|seconds?)`,
+        "i"
+      );
+      match = content.match(singlePattern);
+      if (match) {
+        let unit = normalizeTimeUnit(match[2]);
+        let value = parseFloat(match[1]);
+
+        // Convert seconds to minutes
+        if (match[2].toLowerCase().startsWith("sec")) {
+          value = value / 60;
+          unit = "minutes";
+        }
+
+        stages[key] = { min: value, max: value, unit };
         break;
       }
     }

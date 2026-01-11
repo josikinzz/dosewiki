@@ -8,18 +8,48 @@ import type { DoseRange, DurationRange, ParserResult, NarrativeContent } from ".
 // === Unit Normalization ===
 
 const DOSE_UNIT_ALIASES: Record<string, string> = {
+  // Microgram variants
   "μg": "µg",
   "ug": "µg",
   "mcg": "µg",
   "micrograms": "µg",
   "microgram": "µg",
+  // Milligram variants
   "milligrams": "mg",
   "milligram": "mg",
+  // Gram variants
   "grams": "g",
   "gram": "g",
+  // Milliliter variants
   "milliliters": "ml",
   "milliliter": "ml",
   "mL": "ml",
+  // Weight-based and time-based dosing
+  "mg/kg": "mg/kg",
+  "mg/d": "mg/day",
+  "mg/day": "mg/day",
+  // Non-standard units (normalize plurals)
+  "seed": "seeds",
+  "seeds": "seeds",
+  "tab": "tabs",
+  "tabs": "tabs",
+  "hit": "hits",
+  "hits": "hits",
+  "drop": "drops",
+  "drops": "drops",
+  "cap": "caps",
+  "caps": "caps",
+  "capsule": "caps",
+  "capsules": "caps",
+  "leaf": "leaves",
+  "leaves": "leaves",
+  "piece": "pieces",
+  "pieces": "pieces",
+  // Alcohol units
+  "unit": "units",
+  "units": "units",
+  "drink": "drinks",
+  "drinks": "drinks",
 };
 
 const DURATION_UNIT_ALIASES: Record<string, string> = {
@@ -50,30 +80,70 @@ export function normalizeDurationUnit(unit: string): string {
 
 // === Dose Range Parsing ===
 
+// Comprehensive unit pattern - includes all common dose units
+// Standard: mg, µg, g, ml (and spelled-out variants like "grams")
+// Medical: mg/kg, mg/d (per day)
+// Non-standard: seeds, tabs, hits, drops, caps, drinks, etc.
+const DOSE_UNIT_PATTERN = "(?:µg|ug|μg|mcg|mg/kg|mg/d|mg|grams?|g|ml|mL|units?|seeds?|tabs?|hits?|drops?|drinks?|caps(?:ules?)?|leaves?|pieces?)";
+
 /**
- * Parse dose strings like "100-200mg", "15 - 75 µg", "250+", "<10mg"
+ * Parse dose strings like "100-200mg", "15 - 75 µg", "250+", "<10mg", "~100mg"
+ * Also handles non-standard units: "2-6seeds", "16-22mg/kg", "1-2tabs"
+ * Handles trailing + modifiers (e.g., "400-600mg+") and approximate prefixes (~)
+ * Handles trailing punctuation (e.g., "25-35mg." or "100mg,")
  * Returns structured DoseRange or undefined if unparseable
  */
 export function parseDoseRange(text: string): DoseRange | undefined {
   if (!text || text.trim() === "" || text.trim() === "-") return undefined;
 
-  const cleaned = text.trim();
+  // Clean up: remove ~ prefix (approximate indicator), trim whitespace
+  let cleaned = text.trim();
+  const isApproximate = cleaned.startsWith("~");
+  if (isApproximate) {
+    cleaned = cleaned.slice(1).trim();
+  }
 
-  // Pattern: "100-200mg" or "100 - 200 mg" or "100-200 mg"
-  const rangeMatch = cleaned.match(
-    /^([<>]?\s*[\d.]+)\s*[-–—to]+\s*([\d.]+)\s*(µg|ug|μg|mcg|mg|g|ml|mL)?$/i
+  // Remove trailing punctuation (periods, commas, semicolons)
+  cleaned = cleaned.replace(/[.,;:]+$/, "").trim();
+
+  // Remove trailing descriptive text (e.g., "once a day", "per dose", "in divided doses")
+  // This catches patterns like "20-40mg once a day" -> "20-40mg"
+  cleaned = cleaned.replace(/\s+(once|twice|per|in|daily|every|each|with|as|for|at|or)\s.*$/i, "").trim();
+
+  // Remove compound/substance qualifiers after units (e.g., "mg THC", "mg Psilocybin", "mg DXM")
+  // These are common in cannabis and mushroom dosing where the active compound is specified
+  // Also handles trailing + after compound name (e.g., "10 mg THC +" -> "10 mg +")
+  cleaned = cleaned.replace(/\s+(THC|Psilocybin|Psilocin|CBD|DXM|HBr|freebase|pure|dried|fresh)(\s*\+)?$/i, "$2").trim();
+
+  // Remove parenthetical unit conversions (e.g., "100 – 250 μg (0.1 – 0.25 mg)" -> "100 – 250 μg")
+  // These appear in TDC content where doses are given in multiple units for reference
+  cleaned = cleaned.replace(/\s*\([^)]*(?:mg|g|µg|ug|μg|mcg)[^)]*\)\s*$/, "").trim();
+
+  // Build regex patterns dynamically with comprehensive unit support
+  const unitPattern = DOSE_UNIT_PATTERN;
+
+  // Pattern: "100-200mg+" or "100-200+mg" or "400-600mg+" or "2-6seeds" (range with optional trailing +)
+  // Also handles "100 - 200 mg" and variations
+  const rangeRegex = new RegExp(
+    `^([<>]?\\s*[\\d.]+)\\s*[-–—to]+\\s*([\\d.]+)\\s*\\+?\\s*(${unitPattern})?\\s*\\+?$`,
+    "i"
   );
-  if (rangeMatch) {
-    const minStr = rangeMatch[1].replace(/[<>\s]/g, "");
+  const rangeWithPlusMatch = cleaned.match(rangeRegex);
+  if (rangeWithPlusMatch) {
+    const minStr = rangeWithPlusMatch[1].replace(/[<>\s]/g, "");
     return {
       min: parseFloat(minStr),
-      max: parseFloat(rangeMatch[2]),
-      unit: normalizeDoseUnit(rangeMatch[3] || "mg"),
+      max: parseFloat(rangeWithPlusMatch[2]),
+      unit: normalizeDoseUnit(rangeWithPlusMatch[3] || "mg"),
     };
   }
 
-  // Pattern: "250+" or "250+mg" or ">250mg"
-  const heavyMatch = cleaned.match(/^([>]?\s*[\d.]+)\s*\+?\s*(µg|ug|μg|mcg|mg|g|ml|mL)?$/i);
+  // Pattern: "250+" or "250+mg" or ">250mg" or "250mg+" or "14seeds+"
+  const heavyRegex = new RegExp(
+    `^([>]?\\s*[\\d.]+)\\s*\\+?\\s*(${unitPattern})?\\s*\\+?$`,
+    "i"
+  );
+  const heavyMatch = cleaned.match(heavyRegex);
   if (heavyMatch && (cleaned.includes("+") || cleaned.includes(">"))) {
     return {
       min: parseFloat(heavyMatch[1].replace(/[>\s]/g, "")),
@@ -81,8 +151,12 @@ export function parseDoseRange(text: string): DoseRange | undefined {
     };
   }
 
-  // Pattern: "<10mg" or "< 10 mg"
-  const lessThanMatch = cleaned.match(/^<\s*([\d.]+)\s*(µg|ug|μg|mcg|mg|g|ml|mL)?$/i);
+  // Pattern: "<10mg" or "< 10 mg" or "<1seed"
+  const lessThanRegex = new RegExp(
+    `^<\\s*([\\d.]+)\\s*(${unitPattern})?$`,
+    "i"
+  );
+  const lessThanMatch = cleaned.match(lessThanRegex);
   if (lessThanMatch) {
     return {
       max: parseFloat(lessThanMatch[1]),
@@ -90,8 +164,12 @@ export function parseDoseRange(text: string): DoseRange | undefined {
     };
   }
 
-  // Pattern: single value "100mg" or "100 mg"
-  const singleMatch = cleaned.match(/^([\d.]+)\s*(µg|ug|μg|mcg|mg|g|ml|mL)?$/i);
+  // Pattern: single value "100mg" or "100 mg" or "5seeds"
+  const singleRegex = new RegExp(
+    `^([\\d.]+)\\s*(${unitPattern})?$`,
+    "i"
+  );
+  const singleMatch = cleaned.match(singleRegex);
   if (singleMatch) {
     const value = parseFloat(singleMatch[1]);
     return {
@@ -461,6 +539,11 @@ const ROUTE_ALIASES: Record<string, string> = {
   plugged: "Rectal",
   transdermal: "Transdermal",
   topical: "Transdermal",
+  // Semantic route names for natural sources (map to Oral)
+  hbwr: "Oral",
+  "hawaiian baby woodrose": "Oral",
+  morning_glory: "Oral",
+  "morning glory": "Oral",
 };
 
 export function normalizeRoute(route: string): string {

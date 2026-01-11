@@ -1,0 +1,202 @@
+{
+  "hasDosageNoDuration": [
+    {
+      "title": "2-MA",
+      "slug": "2-ma",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "2-MMC",
+      "slug": "2-mmc",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "2C-B-FLY-NBOMe",
+      "slug": "2c-b-fly-nbome",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "3-CMC",
+      "slug": "3-cmc",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "3-MEC",
+      "slug": "3-mec",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "4-CMC",
+      "slug": "4-cmc",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "5-EAPB",
+      "slug": "5-eapb",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "AB-FUBINACA",
+      "slug": "ab-fubinaca",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Fenethylline",
+      "slug": "fenethylline",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Mefloquine",
+      "slug": "mefloquine",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Pipradrol",
+      "slug": "pipradrol",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "PMMA",
+      "slug": "pmma",
+      "isPopular": false,
+      "parsedHasDuration": false,
+      "hasSourceFile": true
+    }
+  ],
+  "hasDurationNoDosage": [
+    {
+      "title": "Ayahuasca",
+      "slug": "ayahuasca",
+      "isPopular": true,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "25H-NBOMe",
+      "slug": "25h-nbome",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "4-HO-McPT",
+      "slug": "4-ho-mcpt",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "5-IAI",
+      "slug": "5-iai",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "5-IAI",
+      "slug": "5-iai",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "ALEPH-2",
+      "slug": "aleph-2",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "AM-694",
+      "slug": "am-694",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Amfecloral",
+      "slug": "amfecloral",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Bupropion",
+      "slug": "bupropion",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Datura",
+      "slug": "datura",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "JWH-018",
+      "slug": "jwh-018",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "JWH-073",
+      "slug": "jwh-073",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Khat",
+      "slug": "khat",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Lean",
+      "slug": "lean",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "PRE-084",
+      "slug": "pre-084",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    },
+    {
+      "title": "Thiopental",
+      "slug": "thiopental",
+      "isPopular": false,
+      "parsedHasDosage": false,
+      "hasSourceFile": true
+    }
+  ]
+}
