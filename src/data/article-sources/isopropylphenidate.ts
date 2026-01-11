@@ -126,6 +126,22 @@ IUPAC: propan-2-yl 2-phenyl-2-piperidin-2-ylacetate
 
 #### Oral
 
+Total: 3 – 5 hours
+
+Onset: 00:30 – 00:45
+
+#### Intranasal
+
+Total: 2 – 4 hours
+
+Onset: 00:02 – 00:10
+
+---
+
+## Timeline
+
+#### Oral
+
 Light: 5 – 15 mg
 
 Common: 15 – 30 mg
@@ -139,22 +155,6 @@ Light: 5 – 10 mg
 Common: 10 – 20 mg
 
 Strong: 20 – 30 mg
-
----
-
-## Timeline
-
-#### Oral
-
-Total: 3 – 5 hours
-
-Onset: 00:30 – 00:45
-
-#### Intranasal
-
-Total: 2 – 4 hours
-
-Onset: 00:02 – 00:10
 
 ---
 

@@ -57,7 +57,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/2-ai</loc>
+    <loc>https://dose.wiki/2-aminoindane</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -70,6 +70,10 @@
   </url>
   <url>
     <loc>https://dose.wiki/2-fea</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/2-fluorodeschloroketamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -113,11 +117,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/25-dma</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/25b-nboh</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/25b-nbome</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/25c-nboh</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/25c-nbome</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -126,6 +142,14 @@
   </url>
   <url>
     <loc>https://dose.wiki/25e-nboh</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/25e-nbome</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/25g-nbome</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -162,6 +186,10 @@
   </url>
   <url>
     <loc>https://dose.wiki/25t-2-nbome</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/25t-4-nbome</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -237,6 +265,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/3-4-ctmp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/3-cl-pcp</loc>
     <priority>0.7</priority>
   </url>
@@ -253,7 +285,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/3-fluoromethamphetamine</loc>
+    <loc>https://dose.wiki/3-fma</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -297,7 +329,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/3-meo-pcpy</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/3-meomc</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/3-mmc</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/3-oh-phenazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -317,6 +361,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4-aco-dalt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4-aco-det</loc>
     <priority>0.7</priority>
   </url>
@@ -333,6 +381,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4-aco-met</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4-aco-mipt</loc>
     <priority>0.7</priority>
   </url>
@@ -342,10 +394,6 @@
   </url>
   <url>
     <loc>https://dose.wiki/4-cbc</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/4-cma</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -369,15 +417,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/4-fluoromethylphenidate</loc>
+    <loc>https://dose.wiki/4-fluorobutyrfentanyl</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/4-fluoropentedrone</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/4-fluorophenibut</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -401,6 +445,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4-ho-dpt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4-ho-ept</loc>
     <priority>0.7</priority>
   </url>
@@ -410,6 +458,14 @@
   </url>
   <url>
     <loc>https://dose.wiki/4-ho-met</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/4-ho-mipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/4-ho-mpmi</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -425,6 +481,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4-meo-butyrfentanyl</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4-meo-mipt</loc>
     <priority>0.7</priority>
   </url>
@@ -433,19 +493,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4-methylaminorex</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/4-methylmethylphenidate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4-mpd</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/4-mpm</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/4-mta</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/4-mxp</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -461,11 +521,27 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4f-mph</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/4f-neb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/4f-php</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/4f-pvp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/5-apb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-apdb</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -489,7 +565,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/5-hydroxytryptophan</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/5-iai</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-it</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -521,7 +605,47 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/5-meo-eipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-meo-malt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-meo-met</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/5-meo-mipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-meo-mt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-meo-nipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-meo-pyr-t</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-methylethylone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5-ppdi</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5f-akb48</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/5f-pb-22</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -530,6 +654,34 @@
   </url>
   <url>
     <loc>https://dose.wiki/6-apdb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/6-eapb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/6-mapb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/6-mddm</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/a-php</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/a-pihp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/a-pvp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ab-chminaca</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -561,7 +713,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ah-7921</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/al-lad</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/alcohol</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -577,6 +737,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/allobarbital</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/allylescaline</loc>
     <priority>0.7</priority>
   </url>
@@ -586,18 +750,6 @@
   </url>
   <url>
     <loc>https://dose.wiki/alpha-pcyp</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/alpha-php</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/alpha-pihp</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://dose.wiki/alpha-pvp</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -617,7 +769,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/amfonelic-acid</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/aminorex</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/aminotadalafil</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -641,6 +801,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ashwagandha</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/aspirin</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/atomoxetine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/ayahuasca</loc>
     <priority>0.7</priority>
   </url>
@@ -649,7 +821,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/barbital</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/bentazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/benzydamine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/bk-2c-b</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/bod</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -673,6 +861,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/buphedrone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/buprenorphine</loc>
     <priority>0.7</priority>
   </url>
@@ -681,7 +873,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/buspirone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/butylone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/butyrfentanyl</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -689,11 +889,15 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/c30-nbome</loc>
+    <loc>https://dose.wiki/caffeine</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/caffeine</loc>
+    <loc>https://dose.wiki/cake</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/camazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -709,15 +913,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/cathinone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/changa</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/chloral-betaine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/chloral-hydrate</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/chlordiazepoxide</loc>
+    <loc>https://dose.wiki/chloroform</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/choline-bitartrate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cinolazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/citalopram</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -729,7 +953,39 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/clomethiazole</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/clonazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/clonazolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/clonidine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cloniprazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/clonitazene</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/clorazepate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/clotiazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cloxazolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -749,11 +1005,39 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/crl-40-940</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/crl-40-941</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/cyclazodone</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/cyclizine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cyclo-methiodrone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cyclobenzaprine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/cyclopropylmescaline</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/d2pm</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/dalt</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -773,6 +1057,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/deschloroketamine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/desmethylflunitrazepam</loc>
     <priority>0.7</priority>
   </url>
@@ -789,11 +1077,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/dexmethylphenidate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/dextroamphetamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/dextromethorphan</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/dextromoramide</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -813,7 +1109,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/diclofensine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/diethyl-ether</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/dihydrocodeine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/dimemebfe</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -829,7 +1137,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/dipipanone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/dipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/dmaa</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -857,7 +1173,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/doip</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/dom</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/don</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/dopr</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/doxylamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -873,6 +1205,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ephylone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/ept</loc>
     <priority>0.7</priority>
   </url>
@@ -881,11 +1217,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/estazolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/eszopiclone</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/et</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/eth-cat</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/eth-lad</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ethaqualone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ethchlorvynol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ethketamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -897,11 +1257,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ethylphenidate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/etizolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/eutylone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/f-phenibut</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/fasoracetam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -945,7 +1317,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/fluorophenibut</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/flurazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/flutazolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -957,6 +1337,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/gaba</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/gabapentin</loc>
     <priority>0.7</priority>
   </url>
@@ -965,7 +1349,31 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ghb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/glaucine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/glutethimide</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/h-2c-b</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/halazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/haloperidol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/hdep-28</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -977,7 +1385,23 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/hexen</loc>
+    <loc>https://dose.wiki/hexobarbital</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/homosildenafil</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/hot-2</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/hot-7</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/huperzine-a</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1001,11 +1425,55 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ibuprofen</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/indapex</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/indapyrophenidone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/isomethadone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/isophenmetrazine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/isopropylphenidate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/isoproscaline</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/jwh-018</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/jwh-073</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/k-2c-b</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/k-2c-i</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/k-ivp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/kanna</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1017,6 +1485,14 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/ketazolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ketobemidone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/khat</loc>
     <priority>0.7</priority>
   </url>
@@ -1025,11 +1501,19 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/l-theanine</loc>
+    <loc>https://dose.wiki/lae-32</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/lagochilus-inebrians</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://dose.wiki/lean</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/librium</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1041,7 +1525,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/loprazolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/lorazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/lormetazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1065,11 +1557,19 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/mcpp</loc>
+    <loc>https://dose.wiki/marinol</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/md-php</loc>
+    <loc>https://dose.wiki/mbdb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mbzp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mcpp</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1089,11 +1589,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/mdoh</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mdpa</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mdphp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/mdpv</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/meai</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mebroqualone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/meclofenoxate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/meclonazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1117,6 +1641,14 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/mephedrone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mephenaqualone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/mescaline</loc>
     <priority>0.7</priority>
   </url>
@@ -1125,7 +1657,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/metaclazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/metaxalone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/methadone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methallylescaline</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methamnetamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1149,6 +1697,26 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/methoxphenidine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methoxyacetyl-fentanyl</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methoxyketamine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methoxypiperamide</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/methylmethaqualone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/methylnaphthidate</loc>
     <priority>0.7</priority>
   </url>
@@ -1161,7 +1729,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/methyprylon</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/metizolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/mexazolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1177,6 +1753,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/mipt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/mk-801</loc>
     <priority>0.7</priority>
   </url>
@@ -1189,11 +1769,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/morpheridine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/morphine</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/mxipr</loc>
+    <loc>https://dose.wiki/mt-45</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1205,11 +1789,39 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/n-ethylhexedrone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/n-methylbisfluoromodafinil</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/naloxone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/naphyrone</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/naproxen</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/neb</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/nefiracetam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/nep</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/nicomorphine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1225,11 +1837,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/nitemazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/nitracaine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/nitrazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://dose.wiki/nitrous-oxide</loc>
+    <loc>https://dose.wiki/nitrazolam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/nitrous</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1241,6 +1865,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/nordazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/norflurazepam</loc>
     <priority>0.7</priority>
   </url>
@@ -1249,11 +1877,23 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/o-desmethyltramadol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/o-pce</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/opium</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/oxazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/oxazolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1269,6 +1909,26 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/pagoclone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/paracetamol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/parafluorofentanyl</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pargy-lad</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pbp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pce</loc>
     <priority>0.7</priority>
   </url>
@@ -1281,6 +1941,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/pentazocine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pentedrone</loc>
     <priority>0.7</priority>
   </url>
@@ -1289,7 +1953,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/pentylone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pethidine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pfbt</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1301,7 +1973,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/phenetrazine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/phenibut</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/phenmetrazine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1309,11 +1989,27 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/phentermine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/phenylpiracetam</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/picamilon</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pinazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pipradrol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pipt</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1345,11 +2041,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/prl-8-53</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pro-lad</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/prochlorperazine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/progesterone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/prolintane</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/promethazine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/propofol</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/propoxyphene</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1361,7 +2081,15 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/propylphenidate</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/proscaline</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pseudoephrine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1373,11 +2101,55 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/pst</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pv-8</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/pvt</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/pyrazolam</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/pyrophenidone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/quazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/quetiapine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/rilmazafone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/risperidone</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/rolicyclidine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ronlax</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/salvia</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/salvinorin-b-methoxymethyl-ether</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1393,7 +2165,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/sentia</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/sertraline</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/sildenafil</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/sinicuichi</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/sonata</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/sufentanil</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/sulbutiamine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/tadalafil</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1405,11 +2205,31 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/tetrazepam</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/th-pvp</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/theacrine</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/theanine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/theobromine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/thiopental</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/thiopropamine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1418,6 +2238,14 @@
   </url>
   <url>
     <loc>https://dose.wiki/tiletamine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/tilidine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/tizanidine</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1433,6 +2261,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/tobacco</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/tramadol</loc>
     <priority>0.7</priority>
   </url>
@@ -1445,11 +2277,35 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/troparil</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/u-47700</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://dose.wiki/u-51754</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/ur-144</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/valerylfentanyl</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://dose.wiki/viloxazine</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/w-15</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/yerba-mate</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1458,6 +2314,10 @@
   </url>
   <url>
     <loc>https://dose.wiki/zaleplon</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://dose.wiki/zolazepam</loc>
     <priority>0.7</priority>
   </url>
   <url>
