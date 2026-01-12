@@ -53,11 +53,12 @@ import {
   validateApiKey,
 } from "../../../../utils/api/openrouter";
 import {
-  substances,
+  substances as allSourceSubstances,
   loadSubstanceSources,
   type SourceInfo,
   type SubstanceModule,
 } from "../../../../data/article-sources";
+import { substanceRecords } from "../../../../data/builders/library";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
@@ -73,6 +74,10 @@ import { useDevMode } from "../../DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
+
+// Filter source substances to only include those in the visible index (high/normal priority)
+const visibleSlugs = new Set(substanceRecords.map((r) => r.slug));
+const substances = allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
 
 export const GeneratorTab = memo(function GeneratorTab({
   generatorPrompt,

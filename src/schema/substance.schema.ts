@@ -280,6 +280,7 @@ export const legalitySchema = z.object({
 export const substanceArticleSchema = z.object({
   id: z.number().nullable(),
   title: z.string(),
+  priority: z.enum(["high", "normal", "low"]).default("normal"),
   index_categories: z.array(z.string()),
 
   identification: identificationSchema,

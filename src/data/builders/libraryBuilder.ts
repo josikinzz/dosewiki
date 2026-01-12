@@ -226,7 +226,9 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
     .filter((record): record is SubstanceRecord => record !== null);
 
   const allSubstanceRecords = rawSubstanceRecords;
-  const substanceRecords = rawSubstanceRecords.filter((record) => !record.isHidden);
+  const substanceRecords = rawSubstanceRecords.filter(
+    (record) => !record.isHidden && !record.isLowPriority
+  );
 
   const allSubstancesBySlug = new Map<string, SubstanceRecord>(
     rawSubstanceRecords.map((record) => [record.slug, record]),

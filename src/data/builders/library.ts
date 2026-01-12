@@ -135,7 +135,9 @@ const rawSubstanceRecords: SubstanceRecord[] = articles
 
 export const allSubstanceRecords: SubstanceRecord[] = rawSubstanceRecords;
 
-export const substanceRecords: SubstanceRecord[] = rawSubstanceRecords.filter((record) => !record.isHidden);
+export const substanceRecords: SubstanceRecord[] = rawSubstanceRecords.filter(
+  (record) => !record.isHidden && !record.isLowPriority
+);
 
 export const allSubstancesBySlug = new Map<string, SubstanceRecord>(
   rawSubstanceRecords.map((record) => [record.slug, record]),

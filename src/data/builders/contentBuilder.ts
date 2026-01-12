@@ -50,7 +50,9 @@ export interface SubstanceRecord {
   indexCategories: string[];
   chemicalClasses: string[];
   psychoactiveClasses: string[];
+  priority: "high" | "normal" | "low";
   isHidden: boolean;
+  isLowPriority: boolean;
   content: SubstanceContent;
 }
 
@@ -834,6 +836,10 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
   const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
   const isHidden = normalizedIndexCategories.includes("hidden");
 
+  // Priority from article (defaults to "normal")
+  const priority = article.priority ?? "normal";
+  const isLowPriority = priority === "low";
+
   const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);
   const referenceName = substitutiveName ?? iupacName ?? null;
@@ -917,7 +923,9 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     indexCategories,
     chemicalClasses,
     psychoactiveClasses,
+    priority,
     isHidden,
+    isLowPriority,
     content,
   };
 }

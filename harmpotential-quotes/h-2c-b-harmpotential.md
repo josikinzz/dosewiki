@@ -1,0 +1,14 @@
+# βH-2C-B - Harm Potential Quotes
+
+> Verbatim extractions from source articles. Generated 2026-01-12.
+
+---
+
+## Source: TripSit Factsheets
+
+### Classification
+
+**Categories:** psychedelic, research-chemical, tentative
+
+*No harm-related content in source. Contains only basic dosage and duration information.*
+

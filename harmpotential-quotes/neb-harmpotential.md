@@ -1,0 +1,18 @@
+# NEB - Harm Potential Quotes
+
+> Verbatim extractions from source articles. Generated 2026-01-12.
+
+---
+
+## Source: TripSit Factsheets
+
+### Habit-Forming Classification
+
+**Categories:** **stimulant, research-chemical, habit-forming**
+
+---
+
+## Source: Wikipedia
+
+NONE - No harm-related content found.
+

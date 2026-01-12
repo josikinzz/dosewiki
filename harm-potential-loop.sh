@@ -36,7 +36,10 @@ while true; do
   echo ""
 
   # Run claude with /harm-potential (fresh context each time)
-  claude "/harm-potential"
+  # Generate new UUID to force completely fresh session
+  # Pipe input + use unique session-id to ensure no context carryover
+  session_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]')
+  echo "/harm-potential" | claude --dangerously-skip-permissions --session-id "$session_uuid"
 
   count=$((count + 1))
 
