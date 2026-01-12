@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows, Ellipsis, ChevronDown, ArrowUp, ArrowDown, Waves, Shapes, ScanEye, ListOrdered, TrendingUp, Loader, House, TrendingDown, type LucideIcon } from "lucide-react";
+import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows, Ellipsis, ChevronDown, ArrowUp, ArrowDown, Waves, Shapes, ScanEye, ListOrdered, TrendingUp, Loader, House, TrendingDown, ExternalLink, type LucideIcon } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { cn } from "@/lib/utils";
@@ -474,6 +474,54 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           </ul>
         </div>
       )}
+
+      {/* Attribution Banner */}
+      {subjective_effects.attribution && (() => {
+        const { author, text, url } = subjective_effects.attribution;
+        // Split text around author name to render author as bold link
+        const authorIndex = text.indexOf(author);
+        const beforeAuthor = authorIndex > 0 ? text.slice(0, authorIndex) : "";
+        const afterAuthor = authorIndex >= 0 ? text.slice(authorIndex + author.length) : text;
+        const profileKey = author === "Josie Kins" ? "JOSIE" : author.toUpperCase().replace(/\s+/g, "_");
+
+        return (
+          <div className="mt-4 flex justify-end">
+            <div className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition">
+              {/* Stretched link covering the whole banner */}
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 z-0"
+                aria-label="View original article"
+              />
+              {author === "Josie Kins" && (
+                <a
+                  href={`#/contributors/${profileKey}`}
+                  className="relative z-10 pointer-events-auto"
+                >
+                  <img
+                    src="/profile-avatars/josie/avatar.jpg"
+                    alt="Josie Kins"
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 hover:ring-fuchsia-400/50 transition"
+                  />
+                </a>
+              )}
+              <span className="relative z-10 text-xs text-white/50 group-hover:text-white/60 transition pointer-events-none">
+                {beforeAuthor}
+                <a
+                  href={`#/contributors/${profileKey}`}
+                  className="font-semibold text-white/70 hover:text-fuchsia-300 transition pointer-events-auto"
+                >
+                  {author}
+                </a>
+                {afterAuthor}
+              </span>
+              <ExternalLink className="relative z-10 h-3.5 w-3.5 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
+            </div>
+          </div>
+        );
+      })()}
     </SectionCard>
   );
 });

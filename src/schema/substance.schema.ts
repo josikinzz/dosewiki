@@ -174,6 +174,13 @@ export const subjectiveEffectsNotesSchema = z.object({
   physical: z.string(),
 });
 
+/** Attribution for subjective effects content */
+export const subjectiveEffectsAttributionSchema = z.object({
+  author: z.string(),
+  text: z.string(),
+  url: z.string(),
+});
+
 /** Subjective effects section */
 export const subjectiveEffectsSchema = z.object({
   notes: subjectiveEffectsNotesSchema,
@@ -181,6 +188,7 @@ export const subjectiveEffectsSchema = z.object({
   cognitive: effectCategorySchema,
   physical: effectCategorySchema,
   progressive_stages: effectCategorySchema.optional(),
+  attribution: subjectiveEffectsAttributionSchema.optional(),
 });
 
 // ============================================================================
@@ -316,6 +324,7 @@ export type EffectCategory = z.infer<typeof effectCategorySchema>;
 export type SenseCategory = z.infer<typeof senseCategorySchema>;
 export type SensoryEffects = z.infer<typeof sensoryEffectsSchema>;
 export type SubjectiveEffectsNotes = z.infer<typeof subjectiveEffectsNotesSchema>;
+export type SubjectiveEffectsAttribution = z.infer<typeof subjectiveEffectsAttributionSchema>;
 export type SubjectiveEffects = z.infer<typeof subjectiveEffectsSchema>;
 
 export type DrugComparison = z.infer<typeof drugComparisonSchema>;
