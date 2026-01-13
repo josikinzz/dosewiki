@@ -1,5 +1,23 @@
 [
   {
+    "id": "20260113-042444-c8141042",
+    "createdAt": "2026-01-13T04:24:44.752Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 1/12/2026, 9:24:41 PM"
+    },
+    "articles": [
+      {
+        "id": 383,
+        "title": "Ketamine",
+        "slug": "ketamine"
+      }
+    ],
+    "markdown": "# Ketamine · #383\n\n-        \"Date rape facilitation due to confusion and amnesia effects\",",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20260113-041314-2b7477f8",
     "createdAt": "2026-01-13T04:13:14.365Z",
     "commit": {
