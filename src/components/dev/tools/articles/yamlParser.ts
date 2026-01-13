@@ -283,11 +283,18 @@ function normalizePlateauDosing(raw: unknown): SubstanceArticle["dosage"]["plate
     };
   };
 
+  // fifth_plateau is nullable (Plateau Sigma - achieved via redosing, not a single dose)
+  const fifthPlateau = obj.fifth_plateau
+    ? normalizePlateauDose(obj.fifth_plateau)
+    : null;
+
   return {
     first_plateau: normalizePlateauDose(obj.first_plateau),
     second_plateau: normalizePlateauDose(obj.second_plateau),
     third_plateau: normalizePlateauDose(obj.third_plateau),
     fourth_plateau: normalizePlateauDose(obj.fourth_plateau),
+    fifth_plateau: fifthPlateau,
+    notes: obj.notes ? getString(obj.notes) : null,
   };
 }
 
