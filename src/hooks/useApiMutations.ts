@@ -106,18 +106,42 @@ async function verifyAuth(payload: AuthPayload): Promise<AuthResult> {
 }
 
 async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesResult> {
-  const response = await fetch("/api/save-articles", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+  console.log("[saveArticles] Starting save request...");
+  console.log("[saveArticles] Payload size:", JSON.stringify(payload).length, "bytes");
+  console.log("[saveArticles] Articles count:", payload.articlesData?.length ?? 0);
+
+  let response: Response;
+  try {
+    response = await fetch("/api/save-articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (networkError) {
+    console.error("[saveArticles] Network error - fetch failed:", networkError);
+    console.error("[saveArticles] This usually means:");
+    console.error("  - The API endpoint is not deployed/reachable");
+    console.error("  - CORS issues");
+    console.error("  - Network connectivity problems");
+    throw new Error(`Network error: ${networkError instanceof Error ? networkError.message : String(networkError)}`);
+  }
+
+  console.log("[saveArticles] Response status:", response.status, response.statusText);
+
+  const result = await response.json().catch((parseError) => {
+    console.error("[saveArticles] Failed to parse response JSON:", parseError);
+    return {};
   });
 
-  const result = await response.json().catch(() => ({}));
+  console.log("[saveArticles] Response body:", result);
 
   if (!response.ok) {
     const error = result.details || result.error || "Failed to save articles.";
+    console.error("[saveArticles] Server returned error:", error);
     throw new Error(typeof error === "string" ? error : "Failed to save articles.");
   }
+
+  console.log("[saveArticles] Success! Commit URL:", result.commitUrl);
 
   return {
     success: true,

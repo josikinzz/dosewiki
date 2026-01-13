@@ -1666,6 +1666,11 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   ]);
 
   const handleSaveToGitHub = useCallback(async () => {
+    console.log("[handleSaveToGitHub] Starting commit process...");
+    console.log("[handleSaveToGitHub] hasInvalidJsonDraft:", hasInvalidJsonDraft);
+    console.log("[handleSaveToGitHub] hasPendingChanges:", hasPendingChanges);
+    console.log("[handleSaveToGitHub] Articles count:", articles.length);
+
     if (hasInvalidJsonDraft) {
       setGithubNotice({ type: "error", message: "Fix YAML syntax before committing." });
       return;
@@ -1744,6 +1749,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         message: `Credentials verified for ${credentials.key}. Saving to GitHub…`,
       });
 
+      console.log("[handleSaveToGitHub] Credentials verified, calling saveArticlesMutation...");
+      console.log("[handleSaveToGitHub] Changed articles:", datasetChangelogForCommit.articles);
+
       const result = await saveArticlesMutation.mutateAsync({
         username: credentials.username,
         password: credentials.password,
@@ -1780,6 +1788,11 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         pushChangeLogNotice({ type: "success", message: "Commit logged in the Change log tab." });
       }
     } catch (error) {
+      console.error("[handleSaveToGitHub] Save failed:", error);
+      if (error instanceof Error) {
+        console.error("[handleSaveToGitHub] Error message:", error.message);
+        console.error("[handleSaveToGitHub] Stack trace:", error.stack);
+      }
       const reason = error instanceof Error ? error.message : "Unexpected error.";
       setGithubNotice({ type: "error", message: reason });
     } finally {
