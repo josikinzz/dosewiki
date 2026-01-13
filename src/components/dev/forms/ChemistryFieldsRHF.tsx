@@ -2,8 +2,10 @@
  * RHF-based Chemistry and Pharmacology fields component.
  */
 
+import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { FlaskConical } from "lucide-react";
+import yaml from "yaml";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +13,11 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { SectionHeader, helperTextClass } from "./FormHelpers";
 import { ControlledTagMultiSelect, RecordStringInput } from "./rhf";
+import { SectionGenerator } from "../tools/articles/SectionGenerator";
+import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { pharmacologyPrompt } from "../../../data/config/sectionPrompts";
 import type { TagOption } from "../../../data/config/tagOptions";
-import type { SubstanceArticle } from "../../../schema";
+import type { SubstanceArticle, Pharmacology } from "../../../schema";
 
 export type ChemistryFieldsRHFProps = {
   idPrefix: string;
@@ -27,7 +32,39 @@ export function ChemistryFieldsRHF({
   psychoactiveClassOptions,
   mechanismOptions,
 }: ChemistryFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
+  const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
+  
+  // Get articles context if available (only in Articles tab)
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated pharmacology YAML to form
+  // Always overwrites all fields - use empty defaults for missing fields
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const pharmacology: Pharmacology = parsed.pharmacology ?? parsed;
+      
+      // Always overwrite - use empty defaults for missing fields
+      setValue("pharmacology.mechanism_of_action", pharmacology.mechanism_of_action ?? []);
+      setValue("pharmacology.receptor_binding", pharmacology.receptor_binding ?? {});
+      setValue("pharmacology.metabolism", pharmacology.metabolism ?? "");
+      setValue("pharmacology.metabolites", pharmacology.metabolites ?? []);
+      setValue("pharmacology.half_life", pharmacology.half_life ?? "");
+      setValue("pharmacology.bioavailability_notes", pharmacology.bioavailability_notes ?? "");
+    } catch (error) {
+      console.error("Failed to parse generated pharmacology YAML:", error);
+    }
+  }, [setValue]);
 
   return (
     <section className="space-y-6">
@@ -36,6 +73,23 @@ export function ChemistryFieldsRHF({
         description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
         icon={<FlaskConical className="h-5 w-5" />}
       />
+      
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionKey="pharmacology"
+          sectionLabel="Pharmacology"
+          icon={FlaskConical}
+          prompt={pharmacologyPrompt}
+          extractedContent={articlesContext.pharmacologyQuotes}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+        />
+      )}
       
       {/* Classification */}
       <div className="grid gap-4 md:grid-cols-2">

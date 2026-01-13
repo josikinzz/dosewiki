@@ -56,7 +56,7 @@ export const sectionMetadata: SectionMeta[] = [
     key: 'pharmacology',
     label: 'Pharmacology',
     description: 'Mechanism of action, receptor binding, metabolism',
-    hasExtractedSources: false,
+    hasExtractedSources: true, // pharmacology-quotes folder exists
   },
   {
     key: 'interactions',

@@ -58,7 +58,7 @@ import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
 import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
-import { loadHarmPotentialQuotes } from "../../../../utils/sectionSources";
+import { loadHarmPotentialQuotes, loadPharmacologyQuotes } from "../../../../utils/sectionSources";
 
 export const ArticlesTab = memo(function ArticlesTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
@@ -121,8 +121,9 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
 
-  // Harm potential extracted quotes
+  // Extracted quotes for section generators
   const [harmPotentialQuotes, setHarmPotentialQuotes] = useState<string | null>(null);
+  const [pharmacologyQuotes, setPharmacologyQuotes] = useState<string | null>(null);
 
   // Save to database state
   const [isSaving, setIsSaving] = useState(false);
@@ -239,6 +240,20 @@ export const ArticlesTab = memo(function ArticlesTab({
     setHarmPotentialQuotes(null);
     loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
       setHarmPotentialQuotes(quotes);
+    });
+  }, [selectedSubstanceSlug]);
+
+  // Load pharmacology quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setPharmacologyQuotes(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setPharmacologyQuotes(null);
+    loadPharmacologyQuotes(selectedSubstanceSlug).then((quotes) => {
+      setPharmacologyQuotes(quotes);
     });
   }, [selectedSubstanceSlug]);
 
@@ -439,6 +454,7 @@ export const ArticlesTab = memo(function ArticlesTab({
     substanceModule,
     availableSources,
     harmPotentialQuotes,
+    pharmacologyQuotes,
     getSourceContent,
     getAllSources,
   }), [
@@ -449,6 +465,7 @@ export const ArticlesTab = memo(function ArticlesTab({
     substanceModule,
     availableSources,
     harmPotentialQuotes,
+    pharmacologyQuotes,
     getSourceContent,
     getAllSources,
   ]);
@@ -741,10 +758,19 @@ export const ArticlesTab = memo(function ArticlesTab({
               <Loader2 className="ml-2 h-4 w-4 animate-spin text-white/40" />
             )}
           </h2>
-          {harmPotentialQuotes && (
-            <p className="mb-4 text-sm text-emerald-300">
-              ✓ Extracted harm potential quotes available for this substance
-            </p>
+          {(harmPotentialQuotes || pharmacologyQuotes) && (
+            <div className="mb-4 space-y-1">
+              {harmPotentialQuotes && (
+                <p className="text-sm text-emerald-300">
+                  ✓ Extracted harm potential quotes available for this substance
+                </p>
+              )}
+              {pharmacologyQuotes && (
+                <p className="text-sm text-emerald-300">
+                  ✓ Extracted pharmacology quotes available for this substance
+                </p>
+              )}
+            </div>
           )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {availableSources.map((source) => {

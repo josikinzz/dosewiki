@@ -1,7 +1,7 @@
 /**
  * ArticlesContext - Shares AI generation state across the Articles tab.
  * 
- * Provides API configuration, source content, and harm potential quotes
+ * Provides API configuration, source content, and extracted quotes
  * to section components for per-section AI generation.
  */
 
@@ -19,8 +19,9 @@ export interface ArticlesContextValue {
   substanceModule: SubstanceModule | null;
   availableSources: SourceInfo[];
   
-  // Harm potential extracted content
+  // Extracted content for section generators
   harmPotentialQuotes: string | null;
+  pharmacologyQuotes: string | null;
   
   // Helper to get source content
   getSourceContent: (sourceId: string) => string | null;

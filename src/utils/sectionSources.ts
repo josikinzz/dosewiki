@@ -3,6 +3,7 @@
  * 
  * Currently supports:
  * - Harm Potential: Extracted quotes from harmpotential-quotes/{slug}-harmpotential.md
+ * - Pharmacology: Extracted quotes from pharmacology-quotes/{slug}-pharmacology.md
  * 
  * Future sections can be added as extraction is completed.
  */
@@ -13,7 +14,13 @@ const harmPotentialModules = import.meta.glob<string>(
   { query: '?raw', import: 'default', eager: false }
 );
 
-// Build a lookup map from slug to module path
+// Import all pharmacology quote files using Vite's glob import
+const pharmacologyModules = import.meta.glob<string>(
+  '/pharmacology-quotes/*-pharmacology.md',
+  { query: '?raw', import: 'default', eager: false }
+);
+
+// Build a lookup map from slug to module path for harm potential
 const harmPotentialSlugMap = new Map<string, string>();
 
 for (const path of Object.keys(harmPotentialModules)) {
@@ -21,6 +28,17 @@ for (const path of Object.keys(harmPotentialModules)) {
   const match = path.match(/\/harmpotential-quotes\/(.+)-harmpotential\.md$/);
   if (match) {
     harmPotentialSlugMap.set(match[1], path);
+  }
+}
+
+// Build a lookup map from slug to module path for pharmacology
+const pharmacologySlugMap = new Map<string, string>();
+
+for (const path of Object.keys(pharmacologyModules)) {
+  // Path format: /pharmacology-quotes/{slug}-pharmacology.md
+  const match = path.match(/\/pharmacology-quotes\/(.+)-pharmacology\.md$/);
+  if (match) {
+    pharmacologySlugMap.set(match[1], path);
   }
 }
 
@@ -62,6 +80,44 @@ export function getHarmPotentialSlugs(): string[] {
   return Array.from(harmPotentialSlugMap.keys());
 }
 
+/**
+ * Check if pharmacology extracted sources exist for a given slug.
+ */
+export function hasPharmacologyQuotes(slug: string): boolean {
+  return pharmacologySlugMap.has(slug);
+}
+
+/**
+ * Load pharmacology extracted quotes for a substance.
+ * Returns null if no extracted quotes exist.
+ */
+export async function loadPharmacologyQuotes(slug: string): Promise<string | null> {
+  const path = pharmacologySlugMap.get(slug);
+  if (!path) {
+    return null;
+  }
+  
+  const loader = pharmacologyModules[path];
+  if (!loader) {
+    return null;
+  }
+  
+  try {
+    const content = await loader();
+    return content;
+  } catch (error) {
+    console.error(`Failed to load pharmacology quotes for ${slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get list of all slugs that have pharmacology extracted sources.
+ */
+export function getPharmacologySlugs(): string[] {
+  return Array.from(pharmacologySlugMap.keys());
+}
+
 // Type for section source availability
 export interface SectionSourceAvailability {
   harm_potential: boolean;
@@ -76,14 +132,13 @@ export interface SectionSourceAvailability {
 
 /**
  * Check which sections have extracted source data for a given slug.
- * Currently only harm_potential has extracted data.
  */
 export function getSectionSourceAvailability(slug: string): SectionSourceAvailability {
   return {
     harm_potential: hasHarmPotentialQuotes(slug),
     dosage_duration: false, // Future: dosage-quotes/{slug}-dosage.md
     subjective_effects: false, // Future: effects-quotes/{slug}-effects.md
-    pharmacology: false,
+    pharmacology: hasPharmacologyQuotes(slug),
     interactions: false,
     tolerance: false,
     legality: false,
