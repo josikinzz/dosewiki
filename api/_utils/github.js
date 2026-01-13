@@ -9,7 +9,7 @@ const API_BASE_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
 export const DEFAULT_COMMIT_AUTHOR = {
   name: "dose.wiki Dev Editor",
-  email: "108291224+josikinzz@users.noreply.github.com",
+  email: "contact@dose.wiki",
 };
 
 const isNonEmptyString = (value) => typeof value === "string" && value.trim().length > 0;
