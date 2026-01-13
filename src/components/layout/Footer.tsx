@@ -14,17 +14,6 @@ export function Footer() {
           <span className="mx-2 text-white/40" aria-hidden="true">
             ·
           </span>
-          <a
-            href="https://rc.community"
-            className="text-white/70 transition hover:text-white"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Data provided by rc.community
-          </a>
-          <span className="mx-2 text-white/40" aria-hidden="true">
-            ·
-          </span>
           Use responsibly.
         </p>
       </div>

@@ -212,8 +212,8 @@ function CollapsibleStage({
         )}
       >
         <div className="flex items-center gap-2">
-          {hasIcon && <StageIcon className="h-4 w-4 text-fuchsia-300/70" />}
-          <span className="text-sm font-semibold text-white/70">{name}</span>
+          {hasIcon && <StageIcon className="h-5 w-5 text-fuchsia-300" />}
+          <span className="text-sm font-semibold text-white">{name}</span>
         </div>
         <div className={cn(
           "flex items-center gap-1 text-white/50",
@@ -258,10 +258,10 @@ function SubcategorySection({
     <div className={cn(!isGeneral && "rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/5")}>
       {!isGeneral && (
         <h4 className={cn(
-          "mb-2 text-sm font-semibold text-white/70 flex items-center gap-2",
+          "mb-2 text-sm font-semibold text-white flex items-center gap-2",
           !hasIcon && "border-l-2 border-fuchsia-400/50 pl-3"
         )}>
-          {hasIcon && <SubcategoryIcon className="h-4 w-4 text-fuchsia-300/70" />}
+          {hasIcon && <SubcategoryIcon className="h-5 w-5 text-fuchsia-300" />}
           {subcategory}
         </h4>
       )}
@@ -333,7 +333,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Physical Effects Card */}
         {hasPhysical && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Hand className="h-4 w-4 text-fuchsia-200" />
               Physical
             </h3>
@@ -361,8 +361,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Cognitive Effects Card */}
         {hasCognitive && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-              <Brain className="h-4 w-4 text-fuchsia-200" />
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <Brain className="h-5 w-5 text-fuchsia-200" />
               Cognitive
             </h3>
             {hasCognitiveNote && (
@@ -389,7 +389,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {/* Progressive Stages Card */}
         {hasProgressiveStages && subjective_effects.progressive_stages && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <ListOrdered className="h-4 w-4 text-fuchsia-200" />
               Progressive Stages
             </h3>
@@ -420,8 +420,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
           return (
             <div key={key} className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-                {Icon && <Icon className="h-4 w-4 text-fuchsia-200" />}
+              <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                {Icon && <Icon className="h-5 w-5 text-fuchsia-200" />}
                 {label}
               </h3>
               {hasSenseNote && (
@@ -450,8 +450,8 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {/* Comparisons Card - full width below grid */}
       {hasComparisons && (
         <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-            <GitCompareArrows className="h-4 w-4 text-fuchsia-200" />
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+            <GitCompareArrows className="h-5 w-5 text-fuchsia-200" />
             Comparisons
           </h3>
           <ul className="space-y-2">

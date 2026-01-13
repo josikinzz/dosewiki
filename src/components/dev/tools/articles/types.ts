@@ -12,7 +12,7 @@ export const PROMPT_COLLAPSED_HEIGHT = 200;
 export const DXM_SECTION_START = "**Special: DXM Plateau Dosing**";
 export const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to `null`.";
 
-export interface GeneratorTabProps {
+export interface ArticlesTabProps {
   generatorPrompt: string;
   originalGeneratorPrompt: string;
   onPromptChange: (value: string) => void;

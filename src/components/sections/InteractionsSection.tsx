@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { AlertCircle, AlertTriangle, ChevronDown, Ellipsis, ExternalLink, ShieldAlert, Skull } from "lucide-react";
+import { Blend, ChevronDown, Ellipsis, ExternalLink, Hospital, Skull, TriangleAlert } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -23,7 +23,7 @@ const INTERACTION_CATEGORIES = [
   {
     key: "unsafe",
     label: "Unsafe",
-    icon: AlertTriangle,
+    icon: Hospital,
     borderClass: "border-orange-500/40",
     bgClass: "bg-orange-500/10",
     iconClass: "text-orange-300",
@@ -32,7 +32,7 @@ const INTERACTION_CATEGORIES = [
   {
     key: "caution",
     label: "Caution",
-    icon: AlertCircle,
+    icon: TriangleAlert,
     borderClass: "border-amber-500/40",
     bgClass: "bg-amber-500/10",
     iconClass: "text-amber-300",
@@ -71,7 +71,7 @@ export const InteractionsSection = memo(function InteractionsSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={ShieldAlert} label="Interactions" />
+        <IconBadge icon={Blend} label="Interactions" />
         Interactions
       </h2>
 
@@ -167,18 +167,20 @@ export const InteractionsSection = memo(function InteractionsSection({
       </div>
 
       {/* Attribution footer */}
-      <div className="mt-4 flex items-center justify-end gap-2">
-        <span className="text-xs text-white/50">Powered by</span>
-        <img src="/favicons/tripsit.png" alt="" className="h-5 w-5 rounded -mr-1" />
+      <div className="mt-4 flex justify-end">
         <a
           href="https://combo.tripsit.me/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-semibold text-fuchsia-200 transition hover:text-fuchsia-100"
+          className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition"
         >
-          TripSit
+          <span className="text-xs text-white/50 group-hover:text-white/60 transition">Powered by</span>
+          <img src="/favicons/tripsit.png" alt="" className="h-5 w-5 rounded" />
+          <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
+            TripSit
+          </span>
+          <ExternalLink className="h-3 w-3 text-white/30 group-hover:text-white/50 transition -ml-1" aria-hidden="true" />
         </a>
-        <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
       </div>
     </SectionCard>
   );

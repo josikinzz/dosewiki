@@ -5,6 +5,7 @@ import remarkBreaks from "remark-breaks";
 import { NotebookText } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { Bullet } from "../common/Bullet";
 
 interface NotesSectionProps {
   notes: string;
@@ -36,7 +37,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
           ),
           ul: ({ node, ...props }) => (
             <ul
-              className="mt-4 list-disc space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85"
+              className="notes-custom-bullets mt-4 list-none space-y-2 pl-0 text-[0.95rem] leading-7 text-white/85"
               {...props}
             />
           ),
@@ -46,9 +47,25 @@ export function NotesSection({ notes }: NotesSectionProps) {
               {...props}
             />
           ),
-          li: ({ node, ...props }) => (
-            <li className="marker:text-fuchsia-300" {...props} />
-          ),
+          li: ({ node, children, ...props }) => {
+            // Use a more reliable check: if we're rendering inside a ul (which has notes-custom-bullets class),
+            // we'll detect it by checking if the list is ordered
+            // ReactMarkdown passes ordered property through context, but we can check node structure
+            const isInOrderedList = node?.parent?.type === 'list' && (node?.parent as any)?.ordered === true;
+            
+            if (isInOrderedList) {
+              // Keep default styling for ordered lists
+              return <li {...props}>{children}</li>;
+            }
+            
+            // For unordered lists, use custom bullet with flex layout
+            return (
+              <li className="flex items-center gap-2" {...props}>
+                <Bullet />
+                <span className="flex-1">{children}</span>
+              </li>
+            );
+          },
           strong: ({ node, ...props }) => (
             <strong className="text-white" {...props} />
           ),

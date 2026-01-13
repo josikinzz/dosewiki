@@ -33,7 +33,7 @@ describe('routing', () => {
 
     it('handles dev tabs', () => {
       expect(viewToPath({ type: 'dev', tab: 'tag-editor' })).toBe('/dev/tag-editor');
-      expect(viewToPath({ type: 'dev', tab: 'generator', slug: 'lsd' })).toBe('/dev/generator/lsd');
+      expect(viewToPath({ type: 'dev', tab: 'articles', slug: 'lsd' })).toBe('/dev/articles/lsd');
     });
   });
 
@@ -67,7 +67,7 @@ describe('routing', () => {
     });
 
     it('parses dev tab aliases', () => {
-      expect(parsePath('/dev/gen', null)).toEqual({ type: 'dev', tab: 'generator' });
+      expect(parsePath('/dev/gen', null)).toEqual({ type: 'dev', tab: 'articles' });
       expect(parsePath('/dev/tag', null)).toEqual({ type: 'dev', tab: 'tag-editor' });
       expect(parsePath('/dev/changelog', null)).toEqual({ type: 'dev', tab: 'change-log' });
     });
@@ -95,7 +95,7 @@ describe('routing', () => {
       { type: 'about' },
       { type: 'search', query: 'test' },
       { type: 'dev', tab: 'tag-editor' },
-      { type: 'dev', tab: 'generator', slug: 'lsd' },
+      { type: 'dev', tab: 'articles', slug: 'lsd' },
       { type: 'contributor', profileKey: 'alice' },
     ];
 

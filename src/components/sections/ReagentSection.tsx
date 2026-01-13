@@ -1,8 +1,10 @@
-import { memo, useState } from "react";
-import { ExternalLink, TestTubeDiagonal, ChevronDown, ChevronUp } from "lucide-react";
+import { memo, useMemo, useState } from "react";
+import { ExternalLink, Pipette, ChevronDown, Loader2 } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
+import { useReagentData } from "../../hooks/useReagentData";
+import type { ReagentResult } from "../../types/reagent";
 
 interface ReagentSectionProps {
   article: SubstanceArticle;
@@ -259,16 +261,93 @@ function ReagentRow({
 
 const COLLAPSED_LIMIT = 4;
 
+/**
+ * Map API reagent keys to display names
+ */
+const REAGENT_KEY_TO_NAME: Record<string, string> = {
+  marq_desc: "marquis",
+  meck_desc: "mecke",
+  mand_desc: "mandelin",
+  simo_desc: "simon",
+  roba_desc: "robadope",
+  froh_desc: "froehde",
+  lieb_desc: "liebermann",
+  ehrl_desc: "ehrlich",
+  hofm_desc: "hofmann",
+  foli_desc: "folin",
+  gall_desc: "gallic",
+  scot_desc: "scott",
+};
+
+/**
+ * Convert API response to entries format
+ */
+function convertApiToEntries(reagents: ReagentResult[]): [string, string][] {
+  return reagents
+    .map((result) => {
+      const name = REAGENT_KEY_TO_NAME[result.reagent] || result.reagent.replace(/_desc$/, "");
+      // Build description from colors
+      const colorNames = result.colors.map((c) => c.name).join(" → ");
+      const description = result.isReacting 
+        ? (colorNames || result.hint || "Reaction")
+        : "No reaction";
+      return [name, description] as [string, string];
+    })
+    .filter(([, desc]) => desc.length > 0);
+}
+
 export const ReagentSection = memo(function ReagentSection({
   article,
 }: ReagentSectionProps) {
   const { reagent_testing } = article;
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const entries = Object.entries(reagent_testing).filter(
-    ([, value]) => value.trim().length > 0
+  // Get substance name and aliases for API lookup
+  const substanceName = article.identification?.common_name || article.title || "";
+  const aliases = article.identification?.alternative_names || [];
+
+  // Check if we have static data
+  const staticEntries = useMemo(() => {
+    if (!reagent_testing) return [];
+    return Object.entries(reagent_testing).filter(
+      ([, value]) => value && value.trim().length > 0
+    );
+  }, [reagent_testing]);
+
+  const hasStaticData = staticEntries.length > 0;
+
+  // Fetch from API if no static data
+  const { data: apiData, isLoading } = useReagentData(
+    hasStaticData ? "" : substanceName, // Only fetch if no static data
+    hasStaticData ? [] : aliases
   );
 
+  // Convert API data to entries format
+  const apiEntries = useMemo(() => {
+    if (!apiData?.reagents) return [];
+    return convertApiToEntries(apiData.reagents);
+  }, [apiData]);
+
+  // Use static data if available, otherwise API data
+  const entries = hasStaticData ? staticEntries : apiEntries;
+
+  // Show loading state only when fetching API data
+  if (!hasStaticData && isLoading) {
+    return (
+      <SectionCard delay={0}>
+        <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+          <IconBadge icon={Pipette} label="Reagent Testing" />
+          Reagent Testing
+        </h2>
+        <div className="flex items-center justify-center py-8 text-white/50">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          Loading reagent data...
+        </div>
+      </SectionCard>
+    );
+  }
+
+  // Don't render if no data (static or API) or API error with no static fallback
   if (entries.length === 0) {
     return null;
   }
@@ -303,7 +382,7 @@ export const ReagentSection = memo(function ReagentSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={TestTubeDiagonal} label="Reagent Testing" />
+        <IconBadge icon={Pipette} label="Reagent Testing" />
         Reagent Testing
       </h2>
       <p className="mb-4 text-sm text-white/60">
@@ -324,36 +403,29 @@ export const ReagentSection = memo(function ReagentSection({
         {hasMore && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+            className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
           >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                Show less
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4" />
-                +{hiddenCount} more
-              </>
-            )}
+            <span className="font-medium">+{hiddenCount}</span>
+            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
         )}
       </div>
 
       {/* Attribution footer */}
-      <div className="mt-4 flex items-center justify-end gap-2">
-        <span className="text-xs text-white/50">Powered by</span>
-        <img src="/favicons/protestkit.png" alt="" className="h-5 w-5 rounded -mr-1" />
+      <div className="mt-4 flex justify-end">
         <a
           href="https://protestkit.eu"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-semibold text-fuchsia-200 transition hover:text-fuchsia-100"
+          className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition"
         >
-          PROtestkit.eu
+          <span className="text-xs text-white/50 group-hover:text-white/60 transition">Powered by</span>
+          <img src="/favicons/protestkit.png" alt="" className="h-5 w-5 rounded" />
+          <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
+            PROtestkit.eu
+          </span>
+          <ExternalLink className="h-3 w-3 text-white/30 group-hover:text-white/50 transition -ml-1" aria-hidden="true" />
         </a>
-        <ExternalLink className="h-3 w-3 text-white/40" aria-hidden="true" />
       </div>
     </SectionCard>
   );

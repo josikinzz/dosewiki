@@ -158,9 +158,9 @@ export function parsePath(
         return resolveDefault();
       }
       case "dev": {
-        const candidate = slug ?? "generator";
+        const candidate = slug ?? "articles";
         const slugSegment = segments[2];
-        let tab: DevTab = "generator";
+        let tab: DevTab = "articles";
         if (candidate === "change-log" || candidate === "changelog") {
           tab = "change-log";
         } else if (candidate === "tag-editor" || candidate === "tag") {
@@ -171,10 +171,10 @@ export function parsePath(
           tab = "index-layout";
         } else if (candidate === "about") {
           tab = "about";
-        } else if (candidate === "generator" || candidate === "gen") {
-          tab = "generator";
+        } else if (candidate === "articles" || candidate === "generator" || candidate === "gen") {
+          tab = "articles";
         } else {
-          tab = "generator";
+          tab = "articles";
         }
 
         if (slugSegment) {

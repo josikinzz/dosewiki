@@ -53,6 +53,7 @@ export const ArticleLayout = memo(function ArticleLayout({
         article={article}
         onSelectEffect={onSelectEffect}
       />
+      <ReagentSection article={article} />
       <PharmacologySection
         article={article}
         onSelectMechanism={onSelectMechanism}
@@ -63,7 +64,6 @@ export const ArticleLayout = memo(function ArticleLayout({
       />
       <ToleranceSection article={article} />
       <HarmPotentialSection article={article} />
-      <ReagentSection article={article} />
       <LegalitySection article={article} />
       <CitationsSection article={article} />
     </div>

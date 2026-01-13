@@ -4,7 +4,7 @@ export type DevTab =
   | "profile"
   | "index-layout"
   | "about"
-  | "generator";
+  | "articles";
 
 export type AppView =
   | { type: "substances" }

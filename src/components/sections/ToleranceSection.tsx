@@ -61,7 +61,7 @@ export const ToleranceSection = memo(function ToleranceSection({
               key={key}
               className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8"
             >
-              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
+              <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
                 <Icon className="h-4 w-4 text-fuchsia-200" />
                 {label}
               </span>
@@ -73,8 +73,8 @@ export const ToleranceSection = memo(function ToleranceSection({
         {/* Cross Tolerance */}
         {hasCross && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8">
-            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/60">
-              <Merge className="h-4 w-4 text-fuchsia-200" />
+            <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
+              <Merge className="h-5 w-5 text-fuchsia-200" />
               Cross Tolerance
             </span>
             <p className="mt-2 text-sm text-white/90">

@@ -73,6 +73,8 @@ export const plateauDosingSchema = z.object({
   second_plateau: plateauDoseSchema,
   third_plateau: plateauDoseSchema,
   fourth_plateau: plateauDoseSchema,
+  fifth_plateau: plateauDoseSchema.nullable(), // Plateau Sigma - optional, achieved via redosing
+  notes: z.string().nullable(), // Historical context or additional information
 });
 
 /** Dosage section */

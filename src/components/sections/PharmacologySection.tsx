@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Beaker, Brain, ChevronDown, Ellipsis } from "lucide-react";
+import { Brain, ChevronDown, Ellipsis, UserRoundCog } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -61,7 +61,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Beaker} label="Pharmacology" />
+        <IconBadge icon={UserRoundCog} label="Pharmacology" />
         Pharmacology
       </h2>
 
@@ -74,7 +74,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {hasMoA && (
           <div className="relative rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Brain className="h-4 w-4 text-fuchsia-200" />
+              <Brain className="h-5 w-5 text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
@@ -117,7 +117,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                 )}
                 <button
                   onClick={() => setShowReceptorBinding(!showReceptorBinding)}
-                  className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2.5 py-1 text-fuchsia-400 hover:bg-fuchsia-400/20 hover:text-fuchsia-300 transition-colors"
+                  className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
                   <Ellipsis className="h-3 w-3" />
                   <ChevronDown
@@ -133,7 +133,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {!hasMoA && hasReceptorBinding && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Brain className="h-4 w-4 text-fuchsia-200" />
+              <Brain className="h-5 w-5 text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">

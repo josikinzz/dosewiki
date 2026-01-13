@@ -63,7 +63,7 @@ import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
-import { GeneratorTab } from "../dev/tools/generator/GeneratorTab";
+import { ArticlesTab } from "../dev/tools/articles/ArticlesTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
 
@@ -114,18 +114,18 @@ type DevModeTab =
   | "profile"
   | "index-layout"
   | "about"
-  | "generator";
+  | "articles";
 
 type DevModePrimaryTab = "tools" | "change-log" | "profile";
 
 const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
-  tools: "generator",
+  tools: "articles",
   "change-log": "change-log",
   profile: "profile",
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "generator") {
+  if (tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "articles") {
     return "tools";
   }
   if (tab === "change-log") {
@@ -1999,7 +1999,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   useEffect(() => {
     if (activeTab === "profile" && !hasStoredCredentials) {
-      handleTabChange("generator");
+      handleTabChange("articles");
     }
   }, [activeTab, handleTabChange, hasStoredCredentials]);
 
@@ -2507,9 +2507,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
             <Button
               variant="tabSecondary"
               size="tabSecondary"
-              onClick={() => handleTabChange("generator")}
-              data-active={activeTab === "generator"}
-              aria-pressed={activeTab === "generator"}
+              onClick={() => handleTabChange("articles")}
+              data-active={activeTab === "articles"}
+              aria-pressed={activeTab === "articles"}
             >
               <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Substance Articles</span>
@@ -2837,8 +2837,8 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           onCopyDatasetMarkdown={copyDatasetMarkdownForTagEditor}
           onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
         />
-      ) : activeTab === "generator" ? (
-        <GeneratorTab
+      ) : activeTab === "articles" ? (
+        <ArticlesTab
           generatorPrompt={generatorPrompt}
           originalGeneratorPrompt={originalGeneratorPrompt}
           onPromptChange={handleGeneratorPromptChange}

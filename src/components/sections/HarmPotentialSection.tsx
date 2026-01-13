@@ -1,14 +1,9 @@
 import { memo } from "react";
-import Masonry from "react-masonry-css";
-import { AlertOctagon, Heart, Skull, Syringe, Zap } from "lucide-react";
+import { Ambulance, Heart, Skull, Syringe, Zap } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { Bullet } from "../common/Bullet";
 import type { SubstanceArticle } from "../../schema";
-
-const MASONRY_BREAKPOINTS = {
-  default: 2,
-  768: 1,
-};
 
 interface HarmPotentialSectionProps {
   article: SubstanceArticle;
@@ -39,108 +34,108 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={AlertOctagon} label="Harm Potential" />
+        <IconBadge icon={Ambulance} label="Harm Potential" />
         Harm Potential
       </h2>
 
-      {/* Addiction & Toxicity in masonry */}
+      {/* Addiction & Toxicity in single column */}
       {(hasAddiction || hasDependence || hasToxicity) && (
-        <Masonry
-          breakpointCols={MASONRY_BREAKPOINTS}
-          className="flex w-full gap-4"
-          columnClassName="flex flex-col gap-4"
-        >
+        <div className="flex flex-col gap-4">
           {/* Addiction & Dependence */}
           {(hasAddiction || hasDependence) && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-                <Syringe className="h-4 w-4 text-rose-300" />
+              <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                <Syringe className="h-5 w-5 text-rose-300" />
                 Addiction & Dependence
               </h3>
-              {hasAddiction && (
-                <div className="mb-2">
-                  <span className="text-xs font-medium text-white/60">Addiction Liability:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.addiction_liability}</p>
-                </div>
-              )}
-              {hasDependence && (
-                <div>
-                  <span className="text-xs font-medium text-white/60">Dependence Liability:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.dependence_liability}</p>
-                </div>
-              )}
+              <div className="flex flex-col gap-3">
+                {hasAddiction && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">Addiction Liability</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.addiction_liability}</p>
+                  </div>
+                )}
+                {hasDependence && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">Dependence Liability</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.dependence_liability}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {/* Toxicity */}
           {hasToxicity && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-                <Skull className="h-4 w-4 text-rose-300" />
+              <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                <Skull className="h-5 w-5 text-rose-300" />
                 Toxicity
               </h3>
-              {harm_potential.toxicity.ld50 && (
-                <div className="mb-2">
-                  <span className="text-xs font-medium text-white/60">LD50:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.ld50}</p>
-                </div>
-              )}
-              {harm_potential.toxicity.organ_toxicity && (
-                <div className="mb-2">
-                  <span className="text-xs font-medium text-white/60">Organ Toxicity:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.organ_toxicity}</p>
-                </div>
-              )}
-              {harm_potential.toxicity.carcinogenicity && (
-                <div className="mb-2">
-                  <span className="text-xs font-medium text-white/60">Carcinogenicity:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.carcinogenicity}</p>
-                </div>
-              )}
-              {harm_potential.toxicity.other && (
-                <div>
-                  <span className="text-xs font-medium text-white/60">Other:</span>
-                  <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.other}</p>
-                </div>
-              )}
+              <div className="flex flex-col gap-3">
+                {harm_potential.toxicity.ld50 && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">LD50</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.ld50}</p>
+                  </div>
+                )}
+                {harm_potential.toxicity.organ_toxicity && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">Organ Toxicity</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.organ_toxicity}</p>
+                  </div>
+                )}
+                {harm_potential.toxicity.carcinogenicity && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">Carcinogenicity</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.carcinogenicity}</p>
+                  </div>
+                )}
+                {harm_potential.toxicity.other && (
+                  <div className="rounded-lg bg-white/5 p-3">
+                    <span className="text-sm font-semibold text-white">Other</span>
+                    <p className="mt-1 text-sm text-white/80">{harm_potential.toxicity.other}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
-        </Masonry>
+        </div>
       )}
 
-      {/* Risks - full width below masonry */}
+      {/* Risks - single column */}
       {hasRisks && (
         <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-            <Zap className="h-4 w-4 text-rose-300" />
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+            <Zap className="h-5 w-5 text-rose-300" />
             Risks
           </h3>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-3">
             {harm_potential.risks.psychosis && (
               <div className="rounded-lg bg-white/5 p-3">
-                <span className="text-xs font-medium text-rose-300">Psychosis</span>
+                <span className="text-sm font-semibold text-white">Psychosis</span>
                 <p className="mt-1 text-sm text-white/80">{harm_potential.risks.psychosis}</p>
               </div>
             )}
             {harm_potential.risks.self_harm && (
               <div className="rounded-lg bg-white/5 p-3">
-                <span className="text-xs font-medium text-rose-300">Self-harm</span>
+                <span className="text-sm font-semibold text-white">Self-harm</span>
                 <p className="mt-1 text-sm text-white/80">{harm_potential.risks.self_harm}</p>
               </div>
             )}
             {harm_potential.risks.seizure && (
               <div className="rounded-lg bg-white/5 p-3">
-                <span className="text-xs font-medium text-rose-300">Seizure</span>
+                <span className="text-sm font-semibold text-white">Seizure</span>
                 <p className="mt-1 text-sm text-white/80">{harm_potential.risks.seizure}</p>
               </div>
             )}
             {harm_potential.risks.other.length > 0 && (
-              <div className="rounded-lg bg-white/5 p-3 sm:col-span-2 lg:col-span-3">
-                <span className="text-xs font-medium text-rose-300">Other Risks</span>
+              <div className="rounded-lg bg-white/5 p-3">
+                <span className="text-sm font-semibold text-white">Other Risks</span>
                 <ul className="mt-1 space-y-1">
                   {harm_potential.risks.other.map((risk, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
-                      <span className="h-1 w-1 rounded-full bg-rose-400" />
+                      <Bullet color="rose" />
                       {risk}
                     </li>
                   ))}

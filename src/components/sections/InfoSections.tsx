@@ -1,5 +1,6 @@
-﻿import { SectionCard } from "../common/SectionCard";
+import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
+import { Bullet } from "../common/Bullet";
 import { Button } from "@/components/ui/button";
 import type { InfoSection, InfoSectionItem } from "../../types/content";
 
@@ -94,7 +95,7 @@ export function InfoSectionItemCard({
       <ul className="space-y-2 text-sm leading-snug text-white/85">
         {bulletEntries.map((entry) => (
           <li key={entry.key} className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+            <Bullet />
             {entry.onClick ? (
               <Button
                 variant="inlineLink"
@@ -123,7 +124,7 @@ export function InfoSectionItemCard({
   return (
     <article className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20">
       <h3 className={mergedHeadingClasses}>
-        {ItemIcon ? <ItemIcon className="h-4 w-4 text-fuchsia-300" aria-hidden="true" focusable="false" /> : null}
+        {ItemIcon ? <ItemIcon className="h-5 w-5 text-fuchsia-300" aria-hidden="true" focusable="false" /> : null}
         <span>{label}</span>
       </h3>
       <div>{valueNode}</div>

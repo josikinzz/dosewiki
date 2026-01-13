@@ -164,6 +164,8 @@ You will receive the **current state of the article** as YAML in the user messag
 
 **Completeness:** Fill every field that has supporting evidence. Empty fields are acceptable when no data exists, but do not leave fields empty if the sources contain relevant information.
 
+**If something is rare, say so** While we are trying to help with harm reduction, over-exaggerating the dangers of a pretty safe or benign experience can be equally risky, as it causes people to develop a false sense of inflated confidence around more important areas of harm reduction which are perhaps more subtle and nuanced. 
+
 **Ignore Drug Interactions:** The source quotes may contain information about dangerous drug combinations (e.g., "combining with MAOIs causes serotonin syndrome"). **Do not include this information.** Drug interactions are covered in a separate `interactions` section of the article with its own dedicated fields (`dangerous`, `unsafe`, `caution` arrays). This section focuses solely on the intrinsic harm potential of the substance itself, not its interactions with other drugs.
 
 ---

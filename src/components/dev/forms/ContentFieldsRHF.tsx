@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { SectionHeader, CharacterCount, helperTextClass } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
 import type { SubstanceArticle, HarmPotential } from "../../../schema";
-import { SectionGenerator } from "../tools/generator/SectionGenerator";
-import { useOptionalGeneratorContext } from "../tools/generator/GeneratorContext";
+import { SectionGenerator } from "../tools/articles/SectionGenerator";
+import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
 import { harmPotentialPrompt } from "../../../data/config/sectionPrompts";
 
 // Tolerance field labels
@@ -75,8 +75,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const addictionValue = watch("harm_potential.addiction_liability") ?? "";
   const dependenceValue = watch("harm_potential.dependence_liability") ?? "";
   
-  // Get generator context if available (only in Generator tab)
-  const generatorContext = useOptionalGeneratorContext();
+  // Get articles context if available (only in Articles tab)
+  const articlesContext = useOptionalArticlesContext();
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
@@ -141,20 +141,20 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
         icon={<ShieldAlert className="h-5 w-5" />}
       />
       
-      {/* AI Section Generator - only shown when in Generator context */}
-      {generatorContext && (
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
         <SectionGenerator
           sectionKey="harm_potential"
           sectionLabel="Harm Potential"
           icon={ShieldAlert}
           prompt={harmPotentialPrompt}
-          extractedContent={generatorContext.harmPotentialQuotes}
-          genericSources={generatorContext.getAllSources()}
+          extractedContent={articlesContext.harmPotentialQuotes}
+          genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
-          apiKey={generatorContext.apiKey}
-          model={generatorContext.model}
-          isKeyValid={generatorContext.isKeyValid}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
         />
       )}
       

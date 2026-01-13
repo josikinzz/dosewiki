@@ -50,21 +50,21 @@ import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
 import {
   STORAGE_KEYS,
-  type GeneratorTabProps,
+  type ArticlesTabProps,
   type OutputViewMode,
 } from "./types";
 import { useDevMode } from "../../DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
-import { GeneratorProvider, type GeneratorContextValue } from "./GeneratorContext";
+import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
 import { loadHarmPotentialQuotes } from "../../../../utils/sectionSources";
 
 // Filter source substances to only include those in the visible index (high/normal priority)
 const visibleSlugs = new Set(substanceRecords.map((r) => r.slug));
 const substances = allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
 
-export const GeneratorTab = memo(function GeneratorTab({
+export const ArticlesTab = memo(function ArticlesTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
   // since section-based generation uses individual prompts per section
   generatorPrompt: _generatorPrompt,
@@ -76,7 +76,7 @@ export const GeneratorTab = memo(function GeneratorTab({
   onCopyPrompt: _onCopyPrompt,
   renderCommitPanel,
   commitPanel,
-}: GeneratorTabProps) {
+}: ArticlesTabProps) {
   // API state
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
@@ -421,8 +421,8 @@ export const GeneratorTab = memo(function GeneratorTab({
     return sources;
   }, [substanceModule, availableSources]);
 
-  // Generator context value for section generators
-  const generatorContextValue = useMemo<GeneratorContextValue>(() => ({
+  // Articles context value for section generators
+  const articlesContextValue = useMemo<ArticlesContextValue>(() => ({
     apiKey,
     model: selectedModel,
     isKeyValid,
@@ -693,14 +693,14 @@ export const GeneratorTab = memo(function GeneratorTab({
                 );
               }
               return (
-                <GeneratorProvider value={generatorContextValue}>
+                <ArticlesProvider value={articlesContextValue}>
                   <ArticleDraftFormFieldsRHF
                     idPrefix="generator-form"
                     article={parseResult.data}
                     onMutate={handleFormMutate}
                     formRef={formRef}
                   />
-                </GeneratorProvider>
+                </ArticlesProvider>
               );
             })()
           )}

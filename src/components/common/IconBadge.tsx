@@ -1,4 +1,4 @@
-﻿import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface IconBadgeProps {
   icon: LucideIcon;
@@ -7,7 +7,7 @@ interface IconBadgeProps {
   className?: string;
 }
 
-export function IconBadge({ icon: Icon, label, size = 18, className }: IconBadgeProps) {
+export function IconBadge({ icon: Icon, label, size = 20, className }: IconBadgeProps) {
   const classes = [
     "inline-grid h-8 w-8 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15",
   ];

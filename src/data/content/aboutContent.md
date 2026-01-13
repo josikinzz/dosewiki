@@ -1,4 +1,4 @@
-Dose.Wiki is maintained on [GitHub](https://github.com/josikinzz/dosewiki) and curates **{{compoundCount}}** published substances with normalized dosage, duration, effect, and interaction metadata. The original dataset is sourced from [rc.community](https://rc.community).
+Dose.Wiki is maintained on [GitHub](https://github.com/josikinzz/dosewiki) and curates **{{compoundCount}}** published substances with normalized dosage, duration, effect, and interaction metadata.
 
 - Browse the [Substance Index](#/substances) to pivot across **{{categoryCount}}** psychoactive and chemical groupings and open full profiles.
 - Inspect reported outcomes inside the [Subjective Effects](#/effects) catalog covering **{{effectCount}}** tracked phenomena.

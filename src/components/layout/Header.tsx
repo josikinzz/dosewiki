@@ -15,7 +15,7 @@ interface HeaderProps {
 
 export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
-  const devView: AppView = { type: "dev", tab: "generator" };
+  const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
     { label: "Substance Index", view: substancesView, icon: FlaskConical },

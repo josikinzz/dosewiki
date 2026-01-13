@@ -135,7 +135,7 @@ export const LegalitySection = memo(function LegalitySection({
       {/* International */}
       {hasInternational && (
         <div className="mb-4">
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+          <h3 className="mb-2 flex items-center gap-2 font-semibold text-white">
             <Globe className="h-4 w-4 text-fuchsia-200" />
             International
           </h3>
@@ -152,8 +152,8 @@ export const LegalitySection = memo(function LegalitySection({
       {/* Countries */}
       {hasCountries && (
         <div>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-            <MapPin className="h-4 w-4 text-fuchsia-200" />
+          <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+            <MapPin className="h-5 w-5 text-fuchsia-200" />
             By Country
           </h3>
           <Masonry

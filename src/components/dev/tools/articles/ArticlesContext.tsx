@@ -1,5 +1,5 @@
 /**
- * GeneratorContext - Shares AI generation state across the Generator tab.
+ * ArticlesContext - Shares AI generation state across the Articles tab.
  * 
  * Provides API configuration, source content, and harm potential quotes
  * to section components for per-section AI generation.
@@ -8,7 +8,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { SubstanceModule, SourceInfo } from "../../../../data/article-sources";
 
-export interface GeneratorContextValue {
+export interface ArticlesContextValue {
   // API configuration
   apiKey: string;
   model: string;
@@ -29,34 +29,34 @@ export interface GeneratorContextValue {
   getAllSources: () => Array<{ source: string; content: string }>;
 }
 
-const GeneratorContext = createContext<GeneratorContextValue | null>(null);
+const ArticlesContext = createContext<ArticlesContextValue | null>(null);
 
-export function GeneratorProvider({
+export function ArticlesProvider({
   children,
   value,
 }: {
   children: ReactNode;
-  value: GeneratorContextValue;
+  value: ArticlesContextValue;
 }) {
   return (
-    <GeneratorContext.Provider value={value}>
+    <ArticlesContext.Provider value={value}>
       {children}
-    </GeneratorContext.Provider>
+    </ArticlesContext.Provider>
   );
 }
 
-export function useGeneratorContext(): GeneratorContextValue {
-  const context = useContext(GeneratorContext);
+export function useArticlesContext(): ArticlesContextValue {
+  const context = useContext(ArticlesContext);
   if (!context) {
-    throw new Error("useGeneratorContext must be used within a GeneratorProvider");
+    throw new Error("useArticlesContext must be used within an ArticlesProvider");
   }
   return context;
 }
 
 /**
- * Hook that returns null if not in generator context.
- * Useful for form sections that may be used outside the generator.
+ * Hook that returns null if not in articles context.
+ * Useful for form sections that may be used outside the articles tab.
  */
-export function useOptionalGeneratorContext(): GeneratorContextValue | null {
-  return useContext(GeneratorContext);
+export function useOptionalArticlesContext(): ArticlesContextValue | null {
+  return useContext(ArticlesContext);
 }

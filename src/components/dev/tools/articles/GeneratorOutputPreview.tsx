@@ -55,11 +55,11 @@ export const GeneratorOutputPreview = memo(function GeneratorOutputPreview({
       <HeroSection article={article} />
       <DosageDurationSection article={article} />
       <SubjectiveEffectsSection article={article} />
+      <ReagentSection article={article} />
       <PharmacologySection article={article} />
       <InteractionsSection article={article} />
       <ToleranceSection article={article} />
       <HarmPotentialSection article={article} />
-      <ReagentSection article={article} />
       <LegalitySection article={article} />
       <CitationsSection article={article} />
     </div>
