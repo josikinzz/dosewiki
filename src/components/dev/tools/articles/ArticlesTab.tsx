@@ -44,7 +44,7 @@ import {
   type SourceInfo,
   type SubstanceModule,
 } from "../../../../data/article-sources";
-import { substanceRecords } from "../../../../data/builders/library";
+import { substanceRecords, allSubstanceRecords } from "../../../../data/builders/library";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
@@ -59,10 +59,6 @@ import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
 import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
 import { loadHarmPotentialQuotes } from "../../../../utils/sectionSources";
-
-// Filter source substances to only include those in the visible index (high/normal priority)
-const visibleSlugs = new Set(substanceRecords.map((r) => r.slug));
-const substances = allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
 
 export const ArticlesTab = memo(function ArticlesTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
@@ -96,9 +92,17 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Substance selection state
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"sources-asc" | "sources-desc" | "alpha-asc" | "alpha-desc">("sources-desc");
+  const [showLowPriority, setShowLowPriority] = useState(false);
   const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(null);
   const [substanceModule, setSubstanceModule] = useState<SubstanceModule | null>(null);
   const [isLoadingSubstance, setIsLoadingSubstance] = useState(false);
+
+  // Compute visible substances based on priority toggle
+  const substances = useMemo(() => {
+    const records = showLowPriority ? allSubstanceRecords : substanceRecords;
+    const visibleSlugs = new Set(records.map((r) => r.slug));
+    return allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
+  }, [showLowPriority]);
 
   // Article output state
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -554,6 +558,14 @@ export const ArticlesTab = memo(function ArticlesTab({
               <ArrowDownZA className="h-5 w-5" />
             </Button>
           </div>
+          <Button
+            variant={showLowPriority ? "toggleActive" : "toggleInactive"}
+            size="pill"
+            onClick={() => setShowLowPriority(!showLowPriority)}
+            title="Show low-priority substances"
+          >
+            Low Priority
+          </Button>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <Input
@@ -695,6 +707,7 @@ export const ArticlesTab = memo(function ArticlesTab({
               return (
                 <ArticlesProvider value={articlesContextValue}>
                   <ArticleDraftFormFieldsRHF
+                    key={selectedSubstanceSlug}
                     idPrefix="generator-form"
                     article={parseResult.data}
                     onMutate={handleFormMutate}
