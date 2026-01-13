@@ -14,11 +14,11 @@ import {
 } from "./_utils/github.js";
 
 const ARTICLES_PATH = "src/data/articles.json";
-const CHANGE_LOG_PATH = "src/data/devChangeLog.json";
-const PSYCHOACTIVE_INDEX_PATH = "src/data/psychoactiveIndexManual.json";
-const ABOUT_MARKDOWN_PATH = "src/data/aboutContent.md";
-const ABOUT_SUBTITLE_PATH = "src/data/aboutSubtitle.md";
-const ABOUT_CONFIG_PATH = "src/data/aboutConfig.json";
+const CHANGE_LOG_PATH = "src/data/changelog/devChangeLog.json";
+const PSYCHOACTIVE_INDEX_PATH = "src/data/indexes/psychoactiveIndexManual.json";
+const ABOUT_MARKDOWN_PATH = "src/data/content/aboutContent.md";
+const ABOUT_SUBTITLE_PATH = "src/data/content/aboutSubtitle.md";
+const ABOUT_CONFIG_PATH = "src/data/content/aboutConfig.json";
 const GENERATOR_PROMPT_PATH = "src/data/article-sources/prompt.md";
 const CHANGE_LOG_LIMIT = 250;
 
@@ -133,6 +133,8 @@ const normalizeAboutConfig = (value) => {
 };
 
 export default async function handler(req, res) {
+  console.log("[save-articles] Handler invoked", { method: req.method });
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed." });
@@ -141,8 +143,11 @@ export default async function handler(req, res) {
   const githubToken = process.env.GITHUB_TOKEN;
 
   if (!githubToken) {
+    console.error("[save-articles] GITHUB_TOKEN environment variable is missing");
     return res.status(500).json({ error: "Required environment variables are missing." });
   }
+
+  console.log("[save-articles] GITHUB_TOKEN present, length:", githubToken.length);
 
   const body = parseBody(req.body);
   const username = typeof body.username === "string" ? body.username : "";
@@ -157,14 +162,20 @@ export default async function handler(req, res) {
 
   const isValid = verifyCredentials(trimmedUsername, trimmedPassword);
   if (!isValid) {
+    console.log("[save-articles] Credential verification failed for user:", trimmedUsername);
     return res.status(401).json({ error: "Invalid credentials." });
   }
+
+  console.log("[save-articles] Credentials verified for user:", trimmedUsername);
 
   const passwordKey = trimmedUsername;
 
   if (body.articlesData === undefined) {
+    console.error("[save-articles] articlesData payload is missing");
     return res.status(400).json({ error: "articlesData payload is required." });
   }
+
+  console.log("[save-articles] Payload received - articles count:", Array.isArray(body.articlesData) ? body.articlesData.length : "not an array");
 
   const manualData = body.psychoactiveIndexManualData;
   let serializedManual = null;
@@ -228,8 +239,14 @@ export default async function handler(req, res) {
 
   try {
     const isoTimestamp = new Date().toISOString();
+    console.log("[save-articles] Starting GitHub operations at:", isoTimestamp);
+
+    console.log("[save-articles] Loading existing changelog entries...");
     const { entries: existingLogEntries } = await loadChangeLogEntries(githubToken);
+    console.log("[save-articles] Loaded", existingLogEntries.length, "existing changelog entries");
+
     const serializedArticles = JSON.stringify(body.articlesData, null, 2);
+    console.log("[save-articles] Serialized articles size:", serializedArticles.length, "bytes");
 
     const entryId = `${formatIdTimestamp(new Date(isoTimestamp))}-${randomUUID().slice(0, 8)}`;
     const newEntry = {
@@ -248,9 +265,17 @@ export default async function handler(req, res) {
     const updatedEntries = appendChangeLogEntry(existingLogEntries, newEntry);
     const serializedChangeLog = JSON.stringify(updatedEntries, null, 2);
 
+    console.log("[save-articles] Getting repository state...");
     const { parentSha, baseTreeSha } = await getRepositoryState(githubToken);
+    console.log("[save-articles] Repository state - parentSha:", parentSha?.slice(0, 7), "baseTreeSha:", baseTreeSha?.slice(0, 7));
+
+    console.log("[save-articles] Creating articles blob...");
     const articlesBlobSha = await createBlob(githubToken, serializedArticles);
+    console.log("[save-articles] Articles blob created:", articlesBlobSha?.slice(0, 7));
+
+    console.log("[save-articles] Creating changelog blob...");
     const changeLogBlobSha = await createBlob(githubToken, serializedChangeLog);
+    console.log("[save-articles] Changelog blob created:", changeLogBlobSha?.slice(0, 7));
 
     const treeEntries = [
       {
@@ -318,11 +343,20 @@ export default async function handler(req, res) {
       });
     }
 
+    console.log("[save-articles] Creating tree with", treeEntries.length, "entries:", treeEntries.map(e => e.path));
     const treeSha = await createTree(githubToken, baseTreeSha, treeEntries);
+    console.log("[save-articles] Tree created:", treeSha?.slice(0, 7));
+
+    console.log("[save-articles] Creating commit...");
     const commitSha = await createCommit(githubToken, commitMessage, treeSha, parentSha, isoTimestamp);
+    console.log("[save-articles] Commit created:", commitSha?.slice(0, 7));
+
+    console.log("[save-articles] Updating branch reference...");
     await updateReference(githubToken, commitSha);
+    console.log("[save-articles] Branch reference updated successfully");
 
     const commitUrl = buildCommitUrl(commitSha);
+    console.log("[save-articles] SUCCESS - Commit URL:", commitUrl);
 
     return res.status(200).json({
       success: true,
@@ -342,6 +376,14 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error occurred.";
-    return res.status(500).json({ error: message });
+    console.error("[save-articles] ERROR:", message);
+    if (error instanceof Error && error.stack) {
+      console.error("[save-articles] Stack trace:", error.stack);
+    }
+    // Include more details in the response for debugging
+    return res.status(500).json({ 
+      error: message,
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 }

@@ -13,7 +13,7 @@ import {
   updateReference,
 } from "./_utils/github.js";
 
-const USER_PROFILES_PATH = "src/data/userProfiles.json";
+const USER_PROFILES_PATH = "src/data/config/userProfiles.json";
 const MAX_BIO_LENGTH = 4000;
 const MAX_DISPLAY_NAME_LENGTH = 120;
 const MAX_LINKS = 3;
