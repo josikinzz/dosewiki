@@ -242,12 +242,20 @@ export const GeneratorTab = memo(function GeneratorTab({
     const substance = substances.find((s) => s.slug === selectedSubstanceSlug);
     if (!substance) return;
 
-    const substanceName = substance.name.toLowerCase();
-    const existing = articles.find(
-      (a) =>
-        a.identification?.common_name?.toLowerCase() === substanceName ||
-        a.title?.toLowerCase() === substanceName
-    );
+    const substanceName = substance.name.trim().toLowerCase();
+    
+    // Match by title first (more reliable), then common_name (only if non-empty)
+    const existing = articles.find((a) => {
+      const title = a.title?.trim().toLowerCase();
+      if (title && title === substanceName) {
+        return true;
+      }
+      const commonName = a.identification?.common_name?.trim().toLowerCase();
+      if (commonName && commonName.length > 0 && commonName === substanceName) {
+        return true;
+      }
+      return false;
+    });
 
     if (existing) {
       setExistingArticleDetected(existing);
@@ -337,11 +345,33 @@ export const GeneratorTab = memo(function GeneratorTab({
         article = parseResult.data;
       }
 
-      // Check if updating existing article by common_name
-      const commonName = article.identification?.common_name?.toLowerCase();
-      const existingIndex = articles.findIndex(
-        (a) => a.identification?.common_name?.toLowerCase() === commonName
-      );
+      // Find existing article by ID first (most reliable), then by title/common_name
+      let existingIndex = -1;
+      
+      // 1. Try matching by ID if the article has one
+      if (typeof article.id === "number" && Number.isFinite(article.id)) {
+        existingIndex = articles.findIndex((a) => a.id === article.id);
+      }
+      
+      // 2. If no ID match, try matching by title (more reliable than common_name)
+      if (existingIndex < 0) {
+        const title = article.title?.trim().toLowerCase();
+        if (title && title.length > 0) {
+          existingIndex = articles.findIndex(
+            (a) => a.title?.trim().toLowerCase() === title
+          );
+        }
+      }
+      
+      // 3. Fall back to common_name only if it's non-empty
+      if (existingIndex < 0) {
+        const commonName = article.identification?.common_name?.trim().toLowerCase();
+        if (commonName && commonName.length > 0) {
+          existingIndex = articles.findIndex(
+            (a) => a.identification?.common_name?.trim().toLowerCase() === commonName
+          );
+        }
+      }
 
       if (existingIndex >= 0) {
         // Update existing article, preserve its ID
