@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "20260113-035343-fed27f8e",
+    "createdAt": "2026-01-13T03:53:43.103Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 1/12/2026, 8:53:41 PM"
+    },
+    "articles": [
+      {
+        "id": 282,
+        "title": "Dextromethorphan",
+        "slug": "dextromethorphan"
+      }
+    ],
+    "markdown": "# Dextromethorphan · #282\n\n+  \"priority\": \"high\",\n-    \"bioavailability_notes\": \"\"\n+    \"bioavailability_notes\": \"\",\n+    \"bioavailability\": \"\",\n+    \"protein_binding\": \"\",\n+    \"volume_of_distribution\": \"\"\n-    \"addiction_liability\": \"\",\n-    \"dependence_liability\": \"\",\n+    \"addiction_liability\": \"Moderate abuse potential with documented cases of psychological addiction. Regular use can lead to emotional dependence and craving; some users report daily use patterns that are difficult to discontinue.\",\n+    \"dependence_liability\": \"Physical dependence develops with chronic use. Withdrawal symptoms include fatigue, apathy, flashbacks, constipation, insomnia, nightmares, anhedonia, memory impairment, attention deficits, and decreased libido. Symptoms resemble antidepressant discontinuation syndrome due to DXM's serotonin reuptake inhibition.\",\n-      \"ld50\": \"\",\n-      \"organ_toxicity\": \"\",\n+      \"ld50\": \"No formal LD50 established. Lethal doses estimated at 2,200 mg or greater, though fatalities are rare and typically involve co-ingredients or polydrug use.\",\n+      \"organ_toxicity\": \"Overdose may cause rhabdomyolysis leading to kidney damage, cardiac complications including severely elevated heart rate and blood pressure, and urinary retention. Multi-ingredient formulations containing acetaminophen pose significant hepatotoxicity risk at recreational DXM doses.\",\n-      \"other\": \"\"\n+      \"other\": \"Potential neurotoxicity with heavy chronic use. While oral DXM did not produce Olney's lesions in rat studies, adolescent administration impaired learning in adulthood. Chronic users report persistent deficits in memory, attention, abstract language comprehension, and visual processing that may persist for months after cessation.\"\n-      \"psychosis\": \"\",\n-      \"self_harm\": \"\",\n-      \"seizure\": \"\",\n-      \"other\": []\n+      \"psychosis\": \"Large doses and extended use (3+ consecutive days of heavy use) associated with psychotic breaks and toxic psychosis. Lasting delusional, paranoid, or psychotic ideation may persist for days to months. High plateau experiences commonly produce paranoid ideation, delusions of persecution, and perceived contact with entities.\",\n+      \"self_harm\": \"Risk of accidental injury due to anesthetic effects, ataxia, and loss of motor control. High doses may produce inappropriate or violent behavior in response to hallucinations and delusions.\",\n+      \"seizure\": \"Seizures reported at high doses and during overdose. Fever combined with seizures can lead to brain cell death.\",\n+      \"other\": [\n+        \"Respiratory depression is a rare but serious side effect at high doses\",\n+        \"Hyperthermia may occur at overdose levels\",\n+        \"Multi-ingredient cough/cold products containing acetaminophen, chlorpheniramine, or doxylamine pose severe risk of organ damage or death when consumed at recreational DXM doses\",\n+        \"Adolescents and individuals with psychiatric disorders are at elevated risk of problematic use\"\n+      ]\n-  \"citations\": [\n-    {\n-      \"name\": \"Erowid: DXM General Info\",\n-      \"url\": \"https://www.erowid.org/chemicals/dxm/faq/dxm_general_info.shtml\"\n-    }\n-  ],\n-  \"priority\": \"high\"\n+  \"citations\": [\n+    {\n+      \"name\": \"Erowid: DXM General Info\",\n+      \"url\": \"https://www.erowid.org/chemicals/dxm/faq/dxm_general_info.shtml\"\n+    }\n+  ]",
+    "submittedBy": "JOSIE"
+  }
+]
