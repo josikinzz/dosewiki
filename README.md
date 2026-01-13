@@ -212,3 +212,4 @@ Extend these when evolving the schema to keep TypeScript contracts accurate.
 
 ---
 Questions or improvements? Open an issue or update the `notes and plans/` docs to keep future contributors in the loop.
+
