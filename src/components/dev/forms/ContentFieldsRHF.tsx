@@ -82,6 +82,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const getCurrentArticleYaml = useCallback((): string | null => {
     try {
       const values = getValues();
+      console.log("[ContentFieldsRHF] getCurrentArticleYaml called, article title:", values.title);
       return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
     } catch {
       return null;
@@ -120,21 +121,29 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       />
       
       {/* AI Section Generator - only shown when in Articles context */}
-      {articlesContext && (
-        <SectionGenerator
-          sectionKey="harm_potential"
-          sectionLabel="Harm Potential"
-          icon={ShieldAlert}
-          prompt={harmPotentialPrompt}
-          extractedContent={articlesContext.harmPotentialQuotes}
-          genericSources={articlesContext.getAllSources()}
-          currentArticleYaml={getCurrentArticleYaml()}
-          onApply={handleApplyGenerated}
-          apiKey={articlesContext.apiKey}
-          model={articlesContext.model}
-          isKeyValid={articlesContext.isKeyValid}
-        />
-      )}
+      {articlesContext && (() => {
+        const currentYaml = getCurrentArticleYaml();
+        const extractedQuotes = articlesContext.harmPotentialQuotes;
+        console.log("[ContentFieldsRHF] Rendering SectionGenerator:");
+        console.log("  - context.selectedSubstanceSlug:", articlesContext.selectedSubstanceSlug);
+        console.log("  - extractedContent (first 100 chars):", extractedQuotes?.slice(0, 100));
+        console.log("  - currentArticleYaml title:", currentYaml?.match(/title: (.+)/)?.[1]);
+        return (
+          <SectionGenerator
+            sectionKey="harm_potential"
+            sectionLabel="Harm Potential"
+            icon={ShieldAlert}
+            prompt={harmPotentialPrompt}
+            extractedContent={extractedQuotes}
+            genericSources={articlesContext.getAllSources()}
+            currentArticleYaml={currentYaml}
+            onApply={handleApplyGenerated}
+            apiKey={articlesContext.apiKey}
+            model={articlesContext.model}
+            isKeyValid={articlesContext.isKeyValid}
+          />
+        );
+      })()}
       
       {/* Addiction & Dependence */}
       <div className="grid gap-4 md:grid-cols-2">

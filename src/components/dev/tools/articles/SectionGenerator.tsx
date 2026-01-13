@@ -98,6 +98,11 @@ export const SectionGenerator = memo(function SectionGenerator({
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
 
+    console.log("[SectionGenerator] handleGenerate called for:", sectionKey);
+    console.log("  - extractedContent (first 100 chars):", extractedContent?.slice(0, 100));
+    console.log("  - currentArticleYaml title:", currentArticleYaml?.match(/title: (.+)/)?.[1]);
+    console.log("  - genericSources count:", genericSources.length);
+
     setIsGenerating(true);
     setStreamedOutput("");
     setStreamedReasoning("");

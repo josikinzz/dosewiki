@@ -200,16 +200,19 @@ export const ArticlesTab = memo(function ArticlesTab({
 
   // Load substance module when selection changes
   useEffect(() => {
+    console.log("[ArticlesTab] substanceModule effect triggered, slug:", selectedSubstanceSlug);
     if (!selectedSubstanceSlug) {
       setSubstanceModule(null);
       return;
     }
 
     // Clear stale data immediately before loading new data
+    console.log("[ArticlesTab] Clearing substanceModule");
     setSubstanceModule(null);
     setIsLoadingSubstance(true);
     loadSubstanceSources(selectedSubstanceSlug)
       .then((module) => {
+        console.log("[ArticlesTab] Loaded substanceModule for:", selectedSubstanceSlug);
         setSubstanceModule(module);
         setIsLoadingSubstance(false);
       })
@@ -221,38 +224,48 @@ export const ArticlesTab = memo(function ArticlesTab({
 
   // Reset form state when substance changes
   useEffect(() => {
+    console.log("[ArticlesTab] Reset form state effect triggered, slug:", selectedSubstanceSlug);
     setFullscreenSourceId(null);
     setFormDirty(false);
     setFormParseError(null);
     formRef.current = null;
     setStreamedOutput("");  // Clear stale form data immediately
+    console.log("[ArticlesTab] Cleared streamedOutput");
   }, [selectedSubstanceSlug]);
 
   // Load harm potential quotes when substance changes
   useEffect(() => {
+    console.log("[ArticlesTab] harmPotentialQuotes effect triggered, slug:", selectedSubstanceSlug);
     if (!selectedSubstanceSlug) {
       setHarmPotentialQuotes(null);
       return;
     }
 
     // Clear stale data immediately before loading new data
+    console.log("[ArticlesTab] Clearing harmPotentialQuotes");
     setHarmPotentialQuotes(null);
     loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
+      console.log("[ArticlesTab] Loaded harmPotentialQuotes for:", selectedSubstanceSlug, "has quotes:", !!quotes);
       setHarmPotentialQuotes(quotes);
     });
   }, [selectedSubstanceSlug]);
 
   // Detect and auto-load existing articles when substance is selected
   useEffect(() => {
+    console.log("[ArticlesTab] existingArticle effect triggered, slug:", selectedSubstanceSlug);
     if (!selectedSubstanceSlug) {
       setExistingArticleDetected(null);
       return;
     }
 
     const substance = substances.find((s) => s.slug === selectedSubstanceSlug);
-    if (!substance) return;
+    if (!substance) {
+      console.log("[ArticlesTab] Substance not found in list:", selectedSubstanceSlug);
+      return;
+    }
 
     const substanceName = substance.name.trim().toLowerCase();
+    console.log("[ArticlesTab] Looking for existing article with name:", substanceName);
     
     // Match by title first (more reliable), then common_name (only if non-empty)
     const existing = articles.find((a) => {
@@ -268,12 +281,15 @@ export const ArticlesTab = memo(function ArticlesTab({
     });
 
     if (existing) {
+      console.log("[ArticlesTab] Found existing article:", existing.title, "id:", existing.id);
       setExistingArticleDetected(existing);
       // Auto-load the existing article
       const yamlOutput = yaml.stringify(existing, { lineWidth: 0, nullStr: "" });
       setStreamedOutput(yamlOutput);
+      console.log("[ArticlesTab] Set streamedOutput for:", existing.title);
       setOutputViewMode("form");
     } else {
+      console.log("[ArticlesTab] No existing article found for:", substanceName);
       setExistingArticleDetected(null);
     }
   }, [selectedSubstanceSlug, articles]);
@@ -431,17 +447,20 @@ export const ArticlesTab = memo(function ArticlesTab({
   }, [substanceModule, availableSources]);
 
   // Articles context value for section generators
-  const articlesContextValue = useMemo<ArticlesContextValue>(() => ({
-    apiKey,
-    model: selectedModel,
-    isKeyValid,
-    selectedSubstanceSlug,
-    substanceModule,
-    availableSources,
-    harmPotentialQuotes,
-    getSourceContent,
-    getAllSources,
-  }), [
+  const articlesContextValue = useMemo<ArticlesContextValue>(() => {
+    console.log("[ArticlesTab] Computing articlesContextValue, slug:", selectedSubstanceSlug, "hasQuotes:", !!harmPotentialQuotes);
+    return {
+      apiKey,
+      model: selectedModel,
+      isKeyValid,
+      selectedSubstanceSlug,
+      substanceModule,
+      availableSources,
+      harmPotentialQuotes,
+      getSourceContent,
+      getAllSources,
+    };
+  }, [
     apiKey,
     selectedModel,
     isKeyValid,
