@@ -225,6 +225,7 @@ export const ArticlesTab = memo(function ArticlesTab({
     setFormDirty(false);
     setFormParseError(null);
     formRef.current = null;
+    setStreamedOutput("");  // Clear stale form data immediately
   }, [selectedSubstanceSlug]);
 
   // Load harm potential quotes when substance changes
