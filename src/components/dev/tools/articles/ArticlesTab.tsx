@@ -205,6 +205,8 @@ export const ArticlesTab = memo(function ArticlesTab({
       return;
     }
 
+    // Clear stale data immediately before loading new data
+    setSubstanceModule(null);
     setIsLoadingSubstance(true);
     loadSubstanceSources(selectedSubstanceSlug)
       .then((module) => {
@@ -232,6 +234,8 @@ export const ArticlesTab = memo(function ArticlesTab({
       return;
     }
 
+    // Clear stale data immediately before loading new data
+    setHarmPotentialQuotes(null);
     loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
       setHarmPotentialQuotes(quotes);
     });
