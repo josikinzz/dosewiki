@@ -102,7 +102,6 @@ export function useArticleForm({
   // Reset form when article prop changes (detected via id or title)
   const articleIdentifier = article?.id ?? article?.title ?? null;
   useEffect(() => {
-    console.log("[useArticleForm] article prop changed, resetting form. identifier:", articleIdentifier);
     reset(getDefaultValues(article));
   }, [articleIdentifier, reset, getDefaultValues, article]);
 
