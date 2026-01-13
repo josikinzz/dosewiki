@@ -89,45 +89,23 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   }, [getValues]);
 
   // Handle applying generated harm potential YAML to form
+  // Always overwrites all fields - use empty defaults for missing fields
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
       const parsed = yaml.parse(generatedYaml);
       const harmPotential: HarmPotential = parsed.harm_potential ?? parsed;
       
-      if (harmPotential.addiction_liability !== undefined) {
-        setValue("harm_potential.addiction_liability", harmPotential.addiction_liability);
-      }
-      if (harmPotential.dependence_liability !== undefined) {
-        setValue("harm_potential.dependence_liability", harmPotential.dependence_liability);
-      }
-      if (harmPotential.toxicity) {
-        if (harmPotential.toxicity.ld50 !== undefined) {
-          setValue("harm_potential.toxicity.ld50", harmPotential.toxicity.ld50);
-        }
-        if (harmPotential.toxicity.organ_toxicity !== undefined) {
-          setValue("harm_potential.toxicity.organ_toxicity", harmPotential.toxicity.organ_toxicity);
-        }
-        if (harmPotential.toxicity.carcinogenicity !== undefined) {
-          setValue("harm_potential.toxicity.carcinogenicity", harmPotential.toxicity.carcinogenicity);
-        }
-        if (harmPotential.toxicity.other !== undefined) {
-          setValue("harm_potential.toxicity.other", harmPotential.toxicity.other);
-        }
-      }
-      if (harmPotential.risks) {
-        if (harmPotential.risks.psychosis !== undefined) {
-          setValue("harm_potential.risks.psychosis", harmPotential.risks.psychosis);
-        }
-        if (harmPotential.risks.self_harm !== undefined) {
-          setValue("harm_potential.risks.self_harm", harmPotential.risks.self_harm);
-        }
-        if (harmPotential.risks.seizure !== undefined) {
-          setValue("harm_potential.risks.seizure", harmPotential.risks.seizure);
-        }
-        if (harmPotential.risks.other !== undefined) {
-          setValue("harm_potential.risks.other", harmPotential.risks.other);
-        }
-      }
+      // Always overwrite - use empty defaults for missing fields
+      setValue("harm_potential.addiction_liability", harmPotential.addiction_liability ?? "");
+      setValue("harm_potential.dependence_liability", harmPotential.dependence_liability ?? "");
+      setValue("harm_potential.toxicity.ld50", harmPotential.toxicity?.ld50 ?? "");
+      setValue("harm_potential.toxicity.organ_toxicity", harmPotential.toxicity?.organ_toxicity ?? "");
+      setValue("harm_potential.toxicity.carcinogenicity", harmPotential.toxicity?.carcinogenicity ?? "");
+      setValue("harm_potential.toxicity.other", harmPotential.toxicity?.other ?? "");
+      setValue("harm_potential.risks.psychosis", harmPotential.risks?.psychosis ?? "");
+      setValue("harm_potential.risks.self_harm", harmPotential.risks?.self_harm ?? "");
+      setValue("harm_potential.risks.seizure", harmPotential.risks?.seizure ?? "");
+      setValue("harm_potential.risks.other", harmPotential.risks?.other ?? []);
     } catch (error) {
       console.error("Failed to parse generated harm potential YAML:", error);
     }
