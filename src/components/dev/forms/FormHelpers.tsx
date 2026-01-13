@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, PropsWithChildren } from "react";
 import { Badge } from "@/components/ui/badge";
 
 const helperTextClass = "text-[11px] text-white/45";
@@ -20,6 +20,7 @@ type ListPreviewProps = {
 
 /**
  * Glowing pink divider line for form sections.
+ * @deprecated Use FormSectionCard instead for section separation
  */
 export const FormSectionDivider = () => (
   <div className="relative my-14 h-px w-full">
@@ -30,9 +31,17 @@ export const FormSectionDivider = () => (
   </div>
 );
 
+/**
+ * Card wrapper for form sections. Provides consistent styling for each major section.
+ */
+export const FormSectionCard = ({ children }: PropsWithChildren) => (
+  <div className="rounded-xl border border-white/10 bg-slate-950/40 p-6">
+    {children}
+  </div>
+);
+
 export const SectionHeader = ({ title, description, icon }: SectionHeaderProps) => (
-  <div className="space-y-1">
-    <FormSectionDivider />
+  <div className="space-y-1 mb-6">
     <div className="flex items-center gap-2.5">
       {icon && <span className="text-fuchsia-400">{icon}</span>}
       <h2 className="text-lg font-semibold text-fuchsia-200">{title}</h2>

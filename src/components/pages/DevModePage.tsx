@@ -2306,6 +2306,22 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     />
   );
 
+  const renderCommitPanel = useCallback(
+    (actionSlot?: React.ReactNode) => (
+      <DevCommitCard
+        notice={githubNotice}
+        trimmedAdminPassword={trimmedAdminPassword}
+        passwordKey={passwordKey}
+        hasInvalidJsonDraft={hasInvalidJsonDraft}
+        isSaving={isSaving}
+        isCommitDisabled={isCommitDisabled}
+        onCommit={handleSaveToGitHub}
+        actionSlot={actionSlot}
+      />
+    ),
+    [githubNotice, trimmedAdminPassword, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub]
+  );
+
   const createCommitPanel = (
     <DevCommitCard
       notice={githubNotice}
@@ -2830,7 +2846,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           promptDiff={generatorPromptChangelog.markdown}
           promptHasChanges={generatorPromptChangelog.hasChanges}
           onCopyPrompt={handleGeneratorPromptCopy}
-          commitPanel={commitPanel}
+          renderCommitPanel={renderCommitPanel}
         />
       ) : null}
       </div>

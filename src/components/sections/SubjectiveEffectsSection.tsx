@@ -338,12 +338,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               Physical
             </h3>
             {hasPhysicalNote && (
-              <>
-                <p className="mb-3 text-sm text-white/60 italic leading-relaxed">
-                  {subjective_effects.notes.physical}
-                </p>
-                <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-              </>
+              <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+                {subjective_effects.notes.physical}
+              </p>
             )}
             <div className="space-y-4">
               {getSubcategories(subjective_effects.physical).map((subcategory) => (
@@ -369,12 +366,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               Cognitive
             </h3>
             {hasCognitiveNote && (
-              <>
-                <p className="mb-3 text-sm text-white/60 italic leading-relaxed">
-                  {subjective_effects.notes.cognitive}
-                </p>
-                <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-              </>
+              <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+                {subjective_effects.notes.cognitive}
+              </p>
             )}
             <div className="space-y-4">
               {getSubcategories(subjective_effects.cognitive).map((subcategory) => (
@@ -431,12 +425,9 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 {label}
               </h3>
               {hasSenseNote && (
-                <>
-                  <p className="mb-3 text-sm text-white/60 italic leading-relaxed">
-                    {senseCategory.note}
-                  </p>
-                  <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                </>
+                <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+                  {senseCategory.note}
+                </p>
               )}
               <div className="space-y-4">
                 {subcategories.map((subcategory) => (

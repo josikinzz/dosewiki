@@ -65,7 +65,6 @@ export const HeroSection = memo(function HeroSection({
 
   // Check if there are expandable chemistry details
   const hasExpandableDetails =
-    identification.substitutive_name ||
     identification.iupac_name ||
     identification.cas_number ||
     identification.molecular_formula ||
@@ -140,7 +139,7 @@ export const HeroSection = memo(function HeroSection({
                 <button
                   type="button"
                   onClick={() => setNamesExpanded(!namesExpanded)}
-                  className="ml-1 inline-flex items-center gap-1 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2 py-0.5 text-fuchsia-400 transition-colors hover:bg-fuchsia-400/20 hover:text-fuchsia-300"
+                  className="ml-1 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
                   <Ellipsis className="h-3 w-3" />
                   <ChevronDown className={`h-3 w-3 transition-transform ${namesExpanded ? "rotate-180" : ""}`} />
@@ -226,12 +225,6 @@ export const HeroSection = memo(function HeroSection({
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
         <div className="mt-3 space-y-1 pb-10">
-          {identification.substitutive_name && (
-            <p className="text-sm text-white/50">
-              <span className="font-semibold text-white/60">Substitutive name:</span>{" "}
-              {identification.substitutive_name}
-            </p>
-          )}
           {identification.iupac_name && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">IUPAC:</span>{" "}

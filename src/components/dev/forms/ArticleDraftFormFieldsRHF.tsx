@@ -23,6 +23,7 @@ import { LegalityFieldsRHF } from "./LegalityFieldsRHF";
 import { ReagentPreviewFieldsRHF } from "./ReagentPreviewFieldsRHF";
 import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
+import { FormSectionCard } from "./FormHelpers";
 
 export type ArticleDraftFormFieldsRHFProps = {
   idPrefix: string;
@@ -55,45 +56,69 @@ export function ArticleDraftFormFieldsRHF({
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-12">
-        <OverviewFieldsRHF
-          idPrefix={idPrefix}
-          categoryOptions={categoryOptions}
-          indexCategoryOptions={indexCategoryOptions}
-        />
-        <DosageDurationFieldsRHF
-          idPrefix={idPrefix}
-          dosageRoutes={dosageRoutes}
-          durationRoutes={durationRoutes}
-          addDosageRoute={addDosageRoute}
-          removeDosageRoute={removeDosageRoute}
-          applyDurationFromRoute={applyDurationFromRoute}
-        />
-        <ChemistryFieldsRHF
-          idPrefix={idPrefix}
-          chemicalClassOptions={chemicalClassOptions}
-          psychoactiveClassOptions={psychoactiveClassOptions}
-          mechanismOptions={mechanismOptions}
-        />
-        <AddictionFieldsRHF idPrefix={idPrefix} />
-        <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
-        <InteractionsFieldsRHF />
-        <ToleranceFieldsRHF idPrefix={idPrefix} />
-        <LegalityFieldsRHF idPrefix={idPrefix} />
-        <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
-        <NotesFieldsRHF idPrefix={idPrefix} />
-        <SourceCitationsFieldsRHF
-          idPrefix={idPrefix}
-          sourceCitations={sourceCitations}
-          addSourceCitation={addSourceCitation}
-          removeSourceCitation={removeSourceCitation}
-        />
-        <CitationsFieldsRHF
-          idPrefix={idPrefix}
-          citations={citations}
-          addCitation={addCitation}
-          removeCitation={removeCitation}
-        />
+      <div className="space-y-6">
+        <FormSectionCard>
+          <OverviewFieldsRHF
+            idPrefix={idPrefix}
+            categoryOptions={categoryOptions}
+            indexCategoryOptions={indexCategoryOptions}
+          />
+        </FormSectionCard>
+        <FormSectionCard>
+          <DosageDurationFieldsRHF
+            idPrefix={idPrefix}
+            dosageRoutes={dosageRoutes}
+            durationRoutes={durationRoutes}
+            addDosageRoute={addDosageRoute}
+            removeDosageRoute={removeDosageRoute}
+            applyDurationFromRoute={applyDurationFromRoute}
+          />
+        </FormSectionCard>
+        <FormSectionCard>
+          <ChemistryFieldsRHF
+            idPrefix={idPrefix}
+            chemicalClassOptions={chemicalClassOptions}
+            psychoactiveClassOptions={psychoactiveClassOptions}
+            mechanismOptions={mechanismOptions}
+          />
+        </FormSectionCard>
+        <FormSectionCard>
+          <AddictionFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <InteractionsFieldsRHF />
+        </FormSectionCard>
+        <FormSectionCard>
+          <ToleranceFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <LegalityFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <NotesFieldsRHF idPrefix={idPrefix} />
+        </FormSectionCard>
+        <FormSectionCard>
+          <SourceCitationsFieldsRHF
+            idPrefix={idPrefix}
+            sourceCitations={sourceCitations}
+            addSourceCitation={addSourceCitation}
+            removeSourceCitation={removeSourceCitation}
+          />
+        </FormSectionCard>
+        <FormSectionCard>
+          <CitationsFieldsRHF
+            idPrefix={idPrefix}
+            citations={citations}
+            addCitation={addCitation}
+            removeCitation={removeCitation}
+          />
+        </FormSectionCard>
       </div>
     </FormProvider>
   );

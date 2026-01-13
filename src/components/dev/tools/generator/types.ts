@@ -20,6 +20,9 @@ export interface GeneratorTabProps {
   promptDiff: string;
   promptHasChanges: boolean;
   onCopyPrompt: () => void;
+  /** Render function for commit panel - receives optional action slot for buttons */
+  renderCommitPanel?: (actionSlot?: ReactNode) => ReactNode;
+  /** @deprecated Use renderCommitPanel instead */
   commitPanel?: ReactNode;
 }
 

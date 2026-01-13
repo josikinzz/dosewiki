@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { AlertCircle, AlertTriangle, ExternalLink, Maximize2, Minimize2, ShieldAlert, Skull } from "lucide-react";
+import { AlertCircle, AlertTriangle, ChevronDown, Ellipsis, ExternalLink, ShieldAlert, Skull } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -91,7 +91,6 @@ export const InteractionsSection = memo(function InteractionsSection({
                 {label}
               </h3>
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
-              <div className="my-3 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
               {(() => {
                 // Parse all items to extract substance and rationale
                 const parsed = items.map((item) => {
@@ -104,7 +103,7 @@ export const InteractionsSection = memo(function InteractionsSection({
                 });
 
                 return (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {parsed.map((item) => {
                       const isExpanded = expandedItems.has(item.raw);
                       const hasRationale = !!item.rationale;
@@ -118,10 +117,11 @@ export const InteractionsSection = memo(function InteractionsSection({
                           >
                             <button
                               onClick={() => toggleExpand(item.raw)}
-                              className="absolute top-3 right-3 rounded p-1 transition hover:bg-white/10"
+                              className="absolute top-3 right-3 flex items-center gap-0.5 rounded p-1 transition hover:bg-white/10"
                               aria-label={`Collapse ${item.substance}`}
                             >
-                              <Minimize2 className="h-4 w-4 text-white/50" />
+                              <Ellipsis className="h-3 w-3 text-white/85" />
+                              <ChevronDown className="h-3 w-3 text-white/85 rotate-180" />
                             </button>
                             <span className="text-sm font-semibold text-white pr-8">
                               {item.substance}
@@ -148,10 +148,11 @@ export const InteractionsSection = memo(function InteractionsSection({
                           {hasRationale && (
                             <button
                               onClick={() => toggleExpand(item.raw)}
-                              className="rounded p-0.5 transition hover:bg-white/10"
+                              className="flex items-center gap-0.5 rounded p-0.5 transition hover:bg-white/10"
                               aria-label={`Expand ${item.substance}`}
                             >
-                              <Maximize2 className="h-3.5 w-3.5 text-white/50" />
+                              <Ellipsis className="h-3 w-3 text-white/85" />
+                              <ChevronDown className="h-3 w-3 text-white/85" />
                             </button>
                           )}
                         </span>

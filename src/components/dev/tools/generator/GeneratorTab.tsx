@@ -74,6 +74,7 @@ export const GeneratorTab = memo(function GeneratorTab({
   promptDiff,
   promptHasChanges,
   onCopyPrompt: _onCopyPrompt,
+  renderCommitPanel,
   commitPanel,
 }: GeneratorTabProps) {
   // API state
@@ -622,21 +623,6 @@ export const GeneratorTab = memo(function GeneratorTab({
                 <Button
                   variant="glass"
                   size="pill"
-                  onClick={() => handleSaveToDatabase("draft")}
-                  disabled={isSaving || !streamedOutput}
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : saveSuccess ? (
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-                  ) : (
-                    <Save className="h-3.5 w-3.5" />
-                  )}
-                  {saveSuccess ? "Saved!" : "Save Draft"}
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
                   onClick={handleCopy}
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -707,16 +693,14 @@ export const GeneratorTab = memo(function GeneratorTab({
                 );
               }
               return (
-                <div className="rounded-xl border border-white/10 bg-slate-950/40 p-6">
-                  <GeneratorProvider value={generatorContextValue}>
-                    <ArticleDraftFormFieldsRHF
-                      idPrefix="generator-form"
-                      article={parseResult.data}
-                      onMutate={handleFormMutate}
-                      formRef={formRef}
-                    />
-                  </GeneratorProvider>
-                </div>
+                <GeneratorProvider value={generatorContextValue}>
+                  <ArticleDraftFormFieldsRHF
+                    idPrefix="generator-form"
+                    article={parseResult.data}
+                    onMutate={handleFormMutate}
+                    formRef={formRef}
+                  />
+                </GeneratorProvider>
               );
             })()
           )}
@@ -801,7 +785,32 @@ export const GeneratorTab = memo(function GeneratorTab({
       )}
 
       {/* GitHub Commit Panel */}
-      {commitPanel ? <div>{commitPanel}</div> : null}
+      {renderCommitPanel ? (
+        <div>
+          {renderCommitPanel(
+            streamedOutput ? (
+              <Button
+                variant="glass"
+                size="pill"
+                className="rounded-full"
+                onClick={() => handleSaveToDatabase("draft")}
+                disabled={isSaving || !streamedOutput}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : saveSuccess ? (
+                  <CheckCircle className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {saveSuccess ? "Saved!" : "Save Draft"}
+              </Button>
+            ) : undefined
+          )}
+        </div>
+      ) : commitPanel ? (
+        <div>{commitPanel}</div>
+      ) : null}
     </div>
   );
 });

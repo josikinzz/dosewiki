@@ -18,6 +18,8 @@ type DevCommitCardProps = {
   isCommitDisabled: boolean;
   onCommit: () => void;
   footerSlot?: ReactNode;
+  /** Optional slot for action buttons to the left of the commit button */
+  actionSlot?: ReactNode;
 };
 
 export function DevCommitCard({
@@ -29,6 +31,7 @@ export function DevCommitCard({
   isCommitDisabled,
   onCommit,
   footerSlot,
+  actionSlot,
 }: DevCommitCardProps) {
   const message = (() => {
     if (notice) {
@@ -64,6 +67,7 @@ export function DevCommitCard({
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">{message}</div>
         <div className="flex flex-wrap gap-2">
+          {actionSlot}
           <Button variant="default" size="pill" className="rounded-full" onClick={onCommit} disabled={isCommitDisabled}>
             <ShieldCheck className="h-4 w-4" />
             {isSaving ? "Saving…" : "Commit changes"}
