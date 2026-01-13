@@ -92,10 +92,8 @@ const normalizeAboutMarkdown = (value) => {
     return null;
   }
 
-  const normalized = value.replace(/
-/g, "\n").trim();
-  return `${normalized}
-`;
+  const normalized = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  return `${normalized}\n`;
 };
 
 const normalizeFounderKeys = (value) => {
