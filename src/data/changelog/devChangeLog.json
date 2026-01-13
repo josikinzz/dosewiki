@@ -1,5 +1,23 @@
 [
   {
+    "id": "20260113-205636-05361427",
+    "createdAt": "2026-01-13T20:56:36.907Z",
+    "commit": {
+      "sha": "",
+      "url": "",
+      "message": "Dev editor update - 1/13/2026, 1:56:35 PM"
+    },
+    "articles": [
+      {
+        "id": 282,
+        "title": "Dextromethorphan",
+        "slug": "dextromethorphan"
+      }
+    ],
+    "markdown": "# Dextromethorphan · #282\n\n-      \"NMDA receptor antagonist\",\n-      \"serotonin reuptake inhibitor\"\n+      \"NMDA receptor antagonist (uncompetitive)\",\n+      \"Serotonin-norepinephrine reuptake inhibitor (SNRI)\",\n+      \"Sigma-1 receptor agonist\",\n+      \"Nicotinic acetylcholine receptor antagonist\"\n-      \"Sigma non-opioid intracellular receptor 1\": \"agonist\",\n-      \"Glutamate receptor ionotropic, NMDA 3A\": \"antagonist\",\n-      \"Aromatase\": \"inhibitor\",\n-      \"Neuronal acetylcholine receptor subunit alpha-2\": \"antagonist\",\n-      \"Sodium-dependent serotonin transporter\": \"inhibitor\",\n-      \"Neuronal acetylcholine receptor subunit alpha-3\": \"antagonist\",\n-      \"Neuronal acetylcholine receptor subunit alpha-4\": \"antagonist\",\n-      \"Neuronal acetylcholine receptor subunit beta-4\": \"antagonist\",\n-      \"Neuronal acetylcholine receptor subunit beta-2\": \"antagonist\",\n-      \"Neuronal acetylcholine receptor subunit alpha-7\": \"antagonist\",\n-      \"Mu-type opioid receptor\": \"agonist\",\n-      \"Delta-type opioid receptor\": \"agonist\",\n-      \"Kappa-type opioid receptor\": \"agonist\",\n-      \"NADPH oxidase\": \"inhibitor\",\n-      \"Sodium-dependent noradrenaline transporter\": \"inhibitor\"\n+      \"SERT\": \"40 nM (DXM), 484 nM (DXO)\",\n+      \"Sigma-1\": \"150 nM (DXM), 118 nM (DXO)\",\n+      \"NET\": \"6000 nM (DXM), 6200 nM (DXO)\",\n+      \"NMDA\": \"2120 nM (DXM), 892 nM (DXO)\",\n+      \"α1D-adrenergic\": \"830 nM (DXM)\",\n+      \"α1A-adrenergic\": \"3000 nM (DXM)\",\n+      \"Sigma-2\": \"11,060 nM (DXM), 11,325 nM (DXO)\"\n-    \"metabolism\": \"\",\n-    \"metabolites\": [],\n-    \"half_life\": \"\",\n-    \"bioavailability_notes\": \"\",\n-    \"bioavailability\": \"\",\n-    \"protein_binding\": \"\",\n-    \"volume_of_distribution\": \"\"\n+    \"metabolism\": \"Rapidly absorbed from the gastrointestinal tract with extensive first-pass hepatic metabolism. Primary pathway is O-demethylation to dextrorphan via CYP2D6, accounting for approximately 80% of dextrorphan formation. Secondary pathway is N-demethylation to 3-methoxymorphinan via CYP3A4, accounting for approximately 90% of 3-MM formation. Both metabolites converge to form 3-hydroxymorphinan. Dextrorphan and 3-hydroxymorphinan undergo conjugation with glucuronic acid and sulfate ions as phase II metabolism.\",\n+    \"metabolites\": [\n+      \"Dextrorphan (active, primary mediator of dissociative effects, approximately 10x more potent NMDA antagonist than parent compound, less active as serotonin reuptake inhibitor)\",\n+      \"3-Methoxymorphinan (local anesthetic effects, CYP2D6 inhibitor)\",\n+      \"3-Hydroxymorphinan (neuroprotective and neurotrophic effects)\"\n+    ],\n+    \"half_life\": \"3-30 hours (highly variable due to CYP2D6 polymorphism; approximately 4 hours in extensive metabolizers, up to 13 hours in poor metabolizers or with CYP2D6 inhibition)\",\n+    \"bioavailability_notes\": \"Rapidly absorbed from the gastrointestinal tract with brain concentrations significantly exceeding serum levels. Volume of distribution is 5-6.7 L/kg with 60-70% protein binding. Approximately 1 in 10 Caucasian individuals are CYP2D6 poor metabolizers, resulting in prolonged elevated drug levels and altered metabolite ratios favoring the parent compound over dextrorphan.\"",
+    "submittedBy": "JOSIE"
+  },
+  {
     "id": "20260113-095223-e37425a2",
     "createdAt": "2026-01-13T09:52:23.021Z",
     "commit": {
