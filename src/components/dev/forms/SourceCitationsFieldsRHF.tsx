@@ -4,6 +4,7 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
+import { BookOpen } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ export function SourceCitationsFieldsRHF({
       <SectionHeader
         title="Sources"
         description="Primary sources from article-sources used to populate this article."
+        icon={<BookOpen className="h-5 w-5" />}
       />
       <div className="space-y-4">
         {sourceCitations.fields.map((field, index) => {

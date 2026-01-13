@@ -4,6 +4,7 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
+import { Clock } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +57,7 @@ export function DosageDurationFieldsRHF({
       <SectionHeader
         title="Dosage & Duration"
         description="Mirrors the live dosage card with route tables followed by metabolism timing."
+        icon={<Clock className="h-5 w-5" />}
       />
       <div className="space-y-4">
         {dosageRoutes.fields.map((field, index) => {

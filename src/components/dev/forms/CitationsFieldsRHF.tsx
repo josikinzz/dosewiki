@@ -4,6 +4,7 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
+import { Quote } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ export function CitationsFieldsRHF({
       <SectionHeader
         title="Citations"
         description="Powers the final citations list; keep order consistent with supporting notes."
+        icon={<Quote className="h-5 w-5" />}
       />
       <div className="space-y-4">
         {citations.fields.map((field, index) => {

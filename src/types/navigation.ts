@@ -1,14 +1,10 @@
 export type DevTab =
-  | "edit"
-  | "create"
   | "change-log"
   | "tag-editor"
   | "profile"
   | "index-layout"
   | "about"
-  | "layout-lab"
-  | "generator"
-  | "parsed-data";
+  | "generator";
 
 export type AppView =
   | { type: "substances" }

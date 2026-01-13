@@ -158,12 +158,10 @@ export function parsePath(
         return resolveDefault();
       }
       case "dev": {
-        const candidate = slug ?? "edit";
+        const candidate = slug ?? "generator";
         const slugSegment = segments[2];
-        let tab: DevTab = "edit";
-        if (candidate === "create") {
-          tab = "create";
-        } else if (candidate === "change-log" || candidate === "changelog") {
+        let tab: DevTab = "generator";
+        if (candidate === "change-log" || candidate === "changelog") {
           tab = "change-log";
         } else if (candidate === "tag-editor" || candidate === "tag") {
           tab = "tag-editor";
@@ -173,12 +171,10 @@ export function parsePath(
           tab = "index-layout";
         } else if (candidate === "about") {
           tab = "about";
-        } else if (candidate === "layout-lab" || candidate === "layout") {
-          tab = "layout-lab";
         } else if (candidate === "generator" || candidate === "gen") {
           tab = "generator";
         } else {
-          tab = "edit";
+          tab = "generator";
         }
 
         if (slugSegment) {

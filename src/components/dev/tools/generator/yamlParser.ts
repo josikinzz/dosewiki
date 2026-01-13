@@ -85,9 +85,16 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
  * This provides defensive parsing to handle missing or malformed fields.
  */
 function normalizeArticle(raw: Record<string, unknown>): SubstanceArticle {
+  // Normalize priority with validation
+  const rawPriority = raw.priority;
+  const priority = rawPriority === "high" || rawPriority === "normal" || rawPriority === "low"
+    ? rawPriority
+    : "normal";
+
   return {
     id: typeof raw.id === "number" ? raw.id : null,
     title: getString(raw.title),
+    priority,
     index_categories: getStringArray(raw.index_categories),
 
     identification: normalizeIdentification(raw.identification),
@@ -103,8 +110,21 @@ function normalizeArticle(raw: Record<string, unknown>): SubstanceArticle {
     harm_potential: normalizeHarmPotential(raw.harm_potential),
     tolerance: normalizeTolerance(raw.tolerance),
     legality: normalizeLegality(raw.legality),
+    source_citations: normalizeSourceCitations(raw.source_citations),
     citations: normalizeCitations(raw.citations),
   };
+}
+
+function normalizeSourceCitations(raw: unknown): SubstanceArticle["source_citations"] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw.map((item) => {
+    const obj = getObject(item);
+    return {
+      name: getString(obj.name),
+      url: getString(obj.url),
+    };
+  });
 }
 
 // Helper functions
@@ -354,7 +374,8 @@ function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_
   const sensory = getObject(obj.sensory);
   const notes = getObject(obj.notes);
 
-  return {
+  // Build base result
+  const result: SubstanceArticle["subjective_effects"] = {
     notes: {
       overview: getString(notes.overview),
       sensory: getString(notes.sensory),
@@ -372,6 +393,23 @@ function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_
     cognitive: getEffectCategory(obj.cognitive),
     physical: getEffectCategory(obj.physical),
   };
+
+  // Add optional progressive_stages if present
+  if (obj.progressive_stages) {
+    result.progressive_stages = getEffectCategory(obj.progressive_stages);
+  }
+
+  // Add optional attribution if present
+  if (obj.attribution && typeof obj.attribution === "object") {
+    const attrObj = getObject(obj.attribution);
+    result.attribution = {
+      author: getString(attrObj.author),
+      text: getString(attrObj.text),
+      url: getString(attrObj.url),
+    };
+  }
+
+  return result;
 }
 
 function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {

@@ -1,10 +1,9 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MutableRefObject } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import yaml from "yaml";
 import { SectionCard } from "../../../common/SectionCard";
 import { DiffPreview } from "../../../common/DiffPreview";
 import { JsonEditor } from "../../../common/JsonEditor";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,14 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   ArrowDown01,
   ArrowDownZA,
@@ -39,17 +30,12 @@ import {
   FlaskConical,
   Loader2,
   Maximize2,
-  Minimize2,
-  RefreshCw,
   Save,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import {
   MODEL_OPTIONS,
-  estimateTokens,
-  streamCompletion,
   validateApiKey,
 } from "../../../../utils/api/openrouter";
 import {
@@ -64,9 +50,6 @@ import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
 import {
   STORAGE_KEYS,
-  PROMPT_COLLAPSED_HEIGHT,
-  stripDxmSection,
-  normalizeWhitespace,
   type GeneratorTabProps,
   type OutputViewMode,
 } from "./types";
@@ -74,61 +57,25 @@ import { useDevMode } from "../../DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
+import { GeneratorProvider, type GeneratorContextValue } from "./GeneratorContext";
+import { loadHarmPotentialQuotes } from "../../../../utils/sectionSources";
 
 // Filter source substances to only include those in the visible index (high/normal priority)
 const visibleSlugs = new Set(substanceRecords.map((r) => r.slug));
 const substances = allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
 
 export const GeneratorTab = memo(function GeneratorTab({
-  generatorPrompt,
-  originalGeneratorPrompt,
-  onPromptChange,
-  onResetPrompt,
+  // Prompt-related props are kept for backwards compatibility but no longer used
+  // since section-based generation uses individual prompts per section
+  generatorPrompt: _generatorPrompt,
+  originalGeneratorPrompt: _originalGeneratorPrompt,
+  onPromptChange: _onPromptChange,
+  onResetPrompt: _onResetPrompt,
   promptDiff,
   promptHasChanges,
-  onCopyPrompt,
+  onCopyPrompt: _onCopyPrompt,
   commitPanel,
 }: GeneratorTabProps) {
-  const normalizedDraft = normalizeWhitespace(generatorPrompt);
-  const normalizedOriginal = normalizeWhitespace(originalGeneratorPrompt);
-  const isPromptDirty = normalizedDraft !== normalizedOriginal;
-
-  // Prompt expand/collapse state
-  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
-  const [expandedHeight, setExpandedHeight] = useState<number | null>(null);
-  const promptTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const togglePromptExpanded = useCallback(() => setIsPromptExpanded((prev) => !prev), []);
-
-  // Calculate expanded height when expanding
-  useEffect(() => {
-    if (isPromptExpanded && promptTextareaRef.current) {
-      const textarea = promptTextareaRef.current;
-      // Temporarily set height to auto to measure scrollHeight
-      const originalHeight = textarea.style.height;
-      textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      textarea.style.height = originalHeight;
-      setExpandedHeight(scrollHeight);
-    }
-  }, [isPromptExpanded, generatorPrompt]);
-
-  const handlePromptInput = useCallback(
-    (e: ChangeEvent<HTMLTextAreaElement>) => {
-      onPromptChange(e.target.value);
-    },
-    [onPromptChange]
-  );
-
-  const handleDownloadPrompt = useCallback(() => {
-    const blob = new Blob([generatorPrompt], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "PROMPT.md";
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [generatorPrompt]);
-
   // API state
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
@@ -152,14 +99,8 @@ export const GeneratorTab = memo(function GeneratorTab({
   const [substanceModule, setSubstanceModule] = useState<SubstanceModule | null>(null);
   const [isLoadingSubstance, setIsLoadingSubstance] = useState(false);
 
-  // Source selection state
-  const [selectedSourceIds, setSelectedSourceIds] = useState<Set<string>>(new Set());
-
-  // Generation state
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Article output state
   const [streamedOutput, setStreamedOutput] = useState("");
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Output view mode (yaml, preview, or form)
   const [outputViewMode, setOutputViewMode] = useState<OutputViewMode>("yaml");
@@ -171,10 +112,12 @@ export const GeneratorTab = memo(function GeneratorTab({
 
   // Existing article detection
   const [existingArticleDetected, setExistingArticleDetected] = useState<SubstanceArticle | null>(null);
-  const [showExistingArticleModal, setShowExistingArticleModal] = useState(false);
 
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
+
+  // Harm potential extracted quotes
+  const [harmPotentialQuotes, setHarmPotentialQuotes] = useState<string | null>(null);
 
   // Save to database state
   const [isSaving, setIsSaving] = useState(false);
@@ -245,33 +188,10 @@ export const GeneratorTab = memo(function GeneratorTab({
     return substance?.sources ?? [];
   }, [selectedSubstanceSlug]);
 
-  // Token estimation using precalculated tokens from build
-  const totalTokenEstimate = useMemo(() => {
-    let total = estimateTokens(generatorPrompt);
-    for (const sourceId of selectedSourceIds) {
-      const source = availableSources.find((s) => s.id === sourceId);
-      if (source) {
-        total += source.tokens;
-      }
-    }
-    return total;
-  }, [selectedSourceIds, availableSources, generatorPrompt]);
-
   const selectedModelInfo = useMemo(
     () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS[0],
     [selectedModel]
   );
-
-  const contextUsagePercent = useMemo(() => {
-    return Math.min((totalTokenEstimate / selectedModelInfo.contextWindow) * 100, 100);
-  }, [totalTokenEstimate, selectedModelInfo.contextWindow]);
-
-  // Check if selected substance is DXM (for conditional prompt inclusion)
-  const isDxm = useMemo(() => {
-    if (!selectedSubstanceSlug) return false;
-    const slug = selectedSubstanceSlug.toLowerCase();
-    return slug === "dxm" || slug === "dextromethorphan";
-  }, [selectedSubstanceSlug]);
 
   // Load substance module when selection changes
   useEffect(() => {
@@ -292,23 +212,27 @@ export const GeneratorTab = memo(function GeneratorTab({
       });
   }, [selectedSubstanceSlug]);
 
-  // Reset sources and form state when substance changes
+  // Reset form state when substance changes
   useEffect(() => {
-    setSelectedSourceIds(new Set());
     setFullscreenSourceId(null);
     setFormDirty(false);
     setFormParseError(null);
     formRef.current = null;
   }, [selectedSubstanceSlug]);
 
-  // Switch to YAML tab when generation starts
+  // Load harm potential quotes when substance changes
   useEffect(() => {
-    if (isGenerating) {
-      setOutputViewMode("yaml");
+    if (!selectedSubstanceSlug) {
+      setHarmPotentialQuotes(null);
+      return;
     }
-  }, [isGenerating]);
 
-  // Detect existing articles when substance is selected
+    loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
+      setHarmPotentialQuotes(quotes);
+    });
+  }, [selectedSubstanceSlug]);
+
+  // Detect and auto-load existing articles when substance is selected
   useEffect(() => {
     if (!selectedSubstanceSlug) {
       setExistingArticleDetected(null);
@@ -327,34 +251,14 @@ export const GeneratorTab = memo(function GeneratorTab({
 
     if (existing) {
       setExistingArticleDetected(existing);
-      setShowExistingArticleModal(true);
+      // Auto-load the existing article
+      const yamlOutput = yaml.stringify(existing, { lineWidth: 0, nullStr: "" });
+      setStreamedOutput(yamlOutput);
+      setOutputViewMode("form");
     } else {
       setExistingArticleDetected(null);
     }
   }, [selectedSubstanceSlug, articles]);
-
-  // Toggle source selection
-  const toggleSource = useCallback((sourceId: string) => {
-    setSelectedSourceIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(sourceId)) {
-        next.delete(sourceId);
-      } else {
-        next.add(sourceId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Toggle all sources
-  const toggleSelectAll = useCallback(() => {
-    if (selectedSourceIds.size === availableSources.length) {
-      setSelectedSourceIds(new Set());
-    } else {
-      setSelectedSourceIds(new Set(availableSources.map((s) => s.id)));
-    }
-  }, [availableSources, selectedSourceIds.size]);
-
 
   // Get content for a source
   const getSourceContent = useCallback(
@@ -365,86 +269,6 @@ export const GeneratorTab = memo(function GeneratorTab({
     [substanceModule]
   );
 
-  // Generate article
-  const handleGenerate = useCallback(async () => {
-    if (!apiKey || !substanceModule || selectedSourceIds.size === 0) {
-      return;
-    }
-
-    setIsGenerating(true);
-    setStreamedOutput("");
-    setGenerationError(null);
-
-    // Collect all selected source contents
-    const loadedSources: { source: string; content: string }[] = [];
-    for (const sourceId of selectedSourceIds) {
-      const source = availableSources.find((s) => s.id === sourceId);
-      if (!source) continue;
-
-      const content = substanceModule.contents[sourceId];
-      if (content) {
-        loadedSources.push({ source: source.displayName, content });
-      }
-    }
-
-    if (loadedSources.length === 0) {
-      setGenerationError("Failed to load source content");
-      setIsGenerating(false);
-      return;
-    }
-
-    // Assemble user message
-    const userMessage = loadedSources
-      .map(({ source, content }) => `## Source: ${source}\n\n${content}`)
-      .join("\n\n---\n\n");
-
-    // Strip DXM-specific section if not generating for DXM
-    const effectivePrompt = isDxm ? generatorPrompt : stripDxmSection(generatorPrompt);
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      await streamCompletion(
-        apiKey,
-        selectedModel,
-        effectivePrompt,
-        userMessage,
-        {
-          onChunk: (chunk) => {
-            setStreamedOutput((prev) => prev + chunk);
-          },
-          onComplete: () => {
-            setIsGenerating(false);
-          },
-          onError: (error) => {
-            setGenerationError(error.message);
-            setIsGenerating(false);
-          },
-        },
-        controller.signal
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        setGenerationError(error.message);
-      }
-      setIsGenerating(false);
-    }
-  }, [
-    apiKey,
-    substanceModule,
-    selectedSourceIds,
-    selectedModel,
-    availableSources,
-    generatorPrompt,
-    isDxm,
-  ]);
-
-  // Cancel generation
-  const handleCancel = useCallback(() => {
-    abortControllerRef.current?.abort();
-    setIsGenerating(false);
-  }, []);
 
   // Copy to clipboard
   const handleCopy = useCallback(() => {
@@ -480,26 +304,6 @@ export const GeneratorTab = memo(function GeneratorTab({
     setFormDirty(true);
   }, []);
 
-  // Handle existing article modal actions
-  const handleLoadExisting = useCallback(() => {
-    if (existingArticleDetected) {
-      const yamlOutput = yaml.stringify(existingArticleDetected, { lineWidth: 0, nullStr: "" });
-      setStreamedOutput(yamlOutput);
-      setShowExistingArticleModal(false);
-      setOutputViewMode("form");
-    }
-  }, [existingArticleDetected]);
-
-  const handleGenerateNew = useCallback(() => {
-    setShowExistingArticleModal(false);
-    // Continue with normal generation flow
-  }, []);
-
-  const handleCancelExisting = useCallback(() => {
-    setShowExistingArticleModal(false);
-    setSelectedSubstanceSlug(null);
-  }, []);
-
   // Download YAML
   const handleDownload = useCallback(() => {
     const selectedSubstance = substances.find((s) => s.slug === selectedSubstanceSlug);
@@ -514,7 +318,7 @@ export const GeneratorTab = memo(function GeneratorTab({
 
   // Save to database (draft or publish)
   const handleSaveToDatabase = useCallback((mode: "draft" | "publish" = "draft") => {
-    if (!streamedOutput || isGenerating) return;
+    if (!streamedOutput) return;
 
     setIsSaving(true);
     setSaveError(null);
@@ -566,14 +370,48 @@ export const GeneratorTab = memo(function GeneratorTab({
     } finally {
       setIsSaving(false);
     }
-  }, [streamedOutput, isGenerating, articles, applyArticlesTransform, outputViewMode, commitPanel]);
+  }, [streamedOutput, articles, applyArticlesTransform, outputViewMode, commitPanel]);
 
   const selectedSubstance = useMemo(
     () => substances.find((s) => s.slug === selectedSubstanceSlug),
     [selectedSubstanceSlug]
   );
 
-  const canGenerate = apiKey && isKeyValid && substanceModule && selectedSourceIds.size > 0;
+  // Helper to get all sources as array for section generators
+  const getAllSources = useCallback((): Array<{ source: string; content: string }> => {
+    if (!substanceModule) return [];
+    const sources: Array<{ source: string; content: string }> = [];
+    for (const source of availableSources) {
+      const content = substanceModule.contents[source.id];
+      if (content) {
+        sources.push({ source: source.displayName, content });
+      }
+    }
+    return sources;
+  }, [substanceModule, availableSources]);
+
+  // Generator context value for section generators
+  const generatorContextValue = useMemo<GeneratorContextValue>(() => ({
+    apiKey,
+    model: selectedModel,
+    isKeyValid,
+    selectedSubstanceSlug,
+    substanceModule,
+    availableSources,
+    harmPotentialQuotes,
+    getSourceContent,
+    getAllSources,
+  }), [
+    apiKey,
+    selectedModel,
+    isKeyValid,
+    selectedSubstanceSlug,
+    substanceModule,
+    availableSources,
+    harmPotentialQuotes,
+    getSourceContent,
+    getAllSources,
+  ]);
 
   return (
     <div className="mt-6 space-y-6">
@@ -722,136 +560,12 @@ export const GeneratorTab = memo(function GeneratorTab({
         </p>
       </SectionCard>
 
-      {/* Source Selection */}
-      {selectedSubstanceSlug && availableSources.length > 0 && (
-        <SectionCard delay={0.2}>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">
-              Select Sources
-              {isLoadingSubstance && (
-                <Loader2 className="ml-2 inline h-4 w-4 animate-spin text-white/40" />
-              )}
-            </h2>
-            <Button
-              variant="textLink"
-              onClick={toggleSelectAll}
-            >
-              {selectedSourceIds.size === availableSources.length
-                ? "Deselect All"
-                : "Select All"}
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {availableSources.map((source) => (
-              <label
-                key={source.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
-                  selectedSourceIds.has(source.id)
-                    ? "border-fuchsia-500/50 bg-fuchsia-500/10"
-                    : "border-white/10 bg-slate-950/40 hover:border-white/20"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedSourceIds.has(source.id)}
-                  onChange={() => toggleSource(source.id)}
-                  className="h-4 w-4 rounded border-white/20 bg-slate-950 text-fuchsia-500 focus:ring-fuchsia-400"
-                />
-                <div className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-white">
-                    {source.displayName}
-                  </span>
-                  <span className="block text-xs text-white/40">
-                    {source.tokens.toLocaleString()} tokens
-                  </span>
-                </div>
-              </label>
-            ))}
-          </div>
-          <div className="mt-4 space-y-2">
-            {/* Progress bar */}
-            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
-              <div
-                className={`h-full transition-all duration-300 ${
-                  contextUsagePercent >= 80
-                    ? "bg-red-500"
-                    : contextUsagePercent >= 60
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-                }`}
-                style={{ width: `${contextUsagePercent}%` }}
-              />
-            </div>
-            {/* Labels */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3 text-white/60">
-                <span>
-                  ~{totalTokenEstimate.toLocaleString()} / {selectedModelInfo.contextWindow.toLocaleString()} tokens
-                </span>
-                {selectedSubstanceSlug && (
-                  <span className={isDxm ? "text-fuchsia-300" : "text-white/40"}>
-                    {isDxm ? "DXM plateau dosing included" : "DXM plateau dosing excluded"}
-                  </span>
-                )}
-              </div>
-              <span className={`font-medium ${
-                contextUsagePercent >= 80
-                  ? "text-red-400"
-                  : contextUsagePercent >= 60
-                  ? "text-amber-400"
-                  : "text-white/60"
-              }`}>
-                {contextUsagePercent.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-white/10 pt-6">
-            <Button
-              variant={isGenerating ? "generateCancel" : "generatePrimary"}
-              onClick={isGenerating ? handleCancel : handleGenerate}
-              disabled={!canGenerate && !isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <X className="h-4 w-4" />
-                  Cancel
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate Article
-                </>
-              )}
-            </Button>
-            {isGenerating && (
-              <div className="flex items-center gap-2 text-sm text-white/60">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
-              </div>
-            )}
-            {generationError && (
-              <div className="flex items-center gap-2 text-sm text-red-400">
-                <AlertTriangle className="h-4 w-4" />
-                {generationError}
-              </div>
-            )}
-            {!canGenerate && !isGenerating && selectedSourceIds.size === 0 && (
-              <p className="text-sm text-white/40">
-                Select at least one source to generate
-              </p>
-            )}
-          </div>
-        </SectionCard>
-      )}
-
       {/* Output */}
       {streamedOutput && (
         <SectionCard delay={0.25}>
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-white">Generated Output</h2>
+              <h2 className="text-lg font-semibold text-white">Substance Article</h2>
               {formDirty && outputViewMode === "form" && (
                 <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
                   Unsaved changes
@@ -865,11 +579,11 @@ export const GeneratorTab = memo(function GeneratorTab({
               >
                 <TabsList>
                   <TabsTrigger value="yaml">YAML</TabsTrigger>
-                  <TabsTrigger value="form" disabled={isGenerating}>
+                  <TabsTrigger value="form">
                     <FileEdit className="mr-1.5 h-3.5 w-3.5" />
                     Form
                   </TabsTrigger>
-                  <TabsTrigger value="preview" disabled={isGenerating}>
+                  <TabsTrigger value="preview">
                     Preview
                   </TabsTrigger>
                 </TabsList>
@@ -879,7 +593,7 @@ export const GeneratorTab = memo(function GeneratorTab({
                   variant="glass"
                   size="pill"
                   onClick={() => handleSaveToDatabase("draft")}
-                  disabled={isGenerating || isSaving || !streamedOutput}
+                  disabled={isSaving || !streamedOutput}
                 >
                   {isSaving ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -964,12 +678,14 @@ export const GeneratorTab = memo(function GeneratorTab({
               }
               return (
                 <div className="rounded-xl border border-white/10 bg-slate-950/40 p-6">
-                  <ArticleDraftFormFieldsRHF
-                    idPrefix="generator-form"
-                    article={parseResult.data}
-                    onMutate={handleFormMutate}
-                    formRef={formRef}
-                  />
+                  <GeneratorProvider value={generatorContextValue}>
+                    <ArticleDraftFormFieldsRHF
+                      idPrefix="generator-form"
+                      article={parseResult.data}
+                      onMutate={handleFormMutate}
+                      formRef={formRef}
+                    />
+                  </GeneratorProvider>
                 </div>
               );
             })()
@@ -981,41 +697,53 @@ export const GeneratorTab = memo(function GeneratorTab({
       )}
 
       {/* Source Previews */}
-      {substanceModule && selectedSourceIds.size > 0 && (
+      {substanceModule && availableSources.length > 0 && (
         <SectionCard delay={0.3}>
-          <h2 className="mb-4 text-lg font-semibold text-white">Source Articles</h2>
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+            <FileText className="h-5 w-5 text-fuchsia-300" />
+            Available Sources
+            <span className="text-sm font-normal text-white/50">
+              ({availableSources.length})
+            </span>
+            {isLoadingSubstance && (
+              <Loader2 className="ml-2 h-4 w-4 animate-spin text-white/40" />
+            )}
+          </h2>
+          {harmPotentialQuotes && (
+            <p className="mb-4 text-sm text-emerald-300">
+              ✓ Extracted harm potential quotes available for this substance
+            </p>
+          )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {availableSources
-              .filter((s) => selectedSourceIds.has(s.id))
-              .map((source) => {
-                const content = getSourceContent(source.id);
-                return (
-                  <div
-                    key={source.id}
-                    className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-                      <span className="truncate text-sm font-medium text-white">
-                        {source.displayName}
-                      </span>
-                      <Button
-                        variant="iconSmall"
-                        onClick={() => setFullscreenSourceId(source.id)}
-                        title="Open fullscreen"
-                      >
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {/* Content */}
-                    <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
-                        {content ?? "Loading..."}
-                      </pre>
-                    </div>
+            {availableSources.map((source) => {
+              const content = getSourceContent(source.id);
+              return (
+                <div
+                  key={source.id}
+                  className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                    <span className="truncate text-sm font-medium text-white">
+                      {source.displayName}
+                    </span>
+                    <Button
+                      variant="iconSmall"
+                      onClick={() => setFullscreenSourceId(source.id)}
+                      title="Open fullscreen"
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                );
-              })}
+                  {/* Content */}
+                  <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
+                      {content ?? "Loading..."}
+                    </pre>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </SectionCard>
       )}
@@ -1034,74 +762,6 @@ export const GeneratorTab = memo(function GeneratorTab({
         );
       })()}
 
-      {/* Prompt Editor Section */}
-      <SectionCard delay={0.35}>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-            <FileText className="h-5 w-5 text-fuchsia-300" />
-            System Prompt
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="iconAction"
-              onClick={togglePromptExpanded}
-              title={isPromptExpanded ? "Collapse" : "Expand"}
-            >
-              {isPromptExpanded ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </Button>
-            {isPromptDirty && (
-              <Button
-                variant="iconWarning"
-                onClick={onResetPrompt}
-                title="Reset"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="iconAction"
-              onClick={onCopyPrompt}
-              title="Copy"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="iconAction"
-              onClick={handleDownloadPrompt}
-              title="Download"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <Textarea
-          ref={promptTextareaRef}
-          value={generatorPrompt}
-          onChange={handlePromptInput}
-          style={{ height: isPromptExpanded && expandedHeight ? expandedHeight : PROMPT_COLLAPSED_HEIGHT }}
-          className={`resize-none font-mono text-sm ${isPromptExpanded ? 'overflow-y-hidden' : 'overflow-y-auto'}`}
-          spellCheck={false}
-        />
-        <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-white/40">
-          <span>{generatorPrompt.length.toLocaleString()} characters</span>
-          <span>~{estimateTokens(generatorPrompt).toLocaleString()} tokens</span>
-          {isPromptDirty && (
-            <span className="text-amber-300">Unsaved changes</span>
-          )}
-        </div>
-
-        {/* Commit Panel */}
-        {commitPanel && (
-          <div className="mt-6 border-t border-white/10 pt-6">
-            {commitPanel}
-          </div>
-        )}
-      </SectionCard>
-
       {/* Prompt Diff */}
       {promptHasChanges && (
         <SectionCard delay={0.4}>
@@ -1110,35 +770,8 @@ export const GeneratorTab = memo(function GeneratorTab({
         </SectionCard>
       )}
 
-      {/* Existing Article Modal */}
-      <Dialog open={showExistingArticleModal} onOpenChange={setShowExistingArticleModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Existing Article Found</DialogTitle>
-            <DialogDescription>
-              An article for "{existingArticleDetected?.identification?.common_name || existingArticleDetected?.title}" already exists in the database.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-white/70">
-              Would you like to load the existing article for editing, or generate a new one from sources?
-            </p>
-          </div>
-          <DialogFooter className="flex gap-2 sm:justify-start">
-            <Button variant="glass" onClick={handleLoadExisting}>
-              <FileEdit className="mr-2 h-4 w-4" />
-              Load Existing
-            </Button>
-            <Button variant="glass" onClick={handleGenerateNew}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate New
-            </Button>
-            <Button variant="ghost" onClick={handleCancelExisting}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* GitHub Commit Panel */}
+      {commitPanel ? <div>{commitPanel}</div> : null}
     </div>
   );
 });

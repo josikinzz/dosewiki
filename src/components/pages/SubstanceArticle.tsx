@@ -202,8 +202,8 @@ export function SubstanceArticle({
   }, [rawArticle, record.slug]);
 
   const handleOpenDevEditor = useCallback(() => {
-    openDevMode({ tab: "edit", slug: record.slug });
-  }, [openDevMode, record.slug]);
+    openDevMode({ tab: "tag-editor" });
+  }, [openDevMode]);
 
   const handleDesktopViewModeChange = useCallback((mode: "ui" | "json") => {
     setDesktopViewMode(mode);

@@ -32,7 +32,7 @@ describe('routing', () => {
     });
 
     it('handles dev tabs', () => {
-      expect(viewToPath({ type: 'dev', tab: 'edit' })).toBe('/dev/edit');
+      expect(viewToPath({ type: 'dev', tab: 'tag-editor' })).toBe('/dev/tag-editor');
       expect(viewToPath({ type: 'dev', tab: 'generator', slug: 'lsd' })).toBe('/dev/generator/lsd');
     });
   });
@@ -94,7 +94,7 @@ describe('routing', () => {
       { type: 'interactions', primarySlug: 'lsd', secondarySlug: 'mdma' },
       { type: 'about' },
       { type: 'search', query: 'test' },
-      { type: 'dev', tab: 'edit' },
+      { type: 'dev', tab: 'tag-editor' },
       { type: 'dev', tab: 'generator', slug: 'lsd' },
       { type: 'contributor', profileKey: 'alice' },
     ];

@@ -476,7 +476,7 @@ export const TagMultiSelect = ({
               return (
                 <span
                   key={`${tag}-${index}`}
-                  className="flex items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-xs text-white/80"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/90 shadow-sm"
                 >
                   {tag}
                   {!disabled ? (

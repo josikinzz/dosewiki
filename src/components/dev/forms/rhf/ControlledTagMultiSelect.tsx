@@ -22,6 +22,7 @@ type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "tolerance.cross_tolerance"
   | "legality.international"
   | "harm_potential.risks.other"
+  | "comparisons"
 );
 
 export type ControlledTagMultiSelectProps = Omit<TagMultiSelectProps, "value" | "onChange"> & {

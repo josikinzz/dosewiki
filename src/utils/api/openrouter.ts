@@ -5,6 +5,8 @@ export interface StreamCallbacks {
   onChunk: (chunk: string) => void;
   onComplete: (fullText: string) => void;
   onError: (error: Error) => void;
+  /** Called when reasoning/thinking content is received */
+  onReasoning?: (chunk: string) => void;
 }
 
 export interface ModelOption {
@@ -38,14 +40,59 @@ export function estimateTokens(text: string): number {
   return estimateTokenCount(text);
 }
 
+export interface StreamCompletionOptions {
+  /** Enable extended thinking/reasoning (default: true for Claude) */
+  enableReasoning?: boolean;
+  /** 
+   * Reasoning effort level: "minimal" | "low" | "medium" | "high" | "xhigh"
+   * - minimal: 5% of max_tokens for reasoning
+   * - low: 20% of max_tokens for reasoning
+   * - medium: 50% of max_tokens for reasoning
+   * - high: 80% of max_tokens for reasoning  
+   * - xhigh: 95% of max_tokens for reasoning
+   * Default: "medium"
+   */
+  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh";
+  /** Temperature for generation (default: 0.3) */
+  temperature?: number;
+}
+
 export async function streamCompletion(
   apiKey: string,
   model: string,
   systemPrompt: string,
   userMessage: string,
   callbacks: StreamCallbacks,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options: StreamCompletionOptions = {}
 ): Promise<void> {
+  const isClaudeModel = model.includes("claude");
+  const {
+    enableReasoning = isClaudeModel, // Enable by default for Claude
+    reasoningEffort = "medium",
+    temperature = 0.3,
+  } = options;
+
+  // Build request body
+  const requestBody: Record<string, unknown> = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    stream: true,
+    temperature,
+    max_tokens: 16384,
+  };
+
+  // Add reasoning for supported models (Claude, etc.)
+  // OpenRouter uses a unified "reasoning" parameter
+  if (enableReasoning) {
+    requestBody.reasoning = {
+      effort: reasoningEffort,
+    };
+  }
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -54,16 +101,7 @@ export async function streamCompletion(
       "HTTP-Referer": "https://dose.wiki",
       "X-Title": "Dose.wiki Article Generator",
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      stream: true,
-      temperature: 0.3,
-      max_tokens: 16384,
-    }),
+    body: JSON.stringify(requestBody),
     signal,
   });
 
@@ -81,6 +119,10 @@ export async function streamCompletion(
   const decoder = new TextDecoder();
   let fullText = "";
   let buffer = "";
+  
+  // Track last chunks to deduplicate (OpenRouter sometimes sends duplicates)
+  let lastReasoningChunk = "";
+  let lastContentChunk = "";
 
   try {
     while (true) {
@@ -98,10 +140,40 @@ export async function streamCompletion(
 
         try {
           const parsed = JSON.parse(data);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) {
-            fullText += content;
-            callbacks.onChunk(content);
+          const delta = parsed.choices?.[0]?.delta;
+          
+          // Handle reasoning content - OpenRouter uses different fields depending on model
+          // Only process ONE of these to avoid duplicates
+          if (callbacks.onReasoning) {
+            let reasoningChunk: string | null = null;
+            
+            // Prefer reasoning_content (used by some models)
+            if (delta?.reasoning_content) {
+              reasoningChunk = delta.reasoning_content;
+            }
+            // Fall back to reasoning (used by other models)
+            else if (delta?.reasoning) {
+              reasoningChunk = delta.reasoning;
+            }
+            // Some models use reasoning_details array
+            else if (delta?.reasoning_details?.length > 0) {
+              reasoningChunk = delta.reasoning_details
+                .map((d: { text?: string }) => d?.text || "")
+                .join("");
+            }
+            
+            // Deduplicate - skip if this is the same as the last chunk
+            if (reasoningChunk && reasoningChunk !== lastReasoningChunk) {
+              callbacks.onReasoning(reasoningChunk);
+              lastReasoningChunk = reasoningChunk;
+            }
+          }
+          
+          // Handle regular content
+          if (delta?.content && delta.content !== lastContentChunk) {
+            fullText += delta.content;
+            callbacks.onChunk(delta.content);
+            lastContentChunk = delta.content;
           }
         } catch {
           // Skip malformed JSON

@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useState, type ChangeEvent, type FocusEvent } from "react";
-import { Controller, useFormContext, type FieldPath } from "react-hook-form";
+import { Controller, useFormContext, type FieldPath, type ControllerRenderProps } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
 import { doseRangeTransformer } from "../../../../data/schema";
@@ -24,6 +24,51 @@ export type DoseRangeStringInputProps = {
   className?: string;
 };
 
+/**
+ * Inner component that safely uses hooks outside of Controller's render prop.
+ */
+function DoseRangeInnerInput({
+  field,
+  placeholder,
+  className,
+}: {
+  field: ControllerRenderProps<SubstanceArticle, DoseRangeFieldPath>;
+  placeholder: string;
+  className?: string;
+}) {
+  // Local state for the string representation
+  const [localValue, setLocalValue] = useState(() =>
+    doseRangeTransformer.toForm(field.value)
+  );
+
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+  }, []);
+
+  const handleBlur = useCallback(
+    (e: FocusEvent<HTMLInputElement>) => {
+      const parsed = doseRangeTransformer.toSchema(localValue);
+      // Update the form with the parsed value, or reset to empty
+      const schemaValue: DoseRange = parsed ?? { min: null, max: null, unit: "" };
+      field.onChange(schemaValue);
+      field.onBlur();
+      // Re-format the display value
+      setLocalValue(doseRangeTransformer.toForm(schemaValue));
+    },
+    [localValue, field]
+  );
+
+  return (
+    <Input
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
+
 export function DoseRangeStringInput({
   name,
   placeholder = "e.g., 10-20 mg",
@@ -35,39 +80,13 @@ export function DoseRangeStringInput({
     <Controller
       name={name}
       control={control}
-      render={({ field }) => {
-        // Local state for the string representation
-        const [localValue, setLocalValue] = useState(() =>
-          doseRangeTransformer.toForm(field.value)
-        );
-
-        const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-          setLocalValue(e.target.value);
-        }, []);
-
-        const handleBlur = useCallback(
-          (e: FocusEvent<HTMLInputElement>) => {
-            const parsed = doseRangeTransformer.toSchema(localValue);
-            // Update the form with the parsed value, or reset to empty
-            const schemaValue: DoseRange = parsed ?? { min: null, max: null, unit: "" };
-            field.onChange(schemaValue);
-            field.onBlur();
-            // Re-format the display value
-            setLocalValue(doseRangeTransformer.toForm(schemaValue));
-          },
-          [localValue, field]
-        );
-
-        return (
-          <Input
-            value={localValue}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            className={className}
-          />
-        );
-      }}
+      render={({ field }) => (
+        <DoseRangeInnerInput
+          field={field}
+          placeholder={placeholder}
+          className={className}
+        />
+      )}
     />
   );
 }

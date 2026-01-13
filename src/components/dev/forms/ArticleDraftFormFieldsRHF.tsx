@@ -19,6 +19,8 @@ import {
   ToleranceFieldsRHF,
   NotesFieldsRHF,
 } from "./ContentFieldsRHF";
+import { LegalityFieldsRHF } from "./LegalityFieldsRHF";
+import { ReagentPreviewFieldsRHF } from "./ReagentPreviewFieldsRHF";
 import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
 
@@ -77,6 +79,8 @@ export function ArticleDraftFormFieldsRHF({
         <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
         <InteractionsFieldsRHF />
         <ToleranceFieldsRHF idPrefix={idPrefix} />
+        <LegalityFieldsRHF idPrefix={idPrefix} />
+        <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
         <NotesFieldsRHF idPrefix={idPrefix} />
         <SourceCitationsFieldsRHF
           idPrefix={idPrefix}

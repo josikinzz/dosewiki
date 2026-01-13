@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useState, type ChangeEvent, type FocusEvent } from "react";
-import { Controller, useFormContext, type FieldPath } from "react-hook-form";
+import { Controller, useFormContext, type FieldPath, type ControllerRenderProps } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
 import { durationStageTransformer } from "../../../../data/schema";
@@ -25,6 +25,51 @@ export type DurationStageStringInputProps = {
   className?: string;
 };
 
+/**
+ * Inner component that safely uses hooks outside of Controller's render prop.
+ */
+function DurationStageInnerInput({
+  field,
+  placeholder,
+  className,
+}: {
+  field: ControllerRenderProps<SubstanceArticle, DurationStageFieldPath>;
+  placeholder: string;
+  className?: string;
+}) {
+  // Local state for the string representation
+  const [localValue, setLocalValue] = useState(() =>
+    durationStageTransformer.toForm(field.value)
+  );
+
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+  }, []);
+
+  const handleBlur = useCallback(
+    (e: FocusEvent<HTMLInputElement>) => {
+      const parsed = durationStageTransformer.toSchema(localValue);
+      // Update the form with the parsed value, or reset to empty
+      const schemaValue: DurationStage = parsed ?? { min: null, max: null, unit: "" };
+      field.onChange(schemaValue);
+      field.onBlur();
+      // Re-format the display value
+      setLocalValue(durationStageTransformer.toForm(schemaValue));
+    },
+    [localValue, field]
+  );
+
+  return (
+    <Input
+      value={localValue}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
+
 export function DurationStageStringInput({
   name,
   placeholder = "e.g., 15-30 minutes",
@@ -36,39 +81,13 @@ export function DurationStageStringInput({
     <Controller
       name={name}
       control={control}
-      render={({ field }) => {
-        // Local state for the string representation
-        const [localValue, setLocalValue] = useState(() =>
-          durationStageTransformer.toForm(field.value)
-        );
-
-        const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-          setLocalValue(e.target.value);
-        }, []);
-
-        const handleBlur = useCallback(
-          (e: FocusEvent<HTMLInputElement>) => {
-            const parsed = durationStageTransformer.toSchema(localValue);
-            // Update the form with the parsed value, or reset to empty
-            const schemaValue: DurationStage = parsed ?? { min: null, max: null, unit: "" };
-            field.onChange(schemaValue);
-            field.onBlur();
-            // Re-format the display value
-            setLocalValue(durationStageTransformer.toForm(schemaValue));
-          },
-          [localValue, field]
-        );
-
-        return (
-          <Input
-            value={localValue}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            className={className}
-          />
-        );
-      }}
+      render={({ field }) => (
+        <DurationStageInnerInput
+          field={field}
+          placeholder={placeholder}
+          className={className}
+        />
+      )}
     />
   );
 }

@@ -2,24 +2,18 @@ import {
   AlertTriangle,
   BadgeCheck,
   Copy,
-  Database,
   Download,
-  Edit3,
   Eye,
   EyeOff,
   FileText,
   LayoutDashboard,
-  LayoutGrid,
-  FlaskConical,
   Loader2,
   LogOut,
-  PlusCircle,
   RefreshCw,
   Save,
   ScrollText,
   Sparkles,
   Tags,
-  Trash2,
   Undo2,
   Upload,
   UserRound,
@@ -62,7 +56,6 @@ import type { SubstanceArticle } from "../../schema";
 import { createEmptyArticle } from "../../data/schema";
 import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
 import { AboutEditorTab } from "../dev/tools/about/AboutEditorTab";
-import { LayoutLabTab } from "../dev/tools/layout-lab/LayoutLabTab";
 import { slugify } from "../../utils/slug";
 import { viewToPath } from "../../utils/routing";
 import { useDevMode } from "../dev/DevModeContext";
@@ -71,7 +64,6 @@ import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { GeneratorTab } from "../dev/tools/generator/GeneratorTab";
-import { ParsedDataTab } from "../dev/tools/parsed-data/ParsedDataTab";
 import { JsonEditor } from "../common/JsonEditor";
 import { UiJsonToggle } from "../common/UiJsonToggle";
 
@@ -117,32 +109,24 @@ type ChangeLogFilters = {
 };
 
 type DevModeTab =
-  | "edit"
-  | "create"
   | "change-log"
   | "tag-editor"
   | "profile"
   | "index-layout"
   | "about"
-  | "layout-lab"
-  | "generator"
-  | "parsed-data";
+  | "generator";
 
-type DevModePrimaryTab = "edit" | "create" | "change-log" | "profile";
+type DevModePrimaryTab = "tools" | "change-log" | "profile";
 
 const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
-  edit: "edit",
-  create: "create",
+  tools: "generator",
   "change-log": "change-log",
   profile: "profile",
 };
 
 const resolvePrimaryTab = (tab: DevModeTab): DevModePrimaryTab => {
-  if (tab === "edit" || tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "layout-lab" || tab === "generator") {
-    return "edit";
-  }
-  if (tab === "create") {
-    return "create";
+  if (tab === "tag-editor" || tab === "index-layout" || tab === "about" || tab === "generator") {
+    return "tools";
   }
   if (tab === "change-log") {
     return "change-log";
@@ -1265,29 +1249,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     return map;
   }, [articleIndexById, titleToIndex]);
 
-  useEffect(() => {
-    if (!initialArticleSlug || activeTab !== "edit") {
-      return;
-    }
-
-    const trimmedSlug = initialArticleSlug.trim();
-    if (trimmedSlug.length === 0) {
-      return;
-    }
-
-    const index = slugToArticleIndex.get(trimmedSlug);
-    if (index === undefined) {
-      return;
-    }
-
-    if (initialSlugAppliedRef.current === trimmedSlug && selectedIndex === index) {
-      return;
-    }
-
-    initialSlugAppliedRef.current = trimmedSlug;
-    setArticleDeleteNotice(null);
-    setSelectedIndex(index);
-  }, [initialArticleSlug, activeTab, slugToArticleIndex, selectedIndex]);
 
   const categoryDropdowns = useMemo(() => {
     const groups =
@@ -1716,7 +1677,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
       return;
     }
 
-    const needsAutoStage = activeTab === "create" && !isNewArticleStaged;
+    const needsAutoStage = false;
     let articlesForCommit = articles;
     let datasetChangelogForCommit = datasetChangelog;
 
@@ -1971,10 +1932,10 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   const clearNoticesForTab = useCallback(
     (tab: DevModeTab) => {
-      if (tab === "edit" || tab === "tag-editor" || tab === "index-layout") {
+      if (tab === "tag-editor" || tab === "index-layout") {
         setCreatorNotice(null);
       }
-      if (tab === "create" || tab === "tag-editor") {
+      if (tab === "tag-editor") {
         setNotice(null);
       }
       setGithubNotice(null);
@@ -2025,7 +1986,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
 
   useEffect(() => {
     if (activeTab === "profile" && !hasStoredCredentials) {
-      handleTabChange("edit");
+      handleTabChange("generator");
     }
   }, [activeTab, handleTabChange, hasStoredCredentials]);
 
@@ -2478,22 +2439,12 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           <Button
             variant="tabPrimary"
             size="tabPrimary"
-            onClick={() => handlePrimaryTabChange("edit")}
-            data-active={activePrimaryTab === "edit"}
-            aria-pressed={activePrimaryTab === "edit"}
+            onClick={() => handlePrimaryTabChange("tools")}
+            data-active={activePrimaryTab === "tools"}
+            aria-pressed={activePrimaryTab === "tools"}
           >
-            <Edit3 className="h-4 w-4" aria-hidden="true" focusable="false" />
-            <span>EDIT</span>
-          </Button>
-          <Button
-            variant="tabPrimary"
-            size="tabPrimary"
-            onClick={() => handlePrimaryTabChange("create")}
-            data-active={activePrimaryTab === "create"}
-            aria-pressed={activePrimaryTab === "create"}
-          >
-            <PlusCircle className="h-4 w-4" aria-hidden="true" focusable="false" />
-            <span>CREATE</span>
+            <Wrench className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <span>TOOLS</span>
           </Button>
           <Button
             variant="tabPrimary"
@@ -2522,17 +2473,17 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           </Button>
         </div>
 
-        {activePrimaryTab === "edit" && (
+        {activePrimaryTab === "tools" && (
           <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
             <Button
               variant="tabSecondary"
               size="tabSecondary"
-              onClick={() => handleTabChange("edit")}
-              data-active={activeTab === "edit"}
-              aria-pressed={activeTab === "edit"}
+              onClick={() => handleTabChange("generator")}
+              data-active={activeTab === "generator"}
+              aria-pressed={activeTab === "generator"}
             >
-              <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Substances</span>
+              <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <span>Substance Articles</span>
             </Button>
             <Button
               variant="tabSecondary"
@@ -2564,531 +2515,13 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
               <LayoutDashboard className="h-4 w-4" aria-hidden="true" focusable="false" />
               <span>Index layout</span>
             </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("layout-lab")}
-              data-active={activeTab === "layout-lab"}
-              aria-pressed={activeTab === "layout-lab"}
-            >
-              <LayoutGrid className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Layout lab</span>
-            </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("generator")}
-              data-active={activeTab === "generator"}
-              aria-pressed={activeTab === "generator"}
-            >
-              <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Generator</span>
-            </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("parsed-data")}
-              data-active={activeTab === "parsed-data"}
-              aria-pressed={activeTab === "parsed-data"}
-            >
-              <Database className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Parsed Data</span>
-            </Button>
-          </div>
-        )}
-
-        {activePrimaryTab === "create" && (
-          <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("create")}
-              data-active={activeTab === "create"}
-              aria-pressed={activeTab === "create"}
-            >
-              <FlaskConical className="h-4 w-4" aria-hidden="true" focusable="false" />
-              <span>Substances</span>
-            </Button>
           </div>
         )}
       </div>
       </div>
 
       <div className={contentWrapperClass}>
-        {activeTab === "edit" ? (
-          <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
-          <div className="space-y-6 min-w-0">
-            <SectionCard className="min-w-0 space-y-6 bg-white/[0.04]">
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-fuchsia-200">Select an article</h2>
-                <p className="text-sm text-white/65">
-                  Choose any record sourced from
-                  <code className="ml-1 inline-flex rounded bg-white/10 px-2 py-[2px] text-xs font-semibold text-white/80">
-                    articles.json
-                  </code>
-                  to begin editing.
-                </p>
-              </div>
-              <Select
-                value={hasArticles ? selectedIndex.toString() : ""}
-                onValueChange={(value) => {
-                  if (value === "") {
-                    return;
-                  }
-                  const nextIndex = Number(value);
-                  if (Number.isNaN(nextIndex)) {
-                    return;
-                  }
-                  setArticleDeleteNotice(null);
-                  setSelectedIndex(nextIndex);
-                }}
-                disabled={!hasArticles}
-              >
-                <SelectTrigger id="dev-mode-article" aria-label="Article">
-                  <SelectValue placeholder="No articles available" />
-                </SelectTrigger>
-                <SelectContent>
-                  {hasArticles ? (
-                    articleOptions.map(({ index, label }) => (
-                      <SelectItem key={index} value={index.toString()}>
-                        {label}
-                      </SelectItem>
-                    ))
-                  ) : null}
-                </SelectContent>
-              </Select>
-
-            {categoryDropdowns.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/70">
-                <div className="mb-3 space-y-2">
-                  <p className="text-sm font-semibold uppercase tracking-wide text-white/60">Jump by</p>
-                  <div className="w-full max-w-full min-w-0 sm:max-w-[14rem]">
-                    <Select
-                      value={classificationView}
-                      onValueChange={handleClassificationChange}
-                    >
-                      <SelectTrigger
-                        id="dev-mode-classification"
-                        aria-label="Classification type"
-                        selectSize="compact"
-                        className="text-sm"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classificationOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {categoryDropdowns.map((group) => (
-                    <div key={group.key} className="flex flex-col gap-1 text-left">
-                      <label
-                        htmlFor={`dev-mode-category-${group.key}`}
-                        className="text-[11px] font-semibold uppercase tracking-wide text-white/45"
-                      >
-                        {group.name}
-                      </label>
-                      <Select
-                        key={`${group.key}-${categoryJumpKey}`}
-                        value=""
-                        onValueChange={handleCategoryJump}
-                      >
-                        <SelectTrigger
-                          id={`dev-mode-category-${group.key}`}
-                          selectSize="compact"
-                        >
-                          <SelectValue placeholder="Select substance…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {group.options.map((option) => (
-                            <SelectItem key={`${group.key}-${option.index}`} value={option.index.toString()}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            </SectionCard>
-
-            <SectionCard className="min-w-0 space-y-4 bg-white/[0.04]">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-fuchsia-200">Working tips</h2>
-              </div>
-              <ul className="list-disc space-y-2 pl-5 text-sm text-white/70">
-                <li>Default to UI view for structured editing; flip to JSON when you need raw control.</li>
-                <li>Draft updates stay local until you push via the GitHub panel or download a backup copy.</li>
-                <li>Save your username and password above, then use the GitHub card to commit edits directly to the repository.</li>
-                <li>Review the Current draft diff card before committing; reset controls restore the source data instantly.</li>
-              </ul>
-            </SectionCard>
-
-            <SectionCard className="min-w-0 space-y-4 bg-white/[0.04]">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-fuchsia-200">Manage drafts</h2>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={resetArticle}
-                >
-                  <Undo2 className="h-4 w-4" />
-                  Reset article
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={resetDataset}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Reset all
-                </Button>
-                <Button
-                  variant="default"
-                  size="pill"
-                  className="rounded-full"
-                  onClick={downloadDraft}
-                >
-                  <Download className="h-4 w-4" />
-                  Download dataset
-                </Button>
-            </div>
-            <div className="h-px w-full bg-white/10" />
-            <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
-              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-rose-200">
-                <AlertTriangle className="h-4 w-4" aria-hidden="true" focusable="false" />
-                Danger zone
-              </div>
-              <p className="text-sm text-rose-100/80">
-                {selectedArticle
-                  ? `Deleting "${articleDeleteTargetLabel}" removes it immediately and pushes the change to GitHub. Use the dataset reset tools if you need to restore it.`
-                  : "Select an article to enable deletion. The removal is committed to GitHub right away."}
-              </p>
-              {articleDeleteNotice && (
-                <p
-                  className={`text-xs ${
-                    articleDeleteNotice.type === "error" ? "text-rose-200" : "text-emerald-200"
-                  }`}
-                >
-                  {articleDeleteNotice.message}
-                </p>
-              )}
-              <label className="flex items-center gap-2 text-xs text-rose-100/75">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-rose-300/50 bg-slate-950/60 text-rose-400 focus:ring-rose-300/40"
-                  checked={articleDeleteConfirmed}
-                  onChange={(event) => setArticleDeleteConfirmed(event.target.checked)}
-                  disabled={!selectedArticle || isDeletingArticle}
-                />
-                I understand this will permanently remove the article.
-              </label>
-              <Button
-                variant="destructive"
-                size="pill"
-                className="rounded-full"
-                onClick={handleDeleteArticle}
-                disabled={!articleDeleteConfirmed || !selectedArticle || isDeletingArticle}
-              >
-                {isDeletingArticle ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" focusable="false" />
-                ) : (
-                  <Trash2 className="h-4 w-4" aria-hidden="true" focusable="false" />
-                )}
-                {isDeletingArticle ? "Deleting…" : "Delete article"}
-              </Button>
-              </div>
-            </SectionCard>
-
-          </div>
-
-          <div className="space-y-6 min-w-0">
-            <SectionCard className="min-w-0 space-y-5 bg-white/[0.04]">
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-fuchsia-200">Article workspace</h2>
-                <p className="text-sm text-white/65">Switch between structured form controls and raw YAML as you refine a record.</p>
-              </div>
-              <UiJsonToggle mode={draftMode} onModeChange={handleDraftModeChange} jsonLabel="YAML view" />
-              {draftMode === "ui" ? (
-                <div className="space-y-8">
-                  <ArticleDraftFormFieldsRHF
-                    idPrefix="edit-article"
-                    article={selectedArticle}
-                    onMutate={handleEditArticleMutate}
-                    formRef={editArticleFormRef}
-                  />
-                </div>
-              ) : (
-                <JsonEditor
-                  id="dev-mode-editor"
-                  className="flex-1"
-                  minHeight={360}
-                  value={editorValue}
-                  onChange={handleEditorChange}
-                />
-              )}
-              <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                <div className="min-h-[1.25rem]">
-                  {notice && (
-                    <p className={notice.type === "error" ? "text-rose-300" : "text-emerald-300"}>{notice.message}</p>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="default"
-                    size="pill"
-                    className="rounded-full"
-                    onClick={downloadArticle}
-                    disabled={hasInvalidJsonDraft}
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download article
-                  </Button>
-                  <Button
-                    variant="glass"
-                    size="pill"
-                    onClick={copyDraft}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Copy JSON
-                  </Button>
-                  <Button
-                    variant="success"
-                    size="pill"
-                    className="rounded-full"
-                    onClick={applyEdits}
-                    disabled={hasInvalidJsonDraft}
-                  >
-                    Save draft
-                  </Button>
-                </div>
-              </div>
-            </SectionCard>
-
-            {commitPanel}
-
-            <SectionCard className="min-w-0 space-y-6 bg-white/[0.04]">
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-fuchsia-200">Current draft diff</h2>
-                <p className="text-sm text-white/65">
-                  {selectedArticleSummary
-                    ? `Tracking unsaved edits for ${selectedArticleSummary.title}.`
-                    : "Preview differences against the source dataset."}
-                </p>
-              </div>
-              <DiffPreview diffText={changelogMarkdown} className="max-h-64" />
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Button
-                  variant="glass"
-                  size="xs"
-                  className="rounded-full"
-                  onClick={copyChangelog}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy diff
-                </Button>
-                <Button
-                  variant="glass"
-                  size="xs"
-                  className="rounded-full"
-                  onClick={downloadChangelog}
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Download .diff
-                </Button>
-              </div>
-              {changeLogNotice && (
-                <div
-                  className={`rounded-xl border px-3 py-2 text-xs ${
-                    changeLogNotice.type === "error"
-                      ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-                      : "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-                  }`}
-                >
-                  {changeLogNotice.message}
-                </div>
-              )}
-              <div className="h-px w-full bg-white/10" />
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-fuchsia-200">Previous commits</h2>
-                <p className="text-sm text-white/65">
-                  {selectedArticleSummary
-                    ? selectedArticleHistoryTotal > 0
-                      ? `Showing the latest ${selectedArticleHistory.length} of ${selectedArticleHistoryTotal} logged updates for ${selectedArticleSummary.title}.`
-                      : `No commits have been logged for ${selectedArticleSummary.title} yet.`
-                    : "No article selected."}
-                </p>
-              </div>
-              {selectedArticleHistory.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-12 text-center">
-                  <Wrench className="mb-4 h-10 w-10 text-white/35" />
-                  <p className="text-sm font-semibold text-white/80">No history captured yet</p>
-                  <p className="mt-2 text-xs text-white/55">Commit changes to populate the timeline.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {selectedArticleHistory.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
-                    >
-                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-white/90">
-                            {new Date(entry.createdAt).toLocaleString(undefined, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="text-xs text-white/60">
-                            {entry.commit?.url ? (
-                              <a
-                                href={entry.commit.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-fuchsia-200 transition hover:text-fuchsia-100"
-                              >
-                                {entry.commit.message}
-                              </a>
-                            ) : (
-                              entry.commit.message
-                            )}
-                          </p>
-                          {entry.submittedBy && (
-                            <p className="text-xs text-white/45">Submitted by {entry.submittedBy}</p>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="glass"
-                            size="xs"
-                            className="rounded-full"
-                            onClick={() => handleCopyChangeLogEntry(entry)}
-                          >
-                            <Copy className="h-4 w-4" />
-                            Copy diff
-                          </Button>
-                          <Button
-                            variant="glass"
-                            size="xs"
-                            className="rounded-full"
-                            onClick={() => handleDownloadChangeLogEntry(entry)}
-                          >
-                            <Download className="h-4 w-4" />
-                            Download .diff
-                          </Button>
-                        </div>
-                      </div>
-                      <DiffPreview diffText={entry.markdown} className="max-h-56" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
-          </div>
-        </div>
-      ) : activeTab === "create" ? (
-        <div className="mt-10 grid w-full items-start gap-6 lg:grid-cols-[2fr,1fr]">
-          <SectionCard className="min-w-0 space-y-6 bg-white/[0.04]">
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold text-fuchsia-200">New article workspace</h2>
-              <p className="text-sm text-white/65">
-                Switch between structured form controls and raw JSON as you assemble a new record.
-              </p>
-            </div>
-            {!isNewArticleValid && (
-              <p className="text-xs text-rose-300">
-                Required: title, drug name, and one administration route with units.
-              </p>
-            )}
-            <UiJsonToggle
-              mode={createDraftMode}
-              onModeChange={handleCreateDraftModeChange}
-              jsonLabel="YAML view"
-            />
-            {createDraftMode === "ui" ? (
-              <div className="space-y-8">
-                <ArticleDraftFormFieldsRHF
-                  idPrefix="new-article"
-                  onMutate={handleNewArticleMutate}
-                  formRef={newArticleFormRef}
-                />
-              </div>
-            ) : (
-              <JsonEditor
-                value={newArticleJsonDraft}
-                minHeight={previewMinHeight}
-                onChange={handleNewArticleJsonChange}
-                className="flex-1"
-              />
-            )}
-            <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-              <div className="min-h-[1.25rem] space-y-1">
-                {creatorNotice && (
-                  <p className={creatorNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-                    {creatorNotice.message}
-                  </p>
-                )}
-                {newArticleJsonError && <p className="text-rose-300">JSON error: {newArticleJsonError}</p>}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="success"
-                  size="pill"
-                  className="rounded-full"
-                  onClick={handleStageNewArticle}
-                  disabled={!isNewArticleValid || !isNewArticleJsonValid}
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  {isNewArticleStaged ? "Restage article" : "Stage article"}
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={copyNewArticleJson}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy JSON
-                </Button>
-                <Button
-                  variant="default"
-                  size="pill"
-                  className="rounded-full"
-                  onClick={downloadNewArticleJson}
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Download JSON
-                </Button>
-                <Button
-                  variant="glass"
-                  size="pill"
-                  onClick={resetNewArticleForm}
-                >
-                  <Undo2 className="h-3.5 w-3.5" />
-                  Reset form
-                </Button>
-              </div>
-            </div>
-          </SectionCard>
-
-          <div className="space-y-6 min-w-0">
-            {createCommitPanel}
-          </div>
-        </div>
-      ) : activeTab === "change-log" ? (
+        {activeTab === "change-log" ? (
         <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
           <div className="space-y-6 min-w-0">
             <SectionCard className={changeLogFiltersCardClassName}>
@@ -3340,13 +2773,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           onProfileUpdated={handleProfileUpdated}
           hasStoredCredentials={hasStoredCredentials}
         />
-      ) : activeTab === "layout-lab" ? (
-        <LayoutLabTab
-          articles={articles}
-          defaultSlug={selectedArticleSlug}
-          onSelectArticleIndex={setSelectedIndex}
-          onOpenEditor={() => handleTabChange("edit")}
-        />
       ) : activeTab === "index-layout" ? (
         <IndexLayoutTab
           commitPanel={commitPanel}
@@ -3393,8 +2819,6 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
           onCopyPrompt={handleGeneratorPromptCopy}
           commitPanel={commitPanel}
         />
-      ) : activeTab === "parsed-data" ? (
-        <ParsedDataTab />
       ) : null}
       </div>
     </main>
