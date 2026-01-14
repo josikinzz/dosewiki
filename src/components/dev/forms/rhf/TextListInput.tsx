@@ -25,6 +25,8 @@ export type TextListInputProps = {
   helperText?: string;
   placeholder?: string;
   addButtonLabel?: string;
+  /** Optional icon to display next to the label */
+  icon?: React.ReactNode;
 };
 
 export function TextListInput({
@@ -33,6 +35,7 @@ export function TextListInput({
   helperText,
   placeholder = "Enter text and press Enter or click Add",
   addButtonLabel = "Add",
+  icon,
 }: TextListInputProps) {
   const { control } = useFormContext<SubstanceArticle>();
   const [inputValue, setInputValue] = useState("");
@@ -68,7 +71,8 @@ export function TextListInput({
 
         return (
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-white/80">
+            <label className="flex items-center gap-1.5 text-sm font-medium text-white/80">
+              {icon}
               {label}
             </label>
             

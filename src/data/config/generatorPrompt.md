@@ -84,11 +84,11 @@ identification:
   molecular_weight: ""
   skeletal_structure_image: ""
 
-summary: ""
-
 classification:
   psychoactive_class: []
   chemical_class: []
+
+summary: ""
 
 dosage:
   routes:
@@ -180,6 +180,12 @@ interactions:
 
 reagent_testing: {}
 
+tolerance:
+  full_tolerance: ""
+  half_tolerance: ""
+  baseline_tolerance: ""
+  cross_tolerance: []
+
 harm_potential:
   addiction_liability: ""
   dependence_liability: ""
@@ -193,12 +199,6 @@ harm_potential:
     self_harm: ""
     seizure: ""
     other: []
-
-tolerance:
-  full_tolerance: ""
-  half_tolerance: ""
-  baseline_tolerance: ""
-  cross_tolerance: []
 
 legality:
   international: []
@@ -468,6 +468,15 @@ reagent_testing:
 
 Leave empty (`reagent_testing: {}`) if no reagent data available.
 
+### Tolerance
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `full_tolerance` | `string` | Time to full tolerance (e.g., "After 2-3 consecutive days of use") |
+| `half_tolerance` | `string` | Time to 50% reduction (e.g., "3-5 days") |
+| `baseline_tolerance` | `string` | Time to baseline (e.g., "1-2 weeks") |
+| `cross_tolerance` | `array` | Classes/substances with cross-tolerance |
+
 ### Harm Potential
 
 | Field | Type | Description |
@@ -482,15 +491,6 @@ Leave empty (`reagent_testing: {}`) if no reagent data available.
 | `risks.self_harm` | `string` | Self-harm risk in context |
 | `risks.seizure` | `string` | Seizure threshold effects |
 | `risks.other` | `array` | Other notable risks |
-
-### Tolerance
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `full_tolerance` | `string` | Time to full tolerance (e.g., "After 2-3 consecutive days of use") |
-| `half_tolerance` | `string` | Time to 50% reduction (e.g., "3-5 days") |
-| `baseline_tolerance` | `string` | Time to baseline (e.g., "1-2 weeks") |
-| `cross_tolerance` | `array` | Classes/substances with cross-tolerance |
 
 ### Legality
 

@@ -5,14 +5,14 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { ShieldAlert, Sparkles, Zap, Timer, FileText } from "lucide-react";
+import { NotebookText, Skull, TriangleAlert, Hospital, Zap } from "lucide-react";
 import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-import { SectionHeader, CharacterCount, helperTextClass } from "./FormHelpers";
+import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
 import type { SubstanceArticle, HarmPotential } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
@@ -25,42 +25,6 @@ const toleranceLabels: Array<["full_tolerance" | "half_tolerance" | "baseline_to
   ["half_tolerance", "Half Tolerance"],
   ["baseline_tolerance", "Baseline Reset"],
 ];
-
-export type SubjectiveEffectsFieldsRHFProps = {
-  idPrefix: string;
-};
-
-export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
-
-  return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Subjective Effects"
-        description="Powers the badge cloud on the Substance page."
-        icon={<Sparkles className="h-5 w-5" />}
-      />
-      {/* Subjective effects now use a flexible subcategory structure.
-          Edit effects directly in articles.json for now. A dedicated editor component
-          for the new Record<string, EffectEntry[]> structure is planned. */}
-      <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-        <p className="text-sm text-white/60">
-          Subjective effects now support flexible subcategories with per-effect descriptions.
-          Edit effects directly in <code className="text-fuchsia-300">articles.json</code> or use the YAML generator.
-        </p>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-effects-overview`}>Effects Overview</Label>
-        <Textarea
-          id={`${idPrefix}-effects-overview`}
-          className="min-h-[100px]"
-          {...register("subjective_effects.notes.overview")}
-          placeholder="General overview of the substance's effects."
-        />
-      </div>
-    </section>
-  );
-}
 
 export type AddictionFieldsRHFProps = {
   idPrefix: string;
@@ -113,20 +77,13 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Harm Potential"
-        description="Addiction, dependence, toxicity information, and safety risks."
-        icon={<ShieldAlert className="h-5 w-5" />}
-      />
-      
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
         <SectionGenerator
-          sectionKey="harm_potential"
           sectionLabel="Harm Potential"
-          icon={ShieldAlert}
           prompt={harmPotentialPrompt}
           extractedContent={articlesContext.harmPotentialQuotes}
+          extractedSources={articlesContext.harmPotentialSources}
           genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
@@ -138,7 +95,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       
       {/* Addiction & Dependence */}
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-addiction-liability`}>
             Addiction Liability
           </Label>
@@ -150,7 +107,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           />
           <CharacterCount value={addictionValue} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-dependence-liability`}>
             Dependence Liability
           </Label>
@@ -165,10 +122,9 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       </div>
 
       {/* Toxicity */}
-      <div className="space-y-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-white/50">Toxicity</p>
+      <CollapsibleSubsection title="Toxicity" icon={<Skull className="h-5 w-5" />}>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-ld50`}>
               LD50
             </Label>
@@ -177,9 +133,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
               {...register("harm_potential.toxicity.ld50")}
               placeholder="e.g., 1475 mg/kg (mice, oral)"
             />
-            <p className={helperTextClass}>Include species and route if known.</p>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-organ-toxicity`}>
               Organ Toxicity
             </Label>
@@ -191,7 +146,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-carcinogenicity`}>
               Carcinogenicity
             </Label>
@@ -201,7 +156,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
               placeholder="e.g., No evidence / IARC Group 2B"
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-toxicity-other`}>
               Other Toxicity Notes
             </Label>
@@ -212,13 +167,12 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
             />
           </div>
         </div>
-      </div>
+      </CollapsibleSubsection>
 
       {/* Risks */}
-      <div className="space-y-4">
-        <p className="text-xs font-medium uppercase tracking-wider text-white/50">Risks</p>
+      <CollapsibleSubsection title="Risks" icon={<Zap className="h-5 w-5" />}>
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-psychosis`}>
               Psychosis Risk
             </Label>
@@ -229,7 +183,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
               placeholder="Describe psychosis risk factors and incidence."
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-self-harm`}>
               Self-Harm Risk
             </Label>
@@ -240,7 +194,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
               placeholder="Describe self-harm or suicidal ideation risks."
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-seizure`}>
               Seizure Risk
             </Label>
@@ -252,56 +206,59 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
             />
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <ControlledTagMultiSelect
             name="harm_potential.risks.other"
             label="Other Risks"
-            helperText="Additional notable safety risks not covered above."
             placeholder="Add risk"
             options={[]}
-            addButtonLabel="Add risk"
+            addButtonLabel="Add"
             openStrategy="focus"
           />
         </div>
-      </div>
+      </CollapsibleSubsection>
     </section>
   );
 }
 
 export function InteractionsFieldsRHF() {
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Interactions"
-        description="Match the live Interactions buckets: Dangerous, Unsafe, and Use with Caution."
-        icon={<Zap className="h-5 w-5" />}
-      />
-      <div className="grid gap-6 lg:grid-cols-2">
+    <section className="space-y-4">
+      <CollapsibleSubsection
+        title="Dangerous Combinations"
+        icon={<Skull className="h-5 w-5 text-red-400" />}
+      >
         <TextListInput
           name="interactions.dangerous"
-          label="Dangerous Combinations"
-          helperText="Substances that should never be combined."
+          label="Dangerous"
           placeholder="e.g., Alcohol (Both substances cause...)"
-          addButtonLabel="Add dangerous interaction"
+          addButtonLabel="Add dangerous"
         />
+      </CollapsibleSubsection>
+      
+      <CollapsibleSubsection
+        title="Unsafe Combinations"
+        icon={<TriangleAlert className="h-5 w-5 text-orange-400" />}
+      >
         <TextListInput
           name="interactions.unsafe"
-          label="Unsafe Combinations"
-          helperText="Substances that may cause serious harm when combined."
+          label="Unsafe"
           placeholder="e.g., Opioids (Risk of respiratory...)"
-          addButtonLabel="Add unsafe interaction"
+          addButtonLabel="Add unsafe"
         />
-        <div className="lg:col-span-2">
-          <TextListInput
-            name="interactions.caution"
-            label="Use with Caution"
-            helperText="Substances that require careful consideration when combined."
-            placeholder="e.g., Cannabis (May intensify...)"
-            addButtonLabel="Add caution interaction"
-          />
-        </div>
-      </div>
-      <p className={helperTextClass}>Each entry becomes an interaction card with severity styling on the live page.</p>
+      </CollapsibleSubsection>
+      
+      <CollapsibleSubsection
+        title="Use with Caution"
+        icon={<Hospital className="h-5 w-5 text-yellow-400" />}
+      >
+        <TextListInput
+          name="interactions.caution"
+          label="Caution"
+          placeholder="e.g., Cannabis (May intensify...)"
+          addButtonLabel="Add caution"
+        />
+      </CollapsibleSubsection>
     </section>
   );
 }
@@ -315,14 +272,9 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Tolerance"
-        description="Feeds the Tolerance timeline card and cross-tolerance list."
-        icon={<Timer className="h-5 w-5" />}
-      />
       <div className="grid gap-4 md:grid-cols-3">
         {toleranceLabels.map(([key, label]) => (
-          <div key={`${idPrefix}-${key}`} className="space-y-2">
+          <div key={`${idPrefix}-${key}`} className="space-y-1">
             <Label>{label}</Label>
             <Input
               {...register(`tolerance.${key}`)}
@@ -331,17 +283,15 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
           </div>
         ))}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1">
         <ControlledTagMultiSelect
           name="tolerance.cross_tolerance"
           label="Cross Tolerances"
-          helperText="Substances or classes that share tolerance."
           placeholder="Add cross-tolerance"
           options={[]}
-          addButtonLabel="Add cross-tolerance"
+          addButtonLabel="Add"
           openStrategy="focus"
         />
-        <p className={helperTextClass}>Rendered beneath the timeline cards.</p>
       </div>
     </section>
   );
@@ -357,13 +307,9 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Summary"
-        description="Article summary and additional notes."
-        icon={<FileText className="h-5 w-5" />}
-      />
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-summary`}>
+      <div className="space-y-1">
+        <Label htmlFor={`${idPrefix}-summary`} className="flex items-center gap-1.5">
+          <NotebookText className="h-4 w-4 text-white/60" />
           Summary
         </Label>
         <Textarea
@@ -373,7 +319,6 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
           placeholder="Brief summary of the substance."
         />
         <CharacterCount value={summaryValue} />
-        <p className={helperTextClass}>Supports Markdown basics (headings, emphasis, lists).</p>
       </div>
     </section>
   );

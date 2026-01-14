@@ -7,6 +7,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import type { SubstanceModule, SourceInfo } from "../../../../data/article-sources";
+import type { ExtractedSourceInfo } from "../../../../utils/sectionSources";
 
 export interface ArticlesContextValue {
   // API configuration
@@ -19,9 +20,15 @@ export interface ArticlesContextValue {
   substanceModule: SubstanceModule | null;
   availableSources: SourceInfo[];
   
-  // Extracted content for section generators
+  // Extracted content for section generators (raw content)
   harmPotentialQuotes: string | null;
   pharmacologyQuotes: string | null;
+  historyCultureQuotes: string | null;
+  
+  // Parsed source info with favicons for section generators
+  harmPotentialSources: ExtractedSourceInfo | null;
+  pharmacologySources: ExtractedSourceInfo | null;
+  historyCultureSources: ExtractedSourceInfo | null;
   
   // Helper to get source content
   getSourceContent: (sourceId: string) => string | null;

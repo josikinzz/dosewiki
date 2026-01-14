@@ -5,9 +5,8 @@
  */
 
 import { useFormContext } from "react-hook-form";
-import { ExternalLink, Loader2, AlertCircle, Beaker } from "lucide-react";
+import { ExternalLink, Loader2, AlertCircle, Pipette } from "lucide-react";
 
-import { SectionHeader, helperTextClass } from "./FormHelpers";
 import { useReagentData } from "../../../hooks/useReagentData";
 import type { SubstanceArticle } from "../../../schema";
 
@@ -25,15 +24,9 @@ export function ReagentPreviewFieldsRHF({ idPrefix }: ReagentPreviewFieldsRHFPro
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Reagent Testing"
-        description="Live preview from ProtestKit API. This data is read-only and cached during publishing."
-        icon={<Beaker className="h-5 w-5" />}
-      />
-      
       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-white/60">
-          <Beaker className="h-4 w-4" />
+          <Pipette className="h-4 w-4" />
           <span>Data source: ProtestKit.eu</span>
           <a
             href="https://protestkit.eu"
@@ -111,11 +104,6 @@ export function ReagentPreviewFieldsRHF({ idPrefix }: ReagentPreviewFieldsRHFPro
           </div>
         )}
       </div>
-      
-      <p className={helperTextClass}>
-        Reagent data is fetched from ProtestKit.eu and cached in articles.json during the publishing workflow.
-        To refresh cached data, use the build scripts.
-      </p>
     </section>
   );
 }

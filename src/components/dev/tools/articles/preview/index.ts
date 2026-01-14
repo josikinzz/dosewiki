@@ -7,6 +7,7 @@ export { PharmacologySection as PreviewPharmacologySection } from "../../../../s
 export { SubjectiveEffectsSection as PreviewSubjectiveEffectsSection } from "../../../../sections/SubjectiveEffectsSection";
 export { InteractionsSection as PreviewInteractionsSection } from "../../../../sections/InteractionsSection";
 export { ToleranceSection as PreviewToleranceSection } from "../../../../sections/ToleranceSection";
+export { HistoryCultureSection as PreviewHistoryCultureSection } from "../../../../sections/HistoryCultureSection";
 export { HarmPotentialSection as PreviewHarmPotentialSection } from "../../../../sections/HarmPotentialSection";
 export { ReagentSection as PreviewReagentSection } from "../../../../sections/ReagentSection";
 export { LegalitySection as PreviewLegalitySection } from "../../../../sections/LegalitySection";

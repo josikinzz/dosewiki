@@ -109,6 +109,7 @@ function normalizeArticle(raw: Record<string, unknown>): SubstanceArticle {
     reagent_testing: normalizeReagentTesting(raw.reagent_testing),
     harm_potential: normalizeHarmPotential(raw.harm_potential),
     tolerance: normalizeTolerance(raw.tolerance),
+    history_culture: normalizeHistoryCulture(raw.history_culture),
     legality: normalizeLegality(raw.legality),
     source_citations: normalizeSourceCitations(raw.source_citations),
     citations: normalizeCitations(raw.citations),
@@ -487,6 +488,26 @@ function normalizeTolerance(raw: unknown): SubstanceArticle["tolerance"] {
     half_tolerance: getString(obj.half_tolerance),
     baseline_tolerance: getString(obj.baseline_tolerance),
     cross_tolerance: getStringArray(obj.cross_tolerance),
+  };
+}
+
+function normalizeHistoryCulture(raw: unknown): SubstanceArticle["history_culture"] {
+  const obj = getObject(raw);
+  
+  // Normalize sections array
+  const sections = Array.isArray(obj.sections)
+    ? obj.sections.map((section) => {
+        const sectionObj = getObject(section);
+        return {
+          heading: getString(sectionObj.heading),
+          content: getString(sectionObj.content),
+        };
+      })
+    : [];
+
+  return {
+    content: getString(obj.content),
+    sections,
   };
 }
 

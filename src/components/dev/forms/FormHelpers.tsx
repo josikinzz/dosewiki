@@ -1,4 +1,5 @@
-import type { ReactNode, PropsWithChildren } from "react";
+import { useState, type ReactNode, type PropsWithChildren } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const helperTextClass = "text-[11px] text-white/45";
@@ -39,6 +40,125 @@ export const FormSectionCard = ({ children }: PropsWithChildren) => (
     {children}
   </div>
 );
+
+/**
+ * Collapsible card wrapper for form sections.
+ * Used for sections that are less frequently edited or secondary data.
+ */
+export interface CollapsibleFormSectionCardProps extends PropsWithChildren {
+  title: string;
+  icon?: ReactNode;
+  description?: string;
+  defaultExpanded?: boolean;
+}
+
+export function CollapsibleFormSectionCard({
+  title,
+  icon,
+  description,
+  defaultExpanded = false,
+  children,
+}: CollapsibleFormSectionCardProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-950/40 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+      >
+        <div className="flex items-center gap-2.5">
+          {icon && <span className="text-fuchsia-400">{icon}</span>}
+          <span className="text-lg font-semibold text-fuchsia-200">{title}</span>
+        </div>
+        {isExpanded ? (
+          <ChevronDown className="h-5 w-5 text-white/40" />
+        ) : (
+          <ChevronRight className="h-5 w-5 text-white/40" />
+        )}
+      </button>
+      {isExpanded && (
+        <div className="border-t border-white/10 p-6 space-y-6">
+          {description && (
+            <p className="text-sm text-white/60 -mt-2 mb-4">{description}</p>
+          )}
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Collapsible subsection within a form section.
+ * Used to hide optional or secondary fields within an expanded section.
+ */
+export interface CollapsibleSubsectionProps extends PropsWithChildren {
+  title: string;
+  icon?: ReactNode;
+  description?: string;
+  defaultExpanded?: boolean;
+}
+
+export function CollapsibleSubsection({
+  title,
+  icon,
+  description,
+  defaultExpanded = false,
+  children,
+}: CollapsibleSubsectionProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-fuchsia-300">{icon}</span>}
+          <span className="text-sm font-semibold text-white">{title}</span>
+        </div>
+        {isExpanded ? (
+          <ChevronDown className="h-4 w-4 text-white/40" />
+        ) : (
+          <ChevronRight className="h-4 w-4 text-white/40" />
+        )}
+      </button>
+      {isExpanded && (
+        <div className="border-t border-white/10 p-4 space-y-4">
+          {description && (
+            <p className="text-[11px] text-white/45 -mt-2">{description}</p>
+          )}
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Visual grouping container for related fields within a form section.
+ * Provides subtle background separation without collapsible behavior.
+ */
+export interface FieldGroupProps extends PropsWithChildren {
+  label?: string;
+}
+
+export function FieldGroup({ label, children }: FieldGroupProps) {
+  return (
+    <div className="rounded-lg bg-white/[0.02] p-4 space-y-4">
+      {label && (
+        <p className="text-[10px] font-medium uppercase tracking-wider text-white/40 -mb-1">
+          {label}
+        </p>
+      )}
+      {children}
+    </div>
+  );
+}
 
 export const SectionHeader = ({ title, description, icon }: SectionHeaderProps) => (
   <div className="space-y-1 mb-6">

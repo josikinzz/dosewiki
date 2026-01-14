@@ -3,7 +3,7 @@
  */
 
 import { Controller, useFormContext } from "react-hook-form";
-import { FileText } from "lucide-react";
+import { BookOpenText, Fingerprint, Leaf, MessageSquareQuote, Tag } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { SectionHeader, helperTextClass } from "./FormHelpers";
+import { CollapsibleSubsection, FieldGroup, helperTextClass } from "./FormHelpers";
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "../../../data/config/tagOptions";
 import type { SubstanceArticle } from "../../../schema";
@@ -50,10 +50,72 @@ export function OverviewFieldsRHF({
 
   return (
     <section className="space-y-6">
-      <SectionHeader title="Overview" description="Controls the hero title, alias rail, and index metadata." icon={<FileText className="h-5 w-5" />} />
-      <div className="space-y-2">
+      {/* Article metadata - first for quick reference */}
+      <FieldGroup label="Article Metadata">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-1">
+            <Label htmlFor={`${idPrefix}-id`}>
+              Article ID
+            </Label>
+            <Controller
+              name="id"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  id={`${idPrefix}-id`}
+                  type="number"
+                  value={field.value ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value.trim();
+                    if (val === "") {
+                      field.onChange(null);
+                    } else {
+                      const num = parseInt(val, 10);
+                      field.onChange(Number.isNaN(num) ? null : num);
+                    }
+                  }}
+                  onBlur={field.onBlur}
+                  placeholder="e.g., 101"
+                />
+              )}
+            />
+            <p className={helperTextClass}>
+              Leave blank to auto-assign when staging.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`${idPrefix}-priority`}>
+              Priority
+            </Label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value ?? "normal"} onValueChange={field.onChange}>
+                  <SelectTrigger id={`${idPrefix}-priority`}>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">{opt.label}</span>
+                          <span className="text-xs text-white/50">{opt.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        </div>
+      </FieldGroup>
+
+      {/* Primary identification - matches HeroSection visual order */}
+      <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-display-title`}>
-          Display name / Title
+          Display Name / Title
         </Label>
         <Input
           id={`${idPrefix}-display-title`}
@@ -61,180 +123,34 @@ export function OverviewFieldsRHF({
           onChange={handleDisplayTitleChange}
           placeholder="Primary article title"
         />
-        <p className={helperTextClass}>
-          Keeps the hero heading and display name badge in sync.
-        </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-id`}>
-            Article ID
-          </Label>
-          <Controller
-            name="id"
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`${idPrefix}-id`}
-                type="number"
-                value={field.value ?? ""}
-                onChange={(e) => {
-                  const val = e.target.value.trim();
-                  if (val === "") {
-                    field.onChange(null);
-                  } else {
-                    const num = parseInt(val, 10);
-                    field.onChange(Number.isNaN(num) ? null : num);
-                  }
-                }}
-                onBlur={field.onBlur}
-                placeholder="e.g., 101"
-              />
-            )}
-          />
-          <p className={helperTextClass}>
-            Leave blank to auto-assign the next available ID when staging a new article.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-priority`}>
-            Priority
-          </Label>
-          <Controller
-            name="priority"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value ?? "normal"} onValueChange={field.onChange}>
-                <SelectTrigger id={`${idPrefix}-priority`}>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRIORITY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">{opt.label}</span>
-                        <span className="text-xs text-white/50">{opt.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          <p className={helperTextClass}>
-            Controls article visibility in listings and search.
-          </p>
-        </div>
-        <div>
-          <ControlledTagMultiSelect
-            name="index_categories"
-            label="Index Categories"
-            helperText="Use the + button to pick existing index tags or type to add new ones."
-            placeholder="Filter or create index tags"
-            options={indexCategoryOptions}
-            addButtonLabel="Add index tag"
-            openStrategy="button"
-          />
-        </div>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-substitutive-name`}>
-            Substitutive name
-          </Label>
-          <Input
-            id={`${idPrefix}-substitutive-name`}
-            {...register("identification.substitutive_name")}
-            placeholder="Systematic or ISO name"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-iupac-name`}>
-            IUPAC name
-          </Label>
-          <Input
-            id={`${idPrefix}-iupac-name`}
-            {...register("identification.iupac_name")}
-            placeholder="Add full IUPAC naming (optional)"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-cas-number`}>
-            CAS Number
-          </Label>
-          <Input
-            id={`${idPrefix}-cas-number`}
-            {...register("identification.cas_number")}
-            placeholder="e.g., 50-37-3"
-          />
-        </div>
-      </div>
-      {/* Additional Identification Fields */}
-      <div className="space-y-2">
-        <ControlledTagMultiSelect
-          name="identification.alternative_names"
-          label="Alternative Names / Aliases"
-          helperText="Street names, abbreviations, or other common names."
-          placeholder="Add alias"
-          options={[]}
-          addButtonLabel="Add alias"
-          openStrategy="focus"
+      
+      <div className="space-y-1">
+        <Label htmlFor={`${idPrefix}-substitutive-name`} className="inline-flex items-center gap-1.5">
+          <BookOpenText className="h-3.5 w-3.5 text-fuchsia-300" />
+          Substitutive Name
+        </Label>
+        <Input
+          id={`${idPrefix}-substitutive-name`}
+          {...register("identification.substitutive_name")}
+          placeholder="Systematic or ISO name"
         />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-smiles`}>
-            SMILES
-          </Label>
-          <Input
-            id={`${idPrefix}-smiles`}
-            {...register("identification.smiles")}
-            placeholder="e.g., CCN(CC)C(=O)..."
-            className="font-mono text-sm"
-          />
-          <p className={helperTextClass}>
-            Simplified molecular-input line-entry system notation.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-inchi-key`}>
-            InChI Key
-          </Label>
-          <Input
-            id={`${idPrefix}-inchi-key`}
-            {...register("identification.inchi_key")}
-            placeholder="e.g., VYFYYTLLBUKUHU-UHFFFAOYSA-N"
-            className="font-mono text-sm"
-          />
-          <p className={helperTextClass}>
-            International Chemical Identifier hash key.
-          </p>
-        </div>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-molecular-formula`}>
-            Molecular Formula
-          </Label>
-          <Input
-            id={`${idPrefix}-molecular-formula`}
-            {...register("identification.molecular_formula")}
-            placeholder="e.g., C20H25N3O"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-molecular-weight`}>
-            Molecular Weight
-          </Label>
-          <Input
-            id={`${idPrefix}-molecular-weight`}
-            {...register("identification.molecular_weight")}
-            placeholder="e.g., 323.43 g/mol"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-botanical-name`}>
+      
+      <ControlledTagMultiSelect
+        name="identification.alternative_names"
+        label="Aliases"
+        helperText="Street names, slang, abbreviations"
+        placeholder="Add alias"
+        options={[]}
+        compact
+        openStrategy="focus"
+        icon={<MessageSquareQuote className="h-3.5 w-3.5 text-fuchsia-300" />}
+      />
+      
+      <div className="space-y-1">
+        <Label htmlFor={`${idPrefix}-botanical-name`} className="inline-flex items-center gap-1.5">
+          <Leaf className="h-3.5 w-3.5 text-fuchsia-300" />
           Botanical Name
         </Label>
         <Input
@@ -242,10 +158,88 @@ export function OverviewFieldsRHF({
           {...register("identification.botanical_name")}
           placeholder="For natural substances (e.g., Psilocybe cubensis)"
         />
-        <p className={helperTextClass}>
-          Only applicable for plant/fungal sources.
-        </p>
       </div>
+      
+      <ControlledTagMultiSelect
+        name="index_categories"
+        label="Index Categories"
+        placeholder="Filter or create index tags"
+        options={indexCategoryOptions}
+        openStrategy="button"
+        icon={<Tag className="h-3.5 w-3.5 text-fuchsia-300" />}
+      />
+      
+      {/* Chemical identification - expandable details in hero */}
+      <CollapsibleSubsection
+        title="Chemical Identification"
+        icon={<Fingerprint className="h-5 w-5" />}
+        description="These fields appear in the expandable 'See more' section of the hero."
+      >
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-iupac-name`}>
+              IUPAC name
+            </Label>
+            <Input
+              id={`${idPrefix}-iupac-name`}
+              {...register("identification.iupac_name")}
+              placeholder="Add full IUPAC naming"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-cas-number`}>
+              CAS Number
+            </Label>
+            <Input
+              id={`${idPrefix}-cas-number`}
+              {...register("identification.cas_number")}
+              placeholder="e.g., 50-37-3"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-molecular-formula`}>
+              Molecular Formula
+            </Label>
+            <Input
+              id={`${idPrefix}-molecular-formula`}
+              {...register("identification.molecular_formula")}
+              placeholder="e.g., C20H25N3O"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-molecular-weight`}>
+              Molecular Weight
+            </Label>
+            <Input
+              id={`${idPrefix}-molecular-weight`}
+              {...register("identification.molecular_weight")}
+              placeholder="e.g., 323.43 g/mol"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-smiles`}>
+              SMILES
+            </Label>
+            <Input
+              id={`${idPrefix}-smiles`}
+              {...register("identification.smiles")}
+              placeholder="e.g., CCN(CC)C(=O)..."
+              className="font-mono text-sm"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-inchi-key`}>
+              InChI Key
+            </Label>
+            <Input
+              id={`${idPrefix}-inchi-key`}
+              {...register("identification.inchi_key")}
+              placeholder="e.g., VYFYYTLLBUKUHU-..."
+              className="font-mono text-sm"
+            />
+          </div>
+        </div>
+      </CollapsibleSubsection>
     </section>
   );
 }

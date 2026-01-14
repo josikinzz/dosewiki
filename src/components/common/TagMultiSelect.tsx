@@ -50,6 +50,10 @@ export type TagMultiSelectProps = {
   className?: string;
   addButtonLabel?: string;
   openStrategy?: "focus" | "button";
+  /** Use smaller, more compact tag badges */
+  compact?: boolean;
+  /** Optional icon to display next to the label */
+  icon?: React.ReactNode;
 };
 
 type MenuItem =
@@ -89,6 +93,8 @@ export const TagMultiSelect = ({
   className,
   addButtonLabel,
   openStrategy = "focus",
+  compact = false,
+  icon,
 }: TagMultiSelectProps) => {
   const inputId = useId();
   const listboxId = `${inputId}-listbox`;
@@ -457,7 +463,8 @@ export const TagMultiSelect = ({
 
   return (
     <div className={className} ref={containerRef}>
-      <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-white/80">
+      <label htmlFor={inputId} className="mb-1 flex items-center gap-1.5 text-sm font-medium text-white/80">
+        {icon}
         {label}
       </label>
       <div
@@ -473,10 +480,14 @@ export const TagMultiSelect = ({
                 event.preventDefault();
                 handleRemoveTag(index);
               };
+              const tagClasses = compact
+                ? "flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-xs text-white/90 shadow-sm"
+                : "flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/90 shadow-sm";
+              const iconClasses = compact ? "h-2.5 w-2.5" : "h-3 w-3";
               return (
                 <span
                   key={`${tag}-${index}`}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/90 shadow-sm"
+                  className={tagClasses}
                 >
                   {tag}
                   {!disabled ? (
@@ -485,7 +496,7 @@ export const TagMultiSelect = ({
                       aria-label={`Remove ${tag}`}
                       onClick={handleRemoveClick}
                     >
-                      <X className="h-3 w-3" />
+                      <X className={iconClasses} />
                     </Button>
                   ) : null}
                 </span>

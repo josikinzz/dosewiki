@@ -1,17 +1,18 @@
 /**
- * RHF-based Chemistry and Pharmacology fields component.
+ * RHF-based Pharmacology fields component.
+ * Classification fields have been moved to ClassificationFieldsRHF.
  */
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { FlaskConical } from "lucide-react";
+import { Brain, FlaskConical, Timer } from "lucide-react";
 import yaml from "yaml";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { SectionHeader, helperTextClass } from "./FormHelpers";
+import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, RecordStringInput } from "./rhf";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
@@ -21,15 +22,11 @@ import type { SubstanceArticle, Pharmacology } from "../../../schema";
 
 export type ChemistryFieldsRHFProps = {
   idPrefix: string;
-  chemicalClassOptions: TagOption[];
-  psychoactiveClassOptions: TagOption[];
   mechanismOptions: TagOption[];
 };
 
 export function ChemistryFieldsRHF({
   idPrefix,
-  chemicalClassOptions,
-  psychoactiveClassOptions,
   mechanismOptions,
 }: ChemistryFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
@@ -68,20 +65,13 @@ export function ChemistryFieldsRHF({
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Chemistry & Pharmacology"
-        description="Feeds the Chemistry & Pharmacology card chips and mechanism copy."
-        icon={<FlaskConical className="h-5 w-5" />}
-      />
-      
       {/* AI Section Generator - only shown when in Articles context */}
       {articlesContext && (
         <SectionGenerator
-          sectionKey="pharmacology"
           sectionLabel="Pharmacology"
-          icon={FlaskConical}
           prompt={pharmacologyPrompt}
           extractedContent={articlesContext.pharmacologyQuotes}
+          extractedSources={articlesContext.pharmacologySources}
           genericSources={articlesContext.getAllSources()}
           currentArticleYaml={getCurrentArticleYaml()}
           onApply={handleApplyGenerated}
@@ -91,43 +81,21 @@ export function ChemistryFieldsRHF({
         />
       )}
       
-      {/* Classification */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <ControlledTagMultiSelect
-          name="classification.chemical_class"
-          label="Chemical class"
-          helperText="Use the + button to browse chemical classes. Type when filtering or adding a new descriptor."
-          placeholder="Filter or create chemical classes"
-          options={chemicalClassOptions}
-          addButtonLabel="Add chemical class"
-          openStrategy="button"
-        />
-        <ControlledTagMultiSelect
-          name="classification.psychoactive_class"
-          label="Psychoactive class"
-          helperText="Tap the + button to open the picker. Type to filter or capture a brand-new psychoactive class."
-          placeholder="Filter or create psychoactive classes"
-          options={psychoactiveClassOptions}
-          addButtonLabel="Add psychoactive class"
-          openStrategy="button"
-        />
-      </div>
-      
-      {/* Mechanism of Action */}
-      <div className="space-y-2">
+      {/* Mechanism of Action - Primary card in public section */}
+      <div className="space-y-1">
         <ControlledTagMultiSelect
           name="pharmacology.mechanism_of_action"
-          label="Mechanism of action"
-          helperText="Use the + button to pick existing targets. Type only when filtering or defining a new mechanism."
-          placeholder="Filter or create mechanisms"
+          label="Mechanism of Action"
+          icon={<Brain className="h-4 w-4 text-white/60" />}
+          placeholder="Add mechanism"
           options={mechanismOptions}
-          addButtonLabel="Add mechanism of action"
+          addButtonLabel="Add mechanism"
           openStrategy="button"
         />
       </div>
       
-      {/* Receptor Binding */}
-      <div className="space-y-2">
+      {/* Receptor Binding - Expandable within MoA card */}
+      <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-receptor-binding`}>
           Receptor Binding Profile
         </Label>
@@ -136,15 +104,44 @@ export function ChemistryFieldsRHF({
           className="min-h-[80px]"
           placeholder="receptor: affinity (one per line, e.g., 5-HT2A: Ki = 0.3 nM)"
         />
-        <p className={helperTextClass}>
-          Quantitative or qualitative receptor binding information.
-        </p>
       </div>
       
-      {/* Pharmacokinetics */}
-      <p className="text-xs font-medium uppercase tracking-wider text-white/50">Pharmacokinetics</p>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2">
+      {/* Metabolism & Metabolites - Second card in public section */}
+      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+        <FlaskConical className="h-3.5 w-3.5" />
+        Metabolism
+      </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-1">
+          <Label htmlFor={`${idPrefix}-metabolism`}>
+            Metabolism Pathway
+          </Label>
+          <Textarea
+            id={`${idPrefix}-metabolism`}
+            className="min-h-[80px]"
+            {...register("pharmacology.metabolism")}
+            placeholder="Describe metabolic pathway (e.g., CYP2D6, CYP3A4 hepatic metabolism)"
+          />
+        </div>
+        <div className="space-y-1">
+          <ControlledTagMultiSelect
+            name="pharmacology.metabolites"
+            label="Active Metabolites"
+            placeholder="Add metabolite"
+            options={[]}
+            addButtonLabel="Add metabolite"
+            openStrategy="focus"
+          />
+        </div>
+      </div>
+      
+      {/* Half-life & Bioavailability Notes - Third card in public section */}
+      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+        <Timer className="h-3.5 w-3.5" />
+        Half-life & Bioavailability
+      </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-half-life`}>
             Half-life
           </Label>
@@ -154,76 +151,58 @@ export function ChemistryFieldsRHF({
             placeholder="e.g., ~3.6 hours"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-bioavailability`}>
-            Bioavailability
-          </Label>
-          <Input
-            id={`${idPrefix}-bioavailability`}
-            {...register("pharmacology.bioavailability")}
-            placeholder="e.g., 70% (oral)"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-protein-binding`}>
-            Protein Binding
-          </Label>
-          <Input
-            id={`${idPrefix}-protein-binding`}
-            {...register("pharmacology.protein_binding")}
-            placeholder="e.g., 80-85%"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-volume-distribution`}>
-            Volume of Distribution
-          </Label>
-          <Input
-            id={`${idPrefix}-volume-distribution`}
-            {...register("pharmacology.volume_of_distribution")}
-            placeholder="e.g., 1.2 L/kg"
-          />
-        </div>
-      </div>
-      
-      {/* Metabolism */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-metabolism`}>
-            Metabolism
+        <div className="space-y-1">
+          <Label htmlFor={`${idPrefix}-bioavailability-notes`}>
+            Bioavailability Notes
           </Label>
           <Textarea
-            id={`${idPrefix}-metabolism`}
-            className="min-h-[80px]"
-            {...register("pharmacology.metabolism")}
-            placeholder="Describe metabolic pathway (e.g., CYP2D6, CYP3A4 hepatic metabolism)"
-          />
-        </div>
-        <div className="space-y-2">
-          <ControlledTagMultiSelect
-            name="pharmacology.metabolites"
-            label="Active Metabolites"
-            helperText="Key metabolites with pharmacological activity."
-            placeholder="Add metabolite"
-            options={[]}
-            addButtonLabel="Add metabolite"
-            openStrategy="focus"
+            id={`${idPrefix}-bioavailability-notes`}
+            className="min-h-[60px]"
+            {...register("pharmacology.bioavailability_notes")}
+            placeholder="Notes on absorption, food effects, or route-specific considerations."
           />
         </div>
       </div>
       
-      {/* Additional Notes */}
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-bioavailability-notes`}>
-          Bioavailability Notes
-        </Label>
-        <Textarea
-          id={`${idPrefix}-bioavailability-notes`}
-          className="min-h-[60px]"
-          {...register("pharmacology.bioavailability_notes")}
-          placeholder="Additional notes on absorption, food effects, or route-specific considerations."
-        />
-      </div>
+      {/* Extended pharmacokinetics - stored but not displayed in public section */}
+      <CollapsibleSubsection
+        title="Extended Pharmacokinetics"
+        icon={<Timer className="h-5 w-5" />}
+        description="These fields are stored for data completeness but not currently displayed in the public article."
+      >
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-bioavailability`}>
+              Bioavailability
+            </Label>
+            <Input
+              id={`${idPrefix}-bioavailability`}
+              {...register("pharmacology.bioavailability")}
+              placeholder="e.g., 70% (oral)"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-protein-binding`}>
+              Protein Binding
+            </Label>
+            <Input
+              id={`${idPrefix}-protein-binding`}
+              {...register("pharmacology.protein_binding")}
+              placeholder="e.g., 80-85%"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-volume-distribution`}>
+              Volume of Distribution
+            </Label>
+            <Input
+              id={`${idPrefix}-volume-distribution`}
+              {...register("pharmacology.volume_of_distribution")}
+              placeholder="e.g., 1.2 L/kg"
+            />
+          </div>
+        </div>
+      </CollapsibleSubsection>
     </section>
   );
 }

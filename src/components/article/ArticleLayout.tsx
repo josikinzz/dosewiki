@@ -6,6 +6,7 @@ import { SubjectiveEffectsSection } from "../sections/SubjectiveEffectsSection";
 import { PharmacologySection } from "../sections/PharmacologySection";
 import { InteractionsSection } from "../sections/InteractionsSection";
 import { ToleranceSection } from "../sections/ToleranceSection";
+import { HistoryCultureSection } from "../sections/HistoryCultureSection";
 import { HarmPotentialSection } from "../sections/HarmPotentialSection";
 import { ReagentSection } from "../sections/ReagentSection";
 import { LegalitySection } from "../sections/LegalitySection";
@@ -64,6 +65,7 @@ export const ArticleLayout = memo(function ArticleLayout({
       />
       <ToleranceSection article={article} />
       <HarmPotentialSection article={article} />
+      <HistoryCultureSection article={article} />
       <LegalitySection article={article} />
       <CitationsSection article={article} />
     </div>

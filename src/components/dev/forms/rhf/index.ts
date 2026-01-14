@@ -8,4 +8,5 @@ export { DoseRangeStringInput, type DoseRangeStringInputProps } from "./DoseRang
 export { DurationStageStringInput, type DurationStageStringInputProps } from "./DurationStageStringInput";
 export { RecordStringInput, type RecordStringInputProps } from "./RecordStringInput";
 export { CountryLegalityInput, type CountryLegalityInputProps } from "./CountryLegalityInput";
+export { CountryLegalityCardEditor, type CountryLegalityCardEditorProps } from "./CountryLegalityCardEditor";
 export { TextListInput, type TextListInputProps } from "./TextListInput";

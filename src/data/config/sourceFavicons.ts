@@ -128,6 +128,28 @@ export const sourceConfigs: SourceConfig[] = [
 ];
 
 /**
+ * Map display names from quotes files to source IDs.
+ * Used to look up favicons for sources extracted from markdown quotes.
+ */
+export const sourceDisplayNameToId: Record<string, string | null> = {
+  "PsychonautWiki": "psychonautwiki",
+  "Erowid": "erowid",
+  "TripSit Factsheets": "tripsit",
+  "TripSit Wiki": "tripsit",
+  "Wikipedia": "wikipedia",
+  "DrugBank": "drugbank",
+  "Isomer Design": "isomerdesign",
+  "The Drug Classroom": "thedrugclassroom",
+  "Drug Users Bible": "drugusersbible",
+  "Disregard Everything I Say": "disregardeverythingisay",
+  "SaferParty": null, // No favicon yet
+  "DanceSafe": "dancesafe",
+  "Bluelight": "bluelight",
+  "PubMed": "pubmed",
+  "Reddit": "reddit",
+};
+
+/**
  * Get favicon path for a citation URL
  */
 export function getFaviconForUrl(url: string): string | null {
@@ -150,4 +172,14 @@ export function getFaviconForUrl(url: string): string | null {
     // Invalid URL
   }
   return null;
+}
+
+/**
+ * Get favicon path for a source display name (from quotes files).
+ */
+export function getFaviconForSourceName(name: string): string | null {
+  const id = sourceDisplayNameToId[name];
+  if (!id) return null;
+  const config = sourceConfigs.find(c => c.id === id);
+  return config?.favicon ?? null;
 }

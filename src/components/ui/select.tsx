@@ -42,12 +42,12 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, variant, selectSize, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
-    className={cn(selectTriggerVariants({ variant, selectSize }), className)}
+    className={cn("relative", selectTriggerVariants({ variant, selectSize }), className)}
     {...props}
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-white/50" />
+      <ChevronDown className="absolute right-3 h-4 w-4 text-white/50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))

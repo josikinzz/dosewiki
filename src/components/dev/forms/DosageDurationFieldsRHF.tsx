@@ -4,13 +4,12 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
-import { Clock } from "lucide-react";
+import { ChartColumnIncreasing, ChartLine } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { SectionHeader, helperTextClass } from "./FormHelpers";
 import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
 import type { SubstanceArticle } from "../../../schema";
 
@@ -23,14 +22,14 @@ const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "h
   ["heavy", "Heavy"],
 ];
 
-// Duration stage labels with placeholders
+// Duration stage labels with placeholders - matches public section display order
 const durationStageLabels: Array<["onset" | "come_up" | "peak" | "offset" | "after_effects" | "total_duration", string, string]> = [
-  ["total_duration", "Total Duration", "e.g., 6-8 hours"],
   ["onset", "Onset", "e.g., 15-30 minutes"],
   ["come_up", "Come-up", "e.g., 30-60 minutes"],
   ["peak", "Peak", "e.g., 2-3 hours"],
   ["offset", "Offset", "e.g., ~2 hours"],
   ["after_effects", "After Effects", "e.g., Residual stimulation"],
+  ["total_duration", "Total Duration", "e.g., 6-8 hours"],
 ];
 
 export type DosageDurationFieldsRHFProps = {
@@ -54,11 +53,6 @@ export function DosageDurationFieldsRHF({
 
   return (
     <section className="space-y-6">
-      <SectionHeader
-        title="Dosage & Duration"
-        description="Mirrors the live dosage card with route tables followed by metabolism timing."
-        icon={<Clock className="h-5 w-5" />}
-      />
       <div className="space-y-4">
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;
@@ -105,11 +99,14 @@ export function DosageDurationFieldsRHF({
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-white/50">Dose Ranges</p>
+              <div className="space-y-3">
+                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+                  <ChartColumnIncreasing className="h-3.5 w-3.5 text-fuchsia-300" />
+                  Dose Ranges
+                </p>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {doseRangeLabels.map(([key, label]) => (
-                    <div key={`${routeKey}-${key}`} className="space-y-2">
+                    <div key={`${routeKey}-${key}`} className="space-y-1">
                       <Label>{label}</Label>
                       <DoseRangeStringInput
                         name={`dosage.routes.${index}.dose_ranges.${key}`}
@@ -119,11 +116,14 @@ export function DosageDurationFieldsRHF({
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wider text-white/50">Duration Stages</p>
+              <div className="space-y-3">
+                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+                  <ChartLine className="h-3.5 w-3.5 text-fuchsia-300" />
+                  Duration Stages
+                </p>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {durationStageLabels.map(([stageKey, label, placeholder]) => (
-                    <div key={`${routeKey}-duration-${stageKey}`} className="space-y-2">
+                    <div key={`${routeKey}-duration-${stageKey}`} className="space-y-1">
                       <Label>{label}</Label>
                       <DurationStageStringInput
                         name={`duration.routes.${index}.stages.${stageKey}`}
@@ -152,7 +152,6 @@ export function DosageDurationFieldsRHF({
       >
         Add route
       </Button>
-      <p className={helperTextClass}>Separate ranges with hyphens; omit values when data is unavailable.</p>
     </section>
   );
 }

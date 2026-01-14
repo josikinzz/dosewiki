@@ -34,11 +34,11 @@ export function createEmptyArticle(): SubstanceArticle {
       skeletal_structure_image: "",
       botanical_name: "",
     },
-    summary: "",
     classification: {
       psychoactive_class: [],
       chemical_class: [],
     },
+    summary: "",
     dosage: {
       routes: [],
       plateau_dosing: null,
@@ -99,6 +99,12 @@ export function createEmptyArticle(): SubstanceArticle {
       caution: [],
     },
     reagent_testing: {},
+    tolerance: {
+      full_tolerance: "",
+      half_tolerance: "",
+      baseline_tolerance: "",
+      cross_tolerance: [],
+    },
     harm_potential: {
       addiction_liability: "",
       dependence_liability: "",
@@ -115,11 +121,10 @@ export function createEmptyArticle(): SubstanceArticle {
         other: [],
       },
     },
-    tolerance: {
-      full_tolerance: "",
-      half_tolerance: "",
-      baseline_tolerance: "",
-      cross_tolerance: [],
+    // history_culture: optional, include with empty defaults for form editing
+    history_culture: {
+      content: "",
+      sections: [],
     },
     legality: {
       international: [],

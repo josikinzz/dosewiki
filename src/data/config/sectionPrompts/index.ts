@@ -8,6 +8,7 @@ import subjectiveEffectsPrompt from './subjectiveEffects.md?raw';
 import pharmacologyPrompt from './pharmacology.md?raw';
 import interactionsPrompt from './interactions.md?raw';
 import tolerancePrompt from './tolerance.md?raw';
+import historyCulturePrompt from './historyCulture.md?raw';
 import legalityPrompt from './legality.md?raw';
 import identificationPrompt from './identification.md?raw';
 
@@ -19,6 +20,7 @@ export const sectionPrompts = {
   pharmacology: pharmacologyPrompt,
   interactions: interactionsPrompt,
   tolerance: tolerancePrompt,
+  history_culture: historyCulturePrompt,
   legality: legalityPrompt,
   identification: identificationPrompt,
 } as const;
@@ -65,16 +67,22 @@ export const sectionMetadata: SectionMeta[] = [
     hasExtractedSources: false,
   },
   {
+    key: 'tolerance',
+    label: 'Tolerance',
+    description: 'Tolerance development and cross-tolerance',
+    hasExtractedSources: false,
+  },
+  {
     key: 'harm_potential',
     label: 'Harm Potential',
     description: 'Addiction, toxicity, and health risks',
     hasExtractedSources: true, // harmpotential-quotes folder exists
   },
   {
-    key: 'tolerance',
-    label: 'Tolerance',
-    description: 'Tolerance development and cross-tolerance',
-    hasExtractedSources: false,
+    key: 'history_culture',
+    label: 'History & Culture',
+    description: 'Discovery, medical history, cultural significance, notable figures',
+    hasExtractedSources: true, // history-culture-quotes folder exists
   },
   {
     key: 'legality',
@@ -92,6 +100,7 @@ export {
   pharmacologyPrompt,
   interactionsPrompt,
   tolerancePrompt,
+  historyCulturePrompt,
   legalityPrompt,
   identificationPrompt,
 };

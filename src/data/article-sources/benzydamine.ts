@@ -1,6 +1,6 @@
 // Auto-generated - do not edit
 export const substanceName = "Benzydamine";
-export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Benzydamine.md","displayName":"DrugBank","size":20215,"tokens":5060},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Benzydamine.md","displayName":"TripSit Factsheets","size":523,"tokens":137},{"id":"wikipedia","fileName":"WIKIPEDIA - Benzydamine.md","displayName":"Wikipedia","size":4510,"tokens":1043}];
+export const sources = [{"id":"drugbank","fileName":"DRUGBANK - Benzydamine.md","displayName":"DrugBank","size":20215,"tokens":5060},{"id":"psychonautwiki","fileName":"PSYCHONAUTWIKI - Benzydamine.md","displayName":"PsychonautWiki","size":8008,"tokens":1719},{"id":"tripsit-factsheets","fileName":"TRIPSIT_FACTSHEETS - Benzydamine.md","displayName":"TripSit Factsheets","size":523,"tokens":137},{"id":"wikipedia","fileName":"WIKIPEDIA - Benzydamine.md","displayName":"Wikipedia","size":4510,"tokens":1043}];
 export const contents: Record<string, string> = {
   "drugbank": `# Benzydamine
 *Source: https://go.drugbank.com/drugs/DB09084*
@@ -810,6 +810,259 @@ CNBGNNVCVSKAQZ-UHFFFAOYSA-N
 ### InChI
 
 InChI=1S/C19H23N3O/c1-21(2)13-8-14-23-19-17-11-6-7-12-18(17)22(20-19)15-16-9-4-3-5-10-16/h3-7,9-12H,8,13-15H2,1-2H3`,
+  "psychonautwiki": `
+Wayback Machine
+57 captures
+18 Mar 2015 - 29 Nov 2025
+Aug 	MAR 	Jun
+	13 	
+2016 	2019 	2020
+About this capture
+Benzydamine
+Summary sheet: Benzydamine
+Benzydamine
+Benzydamine.svg
+Chemical Nomenclature
+Common names
+	
+Benzydamine, Tantum Verde
+Substitutive name
+	
+Benzydamine
+Systematic name
+	
+3-(1-Benzyl-1H-indazol-3-yloxy)-N,N-dimethylpropan-1-amine
+Class Membership
+Psychoactive class
+	
+Deliriant
+Chemical class
+	
+Indazole alkaloid
+Routes of Administration
+
+WARNING: Always start with lower doses due to differences between individual body weight, tolerance, metabolism, and personal sensitivity. See responsible use section.
+Oral
+Dosage
+Threshold
+	0.5 g
+Light
+	0.5 - 1 g
+Common
+	1 - 1.5 g
+Strong
+	1.5 - 2 g
+Heavy
+	2 g +
+Duration
+Total
+	5 - 8 hours
+Onset
+	20 - 60 minutes
+Peak
+	3 - 6 hours
+Offset
+	3 - 8 hours
+
+DISCLAIMER: PW's dosage information is gathered from users and resources for educational purposes only. It is not a recommendation and should be verified with other sources for accuracy.
+
+Benzydamine (also known as Difflam or Tantum Verde) is a topical anaesthetic of the indazole alkaloid chemical class. It is sometimes found in small doses in over-the-counter products used to treat sore throats. In Germany and Poland, it is sold as a vaginal douching agent under the brand name Tantum Rosa. This product is also easily accessible across the world through the use of online stores such as eBay.
+
+Alternatively, benzydamine can be used as a powerful psychoactive hallucinogen for recreational purposes. In high doses, it acts as a unique deliriant and CNS stimulant.[1] Such use, particularly among teenagers, has been reported in Poland,[1] Brazil[2][3] and Romania.
+Contents
+
+    1 Chemistry
+    2 Pharmacology
+    3 Subjective effects
+        3.1 Physical effects
+        3.2 Visual effects
+        3.3 Cognitive effects
+        3.4 Auditory effects
+    4 Toxicity and harm potential
+    5 Extraction
+    6 Legal issues
+    7 See also
+    8 External links
+    9 References
+
+Chemistry
+
+Benzydamine, or 3-(1-benzylindazol-3-yl)oxy-N,N-dimethylpropan-1-amine, is a synthetic benzyl-indazole molecule. Benzydamine contains a benzene and pyrazole ring fused to form a bicyclic indazole group. A benzyl substituent C6H5CH2- is bound to R1 of the indazole ring. This indazole ring is also substituted at R3 with an ether chain consisting of the oxygen group bonded to a propyl amine chain. The terminal amine RN of this structure is substituted with two methyl groups (dimethyl). Benzydamine is produced as a hydrochloride salt.
+Pharmacology
+
+Benzydamine is a locally acting nonsteroidal anti-inflammatory drug with local anaesthetic and analgesic properties. Unlike other NSAIDs, it does not inhibit cyclooxygenase or lipooxygenase and is not ulcerogenic.
+
+In terms of the pharmacology behind its hallucinogenic effects, this aspect of benzydamine remains unstudied and is subject to much speculation.
+Subjective effects
+Metacogghjgjvghnition.png
+	This subjective effects section is a stub.
+
+As such, it is still in progress and may contain incomplete or wrong information.
+
+You can help by expanding it.
+Physical effects
+Child.svg
+
+        Stimulation - Insomnia and residual stimulation lasting up to 72 hours after the initial experience may occur on this substance.
+        Abnormal heartbeat
+        Tactile suppression
+        Increased heart rate
+        Motor control loss
+        Gustatory hallucinations
+        Dehydration
+        Dizziness
+
+Visual effects
+Eye.svg
+
+        External hallucinations (autonomous entities; settings, sceneries, and landscapes; perspective hallucinations and scenarios and plots)
+        Visual acuity suppression
+        Drifting
+        Object alterations
+        After images
+        Visual haze
+        Geometry
+        Double vision
+        Pattern recognition suppression
+        Vibrating vision
+        Peripheral information misinterpretation
+        Shadow people
+        Unspeakable horrors
+        Object activation
+
+Cognitive effects
+User.svg
+
+        Anxiety
+        Euphoria - Felt during onset but fades as the trip peaks.
+        Depression
+        Time distortion
+        Thought acceleration
+        Delusions
+        Feelings of impending doom - Replaces Euphoria
+        Paranoia - Replaces Euphoria
+
+Auditory effects
+Volume-up.svg
+
+        Hallucinations
+        Distortion
+
+
+Toxicity and harm potential
+Further information: Research chemicals § Toxicity and harm potential
+
+The vaginal douching agents such as Tantum Rosa and other products consistently contain large amounts of salt which, if consumed, can cause serious kidney damage.
+
+The toxicity and long-term health effects of recreational benzydamine use do not seem to have been studied in any scientific context and the exact toxic dose is unknown. This is because benzydamine is a research chemical with very little history of human usage. Anecdotal evidence from people within the psychonaut community who have tried benzydamine suggests that there are no negative health effects attributed to simply trying the drug by itself at low to moderate doses and using it very sparingly (but nothing can be completely guaranteed). Independent research should always be done to ensure that a combination of two or more substances is safe before consumption.
+Extraction
+
+Benzydamine is usually extracted from Tantum Rosa douching agents which are available online. In order to consume the substance safely, one must first remove the dangerous levels of salt contained within the sachet. This can be done by dissolving the substance in a small amount of water (25ml/sachet). After the substance has mostly dissolved after stirring (warm or just boiled water works best as the salt will dissolve more easily), wait 10 minutes. After 10 minutes has past the benzydamine should have formed a layer on the top and the salt have settled at the bottom. The benzydamine should be filtered out using filter paper but do not pour the salt that may settle at the bottom as this will simply add back most of the salt you have tried to remove. It is best to consume the remaining paste by stirring it into very strong squash and drinking it.
+Legal issues
+
+Benzydamine is legal and available in over-the-counter preparations in most parts of the world.
+
+    Difflam spray
+
+    Tantum Rosa
+
+    Difflam mouth gel
+
+See also
+
+    Responsible use
+    Deliriants
+    Stimulants
+    Diphenhydramine
+    DXM
+
+External links
+
+    Benzydamine (Wikipedia)
+    Benzydamine (Isomer Design)
+    Benzydamine (Taimapedia)
+    Benzydamine (Bluelight)
+    Benzydamine (Drugs Forum)
+    Benzydamine (Reddit)
+
+References
+
+Recreational abuse with benzydamine hydrochloride (tantum rosa) (PubMed.gov / NCBI) | http://www.ncbi.nlm.nih.gov/pubmed/17364645
+Recreational use of benzydamine as a hallucinogen among street youth in Brazil (PubMed.gov / NCBI) | http://www.ncbi.nlm.nih.gov/pubmed/19784487
+
+    Use abusive of benzydamine in Brazil: an overview in pharmacovigilance (PubMed.gov / NCBI) | http://www.ncbi.nlm.nih.gov/pubmed/19784487
+
+Categories:
+
+    Psychoactive substanceHallucinogenSubstanceDeliriant
+
+Navigation menu
+
+    Create account
+    Log in
+
+    Page
+    Discussion
+
+    Read
+    View source
+    View history
+
+Search
+Donate
+Contact
+
+    Home
+    Substances
+    EffectIndex
+    Replications
+    Experiences
+    Tutorials
+    Responsible use
+    List of articles
+    Random article
+
+Development
+
+    Contact us
+    Guidelines
+    To-do list
+    Recent changes
+    Open source
+
+Community
+
+    Network
+    YouTube
+    Good vibes
+
+Tools
+
+    What links here
+    Related changes
+    Special pages
+    Printable version
+    Permanent link
+    Page information
+    Cite this page
+    Browse properties
+
+special thanks
+—
+—
+—
+
+    "It's what scares people"
+
+    This page was last modified on 24 May 2018, at 23:40.
+    Content is available under Creative Commons Attribution-ShareAlike 4.0 International unless otherwise noted.
+
+    Privacy policy
+    About PsychonautWiki
+    Disclaimers
+    Mobile view
+
+`,
   "tripsit-factsheets": `# Benzydamine
 *Source: TripSit Factsheets (tripsit.me)*
 

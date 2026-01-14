@@ -10,20 +10,36 @@ import { useArticleForm, type UseArticleFormReturn } from "../../../hooks/useArt
 import type { SubstanceArticle } from "../../../schema";
 
 import { OverviewFieldsRHF } from "./OverviewFieldsRHF";
+import { ClassificationFieldsRHF } from "./ClassificationFieldsRHF";
 import { DosageDurationFieldsRHF } from "./DosageDurationFieldsRHF";
 import { ChemistryFieldsRHF } from "./ChemistryFieldsRHF";
 import {
-  SubjectiveEffectsFieldsRHF,
   AddictionFieldsRHF,
   InteractionsFieldsRHF,
   ToleranceFieldsRHF,
   NotesFieldsRHF,
 } from "./ContentFieldsRHF";
+import { SubjectiveEffectsFieldsRHF } from "./subjective-effects";
 import { LegalityFieldsRHF } from "./LegalityFieldsRHF";
 import { ReagentPreviewFieldsRHF } from "./ReagentPreviewFieldsRHF";
 import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
-import { FormSectionCard } from "./FormHelpers";
+import { HistoryCultureFieldsRHF } from "./HistoryCultureFieldsRHF";
+import { CollapsibleFormSectionCard } from "./FormHelpers";
+import {
+  FileText,
+  BrainCog,
+  ChartNoAxesCombined,
+  Sparkles,
+  Pipette,
+  UserRoundCog,
+  Blend,
+  TrendingUp,
+  Ambulance,
+  BookOpen,
+  Scale,
+  Library,
+} from "lucide-react";
 
 export type ArticleDraftFormFieldsRHFProps = {
   idPrefix: string;
@@ -57,14 +73,39 @@ export function ArticleDraftFormFieldsRHF({
   return (
     <FormProvider {...methods}>
       <div className="space-y-6">
-        <FormSectionCard>
+        {/* 1. Overview/Meta */}
+        <CollapsibleFormSectionCard
+          title="Overview"
+          icon={<FileText className="h-5 w-5" />}
+        >
           <OverviewFieldsRHF
             idPrefix={idPrefix}
             categoryOptions={categoryOptions}
             indexCategoryOptions={indexCategoryOptions}
           />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 2. Classification */}
+        <CollapsibleFormSectionCard
+          title="Classification"
+          icon={<BrainCog className="h-5 w-5" />}
+        >
+          <ClassificationFieldsRHF
+            chemicalClassOptions={chemicalClassOptions}
+            psychoactiveClassOptions={psychoactiveClassOptions}
+          />
+        </CollapsibleFormSectionCard>
+        {/* 3. Summary */}
+        <CollapsibleFormSectionCard
+          title="Summary"
+          icon={<FileText className="h-5 w-5" />}
+        >
+          <NotesFieldsRHF idPrefix={idPrefix} />
+        </CollapsibleFormSectionCard>
+        {/* 4. Dosage & Duration */}
+        <CollapsibleFormSectionCard
+          title="Dosage & Duration"
+          icon={<ChartNoAxesCombined className="h-5 w-5" />}
+        >
           <DosageDurationFieldsRHF
             idPrefix={idPrefix}
             dosageRoutes={dosageRoutes}
@@ -73,52 +114,90 @@ export function ArticleDraftFormFieldsRHF({
             removeDosageRoute={removeDosageRoute}
             applyDurationFromRoute={applyDurationFromRoute}
           />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 5. Subjective Effects */}
+        <CollapsibleFormSectionCard
+          title="Subjective Effects"
+          icon={<Sparkles className="h-5 w-5" />}
+        >
+          <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
+        </CollapsibleFormSectionCard>
+        {/* 6. Reagent Testing (collapsed by default - read-only preview) */}
+        <CollapsibleFormSectionCard
+          title="Reagent Testing"
+          icon={<Pipette className="h-5 w-5" />}
+        >
+          <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
+        </CollapsibleFormSectionCard>
+        {/* 7. Pharmacology */}
+        <CollapsibleFormSectionCard
+          title="Pharmacology"
+          icon={<UserRoundCog className="h-5 w-5" />}
+        >
           <ChemistryFieldsRHF
             idPrefix={idPrefix}
-            chemicalClassOptions={chemicalClassOptions}
-            psychoactiveClassOptions={psychoactiveClassOptions}
             mechanismOptions={mechanismOptions}
           />
-        </FormSectionCard>
-        <FormSectionCard>
-          <AddictionFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
-          <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 8. Interactions */}
+        <CollapsibleFormSectionCard
+          title="Interactions"
+          icon={<Blend className="h-5 w-5" />}
+        >
           <InteractionsFieldsRHF />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 9. Tolerance */}
+        <CollapsibleFormSectionCard
+          title="Tolerance"
+          icon={<TrendingUp className="h-5 w-5" />}
+        >
           <ToleranceFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 10. Harm Potential */}
+        <CollapsibleFormSectionCard
+          title="Harm Potential"
+          icon={<Ambulance className="h-5 w-5" />}
+        >
+          <AddictionFieldsRHF idPrefix={idPrefix} />
+        </CollapsibleFormSectionCard>
+        {/* 11. History & Culture */}
+        <CollapsibleFormSectionCard
+          title="History & Culture"
+          icon={<BookOpen className="h-5 w-5" />}
+        >
+          <HistoryCultureFieldsRHF idPrefix={idPrefix} />
+        </CollapsibleFormSectionCard>
+        {/* 12. Legality (collapsed by default) */}
+        <CollapsibleFormSectionCard
+          title="Legality"
+          icon={<Scale className="h-5 w-5" />}
+        >
           <LegalityFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
-          <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
-          <NotesFieldsRHF idPrefix={idPrefix} />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 13. Source Citations (collapsed by default) */}
+        <CollapsibleFormSectionCard
+          title="Sources"
+          icon={<BookOpen className="h-5 w-5" />}
+        >
           <SourceCitationsFieldsRHF
             idPrefix={idPrefix}
             sourceCitations={sourceCitations}
             addSourceCitation={addSourceCitation}
             removeSourceCitation={removeSourceCitation}
           />
-        </FormSectionCard>
-        <FormSectionCard>
+        </CollapsibleFormSectionCard>
+        {/* 14. Further Reading (collapsed by default) */}
+        <CollapsibleFormSectionCard
+          title="Citations"
+          icon={<Library className="h-5 w-5" />}
+        >
           <CitationsFieldsRHF
             idPrefix={idPrefix}
             citations={citations}
             addCitation={addCitation}
             removeCitation={removeCitation}
           />
-        </FormSectionCard>
+        </CollapsibleFormSectionCard>
       </div>
     </FormProvider>
   );

@@ -4,13 +4,12 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
-import { Quote } from "lucide-react";
+import { Library } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { SectionHeader } from "./FormHelpers";
 import type { SubstanceArticle } from "../../../schema";
 
 export type CitationsFieldsRHFProps = {
@@ -29,19 +28,17 @@ export function CitationsFieldsRHF({
   const { register } = useFormContext<SubstanceArticle>();
 
   return (
-    <section className="space-y-6">
-      <SectionHeader
-        title="Citations"
-        description="Powers the final citations list; keep order consistent with supporting notes."
-        icon={<Quote className="h-5 w-5" />}
-      />
-      <div className="space-y-4">
+    <section className="space-y-4">
+      <div className="space-y-3">
         {citations.fields.map((field, index) => {
           const citationKey = `${idPrefix}-citation-${index}`;
           return (
-            <div key={field.id} className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
+            <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white/75">Citation {index + 1}</p>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-white/75">
+                  <Library className="h-4 w-4 text-white/50" />
+                  Citation {index + 1}
+                </p>
                 {citations.fields.length > 1 && (
                   <Button
                     type="button"
@@ -54,14 +51,14 @@ export function CitationsFieldsRHF({
                 )}
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label>Citation label</Label>
                   <Input
                     {...register(`citations.${index}.name`)}
                     placeholder="TripSit"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label>Citation URL</Label>
                   <Input
                     {...register(`citations.${index}.url`)}

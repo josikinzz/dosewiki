@@ -265,6 +265,22 @@ export const toleranceSchema = z.object({
 });
 
 // ============================================================================
+// History & Culture Schemas
+// ============================================================================
+
+/** Single subsection within history & culture (freeform heading chosen by author) */
+export const historyCultureSectionSchema = z.object({
+  heading: z.string(),
+  content: z.string(),
+});
+
+/** History and culture section - freeform content with optional subsections */
+export const historyCultureSchema = z.object({
+  content: z.string(), // Freeform paragraphs - use alone for simpler substances
+  sections: z.array(historyCultureSectionSchema), // Optional subsections when content warrants structure
+});
+
+// ============================================================================
 // Legality Schemas
 // ============================================================================
 
@@ -286,8 +302,8 @@ export const substanceArticleSchema = z.object({
   index_categories: z.array(z.string()),
 
   identification: identificationSchema,
-  summary: z.string(),
   classification: classificationSchema,
+  summary: z.string(),
   dosage: dosageSchema,
   duration: durationSchema,
   subjective_effects: subjectiveEffectsSchema,
@@ -295,8 +311,9 @@ export const substanceArticleSchema = z.object({
   pharmacology: pharmacologySchema,
   interactions: interactionsSchema,
   reagent_testing: z.record(z.string(), z.string()),
-  harm_potential: harmPotentialSchema,
   tolerance: toleranceSchema,
+  harm_potential: harmPotentialSchema,
+  history_culture: historyCultureSchema.optional(),
   legality: legalitySchema,
   source_citations: z.array(citationSchema).optional(),
   citations: z.array(citationSchema),
@@ -340,6 +357,9 @@ export type Risks = z.infer<typeof risksSchema>;
 export type HarmPotential = z.infer<typeof harmPotentialSchema>;
 
 export type Tolerance = z.infer<typeof toleranceSchema>;
+
+export type HistoryCultureSection = z.infer<typeof historyCultureSectionSchema>;
+export type HistoryCulture = z.infer<typeof historyCultureSchema>;
 
 export type CountryLegality = z.infer<typeof countryLegalitySchema>;
 export type Legality = z.infer<typeof legalitySchema>;

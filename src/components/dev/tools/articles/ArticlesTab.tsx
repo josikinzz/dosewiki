@@ -23,6 +23,8 @@ import {
   Bot,
   Check,
   CheckCircle,
+  ChevronDown,
+  ChevronRight,
   Copy,
   Download,
   FileEdit,
@@ -58,7 +60,14 @@ import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
 import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
-import { loadHarmPotentialQuotes, loadPharmacologyQuotes } from "../../../../utils/sectionSources";
+import { 
+  loadHarmPotentialQuotes, 
+  loadPharmacologyQuotes, 
+  loadHistoryCultureQuotes,
+  parseSourcesFromQuotes,
+  type ExtractedSourceInfo,
+} from "../../../../utils/sectionSources";
+import { getFaviconForSourceName } from "../../../../data/config/sourceFavicons";
 
 export const ArticlesTab = memo(function ArticlesTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
@@ -124,11 +133,20 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Extracted quotes for section generators
   const [harmPotentialQuotes, setHarmPotentialQuotes] = useState<string | null>(null);
   const [pharmacologyQuotes, setPharmacologyQuotes] = useState<string | null>(null);
+  const [historyCultureQuotes, setHistoryCultureQuotes] = useState<string | null>(null);
+  
+  // Parsed source info with favicons
+  const [harmPotentialSources, setHarmPotentialSources] = useState<ExtractedSourceInfo | null>(null);
+  const [pharmacologySources, setPharmacologySources] = useState<ExtractedSourceInfo | null>(null);
+  const [historyCultureSources, setHistoryCultureSources] = useState<ExtractedSourceInfo | null>(null);
 
   // Save to database state
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Sources section collapsed state (collapsed by default)
+  const [sourcesExpanded, setSourcesExpanded] = useState(false);
 
   // DevMode context for saving articles
   const { articles, applyArticlesTransform } = useDevMode();
@@ -229,33 +247,75 @@ export const ArticlesTab = memo(function ArticlesTab({
     setStreamedOutput("");  // Clear stale form data immediately
   }, [selectedSubstanceSlug]);
 
+  // Helper to build ExtractedSourceInfo from quotes content
+  const buildSourceInfo = useCallback((content: string): ExtractedSourceInfo => {
+    const sourceNames = parseSourcesFromQuotes(content);
+    return {
+      content,
+      count: sourceNames.length,
+      sources: sourceNames.map(name => ({
+        name,
+        favicon: getFaviconForSourceName(name),
+      })),
+    };
+  }, []);
+
   // Load harm potential quotes when substance changes
   useEffect(() => {
     if (!selectedSubstanceSlug) {
       setHarmPotentialQuotes(null);
+      setHarmPotentialSources(null);
       return;
     }
 
     // Clear stale data immediately before loading new data
     setHarmPotentialQuotes(null);
+    setHarmPotentialSources(null);
     loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
       setHarmPotentialQuotes(quotes);
+      if (quotes) {
+        setHarmPotentialSources(buildSourceInfo(quotes));
+      }
     });
-  }, [selectedSubstanceSlug]);
+  }, [selectedSubstanceSlug, buildSourceInfo]);
 
   // Load pharmacology quotes when substance changes
   useEffect(() => {
     if (!selectedSubstanceSlug) {
       setPharmacologyQuotes(null);
+      setPharmacologySources(null);
       return;
     }
 
     // Clear stale data immediately before loading new data
     setPharmacologyQuotes(null);
+    setPharmacologySources(null);
     loadPharmacologyQuotes(selectedSubstanceSlug).then((quotes) => {
       setPharmacologyQuotes(quotes);
+      if (quotes) {
+        setPharmacologySources(buildSourceInfo(quotes));
+      }
     });
-  }, [selectedSubstanceSlug]);
+  }, [selectedSubstanceSlug, buildSourceInfo]);
+
+  // Load history & culture quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setHistoryCultureQuotes(null);
+      setHistoryCultureSources(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setHistoryCultureQuotes(null);
+    setHistoryCultureSources(null);
+    loadHistoryCultureQuotes(selectedSubstanceSlug).then((quotes) => {
+      setHistoryCultureQuotes(quotes);
+      if (quotes) {
+        setHistoryCultureSources(buildSourceInfo(quotes));
+      }
+    });
+  }, [selectedSubstanceSlug, buildSourceInfo]);
 
   // Detect and auto-load existing articles when substance is selected
   useEffect(() => {
@@ -455,6 +515,10 @@ export const ArticlesTab = memo(function ArticlesTab({
     availableSources,
     harmPotentialQuotes,
     pharmacologyQuotes,
+    historyCultureQuotes,
+    harmPotentialSources,
+    pharmacologySources,
+    historyCultureSources,
     getSourceContent,
     getAllSources,
   }), [
@@ -466,6 +530,10 @@ export const ArticlesTab = memo(function ArticlesTab({
     availableSources,
     harmPotentialQuotes,
     pharmacologyQuotes,
+    historyCultureQuotes,
+    harmPotentialSources,
+    pharmacologySources,
+    historyCultureSources,
     getSourceContent,
     getAllSources,
   ]);
@@ -745,64 +813,84 @@ export const ArticlesTab = memo(function ArticlesTab({
         </SectionCard>
       )}
 
-      {/* Source Previews */}
+      {/* Source Previews - Collapsible */}
       {substanceModule && availableSources.length > 0 && (
         <SectionCard delay={0.3}>
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-            <FileText className="h-5 w-5 text-fuchsia-300" />
-            Available Sources
-            <span className="text-sm font-normal text-white/50">
-              ({availableSources.length})
-            </span>
-            {isLoadingSubstance && (
-              <Loader2 className="ml-2 h-4 w-4 animate-spin text-white/40" />
+          <button
+            type="button"
+            onClick={() => setSourcesExpanded(!sourcesExpanded)}
+            className="flex w-full items-center justify-between text-left hover:opacity-80 transition-opacity"
+          >
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+              <FileText className="h-5 w-5 text-fuchsia-300" />
+              Available Sources
+              <span className="text-sm font-normal text-white/50">
+                ({availableSources.length})
+              </span>
+              {isLoadingSubstance && (
+                <Loader2 className="ml-2 h-4 w-4 animate-spin text-white/40" />
+              )}
+            </h2>
+            {sourcesExpanded ? (
+              <ChevronDown className="h-5 w-5 text-white/40" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-white/40" />
             )}
-          </h2>
-          {(harmPotentialQuotes || pharmacologyQuotes) && (
-            <div className="mb-4 space-y-1">
-              {harmPotentialQuotes && (
-                <p className="text-sm text-emerald-300">
-                  ✓ Extracted harm potential quotes available for this substance
-                </p>
-              )}
-              {pharmacologyQuotes && (
-                <p className="text-sm text-emerald-300">
-                  ✓ Extracted pharmacology quotes available for this substance
-                </p>
-              )}
-            </div>
-          )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {availableSources.map((source) => {
-              const content = getSourceContent(source.id);
-              return (
-                <div
-                  key={source.id}
-                  className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
-                >
-                  {/* Header */}
-                  <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-                    <span className="truncate text-sm font-medium text-white">
-                      {source.displayName}
-                    </span>
-                    <Button
-                      variant="iconSmall"
-                      onClick={() => setFullscreenSourceId(source.id)}
-                      title="Open fullscreen"
-                    >
-                      <Maximize2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {/* Content */}
-                  <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
-                    <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
-                      {content ?? "Loading..."}
-                    </pre>
-                  </div>
+          </button>
+          {sourcesExpanded && (
+            <>
+              {(harmPotentialQuotes || pharmacologyQuotes || historyCultureQuotes) && (
+                <div className="mt-4 mb-4 space-y-1">
+                  {harmPotentialQuotes && (
+                    <p className="text-sm text-emerald-300">
+                      ✓ Extracted harm potential quotes available for this substance
+                    </p>
+                  )}
+                  {pharmacologyQuotes && (
+                    <p className="text-sm text-emerald-300">
+                      ✓ Extracted pharmacology quotes available for this substance
+                    </p>
+                  )}
+                  {historyCultureQuotes && (
+                    <p className="text-sm text-emerald-300">
+                      ✓ Extracted history & culture quotes available for this substance
+                    </p>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              )}
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {availableSources.map((source) => {
+                  const content = getSourceContent(source.id);
+                  return (
+                    <div
+                      key={source.id}
+                      className="relative aspect-square rounded-xl border border-white/10 bg-slate-950/60"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+                        <span className="truncate text-sm font-medium text-white">
+                          {source.displayName}
+                        </span>
+                        <Button
+                          variant="iconSmall"
+                          onClick={() => setFullscreenSourceId(source.id)}
+                          title="Open fullscreen"
+                        >
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {/* Content */}
+                      <div className="absolute inset-x-0 bottom-0 top-10 overflow-auto p-3">
+                        <pre className="whitespace-pre-wrap font-mono text-xs text-white/70">
+                          {content ?? "Loading..."}
+                        </pre>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </SectionCard>
       )}
 

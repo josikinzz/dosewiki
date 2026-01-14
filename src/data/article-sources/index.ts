@@ -6488,6 +6488,13 @@ export const substances: SubstanceInfo[] = [
         "tokens": 5060
       },
       {
+        "id": "psychonautwiki",
+        "fileName": "PSYCHONAUTWIKI - Benzydamine.md",
+        "displayName": "PsychonautWiki",
+        "size": 8008,
+        "tokens": 1719
+      },
+      {
         "id": "tripsit-factsheets",
         "fileName": "TRIPSIT_FACTSHEETS - Benzydamine.md",
         "displayName": "TripSit Factsheets",

@@ -41,6 +41,11 @@ const createEmptyCitation = () => ({
   url: "",
 });
 
+const createEmptyHistoryCultureSection = () => ({
+  heading: "",
+  content: "",
+});
+
 export type ArticleFormMethods = UseFormReturn<SubstanceArticle>;
 
 export type UseArticleFormOptions = {
@@ -56,6 +61,7 @@ export type UseArticleFormReturn = {
   sourceCitations: ReturnType<typeof useFieldArray<SubstanceArticle, "source_citations">>;
   citations: ReturnType<typeof useFieldArray<SubstanceArticle, "citations">>;
   comparisons: ReturnType<typeof useFieldArray<SubstanceArticle, "comparisons">>;
+  historyCultureSections: ReturnType<typeof useFieldArray<SubstanceArticle, "history_culture.sections">>;
   // Helpers
   addDosageRoute: () => void;
   removeDosageRoute: (index: number) => void;
@@ -63,6 +69,8 @@ export type UseArticleFormReturn = {
   removeSourceCitation: (index: number) => void;
   addCitation: () => void;
   removeCitation: (index: number) => void;
+  addHistoryCultureSection: () => void;
+  removeHistoryCultureSection: (index: number) => void;
   applyDurationFromRoute: (fromIndex: number, toIndex: number) => void;
   resetForm: (article?: SubstanceArticle) => void;
 };
@@ -77,6 +85,7 @@ export function useArticleForm({
   // Ensure article has at least one route and citation for form editing
   const getDefaultValues = useCallback((source?: SubstanceArticle): SubstanceArticle => {
     const base = source ?? createEmptyArticle();
+    const empty = createEmptyArticle();
     return {
       ...base,
       dosage: {
@@ -87,6 +96,8 @@ export function useArticleForm({
         ...base.duration,
         routes: base.duration.routes.length > 0 ? base.duration.routes : [createEmptyDurationRoute()],
       },
+      // Ensure history_culture has default values for form editing (optional field)
+      history_culture: base.history_culture ?? empty.history_culture,
       citations: base.citations.length > 0 ? base.citations : [createEmptyCitation()],
     };
   }, []);
@@ -129,6 +140,11 @@ export function useArticleForm({
   const comparisons = useFieldArray({
     control,
     name: "comparisons",
+  });
+
+  const historyCultureSections = useFieldArray({
+    control,
+    name: "history_culture.sections",
   });
 
   // Sync duration routes when dosage routes change
@@ -213,6 +229,17 @@ export function useArticleForm({
     [citations]
   );
 
+  const addHistoryCultureSection = useCallback(() => {
+    historyCultureSections.append(createEmptyHistoryCultureSection());
+  }, [historyCultureSections]);
+
+  const removeHistoryCultureSection = useCallback(
+    (index: number) => {
+      historyCultureSections.remove(index);
+    },
+    [historyCultureSections]
+  );
+
   const applyDurationFromRoute = useCallback(
     (fromIndex: number, toIndex: number) => {
       const currentDurationRoutes = getValues("duration.routes");
@@ -247,12 +274,15 @@ export function useArticleForm({
     sourceCitations,
     citations,
     comparisons,
+    historyCultureSections,
     addDosageRoute,
     removeDosageRoute,
     addSourceCitation,
     removeSourceCitation,
     addCitation,
     removeCitation,
+    addHistoryCultureSection,
+    removeHistoryCultureSection,
     applyDurationFromRoute,
     resetForm,
   };
