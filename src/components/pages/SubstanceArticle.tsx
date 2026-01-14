@@ -4,7 +4,7 @@ import { Edit3, Leaf, MessageSquarePlus, Wrench } from "lucide-react";
 import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { RouteKey } from "../../types/content";
+import type { MoleculeAsset, RouteKey } from "../../types/content";
 import articles from "../../data/articles";
 import { slugify } from "../../utils/slug";
 import { JsonEditor } from "../common/JsonEditor";
@@ -25,6 +25,7 @@ import {
   buildHeroVariantLines,
 } from "../../utils/substanceLayout";
 import { useDevMode } from "../dev/DevModeContext";
+import { getMoleculeAssetsByArticleId } from "../../data/mappings/moleculeAssets";
 
 interface SubstanceArticleProps {
   record: SubstanceRecord;
@@ -75,6 +76,8 @@ export function SubstanceArticle({
     () => extractInfoSectionBuckets(content.infoSections),
     [content.infoSections],
   );
+  const [moleculeAssets, setMoleculeAssets] = useState<MoleculeAsset[]>([]);
+  const [moleculeAsset, setMoleculeAsset] = useState<MoleculeAsset | null>(null);
   const { open: openDevMode } = useDevMode();
 
   const heroVariantLines = useMemo(() => buildHeroVariantLines(content.nameVariants), [content.nameVariants]);
@@ -150,6 +153,36 @@ export function SubstanceArticle({
     setDesktopViewMode("ui");
   }, [record.slug]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    if (record.id === null) {
+      setMoleculeAssets([]);
+      setMoleculeAsset(null);
+      return undefined;
+    }
+
+    getMoleculeAssetsByArticleId(record.id)
+      .then((assets) => {
+        if (!isMounted) {
+          return;
+        }
+        setMoleculeAssets(assets);
+        setMoleculeAsset(assets[0] ?? null);
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+        setMoleculeAssets([]);
+        setMoleculeAsset(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [record.id]);
+
   const rawArticle = useMemo(() => {
     if (record.id !== null) {
       const byId = articles.find((article) => extractArticleId(article?.id) === record.id);
@@ -219,8 +252,8 @@ export function SubstanceArticle({
           aliases={content.aliases}
           nameVariants={content.nameVariants}
           placeholder={content.moleculePlaceholder}
-          moleculeAsset={content.moleculeAsset}
-          moleculeAssets={content.moleculeAssets}
+          moleculeAsset={moleculeAsset ?? undefined}
+          moleculeAssets={moleculeAssets.length > 0 ? moleculeAssets : undefined}
           badges={content.heroBadges}
           badgeVariant="compact"
           onCategorySelect={onSelectCategory}
@@ -319,9 +352,9 @@ export function SubstanceArticle({
               <div className="space-y-8">
                 <div className="w-full max-w-[22rem] rounded-[28px] border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-600/15 via-violet-500/12 to-indigo-500/12 p-6 ring-1 ring-white/10">
                   <div className="rounded-2xl border border-white/10 bg-[#0f0a1f] p-4">
-                    {content.moleculeAsset ? (
+                    {moleculeAsset ? (
                       <img
-                        src={content.moleculeAsset.url}
+                        src={moleculeAsset.url}
                         alt={`Molecule depiction for ${content.name}`}
                         className="h-56 w-full object-contain"
                       />

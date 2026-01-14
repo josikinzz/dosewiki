@@ -13,7 +13,10 @@ const parsed = JSON.parse(decoded);
 const result = z.array(substanceArticleSchema).safeParse(parsed);
 
 if (!result.success) {
-  console.warn("Article validation warnings:", result.error.issues);
+  const isTestEnv = import.meta.env?.MODE === "test" || import.meta.env?.VITEST;
+  if (!isTestEnv) {
+    console.warn("Article validation warnings:", result.error.issues);
+  }
 }
 
 const articles: SubstanceArticle[] = result.success ? result.data : parsed;

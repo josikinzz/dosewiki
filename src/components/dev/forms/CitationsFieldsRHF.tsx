@@ -20,7 +20,7 @@ export type CitationsFieldsRHFProps = {
 };
 
 export function CitationsFieldsRHF({
-  idPrefix,
+  idPrefix: _idPrefix,
   citations,
   addCitation,
   removeCitation,
@@ -31,7 +31,6 @@ export function CitationsFieldsRHF({
     <section className="space-y-4">
       <div className="space-y-3">
         {citations.fields.map((field, index) => {
-          const citationKey = `${idPrefix}-citation-${index}`;
           return (
             <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
               <div className="flex items-center justify-between gap-3">

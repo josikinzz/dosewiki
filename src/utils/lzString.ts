@@ -24,7 +24,6 @@ export function decompressFromBase64(input: string): string | null {
 
 function _decompress(length: number, resetValue: number, getNextValue: (index: number) => number): string | null {
   const dictionary: string[] = ["", "", ""];
-  let next;
   let enlargeIn = 4;
   let dictSize = 4;
   let numBits = 3;

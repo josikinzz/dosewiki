@@ -1,11 +1,17 @@
-import { verifyCredentials, getValidUsernames } from "./_utils/passwords.js";
+import { verifyCredentials } from "./_utils/passwords.js";
 import { parseBody } from "./_utils/parseBody.js";
+import { rateLimit } from "./_utils/rateLimit.js";
+import { createLogger } from "./_utils/logger.js";
+
+const log = createLogger("auth");
 
 export default async function handler(req, res) {
-  console.log("=== AUTH ENDPOINT CALLED ===");
-  console.log("Method:", req.method);
+  log.debug("Request received", { method: req.method });
 
   try {
+    if (!(await rateLimit(req, res, { windowMs: 60_000, max: 10 }))) {
+      return;
+    }
     if (req.method !== "POST") {
       res.setHeader("Allow", "POST");
       return res.status(405).json({ error: "Method not allowed." });
@@ -15,46 +21,16 @@ export default async function handler(req, res) {
     const username = typeof body.username === "string" ? body.username : "";
     const password = typeof body.password === "string" ? body.password : "";
 
-    console.log("=== CREDENTIALS DEBUG ===");
-    console.log("Username received:", username ? "YES" : "NO");
-    console.log("Username value:", username);
-    console.log("Password received:", password ? "YES" : "NO");
-    console.log("Password length:", password.length);
-
-    console.log("=== ENVIRONMENT CHECK ===");
-    const validUsernames = getValidUsernames();
-    console.log("Valid usernames:", validUsernames.join(", "));
-    console.log("Username is valid:", validUsernames.includes(username.trim()));
-
-    const expectedPassword = process.env[username.trim()];
-    console.log(`process.env.${username.trim()}:`, expectedPassword ? `EXISTS (${expectedPassword.length} chars)` : "UNDEFINED");
-
-    console.log("=== VERIFYING CREDENTIALS ===");
     const isValid = verifyCredentials(username, password);
 
     if (!isValid) {
-      console.error("❌ AUTHENTICATION FAILED");
-      if (!validUsernames.includes(username.trim())) {
-        console.error("Reason: Invalid username");
-        return res.status(401).json({ error: "Invalid username." });
-      }
-
-      if (!expectedPassword) {
-        console.error("Reason: Username not configured in environment");
-        return res.status(500).json({ error: "Configuration error." });
-      }
-
-      console.error("Reason: Password mismatch");
-      return res.status(401).json({ error: "Invalid password." });
+      return res.status(401).json({ error: "Invalid credentials." });
     }
 
-    console.log("✓ AUTHENTICATION SUCCESSFUL:", username.trim());
+    log.info("Authentication successful");
     return res.status(200).json({ authorized: true, key: username.trim() });
   } catch (error) {
-    console.error("=== AUTH ERROR ===");
-    console.error("Error type:", error.constructor.name);
-    console.error("Error message:", error.message);
-    console.error("Stack trace:", error.stack);
+    log.error("Handler error:", error);
     const message = error instanceof Error ? error.message : "Unexpected error.";
     return res.status(500).json({ error: message });
   }

@@ -40,7 +40,7 @@ function CountryLegalityInnerInput({
   }, []);
 
   const handleBlur = useCallback(
-    (e: FocusEvent<HTMLTextAreaElement>) => {
+    (_event: FocusEvent<HTMLTextAreaElement>) => {
       const parsed = countryLegalityTransformer.toSchema(localValue);
       field.onChange(parsed);
       field.onBlur();

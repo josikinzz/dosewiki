@@ -26,7 +26,10 @@ function parseArticles(decoded: string): SubstanceArticle[] {
   const result = z.array(substanceArticleSchema).safeParse(parsed);
 
   if (!result.success) {
-    console.warn("Article validation warnings:", result.error.issues);
+    const isTestEnv = import.meta.env?.MODE === "test" || import.meta.env?.VITEST;
+    if (!isTestEnv) {
+      console.warn("Article validation warnings:", result.error.issues);
+    }
   }
 
   return result.success ? result.data : parsed;

@@ -99,7 +99,7 @@ function parseColorsFromDescription(desc: string): string[] {
 
   // Split by arrows, slashes, commas, "to", or dashes
   const parts = normalized
-    .split(/[→>\/,\-]|(?:\s+to\s+)/)
+    .split(/[→>/,-]|(?:\s+to\s+)/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 

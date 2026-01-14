@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { SectionMeta, FormState } from "@/data/schema";
+import type { SectionMeta } from "@/data/schema";
 import { FIELD_REGISTRY, getValueByPath, setValueByPath } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import { SchemaField } from "./SchemaField";

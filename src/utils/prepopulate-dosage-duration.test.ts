@@ -42,7 +42,7 @@ const PRESERVED_FIELDS = [
 
 // Load articles before and after for comparison
 let articlesBefore;
-let articlesAfter;
+let _articlesAfter;
 let parsed;
 
 beforeAll(() => {
@@ -51,7 +51,7 @@ beforeAll(() => {
 
   // Run prepopulation in dry-run mode to get modified articles
   // We capture the in-memory result by running a test script
-  const testScript = `
+  const _testScript = `
     import fs from 'fs';
     const articlesPath = '${articlesPath}';
     const parsedPath = '${parsedPath}';
@@ -68,7 +68,7 @@ beforeAll(() => {
   parsed = JSON.parse(fs.readFileSync(parsedPath, 'utf-8'));
 
   // For actual field preservation test, we'll compare the articles
-  articlesAfter = articlesBefore; // Placeholder - real test would run script
+  _articlesAfter = articlesBefore; // Placeholder - real test would run script
 });
 
 describe('Field Preservation', () => {
@@ -233,7 +233,7 @@ describe('Duration Priority Order', () => {
 
   it('selects highest priority source from real data', () => {
     // Find a substance with multiple duration sources
-    for (const [slug, data] of Object.entries(parsed.substances)) {
+    for (const [_slug, data] of Object.entries(parsed.substances)) {
       if (data.duration?.length > 1) {
         const sources = data.duration.map(d => d.source);
 

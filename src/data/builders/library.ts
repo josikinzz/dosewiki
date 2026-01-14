@@ -1248,7 +1248,6 @@ export function getMechanismDetail(mechanismSlug: string): MechanismDetail | nul
     const records = Array.from(qualifierEntry.records);
     const groups = buildCategoryGroupsForRecords(records);
 
-    const isDefault = key === UNQUALIFIED_MECHANISM_QUALIFIER_KEY;
     const label = qualifierEntry.qualifier
       ? qualifierEntry.qualifier
       : "General (no qualifier)";

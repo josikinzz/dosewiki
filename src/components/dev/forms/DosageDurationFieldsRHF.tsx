@@ -8,6 +8,7 @@ import { ChartColumnIncreasing, ChartLine } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
@@ -44,7 +45,7 @@ export type DosageDurationFieldsRHFProps = {
 export function DosageDurationFieldsRHF({
   idPrefix,
   dosageRoutes,
-  durationRoutes,
+  durationRoutes: _durationRoutes,
   addDosageRoute,
   removeDosageRoute,
   applyDurationFromRoute,
@@ -83,7 +84,7 @@ export function DosageDurationFieldsRHF({
                   )}
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Administration route</Label>
                   <Input
@@ -96,6 +97,14 @@ export function DosageDurationFieldsRHF({
                   <Input
                     {...register(`dosage.routes.${index}.bioavailability`)}
                     placeholder="e.g., 70-80%"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Bioavailability Notes</Label>
+                  <Textarea
+                    {...register(`dosage.routes.${index}.bioavailability_notes`)}
+                    placeholder="e.g., Extensive first-pass metabolism"
+                    className="min-h-[38px] resize-y"
                   />
                 </div>
               </div>
@@ -117,10 +126,20 @@ export function DosageDurationFieldsRHF({
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-                  <ChartLine className="h-3.5 w-3.5 text-fuchsia-300" />
-                  Duration Stages
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+                    <ChartLine className="h-3.5 w-3.5 text-fuchsia-300" />
+                    Duration Stages
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-white/50">Half-life:</Label>
+                    <Input
+                      {...register(`duration.routes.${index}.half_life`)}
+                      placeholder="e.g., 3-6 hours"
+                      className="h-7 w-32 text-xs"
+                    />
+                  </div>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {durationStageLabels.map(([stageKey, label, placeholder]) => (
                     <div key={`${routeKey}-duration-${stageKey}`} className="space-y-1">
@@ -131,6 +150,14 @@ export function DosageDurationFieldsRHF({
                       />
                     </div>
                   ))}
+                </div>
+                <div className="space-y-2">
+                  <Label>Half-life Notes</Label>
+                  <Textarea
+                    {...register(`duration.routes.${index}.half_life_notes`)}
+                    placeholder="e.g., Dose-dependent elimination; CYP2D6 polymorphisms affect half-life"
+                    className="min-h-[38px] resize-y"
+                  />
                 </div>
               </div>
               <div className="space-y-2">

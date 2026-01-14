@@ -11,7 +11,7 @@
  * These overrides are merged with the auto-generated base registry.
  */
 
-import type { FieldMeta, SectionKey, FieldType } from "./types";
+import type { FieldMeta, SectionKey } from "./types";
 import {
   arrayTransformer,
   doseRangeTransformer,
@@ -418,19 +418,6 @@ export const FIELD_OVERRIDES: Record<string, FieldOverride> = {
     required: false,
     section: "pharmacology",
     transformer: arrayTransformer,
-  },
-  "pharmacology.half_life": {
-    label: "Half-life",
-    type: "text",
-    required: false,
-    section: "pharmacology",
-    placeholder: "e.g., 3-5 hours",
-  },
-  "pharmacology.bioavailability_notes": {
-    label: "Bioavailability Notes",
-    type: "textarea",
-    required: false,
-    section: "pharmacology",
   },
 
   // ==========================================

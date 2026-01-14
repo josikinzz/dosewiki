@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { AlertTriangle } from "lucide-react";
 import { parseGeneratedYaml } from "./yamlParser";
-import type { SubstanceArticle } from "../../../../schema";
 import { HeroSection } from "../../../sections/HeroSection";
 import { DosageDurationSection } from "../../../sections/DosageDurationSection";
 import { SubjectiveEffectsSection } from "../../../sections/SubjectiveEffectsSection";

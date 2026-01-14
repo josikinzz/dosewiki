@@ -139,12 +139,17 @@ export const InteractionsSection = memo(function InteractionsSection({
                           key={item.raw}
                           className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
                         >
-                          <span
-                            className={onSelectInteraction ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""}
-                            onClick={onSelectInteraction ? () => onSelectInteraction(item.substance) : undefined}
-                          >
-                            {item.substance}
-                          </span>
+                          {onSelectInteraction ? (
+                            <button
+                              type="button"
+                              className="hover:text-fuchsia-300 transition-colors"
+                              onClick={() => onSelectInteraction(item.substance)}
+                            >
+                              {item.substance}
+                            </button>
+                          ) : (
+                            <span>{item.substance}</span>
+                          )}
                           {hasRationale && (
                             <button
                               onClick={() => toggleExpand(item.raw)}

@@ -47,7 +47,7 @@ function DurationStageInnerInput({
   }, []);
 
   const handleBlur = useCallback(
-    (e: FocusEvent<HTMLInputElement>) => {
+    (_event: FocusEvent<HTMLInputElement>) => {
       const parsed = durationStageTransformer.toSchema(localValue);
       // Update the form with the parsed value, or reset to empty
       const schemaValue: DurationStage = parsed ?? { min: null, max: null, unit: "" };

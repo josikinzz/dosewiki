@@ -3,7 +3,7 @@
  * Displays items as readable text cards instead of pills.
  */
 
-import { useCallback, useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 import { Plus, X } from "lucide-react";
 

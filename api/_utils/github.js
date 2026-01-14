@@ -1,4 +1,7 @@
 import { Buffer } from "node:buffer";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("github");
 
 export const REPO_OWNER = "josikinzz";
 export const REPO_NAME = "dosewiki-admin";
@@ -30,13 +33,13 @@ export const githubRequest = async (token, path, options = {}) => {
 
   const url = `${API_BASE_URL}${path}`;
   const method = options.method || "GET";
-  console.log(`[github] ${method} ${path}`);
+  log.debug(`${method} ${path}`);
 
   const response = await fetch(url, { ...options, headers });
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    console.error(`[github] ${method} ${path} failed:`, response.status, payload?.message || JSON.stringify(payload));
+    log.error(`${method} ${path} failed:`, response.status, payload?.message || "Unknown error");
   }
 
   return { response, payload };
@@ -44,20 +47,20 @@ export const githubRequest = async (token, path, options = {}) => {
 
 export const loadFileFromRepo = async (token, path, branch = TARGET_BRANCH) => {
   const encodedPath = encodeRepositoryPath(path);
-  console.log(`[github] Loading file: ${path} from branch: ${branch}`);
+  log.debug(`Loading file: ${path} from branch: ${branch}`);
   const { response, payload } = await githubRequest(token, `/contents/${encodedPath}?ref=${branch}`);
 
   if (response.status === 404) {
-    console.log(`[github] File not found: ${path} (this may be okay for new files)`);
+    log.debug(`File not found: ${path} (this may be okay for new files)`);
     return { content: null, sha: null };
   }
 
   if (!response.ok) {
-    console.error(`[github] Failed to load ${path}:`, payload?.message);
+    log.error(`Failed to load ${path}:`, payload?.message);
     throw new Error(payload?.message ?? `Failed to load ${path}.`);
   }
 
-  console.log(`[github] Successfully loaded file: ${path}`);
+  log.debug(`Successfully loaded file: ${path}`);
 
   try {
     const encoding = payload?.encoding === "base64" ? "base64" : "utf8";
@@ -71,21 +74,21 @@ export const loadFileFromRepo = async (token, path, branch = TARGET_BRANCH) => {
 };
 
 export const getRepositoryState = async (token, branch = TARGET_BRANCH) => {
-  console.log(`[github] Getting repository state for ${REPO_OWNER}/${REPO_NAME} branch: ${branch}`);
+  log.debug(`Getting repository state for ${REPO_OWNER}/${REPO_NAME} branch: ${branch}`);
   const { response: refResponse, payload: refPayload } = await githubRequest(token, `/git/ref/heads/${branch}`);
 
   if (!refResponse.ok) {
-    console.error(`[github] Failed to get branch ref:`, refPayload?.message, `(status: ${refResponse.status})`);
+    log.error(`Failed to get branch ref:`, refPayload?.message, `(status: ${refResponse.status})`);
     throw new Error(refPayload?.message ?? "Unable to load repository reference.");
   }
 
   const parentSha = refPayload?.object?.sha;
   if (!isNonEmptyString(parentSha)) {
-    console.error(`[github] Branch ref response missing SHA:`, refPayload);
+    log.error("Branch ref response missing SHA");
     throw new Error("Repository reference is missing a commit SHA.");
   }
 
-  console.log(`[github] Got branch ref, parent SHA: ${parentSha.slice(0, 7)}`);
+  log.debug(`Got branch ref, parent SHA: ${parentSha.slice(0, 7)}`);
 
   const { response: commitResponse, payload: commitPayload } = await githubRequest(
     token,
@@ -93,17 +96,17 @@ export const getRepositoryState = async (token, branch = TARGET_BRANCH) => {
   );
 
   if (!commitResponse.ok) {
-    console.error(`[github] Failed to get parent commit:`, commitPayload?.message);
+    log.error(`Failed to get parent commit:`, commitPayload?.message);
     throw new Error(commitPayload?.message ?? "Unable to load parent commit.");
   }
 
   const baseTreeSha = commitPayload?.tree?.sha;
   if (!isNonEmptyString(baseTreeSha)) {
-    console.error(`[github] Commit response missing tree SHA:`, commitPayload);
+    log.error("Commit response missing tree SHA");
     throw new Error("Parent commit is missing tree metadata.");
   }
 
-  console.log(`[github] Got parent commit, tree SHA: ${baseTreeSha.slice(0, 7)}`);
+  log.debug(`Got parent commit, tree SHA: ${baseTreeSha.slice(0, 7)}`);
 
   return {
     parentSha,
@@ -187,7 +190,7 @@ export const createCommit = async (
 };
 
 export const updateReference = async (token, commitSha, branch = TARGET_BRANCH) => {
-  console.log(`[github] Updating branch ${branch} to commit ${commitSha.slice(0, 7)}`);
+  log.debug(`Updating branch ${branch} to commit ${commitSha.slice(0, 7)}`);
   const { response, payload } = await githubRequest(token, `/git/refs/heads/${branch}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -195,12 +198,12 @@ export const updateReference = async (token, commitSha, branch = TARGET_BRANCH) 
   });
 
   if (!response.ok) {
-    console.error(`[github] Failed to update branch reference:`, payload?.message, `(status: ${response.status})`);
-    console.error(`[github] This often means the token lacks push permissions or the branch is protected`);
+    log.error(`Failed to update branch reference:`, payload?.message, `(status: ${response.status})`);
+    log.error("This often means the token lacks push permissions or the branch is protected");
     throw new Error(payload?.message ?? "Failed to update repository reference.");
   }
 
-  console.log(`[github] Branch reference updated successfully`);
+  log.info("Branch reference updated successfully");
 };
 
 export const buildCommitUrl = (sha) => `https://github.com/${REPO_OWNER}/${REPO_NAME}/commit/${sha}`;

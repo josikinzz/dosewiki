@@ -25,7 +25,7 @@ import {
 
 export function ProfileEditorTab({
   profile,
-  profileHistory,
+  profileHistory: _profileHistory,
   verifyCredentials,
   onProfileUpdated,
   hasStoredCredentials,

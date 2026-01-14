@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { querySearch, type SearchMatch } from "../../data/builders/search";
+import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
+import { useLibrary } from "../../data/ArticlesProvider";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export function GlobalSearch({
   containerClassName,
   compact = false,
 }: GlobalSearchProps) {
+  const library = useLibrary();
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -39,7 +41,10 @@ export function GlobalSearch({
     setActiveIndex(-1);
   }, [currentView]);
 
-  const suggestions = useMemo(() => querySearch(query, MAX_SUGGESTIONS), [query]);
+  const suggestions = useMemo(
+    () => querySearchWithData(query, library, MAX_SUGGESTIONS),
+    [query, library],
+  );
   const hasQuery = query.trim().length > 0;
   const clearButtonVisible = hasQuery;
   const showSuggestions = isActiveSearch && hasQuery && suggestions.length > 0;
@@ -185,7 +190,9 @@ export function GlobalSearch({
       }
 
       window.requestAnimationFrame(() => {
-        const scrollIntoViewIfNeeded = (activeElement as any).scrollIntoViewIfNeeded;
+        const { scrollIntoViewIfNeeded } = activeElement as HTMLElement & {
+          scrollIntoViewIfNeeded?: () => void;
+        };
         if (typeof scrollIntoViewIfNeeded === 'function') {
           scrollIntoViewIfNeeded.call(activeElement);
           return;

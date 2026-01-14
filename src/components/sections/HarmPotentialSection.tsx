@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Ambulance, Heart, Skull, Syringe, Zap } from "lucide-react";
+import { Ambulance, Skull, Syringe, Zap } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Bullet } from "../common/Bullet";

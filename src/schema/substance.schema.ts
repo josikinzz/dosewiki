@@ -55,6 +55,7 @@ export const doseRangesSchema = z.object({
 export const dosageRouteSchema = z.object({
   route: z.string(),
   bioavailability: z.string(),
+  bioavailability_notes: z.string().default(""),
   dose_ranges: doseRangesSchema,
   notes: z.string(),
 });
@@ -100,6 +101,8 @@ export const durationStagesSchema = z.object({
 /** Single duration route */
 export const durationRouteSchema = z.object({
   route: z.string(),
+  half_life: z.string().default(""),
+  half_life_notes: z.string().default(""),
   stages: durationStagesSchema,
 });
 
@@ -209,8 +212,6 @@ export const pharmacologySchema = z.object({
   receptor_binding: z.record(z.string(), z.string()),
   metabolism: z.string(),
   metabolites: z.array(z.string()),
-  half_life: z.string(),
-  bioavailability_notes: z.string(),
 });
 
 // ============================================================================

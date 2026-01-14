@@ -10,7 +10,6 @@ import {
   Check,
   Cog,
   Hexagon,
-  Info,
   ListFilter,
   PlusCircle,
   RotateCcw,
@@ -34,7 +33,6 @@ import { getCategoryIcon } from "../../../../data/config/categoryIcons";
 import { slugify } from "../../../../utils/slug";
 
 import {
-  DATASET_CONFIG,
   slugIssueLabels,
   slugIssueColors,
   type IndexLayoutTabProps,
@@ -46,22 +44,11 @@ import {
   type ManualCategoryDefinition,
   type ManualCategorySection,
   type ManualIndexConfig,
-  type ManualSectionLink,
 } from "./types";
 
 import {
   deepClone,
-  areCategoriesEqual,
   areManualsEqual,
-  areSectionsEqual,
-  collectAllSlugs,
-  collectCategorySlugs,
-  collectSectionSlugs,
-  sortCategoriesByLabel,
-  sortCategoriesInverseAlpha,
-  sortSectionsByLabel,
-  sortSectionsInverseAlpha,
-  buildSlugStatus,
   generateUniqueKey,
   ensureString,
 } from "./utils";
@@ -535,7 +522,7 @@ const SectionEditor = memo(
     const handleLinkTypeChange = useCallback(
       (type: ManualSectionLinkType | "") => {
         if (!type) {
-          const { link, ...rest } = section;
+          const { link: _link, ...rest } = section;
           onUpdate(rest);
           return;
         }
@@ -568,6 +555,10 @@ const SectionEditor = memo(
       : "space-y-4";
 
     const sectionSlugSet = useMemo(() => new Set(section.drugs.map((slug) => slugify(slug))), [section.drugs]);
+    const sectionKeyId = useId();
+    const sectionLinkTypeId = useId();
+    const sectionLinkValueId = useId();
+    const sectionNotesId = useId();
 
     return (
       <div className={sectionWrapperClass}>
@@ -627,8 +618,9 @@ const SectionEditor = memo(
           <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wide text-white/60">Section key</label>
+                <label htmlFor={sectionKeyId} className="text-xs uppercase tracking-wide text-white/60">Section key</label>
                 <Input
+                  id={sectionKeyId}
                   className="w-full"
                   placeholder="Section key"
                   value={section.key}
@@ -636,12 +628,12 @@ const SectionEditor = memo(
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wide text-white/60">Link type</label>
+                <label htmlFor={sectionLinkTypeId} className="text-xs uppercase tracking-wide text-white/60">Link type</label>
                 <Select
                   value={section.link?.type ?? ""}
                   onValueChange={(value) => handleLinkTypeChange(value as ManualSectionLinkType | "")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id={sectionLinkTypeId} className="w-full">
                     <SelectValue placeholder="No link" />
                   </SelectTrigger>
                   <SelectContent>
@@ -655,8 +647,9 @@ const SectionEditor = memo(
             </div>
             {section.link?.type && (
               <div className="space-y-1">
-                <label className="text-xs uppercase tracking-wide text-white/60">Link value</label>
+                <label htmlFor={sectionLinkValueId} className="text-xs uppercase tracking-wide text-white/60">Link value</label>
                 <Input
+                  id={sectionLinkValueId}
                   className="w-full"
                   placeholder="e.g. Tryptamine"
                   value={section.link?.value ?? ""}
@@ -665,8 +658,9 @@ const SectionEditor = memo(
               </div>
             )}
             <div className="space-y-1">
-              <label className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
+              <label htmlFor={sectionNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
               <Textarea
+                id={sectionNotesId}
                 className="min-h-[80px] w-full"
                 value={section.notes ?? ""}
                 onChange={(event) => handleNotesChange(event.target.value)}
@@ -886,6 +880,9 @@ const CategoryEditor = memo(
     const [detailsOpen, setDetailsOpen] = useState(false);
     const totalPrimary = category.drugs.length;
     const sectionCount = category.sections.length;
+    const categoryKeyId = useId();
+    const categoryIconId = useId();
+    const categoryNotesId = useId();
 
     const topLevelSlugSet = useMemo(() => new Set(category.drugs.map((slug) => slugify(slug))), [category.drugs]);
     const categorySlugSet = useMemo(() => {
@@ -901,8 +898,9 @@ const CategoryEditor = memo(
       <div className="mt-2 w-full max-w-[420px] rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1">
-            <label className="text-xs uppercase tracking-wide text-white/60">Category key</label>
+            <label htmlFor={categoryKeyId} className="text-xs uppercase tracking-wide text-white/60">Category key</label>
             <Input
+              id={categoryKeyId}
               className="w-full"
               value={category.key}
               onChange={(event) => handleKeyChange(event.target.value)}
@@ -910,8 +908,9 @@ const CategoryEditor = memo(
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
+            <label htmlFor={categoryIconId} className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
             <Input
+              id={categoryIconId}
               className="w-full"
               value={category.iconKey}
               onChange={(event) => handleIconChange(event.target.value)}
@@ -920,8 +919,9 @@ const CategoryEditor = memo(
           </div>
         </div>
         <div className="mt-3 space-y-1">
-          <label className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
+          <label htmlFor={categoryNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
           <Textarea
+            id={categoryNotesId}
             className="min-h-[90px] w-full"
             value={category.notes ?? ""}
             onChange={(event) => handleNotesChange(event.target.value)}

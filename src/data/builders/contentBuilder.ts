@@ -16,7 +16,6 @@ import type {
   InfoSection,
   CitationEntry,
   InfoSectionItemChip,
-  MoleculeAsset,
   NameVariant,
 } from "../../types/content";
 import type {
@@ -34,12 +33,10 @@ import type {
   Classification,
   Identification,
   SubjectiveEffects,
-  HarmPotential,
 } from "../../schema";
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
 import { canonicalizeRouteLabel } from "../routeSynonyms";
-import moleculeSvgMappings from "../mappings/moleculeSvgMappings.json";
 
 export interface SubstanceRecord {
   id: number | null;
@@ -66,57 +63,6 @@ const INTERACTION_LABELS: Record<InteractionSeverity, string> = {
   caution: "Use caution",
 };
 
-const DURATION_LABELS: Record<string, string> = {
-  total_duration: "Total",
-  onset: "Onset",
-  come_up: "Come-up",
-  peak: "Peak",
-  offset: "Offset",
-  after_effects: "After effects",
-};
-
-type DurationStageKey = keyof typeof DURATION_LABELS;
-
-interface MoleculeMappingEntry {
-  filename: string;
-  articleId: number;
-  articleTitle: string;
-  matchedField: string;
-  matchedValue: string;
-  resolution?: string;
-  deduplicatedFrom?: string[];
-}
-
-interface MoleculeMappingFile {
-  mappings: MoleculeMappingEntry[];
-}
-
-const moleculeMappingByArticleId: Map<number, MoleculeMappingEntry[]> = (() => {
-  const raw = moleculeSvgMappings as MoleculeMappingFile;
-  const map = new Map<number, MoleculeMappingEntry[]>();
-  if (!raw?.mappings) {
-    return map;
-  }
-
-  for (const entry of raw.mappings) {
-    if (!entry || typeof entry.articleId !== "number") {
-      continue;
-    }
-    if (!entry.filename) {
-      continue;
-    }
-
-    const existing = map.get(entry.articleId);
-    if (existing) {
-      existing.push(entry);
-      continue;
-    }
-
-    map.set(entry.articleId, [entry]);
-  }
-
-  return map;
-})();
 
 function isNonEmpty(value: unknown): value is NonEmptyString {
   return typeof value === "string" && value.trim().length > 0;
@@ -883,36 +829,6 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
     infoSections: buildInfoSections(identification, classification, pharmacology),
     categories,
   };
-
-  if (id !== null) {
-    const mappings = moleculeMappingByArticleId.get(id);
-    if (mappings && mappings.length > 0) {
-      const assets: MoleculeAsset[] = mappings.map((mapping) => {
-        const encodedFilename = encodeURI(mapping.filename);
-        const moleculeAsset: MoleculeAsset = {
-          filename: mapping.filename,
-          url: `/molecules/${encodedFilename}`,
-          matchedField: mapping.matchedField,
-          matchedValue: mapping.matchedValue,
-        };
-
-        if (mapping.resolution) {
-          moleculeAsset.resolution = mapping.resolution;
-        }
-
-        if (Array.isArray(mapping.deduplicatedFrom) && mapping.deduplicatedFrom.length > 0) {
-          moleculeAsset.deduplicatedFrom = mapping.deduplicatedFrom;
-        }
-
-        return moleculeAsset;
-      });
-
-      if (assets.length > 0) {
-        [content.moleculeAsset] = assets;
-        content.moleculeAssets = assets;
-      }
-    }
-  }
 
   return {
     id,

@@ -1,5 +1,4 @@
 import {
-  AlertTriangle,
   BadgeCheck,
   Copy,
   Download,
@@ -14,8 +13,6 @@ import {
   ScrollText,
   Sparkles,
   Tags,
-  Undo2,
-  Upload,
   UserRound,
   Wrench,
 } from "lucide-react";
@@ -44,13 +41,12 @@ import {
   buildArticleFrequencyIndex,
   initialChangeLogEntries,
   sortChangeLogEntries,
-  type ArticleFrequency,
   type ChangeLogEntry,
   type ChangeLogArticleSummary,
 } from "../../data/changelog/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/data/changelog";
 import { DiffPreview } from "../common/DiffPreview";
-import { useArticleForm, type UseArticleFormReturn } from "../../hooks/useArticleForm";
+import type { UseArticleFormReturn } from "../../hooks/useArticleForm";
 import { useSaveArticlesMutation, useAuthMutation } from "../../hooks/useApiMutations";
 import type { SubstanceArticle } from "../../schema";
 import { createEmptyArticle } from "../../data/schema";
@@ -64,8 +60,6 @@ import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { ArticlesTab } from "../dev/tools/articles/ArticlesTab";
-import { JsonEditor } from "../common/JsonEditor";
-import { UiJsonToggle } from "../common/UiJsonToggle";
 
 // Helper to stringify articles as YAML for human-readable display
 const toYaml = (value: unknown): string => {
@@ -90,7 +84,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArticleDraftFormFieldsRHF } from "../dev/forms/ArticleDraftFormFieldsRHF";
 import { getProfileByKey, updateProfileCache, userProfiles } from "../../data/userProfiles";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 
@@ -238,7 +231,7 @@ const extractChangeLogSummary = (record: unknown, index: number): ChangeLogArtic
   };
 };
 
-export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevModePageProps) {
+export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug, onTabChange }: DevModePageProps) {
   const {
     articles,
     psychoactiveIndexManual,
@@ -269,16 +262,16 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     getOriginalGeneratorPrompt,
   } = useDevMode();
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const initialSlugAppliedRef = useRef<string | null>(null);
+  const _initialSlugAppliedRef = useRef<string | null>(null);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");
   const [editorValue, setEditorValue] = useState("{}");
-  const [notice, setNotice] = useState<ChangeNotice | null>(null);
+  const [_notice, setNotice] = useState<ChangeNotice | null>(null);
   const [articleDeleteConfirmed, setArticleDeleteConfirmed] = useState(false);
-  const [articleDeleteNotice, setArticleDeleteNotice] = useState<ChangeNotice | null>(null);
+  const [_articleDeleteNotice, setArticleDeleteNotice] = useState<ChangeNotice | null>(null);
   const [isDeletingArticle, setIsDeletingArticle] = useState(false);
   const [draftMode, setDraftMode] = useState<"ui" | "json">("ui");
   const [createDraftMode, setCreateDraftMode] = useState<"ui" | "json">("ui");
-  const [creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
+  const [_creatorNotice, setCreatorNotice] = useState<ChangeNotice | null>(null);
   const [isNewArticleStaged, setIsNewArticleStaged] = useState(false);
   const [stagedArticleLabel, setStagedArticleLabel] = useState<string | null>(null);
   const [stagedArticleId, setStagedArticleId] = useState<number | null>(null);
@@ -293,7 +286,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   // Track form values reactively for UI updates
   const [newArticleValues, setNewArticleValues] = useState<SubstanceArticle>(() => createEmptyArticle());
   // Update tracked values when form changes
-  const handleNewArticleMutate = useCallback(() => {
+  const _handleNewArticleMutate = useCallback(() => {
     handleCreatorMutate();
     const values = newArticleFormRef.current?.methods.getValues();
     if (values) {
@@ -372,7 +365,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   // Track edit form values reactively for UI updates
   const [editArticleValues, setEditArticleValues] = useState<SubstanceArticle | undefined>(selectedArticle);
   // Update tracked values when form changes
-  const handleEditArticleMutate = useCallback(() => {
+  const _handleEditArticleMutate = useCallback(() => {
     setNotice(null);
     const values = editArticleFormRef.current?.methods.getValues();
     if (values) {
@@ -659,7 +652,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   const isNewArticleJsonValid = newArticleJsonError === null;
   const isCreateCommitDisabled =
     isCommitDisabled || !isNewArticleValid || !isNewArticleJsonValid;
-  const previewMinHeight = useMemo(() => {
+  const _previewMinHeight = useMemo(() => {
     const lines = newArticleJsonDraft.split("\n").length;
     return Math.min(480, Math.max(160, lines * 18));
   }, [newArticleJsonDraft]);
@@ -693,12 +686,12 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" })),
     [articles],
   );
-  const hasArticles = articleOptions.length > 0;
-  const articleDeleteTargetLabel = selectedArticleSummary?.title ?? articleLabel;
+  const _hasArticles = articleOptions.length > 0;
+  const _articleDeleteTargetLabel = selectedArticleSummary?.title ?? articleLabel;
 
   const articleFrequency = useMemo(() => buildArticleFrequencyIndex(changeLogEntries), [changeLogEntries]);
 
-  const selectedArticleHistoryTotal = useMemo(() => {
+  const _selectedArticleHistoryTotal = useMemo(() => {
     if (!selectedArticleSlug) {
       return 0;
     }
@@ -707,7 +700,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     return frequency?.count ?? 0;
   }, [articleFrequency, selectedArticleSlug]);
 
-  const selectedArticleHistory = useMemo(() => {
+  const _selectedArticleHistory = useMemo(() => {
     if (!selectedArticleSlug) {
       return [] as ChangeLogEntry[];
     }
@@ -1250,7 +1243,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
   }, [articleIndexById, titleToIndex]);
 
 
-  const categoryDropdowns = useMemo(() => {
+  const _categoryDropdowns = useMemo(() => {
     const groups =
       classificationView === "psychoactive"
         ? dosageCategoryGroups
@@ -1326,7 +1319,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setEditorValue(toYaml(merged));
   }, [draftMode, editArticleValues, selectedArticle]);
 
-  const switchToJsonMode = useCallback(() => {
+  const _switchToJsonMode = useCallback(() => {
     if (draftMode === "json") {
       return;
     }
@@ -1337,7 +1330,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNotice(null);
   }, [draftMode, editArticleValues, selectedArticle]);
 
-  const switchToUiMode = useCallback(() => {
+  const _switchToUiMode = useCallback(() => {
     if (draftMode === "ui") {
       return;
     }
@@ -1358,7 +1351,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [draftMode, editorValue, resetEditArticleForm]);
 
-  const handleDraftModeChange = useCallback((mode: "ui" | "json") => {
+  const _handleDraftModeChange = useCallback((mode: "ui" | "json") => {
     if (mode === "json") {
       if (draftMode === "json") return;
       const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
@@ -1383,7 +1376,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [draftMode, editArticleValues, selectedArticle, editorValue, resetEditArticleForm]);
 
-  const handleEditorChange = useCallback(
+  const _handleEditorChange = useCallback(
     (value: string) => {
       setEditorValue(value);
       if (draftMode === "json") {
@@ -1404,7 +1397,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     return () => window.removeEventListener("keydown", handleKeydown);
   }, [close]);
 
-  const applyEdits = () => {
+  const _applyEdits = () => {
     if (!selectedArticle) {
       setNotice({ type: "error", message: "Select an article before saving." });
       return;
@@ -1437,7 +1430,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   };
 
-  const resetArticle = () => {
+  const _resetArticle = () => {
     resetArticleAt(selectedIndex);
     const original = getOriginalArticle(selectedIndex);
     // Reset form with original article directly
@@ -1451,7 +1444,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNotice({ type: "success", message: "Article reset to original content." });
   };
 
-  const resetDataset = () => {
+  const _resetDataset = () => {
     resetAll();
     setSelectedIndex(0);
     const first = getOriginalArticle(0);
@@ -1464,7 +1457,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNotice({ type: "success", message: "All articles restored." });
   };
 
-  const downloadDraft = () => {
+  const _downloadDraft = () => {
     setNotice(null);
     const fileName = `articles-dev-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
     // Download as JSON for storage format (articles.json)
@@ -1481,7 +1474,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNotice({ type: "success", message: "Draft dataset downloaded." });
   };
 
-  const downloadArticle = () => {
+  const _downloadArticle = () => {
     if (hasInvalidJsonDraft) {
       setNotice({ type: "error", message: "Fix YAML syntax before downloading the article." });
       return;
@@ -1510,7 +1503,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setNotice({ type: "success", message: "Selected article downloaded." });
   };
 
-  const copyDraft = async () => {
+  const _copyDraft = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(articles, null, 2));
       setNotice({ type: "success", message: "Draft JSON copied to clipboard." });
@@ -1519,7 +1512,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   };
 
-  const copyChangelog = async () => {
+  const _copyChangelog = async () => {
     try {
       await navigator.clipboard.writeText(changelogMarkdown);
       setNotice({ type: "success", message: "Diff copied to clipboard." });
@@ -1528,7 +1521,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   };
 
-  const downloadChangelog = () => {
+  const _downloadChangelog = () => {
     setNotice(null);
     const slug = toFileSlug(articleLabel || "article");
     const fileName = `changelog-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.diff`;
@@ -1826,7 +1819,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     saveArticlesMutation,
   ]);
 
-  const handleDeleteArticle = useCallback(async () => {
+  const _handleDeleteArticle = useCallback(async () => {
     if (isDeletingArticle) {
       return;
     }
@@ -2022,7 +2015,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     clearNoticesForTab(activeTab);
   }, [activeTab, clearNoticesForTab]);
 
-  const resetNewArticleForm = useCallback(() => {
+  const _resetNewArticleForm = useCallback(() => {
     resetNewArticleFormState();
     setCreatorNotice({ type: "success", message: "New article form reset." });
     setIsNewArticleStaged(false);
@@ -2038,7 +2031,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setCreateDraftMode,
   ]);
 
-  const handleNewArticleJsonChange = useCallback(
+  const _handleNewArticleJsonChange = useCallback(
     (value: string) => {
       newArticleJsonUpdateSourceRef.current = "json";
       setNewArticleJsonDraft(value);
@@ -2062,7 +2055,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     [],
   );
 
-  const switchToCreateJsonMode = useCallback(() => {
+  const _switchToCreateJsonMode = useCallback(() => {
     if (createDraftMode === "json") {
       return;
     }
@@ -2071,7 +2064,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setCreatorNotice(null);
   }, [createDraftMode, setCreatorNotice]);
 
-  const switchToCreateUiMode = useCallback(() => {
+  const _switchToCreateUiMode = useCallback(() => {
     if (createDraftMode === "ui") {
       return;
     }
@@ -2093,7 +2086,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [createDraftMode, newArticleJsonDraft, setCreatorNotice]);
 
-  const handleCreateDraftModeChange = useCallback((mode: "ui" | "json") => {
+  const _handleCreateDraftModeChange = useCallback((mode: "ui" | "json") => {
     if (mode === "json") {
       if (createDraftMode === "json") return;
       setCreateDraftMode("json");
@@ -2117,7 +2110,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [createDraftMode, newArticleJsonDraft, setCreatorNotice]);
 
-  const copyNewArticleJson = useCallback(async () => {
+  const _copyNewArticleJson = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(newArticleJsonDraft);
       setCreatorNotice({ type: "success", message: "New article JSON copied to clipboard." });
@@ -2126,7 +2119,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     }
   }, [newArticleJsonDraft]);
 
-  const downloadNewArticleJson = useCallback(() => {
+  const _downloadNewArticleJson = useCallback(() => {
     const baseLabel = (newArticleValues.title ?? "").trim() || (newArticleValues.identification?.common_name ?? "").trim() || "new-substance";
     const slug = toFileSlug(baseLabel || "new-substance");
     const fileName = `new-article-${slug || "record"}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
@@ -2142,7 +2135,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setCreatorNotice({ type: "success", message: "New article JSON downloaded." });
   }, [newArticleValues.identification?.common_name, newArticleValues.title, newArticleJsonDraft]);
 
-  const handleClassificationChange = (value: string) => {
+  const _handleClassificationChange = (value: string) => {
     if (!value) {
       return;
     }
@@ -2155,9 +2148,9 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     setClassificationView(nextValue);
   };
 
-  const [categoryJumpKey, setCategoryJumpKey] = useState(0);
+  const [_categoryJumpKey, setCategoryJumpKey] = useState(0);
 
-  const handleCategoryJump = (value: string) => {
+  const _handleCategoryJump = (value: string) => {
     if (!value) {
       return;
     }
@@ -2322,7 +2315,7 @@ export function DevModePage({ activeTab, initialArticleSlug, onTabChange }: DevM
     [githubNotice, trimmedAdminPassword, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub]
   );
 
-  const createCommitPanel = (
+  const _createCommitPanel = (
     <DevCommitCard
       notice={githubNotice}
       trimmedAdminPassword={trimmedAdminPassword}

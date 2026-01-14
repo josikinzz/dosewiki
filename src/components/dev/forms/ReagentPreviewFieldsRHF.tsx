@@ -14,7 +14,7 @@ export type ReagentPreviewFieldsRHFProps = {
   idPrefix: string;
 };
 
-export function ReagentPreviewFieldsRHF({ idPrefix }: ReagentPreviewFieldsRHFProps) {
+export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewFieldsRHFProps) {
   const { watch } = useFormContext<SubstanceArticle>();
   
   const substanceName = watch("identification.common_name") || watch("title") || "";

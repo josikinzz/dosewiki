@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, type ChangeEvent } from "react";
+import { memo, useEffect, useMemo, useRef, type ChangeEvent, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
@@ -50,25 +50,30 @@ interface AboutEditorTabProps {
 }
 
 const markdownComponents = {
-  p: ({ node, ...props }: { node?: unknown }) => (
+  p: ({ node: _node, ...props }: { node?: unknown }) => (
     <p className="mt-3 text-[0.95rem] leading-7 text-white/85 first:mt-0" {...props} />
   ),
-  strong: ({ node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
-  a: ({ node, ...props }: { node?: unknown }) => (
-    <a
-      className="text-fuchsia-200 transition hover:text-fuchsia-100"
-      target="_blank"
-      rel="noopener noreferrer"
-      {...props}
-    />
-  ),
-  ul: ({ node, ...props }: { node?: unknown }) => (
+  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
+  a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
+    const { children, ...rest } = props;
+    return (
+      <a
+        className="text-fuchsia-200 transition hover:text-fuchsia-100"
+        target="_blank"
+        rel="noopener noreferrer"
+        {...rest}
+      >
+        {children}
+      </a>
+    );
+  },
+  ul: ({ node: _node, ...props }: { node?: unknown }) => (
     <ul className="mt-4 list-disc space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
   ),
-  ol: ({ node, ...props }: { node?: unknown }) => (
+  ol: ({ node: _node, ...props }: { node?: unknown }) => (
     <ol className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
   ),
-  li: ({ node, ...props }: { node?: unknown }) => (
+  li: ({ node: _node, ...props }: { node?: unknown }) => (
     <li className="marker:text-fuchsia-300" {...props} />
   ),
 };

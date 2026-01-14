@@ -9,11 +9,10 @@ import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   currentView: AppView;
-  defaultSlug: string;
   onNavigate: (view: AppView) => void;
 }
 
-export function Header({ currentView, defaultSlug, onNavigate }: HeaderProps) {
+export function Header({ currentView, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };

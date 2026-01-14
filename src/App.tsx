@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
-import { HarmReductionBanner } from "./components/sections/HarmReductionBanner";
 import { DosagesPage } from "./components/pages/DosagesPage";
 import { CategoryPage } from "./components/pages/CategoryPage";
 import { EffectsPage } from "./components/pages/EffectsPage";
@@ -9,12 +8,15 @@ import { EffectDetailPage } from "./components/pages/EffectDetailPage";
 import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
 import { ClassificationDetailPage } from "./components/pages/ClassificationDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
-import { DevModePage } from "./components/pages/DevModePage";
 import { AboutPage } from "./components/pages/AboutPage";
+
+// Lazy load DevModePage - only needed by authenticated editors
+const DevModePage = lazy(() => 
+  import("./components/pages/DevModePage").then(mod => ({ default: mod.DevModePage }))
+);
 import { useLibrary } from "./data/ArticlesProvider";
 import { querySearchWithData } from "./data/builders/search";
 import { RouteAnnouncer } from "./components/common/RouteAnnouncer";
-import type { RouteKey } from "./types/content";
 import type { AppView } from "./types/navigation";
 import { parsePath, viewToPath } from "./utils/routing";
 import { InteractionsPage } from "./components/pages/InteractionsPage";
@@ -60,8 +62,6 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
 }
 
 const DEFAULT_VIEW: AppView = { type: "substances" };
-const HARM_REDUCTION_DISMISS_KEY = "dosewiki:harmReductionBannerDismissed";
-
 export default function App() {
   // Get library data from context
   const library = useLibrary();
@@ -106,13 +106,6 @@ export default function App() {
 
   const [view, setView] = useState<AppView>(() => parsePath(undefined, defaultSlug, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
-  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-    return window.localStorage.getItem(HARM_REDUCTION_DISMISS_KEY) === "true";
-  });
-
   const isInvalidSubstanceView = view.type === "substance" &&
     (defaultSlug === null || !substanceBySlug.has(view.slug));
 
@@ -221,9 +214,7 @@ export default function App() {
   );
 
   const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : defaultSlug;
-  const activeRecord = activeSlug ? substanceBySlug.get(activeSlug) ?? null : null;
   const activeArticle = activeSlug ? articlesBySlug.get(activeSlug) ?? null : null;
-  const content = activeRecord?.content ?? null;
 
   const handleInteractionSelectionChange = useCallback(
     (primarySlug: string, secondarySlug: string) => {
@@ -232,65 +223,12 @@ export default function App() {
     [navigate],
   );
 
-  const dismissHarmReductionBanner = useCallback(() => {
-    setIsBannerDismissed(true);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(HARM_REDUCTION_DISMISS_KEY, "true");
+  const searchResults = useMemo(() => {
+    if (view.type !== "search") {
+      return [];
     }
-  }, []);
-
-  const defaultRoute = useMemo<RouteKey | undefined>(() => {
-    if (!content) {
-      return undefined;
-    }
-
-    const primaryRoute = content.routeOrder[0];
-    if (primaryRoute && content.routes[primaryRoute]) {
-      return primaryRoute;
-    }
-
-    const firstAvailable = Object.keys(content.routes)[0] as RouteKey | undefined;
-    return firstAvailable;
-  }, [content]);
-
-  const routePreferencesRef = useRef<Map<string, RouteKey>>(new Map());
-  const [route, setRoute] = useState<RouteKey | undefined>(defaultRoute);
-
-  useEffect(() => {
-    if (!content) {
-      if (route !== undefined) {
-        setRoute(undefined);
-      }
-      return;
-    }
-
-    const storedRoute = activeSlug ? routePreferencesRef.current.get(activeSlug) : undefined;
-    const validStoredRoute = storedRoute && content.routes[storedRoute] ? storedRoute : undefined;
-
-    if (!validStoredRoute && storedRoute && activeSlug) {
-      routePreferencesRef.current.delete(activeSlug);
-    }
-
-    const fallbackRoute = defaultRoute && content.routes[defaultRoute] ? defaultRoute : undefined;
-    const nextRoute = validStoredRoute ?? fallbackRoute;
-
-    if (route !== nextRoute) {
-      setRoute(nextRoute);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSlug, content, defaultRoute]);
-
-  const handleRouteChange = useCallback(
-    (nextRoute: RouteKey) => {
-      if (!content || !content.routes[nextRoute] || !activeSlug) {
-        return;
-      }
-
-      routePreferencesRef.current.set(activeSlug, nextRoute);
-      setRoute(nextRoute);
-    },
-    [activeSlug, content],
-  );
+    return querySearchWithData(view.query, library);
+  }, [view.type, view.query, library]);
 
   // Ref for main content focus management
   const mainRef = useRef<HTMLElement | null>(null);
@@ -335,22 +273,6 @@ export default function App() {
       : `${pageTitle} | dose.wiki`;
   }, [effectiveView, pageTitle]);
 
-  const activeRouteKey: RouteKey | undefined = useMemo(() => {
-    if (!content || !defaultRoute) {
-      return undefined;
-    }
-
-    if (route && content.routes[route]) {
-      return route;
-    }
-
-    if (defaultRoute && content.routes[defaultRoute]) {
-      return defaultRoute;
-    }
-
-    return undefined;
-  }, [route, defaultRoute, content]);
-
   return (
     <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
       {/* Skip link for keyboard navigation */}
@@ -369,15 +291,24 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={effectiveView} defaultSlug={defaultSlug} onNavigate={navigate} />
+      <Header currentView={effectiveView} onNavigate={navigate} />
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
-          <DevModePage
-            activeTab={view.tab}
-            initialArticleSlug={view.slug}
-            onTabChange={(tab) => navigate({ type: "dev", tab })}
-          />
+          <Suspense fallback={
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+                <p className="text-sm text-white/60">Loading Developer Tools...</p>
+              </div>
+            </div>
+          }>
+            <DevModePage
+              activeTab={view.tab}
+              initialArticleSlug={view.slug}
+              onTabChange={(tab) => navigate({ type: "dev", tab })}
+            />
+          </Suspense>
         ) : view.type === "substances" ? (
         <main id="main-content" ref={mainRef} tabIndex={-1}>
           <DosagesPage
@@ -412,7 +343,7 @@ export default function App() {
         <main id="main-content" ref={mainRef} tabIndex={-1}>
           <SearchResultsPage
             query={view.query}
-            results={querySearchWithData(view.query, library)}
+            results={searchResults}
             onSelectSubstance={selectSubstance}
             onSelectCategory={selectCategory}
             onSelectEffect={selectEffect}

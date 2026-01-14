@@ -48,11 +48,9 @@ export const PharmacologySection = memo(function PharmacologySection({
   const hasReceptorBinding = Object.keys(pharmacology.receptor_binding).length > 0;
   const hasMetabolism = pharmacology.metabolism.trim().length > 0;
   const hasMetabolites = pharmacology.metabolites.length > 0;
-  const hasHalfLife = pharmacology.half_life.trim().length > 0;
-  const hasBioNotes = pharmacology.bioavailability_notes.trim().length > 0;
 
   const hasAnyContent =
-    hasMoA || hasReceptorBinding || hasMetabolism || hasMetabolites || hasHalfLife || hasBioNotes;
+    hasMoA || hasReceptorBinding || hasMetabolism || hasMetabolites;
 
   if (!hasAnyContent) {
     return null;
@@ -81,22 +79,31 @@ export const PharmacologySection = memo(function PharmacologySection({
               {pharmacology.mechanism_of_action.map((moa, idx) => {
                 const { base, qualifier } = parseMechanismEntry(moa);
                 return (
-                  <li
-                    key={idx}
-                    className={`flex items-center gap-2 text-sm text-white/80 ${
-                      onSelectMechanism ? "cursor-pointer hover:text-fuchsia-300 transition-colors" : ""
-                    }`}
-                    onClick={onSelectMechanism ? () => onSelectMechanism(mechanismToSlug(moa)) : undefined}
-                  >
+                  <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
                     <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
-                    <span className="flex flex-wrap items-center gap-1.5">
-                      {base}
-                      {qualifier && (
-                        <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                          {qualifier}
-                        </span>
-                      )}
-                    </span>
+                    {onSelectMechanism ? (
+                      <button
+                        type="button"
+                        className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
+                        onClick={() => onSelectMechanism(mechanismToSlug(moa))}
+                      >
+                        {base}
+                        {qualifier && (
+                          <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                            {qualifier}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        {base}
+                        {qualifier && (
+                          <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                            {qualifier}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </li>
                 );
               })}
@@ -167,24 +174,6 @@ export const PharmacologySection = memo(function PharmacologySection({
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Half-life & Bioavailability */}
-        {(hasHalfLife || hasBioNotes) && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            {hasHalfLife && (
-              <div className="mb-3">
-                <span className="text-xs font-medium text-white/60">Half-life:</span>
-                <p className="mt-1 text-sm text-white/80">{pharmacology.half_life}</p>
-              </div>
-            )}
-            {hasBioNotes && (
-              <div>
-                <span className="text-xs font-medium text-white/60">Bioavailability Notes:</span>
-                <p className="mt-1 text-sm text-white/80">{pharmacology.bioavailability_notes}</p>
               </div>
             )}
           </div>

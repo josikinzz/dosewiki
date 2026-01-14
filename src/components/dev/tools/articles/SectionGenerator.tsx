@@ -7,7 +7,7 @@
  * - Apply/Discard buttons
  */
 
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Bot,
@@ -68,6 +68,8 @@ export interface SectionGeneratorProps {
   disabled?: boolean;
   /** Message to show when disabled */
   disabledMessage?: string;
+  /** Optional note to display next to Apply button (e.g., explaining where data goes) */
+  applyNote?: string;
 }
 
 export const SectionGenerator = memo(function SectionGenerator({
@@ -83,6 +85,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   isKeyValid,
   disabled = false,
   disabledMessage,
+  applyNote,
 }: SectionGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -93,6 +96,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const outputId = useId();
   
   // Check if current model supports reasoning
   const supportsReasoning = model.includes("claude");
@@ -377,10 +381,11 @@ export const SectionGenerator = memo(function SectionGenerator({
           {(streamedOutput || hasGenerated) && (
             <div className="space-y-2">
               <div className="space-y-1">
-                <label className="block text-xs font-medium text-white/50">
+                <label htmlFor={outputId} className="block text-xs font-medium text-white/50">
                   Generated YAML
                 </label>
                 <Textarea
+                  id={outputId}
                   value={streamedOutput}
                   onChange={(e) => setStreamedOutput(e.target.value)}
                   className="min-h-[180px] font-mono text-xs resize-y"
@@ -390,7 +395,7 @@ export const SectionGenerator = memo(function SectionGenerator({
 
               {/* Apply/Discard buttons */}
               {streamedOutput && !isGenerating && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="glass"
                     size="pill"
@@ -400,13 +405,18 @@ export const SectionGenerator = memo(function SectionGenerator({
                     Apply to Form
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="destructivePill"
                     size="pill"
                     onClick={handleDiscard}
                   >
                     <X className="h-3.5 w-3.5" />
                     Discard
                   </Button>
+                  {applyNote && (
+                    <span className="text-xs text-white/50 italic">
+                      {applyNote}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

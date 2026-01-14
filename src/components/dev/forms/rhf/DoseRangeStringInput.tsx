@@ -46,7 +46,7 @@ function DoseRangeInnerInput({
   }, []);
 
   const handleBlur = useCallback(
-    (e: FocusEvent<HTMLInputElement>) => {
+    (_event: FocusEvent<HTMLInputElement>) => {
       const parsed = doseRangeTransformer.toSchema(localValue);
       // Update the form with the parsed value, or reset to empty
       const schemaValue: DoseRange = parsed ?? { min: null, max: null, unit: "" };

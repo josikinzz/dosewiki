@@ -123,8 +123,6 @@ export const SECTION_REGISTRY: SectionMeta[] = [
       "pharmacology.receptor_binding",
       "pharmacology.metabolism",
       "pharmacology.metabolites",
-      "pharmacology.half_life",
-      "pharmacology.bioavailability_notes",
     ],
     defaultCollapsed: true,
   },

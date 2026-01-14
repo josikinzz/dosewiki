@@ -46,7 +46,7 @@ function RecordInnerInput({
   }, []);
 
   const handleBlur = useCallback(
-    (e: FocusEvent<HTMLTextAreaElement>) => {
+    (_event: FocusEvent<HTMLTextAreaElement>) => {
       const parsed = recordTransformer.toSchema(localValue);
       field.onChange(parsed);
       field.onBlur();

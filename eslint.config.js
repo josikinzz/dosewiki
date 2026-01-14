@@ -11,6 +11,7 @@ export default tseslint.config(
       'coverage/**',
       'public/**',
       'scripts/**',
+      'src/data/article-sources/**',
       'node_modules/**',
       '*.config.js',
       '*.config.ts',

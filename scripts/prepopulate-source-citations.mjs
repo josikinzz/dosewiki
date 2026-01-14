@@ -112,7 +112,7 @@ const modifiedArticles = articles.map(article => {
 
   let sourcesArray;
   try {
-    sourcesArray = eval(sourcesMatch[1]);
+    sourcesArray = JSON.parse(sourcesMatch[1]);
   } catch (e) {
     stats.articlesSkipped++;
     if (verbose) {

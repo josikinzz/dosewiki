@@ -1,7 +1,7 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Eye, Tag, MessageSquareQuote, Leaf, BrainCog, Hexagon, ChevronDown, Ellipsis, BookOpenText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import moleculeMappings from "@/data/mappings/moleculeSvgMappings.json";
+import { getMoleculeUrlByTitle } from "@/data/mappings/moleculeAssets";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import type { SubstanceArticle } from "../../schema";
 
@@ -28,16 +28,6 @@ interface HeroSectionProps {
   showPreviewBadge?: boolean;
 }
 
-// Get molecule URL by matching article title
-function getMoleculeUrl(title: string): string | null {
-  if (!title.trim()) return null;
-  const normalizedTitle = title.toLowerCase().trim();
-  const match = moleculeMappings.mappings.find(
-    (m) => m.articleTitle.toLowerCase() === normalizedTitle
-  );
-  return match ? `/molecules/${encodeURI(match.filename)}` : null;
-}
-
 export const HeroSection = memo(function HeroSection({
   article,
   onSelectCategory,
@@ -48,8 +38,25 @@ export const HeroSection = memo(function HeroSection({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [namesExpanded, setNamesExpanded] = useState(false);
+  const [moleculeUrl, setMoleculeUrl] = useState<string | null>(null);
 
-  const moleculeUrl = useMemo(() => getMoleculeUrl(title), [title]);
+  useEffect(() => {
+    let isMounted = true;
+    getMoleculeUrlByTitle(title)
+      .then((url) => {
+        if (isMounted) {
+          setMoleculeUrl(url);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setMoleculeUrl(null);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [title]);
 
   const hasTitle = title.trim().length > 0;
   const hasIdentification =
@@ -272,16 +279,25 @@ export const HeroSection = memo(function HeroSection({
       {hasCategories && (
         <div className="mt-5 flex flex-wrap gap-2">
           {index_categories.map((cat) => (
-            <span
-              key={cat}
-              className={`inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50 ${
-                onSelectCategory ? "cursor-pointer hover:bg-white/10 hover:text-white/70 transition-colors" : ""
-              }`}
-              onClick={onSelectCategory ? () => onSelectCategory(cat) : undefined}
-            >
-              <Tag className="h-3 w-3" />
-              {cat}
-            </span>
+            onSelectCategory ? (
+              <button
+                key={cat}
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
+                onClick={() => onSelectCategory(cat)}
+              >
+                <Tag className="h-3 w-3" />
+                {cat}
+              </button>
+            ) : (
+              <span
+                key={cat}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50"
+              >
+                <Tag className="h-3 w-3" />
+                {cat}
+              </span>
+            )
           ))}
         </div>
       )}

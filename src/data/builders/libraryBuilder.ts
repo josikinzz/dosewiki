@@ -61,8 +61,6 @@ import type {
   MechanismQualifierDetail,
   ClassificationType,
   ClassificationDetail,
-  InteractionReference,
-  InteractionIndexEntry,
   InteractionIndex,
 } from "./library";
 
@@ -243,7 +241,7 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
 
   // Build category system
   const {
-    categoryDefinitionMap,
+    categoryDefinitionMap: _categoryDefinitionMap,
     categoryLookup,
     manualCategoryPresentations,
     manualSlugLookup,

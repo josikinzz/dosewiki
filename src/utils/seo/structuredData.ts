@@ -80,7 +80,7 @@ function generateDescription(article: SubstanceArticle): string {
  */
 export function buildSubstanceSchema(
   article: SubstanceArticle,
-  url?: string,
+  _url?: string,
 ): ArticleSchema {
   const name = article.identification?.common_name || article.title;
   const alternateNames = article.identification?.alternative_names?.filter(

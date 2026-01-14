@@ -211,6 +211,7 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
 
 function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"] }) {
   const hasBioavailability = route.bioavailability?.trim().length > 0;
+  const hasBioavailabilityNotes = route.bioavailability_notes?.trim().length > 0;
   const hasPlateauDosing = !!plateauDosing;
 
   return (
@@ -247,17 +248,33 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
       ) : (
         <DoseTiersTable route={route} />
       )}
+      
+      {hasBioavailabilityNotes && (
+        <p className="mt-3 text-xs text-white/50 italic">
+          {route.bioavailability_notes}
+        </p>
+      )}
     </div>
   );
 }
 
 function DurationPanel({ route }: { route: DurationRoute }) {
+  const hasHalfLife = route.half_life?.trim().length > 0;
+  const hasHalfLifeNotes = route.half_life_notes?.trim().length > 0;
+  
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-      <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-        <ChartLine className="h-5 w-5 text-fuchsia-200" />
-        Duration
-      </h4>
+      <div className="mb-3 flex items-center justify-between">
+        <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <ChartLine className="h-5 w-5 text-fuchsia-200" />
+          Duration
+        </h4>
+        {hasHalfLife && (
+          <span className="text-xs text-white/50">
+            t½: {route.half_life}
+          </span>
+        )}
+      </div>
       <div className="space-y-1.5">
         {DURATION_STAGES.map(({ key, label }) => {
           const stage = route.stages[key as keyof typeof route.stages];
@@ -271,6 +288,11 @@ function DurationPanel({ route }: { route: DurationRoute }) {
           );
         })}
       </div>
+      {hasHalfLifeNotes && (
+        <p className="mt-3 text-xs text-white/50 italic">
+          {route.half_life_notes}
+        </p>
+      )}
     </div>
   );
 }

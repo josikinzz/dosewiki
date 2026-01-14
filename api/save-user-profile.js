@@ -2,6 +2,8 @@ import { Buffer } from "node:buffer";
 
 import { verifyCredentials } from "./_utils/passwords.js";
 import { parseBody } from "./_utils/parseBody.js";
+import { rateLimit } from "./_utils/rateLimit.js";
+import { getPayloadByteLength } from "./_utils/validation.js";
 import {
   TARGET_BRANCH,
   buildCommitUrl,
@@ -23,6 +25,7 @@ const AVATAR_DIRECTORY = "public/profile-avatars";
 const AVATAR_PUBLIC_BASE_PATH = "/profile-avatars";
 const AVATAR_CACHE_BUSTER_PATTERN = /[:.]/g;
 const MAX_AVATAR_SIZE_BYTES = 1024 * 1024 * 2; // 2 MiB
+const MAX_PROFILE_PAYLOAD_BYTES = 3 * 1024 * 1024;
 const ALLOWED_AVATAR_MIME_TYPES = new Map([
   ["image/png", "png"],
   ["image/jpeg", "jpg"],
@@ -379,6 +382,15 @@ const buildAvatarAsset = (canonicalKey, extension, cacheBuster) => {
 };
 
 export default async function handler(req, res) {
+  if (!(await rateLimit(req, res, { windowMs: 60_000, max: 5 }))) {
+    return;
+  }
+
+  const payloadSize = getPayloadByteLength(req.body);
+  if (payloadSize > MAX_PROFILE_PAYLOAD_BYTES) {
+    return res.status(413).json({ error: "Payload too large." });
+  }
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed." });

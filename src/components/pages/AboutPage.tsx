@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
@@ -18,25 +18,30 @@ import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "..
 import { getProfileByKey } from "../../data/userProfiles";
 
 const markdownComponents = {
-  p: ({ node, ...props }: { node?: unknown }) => (
+  p: ({ node: _node, ...props }: { node?: unknown }) => (
     <p className="mt-4 text-sm leading-7 text-white/75 first:mt-0 md:text-base" {...props} />
   ),
-  strong: ({ node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
-  a: ({ node, ...props }: { node?: unknown }) => (
-    <a
-      className="text-fuchsia-200 transition hover:text-fuchsia-100"
-      target="_blank"
-      rel="noopener noreferrer"
-      {...props}
-    />
-  ),
-  ul: ({ node, ...props }: { node?: unknown }) => (
+  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
+  a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
+    const { children, ...rest } = props;
+    return (
+      <a
+        className="text-fuchsia-200 transition hover:text-fuchsia-100"
+        target="_blank"
+        rel="noopener noreferrer"
+        {...rest}
+      >
+        {children}
+      </a>
+    );
+  },
+  ul: ({ node: _node, ...props }: { node?: unknown }) => (
     <ul className="mt-4 list-disc space-y-3 pl-5 text-sm text-white/75 marker:text-white/60 md:text-base" {...props} />
   ),
-  ol: ({ node, ...props }: { node?: unknown }) => (
+  ol: ({ node: _node, ...props }: { node?: unknown }) => (
     <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-white/75 marker:text-white/60 md:text-base" {...props} />
   ),
-  li: ({ node, ...props }: { node?: unknown }) => <li {...props} />,
+  li: ({ node: _node, ...props }: { node?: unknown }) => <li {...props} />,
 };
 
 const toInitials = (value: string) => {

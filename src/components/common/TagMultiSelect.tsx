@@ -416,7 +416,8 @@ export const TagMultiSelect = ({
 
     if (item.type === "create") {
       return (
-        <div
+        <button
+          type="button"
           key={itemId}
           id={itemId}
           role="option"
@@ -429,13 +430,14 @@ export const TagMultiSelect = ({
           }`}
         >
           <span>{createOptionLabel}</span>
-        </div>
+        </button>
       );
     }
 
     const { option } = item;
     return (
-      <div
+      <button
+        type="button"
         key={itemId}
         id={itemId}
         role="option"
@@ -451,7 +453,7 @@ export const TagMultiSelect = ({
         {typeof option.count === "number" && option.count > 0 ? (
           <span className="text-xs text-white/40">{option.count}</span>
         ) : null}
-      </div>
+      </button>
     );
   };
 

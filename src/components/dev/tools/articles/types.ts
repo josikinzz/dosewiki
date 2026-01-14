@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { SourceInfo, SubstanceModule } from "../../../../data/article-sources";
+import type { SourceInfo } from "../../../../data/article-sources";
 
 export const STORAGE_KEYS = {
   API_KEY: "articleGenerator_apiKey",

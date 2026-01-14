@@ -1,3 +1,25 @@
+import { timingSafeEqual } from "node:crypto";
+
+/**
+ * Constant-time string comparison to prevent timing attacks.
+ * @param {string} a - First string to compare
+ * @param {string} b - Second string to compare
+ * @returns {boolean} Whether the strings are equal
+ */
+const safeCompare = (a, b) => {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  
+  // If lengths differ, still do a comparison to maintain constant time,
+  // but compare bufA against itself to avoid timing leaks
+  if (bufA.length !== bufB.length) {
+    timingSafeEqual(bufA, bufA);
+    return false;
+  }
+  
+  return timingSafeEqual(bufA, bufB);
+};
+
 const DEFAULT_PASSWORD_KEYS = [
   "ADMIN_PASSWORD",
   "ZENBY",
@@ -48,7 +70,7 @@ export const verifyCredentials = (username, password) => {
     return false;
   }
 
-  return expectedPassword.trim() === trimmedPassword;
+  return safeCompare(expectedPassword.trim(), trimmedPassword);
 };
 
 export const loadPasswordEntries = () => {
@@ -89,7 +111,7 @@ export const findPasswordKey = (password, entries = loadPasswordEntries()) => {
   }
 
   for (const entry of entries) {
-    if (entry.value === trimmed) {
+    if (safeCompare(entry.value, trimmed)) {
       return entry.key;
     }
   }

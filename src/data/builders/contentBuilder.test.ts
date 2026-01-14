@@ -44,7 +44,7 @@ describe('buildSubstanceRecord', () => {
       // Check threshold (min only)
       expect(route?.dosage[0]).toEqual({
         label: 'Threshold',
-        value: '15+ μg',
+        value: '~15 μg',
       });
 
       // Check moderate (range)

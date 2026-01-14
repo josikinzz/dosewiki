@@ -121,7 +121,7 @@ export function CategoryGrid({
     let successful = false;
     try {
       successful = document.execCommand("copy");
-    } catch (error) {
+    } catch {
       successful = false;
     }
 
@@ -144,8 +144,8 @@ export function CategoryGrid({
       if (copied) {
         setCopiedKey(group.key);
       }
-    } catch (error) {
-      console.error("Failed to copy category list", error);
+    } catch {
+      console.error("Failed to copy category list");
     }
   };
 

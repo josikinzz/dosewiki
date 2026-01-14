@@ -5,14 +5,36 @@
  * Usage: GET /api/reagent-proxy?substance=mdma
  */
 
+import { rateLimit } from "./_utils/rateLimit.js";
+import { createLogger } from "./_utils/logger.js";
+
+const log = createLogger("reagent-proxy");
+
+const ALLOWED_ORIGINS = new Set([
+  "https://dose.wiki",
+  "https://www.dose.wiki",
+  "http://localhost:5173",
+]);
+
 export default async function handler(req, res) {
-  // Allow CORS for local development
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  if (!(await rateLimit(req, res, { windowMs: 60_000, max: 30 }))) {
+    return;
+  }
+
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
+  }
+
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return res.status(403).json({ error: "Origin not allowed." });
   }
 
   if (req.method !== "GET") {
@@ -59,7 +81,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(data);
   } catch (error) {
-    console.error("ProtestKit proxy error:", error);
+    log.error("ProtestKit proxy error:", error);
     return res.status(500).json({ error: "Failed to fetch from ProtestKit" });
   }
 }

@@ -205,7 +205,7 @@ const mechanismOptions: TagOption[] = Array.from(mechanismBaseAccumulator.values
   .sort((a, b) => a.label.localeCompare(b.label));
 
 const mechanismQualifierOptions: Record<string, MechanismQualifierOption[]> = Object.fromEntries(
-  Array.from(mechanismBaseAccumulator.entries()).map(([baseKey, entry]) => {
+  Array.from(mechanismBaseAccumulator.entries()).map(([_baseKey, entry]) => {
     const qualifiers = Array.from(entry.qualifiers.values())
       .map((qualifier) => ({
         qualifier: qualifier.qualifier,

@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
-import type { FieldMeta } from "@/data/schema";
 import { FIELD_REGISTRY, getValueByPath, setValueByPath } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import { SchemaField } from "./SchemaField";
@@ -39,6 +38,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
     const newDosageRoute = {
       route: "",
       bioavailability: "",
+      bioavailability_notes: "",
       dose_ranges: {
         threshold: { min: null, max: null, unit: "" },
         light: { min: null, max: null, unit: "" },
@@ -51,6 +51,8 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
 
     const newDurationRoute = {
       route: "",
+      half_life: "",
+      half_life_notes: "",
       stages: {
         onset: { min: null, max: null, unit: "" },
         come_up: { min: null, max: null, unit: "" },
@@ -156,6 +158,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
             };
             const isExpanded = expandedRoutes[index] ?? false;
             const routeName = dosageRoute.route || `Route ${index + 1}`;
+            const routeNameId = `route-fields-${index}-route-name`;
 
             return (
               <div
@@ -191,10 +194,11 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                     {/* Route Name */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-white/80">
+                        <label htmlFor={routeNameId} className="block text-sm font-medium text-white/80">
                           Route Name <span className="text-fuchsia-400">*</span>
                         </label>
                         <input
+                          id={routeNameId}
                           type="text"
                           value={dosageRoute.route}
                           onChange={(e) => {

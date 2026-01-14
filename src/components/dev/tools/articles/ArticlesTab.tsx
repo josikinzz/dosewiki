@@ -83,12 +83,14 @@ export const ArticlesTab = memo(function ArticlesTab({
   commitPanel,
 }: ArticlesTabProps) {
   // API state
+  // Use sessionStorage for API key (more secure - cleared when browser closes)
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+      return sessionStorage.getItem(STORAGE_KEYS.API_KEY) || "";
     }
     return "";
   });
+  // Use localStorage for model preference (not sensitive)
   const [selectedModel, setSelectedModel] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem(STORAGE_KEYS.SELECTED_MODEL) || MODEL_OPTIONS[0].id;
@@ -124,9 +126,6 @@ export const ArticlesTab = memo(function ArticlesTab({
   const [formDirty, setFormDirty] = useState(false);
   const [formParseError, setFormParseError] = useState<string | null>(null);
 
-  // Existing article detection
-  const [existingArticleDetected, setExistingArticleDetected] = useState<SubstanceArticle | null>(null);
-
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
 
@@ -151,10 +150,12 @@ export const ArticlesTab = memo(function ArticlesTab({
   // DevMode context for saving articles
   const { articles, applyArticlesTransform } = useDevMode();
 
-  // Persist API key and model
+  // Persist API key (sessionStorage for security) and model (localStorage for convenience)
   useEffect(() => {
     if (apiKey) {
-      localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
+      sessionStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
+    } else {
+      sessionStorage.removeItem(STORAGE_KEYS.API_KEY);
     }
   }, [apiKey]);
 
@@ -182,7 +183,7 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Filter and sort substances
   const filteredSubstances = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    let filtered = query
+    const filtered = query
       ? substances.filter((s) => s.name.toLowerCase().includes(query))
       : [...substances];
 
@@ -203,7 +204,7 @@ export const ArticlesTab = memo(function ArticlesTab({
     }
 
     return filtered;
-  }, [searchQuery, sortOrder]);
+  }, [searchQuery, sortOrder, substances]);
 
   // Get available sources for selected substance
   const availableSources = useMemo<SourceInfo[]>(() => {
@@ -320,7 +321,6 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Detect and auto-load existing articles when substance is selected
   useEffect(() => {
     if (!selectedSubstanceSlug) {
-      setExistingArticleDetected(null);
       return;
     }
 
@@ -343,13 +343,10 @@ export const ArticlesTab = memo(function ArticlesTab({
     });
 
     if (existing) {
-      setExistingArticleDetected(existing);
       // Auto-load the existing article
       const yamlOutput = yaml.stringify(existing, { lineWidth: 0, nullStr: "" });
       setStreamedOutput(yamlOutput);
       setOutputViewMode("form");
-    } else {
-      setExistingArticleDetected(null);
     }
   }, [selectedSubstanceSlug, articles]);
 
@@ -487,10 +484,8 @@ export const ArticlesTab = memo(function ArticlesTab({
     }
   }, [streamedOutput, articles, applyArticlesTransform, outputViewMode, commitPanel]);
 
-  const selectedSubstance = useMemo(
-    () => substances.find((s) => s.slug === selectedSubstanceSlug),
-    [selectedSubstanceSlug]
-  );
+  const apiKeyInputId = "articles-openrouter-key";
+  const modelSelectId = "articles-model";
 
   // Helper to get all sources as array for section generators
   const getAllSources = useCallback((): Array<{ source: string; content: string }> => {
@@ -548,11 +543,12 @@ export const ArticlesTab = memo(function ArticlesTab({
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">
+            <label htmlFor={apiKeyInputId} className="mb-1.5 block text-sm font-medium text-white/70">
               OpenRouter API Key
             </label>
             <div className="relative">
               <Input
+                id={apiKeyInputId}
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
@@ -582,11 +578,11 @@ export const ArticlesTab = memo(function ArticlesTab({
             </p>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-white/70">
+            <label htmlFor={modelSelectId} className="mb-1.5 block text-sm font-medium text-white/70">
               Model
             </label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger>
+              <SelectTrigger id={modelSelectId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

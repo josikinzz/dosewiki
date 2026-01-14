@@ -1,7 +1,6 @@
 import type { SubstanceArticle } from "../../schema";
-import articlesSource from "../../data/articles";
 import { slugifyDrugName } from "../../data/builders/contentBuilder";
-import { ensureNormalizedTagList, joinNormalizedValues } from "./tagDelimiters";
+import { ensureNormalizedTagList } from "./tagDelimiters";
 
 type ArticleRecord = SubstanceArticle;
 
@@ -113,14 +112,6 @@ const parseId = (value: unknown): number | undefined => {
 };
 
 const parseTitle = (value: unknown): string | undefined => {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  }
-  return undefined;
-};
-
-const parseSlug = (value: unknown): string | undefined => {
   if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : undefined;

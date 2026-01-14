@@ -34,7 +34,7 @@ export type OverviewFieldsRHFProps = {
 
 export function OverviewFieldsRHF({
   idPrefix,
-  categoryOptions,
+  categoryOptions: _categoryOptions,
   indexCategoryOptions,
 }: OverviewFieldsRHFProps) {
   const { register, watch, setValue, control } = useFormContext<SubstanceArticle>();

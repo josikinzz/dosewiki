@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from "react";
-import { Controller, useFormContext, useFieldArray } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { Plus, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -52,6 +52,9 @@ interface CountryCardProps {
 
 function CountryCard({ index, country, status, notes, onRemove, onUpdate }: CountryCardProps) {
   const countryCode = getCountryCode(country);
+  const countryId = `country-legality-${index}-country`;
+  const statusId = `country-legality-${index}-status`;
+  const notesId = `country-legality-${index}-notes`;
 
   return (
     <div className="relative rounded-xl border border-white/10 bg-white/[0.02] p-4">
@@ -77,10 +80,11 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
       <div className="space-y-3 pr-16">
         {/* Country name */}
         <div>
-          <label className="block text-xs font-medium text-white/60 mb-1">
+          <label htmlFor={countryId} className="block text-xs font-medium text-white/60 mb-1">
             Country
           </label>
           <Input
+            id={countryId}
             value={country}
             onChange={(e) => onUpdate("country", e.target.value)}
             placeholder="e.g., United States"
@@ -96,10 +100,11 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
 
         {/* Status */}
         <div>
-          <label className="block text-xs font-medium text-white/60 mb-1">
+          <label htmlFor={statusId} className="block text-xs font-medium text-white/60 mb-1">
             Status
           </label>
           <Input
+            id={statusId}
             value={status}
             onChange={(e) => onUpdate("status", e.target.value)}
             placeholder="e.g., Schedule I, Class A, Illegal"
@@ -109,10 +114,11 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
 
         {/* Notes */}
         <div>
-          <label className="block text-xs font-medium text-white/60 mb-1">
+          <label htmlFor={notesId} className="block text-xs font-medium text-white/60 mb-1">
             Notes <span className="text-white/30">(optional)</span>
           </label>
           <Textarea
+            id={notesId}
             value={notes}
             onChange={(e) => onUpdate("notes", e.target.value)}
             placeholder="Additional details, exceptions, or context..."
@@ -130,7 +136,7 @@ export interface CountryLegalityCardEditorProps {
 }
 
 export function CountryLegalityCardEditor({ className }: CountryLegalityCardEditorProps) {
-  const { control, watch, setValue } = useFormContext<SubstanceArticle>();
+  const { watch, setValue } = useFormContext<SubstanceArticle>();
 
   // Watch the countries object
   const countriesObj = watch("legality.countries") || {};
