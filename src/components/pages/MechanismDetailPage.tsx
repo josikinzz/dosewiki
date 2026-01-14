@@ -5,7 +5,7 @@ import { CategoryGrid } from "../sections/CategoryGrid";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";
-import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/builders/library";
+import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/constants";
 
 interface MechanismDetailPageProps {
   detail: MechanismDetail;

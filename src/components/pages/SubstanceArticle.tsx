@@ -5,7 +5,7 @@ import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { MoleculeAsset, RouteKey } from "../../types/content";
-import articles from "../../data/articles";
+import { useArticles } from "../../data/ArticlesProvider";
 import { slugify } from "../../utils/slug";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
@@ -79,6 +79,7 @@ export function SubstanceArticle({
   const [moleculeAssets, setMoleculeAssets] = useState<MoleculeAsset[]>([]);
   const [moleculeAsset, setMoleculeAsset] = useState<MoleculeAsset | null>(null);
   const { open: openDevMode } = useDevMode();
+  const articles = useArticles();
 
   const heroVariantLines = useMemo(() => buildHeroVariantLines(content.nameVariants), [content.nameVariants]);
   const decoratedHeroVariantLines = useMemo(
@@ -207,7 +208,7 @@ export function SubstanceArticle({
 
       return slugify(slugSource) === record.slug;
     });
-  }, [record.id, record.slug]);
+  }, [articles, record.id, record.slug]);
 
   const articleJsonString = useMemo(() => {
     const payload = rawArticle ?? {

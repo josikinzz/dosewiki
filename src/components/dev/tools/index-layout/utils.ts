@@ -3,7 +3,7 @@ import type {
   ManualCategorySection,
   ManualSectionLink,
 } from "../../../../data/builders/manualIndexLoader";
-import { allSubstancesBySlug } from "../../../../data/builders/library";
+import type { SubstanceRecord } from "../../../../data/builders/contentBuilder";
 import { slugify } from "../../../../utils/slug";
 import type { SlugStatus, SlugIssue, SubstanceOption } from "./types";
 
@@ -143,10 +143,11 @@ export const sortSectionsInverseAlpha = (sections: ManualCategorySection[]): Man
 
 export const buildSlugStatus = (
   slug: string,
+  substancesBySlug: Map<string, SubstanceRecord>,
   options: SubstanceOption[],
   existingInContext: ReadonlySet<string>,
 ): SlugStatus => {
-  const record = allSubstancesBySlug.get(slug);
+  const record = substancesBySlug.get(slug);
   const option = options.find((opt) => opt.slug === slug);
   const issues: SlugIssue[] = [];
 

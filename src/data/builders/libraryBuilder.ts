@@ -28,6 +28,7 @@ import type {
 } from "../../types/content";
 import type { SubstanceArticle } from "../../schema";
 import type { LibraryData } from "../ArticlesProvider";
+import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 
 // Re-export types from library.ts for convenience
 export type {
@@ -64,7 +65,6 @@ import type {
   InteractionIndex,
 } from "./library";
 
-export const UNQUALIFIED_MECHANISM_QUALIFIER_KEY = "unqualified";
 
 // Internal types
 interface InteractionClassMatcher {

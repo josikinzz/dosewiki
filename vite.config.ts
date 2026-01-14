@@ -1,5 +1,5 @@
-﻿import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import type { OutputAsset, OutputChunk } from 'rollup';
@@ -97,7 +97,30 @@ export default defineConfig(({ mode }) => {
   config.build = {
     target: ['es2017', 'chrome80'],
     cssTarget: 'chrome80',
+    chunkSizeWarningLimit: 1000,
     ...(config.build ?? {}),
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', '@tanstack/react-query'],
+          'vendor-ui': [
+            'framer-motion',
+            'lucide-react',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-label',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toggle',
+            '@radix-ui/react-toggle-group',
+          ],
+          'vendor-markdown': ['react-markdown', 'remark-gfm', 'remark-breaks', 'prismjs'],
+          'vendor-utils': ['zod', 'yaml', 'diff', 'tokenx'],
+        },
+      },
+    },
   };
 
   if (inline) {
@@ -105,6 +128,7 @@ export default defineConfig(({ mode }) => {
       ...config.build,
       assetsInlineLimit: Number.MAX_SAFE_INTEGER,
       cssCodeSplit: false,
+      rollupOptions: undefined, // Inline builds don't need chunking
     };
   }
 

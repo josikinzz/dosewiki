@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { TagOption } from "../data/tagOptions";
+import type { TagOption } from "../data/config/tagOptions";
 import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
 import { useDevMode } from "../components/dev/DevModeContext";
 

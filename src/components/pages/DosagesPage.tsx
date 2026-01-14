@@ -5,11 +5,7 @@ import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { Button } from "@/components/ui/button";
 import type { DosageCategoryGroup } from "../../data/builders/library";
-import {
-  chemicalClassIndexGroups,
-  mechanismIndexGroups,
-  substanceRecords,
-} from "../../data/builders/library";
+import { useLibrary } from "../../data/ArticlesProvider";
 
 type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 
@@ -45,6 +41,7 @@ interface DosagesPageProps {
 
 export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onSelectCategory }: DosagesPageProps) {
   const [sortKey, setSortKey] = useState<IndexSortKey>("psychoactive");
+  const { chemicalClassIndexGroups, mechanismIndexGroups, substanceRecords } = useLibrary();
 
   const compoundCount = substanceRecords.length;
   const psychoactiveClassCount = groups.length;

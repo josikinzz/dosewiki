@@ -7,13 +7,7 @@ import { Info } from "lucide-react";
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
-import {
-  dosageCategoryGroups,
-  effectSummaries,
-  chemicalClassIndexGroups,
-  mechanismIndexGroups,
-  substanceRecords,
-} from "../../data/builders/library";
+import { useLibrary } from "../../data/ArticlesProvider";
 import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "../../data/content/about";
 import { getProfileByKey } from "../../data/userProfiles";
 
@@ -60,6 +54,13 @@ const toInitials = (value: string) => {
 };
 
 export const AboutPage = memo(function AboutPage() {
+  const {
+    substanceRecords,
+    dosageCategoryGroups,
+    chemicalClassIndexGroups,
+    mechanismIndexGroups,
+    effectSummaries,
+  } = useLibrary();
   const compoundCount = substanceRecords.length;
   const psychoactiveClassCount = dosageCategoryGroups.length;
   const chemicalClassCount = chemicalClassIndexGroups.length;

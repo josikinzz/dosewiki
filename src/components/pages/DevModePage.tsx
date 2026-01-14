@@ -16,14 +16,7 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
-import {
-  chemicalClassIndexGroups,
-  dosageCategoryGroups,
-  effectSummaries,
-  mechanismIndexGroups,
-  substanceRecords,
-} from "../../data/builders/library";
-import type articlesSource from "../../data/articles";
+import { useLibrary } from "../../data/ArticlesProvider";
 import {
   useCallback,
   useEffect,
@@ -92,7 +85,7 @@ type ChangeNotice = {
   message: string;
 };
 
-type ArticleRecord = (typeof articlesSource)[number];
+type ArticleRecord = SubstanceArticle;
 
 type ChangeLogFilters = {
   articleSlug: string | null;
@@ -261,6 +254,13 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     resetGeneratorPrompt,
     getOriginalGeneratorPrompt,
   } = useDevMode();
+  const {
+    chemicalClassIndexGroups,
+    dosageCategoryGroups,
+    effectSummaries,
+    mechanismIndexGroups,
+    substanceRecords,
+  } = useLibrary();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const _initialSlugAppliedRef = useRef<string | null>(null);
   const [classificationView, setClassificationView] = useState<ClassificationView>("psychoactive");

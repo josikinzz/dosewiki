@@ -28,8 +28,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDevMode } from "../../../dev/DevModeContext";
 import type { ManualSectionLinkType } from "../../../../data/builders/manualIndexLoader";
-import { allSubstanceRecords } from "../../../../data/builders/library";
 import { getCategoryIcon } from "../../../../data/config/categoryIcons";
+import { useLibrary } from "../../../../data/ArticlesProvider";
 import { slugify } from "../../../../utils/slug";
 
 import {
@@ -53,7 +53,6 @@ import {
   ensureString,
 } from "./utils";
 
-import { allSubstancesBySlug } from "../../../../data/builders/library";
 
 const formatSubstanceLabel = (option: SubstanceOption): string => {
   const parts = [option.name];
@@ -69,124 +68,7 @@ const formatSubstanceLabel = (option: SubstanceOption): string => {
 const COMMON_TAG = "common";
 
 const normalizeTag = (value: string): string => value.trim().toLowerCase();
-
-const commonSlugSet = new Set<string>(
-  allSubstanceRecords
-    .filter((record) => {
-      const candidates = [
-        ...(record.categories ?? []),
-        ...(record.indexCategories ?? []),
-      ];
-      return candidates.some((category) => normalizeTag(category) === COMMON_TAG);
-    })
-    .map((record) => record.slug),
-);
-
-const isCommonSlug = (slug: string): boolean => {
-  if (commonSlugSet.has(slug)) {
-    return true;
-  }
-  const record = allSubstancesBySlug.get(slug);
-  if (!record) {
-    return false;
-  }
-  const candidates = [
-    ...(record.categories ?? []),
-    ...(record.indexCategories ?? []),
-  ];
-  const matches = candidates.some((category) => normalizeTag(category) === COMMON_TAG);
-  if (matches) {
-    commonSlugSet.add(slug);
-  }
-  return matches;
-};
-
-const getSlugSortName = (slug: string): string => allSubstancesBySlug.get(slug)?.name ?? slug;
-
-const sortSlugsWithCommonPriority = (slugs: readonly string[]): string[] =>
-  slugs
-    .map((slug) => ({
-      slug,
-      isCommon: isCommonSlug(slug),
-      name: getSlugSortName(slug),
-    }))
-    .sort((first, second) => {
-      if (first.isCommon !== second.isCommon) {
-        return first.isCommon ? -1 : 1;
-      }
-      return first.name.localeCompare(second.name, undefined, {
-        sensitivity: "base",
-        numeric: true,
-      });
-    })
-    .map((entry) => entry.slug);
-
-const sortSectionsWithCommonPriority = (
-  sections: readonly ManualCategorySection[],
-): ManualCategorySection[] =>
-  sections.map((section) => ({
-    ...section,
-    drugs: sortSlugsWithCommonPriority(section.drugs),
-  }));
-
-const sortSlugsAlphabetically = (slugs: readonly string[]): string[] =>
-  [...slugs]
-    .map((slug) => ({ slug, name: getSlugSortName(slug) }))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }))
-    .map((entry) => entry.slug);
-
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
-
-const sortSlugsForDataset = (
-  dataset: ManualDatasetKey,
-  slugs: readonly string[],
-): string[] => {
-  if (dataset === "psychoactive") {
-    return sortSlugsWithCommonPriority(slugs);
-  }
-  return sortSlugsAlphabetically(slugs);
-};
-
-const sortSectionsForDataset = (
-  dataset: ManualDatasetKey,
-  sections: readonly ManualCategorySection[],
-): ManualCategorySection[] => {
-  if (dataset === "psychoactive") {
-    return sortSectionsWithCommonPriority(sections);
-  }
-
-  return sections.map((section) => ({
-    ...section,
-    drugs: sortSlugsForDataset(dataset, section.drugs),
-  }));
-};
-
-const organizeManualEntries = (
-  dataset: ManualDatasetKey,
-  manual: ManualIndexConfig,
-): ManualIndexConfig => ({
-  ...manual,
-  categories: manual.categories.map((category) => ({
-    ...category,
-    drugs: sortSlugsForDataset(dataset, category.drugs),
-    sections: sortSectionsForDataset(dataset, category.sections),
-  })),
-});
-
-const normalizeManualOrdering = (
-  dataset: ManualDatasetKey,
-  manual: ManualIndexConfig,
-): ManualIndexConfig => ({
-  ...manual,
-  categories: manual.categories.map((category) => ({
-    ...category,
-    drugs: sortSlugsForDataset(dataset, category.drugs),
-    sections: category.sections.map((section) => ({
-      ...section,
-      drugs: sortSlugsForDataset(dataset, section.drugs),
-    })),
-  })),
-});
 
 const computeSlugCounts = (category: ManualCategoryDefinition): Map<string, number> => {
   const counts = new Map<string, number>();
@@ -202,36 +84,6 @@ const computeSlugCounts = (category: ManualCategoryDefinition): Map<string, numb
   category.sections.forEach((section) => section.drugs.forEach(register));
 
   return counts;
-};
-
-const resolveSlugStatus = (slug: string, counts: Map<string, number>): SlugStatus => {
-  const normalized = slugify(slug);
-  const issues: SlugIssue[] = [];
-  if (!normalized) {
-    issues.push("missing");
-    return { slug, issues };
-  }
-
-  const record = allSubstancesBySlug.get(normalized);
-  if (!record) {
-    issues.push("missing");
-    return { slug, issues };
-  }
-
-  if (record.isHidden) {
-    issues.push("hidden");
-  }
-
-  if ((counts.get(normalized) ?? 0) > 1) {
-    issues.push("duplicate");
-  }
-
-  return {
-    slug,
-    name: record.name,
-    alias: record.aliases?.[0],
-    issues,
-  };
 };
 
 interface SubstanceListItemProps {
@@ -464,6 +316,7 @@ interface SectionEditorProps {
   slugStatuses: Map<string, SlugStatus>;
   categorySlugSet: ReadonlySet<string>;
   datasetSlugSet: ReadonlySet<string>;
+  sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
 }
 
 const SectionEditor = memo(
@@ -479,13 +332,14 @@ const SectionEditor = memo(
     slugStatuses,
     categorySlugSet,
     datasetSlugSet,
+    sortSlugsWithCommonPriority,
   }: SectionEditorProps) => {
     const handleSlugAdd = useCallback(
       (slug: string) => {
         const nextDrugs = sortSlugsWithCommonPriority([...section.drugs, slug]);
         onUpdate({ ...section, drugs: nextDrugs });
       },
-      [onUpdate, section],
+      [onUpdate, section, sortSlugsWithCommonPriority],
     );
 
     const handleSlugRemove = useCallback(
@@ -495,7 +349,7 @@ const SectionEditor = memo(
         );
         onUpdate({ ...section, drugs: nextDrugs });
       },
-      [onUpdate, section],
+      [onUpdate, section, sortSlugsWithCommonPriority],
     );
 
     const handleLabelChange = useCallback(
@@ -547,7 +401,7 @@ const SectionEditor = memo(
     const [detailsOpen, setDetailsOpen] = useState(false);
     const sortedSectionDrugs = useMemo(
       () => sortSlugsWithCommonPriority(section.drugs),
-      [section.drugs],
+      [section.drugs, sortSlugsWithCommonPriority],
     );
 
     const sectionWrapperClass = showTopDivider
@@ -710,6 +564,7 @@ const SectionEditor = memo(
     && previous.slugStatuses === next.slugStatuses
     && previous.categorySlugSet === next.categorySlugSet
     && previous.datasetSlugSet === next.datasetSlugSet
+    && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority
     && previous.onMove === next.onMove
     && previous.onRemove === next.onRemove
     && previous.onUpdate === next.onUpdate,
@@ -728,6 +583,8 @@ interface CategoryEditorProps {
   onAddSection: (index: number) => void;
   substanceOptions: SubstanceOption[];
   datasetSlugSet: ReadonlySet<string>;
+  sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
+  resolveSlugStatus: (slug: string, counts: Map<string, number>) => SlugStatus;
 }
 
 const CategoryEditor = memo(
@@ -741,6 +598,8 @@ const CategoryEditor = memo(
     onAddSection,
     substanceOptions,
     datasetSlugSet,
+    sortSlugsWithCommonPriority,
+    resolveSlugStatus,
   }: CategoryEditorProps) => {
     const slugCounts = useMemo(() => computeSlugCounts(category), [category]);
     const slugStatuses = useMemo(() => {
@@ -754,12 +613,12 @@ const CategoryEditor = memo(
         });
       });
       return map;
-    }, [category.drugs, category.sections, slugCounts]);
+    }, [category.drugs, category.sections, resolveSlugStatus, slugCounts]);
 
     const categoryIcon = useMemo(() => getCategoryIcon(category.iconKey), [category.iconKey]);
     const sortedPrimaryDrugs = useMemo(
       () => sortSlugsWithCommonPriority(category.drugs),
-      [category.drugs],
+      [category.drugs, sortSlugsWithCommonPriority],
     );
 
     const handleLabelChange = useCallback(
@@ -797,7 +656,7 @@ const CategoryEditor = memo(
           drugs: sortSlugsWithCommonPriority([...current.drugs, slug]),
         }));
       },
-      [index, onUpdateCategory],
+      [index, onUpdateCategory, sortSlugsWithCommonPriority],
     );
 
     const handleTopLevelRemove = useCallback(
@@ -809,7 +668,7 @@ const CategoryEditor = memo(
           ),
         }));
       },
-      [index, onUpdateCategory],
+      [index, onUpdateCategory, sortSlugsWithCommonPriority],
     );
 
     const handleSectionUpdate = useCallback(
@@ -1051,6 +910,7 @@ const CategoryEditor = memo(
                       slugStatuses={slugStatuses}
                       categorySlugSet={categorySlugSet}
                       datasetSlugSet={datasetSlugSet}
+                      sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
                     />
                   ))
                 : null}
@@ -1072,6 +932,8 @@ const CategoryEditor = memo(
     && previous.total === next.total
     && previous.substanceOptions === next.substanceOptions
     && previous.datasetSlugSet === next.datasetSlugSet
+    && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority
+    && previous.resolveSlugStatus === next.resolveSlugStatus
     && previous.onAddSection === next.onAddSection
     && previous.onMoveCategory === next.onMoveCategory
     && previous.onRemoveCategory === next.onRemoveCategory
@@ -1095,6 +957,140 @@ export function IndexLayoutTab({
     getOriginalChemicalIndexManual,
     getOriginalMechanismIndexManual,
   } = useDevMode();
+  const { allSubstanceRecords, allSubstancesBySlug } = useLibrary();
+
+  const {
+    sortSlugsWithCommonPriority,
+    sortSlugsForDataset,
+    sortSectionsForDataset,
+    resolveSlugStatus,
+  } = useMemo(() => {
+    const commonSlugSet = new Set<string>(
+      allSubstanceRecords
+        .filter((record) => {
+          const candidates = [
+            ...(record.categories ?? []),
+            ...(record.indexCategories ?? []),
+          ];
+          return candidates.some((category) => normalizeTag(category) === COMMON_TAG);
+        })
+        .map((record) => record.slug),
+    );
+
+    const isCommonSlug = (slug: string): boolean => {
+      if (commonSlugSet.has(slug)) {
+        return true;
+      }
+      const record = allSubstancesBySlug.get(slug);
+      if (!record) {
+        return false;
+      }
+      const candidates = [
+        ...(record.categories ?? []),
+        ...(record.indexCategories ?? []),
+      ];
+      const matches = candidates.some((category) => normalizeTag(category) === COMMON_TAG);
+      if (matches) {
+        commonSlugSet.add(slug);
+      }
+      return matches;
+    };
+
+    const getSlugSortName = (slug: string): string => allSubstancesBySlug.get(slug)?.name ?? slug;
+
+    const sortSlugsWithCommonPriority = (slugs: readonly string[]): string[] =>
+      slugs
+        .map((slug) => ({
+          slug,
+          isCommon: isCommonSlug(slug),
+          name: getSlugSortName(slug),
+        }))
+        .sort((first, second) => {
+          if (first.isCommon !== second.isCommon) {
+            return first.isCommon ? -1 : 1;
+          }
+          return first.name.localeCompare(second.name, undefined, {
+            sensitivity: "base",
+            numeric: true,
+          });
+        })
+        .map((entry) => entry.slug);
+
+    const sortSectionsWithCommonPriority = (
+      sections: readonly ManualCategorySection[],
+    ): ManualCategorySection[] =>
+      sections.map((section) => ({
+        ...section,
+        drugs: sortSlugsWithCommonPriority(section.drugs),
+      }));
+
+    const sortSlugsAlphabetically = (slugs: readonly string[]): string[] =>
+      [...slugs]
+        .map((slug) => ({ slug, name: getSlugSortName(slug) }))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }))
+        .map((entry) => entry.slug);
+
+    const sortSlugsForDataset = (
+      dataset: ManualDatasetKey,
+      slugs: readonly string[],
+    ): string[] => {
+      if (dataset === "psychoactive") {
+        return sortSlugsWithCommonPriority(slugs);
+      }
+      return sortSlugsAlphabetically(slugs);
+    };
+
+    const sortSectionsForDataset = (
+      dataset: ManualDatasetKey,
+      sections: readonly ManualCategorySection[],
+    ): ManualCategorySection[] => {
+      if (dataset === "psychoactive") {
+        return sortSectionsWithCommonPriority(sections);
+      }
+
+      return sections.map((section) => ({
+        ...section,
+        drugs: sortSlugsForDataset(dataset, section.drugs),
+      }));
+    };
+
+    const resolveSlugStatus = (slug: string, counts: Map<string, number>): SlugStatus => {
+      const normalized = slugify(slug);
+      const issues: SlugIssue[] = [];
+      if (!normalized) {
+        issues.push("missing");
+        return { slug, issues };
+      }
+
+      const record = allSubstancesBySlug.get(normalized);
+      if (!record) {
+        issues.push("missing");
+        return { slug, issues };
+      }
+
+      if (record.isHidden) {
+        issues.push("hidden");
+      }
+
+      if ((counts.get(normalized) ?? 0) > 1) {
+        issues.push("duplicate");
+      }
+
+      return {
+        slug,
+        name: record.name,
+        alias: record.aliases?.[0],
+        issues,
+      };
+    };
+
+    return {
+      sortSlugsWithCommonPriority,
+      sortSlugsForDataset,
+      sortSectionsForDataset,
+      resolveSlugStatus,
+    };
+  }, [allSubstanceRecords, allSubstancesBySlug]);
 
   const datasetOrder = DATASET_ORDER;
 
@@ -1163,6 +1159,33 @@ export function IndexLayoutTab({
       resetMechanismIndexManual,
       resetPsychoactiveIndexManual,
     ],
+  );
+
+  const organizeManualEntries = useCallback(
+    (dataset: ManualDatasetKey, manual: ManualIndexConfig): ManualIndexConfig => ({
+      ...manual,
+      categories: manual.categories.map((category) => ({
+        ...category,
+        drugs: sortSlugsForDataset(dataset, category.drugs),
+        sections: sortSectionsForDataset(dataset, category.sections),
+      })),
+    }),
+    [sortSectionsForDataset, sortSlugsForDataset],
+  );
+
+  const normalizeManualOrdering = useCallback(
+    (dataset: ManualDatasetKey, manual: ManualIndexConfig): ManualIndexConfig => ({
+      ...manual,
+      categories: manual.categories.map((category) => ({
+        ...category,
+        drugs: sortSlugsForDataset(dataset, category.drugs),
+        sections: category.sections.map((section) => ({
+          ...section,
+          drugs: sortSlugsForDataset(dataset, section.drugs),
+        })),
+      })),
+    }),
+    [sortSlugsForDataset],
   );
 
   const createNormalizedManual = (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) =>
@@ -1363,7 +1386,7 @@ export function IndexLayoutTab({
           isHidden: record.isHidden,
         }))
         .sort((a, b) => a.name.localeCompare(b.name)),
-    [],
+    [allSubstanceRecords],
   );
 
   const datasetSlugSet = useMemo<ReadonlySet<string>>(() => {
@@ -1664,6 +1687,8 @@ export function IndexLayoutTab({
                 onAddSection={addSection}
                 substanceOptions={substanceOptions}
                 datasetSlugSet={datasetSlugSet}
+                sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
+                resolveSlugStatus={resolveSlugStatus}
               />
             ))}
             <div className="mb-6 break-inside-avoid break-inside-avoid-column">

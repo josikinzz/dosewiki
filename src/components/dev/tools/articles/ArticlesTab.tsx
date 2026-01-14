@@ -46,7 +46,7 @@ import {
   type SourceInfo,
   type SubstanceModule,
 } from "../../../../data/article-sources";
-import { substanceRecords, allSubstanceRecords } from "../../../../data/builders/library";
+import { useLibrary } from "../../../../data/ArticlesProvider";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
@@ -113,7 +113,7 @@ export const ArticlesTab = memo(function ArticlesTab({
     const records = showLowPriority ? allSubstanceRecords : substanceRecords;
     const visibleSlugs = new Set(records.map((r) => r.slug));
     return allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
-  }, [showLowPriority]);
+  }, [allSubstanceRecords, showLowPriority, substanceRecords]);
 
   // Article output state
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -149,6 +149,7 @@ export const ArticlesTab = memo(function ArticlesTab({
 
   // DevMode context for saving articles
   const { articles, applyArticlesTransform } = useDevMode();
+  const { substanceRecords, allSubstanceRecords } = useLibrary();
 
   // Persist API key (sessionStorage for security) and model (localStorage for convenience)
   useEffect(() => {

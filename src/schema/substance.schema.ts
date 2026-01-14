@@ -127,7 +127,7 @@ export const identificationSchema = z.object({
   molecular_formula: z.string(),
   molecular_weight: z.string(),
   skeletal_structure_image: z.string(),
-  botanical_name: z.string().default(""),
+  botanical_name: z.string().nullable().default(""),
 });
 
 /** Classification section */
@@ -192,8 +192,8 @@ export const subjectiveEffectsSchema = z.object({
   sensory: sensoryEffectsSchema,
   cognitive: effectCategorySchema,
   physical: effectCategorySchema,
-  progressive_stages: effectCategorySchema.optional(),
-  attribution: subjectiveEffectsAttributionSchema.optional(),
+  progressive_stages: effectCategorySchema.nullable().optional(),
+  attribution: subjectiveEffectsAttributionSchema.nullable().optional(),
 });
 
 // ============================================================================
@@ -299,7 +299,7 @@ export const legalitySchema = z.object({
 export const substanceArticleSchema = z.object({
   id: z.number().nullable(),
   title: z.string(),
-  priority: z.enum(["high", "normal", "low"]).default("normal"),
+  priority: z.enum(["high", "normal", "low"]).nullable().default("normal"),
   index_categories: z.array(z.string()),
 
   identification: identificationSchema,
@@ -314,9 +314,9 @@ export const substanceArticleSchema = z.object({
   reagent_testing: z.record(z.string(), z.string()),
   tolerance: toleranceSchema,
   harm_potential: harmPotentialSchema,
-  history_culture: historyCultureSchema.optional(),
+  history_culture: historyCultureSchema.nullable().optional(),
   legality: legalitySchema,
-  source_citations: z.array(citationSchema).optional(),
+  source_citations: z.array(citationSchema).nullable().optional(),
   citations: z.array(citationSchema),
 });
 
