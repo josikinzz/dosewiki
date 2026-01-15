@@ -43,7 +43,6 @@ import { DiffPreview } from "../common/DiffPreview";
 import type { UseArticleFormReturn } from "../../hooks/useArticleForm";
 import { useSaveArticlesMutation, useAuthMutation, useSaveArticlesToConvex } from "../../hooks/useApiMutations";
 import { isConvexEnabled } from "../../lib/convex";
-import { useConvexSync, type ConvexSyncStatus } from "../../context/ConvexSyncContext";
 import type { SubstanceArticle } from "../../schema";
 import { createEmptyArticle } from "../../data/schema";
 import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
@@ -313,7 +312,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const saveArticlesMutation = useSaveArticlesMutation();
   const authMutation = useAuthMutation();
   const convexSave = useSaveArticlesToConvex();
-  const { state: convexSyncState, syncNow: convexSyncNow, isEnabled: isConvexSyncEnabled } = useConvexSync();
   const isSaving = saveArticlesMutation.isPending;
   const [isConvexSaving, setIsConvexSaving] = useState(false);
   const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
@@ -2358,62 +2356,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     resetAboutFounderKeys();
   }, [resetAboutFounderKeys]);
 
-  // Convex auto-sync status indicator
-  const convexSyncStatusIndicator = useMemo(() => {
-    if (!isConvexSyncEnabled) return null;
-    
-    const { status, lastSyncedAt, error } = convexSyncState;
-    
-    const statusConfig: Record<ConvexSyncStatus, { icon: React.ReactNode; label: string; className: string }> = {
-      idle: {
-        icon: <Cloud className="h-3.5 w-3.5" />,
-        label: lastSyncedAt ? `Synced ${lastSyncedAt.toLocaleTimeString()}` : "Auto-sync ready",
-        className: "text-white/40",
-      },
-      pending: {
-        icon: <Cloud className="h-3.5 w-3.5" />,
-        label: "Changes pending…",
-        className: "text-amber-300",
-      },
-      syncing: {
-        icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
-        label: "Syncing to Convex…",
-        className: "text-cyan-300",
-      },
-      synced: {
-        icon: <BadgeCheck className="h-3.5 w-3.5" />,
-        label: "Synced to Convex",
-        className: "text-emerald-300",
-      },
-      error: {
-        icon: <Cloud className="h-3.5 w-3.5" />,
-        label: error || "Sync failed",
-        className: "text-rose-300",
-      },
-    };
-    
-    const config = statusConfig[status];
-    
-    return (
-      <div className={`flex items-center gap-1.5 text-xs ${config.className}`}>
-        {config.icon}
-        <span>{config.label}</span>
-        {status === "pending" && (
-          <button
-            onClick={() => convexSyncNow()}
-            className="ml-1 text-[10px] underline hover:no-underline"
-          >
-            Sync now
-          </button>
-        )}
-      </div>
-    );
-  }, [isConvexSyncEnabled, convexSyncState, convexSyncNow]);
-
-  // Convex save button for quick sync (manual save for index data, etc.)
+  // Convex save button (requires authentication via handleSaveToConvex)
   const convexSaveButton = isConvexEnabled() ? (
-    <div className="flex items-center gap-3">
-      {convexSyncStatusIndicator}
+    <div className="flex items-center gap-2">
       {convexNotice && (
         <span className={`text-xs ${convexNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
           {convexNotice.message}
@@ -2427,7 +2372,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         disabled={isConvexSaving || !hasPendingChanges}
       >
         <Cloud className="h-4 w-4" />
-        {isConvexSaving ? "Syncing…" : "Save to Convex"}
+        {isConvexSaving ? "Saving…" : "Save to Convex"}
       </Button>
     </div>
   ) : null;

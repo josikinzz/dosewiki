@@ -56,18 +56,18 @@ export function DevCommitCard({
     return <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>;
   })();
 
-  // When Convex is enabled, show simplified sync-only card (no GitHub commits from UI)
+  // When Convex is enabled, show Convex save card (requires login)
   if (convexEnabled) {
     return (
       <SectionCard className="space-y-4 bg-white/[0.04]">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Sync</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Convex</p>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-cyan-300" />
-            <h2 className="text-lg font-semibold text-cyan-200">Convex Auto-Sync</h2>
+            <h2 className="text-lg font-semibold text-cyan-200">Save to Convex</h2>
           </div>
           <p className="text-sm text-white/65">
-            Article changes sync to Convex automatically. No manual save needed.
+            Save article changes to Convex. Requires login to save.
           </p>
         </div>
         <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
@@ -76,7 +76,9 @@ export function DevCommitCard({
               <p className={notice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
                 {notice.message}
               </p>
-            ) : null}
+            ) : (
+              <p className="text-xs text-white/45">Changes are saved to Convex and appear live instantly.</p>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             {actionSlot}

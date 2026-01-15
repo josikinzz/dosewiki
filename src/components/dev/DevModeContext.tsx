@@ -16,7 +16,6 @@ import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndex
 import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
 import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
 import type { DevTab } from "../../types/navigation";
-import { useConvexSync } from "../../context/ConvexSyncContext";
 
 type ArticleRecord = SubstanceArticle;
 
@@ -93,31 +92,6 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     originalArticlesRef.current = deepClone(articlesSource);
     setArticles(deepClone(articlesSource));
   }, [articlesSource]);
-
-  // ============================================================================
-  // Convex Auto-Sync
-  // ============================================================================
-  const { syncArticles: convexSyncArticles, isEnabled: isConvexSyncEnabled } = useConvexSync();
-  
-  // Track if we've made any changes to avoid syncing on initial load
-  const hasEverChangedRef = useRef(false);
-
-  // Auto-sync articles to Convex when they change
-  useEffect(() => {
-    if (!isConvexSyncEnabled) {
-      return;
-    }
-
-    // Compare current articles with original to detect changes
-    const currentJson = JSON.stringify(articles);
-    const originalJson = JSON.stringify(originalArticlesRef.current);
-    const hasChanges = currentJson !== originalJson;
-
-    if (hasChanges) {
-      hasEverChangedRef.current = true;
-      convexSyncArticles(articles);
-    }
-  }, [articles, convexSyncArticles, isConvexSyncEnabled]);
 
   const originalManualIndexRef = useRef<ManualPsychoactiveIndexConfig>(
     deepClone(psychoactiveIndexManualSource as ManualPsychoactiveIndexConfig),
