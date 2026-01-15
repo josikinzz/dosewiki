@@ -2,7 +2,6 @@ import { memo, useMemo, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import { Info } from "lucide-react";
 
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
@@ -112,7 +111,7 @@ export const AboutPage = memo(function AboutPage() {
       />
       <PageHeader
         title="About dose.wiki"
-        icon={Info}
+        icon="lucide:info"
         description={aboutSubtitle}
       />
       <div className="space-y-6 md:space-y-8">

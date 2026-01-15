@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShieldAlert, SquareArrowOutUpRight, X } from "lucide-react";
+import { Icon } from "../common/Icon";
 import type { CitationEntry } from "../../types/content";
 import { Button } from "@/components/ui/button";
 
@@ -76,16 +76,15 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
           onClick={handleDismissClick}
           aria-label="Dismiss harm reduction disclaimer"
         >
-          <X className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:x" size={16} />
         </Button>
       ) : null}
       <div className="flex gap-4 pr-10 text-sm text-red-100/90 md:pr-16">
-        <ShieldAlert
-          className={`${isClosing ? "h-14 w-14" : "mt-1 h-12 w-12"} flex-shrink-0 text-red-100 ${
+        <Icon icon="lucide:shield-alert"
+          size={isClosing ? 56 : 48}
+          className={`${isClosing ? "" : "mt-1"} flex-shrink-0 text-red-100 ${
             isClosing ? "animate-pulse" : ""
           }`}
-          aria-hidden="true"
-          focusable="false"
         />
         <div className="flex flex-1 flex-col justify-center gap-3">
           {isClosing ? (
@@ -110,7 +109,7 @@ export function HarmReductionBanner({ citations, onDismiss }: HarmReductionBanne
                       className="inline-flex items-center gap-1 rounded-full border border-red-400/40 bg-red-500/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-red-100/85 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50"
                     >
                       <span>{link.label}</span>
-                      <SquareArrowOutUpRight className="h-3 w-3" aria-hidden="true" focusable="false" />
+                      <Icon icon="lucide:square-arrow-out-up-right" size={12} />
                     </a>
                   ))}
                 </span>

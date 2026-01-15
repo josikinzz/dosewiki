@@ -3,7 +3,7 @@
  * consumed by the UI. The source JSON uses the structured SubstanceArticle
  * schema which we transform into SubstanceContent for components.
  */
-import { Atom, BrainCircuit, BrainCog, Cog, FlaskRound, Hexagon, TrendingDown } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
 
 import type {
   SubstanceContent,
@@ -481,17 +481,17 @@ function buildInfoSections(
 
   const substitutiveName = cleanString(identification?.substitutive_name);
   if (substitutiveName) {
-    items.push({ label: "Substitutive name", value: substitutiveName, icon: Atom });
+    items.push({ label: "Substitutive name", value: substitutiveName, icon: "lucide:atom" as IconName });
   }
 
   const iupacName = cleanString(identification?.iupac_name);
   if (iupacName) {
-    items.push({ label: "IUPAC name", value: iupacName, icon: FlaskRound });
+    items.push({ label: "IUPAC name", value: iupacName, icon: "lucide:flask-round" as IconName });
   }
 
   const chemicalClass = classification?.chemical_class?.join("; ");
   if (chemicalClass) {
-    items.push({ label: "Chemical class", value: chemicalClass, icon: Hexagon });
+    items.push({ label: "Chemical class", value: chemicalClass, icon: "lucide:hexagon" as IconName });
   }
 
   // Mechanism of action from pharmacology (now an array)
@@ -532,19 +532,19 @@ function buildInfoSections(
     items.push({
       label: "Mechanism of Action",
       value: mechanism,
-      icon: Cog,
+      icon: "lucide:cog" as IconName,
       chips,
     });
   }
 
   const psychoClass = classification?.psychoactive_class?.join("; ");
   if (psychoClass) {
-    items.push({ label: "Psychoactive class", value: psychoClass, icon: BrainCircuit });
+    items.push({ label: "Psychoactive class", value: psychoClass, icon: "lucide:brain-circuit" as IconName });
   }
 
   const halfLife = cleanString(pharmacology?.half_life);
   if (halfLife) {
-    items.push({ label: "Half-life", value: halfLife, icon: TrendingDown });
+    items.push({ label: "Half-life", value: halfLife, icon: "lucide:trending-down" as IconName });
   }
 
   if (items.length === 0) {
@@ -554,7 +554,7 @@ function buildInfoSections(
   return [
     {
       title: "Chemistry & Pharmacology",
-      icon: BrainCog,
+      icon: "lucide:brain-cog" as IconName,
       items,
     },
   ];

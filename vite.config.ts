@@ -15,7 +15,7 @@ const vendorChunkGroups = [
     name: 'vendor-ui',
     packages: [
       'framer-motion',
-      'lucide-react',
+      '@iconify/react',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-label',

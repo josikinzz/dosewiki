@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { ChartNoAxesCombined, ChartColumnIncreasing, ChartLine, Ellipsis, ChevronDown } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -53,6 +53,14 @@ const DURATION_STAGES = [
   { key: "after_effects", label: "After Effects" },
   { key: "total_duration", label: "Total" },
 ] as const;
+
+/** Icons for route of administration tabs */
+const ROUTE_ICONS: Record<string, IconName> = {
+  oral: "healthicons:stomach-outline-24px",
+  insufflated: "mingcute:nose-line",
+  intranasal: "mingcute:nose-line",
+  snorted: "mingcute:nose-line",
+};
 
 /** Standard dose tiers table */
 function DoseTiersTable({ route }: { route: DosageRoute }) {
@@ -171,9 +179,9 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
                       aria-label={isExpanded ? "Collapse effects" : "Expand effects"}
                       aria-expanded={isExpanded}
                     >
-                      <Ellipsis className="h-3 w-3" />
-                      <ChevronDown className={cn(
-                        "h-3 w-3 transition-transform",
+                      <Icon icon="lucide:ellipsis" size={12} />
+                      <Icon icon="lucide:chevron-down" size={12} className={cn(
+                        "transition-transform",
                         isExpanded && "rotate-180"
                       )} />
                     </button>
@@ -218,7 +226,7 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <ChartColumnIncreasing className="h-4 w-4 text-fuchsia-200" />
+          <Icon icon="lucide:chart-column-increasing" size={16} className="text-fuchsia-200" />
           Dosage
         </h4>
         {hasBioavailability && (
@@ -266,7 +274,7 @@ function DurationPanel({ route }: { route: DurationRoute }) {
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
-          <ChartLine className="h-5 w-5 text-fuchsia-200" />
+          <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
           Duration
         </h4>
         {hasHalfLife && (
@@ -322,17 +330,21 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={ChartNoAxesCombined} label="Dosage & Duration" />
+        <IconBadge icon="lucide:chart-no-axes-combined" label="Dosage & Duration" />
         Dosage & Duration
       </h2>
 
       <Tabs defaultValue={defaultRoute} className="w-full">
         <TabsList className="mb-4 flex-wrap">
-          {allRoutes.map(route => (
-            <TabsTrigger key={route} value={route}>
-              {capitalizeRoute(route)}
-            </TabsTrigger>
-          ))}
+          {allRoutes.map(route => {
+            const routeIcon = ROUTE_ICONS[route.toLowerCase()];
+            return (
+              <TabsTrigger key={route} value={route} className="gap-1.5">
+                {routeIcon && <Icon icon={routeIcon} size={16} />}
+                {capitalizeRoute(route)}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
 
         {allRoutes.map(route => {

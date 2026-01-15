@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { FileSignature, Star, User, Calendar, ChevronDown, Blend } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { AuthorAvatar } from "../reports/AuthorAvatar";
@@ -162,7 +162,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={FileSignature} label="Trip Reports" />
+        <IconBadge icon="lucide:file-signature" label="Trip Reports" />
         Trip Reports
       </h2>
 
@@ -181,7 +181,7 @@ export const TripReportsSection = memo(function TripReportsSection({
           <div className="mt-5 mb-3 flex items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
-              <Blend className="h-3.5 w-3.5 text-fuchsia-300/60" />
+              <Icon icon="lucide:blend" size={14} className="text-fuchsia-300/60" />
               Combinations
             </h3>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
@@ -205,7 +205,7 @@ export const TripReportsSection = memo(function TripReportsSection({
             className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
           >
             <span className="font-medium">+{totalHidden}</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+            <Icon icon="lucide:chevron-down" size={16} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
         )}
       </div>
@@ -250,12 +250,12 @@ function CompactReportCard({
         {/* Author and date */}
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
           <span className="flex items-center gap-1">
-            <User className="h-3 w-3" />
+            <Icon icon="lucide:user" size={12} />
             <AuthorLink authorName={subject.name} className="text-white/50 hover:text-fuchsia-200" />
           </span>
           {subject.trip_date && (
             <span className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+              <Icon icon="lucide:calendar" size={12} />
               {subject.trip_date}
             </span>
           )}
@@ -264,7 +264,7 @@ function CompactReportCard({
 
       {/* Featured star - right aligned, vertically centered */}
       {featured && (
-        <Star className="h-5 w-5 flex-shrink-0 self-center fill-fuchsia-400/80 text-fuchsia-400" />
+        <Icon icon="lucide:star" size={20} className="flex-shrink-0 self-center fill-fuchsia-400/80 text-fuchsia-400" />
       )}
     </button>
   );

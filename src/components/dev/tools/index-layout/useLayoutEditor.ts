@@ -111,6 +111,10 @@ const createReducer = (
             ...state.draftManuals,
             [action.datasetKey]: action.manual,
           },
+          rawJsonDrafts: {
+            ...state.rawJsonDrafts,
+            [action.datasetKey]: JSON.stringify(action.manual, null, 2),
+          },
           jsonErrors: {
             ...state.jsonErrors,
             [action.datasetKey]: null,

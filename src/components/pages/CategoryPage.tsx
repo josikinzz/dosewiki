@@ -32,12 +32,7 @@ export function CategoryPage({ detail, onSelectDrug }: CategoryPageProps) {
                     size="listItem"
                     onClick={() => onSelectDrug(drug.slug)}
                   >
-                    <span className="flex flex-wrap items-baseline gap-2">
-                      <span className="hyphenate">{drug.name}</span>
-                      {drug.alias && (
-                        <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
-                      )}
-                    </span>
+                    {drug.name}
                   </Button>
                 </li>
               ))}

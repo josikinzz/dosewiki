@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Check, Loader2, Save, X, AlertCircle, FileCode, Eye } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useSectionPrompt, type UsePromptResult } from "../../../../hooks/usePrompts";
@@ -181,7 +181,7 @@ export function PromptEditorModal({
               size="pill"
               onClick={() => setViewMode(viewMode === "edit" ? "preview" : "edit")}
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Icon icon="lucide:eye" className="h-3.5 w-3.5" size={14} />
               {viewMode === "edit" ? "Preview" : "Edit"}
             </Button>
             <Button
@@ -189,7 +189,7 @@ export function PromptEditorModal({
               onClick={onClose}
               title="Close"
             >
-              <X className="h-5 w-5" />
+              <Icon icon="lucide:x" className="h-5 w-5" size={20} />
             </Button>
           </div>
         </div>
@@ -197,14 +197,14 @@ export function PromptEditorModal({
         {/* Error Banner */}
         {saveError && (
           <div className="shrink-0 flex items-center gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
-            <AlertCircle className="h-4 w-4" />
+            <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
             {saveError}
             <button
               type="button"
               className="ml-auto text-red-300 hover:text-red-200"
               onClick={() => setSaveError(null)}
             >
-              <X className="h-4 w-4" />
+              <Icon icon="lucide:x" className="h-4 w-4" size={16} />
             </button>
           </div>
         )}
@@ -227,7 +227,7 @@ export function PromptEditorModal({
                   </span>
                 )}
                 {promptResult.isLoading && (
-                  <Loader2 className="h-3 w-3 animate-spin text-white/40" />
+                  <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin text-white/40" size={12} />
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -244,11 +244,11 @@ export function PromptEditorModal({
                   disabled={!promptHasChanges || isSavingPrompt}
                 >
                   {isSavingPrompt ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" size={14} />
                   ) : savePromptSuccess ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5 text-emerald-400" size={14} />
                   ) : (
-                    <Save className="h-3.5 w-3.5" />
+                    <Icon icon="lucide:save" className="h-3.5 w-3.5" size={14} />
                   )}
                   {savePromptSuccess ? "Saved!" : "Save Prompt"}
                 </Button>
@@ -285,7 +285,7 @@ export function PromptEditorModal({
                     </span>
                   )}
                   {quoteResult.isLoading && (
-                    <Loader2 className="h-3 w-3 animate-spin text-white/40" />
+                    <Icon icon="lucide:loader-2" className="h-3 w-3 animate-spin text-white/40" size={12} />
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -302,11 +302,11 @@ export function PromptEditorModal({
                     disabled={!quoteHasChanges || isSavingQuote}
                   >
                     {isSavingQuote ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Icon icon="lucide:loader-2" className="h-3.5 w-3.5 animate-spin" size={14} />
                     ) : saveQuoteSuccess ? (
-                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <Icon icon="lucide:check" className="h-3.5 w-3.5 text-emerald-400" size={14} />
                     ) : (
-                      <Save className="h-3.5 w-3.5" />
+                      <Icon icon="lucide:save" className="h-3.5 w-3.5" size={14} />
                     )}
                     {saveQuoteSuccess ? "Saved!" : "Save Quotes"}
                   </Button>

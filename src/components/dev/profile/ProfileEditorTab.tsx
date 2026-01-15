@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { ExternalLink, RefreshCw, Save, UserRound } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { SectionCard } from "../../common/SectionCard";
 import { Input } from "@/components/ui/input";
@@ -314,7 +314,7 @@ export function ProfileEditorTab({
               href={`#/contributors/${profile.key}`}
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 bg-gradient-to-r from-white/15 via-white/10 to-white/5 text-xs font-medium text-white/75 shadow-sm shadow-fuchsia-500/15 ring-1 ring-white/20 transition hover:text-white hover:ring-white/35"
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <Icon icon="lucide:external-link" size={14} />
               View public profile
             </a>
             <UserRound className="hidden h-10 w-10 text-fuchsia-200/80 sm:block" />
@@ -377,7 +377,7 @@ export function ProfileEditorTab({
             onClick={handleSave}
             disabled={isSaving || !isDirty || !hasStoredCredentials}
           >
-            <Save className="h-4 w-4" />
+            <Icon icon="lucide:save" size={16} />
             Save profile
           </Button>
           <Button
@@ -386,7 +386,7 @@ export function ProfileEditorTab({
             onClick={handleReset}
             disabled={isSaving || !isDirty}
           >
-            <RefreshCw className="h-4 w-4" />
+            <Icon icon="lucide:refresh-cw" size={16} />
             Reset changes
           </Button>
         </div>

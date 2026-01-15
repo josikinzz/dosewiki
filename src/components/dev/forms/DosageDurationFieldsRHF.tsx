@@ -4,7 +4,7 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
-import { ChartColumnIncreasing, ChartLine } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,7 +110,7 @@ export function DosageDurationFieldsRHF({
               </div>
               <div className="space-y-3">
                 <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-                  <ChartColumnIncreasing className="h-3.5 w-3.5 text-fuchsia-300" />
+                  <Icon icon="lucide:chart-column-increasing" size={14} className="text-fuchsia-300" />
                   Dose Ranges
                 </p>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -128,7 +128,7 @@ export function DosageDurationFieldsRHF({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-                    <ChartLine className="h-3.5 w-3.5 text-fuchsia-300" />
+                    <Icon icon="lucide:chart-line" size={14} className="text-fuchsia-300" />
                     Duration Stages
                   </p>
                   <div className="flex items-center gap-2">

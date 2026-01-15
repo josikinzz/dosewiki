@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Icon } from "../../common/Icon";
 import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -137,7 +137,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                   className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move up"
                 >
-                  <GripVertical className="h-4 w-4 rotate-180" />
+                  <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
                 </button>
                 <button
                   type="button"
@@ -146,7 +146,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                   className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Move down"
                 >
-                  <GripVertical className="h-4 w-4" />
+                  <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
                 </button>
               </div>
               
@@ -185,7 +185,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                 className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 title="Remove section"
               >
-                <Trash2 className="h-4 w-4" />
+                <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
               </Button>
             </div>
           </div>
@@ -198,7 +198,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
           onClick={handleAddSection}
           className="w-full border-dashed"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
           Add Section
         </Button>
       </div>

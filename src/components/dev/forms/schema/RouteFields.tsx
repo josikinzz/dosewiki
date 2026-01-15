@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Plus, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { FIELD_REGISTRY, getValueByPath, setValueByPath } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 import { SchemaField } from "./SchemaField";
@@ -137,7 +137,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
           disabled={disabled}
           className="flex items-center gap-1.5 rounded-lg bg-fuchsia-500/20 px-3 py-1.5 text-sm font-medium text-fuchsia-200 transition hover:bg-fuchsia-500/30 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" />
+          <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
           Add Route
         </button>
       </div>
@@ -172,9 +172,9 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                     className="flex flex-1 items-center gap-2 text-left"
                   >
                     {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-white/40" />
+                      <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-white/40" />
+                      <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
                     )}
                     <span className="font-medium text-white">{routeName}</span>
                   </button>
@@ -185,7 +185,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                     className="rounded-lg p-1.5 text-white/40 transition hover:bg-red-500/20 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Remove route"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
                   </button>
                 </div>
 

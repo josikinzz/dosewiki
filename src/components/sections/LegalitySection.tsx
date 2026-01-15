@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Globe, MapPin, Scale, Ellipsis, ChevronDown } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
@@ -45,7 +45,7 @@ export const LegalitySection = memo(function LegalitySection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Scale} label="Legality" />
+        <IconBadge icon="lucide:scale" label="Legality" />
         Legality
       </h2>
 
@@ -53,7 +53,7 @@ export const LegalitySection = memo(function LegalitySection({
       {hasInternational && (
         <div className="mb-4">
           <h3 className="mb-2 flex items-center gap-2 font-semibold text-white">
-            <Globe className="h-4 w-4 text-fuchsia-200" />
+            <Icon icon="lucide:globe" size={16} className="text-fuchsia-200" />
             International
           </h3>
           <div className="space-y-2">
@@ -70,7 +70,7 @@ export const LegalitySection = memo(function LegalitySection({
       {hasCountries && (
         <div>
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <MapPin className="h-5 w-5 text-fuchsia-200" />
+            <Icon icon="lucide:map-pin" size={20} className="text-fuchsia-200" />
             By Country
           </h3>
           <Masonry
@@ -143,8 +143,8 @@ export const LegalitySection = memo(function LegalitySection({
                         className="flex items-center gap-0.5 text-white/50 hover:text-white/70 transition-colors"
                         aria-label={isExpanded ? "Collapse" : "Expand"}
                       >
-                        <Ellipsis className="h-4 w-4" />
-                        <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+                        <Icon icon="lucide:ellipsis" size={16} />
+                        <Icon icon="lucide:chevron-down" size={16} className={cn("transition-transform", isExpanded && "rotate-180")} />
                       </button>
                     </div>
                   )}

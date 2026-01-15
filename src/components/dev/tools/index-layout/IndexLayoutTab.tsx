@@ -1,13 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  AlertCircle,
-  BrainCircuit,
-  Check,
-  Cog,
-  Hexagon,
-  PlusCircle,
-  type LucideIcon,
-} from "lucide-react";
+import { Icon, type IconName } from "../../../common/Icon";
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -39,7 +31,7 @@ import {
   generateUniqueKey,
 } from "./utils";
 
-const MAX_COLUMNS = 4;
+const MAX_COLUMNS = 6;
 
 function ColumnDroppable({
   id,
@@ -67,7 +59,7 @@ const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanis
 export function IndexLayoutTab({
   commitPanel,
 }: IndexLayoutTabProps) {
-  const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4>("auto");
+  const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4 | 5 | 6>("auto");
   const autoColumnCount = useResponsiveColumnCount();
   const columnCount = columnMode === "auto" ? autoColumnCount : columnMode;
 
@@ -225,7 +217,7 @@ export function IndexLayoutTab({
   interface DatasetDefinition {
     key: ManualDatasetKey;
     label: string;
-    icon: LucideIcon;
+    icon: IconName;
     description: string;
     helperLabel: string;
     helperDetail: string;
@@ -240,7 +232,7 @@ export function IndexLayoutTab({
       psychoactive: {
         key: "psychoactive",
         label: "Psychoactive class",
-        icon: BrainCircuit,
+        icon: "fluent:brain-circuit-28-filled",
         description: "Curate the manual layout for psychoactive classifications used on the substance index.",
         helperLabel: "Psychoactive class manual",
         helperDetail: "Controls the category, section, and ordering for the public Psychoactive class tab.",
@@ -252,7 +244,7 @@ export function IndexLayoutTab({
       chemical: {
         key: "chemical",
         label: "Chemical class",
-        icon: Hexagon,
+        icon: "solar:benzene-ring-line-duotone",
         description: "Compose the curated chemical class ordering for the substance index.",
         helperLabel: "Chemical class manual",
         helperDetail: "Feeds the Chemical class tab and Dev Tools previews when editing articles.",
@@ -264,7 +256,7 @@ export function IndexLayoutTab({
       mechanism: {
         key: "mechanism",
         label: "Mechanism of action",
-        icon: Cog,
+        icon: "fa-solid:cogs",
         description: "Manage the mechanism of action taxonomy used across the index.",
         helperLabel: "Mechanism manual",
         helperDetail: "Controls the Mechanism of action tab layout plus related detail page ordering.",
@@ -398,6 +390,23 @@ export function IndexLayoutTab({
     return set;
   }, [draftManual]);
 
+  // Helper to get column for a category at current column count
+  const getColumnForCategory = useCallback(
+    (category: ManualCategoryDefinition, index: number): number => {
+      // Check new columns object first
+      if (category.columns && category.columns[String(columnCount)] !== undefined) {
+        return category.columns[String(columnCount)] % columnCount;
+      }
+      // Fall back to legacy column property
+      if (category.column !== undefined) {
+        return category.column % columnCount;
+      }
+      // Default to round-robin based on category index
+      return index % columnCount;
+    },
+    [columnCount],
+  );
+
   // Group categories by their assigned column for explicit column layout
   const { columnGroups, columnById } = useMemo(() => {
     const columns: Map<number, { category: ManualCategoryDefinition; originalIndex: number }[]> = new Map();
@@ -409,16 +418,13 @@ export function IndexLayoutTab({
     }
 
     draftManual.categories.forEach((category, index) => {
-      // Use assigned column if available, otherwise fall back to round-robin
-      const assignedColumn = category.column ?? index;
-      // Mod by columnCount to handle responsive column reduction
-      const effectiveColumn = assignedColumn % columnCount;
+      const effectiveColumn = getColumnForCategory(category, index);
       columns.get(effectiveColumn)?.push({ category, originalIndex: index });
       columnLookup.set(category.key, effectiveColumn);
     });
 
     return { columnGroups: columns, columnById: columnLookup };
-  }, [draftManual.categories, columnCount]);
+  }, [draftManual.categories, columnCount, getColumnForCategory]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -427,10 +433,9 @@ export function IndexLayoutTab({
 
   const getEffectiveColumn = useCallback(
     (category: ManualCategoryDefinition, index: number) => {
-      const assignedColumn = category.column ?? index;
-      return assignedColumn % columnCount;
+      return getColumnForCategory(category, index);
     },
-    [columnCount],
+    [getColumnForCategory],
   );
 
   const handleDragEnd = useCallback(
@@ -464,7 +469,19 @@ export function IndexLayoutTab({
 
         const nextCategories = categories.slice();
         const [moved] = nextCategories.splice(fromIndex, 1);
-        const nextMoved = targetColumn !== activeColumn ? { ...moved, column: targetColumn } : moved;
+        
+        // Update the columns object for the current column count
+        let nextMoved = moved;
+        if (targetColumn !== activeColumn) {
+          const existingColumns = moved.columns ?? {};
+          nextMoved = {
+            ...moved,
+            columns: {
+              ...existingColumns,
+              [String(columnCount)]: targetColumn,
+            },
+          };
+        }
 
         let insertIndex = toIndex;
         if (insertIndex < 0 || overId.startsWith("column-")) {
@@ -486,7 +503,7 @@ export function IndexLayoutTab({
         };
       });
     },
-    [columnById, getEffectiveColumn, updateDraftManualForActive],
+    [columnById, columnCount, getEffectiveColumn, updateDraftManualForActive],
   );
 
   const updateCategory = useCallback(
@@ -589,19 +606,26 @@ export function IndexLayoutTab({
           return previous;
         }
         const category = previous.categories[index];
-        if (!Number.isInteger(column) || column < 0 || column >= MAX_COLUMNS) {
+        if (!Number.isInteger(column) || column < 0 || column >= columnCount) {
           return previous;
         }
 
+        // Update the columns object for the current column count
+        const existingColumns = category.columns ?? {};
+        const nextColumns = {
+          ...existingColumns,
+          [String(columnCount)]: column,
+        };
+
         const nextCategories = previous.categories.slice();
-        nextCategories[index] = { ...category, column };
+        nextCategories[index] = { ...category, columns: nextColumns };
         return {
           ...previous,
           categories: nextCategories,
         };
       });
     },
-    [updateDraftManualForActive],
+    [columnCount, updateDraftManualForActive],
   );
 
   const handleApplyJson = useCallback(() => {
@@ -664,7 +688,7 @@ export function IndexLayoutTab({
             }
             const next = Number(value);
             if (next >= 1 && next <= MAX_COLUMNS) {
-              setColumnMode(next as 1 | 2 | 3 | 4);
+              setColumnMode(next as 1 | 2 | 3 | 4 | 5 | 6);
             }
           }}
         >
@@ -677,13 +701,15 @@ export function IndexLayoutTab({
             <SelectItem value="2">2 columns</SelectItem>
             <SelectItem value="3">3 columns</SelectItem>
             <SelectItem value="4">4 columns</SelectItem>
+            <SelectItem value="5">5 columns</SelectItem>
+            <SelectItem value="6">6 columns</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {jsonError && (
         <div className="flex items-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-100">
-          <AlertCircle className="h-4 w-4" />
+          <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
           <span>{jsonError}</span>
         </div>
       )}
@@ -699,7 +725,7 @@ export function IndexLayoutTab({
               className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
               aria-label="Apply JSON edits"
             >
-              <Check className="h-4 w-4" />
+              <Icon icon="lucide:check" className="h-4 w-4" size={16} />
             </Button>
           </div>
           <JsonEditor
@@ -731,6 +757,11 @@ export function IndexLayoutTab({
                       id={`column-${colIndex}`}
                       className="flex w-[320px] flex-col gap-4"
                     >
+                      {columnItems.length === 0 && (
+                        <div className="flex min-h-[120px] items-center justify-center rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] text-xs uppercase tracking-widest text-white/20">
+                          Column {colIndex + 1}
+                        </div>
+                      )}
                       {columnItems.map(({ category, originalIndex }) => (
                         <CategoryEditor
                           key={`${category.key}-${originalIndex}`}
@@ -738,6 +769,7 @@ export function IndexLayoutTab({
                           index={originalIndex}
                           total={draftManual.categories.length}
                           maxColumns={MAX_COLUMNS}
+                          columnCount={columnCount}
                           sortableId={category.key}
                           onUpdateCategory={updateCategory}
                           onRemoveCategory={removeCategory}
@@ -757,7 +789,7 @@ export function IndexLayoutTab({
                           onClick={addCategory}
                           aria-label="Add category"
                         >
-                          <PlusCircle className="h-6 w-6" />
+                          <Icon icon="lucide:plus-circle" className="h-6 w-6" size={24} />
                           <span className="text-xs uppercase tracking-[0.3em]">New category</span>
                         </Button>
                       )}

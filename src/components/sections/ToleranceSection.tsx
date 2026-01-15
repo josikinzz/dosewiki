@@ -1,12 +1,6 @@
 import { memo } from "react";
 import Masonry from "react-masonry-css";
-import {
-  ArrowDownWideNarrow,
-  ArrowUpWideNarrow,
-  CircleSlash2,
-  Merge,
-  TrendingUp,
-} from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -20,11 +14,11 @@ interface ToleranceSectionProps {
   article: SubstanceArticle;
 }
 
-const TOLERANCE_ITEMS = [
-  { key: "full_tolerance", label: "Full Tolerance", icon: ArrowUpWideNarrow },
-  { key: "half_tolerance", label: "Half Tolerance", icon: CircleSlash2 },
-  { key: "baseline_tolerance", label: "Baseline Reset", icon: ArrowDownWideNarrow },
-] as const;
+const TOLERANCE_ITEMS: Array<{ key: string; label: string; icon: IconName }> = [
+  { key: "full_tolerance", label: "Full Tolerance", icon: "lucide:arrow-up-wide-narrow" },
+  { key: "half_tolerance", label: "Half Tolerance", icon: "lucide:circle-slash-2" },
+  { key: "baseline_tolerance", label: "Baseline Reset", icon: "lucide:arrow-down-wide-narrow" },
+];
 
 export const ToleranceSection = memo(function ToleranceSection({
   article,
@@ -43,7 +37,7 @@ export const ToleranceSection = memo(function ToleranceSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={TrendingUp} label="Tolerance" />
+        <IconBadge icon="lucide:trending-up" label="Tolerance" />
         Tolerance
       </h2>
 
@@ -52,7 +46,7 @@ export const ToleranceSection = memo(function ToleranceSection({
         className="flex w-full gap-4"
         columnClassName="flex flex-col gap-4"
       >
-        {TOLERANCE_ITEMS.map(({ key, label, icon: Icon }) => {
+        {TOLERANCE_ITEMS.map(({ key, label, icon }) => {
           const value = tolerance[key as keyof typeof tolerance];
           if (typeof value !== "string" || value.trim().length === 0) return null;
 
@@ -62,7 +56,7 @@ export const ToleranceSection = memo(function ToleranceSection({
               className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8"
             >
               <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
-                <Icon className="h-4 w-4 text-fuchsia-200" />
+                <Icon icon={icon} size={16} className="text-fuchsia-200" />
                 {label}
               </span>
               <p className="mt-2 text-sm text-white/90">{value}</p>
@@ -74,7 +68,7 @@ export const ToleranceSection = memo(function ToleranceSection({
         {hasCross && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-fuchsia-400/40 hover:bg-white/8">
             <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white">
-              <Merge className="h-5 w-5 text-fuchsia-200" />
+              <Icon icon="lucide:merge" size={20} className="text-fuchsia-200" />
               Cross Tolerance
             </span>
             <p className="mt-2 text-sm text-white/90">

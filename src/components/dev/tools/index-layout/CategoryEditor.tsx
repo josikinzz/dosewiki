@@ -1,5 +1,5 @@
 import { memo, useCallback, useId, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, GripVertical, PlusCircle, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -37,6 +37,7 @@ interface CategoryEditorProps {
   index: number;
   total: number;
   maxColumns: number;
+  columnCount: number;
   sortableId: string;
   onUpdateCategory: (
     index: number,
@@ -58,6 +59,7 @@ export const CategoryEditor = memo(
     index,
     total,
     maxColumns,
+    columnCount,
     sortableId,
     onUpdateCategory,
     onRemoveCategory,
@@ -101,8 +103,16 @@ export const CategoryEditor = memo(
       [category.drugs, sortSlugsWithCommonPriority],
     );
 
-    // Column assignment - default to round-robin based on index if not explicitly set
-    const currentColumn = category.column ?? index % maxColumns;
+    // Column assignment - check columns object first, fall back to legacy column, then round-robin
+    const currentColumn = useMemo(() => {
+      if (category.columns && category.columns[String(columnCount)] !== undefined) {
+        return category.columns[String(columnCount)];
+      }
+      if (category.column !== undefined) {
+        return category.column % columnCount;
+      }
+      return index % columnCount;
+    }, [category.columns, category.column, columnCount, index]);
 
     const handleLabelChange = useCallback(
       (value: string) => {
@@ -344,7 +354,7 @@ export const CategoryEditor = memo(
                 {...attributes}
                 {...listeners}
               >
-                <GripVertical className="h-3.5 w-3.5" />
+                <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
               </Button>
               <div className="mt-1">
                 <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
@@ -366,7 +376,7 @@ export const CategoryEditor = memo(
                   aria-label="Move category up"
                   className="h-7 w-7"
                 >
-                  <ArrowUp className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
                 </Button>
                 <Button
                   variant="glass"
@@ -376,7 +386,7 @@ export const CategoryEditor = memo(
                   aria-label="Move category down"
                   className="h-7 w-7"
                 >
-                  <ArrowDown className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
                 </Button>
                 <Button
                   variant="glass"
@@ -386,7 +396,7 @@ export const CategoryEditor = memo(
                   aria-label={isExpanded ? "Collapse category" : "Expand category"}
                   className="h-7 w-7"
                 >
-                  {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                  {isExpanded ? <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} /> : <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5" size={14} />}
                 </Button>
                 <Button
                   variant="glass"
@@ -395,7 +405,7 @@ export const CategoryEditor = memo(
                   aria-label="Add section"
                   className="h-7 w-7"
                 >
-                  <PlusCircle className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:plus-circle" className="h-3.5 w-3.5" size={14} />
                 </Button>
                 <Button
                   variant="glass"
@@ -405,7 +415,7 @@ export const CategoryEditor = memo(
                   aria-label="Toggle category details"
                   className={`h-7 w-7 ${detailsOpen ? "bg-white/15 text-white" : ""}`.trim()}
                 >
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
                 </Button>
                 <Button
                   variant="glass"
@@ -414,7 +424,7 @@ export const CategoryEditor = memo(
                   aria-label="Remove category"
                   className="h-7 w-7 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
                 </Button>
               </div>
             </header>
@@ -434,7 +444,7 @@ export const CategoryEditor = memo(
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: maxColumns }).map((_, columnIndex) => (
+                    {Array.from({ length: columnCount }).map((_, columnIndex) => (
                       <SelectItem key={columnIndex} value={String(columnIndex)}>
                         {`Column ${columnIndex + 1}`}
                       </SelectItem>
@@ -524,6 +534,7 @@ export const CategoryEditor = memo(
     && previous.index === next.index
     && previous.total === next.total
     && previous.maxColumns === next.maxColumns
+    && previous.columnCount === next.columnCount
     && previous.sortableId === next.sortableId
     && previous.substanceOptions === next.substanceOptions
     && previous.datasetSlugSet === next.datasetSlugSet

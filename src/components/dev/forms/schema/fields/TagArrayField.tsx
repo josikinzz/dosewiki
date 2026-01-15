@@ -1,5 +1,5 @@
 import { useState, useCallback, KeyboardEvent } from "react";
-import { X, Plus } from "lucide-react";
+import { Icon } from "../../../../common/Icon";
 import type { FieldMeta } from "@/data/schema";
 
 interface TagArrayFieldProps {
@@ -69,7 +69,7 @@ export function TagArrayField({
                 className="rounded-full p-0.5 transition hover:bg-fuchsia-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label={`Remove ${tag}`}
               >
-                <X className="h-3 w-3" />
+                <Icon icon="lucide:x" className="h-3 w-3" size={12} />
               </button>
             </span>
           ))}
@@ -92,7 +92,7 @@ export function TagArrayField({
                 className="rounded-full p-1 text-fuchsia-300 transition hover:bg-fuchsia-500/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Add tag"
               >
-                <Plus className="h-4 w-4" />
+                <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
               </button>
             )}
           </div>

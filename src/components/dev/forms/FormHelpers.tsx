@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type PropsWithChildren } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "../../common/Icon";
 import { Badge } from "@/components/ui/badge";
 
 const helperTextClass = "text-[11px] text-white/45";
@@ -73,9 +73,9 @@ export function CollapsibleFormSectionCard({
           <span className="text-lg font-semibold text-fuchsia-200">{title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-5 w-5 text-white/40" />
+          <Icon icon="lucide:chevron-down" size={20} className="text-white/40" />
         ) : (
-          <ChevronRight className="h-5 w-5 text-white/40" />
+          <Icon icon="lucide:chevron-right" size={20} className="text-white/40" />
         )}
       </button>
       {isExpanded && (
@@ -122,9 +122,9 @@ export function CollapsibleSubsection({
           <span className="text-sm font-semibold text-white">{title}</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-down" size={16} className="text-white/40" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-right" size={16} className="text-white/40" />
         )}
       </button>
       {isExpanded && (

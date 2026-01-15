@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { UserRound } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { findProfileByAuthorName } from "../../data/userProfiles";
 
 interface AuthorAvatarProps {

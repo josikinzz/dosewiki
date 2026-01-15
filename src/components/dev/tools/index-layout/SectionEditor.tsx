@@ -1,5 +1,5 @@
 import { memo, useCallback, useId, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, GripVertical, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -159,7 +159,7 @@ export const SectionEditor = memo(
             {...attributes}
             {...listeners}
           >
-            <GripVertical className="h-3.5 w-3.5" />
+            <Icon icon="lucide:grip-vertical" className="h-3.5 w-3.5" size={14} />
           </Button>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <Input
@@ -181,7 +181,7 @@ export const SectionEditor = memo(
               aria-label="Move section up"
               className="h-6 w-6"
             >
-              <ArrowUp className="h-3.5 w-3.5" />
+              <Icon icon="lucide:arrow-up" className="h-3.5 w-3.5" size={14} />
             </Button>
             <Button
               variant="glass"
@@ -191,7 +191,7 @@ export const SectionEditor = memo(
               aria-label="Move section down"
               className="h-6 w-6"
             >
-              <ArrowDown className="h-3.5 w-3.5" />
+              <Icon icon="lucide:arrow-down" className="h-3.5 w-3.5" size={14} />
             </Button>
             <Button
               variant="glass"
@@ -201,7 +201,7 @@ export const SectionEditor = memo(
               aria-label="Toggle section details"
               className="h-6 w-6"
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <Icon icon="lucide:sliders-horizontal" className="h-3.5 w-3.5" size={14} />
             </Button>
             <Button
               variant="glass"
@@ -210,7 +210,7 @@ export const SectionEditor = memo(
               aria-label="Remove section"
               className="h-6 w-6 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
             </Button>
           </div>
         </header>

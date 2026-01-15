@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { FileSignature, LayoutList, User, FlaskConical } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { ReportCard } from "../reports/ReportCard";
 import type { TripReport, ReportViewMode } from "../../types/tripReport";
@@ -11,10 +11,10 @@ interface TripReportsPageProps {
   onSelectReport: (slug: string) => void;
 }
 
-const VIEW_MODES: { key: ReportViewMode; label: string; icon: typeof LayoutList }[] = [
-  { key: "substance", label: "Substance", icon: FlaskConical },
-  { key: "title", label: "Title", icon: LayoutList },
-  { key: "author", label: "Author", icon: User },
+const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
+  { key: "substance", label: "Substance", icon: "lucide:flask-conical" },
+  { key: "title", label: "Title", icon: "lucide:layout-list" },
+  { key: "author", label: "Author", icon: "lucide:user" },
 ];
 
 /**
@@ -130,13 +130,13 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
     <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <PageHeader
         title="Trip Reports"
-        icon={FileSignature}
+        icon="lucide:file-signature"
         description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
       />
 
       {/* View mode selector */}
       <div className="mt-6 flex flex-wrap gap-2">
-        {VIEW_MODES.map(({ key, label, icon: Icon }) => (
+        {VIEW_MODES.map(({ key, label, icon }) => (
           <button
             key={key}
             type="button"
@@ -147,7 +147,7 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
                 : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80"
             }`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon icon={icon} size={16} />
             {label}
             {viewMode === key && (
               <span className="text-xs opacity-70">
@@ -208,7 +208,7 @@ function TripReportsUnavailable() {
     <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <PageHeader
         title="Trip Reports"
-        icon={FileSignature}
+        icon="lucide:file-signature"
         description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
       />
       <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">

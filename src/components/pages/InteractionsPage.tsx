@@ -1,11 +1,5 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import {
-  AlertCircle,
-  AlertOctagon,
-  AlertTriangle,
-  ArrowLeftRight,
-  CircleSlash,
-} from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 
 import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import type { InteractionGroup, InteractionTarget } from "../../types/content";
@@ -55,10 +49,10 @@ const SEVERITY_META: Record<InteractionGroup["severity"], { label: string; tone:
   },
 };
 
-const SUMMARY_ICONS: Record<InteractionGroup["severity"], typeof AlertOctagon> = {
-  danger: AlertOctagon,
-  unsafe: AlertTriangle,
-  caution: AlertCircle,
+const SUMMARY_ICONS: Record<InteractionGroup["severity"], IconName> = {
+  danger: "lucide:alert-octagon",
+  unsafe: "lucide:alert-triangle",
+  caution: "lucide:alert-circle",
 };
 
 const formatTargetLabel = (target: InteractionTarget): string => {
@@ -400,7 +394,7 @@ export function InteractionsPage({
   };
 
   const severitySummary = comparison?.highestRisk;
-  const SummaryIcon = severitySummary ? SUMMARY_ICONS[severitySummary] : CircleSlash;
+  const summaryIcon: IconName = severitySummary ? SUMMARY_ICONS[severitySummary] : "lucide:circle-slash";
 
   const directFromPrimary = comparison?.directMatches.filter((entry) => entry.direction === "primary") ?? [];
   const directFromSecondary = comparison?.directMatches.filter((entry) => entry.direction === "secondary") ?? [];
@@ -409,7 +403,7 @@ export function InteractionsPage({
     <div className="mx-auto w-full max-w-5xl px-4 pb-20 pt-12">
       <div className="mb-6 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)]">
         <div className="flex items-start gap-3 gap-fallback-row-3 text-rose-100">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-200" aria-hidden="true" />
+          <Icon icon="lucide:alert-triangle" size={20} className="mt-0.5 text-rose-200" />
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-rose-100">
               Under construction
@@ -436,7 +430,7 @@ export function InteractionsPage({
               size="sm"
               onClick={handleSwap}
             >
-              <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
+              <Icon icon="lucide:arrow-left-right" size={16} />
               Swap
             </Button>
             <Button
@@ -471,7 +465,7 @@ export function InteractionsPage({
             </Select>
           </div>
           <div className="hidden md:flex md:flex-col md:items-center md:justify-center">
-            <ArrowLeftRight className="h-5 w-5 text-white/60" aria-hidden="true" />
+            <Icon icon="lucide:arrow-left-right" size={20} className="text-white/60" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="secondary-substance" className="text-sm font-medium text-white/80">
@@ -500,7 +494,7 @@ export function InteractionsPage({
             <div className={`flex items-center gap-3 gap-fallback-row-3 rounded-xl border bg-white/5 px-3 py-2 ${
               severitySummary ? SEVERITY_META[severitySummary].tone : "border-white/10"
             }`}>
-              <SummaryIcon className={`h-5 w-5 ${severitySummary ? SEVERITY_META[severitySummary].text : "text-white/60"}`} />
+              <Icon icon={summaryIcon} size={20} className={severitySummary ? SEVERITY_META[severitySummary].text : "text-white/60"} />
               <div>
                 <p className="text-sm font-semibold text-white">
                   {severitySummary ? `${SEVERITY_META[severitySummary].label} risk noted` : "No combined risk recorded"}

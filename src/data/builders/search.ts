@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
 import type { LibraryData } from "../ArticlesProvider";
 import type { SubstanceRecord } from "./contentBuilder";
 
@@ -15,7 +15,7 @@ export interface SearchEntry {
   label: string;
   secondary?: string;
   slug: string;
-  icon?: LucideIcon;
+  icon?: IconName;
   count?: number;
   keywords: string[];
   meta?: SearchEntryMeta[];

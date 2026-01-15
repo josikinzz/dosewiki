@@ -1,5 +1,5 @@
-import { Copy, Download, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Icon } from "../../common/Icon";
 
 import {
   type TagMutation,
@@ -307,7 +307,7 @@ export function TagEditorTab({
             size="pill"
             onClick={() => setRegistryVersion((previous) => previous + 1)}
           >
-            <RefreshCw className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:refresh-cw" size={16} />
             Refresh snapshot
           </Button>
         </div>
@@ -390,7 +390,7 @@ export function TagEditorTab({
             onClick={handleCopyDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >
-            <Copy className="h-3.5 w-3.5" />
+            <Icon icon="lucide:copy" size={14} />
             Copy diff
           </Button>
           <Button
@@ -400,7 +400,7 @@ export function TagEditorTab({
             onClick={handleDownloadDatasetMarkdown}
             disabled={!hasDatasetChanges || isApplying}
           >
-            <Download className="h-3.5 w-3.5" />
+            <Icon icon="lucide:download" size={14} />
             Download .diff
           </Button>
         </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
-import { ListFilter, PlusCircle, X } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,7 +129,7 @@ export function AddSubstanceControl({
             className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
             aria-label={label}
           >
-            <PlusCircle className="h-3.5 w-3.5" />
+            <Icon icon="lucide:plus-circle" className="h-3.5 w-3.5" size={14} />
           </Button>
           <Button
             variant="glass"
@@ -138,7 +138,7 @@ export function AddSubstanceControl({
             aria-expanded={showPicker}
             aria-label="Browse substances"
           >
-            <ListFilter className="h-3.5 w-3.5" />
+            <Icon icon="lucide:list-filter" className="h-3.5 w-3.5" size={14} />
           </Button>
         </div>
       </div>
@@ -169,7 +169,7 @@ export function AddSubstanceControl({
                 className="h-6 w-6"
                 aria-label="Close substance picker"
               >
-                <X className="h-3 w-3" />
+                <Icon icon="lucide:x" className="h-3 w-3" size={12} />
               </Button>
             </div>
           </div>

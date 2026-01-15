@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { ExternalLink, Pipette, ChevronDown, Loader2 } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -336,11 +336,11 @@ export const ReagentSection = memo(function ReagentSection({
     return (
       <SectionCard delay={0}>
         <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-          <IconBadge icon={Pipette} label="Reagent Testing" />
+          <IconBadge icon="lucide:pipette" label="Reagent Testing" />
           Reagent Testing
         </h2>
         <div className="flex items-center justify-center py-8 text-white/50">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <Icon icon="lucide:loader-2" size={20} className="mr-2 animate-spin" />
           Loading reagent data...
         </div>
       </SectionCard>
@@ -382,7 +382,7 @@ export const ReagentSection = memo(function ReagentSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Pipette} label="Reagent Testing" />
+        <IconBadge icon="lucide:pipette" label="Reagent Testing" />
         Reagent Testing
       </h2>
       <p className="mb-4 text-sm text-white/60">
@@ -406,7 +406,7 @@ export const ReagentSection = memo(function ReagentSection({
             className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
           >
             <span className="font-medium">+{hiddenCount}</span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+            <Icon icon="lucide:chevron-down" size={16} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
         )}
       </div>
@@ -424,7 +424,7 @@ export const ReagentSection = memo(function ReagentSection({
           <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
             PROtestkit.eu
           </span>
-          <ExternalLink className="h-3 w-3 text-white/30 group-hover:text-white/50 transition -ml-1" aria-hidden="true" />
+          <Icon icon="lucide:external-link" size={12} className="text-white/30 group-hover:text-white/50 transition -ml-1" />
         </a>
       </div>
     </SectionCard>

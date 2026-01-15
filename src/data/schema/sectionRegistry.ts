@@ -1,17 +1,3 @@
-import {
-  FileText,
-  Tags,
-  Pill,
-  Clock,
-  Brain,
-  Beaker,
-  AlertTriangle,
-  Timer,
-  ShieldAlert,
-  Scale,
-  BookOpen,
-  Settings,
-} from "lucide-react";
 import type { SectionMeta, SectionKey } from "./types";
 
 /**
@@ -23,7 +9,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "meta",
     label: "Meta",
-    icon: Settings,
+    icon: "lucide:settings",
     description: "Article metadata and categorization",
     fields: ["id", "title", "index_categories", "summary"],
     defaultCollapsed: false,
@@ -31,7 +17,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "identification",
     label: "Identification",
-    icon: FileText,
+    icon: "lucide:file-text",
     description: "Chemical identification and nomenclature",
     fields: [
       "identification.common_name",
@@ -51,7 +37,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "classification",
     label: "Classification",
-    icon: Tags,
+    icon: "lucide:tags",
     description: "Psychoactive and chemical classifications",
     fields: ["classification.psychoactive_class", "classification.chemical_class"],
     defaultCollapsed: false,
@@ -59,7 +45,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "dosage",
     label: "Dosage",
-    icon: Pill,
+    icon: "lucide:pill",
     description: "Dosage information by route of administration",
     routeDependent: true,
     fields: [
@@ -77,7 +63,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "duration",
     label: "Duration",
-    icon: Clock,
+    icon: "lucide:clock",
     description: "Duration stages by route of administration",
     routeDependent: true,
     fields: [
@@ -94,7 +80,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "subjective_effects",
     label: "Subjective Effects",
-    icon: Brain,
+    icon: "lucide:brain",
     description: "Reported subjective effects and experiences",
     fields: [
       "subjective_effects.notes.overview",
@@ -116,7 +102,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "pharmacology",
     label: "Pharmacology",
-    icon: Beaker,
+    icon: "lucide:beaker",
     description: "Pharmacological properties and mechanisms",
     fields: [
       "pharmacology.mechanism_of_action",
@@ -129,7 +115,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "interactions",
     label: "Interactions",
-    icon: AlertTriangle,
+    icon: "lucide:alert-triangle",
     description: "Drug interaction warnings",
     fields: ["interactions.dangerous", "interactions.unsafe", "interactions.caution"],
     defaultCollapsed: false,
@@ -137,7 +123,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "tolerance",
     label: "Tolerance",
-    icon: Timer,
+    icon: "lucide:timer",
     description: "Tolerance development and cross-tolerance",
     fields: [
       "tolerance.full_tolerance",
@@ -150,7 +136,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "harm_potential",
     label: "Harm Potential",
-    icon: ShieldAlert,
+    icon: "lucide:shield-alert",
     description: "Addiction, toxicity, and health risks",
     fields: [
       "harm_potential.addiction_liability",
@@ -169,7 +155,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "legality",
     label: "Legality",
-    icon: Scale,
+    icon: "lucide:scale",
     description: "Legal status by jurisdiction",
     fields: ["legality.international", "legality.countries"],
     defaultCollapsed: true,
@@ -177,7 +163,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
   {
     key: "citations",
     label: "Citations",
-    icon: BookOpen,
+    icon: "lucide:book-open",
     description: "Reference sources and citations",
     fields: ["citations"],
     defaultCollapsed: true,

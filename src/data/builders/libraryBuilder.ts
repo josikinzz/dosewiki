@@ -5,8 +5,8 @@
  * factory function that can be called lazily after articles are loaded.
  */
 
-import { Cog, Hexagon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
+import { icons } from "@/utils/iconNames";
 
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../../utils/slug";
@@ -123,8 +123,8 @@ const normalizeKey = (value: string): string => slugify(value);
 
 const OBSCURE_INDEX_KEY = "obscure";
 const MECHANISM_OF_ACTION_LABEL = "Mechanism of Action";
-const DEFAULT_CHEMICAL_CLASS_ICON: LucideIcon = Hexagon;
-const DEFAULT_MECHANISM_ICON: LucideIcon = Cog;
+const DEFAULT_CHEMICAL_CLASS_ICON: IconName = icons.hexagon;
+const DEFAULT_MECHANISM_ICON: IconName = icons.cog;
 
 const isObscureRecord = (record: SubstanceRecord): boolean =>
   record.indexCategories.some((category) => normalizeKey(category) === OBSCURE_INDEX_KEY);
@@ -775,6 +775,7 @@ function createManualIndexGroups(
         drugs: flattened,
         sections: combinedSections,
         column: category.column,
+        columns: category.columns,
       } satisfies DosageCategoryGroup;
     })
     .filter((group): group is DosageCategoryGroup => group !== null);

@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { Brain, FlaskConical, Timer } from "lucide-react";
+import { Icon } from "../../common/Icon";
 import yaml from "yaml";
 
 import { Input } from "@/components/ui/input";
@@ -269,7 +269,7 @@ export function ChemistryFieldsRHF({
         <ControlledTagMultiSelect
           name="pharmacology.mechanism_of_action"
           label="Mechanism of Action"
-          icon={<Brain className="h-4 w-4 text-white/60" />}
+          icon={<Icon icon="fluent:brain-circuit-28-filled" className="h-4 w-4 text-white/60" size={16} />}
           placeholder="Add mechanism"
           options={mechanismOptions}
           addButtonLabel="Add mechanism"
@@ -291,7 +291,7 @@ export function ChemistryFieldsRHF({
       
       {/* Metabolism & Metabolites - Second card in public section */}
       <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
-        <FlaskConical className="h-3.5 w-3.5" />
+        <Icon icon="material-symbols:metabolism-rounded" className="h-3.5 w-3.5" size={14} />
         Metabolism
       </p>
       <div className="grid gap-4 md:grid-cols-2">
@@ -321,7 +321,7 @@ export function ChemistryFieldsRHF({
       {/* Extended pharmacokinetics - stored but not displayed in public section */}
       <CollapsibleSubsection
         title="Extended Pharmacokinetics"
-        icon={<Timer className="h-5 w-5" />}
+        icon={<Icon icon="lucide:timer" className="h-5 w-5" size={20} />}
         description="These fields are stored for data completeness but not currently displayed in the public article."
       >
         <div className="grid gap-4 md:grid-cols-2">

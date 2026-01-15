@@ -1,5 +1,4 @@
-import { BrainCircuit, Hexagon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
@@ -8,17 +7,17 @@ import type { ClassificationDetail } from "../../data/builders/library";
 
 type ClassificationMeta = {
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
 };
 
 const CLASSIFICATION_META: Record<ClassificationDetail["type"], ClassificationMeta> = {
   psychoactive: {
     label: "Psychoactive class",
-    icon: BrainCircuit,
+    icon: "lucide:brain-circuit",
   },
   chemical: {
     label: "Chemical class",
-    icon: Hexagon,
+    icon: "lucide:hexagon",
   },
 };
 
@@ -48,12 +47,7 @@ export function ClassificationDetailPage({ detail, onSelectDrug }: Classificatio
                   size="listItem"
                   onClick={() => onSelectDrug(drug.slug)}
                 >
-                  <span className="flex flex-wrap items-baseline gap-2">
-                    <span className="hyphenate">{drug.name}</span>
-                    {drug.alias && (
-                      <span className="hyphenate text-xs text-white/55">({drug.alias})</span>
-                    )}
-                  </span>
+                  {drug.name}
                 </Button>
               </li>
             ))}

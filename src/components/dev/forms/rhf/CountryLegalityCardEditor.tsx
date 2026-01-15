@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { Plus, X } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,7 +65,7 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
         className="absolute right-2 top-2 p-1 text-white/30 hover:text-red-400 transition-colors"
         aria-label={`Remove ${country || "country"}`}
       >
-        <X className="h-4 w-4" />
+        <Icon icon="lucide:x" className="h-4 w-4" size={16} />
       </button>
 
       {/* Flag */}
@@ -199,7 +199,7 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
         onClick={handleAdd}
         className="w-full border-dashed border-white/20 text-white/60 hover:text-white hover:border-white/40"
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
         Add Country
       </Button>
 

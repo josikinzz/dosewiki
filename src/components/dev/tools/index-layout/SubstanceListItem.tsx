@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { slugIssueColors, slugIssueLabels, type SlugStatus } from "./types";
@@ -35,7 +35,7 @@ export function SubstanceListItem({ status, onRemove }: SubstanceListItemProps) 
         className="h-6 w-6 opacity-60 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
         aria-label={`Remove ${displayName}`}
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Icon icon="lucide:trash-2" className="h-3.5 w-3.5" size={14} />
       </Button>
     </li>
   );

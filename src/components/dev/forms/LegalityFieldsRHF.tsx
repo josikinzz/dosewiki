@@ -4,7 +4,7 @@
  * Layout mirrors the public article display with International and By Country subsections.
  */
 
-import { Globe, MapPin } from "lucide-react";
+import { Icon } from "../../common/Icon";
 import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, CountryLegalityCardEditor } from "./rhf";
 
@@ -18,7 +18,7 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProp
       {/* International Status */}
       <CollapsibleSubsection
         title="International"
-        icon={<Globe className="h-5 w-5" />}
+        icon={<Icon icon="lucide:globe" size={20} />}
       >
         <ControlledTagMultiSelect
           name="legality.international"
@@ -33,7 +33,7 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProp
       {/* Country-Specific Status */}
       <CollapsibleSubsection
         title="By Country"
-        icon={<MapPin className="h-5 w-5" />}
+        icon={<Icon icon="lucide:map-pin" size={20} />}
       >
         <CountryLegalityCardEditor />
       </CollapsibleSubsection>

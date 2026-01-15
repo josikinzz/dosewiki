@@ -8,18 +8,7 @@
  */
 
 import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  Bot,
-  Brain,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  FileCode,
-  Loader2,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -229,7 +218,7 @@ export const SectionGenerator = memo(function SectionGenerator({
       <div className={`flex flex-wrap items-center gap-2 px-4 py-2.5 ${disabled ? "cursor-not-allowed" : ""}`}>
         {/* Left side: icon and badges */}
         <div className="flex items-center gap-2 mr-auto">
-          <Bot className={`h-5 w-5 ${disabled ? "text-white/30" : "text-fuchsia-300"}`} />
+          <Icon icon="lucide:bot" className={`h-5 w-5 ${disabled ? "text-white/30" : "text-fuchsia-300"}`} size={20} />
           {disabled && disabledMessage && (
             <span className="text-xs text-white/30">{disabledMessage}</span>
           )}
@@ -273,7 +262,7 @@ export const SectionGenerator = memo(function SectionGenerator({
               onClick={() => setIsPromptModalOpen(true)}
               className="flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-2 py-0.5 text-xs font-medium text-fuchsia-300 hover:bg-fuchsia-500/30 transition-colors"
             >
-              <FileCode className="h-3.5 w-3.5" />
+              <Icon icon="lucide:file-code" className="h-3.5 w-3.5" size={14} />
               Prompt
             </button>
           )}
@@ -285,7 +274,7 @@ export const SectionGenerator = memo(function SectionGenerator({
             {/* Reasoning effort selector - only for Claude models, hidden during generation */}
             {supportsReasoning && !isGenerating && (
               <div className="flex items-center gap-1.5">
-                <Brain className="h-4 w-4 text-fuchsia-300" />
+                <Icon icon="lucide:brain" className="h-4 w-4 text-fuchsia-300" size={16} />
                 <Select
                   value={reasoningEffort}
                   onValueChange={(v) => setReasoningEffort(v as ReasoningEffort)}
@@ -318,12 +307,12 @@ export const SectionGenerator = memo(function SectionGenerator({
             >
               {isGenerating ? (
                 <>
-                  <X className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:x" className="h-3.5 w-3.5" size={14} />
                   Cancel
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:sparkles" className="h-3.5 w-3.5" size={14} />
                   Generate
                 </>
               )}
@@ -331,10 +320,10 @@ export const SectionGenerator = memo(function SectionGenerator({
 
             {/* Status indicators */}
             {isGenerating && (
-              <Loader2 className="h-4 w-4 animate-spin text-fuchsia-300" />
+              <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin text-fuchsia-300" size={16} />
             )}
             {hasGenerated && streamedOutput && !isGenerating && (
-              <Check className="h-4 w-4 text-emerald-400" />
+              <Icon icon="lucide:check" className="h-4 w-4 text-emerald-400" size={16} />
             )}
           </div>
         )}
@@ -342,7 +331,7 @@ export const SectionGenerator = memo(function SectionGenerator({
         {/* Error display */}
         {error && (
           <div className="flex items-center gap-2 text-sm text-red-400 w-full mt-1">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <Icon icon="lucide:alert-triangle" className="h-4 w-4 shrink-0" size={16} />
             <span className="text-xs">{error}</span>
           </div>
         )}
@@ -369,16 +358,16 @@ export const SectionGenerator = memo(function SectionGenerator({
                 className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-fuchsia-500/5 transition-colors rounded-lg"
               >
                 {isReasoningExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-fuchsia-300" />
+                  <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-fuchsia-300" />
+                  <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />
                 )}
-                <Brain className="h-3.5 w-3.5 text-fuchsia-300" />
+                <Icon icon="lucide:brain" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />
                 <span className="text-xs font-medium text-fuchsia-300">
                   Reasoning
                 </span>
                 {isGenerating && !streamedOutput && (
-                  <Loader2 className="ml-1 h-3 w-3 animate-spin text-fuchsia-300" />
+                  <Icon icon="lucide:loader-2" className="ml-1 h-3 w-3 animate-spin text-fuchsia-300" size={12} />
                 )}
               </button>
               {isReasoningExpanded && (
@@ -415,7 +404,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                     size="pill"
                     onClick={handleApply}
                   >
-                    <Check className="h-3.5 w-3.5" />
+                    <Icon icon="lucide:check" className="h-3.5 w-3.5" size={14} />
                     Apply to Form
                   </Button>
                   <Button
@@ -423,7 +412,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                     size="pill"
                     onClick={handleDiscard}
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <Icon icon="lucide:x" className="h-3.5 w-3.5" size={14} />
                     Discard
                   </Button>
                   {applyNote && (

@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Blend, ChevronDown, Ellipsis, ExternalLink, Hospital, Skull, TriangleAlert } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -10,11 +10,19 @@ interface InteractionsSectionProps {
   onSelectInteraction?: (substance: string) => void;
 }
 
-const INTERACTION_CATEGORIES = [
+const INTERACTION_CATEGORIES: Array<{
+  key: string;
+  label: string;
+  icon: IconName;
+  borderClass: string;
+  bgClass: string;
+  iconClass: string;
+  definition: string;
+}> = [
   {
     key: "dangerous",
     label: "Dangerous",
-    icon: Skull,
+    icon: "lucide:skull",
     borderClass: "border-rose-500/40",
     bgClass: "bg-rose-500/10",
     iconClass: "text-rose-300",
@@ -23,7 +31,7 @@ const INTERACTION_CATEGORIES = [
   {
     key: "unsafe",
     label: "Unsafe",
-    icon: Hospital,
+    icon: "lucide:hospital",
     borderClass: "border-orange-500/40",
     bgClass: "bg-orange-500/10",
     iconClass: "text-orange-300",
@@ -32,13 +40,13 @@ const INTERACTION_CATEGORIES = [
   {
     key: "caution",
     label: "Caution",
-    icon: TriangleAlert,
+    icon: "lucide:triangle-alert",
     borderClass: "border-amber-500/40",
     bgClass: "bg-amber-500/10",
     iconClass: "text-amber-300",
     definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
   },
-] as const;
+];
 
 export const InteractionsSection = memo(function InteractionsSection({
   article,
@@ -71,13 +79,13 @@ export const InteractionsSection = memo(function InteractionsSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Blend} label="Interactions" />
+        <IconBadge icon="lucide:blend" label="Interactions" />
         Interactions
       </h2>
 
       {/* Single column layout */}
       <div className="flex flex-col gap-4">
-        {INTERACTION_CATEGORIES.map(({ key, label, icon: Icon, borderClass, bgClass, iconClass, definition }) => {
+        {INTERACTION_CATEGORIES.map(({ key, label, icon, borderClass, bgClass, iconClass, definition }) => {
           const items = interactions[key as keyof typeof interactions];
           if (items.length === 0) return null;
 
@@ -87,7 +95,7 @@ export const InteractionsSection = memo(function InteractionsSection({
               className={`rounded-xl border p-4 ${borderClass} ${bgClass}`}
             >
               <h3 className="flex items-center gap-2 font-semibold text-white">
-                <Icon className={`h-5 w-5 ${iconClass}`} />
+                <Icon icon={icon} size={20} className={iconClass} />
                 {label}
               </h3>
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
@@ -120,8 +128,8 @@ export const InteractionsSection = memo(function InteractionsSection({
                               className="absolute top-3 right-3 flex items-center gap-0.5 rounded p-1 transition hover:bg-white/10"
                               aria-label={`Collapse ${item.substance}`}
                             >
-                              <Ellipsis className="h-3 w-3 text-white/85" />
-                              <ChevronDown className="h-3 w-3 text-white/85 rotate-180" />
+                              <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
+                              <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180" />
                             </button>
                             <span className="text-sm font-semibold text-white pr-8">
                               {item.substance}
@@ -156,8 +164,8 @@ export const InteractionsSection = memo(function InteractionsSection({
                               className="flex items-center gap-0.5 rounded p-0.5 transition hover:bg-white/10"
                               aria-label={`Expand ${item.substance}`}
                             >
-                              <Ellipsis className="h-3 w-3 text-white/85" />
-                              <ChevronDown className="h-3 w-3 text-white/85" />
+                              <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
+                              <Icon icon="lucide:chevron-down" size={12} className="text-white/85" />
                             </button>
                           )}
                         </span>
@@ -184,7 +192,7 @@ export const InteractionsSection = memo(function InteractionsSection({
           <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
             TripSit
           </span>
-          <ExternalLink className="h-3 w-3 text-white/30 group-hover:text-white/50 transition -ml-1" aria-hidden="true" />
+          <Icon icon="lucide:external-link" size={12} className="text-white/30 group-hover:text-white/50 transition -ml-1" />
         </a>
       </div>
     </SectionCard>

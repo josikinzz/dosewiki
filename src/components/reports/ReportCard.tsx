@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Star } from "lucide-react";
+import { Icon } from "../common/Icon";
 import type { TripReport } from "../../types/tripReport";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";

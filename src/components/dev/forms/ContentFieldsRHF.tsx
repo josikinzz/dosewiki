@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import { NotebookText, Skull, TriangleAlert, Hospital, Zap } from "lucide-react";
+import { Icon } from "../../common/Icon";
 import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -19,11 +19,15 @@ import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
 import { harmPotentialPrompt } from "../../../data/config/sectionPrompts";
 
-// Tolerance field labels
-const toleranceLabels: Array<["full_tolerance" | "half_tolerance" | "baseline_tolerance", string]> = [
-  ["full_tolerance", "Full Tolerance"],
-  ["half_tolerance", "Half Tolerance"],
-  ["baseline_tolerance", "Baseline Reset"],
+// Tolerance field labels with icons matching ToleranceSection.tsx
+const toleranceLabels: Array<{
+  key: "full_tolerance" | "half_tolerance" | "baseline_tolerance";
+  label: string;
+  icon: string;
+}> = [
+  { key: "full_tolerance", label: "Full Tolerance", icon: "lucide:arrow-up-wide-narrow" },
+  { key: "half_tolerance", label: "Half Tolerance", icon: "lucide:circle-slash-2" },
+  { key: "baseline_tolerance", label: "Baseline Reset", icon: "lucide:arrow-down-wide-narrow" },
 ];
 
 export type AddictionFieldsRHFProps = {
@@ -97,7 +101,12 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       )}
       
       {/* Addiction & Dependence */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Icon icon="jam:repeat" className="h-5 w-5 text-rose-300" size={20} />
+          Addiction & Dependence
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-addiction-liability`}>
             Addiction Liability
@@ -122,10 +131,11 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           />
           <CharacterCount value={dependenceValue} />
         </div>
+        </div>
       </div>
 
       {/* Toxicity */}
-      <CollapsibleSubsection title="Toxicity" icon={<Skull className="h-5 w-5" />}>
+      <CollapsibleSubsection title="Toxicity" icon={<Icon icon="healthicons:poison-24px" className="h-5 w-5" size={20} />}>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-ld50`}>
@@ -173,7 +183,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       </CollapsibleSubsection>
 
       {/* Risks */}
-      <CollapsibleSubsection title="Risks" icon={<Zap className="h-5 w-5" />}>
+      <CollapsibleSubsection title="Risks" icon={<Icon icon="streamline:dangerous-zone-sign-remix" className="h-5 w-5" size={20} />}>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-psychosis`}>
@@ -229,7 +239,7 @@ export function InteractionsFieldsRHF() {
     <section className="space-y-4">
       <CollapsibleSubsection
         title="Dangerous Combinations"
-        icon={<Skull className="h-5 w-5 text-red-400" />}
+        icon={<Icon icon="lucide:skull" className="h-5 w-5 text-red-400" size={20} />}
       >
         <TextListInput
           name="interactions.dangerous"
@@ -241,7 +251,7 @@ export function InteractionsFieldsRHF() {
       
       <CollapsibleSubsection
         title="Unsafe Combinations"
-        icon={<TriangleAlert className="h-5 w-5 text-orange-400" />}
+        icon={<Icon icon="lucide:hospital" className="h-5 w-5 text-orange-400" size={20} />}
       >
         <TextListInput
           name="interactions.unsafe"
@@ -253,7 +263,7 @@ export function InteractionsFieldsRHF() {
       
       <CollapsibleSubsection
         title="Use with Caution"
-        icon={<Hospital className="h-5 w-5 text-yellow-400" />}
+        icon={<Icon icon="lucide:triangle-alert" className="h-5 w-5 text-amber-400" size={20} />}
       >
         <TextListInput
           name="interactions.caution"
@@ -276,9 +286,12 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
   return (
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        {toleranceLabels.map(([key, label]) => (
+        {toleranceLabels.map(({ key, label, icon }) => (
           <div key={`${idPrefix}-${key}`} className="space-y-1">
-            <Label>{label}</Label>
+            <Label className="inline-flex items-center gap-1.5">
+              <Icon icon={icon} size={14} className="text-fuchsia-300" />
+              {label}
+            </Label>
             <Input
               {...register(`tolerance.${key}`)}
               placeholder="e.g., ~3 days"
@@ -294,6 +307,7 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
           options={[]}
           addButtonLabel="Add"
           openStrategy="focus"
+          icon={<Icon icon="lucide:merge" size={14} className="text-fuchsia-300" />}
         />
       </div>
     </section>
@@ -312,7 +326,7 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
     <section className="space-y-6">
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-summary`} className="flex items-center gap-1.5">
-          <NotebookText className="h-4 w-4 text-white/60" />
+          <Icon icon="lucide:notebook-text" className="h-4 w-4 text-white/60" size={16} />
           Summary
         </Label>
         <Textarea

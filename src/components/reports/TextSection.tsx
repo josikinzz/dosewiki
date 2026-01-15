@@ -1,12 +1,12 @@
 import { memo } from "react";
-import { Sunrise, Moon, type LucideIcon } from "lucide-react";
+import type { IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 
 interface TextSectionProps {
   title: string;
   content: string;
-  icon?: LucideIcon;
+  icon?: IconName;
   delay?: number;
 }
 
@@ -16,17 +16,19 @@ interface TextSectionProps {
 export const TextSection = memo(function TextSection({
   title,
   content,
-  icon: Icon = title === "Introduction" ? Sunrise : Moon,
+  icon,
   delay = 0,
 }: TextSectionProps) {
   if (!content || content.trim().length === 0) {
     return null;
   }
 
+  const resolvedIcon: IconName = icon ?? (title === "Introduction" ? "lucide:sunrise" : "lucide:moon");
+
   return (
     <SectionCard delay={delay}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Icon} label={title} />
+        <IconBadge icon={resolvedIcon} label={title} />
         {title}
       </h2>
 

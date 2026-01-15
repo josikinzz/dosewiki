@@ -26,20 +26,7 @@ import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
 import { HistoryCultureFieldsRHF } from "./HistoryCultureFieldsRHF";
 import { CollapsibleFormSectionCard } from "./FormHelpers";
-import {
-  FileText,
-  BrainCog,
-  ChartNoAxesCombined,
-  Sparkles,
-  Pipette,
-  UserRoundCog,
-  Blend,
-  TrendingUp,
-  Ambulance,
-  BookOpen,
-  Scale,
-  Library,
-} from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 export type ArticleDraftFormFieldsRHFProps = {
   idPrefix: string;
@@ -76,7 +63,7 @@ export function ArticleDraftFormFieldsRHF({
         {/* 1. Overview/Meta */}
         <CollapsibleFormSectionCard
           title="Overview"
-          icon={<FileText className="h-5 w-5" />}
+          icon={<Icon icon="lucide:file-text" size={20} />}
         >
           <OverviewFieldsRHF
             idPrefix={idPrefix}
@@ -87,7 +74,7 @@ export function ArticleDraftFormFieldsRHF({
         {/* 2. Classification */}
         <CollapsibleFormSectionCard
           title="Classification"
-          icon={<BrainCog className="h-5 w-5" />}
+          icon={<Icon icon="lucide:brain-cog" size={20} />}
         >
           <ClassificationFieldsRHF
             chemicalClassOptions={chemicalClassOptions}
@@ -97,14 +84,14 @@ export function ArticleDraftFormFieldsRHF({
         {/* 3. Summary */}
         <CollapsibleFormSectionCard
           title="Summary"
-          icon={<FileText className="h-5 w-5" />}
+          icon={<Icon icon="lucide:file-text" size={20} />}
         >
           <NotesFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 4. Dosage & Duration */}
         <CollapsibleFormSectionCard
           title="Dosage & Duration"
-          icon={<ChartNoAxesCombined className="h-5 w-5" />}
+          icon={<Icon icon="lucide:chart-no-axes-combined" size={20} />}
         >
           <DosageDurationFieldsRHF
             idPrefix={idPrefix}
@@ -118,21 +105,21 @@ export function ArticleDraftFormFieldsRHF({
         {/* 5. Subjective Effects */}
         <CollapsibleFormSectionCard
           title="Subjective Effects"
-          icon={<Sparkles className="h-5 w-5" />}
+          icon={<Icon icon="streamline-flex:critical-thinking-2" size={20} />}
         >
           <SubjectiveEffectsFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 6. Reagent Testing (collapsed by default - read-only preview) */}
         <CollapsibleFormSectionCard
           title="Reagent Testing"
-          icon={<Pipette className="h-5 w-5" />}
+          icon={<Icon icon="lucide:pipette" size={20} />}
         >
           <ReagentPreviewFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 7. Pharmacology */}
         <CollapsibleFormSectionCard
           title="Pharmacology"
-          icon={<UserRoundCog className="h-5 w-5" />}
+          icon={<Icon icon="fa-solid:cogs" size={20} />}
         >
           <ChemistryFieldsRHF
             idPrefix={idPrefix}
@@ -142,42 +129,42 @@ export function ArticleDraftFormFieldsRHF({
         {/* 8. Interactions */}
         <CollapsibleFormSectionCard
           title="Interactions"
-          icon={<Blend className="h-5 w-5" />}
+          icon={<Icon icon="lucide:blend" className="h-5 w-5" size={20} />}
         >
           <InteractionsFieldsRHF />
         </CollapsibleFormSectionCard>
         {/* 9. Tolerance */}
         <CollapsibleFormSectionCard
           title="Tolerance"
-          icon={<TrendingUp className="h-5 w-5" />}
+          icon={<Icon icon="lucide:trending-up" size={20} />}
         >
           <ToleranceFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 10. Harm Potential */}
         <CollapsibleFormSectionCard
           title="Harm Potential"
-          icon={<Ambulance className="h-5 w-5" />}
+          icon={<Icon icon="lucide:ambulance" size={20} />}
         >
           <AddictionFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 11. History & Culture */}
         <CollapsibleFormSectionCard
           title="History & Culture"
-          icon={<BookOpen className="h-5 w-5" />}
+          icon={<Icon icon="lucide:book-open" className="h-5 w-5" size={20} />}
         >
           <HistoryCultureFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 12. Legality (collapsed by default) */}
         <CollapsibleFormSectionCard
           title="Legality"
-          icon={<Scale className="h-5 w-5" />}
+          icon={<Icon icon="lucide:scale" size={20} />}
         >
           <LegalityFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
         {/* 13. Source Citations (collapsed by default) */}
         <CollapsibleFormSectionCard
           title="Sources"
-          icon={<BookOpen className="h-5 w-5" />}
+          icon={<Icon icon="lucide:library" size={20} />}
         >
           <SourceCitationsFieldsRHF
             idPrefix={idPrefix}
@@ -189,7 +176,7 @@ export function ArticleDraftFormFieldsRHF({
         {/* 14. Further Reading (collapsed by default) */}
         <CollapsibleFormSectionCard
           title="Citations"
-          icon={<Library className="h-5 w-5" />}
+          icon={<Icon icon="lucide:book-open" size={20} />}
         >
           <CitationsFieldsRHF
             idPrefix={idPrefix}

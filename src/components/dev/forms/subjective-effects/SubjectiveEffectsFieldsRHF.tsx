@@ -5,14 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import {
-  Sparkles,
-  Brain,
-  Hand,
-  Eye,
-  Ear,
-  ListOrdered,
-} from "lucide-react";
+import { Icon, type IconName } from "../../../common/Icon";
 import yaml from "yaml";
 
 import { Textarea } from "@/components/ui/textarea";
@@ -27,11 +20,11 @@ import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
 import { AttributionEditor } from "./AttributionEditor";
 import type { SubstanceArticle, SubjectiveEffects } from "../../../../schema";
 
-// Sensory categories configuration
-const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: typeof Eye }> = [
-  { sense: "visual", label: "Visual", icon: Eye },
-  { sense: "auditory", label: "Auditory", icon: Ear },
-  { sense: "tactile", label: "Tactile", icon: Hand },
+// Sensory categories configuration (icons match SubjectiveEffectsSection.tsx)
+const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: IconName }> = [
+  { sense: "visual", label: "Visual", icon: "line-md:watch-loop" },
+  { sense: "auditory", label: "Auditory", icon: "lucide:ear" },
+  { sense: "tactile", label: "Tactile", icon: "lucide:hand" },
   { sense: "olfactory", label: "Olfactory" },
   { sense: "gustatory", label: "Gustatory" },
   { sense: "multisensory", label: "Multisensory" },
@@ -141,7 +134,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       {/* Overview Note */}
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-notes-overview`} className="inline-flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-fuchsia-300" />
+          <Icon icon="lucide:sparkles" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />
           Effects Overview
         </Label>
         <Textarea
@@ -156,7 +149,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       <EffectCategoryCard
         fieldPath="subjective_effects.physical"
         title="Physical Effects"
-        icon={Hand}
+        icon="lucide:hand"
         idPrefix={idPrefix}
         noteFieldPath="subjective_effects.notes.physical"
       />
@@ -165,13 +158,13 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       <EffectCategoryCard
         fieldPath="subjective_effects.cognitive"
         title="Cognitive Effects"
-        icon={Brain}
+        icon="streamline:brain-cognitive-remix"
         idPrefix={idPrefix}
         noteFieldPath="subjective_effects.notes.cognitive"
       />
 
       {/* Sensory Effects (collapsible container with 6 senses) */}
-      <CollapsibleSubsection title="Sensory Effects" icon={<Eye className="h-5 w-5" />}>
+      <CollapsibleSubsection title="Sensory Effects" icon={<Icon icon="line-md:watch-loop" className="h-5 w-5" size={20} />}>
         {/* Sensory Note at top of section */}
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-notes-sensory`}>Sensory Note</Label>
@@ -198,7 +191,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       <EffectCategoryCard
         fieldPath="subjective_effects.progressive_stages"
         title="Progressive Stages"
-        icon={ListOrdered}
+        icon="lucide:list-ordered"
         idPrefix={idPrefix}
         optional
       />

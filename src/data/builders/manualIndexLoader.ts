@@ -42,15 +42,37 @@ export interface ManualCategorySection {
   drugs: string[];
 }
 
+export type ColumnAssignments = Record<string, number>;
+
 export interface ManualCategoryDefinition {
   key: string;
   label: string;
   iconKey: string;
   notes?: string;
+  /** @deprecated Use columns instead */
   column?: number;
+  columns?: ColumnAssignments;
   drugs: string[];
   sections: ManualCategorySection[];
 }
+
+/** Get the column assignment for a specific column count with fallback logic */
+export const getColumnForCount = (
+  category: ManualCategoryDefinition,
+  columnCount: number,
+  categoryIndex: number,
+): number => {
+  // Check new columns object first
+  if (category.columns && category.columns[String(columnCount)] !== undefined) {
+    return category.columns[String(columnCount)];
+  }
+  // Fall back to legacy column property
+  if (category.column !== undefined) {
+    return category.column % columnCount;
+  }
+  // Default to round-robin based on category index
+  return categoryIndex % columnCount;
+};
 
 export interface ManualIndexConfig {
   version: number;
@@ -64,7 +86,7 @@ export interface NormalizedManualCategorySection extends ManualCategorySection {
 
 export interface NormalizedManualCategoryDefinition extends ManualCategoryDefinition {
   normalizedKey: string;
-  column?: number;
+  columns?: ColumnAssignments;
   sectionMap: Map<string, NormalizedManualCategorySection>;
   drugSet: Set<string>;
 }
@@ -161,6 +183,22 @@ const parseSection = (
   };
 };
 
+const parseColumns = (value: unknown, path: string): ColumnAssignments | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (!isObject(value)) {
+    throw new Error(`${path} must be an object.`);
+  }
+  const result: ColumnAssignments = {};
+  for (const [key, val] of Object.entries(value)) {
+    if (typeof val === "number" && Number.isInteger(val) && val >= 0) {
+      result[key] = val;
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+};
+
 const parseCategory = (value: unknown, index: number): NormalizedManualCategoryDefinition => {
   if (!isObject(value)) {
     throw new Error(`categories[${index}] must be an object.`);
@@ -170,10 +208,16 @@ const parseCategory = (value: unknown, index: number): NormalizedManualCategoryD
   const label = assertString(value.label, `categories[${index}].label`);
   const iconKey = assertString(value.iconKey, `categories[${index}].iconKey`);
   const notes = typeof value.notes === "string" ? value.notes.trim() || undefined : undefined;
-  const column =
+  
+  // Parse new columns object
+  const columns = parseColumns(value.columns, `categories[${index}].columns`);
+  
+  // Legacy column support for backwards compatibility
+  const legacyColumn =
     typeof value.column === "number" && Number.isInteger(value.column) && value.column >= 0
       ? value.column
       : undefined;
+  
   const drugs = parseDrugs(value.drugs, `categories[${index}].drugs`);
   const sectionValues = Array.isArray(value.sections) ? value.sections : [];
   const sections = sectionValues.map((section, sectionIndex) =>
@@ -193,7 +237,8 @@ const parseCategory = (value: unknown, index: number): NormalizedManualCategoryD
     label,
     iconKey,
     notes,
-    column,
+    columns,
+    column: legacyColumn,
     drugs,
     sections,
     normalizedKey,

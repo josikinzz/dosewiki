@@ -2,7 +2,7 @@ import { memo, useEffect, useMemo, useRef, type ChangeEvent, type ReactNode } fr
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import { Copy, FileText, Info, RefreshCw, UserRound } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
 
@@ -257,7 +257,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
       <SectionCard className="space-y-6">
         <div className="flex flex-col gap-2">
           <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-200">
-            <FileText className="h-5 w-5 text-fuchsia-300" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:file-text" className="h-5 w-5 text-fuchsia-300" size={20} />
             About copy
           </h2>
           <p className="text-sm text-white/65">
@@ -294,7 +294,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
               size="sm"
               onClick={onCopyMarkdown}
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
               Copy markdown
             </Button>
             <Button
@@ -304,7 +304,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
               onClick={onResetMarkdown}
               disabled={!isMarkdownDirty}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset to source
             </Button>
           </div>
@@ -341,7 +341,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
               size="sm"
               onClick={onCopySubtitle}
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
               Copy subtitle
             </Button>
             <Button
@@ -351,7 +351,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
               onClick={onResetSubtitle}
               disabled={!isSubtitleDirty}
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
               Reset subtitle
             </Button>
           </div>
@@ -370,7 +370,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             />
             <div className="mt-6 flex flex-col gap-3 text-center">
               <div className="flex items-center justify-center gap-3 text-2xl font-semibold tracking-tight text-fuchsia-300 md:text-3xl">
-                <Info className="h-7 w-7" aria-hidden="true" focusable="false" />
+                <Icon icon="lucide:info" className="h-7 w-7" size={28} />
                 <span>About dose.wiki</span>
               </div>
               <p className="text-base text-white/70 md:text-lg">
@@ -437,7 +437,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
 
       <SectionCard className="space-y-5">
         <div className="flex items-center gap-3">
-          <UserRound className="h-5 w-5 text-fuchsia-300" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:user-round" className="h-5 w-5 text-fuchsia-300" size={20} />
           <div>
             <h2 className="text-lg font-semibold text-fuchsia-200">Founders list</h2>
             <p className="text-sm text-white/65">
@@ -494,7 +494,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             onClick={onResetFounderKeys}
             disabled={!isFounderSelectionDirty}
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <Icon icon="lucide:refresh-cw" className="h-3.5 w-3.5" size={14} />
             Reset selections
           </Button>
         </div>

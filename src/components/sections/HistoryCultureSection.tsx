@@ -1,62 +1,61 @@
 import { memo } from "react";
-import { BookOpen, FlaskConical, Stethoscope, Users, Sparkles, Globe, Lightbulb, Calendar, Award } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
 
 // Map common heading patterns to icons for visual consistency
-const HEADING_ICON_MAP: Record<string, LucideIcon> = {
+const HEADING_ICON_MAP: Record<string, IconName> = {
   // Discovery & synthesis related
-  discovery: FlaskConical,
-  synthesis: FlaskConical,
-  origin: FlaskConical,
-  invention: FlaskConical,
-  creation: FlaskConical,
-  development: FlaskConical,
+  discovery: "lucide:flask-conical",
+  synthesis: "lucide:flask-conical",
+  origin: "lucide:flask-conical",
+  invention: "lucide:flask-conical",
+  creation: "lucide:flask-conical",
+  development: "lucide:flask-conical",
   // Medical related
-  medical: Stethoscope,
-  clinical: Stethoscope,
-  therapeutic: Stethoscope,
-  pharmaceutical: Stethoscope,
-  treatment: Stethoscope,
+  medical: "lucide:stethoscope",
+  clinical: "lucide:stethoscope",
+  therapeutic: "lucide:stethoscope",
+  pharmaceutical: "lucide:stethoscope",
+  treatment: "lucide:stethoscope",
   // Cultural related
-  cultural: Sparkles,
-  counterculture: Sparkles,
-  music: Sparkles,
-  art: Sparkles,
-  rave: Sparkles,
-  psychedelic: Sparkles,
+  cultural: "lucide:sparkles",
+  counterculture: "lucide:sparkles",
+  music: "lucide:sparkles",
+  art: "lucide:sparkles",
+  rave: "lucide:sparkles",
+  psychedelic: "lucide:sparkles",
   // Indigenous/traditional
-  indigenous: Globe,
-  traditional: Globe,
-  ceremonial: Globe,
-  ritual: Globe,
-  shamanic: Globe,
+  indigenous: "lucide:globe",
+  traditional: "lucide:globe",
+  ceremonial: "lucide:globe",
+  ritual: "lucide:globe",
+  shamanic: "lucide:globe",
   // Notable figures
-  notable: Users,
-  figures: Users,
-  people: Users,
-  pioneers: Users,
-  researchers: Users,
+  notable: "lucide:users",
+  figures: "lucide:users",
+  people: "lucide:users",
+  pioneers: "lucide:users",
+  researchers: "lucide:users",
   // Timeline/history
-  timeline: Calendar,
-  history: Calendar,
-  evolution: Calendar,
-  internet: Calendar,
-  era: Calendar,
+  timeline: "lucide:calendar",
+  history: "lucide:calendar",
+  evolution: "lucide:calendar",
+  internet: "lucide:calendar",
+  era: "lucide:calendar",
   // Research/science
-  research: Lightbulb,
-  scientific: Lightbulb,
-  studies: Lightbulb,
+  research: "lucide:lightbulb",
+  scientific: "lucide:lightbulb",
+  studies: "lucide:lightbulb",
   // Legal/scheduling (though this should be in legality section)
-  legal: Award,
-  scheduling: Award,
-  regulation: Award,
-  recreational: Sparkles,
+  legal: "lucide:award",
+  scheduling: "lucide:award",
+  regulation: "lucide:award",
+  recreational: "lucide:sparkles",
 };
 
-function getIconForHeading(heading: string): LucideIcon {
+function getIconForHeading(heading: string): IconName {
   const lowerHeading = heading.toLowerCase();
   
   for (const [keyword, icon] of Object.entries(HEADING_ICON_MAP)) {
@@ -66,7 +65,7 @@ function getIconForHeading(heading: string): LucideIcon {
   }
   
   // Default icon if no match
-  return BookOpen;
+  return "lucide:book-open";
 }
 
 interface HistoryCultureSectionProps {
@@ -98,7 +97,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={BookOpen} label="History & Culture" />
+        <IconBadge icon="lucide:book-open" label="History & Culture" />
         History & Culture
       </h2>
 
@@ -113,14 +112,14 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
       {sections.length > 0 && (
         <div className="flex flex-col gap-4">
           {sections.map((section, idx) => {
-            const Icon = getIconForHeading(section.heading);
+            const sectionIcon = getIconForHeading(section.heading);
             return (
               <div
                 key={idx}
                 className="rounded-xl border border-white/10 bg-white/5 p-4"
               >
                 <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                  <Icon className="h-5 w-5 text-fuchsia-200" />
+                  <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
                   {section.heading}
                 </h3>
                 <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{section.content}</p>

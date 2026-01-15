@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import yaml from "yaml";
+import { Icon } from "../../../common/Icon";
 import { SectionCard } from "../../../common/SectionCard";
 import { DiffPreview } from "../../../common/DiffPreview";
 import { JsonEditor } from "../../../common/JsonEditor";
@@ -13,29 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ArrowDown01,
-  ArrowDownZA,
-  ArrowUp10,
-  ArrowUpAZ,
-  AlertCircle,
-  AlertTriangle,
-  Bot,
-  Check,
-  CheckCircle,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  Download,
-  FileEdit,
-  FileText,
-  FlaskConical,
-  Loader2,
-  Maximize2,
-  Save,
-  Search,
-  X,
-} from "lucide-react";
 import {
   MODEL_OPTIONS,
   validateApiKey,
@@ -539,7 +517,7 @@ export const ArticlesTab = memo(function ArticlesTab({
       {/* API Configuration */}
       <SectionCard delay={0.1}>
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-          <Bot className="h-5 w-5 text-fuchsia-300" />
+          <Icon icon="lucide:bot" className="h-5 w-5 text-fuchsia-300" size={20} />
           API Configuration
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
@@ -558,11 +536,11 @@ export const ArticlesTab = memo(function ArticlesTab({
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {isValidatingKey ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-white/40" />
+                  <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin text-white/40" size={16} />
                 ) : isKeyValid === true ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
+                  <Icon icon="lucide:check" className="h-4 w-4 text-emerald-400" size={16} />
                 ) : isKeyValid === false ? (
-                  <X className="h-4 w-4 text-red-400" />
+                  <Icon icon="lucide:x" className="h-4 w-4 text-red-400" size={16} />
                 ) : null}
               </div>
             </div>
@@ -607,7 +585,7 @@ export const ArticlesTab = memo(function ArticlesTab({
       {/* Substance Selection */}
       <SectionCard delay={0.15}>
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-          <FlaskConical className="h-5 w-5 text-fuchsia-300" />
+          <Icon icon="lucide:flask-conical" className="h-5 w-5 text-fuchsia-300" size={20} />
           Select Substance
         </h2>
         <div className="mb-3 flex items-center gap-2">
@@ -618,7 +596,7 @@ export const ArticlesTab = memo(function ArticlesTab({
               title="Sort by sources (descending)"
               data-active={sortOrder === "sources-desc"}
             >
-              <ArrowUp10 className="h-5 w-5" />
+              <Icon icon="lucide:arrow-up-1-0" className="h-5 w-5" size={20} />
             </Button>
             <Button
               variant="sortIcon"
@@ -626,7 +604,7 @@ export const ArticlesTab = memo(function ArticlesTab({
               title="Sort by sources (ascending)"
               data-active={sortOrder === "sources-asc"}
             >
-              <ArrowDown01 className="h-5 w-5" />
+              <Icon icon="lucide:arrow-down-0-1" className="h-5 w-5" size={20} />
             </Button>
             <Button
               variant="sortIcon"
@@ -634,7 +612,7 @@ export const ArticlesTab = memo(function ArticlesTab({
               title="Sort alphabetically (A-Z)"
               data-active={sortOrder === "alpha-asc"}
             >
-              <ArrowUpAZ className="h-5 w-5" />
+              <Icon icon="lucide:arrow-up-a-z" className="h-5 w-5" size={20} />
             </Button>
             <Button
               variant="sortIcon"
@@ -642,7 +620,7 @@ export const ArticlesTab = memo(function ArticlesTab({
               title="Sort alphabetically (Z-A)"
               data-active={sortOrder === "alpha-desc"}
             >
-              <ArrowDownZA className="h-5 w-5" />
+              <Icon icon="lucide:arrow-down-z-a" className="h-5 w-5" size={20} />
             </Button>
           </div>
           <Button
@@ -654,7 +632,7 @@ export const ArticlesTab = memo(function ArticlesTab({
             Low Priority
           </Button>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+            <Icon icon="lucide:search" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" size={16} />
             <Input
               type="text"
               value={searchQuery}
@@ -710,7 +688,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                 <TabsList>
                   <TabsTrigger value="yaml">YAML</TabsTrigger>
                   <TabsTrigger value="form">
-                    <FileEdit className="mr-1.5 h-3.5 w-3.5" />
+                    <Icon icon="lucide:file-edit" className="mr-1.5 h-3.5 w-3.5" size={14} />
                     Form
                   </TabsTrigger>
                   <TabsTrigger value="preview">
@@ -724,7 +702,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                   size="pill"
                   onClick={handleCopy}
                 >
-                  <Copy className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:copy" className="h-3.5 w-3.5" size={14} />
                   Copy
                 </Button>
                 <Button
@@ -732,7 +710,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                   size="pill"
                   onClick={handleDownload}
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Icon icon="lucide:download" className="h-3.5 w-3.5" size={14} />
                   Download
                 </Button>
               </div>
@@ -740,7 +718,7 @@ export const ArticlesTab = memo(function ArticlesTab({
           </div>
           {saveError && (
             <div className="mb-4 flex items-center gap-2 text-sm text-red-400">
-              <AlertTriangle className="h-4 w-4" />
+              <Icon icon="lucide:alert-triangle" className="h-4 w-4" size={16} />
               {saveError}
             </div>
           )}
@@ -758,7 +736,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                 return (
                   <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
                     <div className="mb-4 flex items-center gap-2 text-red-400">
-                      <AlertCircle className="h-5 w-5" />
+                      <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
                       <span className="font-medium">Failed to parse YAML</span>
                     </div>
                     <p className="mb-4 text-sm text-white/70">{formParseError}</p>
@@ -777,7 +755,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                 return (
                   <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
                     <div className="mb-4 flex items-center gap-2 text-red-400">
-                      <AlertCircle className="h-5 w-5" />
+                      <Icon icon="lucide:alert-circle" className="h-5 w-5" size={20} />
                       <span className="font-medium">Failed to parse YAML</span>
                     </div>
                     <p className="mb-4 text-sm text-white/70">{parseResult.error ?? "Unknown error"}</p>
@@ -819,19 +797,19 @@ export const ArticlesTab = memo(function ArticlesTab({
             className="flex w-full items-center justify-between text-left hover:opacity-80 transition-opacity"
           >
             <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-              <FileText className="h-5 w-5 text-fuchsia-300" />
+              <Icon icon="lucide:file-text" className="h-5 w-5 text-fuchsia-300" size={20} />
               Available Sources
               <span className="text-sm font-normal text-white/50">
                 ({availableSources.length})
               </span>
               {isLoadingSubstance && (
-                <Loader2 className="ml-2 h-4 w-4 animate-spin text-white/40" />
+                <Icon icon="lucide:loader-2" className="ml-2 h-4 w-4 animate-spin text-white/40" size={16} />
               )}
             </h2>
             {sourcesExpanded ? (
-              <ChevronDown className="h-5 w-5 text-white/40" />
+              <Icon icon="lucide:chevron-down" className="h-5 w-5 text-white/40" size={20} />
             ) : (
-              <ChevronRight className="h-5 w-5 text-white/40" />
+              <Icon icon="lucide:chevron-right" className="h-5 w-5 text-white/40" size={20} />
             )}
           </button>
           {sourcesExpanded && (
@@ -873,7 +851,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                           onClick={() => setFullscreenSourceId(source.id)}
                           title="Open fullscreen"
                         >
-                          <Maximize2 className="h-4 w-4" />
+                          <Icon icon="lucide:maximize-2" className="h-4 w-4" size={16} />
                         </Button>
                       </div>
                       {/* Content */}
@@ -926,11 +904,11 @@ export const ArticlesTab = memo(function ArticlesTab({
                 disabled={isSaving || !streamedOutput}
               >
                 {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" size={16} />
                 ) : saveSuccess ? (
-                  <CheckCircle className="h-4 w-4 text-emerald-400" />
+                  <Icon icon="lucide:check-circle" className="h-4 w-4 text-emerald-400" size={16} />
                 ) : (
-                  <Save className="h-4 w-4" />
+                  <Icon icon="lucide:save" className="h-4 w-4" size={16} />
                 )}
                 {saveSuccess ? "Saved!" : "Save Draft"}
               </Button>

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Pill, Beaker, Syringe } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { TripReportSubstance } from "../../types/tripReport";

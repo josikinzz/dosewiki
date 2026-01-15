@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Edit3, Leaf, MessageSquarePlus, Wrench } from "lucide-react";
+import { Icon } from "../common/Icon";
 
 import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export function SubstanceArticle({
     () =>
       heroVariantLines.map((line) => ({
         ...line,
-        Icon: line.kind === "botanical" ? Leaf : MessageSquarePlus,
+        icon: line.kind === "botanical" ? "lucide:leaf" : "lucide:message-square-plus",
       })),
     [heroVariantLines],
   );
@@ -410,7 +410,7 @@ export function SubstanceArticle({
                 <SectionCard className="w-full max-w-[22rem] space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-200">
-                      <Wrench className="h-5 w-5" aria-hidden="true" focusable="false" />
+                      <Icon icon="lucide:wrench" size={20} />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-white">Dev Tools</h3>
@@ -428,7 +428,7 @@ export function SubstanceArticle({
                     onClick={handleOpenDevEditor}
                     className="self-start rounded-full"
                   >
-                    <Edit3 aria-hidden className="h-4 w-4" focusable="false" />
+                    <Icon icon="lucide:edit-3" size={16} />
                     Open editor
                   </Button>
                 </SectionCard>

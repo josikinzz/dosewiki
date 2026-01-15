@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Brain, Eye, Ear, Hand, Sparkles, GitCompareArrows, Ellipsis, ChevronDown, ArrowUp, ArrowDown, Waves, Shapes, ScanEye, ListOrdered, TrendingUp, Loader, House, TrendingDown, ExternalLink, type LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { cn } from "@/lib/utils";
@@ -12,25 +12,25 @@ interface SubjectiveEffectsSectionProps {
 }
 
 const SENSORY_CATEGORIES = [
-  { key: "visual", label: "Visual", icon: Eye },
-  { key: "auditory", label: "Auditory", icon: Ear },
-  { key: "tactile", label: "Tactile", icon: Hand },
+  { key: "visual", label: "Visual", icon: "line-md:watch-loop" as IconName },
+  { key: "auditory", label: "Auditory", icon: "lucide:ear" as IconName },
+  { key: "tactile", label: "Tactile", icon: "lucide:hand" as IconName },
   { key: "olfactory", label: "Olfactory", icon: null },
   { key: "gustatory", label: "Gustatory", icon: null },
   { key: "multisensory", label: "Multisensory", icon: null },
 ] as const;
 
 /** Icons for specific subcategory names */
-const SUBCATEGORY_ICONS: Record<string, LucideIcon> = {
-  "Enhancements": ArrowUp,
-  "Suppressions": ArrowDown,
-  "Distortions": Waves,
-  "Geometry": Shapes,
-  "Hallucinatory States": ScanEye,
-  "1. Taking Off": TrendingUp,
-  "2. The Waiting Room": Loader,
-  "3. The Other Side": House,
-  "4. Coming Down": TrendingDown,
+const SUBCATEGORY_ICONS: Record<string, IconName> = {
+  "Enhancements": "lucide:arrow-up",
+  "Suppressions": "lucide:arrow-down",
+  "Distortions": "icon-park-outline:distortion",
+  "Geometry": "lucide:shapes",
+  "Hallucinatory States": "lucide:scan-eye",
+  "1. Taking Off": "lucide:trending-up",
+  "2. The Waiting Room": "lucide:loader",
+  "3. The Other Side": "lucide:house",
+  "4. Coming Down": "lucide:trending-down",
 };
 
 /** Check if an effect category has any effects or notes */
@@ -115,8 +115,8 @@ function EffectBadge({
           className="absolute top-3 right-3 p-1 rounded hover:bg-white/10 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 flex items-center gap-0.5"
           aria-label="Collapse"
         >
-          <Ellipsis className="h-3 w-3 text-white/85" />
-          <ChevronDown className="h-3 w-3 text-white/85 rotate-180 transition-transform" />
+          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
+          <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180 transition-transform" />
         </button>
         <div className="flex flex-wrap items-center gap-2 pr-8">
           <span className="text-xs font-semibold text-white/85">
@@ -150,8 +150,8 @@ function EffectBadge({
       {effect.name}
       {hasDescription && (
         <>
-          <Ellipsis className="h-3 w-3" />
-          <ChevronDown className="h-3 w-3 transition-transform" />
+          <Icon icon="lucide:ellipsis" size={12} />
+          <Icon icon="lucide:chevron-down" size={12} className="transition-transform" />
         </>
       )}
     </button>
@@ -197,8 +197,8 @@ function CollapsibleStage({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const StageIcon = SUBCATEGORY_ICONS[name];
-  const hasIcon = !!StageIcon;
+  const stageIcon = SUBCATEGORY_ICONS[name];
+  const hasIcon = !!stageIcon;
 
   return (
     <div className="rounded-lg bg-white/[0.02] ring-1 ring-white/5 overflow-hidden">
@@ -212,15 +212,15 @@ function CollapsibleStage({
         )}
       >
         <div className="flex items-center gap-2">
-          {hasIcon && <StageIcon className="h-5 w-5 text-fuchsia-300" />}
+          {hasIcon && <Icon icon={stageIcon} size={20} className="text-fuchsia-300" />}
           <span className="text-sm font-semibold text-white">{name}</span>
         </div>
         <div className={cn(
           "flex items-center gap-1 text-white/50",
           isExpanded && "rounded p-1 -m-1 hover:bg-white/10 transition"
         )}>
-          <Ellipsis className="h-4 w-4" />
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
+          <Icon icon="lucide:ellipsis" size={16} />
+          <Icon icon="lucide:chevron-down" size={16} className={cn("transition-transform", isExpanded && "rotate-180")} />
         </div>
       </button>
       {isExpanded && note && (
@@ -251,8 +251,8 @@ function SubcategorySection({
   isGeneral: boolean;
 }) {
   const hasSubcategoryNote = subcategoryData.note?.trim().length > 0;
-  const SubcategoryIcon = SUBCATEGORY_ICONS[subcategory];
-  const hasIcon = !!SubcategoryIcon;
+  const subcategoryIcon = SUBCATEGORY_ICONS[subcategory];
+  const hasIcon = !!subcategoryIcon;
 
   return (
     <div className={cn(!isGeneral && "rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/5")}>
@@ -261,7 +261,7 @@ function SubcategorySection({
           "mb-2 text-sm font-semibold text-white flex items-center gap-2",
           !hasIcon && "border-l-2 border-fuchsia-400/50 pl-3"
         )}>
-          {hasIcon && <SubcategoryIcon className="h-5 w-5 text-fuchsia-300" />}
+          {hasIcon && <Icon icon={subcategoryIcon} size={20} className="text-fuchsia-300" />}
           {subcategory}
         </h4>
       )}
@@ -318,7 +318,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Sparkles} label="Subjective Effects" />
+        <IconBadge icon="streamline-flex:critical-thinking-2" label="Subjective Effects" />
         Subjective Effects
       </h2>
       {/* Overview note as intro paragraph, or fallback to generic text */}
@@ -334,7 +334,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {hasPhysical && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Hand className="h-4 w-4 text-fuchsia-200" />
+              <Icon icon="lucide:hand" size={16} className="text-fuchsia-200" />
               Physical
             </h3>
             {hasPhysicalNote && (
@@ -362,7 +362,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {hasCognitive && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Brain className="h-5 w-5 text-fuchsia-200" />
+              <Icon icon="streamline:brain-cognitive-remix" size={20} className="text-fuchsia-200" />
               Cognitive
             </h3>
             {hasCognitiveNote && (
@@ -390,7 +390,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {hasProgressiveStages && subjective_effects.progressive_stages && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <ListOrdered className="h-4 w-4 text-fuchsia-200" />
+              <Icon icon="lucide:list-ordered" size={16} className="text-fuchsia-200" />
               Progressive Stages
             </h3>
             <div className="space-y-2">
@@ -411,7 +411,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         )}
 
         {/* Sensory Cards - Visual, Auditory, then others */}
-        {SENSORY_CATEGORIES.map(({ key, label, icon: Icon }) => {
+        {SENSORY_CATEGORIES.map(({ key, label, icon: senseIcon }) => {
           const senseCategory = subjective_effects.sensory[key as keyof typeof subjective_effects.sensory];
           if (!hasSenseEffects(senseCategory)) return null;
 
@@ -421,7 +421,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           return (
             <div key={key} className="rounded-xl border border-white/10 bg-white/5 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                {Icon && <Icon className="h-5 w-5 text-fuchsia-200" />}
+                {senseIcon && <Icon icon={senseIcon} size={20} className="text-fuchsia-200" />}
                 {label}
               </h3>
               {hasSenseNote && (
@@ -451,7 +451,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {hasComparisons && (
         <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <GitCompareArrows className="h-5 w-5 text-fuchsia-200" />
+            <Icon icon="lucide:git-compare-arrows" size={20} className="text-fuchsia-200" />
             Comparisons
           </h3>
           <ul className="space-y-2">
@@ -508,7 +508,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 </a>
                 {afterAuthor}
               </span>
-              <ExternalLink className="relative z-10 h-3.5 w-3.5 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
+              <Icon icon="lucide:external-link" size={14} className="relative z-10 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
             </div>
           </div>
         );

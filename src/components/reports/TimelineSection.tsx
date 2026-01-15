@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Sunrise, Sun, Sunset, Clock } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { TimelineEntry } from "../../types/tripReport";
@@ -14,7 +14,7 @@ interface TimelineSectionProps {
 
 const PHASE_CONFIG: Record<TimelinePhase, {
   label: string;
-  icon: typeof Sunrise;
+  icon: IconName;
   sectionBorder: string;
   sectionBg: string;
   iconBadgeBg: string;
@@ -25,7 +25,7 @@ const PHASE_CONFIG: Record<TimelinePhase, {
 }> = {
   onset: {
     label: "Onset",
-    icon: Sunrise,
+    icon: "lucide:sunrise",
     sectionBorder: "border-emerald-400/30",
     sectionBg: "bg-emerald-500/5",
     iconBadgeBg: "bg-emerald-500/20",
@@ -36,7 +36,7 @@ const PHASE_CONFIG: Record<TimelinePhase, {
   },
   peak: {
     label: "Peak",
-    icon: Sun,
+    icon: "lucide:sun",
     sectionBorder: "border-fuchsia-400/30",
     sectionBg: "bg-fuchsia-500/5",
     iconBadgeBg: "bg-fuchsia-500/20",
@@ -47,7 +47,7 @@ const PHASE_CONFIG: Record<TimelinePhase, {
   },
   offset: {
     label: "Offset",
-    icon: Sunset,
+    icon: "lucide:sunset",
     sectionBorder: "border-violet-400/30",
     sectionBg: "bg-violet-500/5",
     iconBadgeBg: "bg-violet-500/20",

@@ -1,11 +1,11 @@
-import type { LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 
 interface DatasetDefinition {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
 }
 
 interface DatasetTabsProps {
@@ -19,7 +19,6 @@ export function DatasetTabs({ datasets, activeKey, onChange }: DatasetTabsProps)
     <div className="flex flex-wrap items-center justify-center gap-3">
       {datasets.map((dataset) => {
         const isActive = dataset.key === activeKey;
-        const Icon = dataset.icon;
         return (
           <Button
             key={dataset.key}
@@ -30,9 +29,9 @@ export function DatasetTabs({ datasets, activeKey, onChange }: DatasetTabsProps)
             aria-pressed={isActive}
           >
             <Icon
+              icon={dataset.icon}
               className={isActive ? "h-5 w-5 text-fuchsia-100 drop-shadow" : "h-5 w-5 text-fuchsia-200/70"}
-              aria-hidden="true"
-              focusable="false"
+              size={20}
             />
             <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
               {dataset.label}

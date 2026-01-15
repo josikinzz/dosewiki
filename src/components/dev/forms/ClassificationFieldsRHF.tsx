@@ -4,7 +4,7 @@
  * their prominent position in the public HeroSection.
  */
 
-import { BrainCog, Hexagon } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "../../../data/config/tagOptions";
@@ -27,7 +27,7 @@ export function ClassificationFieldsRHF({
           placeholder="Add class"
           options={psychoactiveClassOptions}
           openStrategy="button"
-          icon={<BrainCog className="h-3.5 w-3.5 text-fuchsia-300" />}
+          icon={<Icon icon="lucide:brain-cog" size={14} className="text-fuchsia-300" />}
         />
         <ControlledTagMultiSelect
           name="classification.chemical_class"
@@ -35,7 +35,7 @@ export function ClassificationFieldsRHF({
           placeholder="Add class"
           options={chemicalClassOptions}
           openStrategy="button"
-          icon={<Hexagon className="h-3.5 w-3.5 text-fuchsia-300" />}
+          icon={<Icon icon="solar:benzene-ring-line-duotone" size={14} className="text-fuchsia-300" />}
         />
       </div>
     </section>

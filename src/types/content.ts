@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
 
 export type RouteKey = string;
 
@@ -24,7 +24,7 @@ export interface RouteInfo {
 }
 
 export interface HeroBadge {
-  icon: LucideIcon;
+  icon: IconName;
   label: string;
   categoryKey?: string;
 }
@@ -75,13 +75,13 @@ export interface InfoSectionItem {
   label: string;
   value: string;
   href?: string;
-  icon?: LucideIcon;
+  icon?: IconName;
   chips?: InfoSectionItemChip[];
 }
 
 export interface InfoSection {
   title: string;
-  icon: LucideIcon;
+  icon: IconName;
   items: InfoSectionItem[];
 }
 

@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ export function LinkManager({
               size="icon"
               onClick={() => onRemoveLink(index)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Icon icon="lucide:trash-2" size={16} />
               <span className="sr-only">Remove link</span>
             </Button>
           </div>
@@ -70,7 +70,7 @@ export function LinkManager({
         onClick={onAddLink}
         disabled={links.length >= MAX_LINKS}
       >
-        <Plus className="h-4 w-4" />
+        <Icon icon="lucide:plus" size={16} />
         Add link
       </Button>
     </div>

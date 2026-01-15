@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { ArrowLeft, FileSignature } from "lucide-react";
+import { Icon } from "../common/Icon";
 import {
   SubjectInfoCard,
   SubstancesCard,
@@ -88,7 +88,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           substanceBySlug={library.substanceBySlug}
         />
         <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
-          <FileSignature className="mx-auto h-12 w-12 text-white/20" />
+          <Icon icon="lucide:file-signature" size={48} className="mx-auto text-white/20" />
           <p className="mt-4 text-lg font-semibold text-white">Report not found</p>
           <p className="mt-2 text-sm text-white/60">
             The report you're looking for doesn't exist or has been removed.
@@ -172,7 +172,7 @@ function TripReportUnavailable({
         substanceBySlug={library.substanceBySlug}
       />
       <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
-        <FileSignature className="mx-auto h-12 w-12 text-white/20" />
+        <Icon icon="lucide:file-signature" size={48} className="mx-auto text-white/20" />
         <p className="mt-4 text-lg font-semibold text-white">Trip reports unavailable</p>
         <p className="mt-2 text-sm text-white/60">
           Connect a Convex deployment to enable reports on this site.
@@ -241,7 +241,7 @@ function BackButton({
       onClick={onClick}
       className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/70 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400"
     >
-      <ArrowLeft className="h-4 w-4" />
+      <Icon icon="lucide:arrow-left" size={16} />
       {buttonText}
     </button>
   );

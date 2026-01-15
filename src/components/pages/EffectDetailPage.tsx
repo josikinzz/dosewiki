@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import type { DosageCategoryGroup, EffectDetail } from "../../data/builders/library";
@@ -16,7 +15,7 @@ export function EffectDetailPage({ detail, onSelectDrug, onSelectCategory }: Eff
     <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12">
       <PageHeader
         title={detail.definition.name}
-        icon={Sparkles}
+        icon="lucide:sparkles"
         description={`${detail.definition.total} substance${detail.definition.total === 1 ? "" : "s"} are associated with this effect.`}
       />
       {groups.length > 0 ? (

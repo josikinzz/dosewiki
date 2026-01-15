@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { X, Plus, ExternalLink } from "lucide-react";
+import { Icon } from "../../../../common/Icon";
 import type { FieldMeta, Citation } from "@/data/schema";
 
 interface CitationFieldProps {
@@ -85,7 +85,7 @@ export function CitationField({
                       className="p-1 text-fuchsia-300 transition hover:text-fuchsia-200"
                       aria-label="Open URL"
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <Icon icon="lucide:external-link" className="h-4 w-4" size={16} />
                     </a>
                   )}
                 </div>
@@ -97,7 +97,7 @@ export function CitationField({
                 className="rounded-full p-1 text-white/50 transition hover:bg-white/10 hover:text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Remove citation"
               >
-                <X className="h-4 w-4" />
+                <Icon icon="lucide:x" className="h-4 w-4" size={16} />
               </button>
             </div>
           ))}
@@ -130,7 +130,7 @@ export function CitationField({
           className="rounded-lg bg-fuchsia-500/20 p-2 text-fuchsia-200 transition hover:bg-fuchsia-500/30 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Add citation"
         >
-          <Plus className="h-5 w-5" />
+          <Icon icon="lucide:plus" className="h-5 w-5" size={20} />
         </button>
       </div>
 

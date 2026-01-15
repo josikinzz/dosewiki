@@ -5,7 +5,7 @@
 
 import { useState, type KeyboardEvent } from "react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
-import { Plus, X } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -93,7 +93,7 @@ export function TextListInput({
                       onClick={() => handleRemove(index)}
                       aria-label={`Remove entry ${index + 1}`}
                     >
-                      <X className="h-4 w-4" />
+                      <Icon icon="lucide:x" className="h-4 w-4" size={16} />
                     </Button>
                   </div>
                 ))}
@@ -119,7 +119,7 @@ export function TextListInput({
                 disabled={!inputValue.trim()}
                 aria-label={addButtonLabel}
               >
-                <Plus className="h-4 w-4" />
+                <Icon icon="lucide:plus" className="h-4 w-4" size={16} />
               </Button>
             </div>
 

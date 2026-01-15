@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { BookOpen, Library, ExternalLink } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle, Citation } from "../../schema";
@@ -47,7 +47,7 @@ function CitationList({
                   rel="noopener noreferrer"
                   className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
                 >
-                  <ExternalLink className="h-3 w-3 shrink-0" />
+                  <Icon icon="lucide:external-link" size={12} className="shrink-0" />
                   <span className="truncate">{citation.url}</span>
                 </a>
               )}
@@ -79,7 +79,7 @@ export const CitationsSection = memo(function CitationsSection({
       {hasSourceCitations && (
         <div>
           <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-            <IconBadge icon={Library} label="Sources" />
+            <IconBadge icon="lucide:library" label="Sources" />
             Sources
           </h2>
           <CitationList citations={sourceCitations} startIndex={0} />
@@ -89,7 +89,7 @@ export const CitationsSection = memo(function CitationsSection({
       {hasCitations && (
         <div className={hasSourceCitations ? "mt-6" : ""}>
           <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-            <IconBadge icon={BookOpen} label="Further Reading" />
+            <IconBadge icon="lucide:book-open" label="Further Reading" />
             Further Reading
           </h2>
           <CitationList

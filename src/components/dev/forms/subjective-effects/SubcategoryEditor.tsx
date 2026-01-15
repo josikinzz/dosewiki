@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from "react";
-import { ChevronUp, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export function SubcategoryEditor({
               className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move up"
             >
-              <ChevronUp className="h-4 w-4" />
+              <Icon icon="lucide:chevron-up" className="h-4 w-4" size={16} />
             </button>
             <button
               type="button"
@@ -104,7 +104,7 @@ export function SubcategoryEditor({
               className="p-1 text-white/40 hover:text-white/80 disabled:opacity-30 disabled:cursor-not-allowed"
               title="Move down"
             >
-              <ChevronDown className="h-4 w-4" />
+              <Icon icon="lucide:chevron-down" className="h-4 w-4" size={16} />
             </button>
           </div>
         )}
@@ -155,7 +155,7 @@ export function SubcategoryEditor({
             className="text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
             title="Remove subcategory"
           >
-            <Trash2 className="h-4 w-4" />
+            <Icon icon="lucide:trash-2" className="h-4 w-4" size={16} />
           </Button>
         )}
       </div>
@@ -196,7 +196,7 @@ export function SubcategoryEditor({
           onClick={handleAddEffect}
           className="w-full border-dashed"
         >
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          <Icon icon="lucide:plus" className="h-3.5 w-3.5 mr-1.5" size={14} />
           Add Effect
         </Button>
       </div>

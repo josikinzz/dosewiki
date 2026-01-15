@@ -5,7 +5,7 @@
  */
 
 import { useFormContext } from "react-hook-form";
-import { ExternalLink, Loader2, AlertCircle, Pipette } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { useReagentData } from "../../../hooks/useReagentData";
 import type { SubstanceArticle } from "../../../schema";
@@ -26,7 +26,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
     <section className="space-y-6">
       <div className="rounded-lg border border-white/10 bg-white/5 p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-white/60">
-          <Pipette className="h-4 w-4" />
+          <Icon icon="lucide:pipette" className="h-4 w-4" size={16} />
           <span>Data source: ProtestKit.eu</span>
           <a
             href="https://protestkit.eu"
@@ -34,7 +34,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
             rel="noopener noreferrer"
             className="ml-auto inline-flex items-center gap-1 text-fuchsia-400 hover:text-fuchsia-300"
           >
-            Visit ProtestKit <ExternalLink className="h-3 w-3" />
+            Visit ProtestKit <Icon icon="lucide:external-link" className="h-3 w-3" size={12} />
           </a>
         </div>
 
@@ -46,14 +46,14 @@ export function ReagentPreviewFieldsRHF({ idPrefix: _idPrefix }: ReagentPreviewF
 
         {substanceName && isLoading && (
           <div className="flex items-center gap-2 text-sm text-white/60">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" size={16} />
             <span>Fetching reagent data for "{substanceName}"...</span>
           </div>
         )}
 
         {substanceName && isError && (
           <div className="flex items-center gap-2 text-sm text-amber-400">
-            <AlertCircle className="h-4 w-4" />
+            <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
             <span>Failed to fetch reagent data. {error?.message || "API may be unavailable."}</span>
           </div>
         )}

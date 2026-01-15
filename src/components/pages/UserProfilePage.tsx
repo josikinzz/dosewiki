@@ -2,7 +2,7 @@ import ReactMarkdown from "react-markdown";
 import { useState, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { ChevronDown, ExternalLink, FileSignature, FileText, Link2, Sparkles } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -136,9 +136,9 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                   rel="noopener noreferrer"
                   className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-tr from-white/12 to-white/6 px-4 py-1.5 text-sm text-white/90 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20 transition hover:ring-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                 >
-                  <Link2 className="h-4 w-4 text-fuchsia-200 transition group-hover:text-fuchsia-100" />
+                  <Icon icon="lucide:link-2" size={16} className="text-fuchsia-200 transition group-hover:text-fuchsia-100" />
                   <span className="font-medium tracking-tight">{link.label}</span>
-                  <ExternalLink className="h-4 w-4 text-white/55 transition group-hover:text-fuchsia-100" />
+                  <Icon icon="lucide:external-link" size={16} className="text-white/55 transition group-hover:text-fuchsia-100" />
                 </a>
               ))}
             </div>
@@ -150,7 +150,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
         {hasBio && (
           <SectionCard className="space-y-4 bg-white/[0.04]">
             <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5 text-fuchsia-300" />
+              <Icon icon="lucide:file-text" size={20} className="text-fuchsia-300" />
               <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
             </div>
 
@@ -166,7 +166,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
         {/* Trip Reports Section */}
         <SectionCard className="space-y-5 bg-white/[0.04]">
           <div className="flex items-center gap-3">
-            <FileSignature className="h-5 w-5 text-fuchsia-300" />
+            <Icon icon="lucide:file-signature" size={20} className="text-fuchsia-300" />
             <h2 className="text-lg font-semibold text-fuchsia-200">Trip Reports</h2>
           </div>
 
@@ -182,7 +182,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-transparent px-6 py-16 text-center">
-              <FileSignature className="mb-4 h-9 w-9 text-white/35" />
+              <Icon icon="lucide:file-signature" size={36} className="mb-4 text-white/35" />
               <p className="text-base font-semibold text-white/80">No trip reports yet</p>
               <p className="mt-2 text-sm text-white/60">
                 Trip reports by {profile.displayName} will appear here.
@@ -200,14 +200,14 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
               className="flex w-full items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5 text-fuchsia-300" />
+                <Icon icon="lucide:sparkles" size={20} className="text-fuchsia-300" />
                 <h2 className="text-lg font-semibold text-fuchsia-200">Latest contributions</h2>
                 <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/60">
                   {history.length}
                 </span>
               </div>
-              <ChevronDown 
-                className={`h-5 w-5 text-white/50 transition-transform ${isContributionsExpanded ? "rotate-180" : ""}`} 
+<Icon icon="lucide:chevron-down" size={20}
+                className={`text-white/50 transition-transform ${isContributionsExpanded ? "rotate-180" : ""}`}
               />
             </button>
 

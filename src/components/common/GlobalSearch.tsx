@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Icon } from "./Icon";
 import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
 import { useLibrary } from "../../data/ArticlesProvider";
 import type { AppView } from "../../types/navigation";
@@ -375,7 +375,7 @@ export function GlobalSearch({
               : undefined
           }
         />
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" aria-hidden="true" />
+        <Icon icon="lucide:search" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" size={16} />
         {clearButtonVisible && (
           <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
             <Button
@@ -386,7 +386,7 @@ export function GlobalSearch({
               className="rounded-full"
               aria-label="Clear search"
             >
-              <X className="h-4 w-4" aria-hidden="true" />
+              <Icon icon="lucide:x" size={16} />
             </Button>
           </div>
         )}

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FlaskConical, Info, Menu, Wrench, X, FileSignature } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
 import { viewToPath } from "../../utils/routing";
@@ -17,10 +16,10 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
   const reportsView: AppView = { type: "reports" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
-  const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
-    { label: "Substances", view: substancesView, icon: FlaskConical },
-    { label: "Reports", view: reportsView, icon: FileSignature },
-    { label: "Dev Tools", view: devView, icon: Wrench },
+  const navItems: Array<{ label: string; view: AppView; icon: IconName }> = [
+    { label: "Substances", view: substancesView, icon: "lucide:flask-conical" },
+    { label: "Reports", view: reportsView, icon: "lucide:file-signature" },
+    { label: "Dev Tools", view: devView, icon: "lucide:wrench" },
   ];
   const aboutPath = viewToPath(aboutView);
   const isAboutActive = currentView.type === "about";
@@ -126,7 +125,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
 
         <div className="ml-2 hidden flex-shrink-0 items-center gap-6 md:flex gap-fallback-row-6">
           <nav className="flex items-center gap-6 text-sm text-white/80 gap-fallback-row-6">
-            {navItems.map(({ label, view, icon: Icon }) => {
+            {navItems.map(({ label, view, icon }) => {
               const itemPath = viewToPath(view);
               const active = isActive(view);
 
@@ -142,7 +141,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                     active ? "text-white" : "text-white/70"
                   }`}
                 >
-                  <Icon className="h-4 w-4" aria-hidden="true" focusable="false" />
+                  <Icon icon={icon} size={16} />
                   <span className="relative inline-flex">
                     {label}
                     {active && (
@@ -165,7 +164,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                 : "bg-white/10 ring-white/15 hover:bg-white/15"
             }`}
           >
-            <Info className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:info" size={16} />
             <span>About</span>
           </a>
         </div>
@@ -181,7 +180,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isMenuOpen ? <Icon icon="lucide:x" size={20} /> : <Icon icon="lucide:menu" size={20} />}
             <span className="sr-only">Toggle navigation</span>
           </Button>
 
@@ -192,7 +191,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
               className="absolute right-0 top-[calc(100%+0.75rem)] w-56 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50"
             >
               <nav className="flex flex-col gap-2 text-sm gap-fallback-col-2">
-                {navItems.map(({ label, view, icon: Icon }) => {
+                {navItems.map(({ label, view, icon }) => {
                   const itemPath = viewToPath(view);
                   const active = isActive(view);
                   return (
@@ -208,7 +207,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        <Icon className="h-4 w-4" aria-hidden="true" focusable="false" />
+                        <Icon icon={icon} size={16} />
                         <span>{label}</span>
                       </span>
                       {active && <span className="h-2 w-2 rounded-full bg-fuchsia-400" />}
@@ -228,7 +227,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                     : "bg-white/10 ring-white/15 hover:bg-white/15"
                 }`}
               >
-                <Info className="h-4 w-4" aria-hidden="true" focusable="false" />
+                <Icon icon="lucide:info" size={16} />
                 <span>About</span>
               </a>
             </div>

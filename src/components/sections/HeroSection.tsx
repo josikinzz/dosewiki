@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from "react";
-import { Eye, Tag, MessageSquareQuote, Leaf, BrainCog, Hexagon, ChevronDown, Ellipsis, BookOpenText } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { getMoleculeUrlByTitle } from "@/data/mappings/moleculeAssets";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
@@ -88,7 +88,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-300">
-          <Eye className="h-3 w-3" />
+          <Icon icon="lucide:eye" size={12} />
           Preview
         </div>
       )}
@@ -121,7 +121,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Substitutive name */}
       {identification.substitutive_name && (
         <div className="mt-3 flex items-start gap-3 text-base text-white/60">
-          <BookOpenText className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+          <Icon icon="lucide:book-open-text" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
           <span>{identification.substitutive_name}</span>
         </div>
       )}
@@ -134,7 +134,7 @@ export const HeroSection = memo(function HeroSection({
 
         return (
           <div className="mt-3 flex items-start gap-3 text-base text-white/60">
-            <MessageSquareQuote className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+            <Icon icon="lucide:message-square-quote" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
             <span className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
                 <span key={`name-${name}-${index}`}>
@@ -148,8 +148,8 @@ export const HeroSection = memo(function HeroSection({
                   onClick={() => setNamesExpanded(!namesExpanded)}
                   className="ml-1 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
-                  <Ellipsis className="h-3 w-3" />
-                  <ChevronDown className={`h-3 w-3 transition-transform ${namesExpanded ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:ellipsis" size={12} />
+                  <Icon icon="lucide:chevron-down" size={12} className={`transition-transform ${namesExpanded ? "rotate-180" : ""}`} />
                 </button>
               )}
             </span>
@@ -160,7 +160,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Botanical name */}
       {identification.botanical_name && (
         <div className="mt-3 flex items-start gap-3 text-base text-white/60">
-          <Leaf className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+          <Icon icon="lucide:leaf" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
           <span className="italic">{identification.botanical_name}</span>
         </div>
       )}
@@ -170,14 +170,14 @@ export const HeroSection = memo(function HeroSection({
         <div className="mt-6 space-y-4">
           {classification.psychoactive_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <BrainCog className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+              <Icon icon="lucide:brain-cog" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
               <div>
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Psychoactive Class
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {classification.psychoactive_class.map((cls) => {
-                    const IconComponent = getCategoryIcon(getIconKeyFromClass(cls));
+                    const iconName = getCategoryIcon(getIconKeyFromClass(cls));
                     return (
                       <Badge
                         key={cls}
@@ -185,7 +185,7 @@ export const HeroSection = memo(function HeroSection({
                         className={`gap-1.5 ${onSelectClassification ? "cursor-pointer hover:bg-fuchsia-500/30 transition-colors" : ""}`}
                         onClick={onSelectClassification ? () => onSelectClassification("psychoactive", cls) : undefined}
                       >
-                        <IconComponent className="h-3.5 w-3.5" />
+                        <Icon icon={iconName} size={14} />
                         {cls}
                       </Badge>
                     );
@@ -196,7 +196,7 @@ export const HeroSection = memo(function HeroSection({
           )}
           {classification.chemical_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <Hexagon className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-300" />
+              <Icon icon="solar:benzene-ring-line-duotone" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
               <div>
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Chemical Class
@@ -286,7 +286,7 @@ export const HeroSection = memo(function HeroSection({
                 className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
                 onClick={() => onSelectCategory(cat)}
               >
-                <Tag className="h-3 w-3" />
+                <Icon icon="lucide:tag" size={12} />
                 {cat}
               </button>
             ) : (
@@ -294,7 +294,7 @@ export const HeroSection = memo(function HeroSection({
                 key={cat}
                 className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50"
               >
-                <Tag className="h-3 w-3" />
+                <Icon icon="lucide:tag" size={12} />
                 {cat}
               </span>
             )
@@ -314,8 +314,8 @@ export const HeroSection = memo(function HeroSection({
           onClick={() => setIsExpanded(!isExpanded)}
           className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
         >
-          <Ellipsis className="h-4 w-4" />
-          <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+          <Icon icon="lucide:ellipsis" size={16} />
+          <Icon icon="lucide:chevron-down" size={16} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
         </button>
       )}
     </div>

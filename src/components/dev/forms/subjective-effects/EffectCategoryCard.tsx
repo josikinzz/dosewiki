@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ChevronDown, ChevronRight, Plus, type LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../../../common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -18,8 +18,8 @@ export interface EffectCategoryCardProps {
   fieldPath: "subjective_effects.cognitive" | "subjective_effects.physical" | "subjective_effects.progressive_stages";
   /** Display title */
   title: string;
-  /** Icon component */
-  icon: LucideIcon;
+  /** Icon name for iconify */
+  icon: IconName;
   /** Prefix for input IDs */
   idPrefix: string;
   /** Whether this section is optional (e.g., progressive_stages) */
@@ -31,7 +31,7 @@ export interface EffectCategoryCardProps {
 export function EffectCategoryCard({
   fieldPath,
   title,
-  icon: Icon,
+  icon,
   idPrefix,
   optional = false,
   noteFieldPath,
@@ -59,11 +59,11 @@ export function EffectCategoryCard({
           className="flex w-full items-center justify-between text-left"
         >
           <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-white/40" />
+            <Icon icon={icon} className="h-4 w-4 text-white/40" size={16} />
             <span className="text-sm font-medium text-white/50">{title}</span>
             <span className="text-xs text-white/30">(optional)</span>
           </div>
-          <ChevronRight className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
         </button>
       </div>
     );
@@ -78,7 +78,7 @@ export function EffectCategoryCard({
         className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors rounded-t-xl"
       >
         <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5 text-fuchsia-300" />
+          <Icon icon={icon} className="h-5 w-5 text-fuchsia-300" size={20} />
           <span className="text-sm font-semibold text-white">{title}</span>
           <span className="text-xs text-white/40">
             ({fields.length} subcategor{fields.length === 1 ? "y" : "ies"})
@@ -88,9 +88,9 @@ export function EffectCategoryCard({
           )}
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
         ) : (
-          <ChevronRight className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
         )}
       </button>
 
@@ -141,7 +141,7 @@ export function EffectCategoryCard({
             onClick={handleAddSubcategory}
             className="w-full border-dashed"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Icon icon="lucide:plus" className="h-4 w-4 mr-2" size={16} />
             Add Subcategory
           </Button>
         </div>

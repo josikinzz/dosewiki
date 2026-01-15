@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
 import type {
   InteractionGroup,
   InteractionMatchType,
@@ -14,7 +14,7 @@ export interface DrugListEntry {
 export interface CategoryDefinition {
   key: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconName;
   aliases?: string[];
   fallback?: boolean;
 }
@@ -22,11 +22,13 @@ export interface CategoryDefinition {
 export interface DosageCategoryGroup {
   key: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconName;
   total: number;
   drugs: DrugListEntry[];
   sections?: CategoryDetailGroup[];
+  /** @deprecated Use columns instead */
   column?: number;
+  columns?: Record<string, number>;
 }
 
 export interface CategoryDetailGroup {

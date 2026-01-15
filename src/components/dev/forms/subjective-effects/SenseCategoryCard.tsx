@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ChevronDown, ChevronRight, Plus, type LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../../../common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -20,8 +20,8 @@ export interface SenseCategoryCardProps {
   sense: SenseType;
   /** Display label */
   label: string;
-  /** Optional icon */
-  icon?: LucideIcon;
+  /** Optional icon name for iconify */
+  icon?: IconName;
   /** Prefix for input IDs */
   idPrefix: string;
 }
@@ -29,7 +29,7 @@ export interface SenseCategoryCardProps {
 export function SenseCategoryCard({
   sense,
   label,
-  icon: Icon,
+  icon,
   idPrefix,
 }: SenseCategoryCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -59,7 +59,7 @@ export function SenseCategoryCard({
           className="flex w-full items-center justify-between p-3 text-left hover:bg-white/[0.02] transition-colors rounded-lg"
         >
           <div className="flex items-center gap-2">
-            {Icon && <Icon className="h-4 w-4 text-fuchsia-300/70" />}
+            {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300/70" size={16} />}
             <span className="text-sm font-medium text-white/80">{label}</span>
             {hasContent && (
               <span className="text-xs text-white/40">
@@ -67,7 +67,7 @@ export function SenseCategoryCard({
               </span>
             )}
           </div>
-          <ChevronRight className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
         </button>
       </div>
     );
@@ -82,13 +82,13 @@ export function SenseCategoryCard({
         className="flex w-full items-center justify-between p-3 text-left hover:bg-white/[0.02] transition-colors rounded-t-lg"
       >
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="h-4 w-4 text-fuchsia-300" />}
+          {icon && <Icon icon={icon} className="h-4 w-4 text-fuchsia-300" size={16} />}
           <span className="text-sm font-semibold text-white">{label}</span>
           <span className="text-xs text-white/40">
             ({fields.length} subcategor{fields.length === 1 ? "y" : "ies"})
           </span>
         </div>
-        <ChevronDown className="h-4 w-4 text-white/40" />
+        <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
       </button>
 
       {/* Content */}
@@ -138,7 +138,7 @@ export function SenseCategoryCard({
           onClick={handleAddSubcategory}
           className="w-full border-dashed"
         >
-          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          <Icon icon="lucide:plus" className="h-3.5 w-3.5 mr-1.5" size={14} />
           Add Subcategory
         </Button>
       </div>

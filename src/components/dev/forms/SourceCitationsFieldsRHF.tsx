@@ -4,7 +4,7 @@
  */
 
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
-import { BookOpen } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +35,7 @@ export function SourceCitationsFieldsRHF({
             <div key={field.id} className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/45 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-white/75">
-                  <BookOpen className="h-4 w-4 text-white/50" />
+                  <Icon icon="lucide:book-open" size={16} className="text-white/50" />
                   Source {index + 1}
                 </p>
                 <Button

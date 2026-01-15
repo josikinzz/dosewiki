@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Sparkles } from "lucide-react";
+import { Icon } from "../common/Icon";
 import type { EffectSummary } from "../../data/builders/library";
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
@@ -15,12 +15,12 @@ export const EffectsPage = memo(function EffectsPage({ effects, onSelectEffect }
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
       <PageHeader
         title="Subjective Effects"
-        icon={Sparkles}
+        icon="lucide:sparkles"
         description="Browse the catalog of subjective effects reported across substances. Select an effect to explore compounds associated with it."
       />
       <SectionCard delay={0.05}>
         <div className="flex items-center gap-3">
-          <Sparkles className="h-6 w-6 text-fuchsia-200" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:sparkles" size={24} className="text-fuchsia-200" />
           <h2 className="text-lg font-semibold text-fuchsia-300">All Effects</h2>
         </div>
         <div className="mt-4 flex flex-wrap gap-2.5">

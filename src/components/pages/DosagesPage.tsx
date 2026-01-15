@@ -1,6 +1,5 @@
 import { memo, useMemo, useState } from "react";
-import { BrainCircuit, Cog, FlaskConical, Hexagon } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { Button } from "@/components/ui/button";
@@ -12,24 +11,24 @@ type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 interface SortOption {
   key: IndexSortKey;
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
 }
 
 const SORT_OPTIONS: SortOption[] = [
   {
     key: "psychoactive",
     label: "Psychoactive class",
-    icon: BrainCircuit,
+    icon: "lucide:brain-circuit",
   },
   {
     key: "chemical",
     label: "Chemical class",
-    icon: Hexagon,
+    icon: "lucide:hexagon",
   },
   {
     key: "mechanism",
     label: "Mechanism of action",
-    icon: Cog,
+    icon: "lucide:cog",
   },
 ];
 
@@ -66,7 +65,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
           title="Substance Index"
-          icon={FlaskConical}
+          icon="lucide:flask-conical"
           description={
             <>
               Browse
@@ -101,7 +100,6 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
           <div className="mt-4 flex flex-wrap items-center gap-3 sm:justify-center">
             {SORT_OPTIONS.map((option) => {
               const isActive = option.key === sortKey;
-              const Icon = option.icon;
 
               return (
                 <Button
@@ -112,13 +110,13 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
                   className="gap-2 px-5 py-2.5"
                 >
                   <Icon
+                    icon={option.icon}
+                    size={20}
                     className={
                       isActive
-                        ? "h-5 w-5 text-fuchsia-100 drop-shadow"
-                        : "h-5 w-5 text-fuchsia-200/70"
+                        ? "text-fuchsia-100 drop-shadow"
+                        : "text-fuchsia-200/70"
                     }
-                    aria-hidden="true"
-                    focusable="false"
                   />
                   <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
                     {option.label}

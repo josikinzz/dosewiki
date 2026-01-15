@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeftRight, Pencil, Trash2 } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { SectionCard } from "../../common/SectionCard";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export function TagMutationForms({
       <form className="space-y-3" onSubmit={onRename}>
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-white/60">Rename</span>
-          <Pencil className="h-4 w-4 text-white/45" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:pencil" size={16} className="text-white/45" />
         </div>
         <Input
           type="text"
@@ -61,7 +61,7 @@ export function TagMutationForms({
       <form className="space-y-3" onSubmit={onMove}>
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold uppercase tracking-wide text-white/60">Move / Reclassify</span>
-          <ArrowLeftRight className="h-4 w-4 text-white/45" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:arrow-left-right" size={16} className="text-white/45" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
@@ -118,7 +118,7 @@ export function TagMutationForms({
       {/* Delete Zone */}
       <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-rose-200">
-          <AlertTriangle className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:alert-triangle" className="h-4 w-4" size={16} />
           Danger zone
         </div>
         <p className="text-sm text-rose-100/80">
@@ -135,7 +135,7 @@ export function TagMutationForms({
           I understand this will permanently remove the tag.
         </label>
         <Button variant="destructive" size="pill" className="rounded-full" onClick={onDelete} disabled={isApplying || !deleteConfirmed}>
-          <Trash2 className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:trash-2" size={16} />
           Delete tag everywhere
         </Button>
       </div>

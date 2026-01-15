@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 

@@ -1,9 +1,8 @@
 import { memo } from "react";
-import { User, ExternalLink, Calendar, UserCircle, Ruler, Scale, Pill, MapPin } from "lucide-react";
+import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { TripReportSubject } from "../../types/tripReport";
-import type { LucideIcon } from "lucide-react";
 
 interface SubjectInfoCardProps {
   subject: TripReportSubject;
@@ -13,16 +12,16 @@ interface SubjectInfoCardProps {
 interface FieldConfig {
   key: keyof TripReportSubject;
   label: string;
-  icon: LucideIcon;
+  icon: IconName;
 }
 
 const FIELD_CONFIG: FieldConfig[] = [
-  { key: "age", label: "Age", icon: UserCircle },
-  { key: "gender", label: "Gender", icon: User },
-  { key: "height", label: "Height", icon: Ruler },
-  { key: "weight", label: "Weight", icon: Scale },
-  { key: "medications", label: "Medications", icon: Pill },
-  { key: "setting", label: "Setting", icon: MapPin },
+  { key: "age", label: "Age", icon: "lucide:user-circle" },
+  { key: "gender", label: "Gender", icon: "lucide:user" },
+  { key: "height", label: "Height", icon: "lucide:ruler" },
+  { key: "weight", label: "Weight", icon: "lucide:scale" },
+  { key: "medications", label: "Medications", icon: "lucide:pill" },
+  { key: "setting", label: "Setting", icon: "lucide:map-pin" },
 ];
 
 /**

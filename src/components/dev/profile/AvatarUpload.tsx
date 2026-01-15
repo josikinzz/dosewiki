@@ -1,4 +1,4 @@
-import { ImageOff, ImageUp, Trash2 } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,7 @@ export function AvatarUpload({
             type="button"
             onClick={onUploadClick}
           >
-            <ImageUp className="h-4 w-4" />
+            <Icon icon="lucide:image-up" size={16} />
             Upload image
           </Button>
           {avatarFile ? (
@@ -55,7 +55,7 @@ export function AvatarUpload({
               variant="secondary"
               onClick={onClearSelection}
             >
-              <ImageOff className="h-4 w-4" />
+              <Icon icon="lucide:image-off" size={16} />
               Clear selected image
             </Button>
           ) : trimmedAvatarUrl.length > 0 ? (
@@ -64,7 +64,7 @@ export function AvatarUpload({
               variant="destructive"
               onClick={onRemoveAvatar}
             >
-              <Trash2 className="h-4 w-4" />
+              <Icon icon="lucide:trash-2" size={16} />
               Remove avatar
             </Button>
           ) : null}

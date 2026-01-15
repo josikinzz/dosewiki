@@ -1,5 +1,5 @@
-import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
+import { Icon } from "../common/Icon";
 
 import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,7 @@ export function DevCommitCard({
         <div className="space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Convex</p>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-cyan-300" />
+            <Icon icon="lucide:shield-check" size={20} className="text-cyan-300" />
             <h2 className="text-lg font-semibold text-cyan-200">Save to Convex</h2>
           </div>
           <p className="text-sm text-white/65">
@@ -95,7 +95,7 @@ export function DevCommitCard({
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">GitHub</p>
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
+          <Icon icon="lucide:shield-check" size={20} className="text-fuchsia-200" />
           <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
         </div>
         <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
@@ -106,7 +106,7 @@ export function DevCommitCard({
         <div className="flex flex-wrap gap-2">
           {actionSlot}
           <Button variant="default" size="pill" className="rounded-full" onClick={onCommit} disabled={isCommitDisabled}>
-            <ShieldCheck className="h-4 w-4" />
+            <Icon icon="lucide:shield-check" size={16} />
             {isSaving ? "Saving…" : "Commit changes"}
           </Button>
         </div>

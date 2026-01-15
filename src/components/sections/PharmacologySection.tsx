@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
-import { Brain, ChevronDown, Ellipsis, UserRoundCog } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import type { SubstanceArticle } from "../../schema";
@@ -59,7 +59,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={UserRoundCog} label="Pharmacology" />
+        <IconBadge icon="fa-solid:cogs" label="Pharmacology" />
         Pharmacology
       </h2>
 
@@ -72,7 +72,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {hasMoA && (
           <div className="relative rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Brain className="h-5 w-5 text-fuchsia-200" />
+              <Icon icon="fluent:brain-circuit-28-filled" size={20} className="text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
@@ -126,9 +126,9 @@ export const PharmacologySection = memo(function PharmacologySection({
                   onClick={() => setShowReceptorBinding(!showReceptorBinding)}
                   className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
-                  <Ellipsis className="h-3 w-3" />
-                  <ChevronDown
-                    className={`h-3 w-3 transition-transform ${showReceptorBinding ? "rotate-180" : ""}`}
+                  <Icon icon="lucide:ellipsis" size={12} />
+                  <Icon icon="lucide:chevron-down" size={12}
+                    className={`transition-transform ${showReceptorBinding ? "rotate-180" : ""}`}
                   />
                 </button>
               </>
@@ -140,7 +140,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {!hasMoA && hasReceptorBinding && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Brain className="h-5 w-5 text-fuchsia-200" />
+              <Icon icon="fluent:brain-circuit-28-filled" size={20} className="text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
@@ -157,7 +157,10 @@ export const PharmacologySection = memo(function PharmacologySection({
         {/* Metabolism & Metabolites */}
         {(hasMetabolism || hasMetabolites) && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <h3 className="mb-3 font-semibold text-white">Metabolism</h3>
+            <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+              <Icon icon="material-symbols:metabolism-rounded" size={20} className="text-fuchsia-200" />
+              Metabolism
+            </h3>
             {hasMetabolism && (
               <p className="text-sm text-white/80">{pharmacology.metabolism}</p>
             )}

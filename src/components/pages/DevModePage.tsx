@@ -1,22 +1,4 @@
-import {
-  BadgeCheck,
-  Cloud,
-  Copy,
-  Download,
-  Eye,
-  EyeOff,
-  FileText,
-  LayoutDashboard,
-  Loader2,
-  LogOut,
-  RefreshCw,
-  Save,
-  ScrollText,
-  Sparkles,
-  Tags,
-  UserRound,
-  Wrench,
-} from "lucide-react";
+import { Icon } from "../common/Icon";
 import { useLibrary } from "../../data/ArticlesProvider";
 import {
   useCallback,
@@ -2447,7 +2429,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         onClick={handleSaveToConvex}
         disabled={isConvexSaving || !hasPendingChanges}
       >
-        <Cloud className="h-4 w-4" />
+        <Icon icon="lucide:cloud" size={16} />
         {isConvexSaving ? "Saving…" : "Save to Convex"}
       </Button>
     </div>
@@ -2515,7 +2497,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
-            <Wrench className="h-8 w-8 text-current" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:wrench" size={32} className="text-current" />
             <span>Dev Tools</span>
           </h1>
         </div>
@@ -2566,7 +2548,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                       onClick={() => setIsPasswordVisible((prev) => !prev)}
                       aria-label={isPasswordVisible ? "Hide password" : "Show password"}
                     >
-                      {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {isPasswordVisible ? <Icon icon="lucide:eye-off" size={16} /> : <Icon icon="lucide:eye" size={16} />}
                     </Button>
                   </div>
                 </div>
@@ -2579,9 +2561,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                 disabled={isVerifyingCredentials}
               >
                 {isVerifyingCredentials ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Icon icon="lucide:loader-2" size={16} className="animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4" />
+                  <Icon icon="lucide:save" size={16} />
                 )}
                 {isVerifyingCredentials ? "Verifying…" : "Save"}
               </Button>
@@ -2600,13 +2582,13 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
             <div className="mt-4 flex flex-col gap-3 text-xs text-white/65 md:flex-row md:items-center md:justify-between">
               {passwordKey ? (
                 <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-200">
-                  <BadgeCheck className="h-4 w-4" />
+                  <Icon icon="lucide:badge-check" size={16} />
                   <span>Logged in as {passwordKey}</span>
                   <span className="text-emerald-200/75">• Verified {verifiedBadgeText ?? "just now"}</span>
                 </div>
               ) : hasStoredCredentials ? (
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-medium text-white/70">
-                  <RefreshCw className="h-4 w-4" />
+                  <Icon icon="lucide:refresh-cw" size={16} />
                   <span>Credentials stored. Save to verify.</span>
                 </div>
               ) : (
@@ -2620,7 +2602,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                   onClick={handleLogout}
                   disabled={isVerifyingCredentials}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <Icon icon="lucide:log-out" size={16} />
                   Log out
                 </Button>
               )}
@@ -2637,7 +2619,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
             data-active={activePrimaryTab === "tools"}
             aria-pressed={activePrimaryTab === "tools"}
           >
-            <Wrench className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:wrench" size={16} />
             <span>TOOLS</span>
           </Button>
           <Button
@@ -2647,7 +2629,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
             data-active={activePrimaryTab === "change-log"}
             aria-pressed={activePrimaryTab === "change-log"}
           >
-            <ScrollText className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:scroll-text" size={16} />
             <span>CHANGE LOG</span>
           </Button>
           <Button
@@ -2662,7 +2644,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
             aria-pressed={activePrimaryTab === "profile"}
             disabled={!hasStoredCredentials}
           >
-            <UserRound className="h-4 w-4" aria-hidden="true" focusable="false" />
+            <Icon icon="lucide:user-round" size={16} />
             <span>PROFILE</span>
           </Button>
         </div>
@@ -2676,7 +2658,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
               data-active={activeTab === "articles"}
               aria-pressed={activeTab === "articles"}
             >
-              <Sparkles className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <Icon icon="lucide:sparkles" size={16} />
               <span>Substance Articles</span>
             </Button>
             <Button
@@ -2686,7 +2668,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
               data-active={activeTab === "tag-editor"}
               aria-pressed={activeTab === "tag-editor"}
             >
-              <Tags className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <Icon icon="lucide:tags" size={16} />
               <span>Tags</span>
             </Button>
             <Button
@@ -2696,7 +2678,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
               data-active={activeTab === "about"}
               aria-pressed={activeTab === "about"}
             >
-              <FileText className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <Icon icon="lucide:file-text" size={16} />
               <span>About</span>
             </Button>
             <Button
@@ -2706,7 +2688,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
               data-active={activeTab === "index-layout"}
               aria-pressed={activeTab === "index-layout"}
             >
-              <LayoutDashboard className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <Icon icon="lucide:layout-dashboard" size={16} />
               <span>Index layout</span>
             </Button>
           </div>
@@ -2865,7 +2847,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
               {filteredChangeLogEntries.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-16 text-center">
-                  <Wrench className="mb-4 h-10 w-10 text-white/40" />
+                  <Icon icon="lucide:wrench" size={40} className="mb-4 text-white/40" />
                   <p className="text-base font-semibold text-white/80">No commits logged yet</p>
                   <p className="mt-2 text-sm text-white/60">Ship your first draft to populate the timeline.</p>
                 </div>
@@ -2912,7 +2894,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                             className="rounded-full"
                             onClick={() => handleCopyChangeLogEntry(entry)}
                           >
-                            <Copy className="h-4 w-4" />
+                            <Icon icon="lucide:copy" size={16} />
                             Copy diff
                           </Button>
                           <Button
@@ -2921,7 +2903,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                             className="rounded-full"
                             onClick={() => handleDownloadChangeLogEntry(entry)}
                           >
-                            <Download className="h-4 w-4" />
+                            <Icon icon="lucide:download" size={16} />
                             Download .diff
                           </Button>
                         </div>

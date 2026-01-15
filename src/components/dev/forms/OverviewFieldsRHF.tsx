@@ -3,7 +3,7 @@
  */
 
 import { Controller, useFormContext } from "react-hook-form";
-import { BookOpenText, Fingerprint, Leaf, MessageSquareQuote, Tag } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,7 +127,7 @@ export function OverviewFieldsRHF({
       
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-substitutive-name`} className="inline-flex items-center gap-1.5">
-          <BookOpenText className="h-3.5 w-3.5 text-fuchsia-300" />
+          <Icon icon="lucide:book-open-text" size={14} className="text-fuchsia-300" />
           Substitutive Name
         </Label>
         <Input
@@ -145,12 +145,12 @@ export function OverviewFieldsRHF({
         options={[]}
         compact
         openStrategy="focus"
-        icon={<MessageSquareQuote className="h-3.5 w-3.5 text-fuchsia-300" />}
+        icon={<Icon icon="lucide:message-square-quote" size={14} className="text-fuchsia-300" />}
       />
       
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-botanical-name`} className="inline-flex items-center gap-1.5">
-          <Leaf className="h-3.5 w-3.5 text-fuchsia-300" />
+          <Icon icon="lucide:leaf" size={14} className="text-fuchsia-300" />
           Botanical Name
         </Label>
         <Input
@@ -166,13 +166,13 @@ export function OverviewFieldsRHF({
         placeholder="Filter or create index tags"
         options={indexCategoryOptions}
         openStrategy="button"
-        icon={<Tag className="h-3.5 w-3.5 text-fuchsia-300" />}
+        icon={<Icon icon="lucide:tag" className="h-3.5 w-3.5 text-fuchsia-300" size={14} />}
       />
       
       {/* Chemical identification - expandable details in hero */}
       <CollapsibleSubsection
         title="Chemical Identification"
-        icon={<Fingerprint className="h-5 w-5" />}
+        icon={<Icon icon="lucide:fingerprint" size={20} />}
         description="These fields appear in the expandable 'See more' section of the hero."
       >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

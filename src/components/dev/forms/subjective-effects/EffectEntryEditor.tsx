@@ -3,7 +3,7 @@
  * Used within SubcategoryEditor to manage individual effects.
  */
 
-import { X } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,7 @@ export function EffectEntryEditor({
         className="h-8 w-8 shrink-0 text-red-400/60 hover:text-red-400 hover:bg-red-500/10"
         aria-label={`Remove effect ${index + 1}`}
       >
-        <X className="h-4 w-4" />
+        <Icon icon="lucide:x" className="h-4 w-4" size={16} />
       </Button>
     </div>
   );

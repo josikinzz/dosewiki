@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Ambulance, Skull, Syringe, Zap } from "lucide-react";
+import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Bullet } from "../common/Bullet";
@@ -34,7 +34,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Ambulance} label="Harm Potential" />
+        <IconBadge icon="lucide:ambulance" label="Harm Potential" />
         Harm Potential
       </h2>
 
@@ -45,7 +45,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
           {(hasAddiction || hasDependence) && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                <Syringe className="h-5 w-5 text-rose-300" />
+                <Icon icon="jam:repeat" size={20} className="text-rose-300" />
                 Addiction & Dependence
               </h3>
               <div className="flex flex-col gap-3">
@@ -69,7 +69,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
           {hasToxicity && (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                <Skull className="h-5 w-5 text-rose-300" />
+                <Icon icon="healthicons:poison-24px" size={20} className="text-rose-300" />
                 Toxicity
               </h3>
               <div className="flex flex-col gap-3">
@@ -107,7 +107,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
       {hasRisks && (
         <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-            <Zap className="h-5 w-5 text-rose-300" />
+            <Icon icon="streamline:dangerous-zone-sign-remix" size={20} className="text-rose-300" />
             Risks
           </h3>
           <div className="flex flex-col gap-3">

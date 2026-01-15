@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Icon } from "../../common/Icon";
 
 import { SectionCard } from "../../common/SectionCard";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export function TagListPanel({
           Search tags
         </label>
         <div className="relative mt-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+          <Icon icon="lucide:search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/45" />
           <Input
             id="tag-search"
             type="search"

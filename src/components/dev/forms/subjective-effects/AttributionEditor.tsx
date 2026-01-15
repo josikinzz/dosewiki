@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Quote, ChevronDown, ChevronRight } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { SubstanceArticle } from "../../../../schema";
@@ -28,14 +28,14 @@ export function AttributionEditor({ idPrefix }: AttributionEditorProps) {
         className="flex w-full items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Quote className="h-5 w-5 text-fuchsia-300" />
+          <Icon icon="lucide:quote" className="h-5 w-5 text-fuchsia-300" size={20} />
           <span className="text-sm font-semibold text-white">Attribution</span>
           <span className="text-xs text-white/40">(optional)</span>
         </div>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-down" className="h-4 w-4 text-white/40" size={16} />
         ) : (
-          <ChevronRight className="h-4 w-4 text-white/40" />
+          <Icon icon="lucide:chevron-right" className="h-4 w-4 text-white/40" size={16} />
         )}
       </button>
 

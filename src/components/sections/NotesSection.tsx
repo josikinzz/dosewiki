@@ -2,7 +2,6 @@ import { useMemo, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { NotebookText } from "lucide-react";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
 import { Bullet } from "../common/Bullet";
@@ -23,7 +22,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
   return (
     <SectionCard delay={0.3}>
       <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-        <IconBadge icon={NotebookText} label="Notes" />
+        <IconBadge icon="lucide:notebook-text" label="Notes" />
         Notes
       </h2>
       <ReactMarkdown

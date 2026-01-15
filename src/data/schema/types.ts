@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconName } from "@/components/common/Icon";
 
 // Re-export types from central schema (single source of truth)
 export type { DoseRange, DurationStage, Citation } from "../../schema";
@@ -75,7 +75,7 @@ export interface SectionMeta {
   /** Human-readable section title */
   label: string;
   /** Icon component for the section header */
-  icon: LucideIcon;
+  icon: IconName;
   /** Optional description for the section */
   description?: string;
   /** Field paths in display order */

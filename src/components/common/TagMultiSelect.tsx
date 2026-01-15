@@ -1,4 +1,3 @@
-import { Plus, X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -10,6 +9,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
+import { Icon } from "./Icon";
 
 import type { TagOption } from "../../data/config/tagOptions";
 import { Button } from "@/components/ui/button";
@@ -485,7 +485,7 @@ export const TagMultiSelect = ({
               const tagClasses = compact
                 ? "flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-xs text-white/90 shadow-sm"
                 : "flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-sm text-white/90 shadow-sm";
-              const iconClasses = compact ? "h-2.5 w-2.5" : "h-3 w-3";
+              const iconSize = compact ? 10 : 12;
               return (
                 <span
                   key={`${tag}-${index}`}
@@ -498,7 +498,7 @@ export const TagMultiSelect = ({
                       aria-label={`Remove ${tag}`}
                       onClick={handleRemoveClick}
                     >
-                      <X className={iconClasses} />
+                      <Icon icon="lucide:x" size={iconSize} />
                     </Button>
                   ) : null}
                 </span>
@@ -539,7 +539,7 @@ export const TagMultiSelect = ({
               aria-label={computedAddButtonLabel}
               disabled={disabled}
             >
-              <Plus className="h-4 w-4" aria-hidden="true" focusable="false" />
+              <Icon icon="lucide:plus" size={16} />
             </Button>
           ) : null}
         </div>

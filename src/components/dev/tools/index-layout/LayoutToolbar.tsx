@@ -1,4 +1,4 @@
-import { ArrowDownAZ, ArrowLeftRight, Braces, RotateCcw, Save } from "lucide-react";
+import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 
@@ -34,7 +34,7 @@ export function LayoutToolbar({
           className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
           aria-label="Save layout"
         >
-          <Save className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:save" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Save</span>
         </Button>
         <Button
@@ -43,7 +43,7 @@ export function LayoutToolbar({
           onClick={onReset}
           aria-label="Reset unsaved changes"
         >
-          <RotateCcw className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:rotate-ccw" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Reset draft</span>
         </Button>
         <Button
@@ -52,7 +52,7 @@ export function LayoutToolbar({
           onClick={onRestore}
           aria-label="Restore original dataset"
         >
-          <ArrowLeftRight className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:arrow-left-right" className="h-4 w-4" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Restore source</span>
         </Button>
       </div>
@@ -64,7 +64,7 @@ export function LayoutToolbar({
           onClick={onOrganize}
           aria-label="Auto sort entries"
         >
-          <ArrowDownAZ className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:arrow-down-a-z" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Auto-sort</span>
         </Button>
       </div>
@@ -77,7 +77,7 @@ export function LayoutToolbar({
           aria-pressed={showJsonEditor}
           aria-label={showJsonEditor ? "Hide JSON editor" : "Show JSON editor"}
         >
-          <Braces className="h-4 w-4" aria-hidden="true" focusable="false" />
+          <Icon icon="lucide:braces" size={16} />
           <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
             {showJsonEditor ? "Hide JSON" : "JSON view"}
           </span>
