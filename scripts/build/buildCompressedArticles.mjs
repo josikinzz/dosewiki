@@ -137,6 +137,8 @@ function _compress(uncompressed, bitsPerChar, getCharFromInt) {
 
 const articlesPath = path.resolve("src/data/articles.json");
 const outputPath = path.resolve("src/data/articles.compressed.ts");
+const publicDir = path.resolve("public");
+const publicOutputPath = path.join(publicDir, "articles.compressed.txt");
 
 try {
   if (!fs.existsSync(articlesPath)) {
@@ -165,8 +167,15 @@ export const articlesCompressedByteLength = ${Buffer.from(compressed, 'base64').
 export const articlesSourceCharacters = ${input.length};
 `;
 
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
   fs.writeFileSync(outputPath, moduleSource, "utf8");
   console.log(`Successfully generated ${outputPath}`);
+
+  fs.writeFileSync(publicOutputPath, compressed, "utf8");
+  console.log(`Successfully generated ${publicOutputPath}`);
 } catch (error) {
   if (error.code === 'ENOENT') {
     console.error(`Error: File not found during operation: ${error.path || 'unknown path'}`);

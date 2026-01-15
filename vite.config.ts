@@ -6,6 +6,71 @@ import type { OutputAsset, OutputChunk } from 'rollup';
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const vendorChunkGroups = [
+  {
+    name: 'vendor-react',
+    packages: ['react', 'react-dom', '@tanstack/react-query'],
+  },
+  {
+    name: 'vendor-ui',
+    packages: [
+      'framer-motion',
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-label',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toggle',
+      '@radix-ui/react-toggle-group',
+    ],
+  },
+  {
+    name: 'vendor-markdown',
+    packages: ['react-markdown', 'remark-gfm', 'remark-breaks', 'prismjs'],
+  },
+  {
+    name: 'vendor-utils',
+    packages: ['zod', 'yaml', 'diff', 'tokenx'],
+  },
+];
+
+const resolveVendorChunk = (id: string): string | undefined => {
+  if (!id.includes('/node_modules/')) {
+    return undefined;
+  }
+
+  for (const group of vendorChunkGroups) {
+    if (group.packages.some((pkg) => id.includes(`/node_modules/${pkg}/`))) {
+      return group.name;
+    }
+  }
+
+  return undefined;
+};
+
+const resolveAppChunk = (id: string): string | undefined => {
+  if (id.includes('/src/data/article-sources/')) {
+    return 'article-sources';
+  }
+
+  if (id.includes('/harmpotential-quotes/')) {
+    return 'quotes-harm-potential';
+  }
+
+  if (id.includes('/pharmacology-quotes/')) {
+    return 'quotes-pharmacology';
+  }
+
+  if (id.includes('/history-culture-quotes/')) {
+    return 'quotes-history-culture';
+  }
+
+  return undefined;
+};
+
 const singleFilePlugin = (): Plugin => ({
   name: 'single-file-html',
   apply: 'build',
@@ -101,24 +166,7 @@ export default defineConfig(({ mode }) => {
     ...(config.build ?? {}),
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', '@tanstack/react-query'],
-          'vendor-ui': [
-            'framer-motion',
-            'lucide-react',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-          ],
-          'vendor-markdown': ['react-markdown', 'remark-gfm', 'remark-breaks', 'prismjs'],
-          'vendor-utils': ['zod', 'yaml', 'diff', 'tokenx'],
-        },
+        manualChunks: (id) => resolveAppChunk(id) ?? resolveVendorChunk(id),
       },
     },
   };

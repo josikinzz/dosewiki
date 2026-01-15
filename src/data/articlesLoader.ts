@@ -18,6 +18,19 @@ let articlesPromise: Promise<SubstanceArticle[]> | null = null;
 // For inline builds, we need synchronous access
 let syncArticlesLoaded = false;
 
+const getArticlesCompressedUrl = (): string => {
+  const baseUrl = import.meta.env?.BASE_URL || "/";
+  return baseUrl.endsWith("/") ? `${baseUrl}articles.compressed.txt` : `${baseUrl}/articles.compressed.txt`;
+};
+
+async function fetchCompressedBase64(): Promise<string> {
+  const response = await fetch(getArticlesCompressedUrl());
+  if (!response.ok) {
+    throw new Error(`Failed to fetch compressed articles: ${response.status} ${response.statusText}`);
+  }
+  return response.text();
+}
+
 /**
  * Parse and validate decompressed article data.
  */
@@ -52,7 +65,7 @@ export async function loadArticles(): Promise<SubstanceArticle[]> {
 
   // Start async load
   articlesPromise = (async () => {
-    const { articlesCompressedBase64 } = await import("./articles.compressed");
+    const articlesCompressedBase64 = await fetchCompressedBase64();
     const decoded = decompressFromBase64(articlesCompressedBase64);
 
     if (decoded === null) {
