@@ -33,11 +33,18 @@ const pruneExpiredEntries = (now) => {
   }
 };
 
+const hasEnvValue = (value) => typeof value === "string" && value.trim().length > 0;
+const canUseRedis =
+  hasEnvValue(process.env.UPSTASH_REDIS_REST_URL) &&
+  hasEnvValue(process.env.UPSTASH_REDIS_REST_TOKEN);
+
 let redisClient = null;
-try {
-  redisClient = Redis.fromEnv();
-} catch {
-  redisClient = null;
+if (canUseRedis) {
+  try {
+    redisClient = Redis.fromEnv();
+  } catch {
+    redisClient = null;
+  }
 }
 
 const rateLimiters = new Map();
@@ -96,13 +103,17 @@ export const rateLimit = async (req, res, options = {}) => {
     return rateLimitInMemory(req, res, windowMs, max);
   }
 
-  const result = await limiter.limit(key);
-  if (!result.success) {
-    const retryAfterSeconds = Math.ceil((result.reset - Date.now()) / 1000);
-    res.setHeader("Retry-After", String(Math.max(retryAfterSeconds, 1)));
-    res.status(429).json({ error: "Too many requests. Please try again later." });
-    return false;
-  }
+  try {
+    const result = await limiter.limit(key);
+    if (!result.success) {
+      const retryAfterSeconds = Math.ceil((result.reset - Date.now()) / 1000);
+      res.setHeader("Retry-After", String(Math.max(retryAfterSeconds, 1)));
+      res.status(429).json({ error: "Too many requests. Please try again later." });
+      return false;
+    }
 
-  return true;
+    return true;
+  } catch {
+    return rateLimitInMemory(req, res, windowMs, max);
+  }
 };
