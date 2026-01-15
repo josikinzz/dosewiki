@@ -8,7 +8,11 @@
  * @module
  */
 
+import type * as articleSources from "../articleSources.js";
 import type * as articles from "../articles.js";
+import type * as changelog from "../changelog.js";
+import type * as prompts from "../prompts.js";
+import type * as quotes from "../quotes.js";
 
 import type {
   ApiFromModules,
@@ -17,7 +21,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  articleSources: typeof articleSources;
   articles: typeof articles;
+  changelog: typeof changelog;
+  prompts: typeof prompts;
+  quotes: typeof quotes;
 }>;
 
 /**

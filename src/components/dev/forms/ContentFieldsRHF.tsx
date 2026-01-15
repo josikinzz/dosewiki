@@ -81,6 +81,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       {articlesContext && (
         <SectionGenerator
           sectionLabel="Harm Potential"
+          sectionKey="harm_potential"
           prompt={harmPotentialPrompt}
           extractedContent={articlesContext.harmPotentialQuotes}
           extractedSources={articlesContext.harmPotentialSources}
@@ -90,6 +91,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           apiKey={articlesContext.apiKey}
           model={articlesContext.model}
           isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="harm_potential"
         />
       )}
       

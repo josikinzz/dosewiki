@@ -31,7 +31,9 @@ import {
 } from "@/components/ui/select";
 import { streamCompletion, type StreamCompletionOptions } from "../../../../utils/api/openrouter";
 import type { ExtractedSourceInfo } from "../../../../utils/sectionSources";
-import { PromptPreviewModal } from "./PromptPreviewModal";
+import { PromptEditorModal } from "./PromptEditorModal";
+import type { SectionKey } from "../../../../data/config/sectionPrompts";
+import type { QuoteSection } from "../../../../hooks/useQuotes";
 
 type ReasoningEffort = "minimal" | "low" | "medium" | "high" | "xhigh";
 
@@ -46,6 +48,8 @@ const REASONING_OPTIONS: { value: ReasoningEffort; label: string; description: s
 export interface SectionGeneratorProps {
   /** Display label for the section */
   sectionLabel: string;
+  /** The section key for identifying the prompt (e.g., "harm_potential") */
+  sectionKey: SectionKey;
   /** The section-specific system prompt */
   prompt: string;
   /** Pre-extracted source content for this section (e.g., harm potential quotes) */
@@ -70,10 +74,17 @@ export interface SectionGeneratorProps {
   disabledMessage?: string;
   /** Optional note to display next to Apply button (e.g., explaining where data goes) */
   applyNote?: string;
+  /** Substance slug for quote editing (optional) */
+  substanceSlug?: string | null;
+  /** Quote section type for editing (optional) */
+  quoteSection?: QuoteSection;
+  /** Username for attribution when saving */
+  username?: string;
 }
 
 export const SectionGenerator = memo(function SectionGenerator({
   sectionLabel,
+  sectionKey,
   prompt,
   extractedContent,
   extractedSources,
@@ -86,6 +97,9 @@ export const SectionGenerator = memo(function SectionGenerator({
   disabled = false,
   disabledMessage,
   applyNote,
+  substanceSlug,
+  quoteSection,
+  username,
 }: SectionGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -424,12 +438,16 @@ export const SectionGenerator = memo(function SectionGenerator({
         </div>
       )}
 
-      {/* Prompt Preview Modal */}
+      {/* Prompt Editor Modal */}
       {isPromptModalOpen && (
-        <PromptPreviewModal
-          systemPrompt={prompt}
+        <PromptEditorModal
+          sectionKey={sectionKey}
+          sectionLabel={sectionLabel}
           userMessage={userMessage}
+          substanceSlug={substanceSlug}
+          quoteSection={quoteSection}
           onClose={() => setIsPromptModalOpen(false)}
+          username={username}
         />
       )}
     </div>

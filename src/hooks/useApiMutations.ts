@@ -254,3 +254,21 @@ export function useReplaceAllArticlesInConvex() {
     isEnabled: enabled,
   };
 }
+
+/**
+ * Mutation hook for saving changelog entries to Convex.
+ * Returns null if Convex is not enabled.
+ */
+export function useSaveChangelogToConvex() {
+  const enabled = isConvexEnabled();
+  const convexMutation = useConvexMutation(api.changelog.addEntry);
+
+  if (!enabled) {
+    return null;
+  }
+
+  return {
+    mutate: convexMutation,
+    isEnabled: enabled,
+  };
+}

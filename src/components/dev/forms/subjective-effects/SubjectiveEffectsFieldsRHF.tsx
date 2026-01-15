@@ -123,6 +123,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       {articlesContext && (
         <SectionGenerator
           sectionLabel="Subjective Effects"
+          sectionKey="subjective_effects"
           prompt={subjectiveEffectsPrompt}
           extractedContent={null}
           genericSources={articlesContext.getAllSources()}
@@ -133,6 +134,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
           isKeyValid={articlesContext.isKeyValid}
           disabled
           disabledMessage="Coming soon"
+          substanceSlug={articlesContext.selectedSubstanceSlug}
         />
       )}
 

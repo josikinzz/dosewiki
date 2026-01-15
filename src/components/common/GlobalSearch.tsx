@@ -348,10 +348,16 @@ export function GlobalSearch({
         </label>
         <Input
           id="global-search"
+          name="global-search-query"
           ref={inputRef}
           type="search"
           placeholder="Search..."
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          data-form-type="other"
+          data-lpignore="true"
           className={`w-full rounded-2xl pl-10 ${
             clearButtonVisible ? "pr-14" : "pr-10"
           } ${compact ? "py-2" : "py-3"}`}

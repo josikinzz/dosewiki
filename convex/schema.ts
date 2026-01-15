@@ -43,9 +43,72 @@ const substanceArticle = v.object({
   citations: v.any(),
 });
 
+// Changelog entry for tracking article changes
+const changelogEntry = v.object({
+  entryId: v.string(),        // unique ID for the entry (matches existing "id" field pattern)
+  createdAt: v.string(),      // ISO timestamp
+  message: v.string(),        // commit/save message
+  markdown: v.string(),       // unified diff text
+  submittedBy: v.union(v.string(), v.null()),
+  articles: v.array(v.object({
+    id: v.number(),
+    title: v.string(),
+    slug: v.string(),
+  })),
+});
+
+// Article source files - stores scraped content per substance
+const articleSource = v.object({
+  slug: v.string(),           // e.g., "ketamine"
+  substanceName: v.string(),  // e.g., "Ketamine"
+  sources: v.array(v.object({
+    id: v.string(),           // e.g., "psychonautwiki"
+    fileName: v.string(),
+    displayName: v.string(),
+    size: v.number(),
+    tokens: v.number(),
+  })),
+  contents: v.any(),          // Record<sourceId, content string>
+});
+
+// Prompts - both main generator prompt and section prompts
+const prompt = v.object({
+  key: v.string(),            // "generator" or "section_harm_potential", etc.
+  content: v.string(),        // Markdown content
+  updatedAt: v.string(),      // ISO timestamp
+  updatedBy: v.optional(v.string()),
+});
+
+// Quote documents - extracted quotes per substance per section
+const quote = v.object({
+  slug: v.string(),           // Substance slug
+  section: v.string(),        // "harm_potential", "pharmacology", "history_culture"
+  content: v.string(),        // Full markdown content
+  updatedAt: v.string(),
+  updatedBy: v.optional(v.string()),
+});
+
 export default defineSchema({
   // Main articles table - each document is a complete SubstanceArticle
   articles: defineTable(substanceArticle)
     .index("by_title", ["title"])
     .index("by_article_id", ["id"]),
+
+  // Changelog table - tracks all article changes
+  changelog: defineTable(changelogEntry)
+    .index("by_entry_id", ["entryId"])
+    .index("by_created_at", ["createdAt"]),
+
+  // Article source files - scraped content per substance (read-only after migration)
+  articleSources: defineTable(articleSource)
+    .index("by_slug", ["slug"]),
+
+  // Prompts - editable system and section prompts
+  prompts: defineTable(prompt)
+    .index("by_key", ["key"]),
+
+  // Quote documents - extracted quotes per substance per section
+  quotes: defineTable(quote)
+    .index("by_slug_section", ["slug", "section"])
+    .index("by_section", ["section"]),
 });

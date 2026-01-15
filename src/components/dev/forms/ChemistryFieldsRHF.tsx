@@ -248,6 +248,7 @@ export function ChemistryFieldsRHF({
       {articlesContext && (
         <SectionGenerator
           sectionLabel="Pharmacology"
+          sectionKey="pharmacology"
           prompt={pharmacologyPrompt}
           extractedContent={articlesContext.pharmacologyQuotes}
           extractedSources={articlesContext.pharmacologySources}
@@ -258,6 +259,8 @@ export function ChemistryFieldsRHF({
           model={articlesContext.model}
           isKeyValid={articlesContext.isKeyValid}
           applyNote="Bioavailability & half-life data will be inserted into dosage/duration tables"
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="pharmacology"
         />
       )}
       

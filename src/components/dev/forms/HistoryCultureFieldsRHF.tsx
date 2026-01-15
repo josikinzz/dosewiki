@@ -91,6 +91,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
       {articlesContext && (
         <SectionGenerator
           sectionLabel="History & Culture"
+          sectionKey="history_culture"
           prompt={historyCulturePrompt}
           extractedContent={articlesContext.historyCultureQuotes}
           extractedSources={articlesContext.historyCultureSources}
@@ -100,6 +101,8 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
           apiKey={articlesContext.apiKey}
           model={articlesContext.model}
           isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="history_culture"
         />
       )}
       

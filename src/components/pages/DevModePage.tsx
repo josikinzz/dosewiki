@@ -41,8 +41,10 @@ import {
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/data/changelog";
 import { DiffPreview } from "../common/DiffPreview";
 import type { UseArticleFormReturn } from "../../hooks/useArticleForm";
-import { useSaveArticlesMutation, useAuthMutation, useSaveArticlesToConvex } from "../../hooks/useApiMutations";
+import { useSaveArticlesMutation, useAuthMutation, useSaveArticlesToConvex, useSaveChangelogToConvex } from "../../hooks/useApiMutations";
 import { isConvexEnabled } from "../../lib/convex";
+import { useQuery as useConvexQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import type { SubstanceArticle } from "../../schema";
 import { createEmptyArticle } from "../../data/schema";
 import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
@@ -312,6 +314,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const saveArticlesMutation = useSaveArticlesMutation();
   const authMutation = useAuthMutation();
   const convexSave = useSaveArticlesToConvex();
+  const convexChangelogSave = useSaveChangelogToConvex();
   const isSaving = saveArticlesMutation.isPending;
   const [isConvexSaving, setIsConvexSaving] = useState(false);
   const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
@@ -325,6 +328,44 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     endDate: null,
     searchQuery: "",
   });
+
+  // Fetch changelog entries from Convex when enabled
+  const convexEnabled = isConvexEnabled();
+  const convexChangelogEntries = useConvexQuery(
+    api.changelog.getAll,
+    convexEnabled ? {} : "skip"
+  );
+
+  // Merge Convex changelog entries with static entries
+  useEffect(() => {
+    if (!convexEnabled || !convexChangelogEntries) {
+      return;
+    }
+
+    // Convert Convex entries to ChangeLogEntry format
+    const convexEntries: ChangeLogEntry[] = convexChangelogEntries.map((entry) => ({
+      id: entry.entryId,
+      createdAt: entry.createdAt,
+      commit: {
+        sha: "",
+        url: "",
+        message: entry.message,
+      },
+      articles: entry.articles,
+      markdown: entry.markdown,
+      submittedBy: entry.submittedBy,
+    }));
+
+    // Merge with static entries, avoiding duplicates by ID
+    const staticIds = new Set(initialChangeLogEntries.map((e) => e.id));
+    const mergedEntries = [
+      ...convexEntries.filter((e) => !staticIds.has(e.id)),
+      ...initialChangeLogEntries,
+    ];
+
+    setChangeLogEntries(sortChangeLogEntries(mergedEntries));
+  }, [convexEnabled, convexChangelogEntries]);
+
   const passwordNoticeTimeoutRef = useRef<number | null>(null);
   const changeLogNoticeTimeoutRef = useRef<number | null>(null);
   const previousArticleIndexRef = useRef<number | null>(null);
@@ -1703,6 +1744,41 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       // Save only changed articles to Convex
       const result = await convexSave.mutate({ articles: changedArticles });
 
+      // Generate and save changelog entry
+      if (convexChangelogSave && datasetChangelog.sections.length > 0) {
+        const now = new Date();
+        const entryId = `${now.toISOString().slice(0, 10).replace(/-/g, "")}-${now.toTimeString().slice(0, 8).replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
+        const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+        await convexChangelogSave.mutate({
+          entryId,
+          createdAt: now.toISOString(),
+          message,
+          markdown: datasetChangelog.markdown,
+          submittedBy: credentials.key,
+          articles: datasetChangelog.articles.map((a) => ({
+            id: a.id,
+            title: a.title,
+            slug: a.slug,
+          })),
+        });
+
+        // Add the new entry to local state so it appears immediately
+        const newEntry: ChangeLogEntry = {
+          id: entryId,
+          createdAt: now.toISOString(),
+          commit: {
+            sha: "",
+            url: "",
+            message,
+          },
+          articles: datasetChangelog.articles,
+          markdown: datasetChangelog.markdown,
+          submittedBy: credentials.key,
+        };
+        setChangeLogEntries((prev) => appendChangeLogEntry(prev, newEntry));
+      }
+
       setConvexNotice({
         type: "success",
         message: `Saved ${result.created + result.updated} article(s) to Convex as ${credentials.key}. (${result.created} new, ${result.updated} updated)`,
@@ -1717,7 +1793,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     } finally {
       setIsConvexSaving(false);
     }
-  }, [articles, convexSave, hasPendingChanges, originalArticles, verifyDevCredentials]);
+  }, [articles, convexSave, convexChangelogSave, datasetChangelog, hasPendingChanges, originalArticles, verifyDevCredentials]);
 
   const handleSaveToGitHub = useCallback(async () => {
     console.log("[handleSaveToGitHub] Starting commit process...");
