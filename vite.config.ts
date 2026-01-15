@@ -126,7 +126,7 @@ export default defineConfig(({ mode }) => {
   const inline = mode === 'inline' || process.env.SINGLE_FILE === 'true';
 
   const config: UserConfig = {
-    base: './',
+    base: inline ? './' : '/',  // Absolute for production, relative for inline
     plugins: [react(), ...(inline ? [singleFilePlugin()] : [])],
     define: {
       // Flag for inline builds to enable synchronous data loading
