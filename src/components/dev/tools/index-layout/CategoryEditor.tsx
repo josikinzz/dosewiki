@@ -401,10 +401,9 @@ export const CategoryEditor = memo(
                   variant="glass"
                   size="icon"
                   onClick={() => setDetailsOpen((previous) => !previous)}
-                  className={detailsOpen ? "bg-white/15 text-white" : ""}
                   aria-expanded={detailsOpen}
                   aria-label="Toggle category details"
-                  className="h-7 w-7"
+                  className={`h-7 w-7 ${detailsOpen ? "bg-white/15 text-white" : ""}`.trim()}
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" />
                 </Button>
@@ -412,9 +411,8 @@ export const CategoryEditor = memo(
                   variant="glass"
                   size="icon"
                   onClick={handleRemoveCategory}
-                  className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
                   aria-label="Remove category"
-                  className="h-7 w-7"
+                  className="h-7 w-7 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

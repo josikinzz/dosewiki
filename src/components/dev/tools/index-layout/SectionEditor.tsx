@@ -207,9 +207,8 @@ export const SectionEditor = memo(
               variant="glass"
               size="icon"
               onClick={handleRemove}
-              className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
               aria-label="Remove section"
-              className="h-6 w-6"
+              className="h-6 w-6 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
