@@ -108,6 +108,10 @@ export const ArticlesTab = memo(function ArticlesTab({
   const [substanceModule, setSubstanceModule] = useState<SubstanceModule | null>(null);
   const [isLoadingSubstance, setIsLoadingSubstance] = useState(false);
 
+  // DevMode context for saving articles
+  const { articles, applyArticlesTransform } = useDevMode();
+  const { substanceRecords, allSubstanceRecords } = useLibrary();
+
   // Compute visible substances based on priority toggle
   const substances = useMemo(() => {
     const records = showLowPriority ? allSubstanceRecords : substanceRecords;
@@ -146,10 +150,6 @@ export const ArticlesTab = memo(function ArticlesTab({
 
   // Sources section collapsed state (collapsed by default)
   const [sourcesExpanded, setSourcesExpanded] = useState(false);
-
-  // DevMode context for saving articles
-  const { articles, applyArticlesTransform } = useDevMode();
-  const { substanceRecords, allSubstanceRecords } = useLibrary();
 
   // Persist API key (sessionStorage for security) and model (localStorage for convenience)
   useEffect(() => {

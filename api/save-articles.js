@@ -183,17 +183,23 @@ export default async function handler(req, res) {
 
   const passwordKey = trimmedUsername;
 
-  if (body.articlesData === undefined) {
+  // skipArticles flag - when true, don't update articles.json (managed via Convex instead)
+  const skipArticles = body.skipArticles === true;
+  
+  if (!skipArticles && body.articlesData === undefined) {
     log.warn("articlesData payload is missing");
-    return res.status(400).json({ error: "articlesData payload is required." });
+    return res.status(400).json({ error: "articlesData payload is required when skipArticles is false." });
   }
 
-  const validationResult = validateArticlesPayload(body.articlesData);
-  if (!validationResult.success) {
-    return res.status(400).json({ error: "articlesData payload is invalid." });
+  if (!skipArticles) {
+    const validationResult = validateArticlesPayload(body.articlesData);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: "articlesData payload is invalid." });
+    }
+    log.debug("Payload received - articles count:", Array.isArray(body.articlesData) ? body.articlesData.length : "not an array");
+  } else {
+    log.debug("skipArticles=true - articles will not be updated in GitHub");
   }
-
-  log.debug("Payload received - articles count:", Array.isArray(body.articlesData) ? body.articlesData.length : "not an array");
 
   const manualData = body.psychoactiveIndexManualData;
   let serializedManual = null;
@@ -263,9 +269,6 @@ export default async function handler(req, res) {
     const { entries: existingLogEntries } = await loadChangeLogEntries(githubToken);
     log.debug("Loaded", existingLogEntries.length, "existing changelog entries");
 
-    const serializedArticles = JSON.stringify(body.articlesData, null, 2);
-    log.debug("Serialized articles size:", serializedArticles.length, "bytes");
-
     const entryId = `${formatIdTimestamp(new Date(isoTimestamp))}-${randomUUID().slice(0, 8)}`;
     const newEntry = {
       id: entryId,
@@ -287,28 +290,35 @@ export default async function handler(req, res) {
     const { parentSha, baseTreeSha } = await getRepositoryState(githubToken);
     log.debug("Repository state - parentSha:", parentSha?.slice(0, 7), "baseTreeSha:", baseTreeSha?.slice(0, 7));
 
-    log.debug("Creating articles blob...");
-    const articlesBlobSha = await createBlob(githubToken, serializedArticles);
-    log.debug("Articles blob created:", articlesBlobSha?.slice(0, 7));
+    const treeEntries = [];
+
+    // Only create articles blob if not skipping
+    if (!skipArticles) {
+      const serializedArticles = JSON.stringify(body.articlesData, null, 2);
+      log.debug("Serialized articles size:", serializedArticles.length, "bytes");
+      
+      log.debug("Creating articles blob...");
+      const articlesBlobSha = await createBlob(githubToken, serializedArticles);
+      log.debug("Articles blob created:", articlesBlobSha?.slice(0, 7));
+      
+      treeEntries.push({
+        path: ARTICLES_PATH,
+        mode: "100644",
+        type: "blob",
+        sha: articlesBlobSha,
+      });
+    }
 
     log.debug("Creating changelog blob...");
     const changeLogBlobSha = await createBlob(githubToken, serializedChangeLog);
     log.debug("Changelog blob created:", changeLogBlobSha?.slice(0, 7));
 
-    const treeEntries = [
-      {
-        path: ARTICLES_PATH,
-        mode: "100644",
-        type: "blob",
-        sha: articlesBlobSha,
-      },
-      {
-        path: CHANGE_LOG_PATH,
-        mode: "100644",
-        type: "blob",
-        sha: changeLogBlobSha,
-      },
-    ];
+    treeEntries.push({
+      path: CHANGE_LOG_PATH,
+      mode: "100644",
+      type: "blob",
+      sha: changeLogBlobSha,
+    });
 
     let manualBlobSha = null;
     if (serializedManual !== null) {

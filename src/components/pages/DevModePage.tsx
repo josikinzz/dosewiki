@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  Cloud,
   Copy,
   Download,
   Eye,
@@ -40,7 +41,9 @@ import {
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "../../utils/data/changelog";
 import { DiffPreview } from "../common/DiffPreview";
 import type { UseArticleFormReturn } from "../../hooks/useArticleForm";
-import { useSaveArticlesMutation, useAuthMutation } from "../../hooks/useApiMutations";
+import { useSaveArticlesMutation, useAuthMutation, useSaveArticlesToConvex } from "../../hooks/useApiMutations";
+import { isConvexEnabled } from "../../lib/convex";
+import { useConvexSync, type ConvexSyncStatus } from "../../context/ConvexSyncContext";
 import type { SubstanceArticle } from "../../schema";
 import { createEmptyArticle } from "../../data/schema";
 import { IndexLayoutTab } from "../dev/tools/index-layout/IndexLayoutTab";
@@ -309,7 +312,11 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const saveArticlesMutation = useSaveArticlesMutation();
   const authMutation = useAuthMutation();
+  const convexSave = useSaveArticlesToConvex();
+  const { state: convexSyncState, syncNow: convexSyncNow, isEnabled: isConvexSyncEnabled } = useConvexSync();
   const isSaving = saveArticlesMutation.isPending;
+  const [isConvexSaving, setIsConvexSaving] = useState(false);
+  const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
   const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
@@ -1658,6 +1665,62 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     stagedArticleId,
   ]);
 
+  // Save articles to Convex (instant sync, no GitHub commit)
+  // Requires credential verification just like GitHub commits
+  const handleSaveToConvex = useCallback(async () => {
+    if (!convexSave) {
+      setConvexNotice({ type: "error", message: "Convex is not configured." });
+      return;
+    }
+
+    if (!hasPendingChanges) {
+      setConvexNotice({ type: "error", message: "No changes to save." });
+      return;
+    }
+
+    setIsConvexSaving(true);
+    setConvexNotice({ type: "success", message: "Verifying credentials…" });
+
+    try {
+      // Verify credentials first (same as GitHub flow)
+      const credentials = await verifyDevCredentials();
+
+      setConvexNotice({
+        type: "success",
+        message: `Credentials verified for ${credentials.key}. Saving to Convex…`,
+      });
+
+      // Get changed articles by comparing with originals
+      const changedArticles = articles.filter((article, index) => {
+        const original = originalArticles[index];
+        if (!original) return true; // New article
+        return JSON.stringify(article) !== JSON.stringify(original);
+      });
+
+      if (changedArticles.length === 0) {
+        setConvexNotice({ type: "error", message: "No article changes detected." });
+        return;
+      }
+
+      // Save only changed articles to Convex
+      const result = await convexSave.mutate({ articles: changedArticles });
+
+      setConvexNotice({
+        type: "success",
+        message: `Saved ${result.created + result.updated} article(s) to Convex as ${credentials.key}. (${result.created} new, ${result.updated} updated)`,
+      });
+
+      // Clear notice after a delay
+      setTimeout(() => setConvexNotice(null), 5000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to save to Convex.";
+      setConvexNotice({ type: "error", message });
+      setTimeout(() => setConvexNotice(null), 10000);
+    } finally {
+      setIsConvexSaving(false);
+    }
+  }, [articles, convexSave, hasPendingChanges, originalArticles, verifyDevCredentials]);
+
   const handleSaveToGitHub = useCallback(async () => {
     console.log("[handleSaveToGitHub] Starting commit process...");
     console.log("[handleSaveToGitHub] hasInvalidJsonDraft:", hasInvalidJsonDraft);
@@ -1745,6 +1808,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       console.log("[handleSaveToGitHub] Credentials verified, calling saveArticlesMutation...");
       console.log("[handleSaveToGitHub] Changed articles:", datasetChangelogForCommit.articles);
 
+      // When Convex is enabled, skip articles in GitHub commit (articles managed via Convex)
+      const skipArticles = isConvexEnabled();
+      
       const result = await saveArticlesMutation.mutateAsync({
         username: credentials.username,
         password: credentials.password,
@@ -1757,6 +1823,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         aboutSubtitleMarkdown: aboutSubtitle,
         aboutConfig: { founderProfileKeys: aboutFounderKeys },
         generatorPrompt: hasGeneratorPromptChanges ? generatorPrompt : undefined,
+        skipArticles,
       });
 
       const resolvedKey = result.submittedBy?.trim() || credentials.key;
@@ -1863,6 +1930,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         summarizeArticle: (article, index) => extractChangeLogSummary(article, index),
       });
 
+      // When Convex is enabled, skip articles in GitHub commit (articles managed via Convex)
+      const skipArticlesForDeletion = isConvexEnabled();
+      
       const result = await saveArticlesMutation.mutateAsync({
         username: credentials.username,
         password: credentials.password,
@@ -1870,6 +1940,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         commitMessage,
         changelogMarkdown: deletionChangelog.markdown,
         changedArticles: deletionChangelog.articles,
+        skipArticles: skipArticlesForDeletion,
       });
 
       const resolvedKey = result.submittedBy?.trim() || credentials.key;
@@ -2287,6 +2358,80 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     resetAboutFounderKeys();
   }, [resetAboutFounderKeys]);
 
+  // Convex auto-sync status indicator
+  const convexSyncStatusIndicator = useMemo(() => {
+    if (!isConvexSyncEnabled) return null;
+    
+    const { status, lastSyncedAt, error } = convexSyncState;
+    
+    const statusConfig: Record<ConvexSyncStatus, { icon: React.ReactNode; label: string; className: string }> = {
+      idle: {
+        icon: <Cloud className="h-3.5 w-3.5" />,
+        label: lastSyncedAt ? `Synced ${lastSyncedAt.toLocaleTimeString()}` : "Auto-sync ready",
+        className: "text-white/40",
+      },
+      pending: {
+        icon: <Cloud className="h-3.5 w-3.5" />,
+        label: "Changes pending…",
+        className: "text-amber-300",
+      },
+      syncing: {
+        icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
+        label: "Syncing to Convex…",
+        className: "text-cyan-300",
+      },
+      synced: {
+        icon: <BadgeCheck className="h-3.5 w-3.5" />,
+        label: "Synced to Convex",
+        className: "text-emerald-300",
+      },
+      error: {
+        icon: <Cloud className="h-3.5 w-3.5" />,
+        label: error || "Sync failed",
+        className: "text-rose-300",
+      },
+    };
+    
+    const config = statusConfig[status];
+    
+    return (
+      <div className={`flex items-center gap-1.5 text-xs ${config.className}`}>
+        {config.icon}
+        <span>{config.label}</span>
+        {status === "pending" && (
+          <button
+            onClick={() => convexSyncNow()}
+            className="ml-1 text-[10px] underline hover:no-underline"
+          >
+            Sync now
+          </button>
+        )}
+      </div>
+    );
+  }, [isConvexSyncEnabled, convexSyncState, convexSyncNow]);
+
+  // Convex save button for quick sync (manual save for index data, etc.)
+  const convexSaveButton = isConvexEnabled() ? (
+    <div className="flex items-center gap-3">
+      {convexSyncStatusIndicator}
+      {convexNotice && (
+        <span className={`text-xs ${convexNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
+          {convexNotice.message}
+        </span>
+      )}
+      <Button
+        variant="outline"
+        size="pill"
+        className="rounded-full border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-200"
+        onClick={handleSaveToConvex}
+        disabled={isConvexSaving || !hasPendingChanges}
+      >
+        <Cloud className="h-4 w-4" />
+        {isConvexSaving ? "Syncing…" : "Save to Convex"}
+      </Button>
+    </div>
+  ) : null;
+
   const commitPanel = (
     <DevCommitCard
       notice={githubNotice}
@@ -2296,11 +2441,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       isSaving={isSaving}
       isCommitDisabled={isCommitDisabled}
       onCommit={handleSaveToGitHub}
+      actionSlot={convexSaveButton}
     />
   );
 
   const renderCommitPanel = useCallback(
-    (actionSlot?: React.ReactNode) => (
+    (extraActionSlot?: React.ReactNode) => (
       <DevCommitCard
         notice={githubNotice}
         trimmedAdminPassword={trimmedAdminPassword}
@@ -2309,10 +2455,15 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         isSaving={isSaving}
         isCommitDisabled={isCommitDisabled}
         onCommit={handleSaveToGitHub}
-        actionSlot={actionSlot}
+        actionSlot={
+          <div className="flex flex-wrap items-center gap-2">
+            {convexSaveButton}
+            {extraActionSlot}
+          </div>
+        }
       />
     ),
-    [githubNotice, trimmedAdminPassword, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub]
+    [githubNotice, trimmedAdminPassword, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
   );
 
   const _createCommitPanel = (

@@ -1,4 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
+import { useMutation as useConvexMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { isConvexEnabled } from "../lib/convex";
 
 // ============================================================================
 // Types
@@ -29,6 +32,11 @@ export interface SaveArticlesPayload {
   aboutSubtitleMarkdown?: string;
   aboutConfig?: { founderProfileKeys: string[] };
   generatorPrompt?: string;
+  /**
+   * When true, skip updating articles.json in GitHub.
+   * Use when articles are managed via Convex instead.
+   */
+  skipArticles?: boolean;
 }
 
 export interface SaveArticlesResult {
@@ -205,4 +213,44 @@ export function useSaveProfileMutation() {
   return useMutation({
     mutationFn: saveProfile,
   });
+}
+
+// ============================================================================
+// Convex Mutation Hooks
+// ============================================================================
+
+/**
+ * Mutation hook for saving articles to Convex.
+ * Returns null if Convex is not enabled.
+ */
+export function useSaveArticlesToConvex() {
+  const enabled = isConvexEnabled();
+  const convexMutation = useConvexMutation(api.articles.saveArticles);
+
+  if (!enabled) {
+    return null;
+  }
+
+  return {
+    mutate: convexMutation,
+    isEnabled: enabled,
+  };
+}
+
+/**
+ * Mutation hook for replacing all articles in Convex.
+ * Use for bulk sync operations.
+ */
+export function useReplaceAllArticlesInConvex() {
+  const enabled = isConvexEnabled();
+  const convexMutation = useConvexMutation(api.articles.replaceAllArticles);
+
+  if (!enabled) {
+    return null;
+  }
+
+  return {
+    mutate: convexMutation,
+    isEnabled: enabled,
+  };
 }

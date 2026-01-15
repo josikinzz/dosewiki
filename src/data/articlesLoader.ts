@@ -154,3 +154,11 @@ export function clearArticlesCache(): void {
   articlesPromise = null;
   syncArticlesLoaded = false;
 }
+
+/**
+ * Set the articles cache directly (for Convex integration).
+ * This allows external sources to populate the cache.
+ */
+export function setArticlesCache(articles: SubstanceArticle[]): void {
+  articlesCache = articles;
+}
