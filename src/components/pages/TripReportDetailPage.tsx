@@ -12,6 +12,7 @@ import {
 import type { TripReport } from "../../types/tripReport";
 import { useLibrary } from "../../data/ArticlesProvider";
 import { slugify } from "../../utils/slug";
+import { isConvexEnabled } from "../../lib/convex";
 
 interface TripReportDetailPageProps {
   slug: string;
@@ -23,6 +24,31 @@ interface TripReportDetailPageProps {
  * Detail page for a single trip report.
  */
 export const TripReportDetailPage = memo(function TripReportDetailPage({
+  slug,
+  fromSubstanceSlug,
+  onBack,
+}: TripReportDetailPageProps) {
+  const convexEnabled = isConvexEnabled();
+
+  if (!convexEnabled) {
+    return (
+      <TripReportUnavailable
+        onBack={onBack}
+        fromSubstanceSlug={fromSubstanceSlug}
+      />
+    );
+  }
+
+  return (
+    <TripReportDetailContent
+      slug={slug}
+      fromSubstanceSlug={fromSubstanceSlug}
+      onBack={onBack}
+    />
+  );
+});
+
+const TripReportDetailContent = memo(function TripReportDetailContent({
   slug,
   fromSubstanceSlug,
   onBack,
@@ -128,6 +154,33 @@ export const TripReportDetailPage = memo(function TripReportDetailPage({
     </main>
   );
 });
+
+function TripReportUnavailable({
+  onBack,
+  fromSubstanceSlug,
+}: {
+  onBack: () => void;
+  fromSubstanceSlug?: string;
+}) {
+  const library = useLibrary();
+  return (
+    <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+      <BackButton
+        onClick={onBack}
+        fromSubstanceSlug={fromSubstanceSlug}
+        report={undefined}
+        substanceBySlug={library.substanceBySlug}
+      />
+      <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
+        <FileSignature className="mx-auto h-12 w-12 text-white/20" />
+        <p className="mt-4 text-lg font-semibold text-white">Trip reports unavailable</p>
+        <p className="mt-2 text-sm text-white/60">
+          Connect a Convex deployment to enable reports on this site.
+        </p>
+      </div>
+    </main>
+  );
+}
 
 /**
  * Styled back button matching the glass pill pattern from the style guide.

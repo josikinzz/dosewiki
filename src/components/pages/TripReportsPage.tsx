@@ -5,6 +5,7 @@ import { FileSignature, LayoutList, User, FlaskConical } from "lucide-react";
 import { PageHeader } from "../layout/PageHeader";
 import { ReportCard } from "../reports/ReportCard";
 import type { TripReport, ReportViewMode } from "../../types/tripReport";
+import { isConvexEnabled } from "../../lib/convex";
 
 interface TripReportsPageProps {
   onSelectReport: (slug: string) => void;
@@ -22,17 +23,31 @@ const VIEW_MODES: { key: ReportViewMode; label: string; icon: typeof LayoutList 
 export const TripReportsPage = memo(function TripReportsPage({
   onSelectReport,
 }: TripReportsPageProps) {
+  const convexEnabled = isConvexEnabled();
+
+  if (!convexEnabled) {
+    return <TripReportsUnavailable />;
+  }
+
+  return <TripReportsPageContent onSelectReport={onSelectReport} />;
+});
+
+const TripReportsPageContent = memo(function TripReportsPageContent({
+  onSelectReport,
+}: TripReportsPageProps) {
   const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Fetch reports from Convex
-  const reports = useQuery(api.tripReports.getAll) ?? [];
+  const reports = useQuery(api.tripReports.getAll);
+  const isLoading = reports === undefined;
+  const resolvedReports = reports ?? [];
 
   // Group and sort reports based on view mode
   const groupedReports = useMemo(() => {
     if (viewMode === "title") {
       // Sort by title
-      const sorted = [...reports].sort((a, b) =>
+      const sorted = [...resolvedReports].sort((a, b) =>
         sortDirection === "asc"
           ? a.title.localeCompare(b.title)
           : b.title.localeCompare(a.title)
@@ -43,7 +58,7 @@ export const TripReportsPage = memo(function TripReportsPage({
     if (viewMode === "author") {
       // Group by author
       const groups: Record<string, TripReport[]> = {};
-      for (const report of reports) {
+      for (const report of resolvedReports) {
         const author = report.subject.name;
         if (!groups[author]) {
           groups[author] = [];
@@ -67,7 +82,7 @@ export const TripReportsPage = memo(function TripReportsPage({
     const groups: Record<string, TripReport[]> = {};
     const combinationsReports: TripReport[] = [];
 
-    for (const report of reports) {
+    for (const report of resolvedReports) {
       if (report.substances.length > 1) {
         combinationsReports.push(report);
       } else if (report.substances.length === 1) {
@@ -97,7 +112,7 @@ export const TripReportsPage = memo(function TripReportsPage({
     }
 
     return result;
-  }, [reports, viewMode, sortDirection]);
+  }, [resolvedReports, viewMode, sortDirection]);
 
   const handleViewModeClick = (mode: ReportViewMode) => {
     if (viewMode === mode) {
@@ -141,7 +156,7 @@ export const TripReportsPage = memo(function TripReportsPage({
       </div>
 
       {/* Loading state */}
-      {reports.length === 0 && (
+      {isLoading && (
         <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
           <p className="text-sm text-white/60">Loading trip reports...</p>
@@ -149,7 +164,7 @@ export const TripReportsPage = memo(function TripReportsPage({
       )}
 
       {/* Reports list */}
-      {Object.entries(groupedReports).map(([groupName, groupReports]) => (
+      {!isLoading && Object.entries(groupedReports).map(([groupName, groupReports]) => (
         <div key={groupName} className="mt-8">
           {viewMode !== "title" && (
             <h2 className="mb-4 text-lg font-semibold text-fuchsia-300">
@@ -169,7 +184,7 @@ export const TripReportsPage = memo(function TripReportsPage({
       ))}
 
       {/* Empty state */}
-      {reports.length > 0 && Object.keys(groupedReports).length === 0 && (
+      {!isLoading && resolvedReports.length === 0 && (
         <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
           <p className="text-white/60">No reports found.</p>
         </div>
@@ -177,3 +192,21 @@ export const TripReportsPage = memo(function TripReportsPage({
     </main>
   );
 });
+
+function TripReportsUnavailable() {
+  return (
+    <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+      <PageHeader
+        title="Trip Reports"
+        icon={FileSignature}
+        description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
+      />
+      <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
+        <p className="text-sm text-white/70">Trip reports are unavailable in this deployment.</p>
+        <p className="mt-2 text-xs text-white/50">
+          Connect a Convex deployment to enable reports.
+        </p>
+      </div>
+    </main>
+  );
+}
