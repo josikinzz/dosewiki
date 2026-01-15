@@ -56,6 +56,38 @@ export function DevCommitCard({
     return <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>;
   })();
 
+  // When Convex is enabled, show simplified sync-only card (no GitHub commits from UI)
+  if (convexEnabled) {
+    return (
+      <SectionCard className="space-y-4 bg-white/[0.04]">
+        <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45">Sync</p>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-cyan-300" />
+            <h2 className="text-lg font-semibold text-cyan-200">Convex Auto-Sync</h2>
+          </div>
+          <p className="text-sm text-white/65">
+            Article changes sync to Convex automatically. No manual save needed.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+          <div className="min-h-[1.25rem]">
+            {notice ? (
+              <p className={notice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
+                {notice.message}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {actionSlot}
+          </div>
+        </div>
+        {footerSlot ? <div className="text-xs text-white/45">{footerSlot}</div> : null}
+      </SectionCard>
+    );
+  }
+
+  // Fallback: GitHub commit card when Convex is not enabled
   return (
     <SectionCard className="space-y-4 bg-white/[0.04]">
       <div className="space-y-1">
@@ -64,21 +96,8 @@ export function DevCommitCard({
           <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
           <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
         </div>
-        {convexEnabled ? (
-          <>
-            <p className="text-sm text-white/65">
-              Commit changelog, indexes, and site config to GitHub. Article data syncs to Convex automatically.
-            </p>
-            <p className="text-xs text-white/45">
-              Commits trigger a Vercel rebuild for index layouts and about page changes.
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
-            <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
-          </>
-        )}
+        <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
+        <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
       </div>
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">{message}</div>
