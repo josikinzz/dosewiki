@@ -26,6 +26,13 @@ export function isConvexEnabled(): boolean {
 }
 
 /**
+ * Get the Convex URL when configured.
+ */
+export function getConvexUrl(): string | null {
+  return convexUrl ?? null;
+}
+
+/**
  * ConvexProvider wrapper that gracefully handles missing configuration.
  * If Convex is not configured, children render without Convex context.
  */

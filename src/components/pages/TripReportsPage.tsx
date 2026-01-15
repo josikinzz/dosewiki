@@ -5,7 +5,7 @@ import { FileSignature, LayoutList, User, FlaskConical } from "lucide-react";
 import { PageHeader } from "../layout/PageHeader";
 import { ReportCard } from "../reports/ReportCard";
 import type { TripReport, ReportViewMode } from "../../types/tripReport";
-import { isConvexEnabled } from "../../lib/convex";
+import { getConvexUrl, isConvexEnabled } from "../../lib/convex";
 
 interface TripReportsPageProps {
   onSelectReport: (slug: string) => void;
@@ -37,6 +37,9 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
 }: TripReportsPageProps) {
   const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const showConvexDebug =
+    import.meta.env.DEV || import.meta.env.VITE_SHOW_CONVEX_DEBUG === "true";
+  const convexUrl = getConvexUrl();
 
   // Fetch reports from Convex
   const reports = useQuery(api.tripReports.getAll);
@@ -187,6 +190,13 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
       {!isLoading && resolvedReports.length === 0 && (
         <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
           <p className="text-white/60">No reports found.</p>
+          {showConvexDebug && (
+            <div className="mt-4 space-y-1 text-xs text-white/45">
+              <p>Convex enabled: yes</p>
+              <p>Convex URL: {convexUrl ?? "unset"}</p>
+              <p>Reports returned: 0</p>
+            </div>
+          )}
         </div>
       )}
     </main>
