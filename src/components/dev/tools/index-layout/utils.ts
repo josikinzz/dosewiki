@@ -1,6 +1,7 @@
 import type {
   ManualCategoryDefinition,
   ManualCategorySection,
+  ManualIndexConfig,
   ManualSectionLink,
 } from "../../../../data/builders/manualIndexLoader";
 import type { SubstanceRecord } from "../../../../data/builders/contentBuilder";
@@ -189,6 +190,6 @@ export const ensureString = (value: string): string => value.trim();
  * This is effectively an alias for areCategoriesEqual since manuals are category arrays.
  */
 export const areManualsEqual = (
-  first: readonly ManualCategoryDefinition[],
-  second: readonly ManualCategoryDefinition[],
-): boolean => areCategoriesEqual(first, second);
+  first: ManualIndexConfig,
+  second: ManualIndexConfig,
+): boolean => areCategoriesEqual(first.categories, second.categories);

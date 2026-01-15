@@ -1,50 +1,35 @@
-import { memo, useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   AlertCircle,
-  ArrowDown,
-  ArrowDownAZ,
-  ArrowLeftRight,
-  ArrowUp,
-  Braces,
   BrainCircuit,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Cog,
   Hexagon,
-  ListFilter,
   PlusCircle,
-  RotateCcw,
-  Save,
-  SlidersHorizontal,
-  Trash2,
-  X,
   type LucideIcon,
 } from "lucide-react";
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
-import { IconBadge } from "../../../common/IconBadge";
 import { JsonEditor } from "../../../common/JsonEditor";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDevMode } from "../../../dev/DevModeContext";
-import type { ManualSectionLinkType } from "../../../../data/builders/manualIndexLoader";
-import { getCategoryIcon } from "../../../../data/config/categoryIcons";
 import { useLibrary } from "../../../../data/ArticlesProvider";
 import { slugify } from "../../../../utils/slug";
+import { useResponsiveColumnCount } from "../../../../hooks/useResponsiveColumnCount";
+import { CategoryEditor } from "./CategoryEditor";
+import { DatasetTabs } from "./DatasetTabs";
+import { LayoutToolbar } from "./LayoutToolbar";
+import { useLayoutEditor } from "./useLayoutEditor";
 
 import {
-  slugIssueLabels,
-  slugIssueColors,
   type IndexLayoutTabProps,
   type SubstanceOption,
   type SlugStatus,
   type SlugIssue,
-  type AddSlugFilterMode,
   type ManualDatasetKey,
   type ManualCategoryDefinition,
-  type ManualCategorySection,
   type ManualIndexConfig,
 } from "./types";
 
@@ -52,984 +37,39 @@ import {
   deepClone,
   areManualsEqual,
   generateUniqueKey,
-  ensureString,
 } from "./utils";
-
-/**
- * Breakpoints for responsive column count in the dev tools layout editor.
- * Matches the public CategoryGrid breakpoints.
- */
-const BREAKPOINTS = {
-  sm: 640,
-  lg: 1024,
-  "2xl": 1536,
-};
 
 const MAX_COLUMNS = 4;
 
-function useResponsiveColumnCount(): number {
-  const getColumnCount = useCallback(() => {
-    if (typeof window === "undefined") return 3;
-    const width = window.innerWidth;
-    if (width < BREAKPOINTS.sm) return 1;
-    if (width < BREAKPOINTS.lg) return 2;
-    if (width < BREAKPOINTS["2xl"]) return 3;
-    return MAX_COLUMNS;
-  }, []);
-
-  const [columnCount, setColumnCount] = useState(getColumnCount);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setColumnCount(getColumnCount());
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [getColumnCount]);
-
-  return columnCount;
+function ColumnDroppable({
+  id,
+  children,
+  className,
+}: {
+  id: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  const { setNodeRef } = useDroppable({ id });
+  return (
+    <div ref={setNodeRef} className={className ?? "flex flex-1 flex-col gap-6"}>
+      {children}
+    </div>
+  );
 }
-
-const formatSubstanceLabel = (option: SubstanceOption): string => {
-  const parts = [option.name];
-  if (option.alias) {
-    parts.push(`(${option.alias})`);
-  }
-  if (option.isHidden) {
-    parts.push("[Hidden]");
-  }
-  return parts.join(" ");
-};
 
 const COMMON_TAG = "common";
 
 const normalizeTag = (value: string): string => value.trim().toLowerCase();
 const DATASET_ORDER: ManualDatasetKey[] = ["psychoactive", "chemical", "mechanism"];
 
-const computeSlugCounts = (category: ManualCategoryDefinition): Map<string, number> => {
-  const counts = new Map<string, number>();
-  const register = (value: string) => {
-    const normalized = slugify(value);
-    if (!normalized) {
-      return;
-    }
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
-  };
-
-  category.drugs.forEach(register);
-  category.sections.forEach((section) => section.drugs.forEach(register));
-
-  return counts;
-};
-
-interface SubstanceListItemProps {
-  status: SlugStatus;
-  onRemove: () => void;
-}
-
-function SubstanceListItem({ status, onRemove }: SubstanceListItemProps) {
-  const displayName = status.name ?? status.slug;
-
-  return (
-    <li className="group flex items-center gap-2 py-1 text-sm text-white/85">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="truncate font-semibold text-white">{displayName}</span>
-          {status.alias && <span className="truncate text-xs text-white/60">({status.alias})</span>}
-          {status.issues.map((issue) => (
-            <span
-              key={issue}
-              className={`rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                issue === "duplicate" ? "" : "border border-current"
-              } ${slugIssueColors[issue]}`}
-            >
-              {slugIssueLabels[issue]}
-            </span>
-          ))}
-        </div>
-      </div>
-      <Button
-        variant="glass"
-        size="icon"
-        onClick={onRemove}
-        className="h-7 w-7 opacity-60 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
-        aria-label={`Remove ${displayName}`}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
-    </li>
-  );
-}
-
-interface AddSlugControlProps {
-  label: string;
-  existingSlugs: string[];
-  onAdd: (slug: string) => void;
-  options: SubstanceOption[];
-  filterContext: {
-    sectionSlugs: ReadonlySet<string>;
-    categorySlugs: ReadonlySet<string>;
-    datasetSlugs: ReadonlySet<string>;
-  };
-}
-
-function AddSlugControl({
-  label,
-  existingSlugs,
-  onAdd,
-  options,
-  filterContext,
-}: AddSlugControlProps) {
-  const filterSelectId = useId();
-  const [value, setValue] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [showPicker, setShowPicker] = useState(false);
-  const [filterMode, setFilterMode] = useState<AddSlugFilterMode>("all");
-
-  const existingSet = useMemo(() => new Set(existingSlugs.map((slug) => slugify(slug))), [existingSlugs]);
-
-  const filteredOptions = useMemo(() => {
-    if (filterMode === "all") {
-      return options;
-    }
-
-    const scope =
-      filterMode === "missing-section"
-        ? filterContext.sectionSlugs
-        : filterMode === "missing-category"
-          ? filterContext.categorySlugs
-          : filterContext.datasetSlugs;
-
-    return options.filter((option) => {
-      const normalized = slugify(option.slug);
-      if (!normalized) {
-        return false;
-      }
-      return !scope.has(normalized);
-    });
-  }, [filterContext.categorySlugs, filterContext.datasetSlugs, filterContext.sectionSlugs, filterMode, options]);
-
-  useEffect(() => {
-    if (!showPicker) {
-      setFilterMode("all");
-    }
-  }, [showPicker]);
-
-  const handleSubmit = useCallback(() => {
-    const normalized = slugify(value);
-    if (!normalized) {
-      setError("Enter a substance slug");
-      return;
-    }
-    if (existingSet.has(normalized)) {
-      setError("Substance already listed");
-      return;
-    }
-    onAdd(normalized);
-    setValue("");
-    setError(null);
-  }, [existingSet, onAdd, value]);
-
-  const handleSelect = useCallback(
-    (slug: string) => {
-      if (!slug) {
-        return;
-      }
-      if (existingSet.has(slug)) {
-        setError("Substance already listed");
-        return;
-      }
-      onAdd(slug);
-      setShowPicker(false);
-      setError(null);
-    },
-    [existingSet, onAdd],
-  );
-
-  return (
-    <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4 shadow-inner shadow-black/20">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <Input
-          value={value}
-          onChange={(event) => {
-            setValue(event.target.value);
-            setError(null);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              handleSubmit();
-            }
-          }}
-          className="flex-1 bg-transparent"
-          placeholder={label}
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="glass"
-            size="icon"
-            onClick={handleSubmit}
-            className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
-            aria-label={label}
-          >
-            <PlusCircle className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="glass"
-            size="icon"
-            onClick={() => setShowPicker((previous) => !previous)}
-            aria-expanded={showPicker}
-            aria-label="Browse substances"
-          >
-            <ListFilter className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      {error ? <p className="text-sm text-rose-300">{error}</p> : null}
-      {showPicker && (
-        <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-lg">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Select a substance</span>
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] uppercase tracking-[0.3em] text-white/40" htmlFor={filterSelectId}>
-                Filter
-              </label>
-              <Select value={filterMode} onValueChange={(value) => setFilterMode(value as AddSlugFilterMode)}>
-                <SelectTrigger id={filterSelectId} selectSize="compact" className="w-auto min-w-[11rem] bg-slate-950/80">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All drugs</SelectItem>
-                  <SelectItem value="missing-section">Missing from section</SelectItem>
-                  <SelectItem value="missing-category">Missing from category</SelectItem>
-                  <SelectItem value="missing-index">Missing from index</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="glass"
-                size="icon"
-                onClick={() => setShowPicker(false)}
-                className="h-6 w-6"
-                aria-label="Close substance picker"
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-          <div className="max-h-64 overflow-y-auto">
-            {filteredOptions.length > 0 ? (
-              <ul className="space-y-1 text-sm text-white/80">
-                {filteredOptions.map((option) => (
-                  <li key={option.slug}>
-                    <Button
-                      variant="pickerListItem"
-                      onClick={() => handleSelect(option.slug)}
-                    >
-                      {formatSubstanceLabel(option)}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="px-2 py-4 text-sm text-white/60">No substances match this filter.</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface SectionEditorProps {
-  section: ManualCategorySection;
-  onUpdate: (next: ManualCategorySection) => void;
-  onRemove: () => void;
-  onMove: (direction: "up" | "down") => void;
-  isFirst: boolean;
-  isLast: boolean;
-  showTopDivider: boolean;
-  substanceOptions: SubstanceOption[];
-  slugStatuses: Map<string, SlugStatus>;
-  categorySlugSet: ReadonlySet<string>;
-  datasetSlugSet: ReadonlySet<string>;
-  sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
-}
-
-const SectionEditor = memo(
-  ({
-    section,
-    onUpdate,
-    onRemove,
-    onMove,
-    isFirst,
-    isLast,
-    showTopDivider,
-    substanceOptions,
-    slugStatuses,
-    categorySlugSet,
-    datasetSlugSet,
-    sortSlugsWithCommonPriority,
-  }: SectionEditorProps) => {
-    const handleSlugAdd = useCallback(
-      (slug: string) => {
-        const nextDrugs = sortSlugsWithCommonPriority([...section.drugs, slug]);
-        onUpdate({ ...section, drugs: nextDrugs });
-      },
-      [onUpdate, section, sortSlugsWithCommonPriority],
-    );
-
-    const handleSlugRemove = useCallback(
-      (slug: string) => {
-        const nextDrugs = sortSlugsWithCommonPriority(
-          section.drugs.filter((entry) => entry !== slug),
-        );
-        onUpdate({ ...section, drugs: nextDrugs });
-      },
-      [onUpdate, section, sortSlugsWithCommonPriority],
-    );
-
-    const handleLabelChange = useCallback(
-      (value: string) => {
-        onUpdate({ ...section, label: value });
-      },
-      [onUpdate, section],
-    );
-
-    const handleKeyChange = useCallback(
-      (value: string) => {
-        onUpdate({ ...section, key: value });
-      },
-      [onUpdate, section],
-    );
-
-    const handleNotesChange = useCallback(
-      (value: string) => {
-        onUpdate({ ...section, notes: value });
-      },
-      [onUpdate, section],
-    );
-
-    const handleLinkTypeChange = useCallback(
-      (type: ManualSectionLinkType | "") => {
-        if (!type) {
-          const { link: _link, ...rest } = section;
-          onUpdate(rest);
-          return;
-        }
-        const value = section.link?.value ?? "";
-        onUpdate({ ...section, link: { type, value } });
-      },
-      [onUpdate, section],
-    );
-
-    const handleLinkValueChange = useCallback(
-      (value: string) => {
-        const normalized = ensureString(value);
-        if (!section.link) {
-          onUpdate({ ...section, link: { type: "chemicalClass", value: normalized } });
-          return;
-        }
-        onUpdate({ ...section, link: { ...section.link, value: normalized } });
-      },
-      [onUpdate, section],
-    );
-
-    const [detailsOpen, setDetailsOpen] = useState(false);
-    const sortedSectionDrugs = useMemo(
-      () => sortSlugsWithCommonPriority(section.drugs),
-      [section.drugs, sortSlugsWithCommonPriority],
-    );
-
-    const sectionWrapperClass = showTopDivider
-      ? "relative space-y-4 pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.12)_20%,rgba(255,255,255,0.12)_80%,rgba(255,255,255,0)_100%)] before:content-['']"
-      : "space-y-4";
-
-    const sectionSlugSet = useMemo(() => new Set(section.drugs.map((slug) => slugify(slug))), [section.drugs]);
-    const sectionKeyId = useId();
-    const sectionLinkTypeId = useId();
-    const sectionLinkValueId = useId();
-    const sectionNotesId = useId();
-
-    return (
-      <div className={sectionWrapperClass}>
-        <header className="flex flex-wrap items-start gap-2 text-white/85">
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <Input
-              className="w-full text-sm font-semibold uppercase tracking-wide"
-              placeholder="Section label"
-              value={section.label}
-              onChange={(event) => handleLabelChange(event.target.value)}
-            />
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">
-              {section.drugs.length} substance{section.drugs.length === 1 ? "" : "s"}
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => onMove("up")}
-              disabled={isFirst}
-              aria-label="Move section up"
-            >
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => onMove("down")}
-              disabled={isLast}
-              aria-label="Move section down"
-            >
-              <ArrowDown className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={() => setDetailsOpen((previous) => !previous)}
-              aria-expanded={detailsOpen}
-              aria-label="Toggle section details"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="glass"
-              size="icon"
-              onClick={onRemove}
-              className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
-              aria-label="Remove section"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </header>
-
-        {detailsOpen && (
-          <div className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1">
-                <label htmlFor={sectionKeyId} className="text-xs uppercase tracking-wide text-white/60">Section key</label>
-                <Input
-                  id={sectionKeyId}
-                  className="w-full"
-                  placeholder="Section key"
-                  value={section.key}
-                  onChange={(event) => handleKeyChange(event.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <label htmlFor={sectionLinkTypeId} className="text-xs uppercase tracking-wide text-white/60">Link type</label>
-                <Select
-                  value={section.link?.type ?? ""}
-                  onValueChange={(value) => handleLinkTypeChange(value as ManualSectionLinkType | "")}
-                >
-                  <SelectTrigger id={sectionLinkTypeId} className="w-full">
-                    <SelectValue placeholder="No link" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">No link</SelectItem>
-                    <SelectItem value="chemicalClass">Chemical class</SelectItem>
-                    <SelectItem value="psychoactiveClass">Psychoactive class</SelectItem>
-                    <SelectItem value="mechanism">Mechanism</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {section.link?.type && (
-              <div className="space-y-1">
-                <label htmlFor={sectionLinkValueId} className="text-xs uppercase tracking-wide text-white/60">Link value</label>
-                <Input
-                  id={sectionLinkValueId}
-                  className="w-full"
-                  placeholder="e.g. Tryptamine"
-                  value={section.link?.value ?? ""}
-                  onChange={(event) => handleLinkValueChange(event.target.value)}
-                />
-              </div>
-            )}
-            <div className="space-y-1">
-              <label htmlFor={sectionNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
-              <Textarea
-                id={sectionNotesId}
-                className="min-h-[80px] w-full"
-                value={section.notes ?? ""}
-                onChange={(event) => handleNotesChange(event.target.value)}
-                placeholder="Optional editor notes"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {section.drugs.length > 0 ? (
-            <ul className="space-y-1 text-sm text-white/85">
-              {sortedSectionDrugs.map((slug) => (
-                <SubstanceListItem
-                  key={slug}
-                  status={slugStatuses.get(slug) ?? { slug, issues: [] }}
-                  onRemove={() => handleSlugRemove(slug)}
-                />
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-xl border border-white/10 bg-slate-950/50 px-3 py-4 text-sm text-white/60 shadow-inner shadow-black/20">
-              No substances added yet.
-            </p>
-          )}
-          <AddSlugControl
-            label="Add new substance to section..."
-            existingSlugs={[...section.drugs]}
-            onAdd={handleSlugAdd}
-            options={substanceOptions}
-            filterContext={{
-              sectionSlugs: sectionSlugSet,
-              categorySlugs: categorySlugSet,
-              datasetSlugs: datasetSlugSet,
-            }}
-          />
-        </div>
-      </div>
-    );
-  },
-  (previous, next) =>
-    previous.section === next.section
-    && previous.isFirst === next.isFirst
-    && previous.isLast === next.isLast
-    && previous.showTopDivider === next.showTopDivider
-    && previous.substanceOptions === next.substanceOptions
-    && previous.slugStatuses === next.slugStatuses
-    && previous.categorySlugSet === next.categorySlugSet
-    && previous.datasetSlugSet === next.datasetSlugSet
-    && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority
-    && previous.onMove === next.onMove
-    && previous.onRemove === next.onRemove
-    && previous.onUpdate === next.onUpdate,
-);
-
-interface CategoryEditorProps {
-  category: ManualCategoryDefinition;
-  index: number;
-  total: number;
-  maxColumns: number;
-  onUpdateCategory: (
-    index: number,
-    updater: (current: ManualCategoryDefinition) => ManualCategoryDefinition,
-  ) => void;
-  onRemoveCategory: (index: number) => void;
-  onMoveCategory: (index: number, direction: "up" | "down") => void;
-  onChangeColumn: (index: number, direction: "left" | "right") => void;
-  onAddSection: (index: number) => void;
-  substanceOptions: SubstanceOption[];
-  datasetSlugSet: ReadonlySet<string>;
-  sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
-  resolveSlugStatus: (slug: string, counts: Map<string, number>) => SlugStatus;
-}
-
-const CategoryEditor = memo(
-  ({
-    category,
-    index,
-    total,
-    maxColumns,
-    onUpdateCategory,
-    onRemoveCategory,
-    onMoveCategory,
-    onChangeColumn,
-    onAddSection,
-    substanceOptions,
-    datasetSlugSet,
-    sortSlugsWithCommonPriority,
-    resolveSlugStatus,
-  }: CategoryEditorProps) => {
-    const slugCounts = useMemo(() => computeSlugCounts(category), [category]);
-    const slugStatuses = useMemo(() => {
-      const map = new Map<string, SlugStatus>();
-      category.drugs.forEach((slug) => {
-        map.set(slug, resolveSlugStatus(slug, slugCounts));
-      });
-      category.sections.forEach((section) => {
-        section.drugs.forEach((slug) => {
-          map.set(slug, resolveSlugStatus(slug, slugCounts));
-        });
-      });
-      return map;
-    }, [category.drugs, category.sections, resolveSlugStatus, slugCounts]);
-
-    const categoryIcon = useMemo(() => getCategoryIcon(category.iconKey), [category.iconKey]);
-    const sortedPrimaryDrugs = useMemo(
-      () => sortSlugsWithCommonPriority(category.drugs),
-      [category.drugs, sortSlugsWithCommonPriority],
-    );
-
-    // Column assignment - default to round-robin based on index if not explicitly set
-    const currentColumn = category.column ?? index % maxColumns;
-    const canMoveLeft = currentColumn > 0;
-    const canMoveRight = currentColumn < maxColumns - 1;
-
-    const handleLabelChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, label: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleKeyChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, key: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleIconChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, iconKey: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleNotesChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, notes: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleTopLevelAdd = useCallback(
-      (slug: string) => {
-        onUpdateCategory(index, (current) => ({
-          ...current,
-          drugs: sortSlugsWithCommonPriority([...current.drugs, slug]),
-        }));
-      },
-      [index, onUpdateCategory, sortSlugsWithCommonPriority],
-    );
-
-    const handleTopLevelRemove = useCallback(
-      (slug: string) => {
-        onUpdateCategory(index, (current) => ({
-          ...current,
-          drugs: sortSlugsWithCommonPriority(
-            current.drugs.filter((entry) => entry !== slug),
-          ),
-        }));
-      },
-      [index, onUpdateCategory, sortSlugsWithCommonPriority],
-    );
-
-    const handleSectionUpdate = useCallback(
-      (sectionIndex: number, nextSection: ManualCategorySection) => {
-        onUpdateCategory(index, (current) => {
-          if (sectionIndex < 0 || sectionIndex >= current.sections.length) {
-            return current;
-          }
-          const currentSection = current.sections[sectionIndex];
-          if (currentSection === nextSection) {
-            return current;
-          }
-          const nextSections = current.sections.slice();
-          nextSections[sectionIndex] = nextSection;
-          return { ...current, sections: nextSections };
-        });
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleSectionMove = useCallback(
-      (sectionIndex: number, direction: "up" | "down") => {
-        onUpdateCategory(index, (current) => {
-          const targetIndex = direction === "up" ? sectionIndex - 1 : sectionIndex + 1;
-          if (targetIndex < 0 || targetIndex >= current.sections.length) {
-            return current;
-          }
-          const nextSections = current.sections.slice();
-          const [moved] = nextSections.splice(sectionIndex, 1);
-          nextSections.splice(targetIndex, 0, moved);
-          return { ...current, sections: nextSections };
-        });
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleSectionRemove = useCallback(
-      (sectionIndex: number) => {
-        onUpdateCategory(index, (current) => {
-          if (sectionIndex < 0 || sectionIndex >= current.sections.length) {
-            return current;
-          }
-          const nextSections = current.sections.filter((_, currentIndex) => currentIndex !== sectionIndex);
-          if (nextSections.length === current.sections.length) {
-            return current;
-          }
-          return { ...current, sections: nextSections };
-        });
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleRemoveCategory = useCallback(() => {
-      onRemoveCategory(index);
-    }, [index, onRemoveCategory]);
-
-    const handleMoveCategory = useCallback(
-      (direction: "up" | "down") => {
-        onMoveCategory(index, direction);
-      },
-      [index, onMoveCategory],
-    );
-
-    const handleChangeColumn = useCallback(
-      (direction: "left" | "right") => {
-        onChangeColumn(index, direction);
-      },
-      [index, onChangeColumn],
-    );
-
-    const handleAddSection = useCallback(() => {
-      onAddSection(index);
-    }, [index, onAddSection]);
-
-    const [detailsOpen, setDetailsOpen] = useState(false);
-    const totalPrimary = category.drugs.length;
-    const sectionCount = category.sections.length;
-    const categoryKeyId = useId();
-    const categoryIconId = useId();
-    const categoryNotesId = useId();
-
-    const topLevelSlugSet = useMemo(() => new Set(category.drugs.map((slug) => slugify(slug))), [category.drugs]);
-    const categorySlugSet = useMemo(() => {
-      const set = new Set<string>();
-      category.drugs.forEach((slug) => set.add(slugify(slug)));
-      category.sections.forEach((section) => {
-        section.drugs.forEach((slug) => set.add(slugify(slug)));
-      });
-      return set;
-    }, [category]);
-
-    const detailsPanel = detailsOpen ? (
-      <div className="mt-2 w-full max-w-[420px] rounded-2xl border border-white/10 bg-slate-950/50 p-4 text-sm text-white/75 shadow-inner shadow-black/20">
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-1">
-            <label htmlFor={categoryKeyId} className="text-xs uppercase tracking-wide text-white/60">Category key</label>
-            <Input
-              id={categoryKeyId}
-              className="w-full"
-              value={category.key}
-              onChange={(event) => handleKeyChange(event.target.value)}
-              placeholder="Unique key"
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor={categoryIconId} className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
-            <Input
-              id={categoryIconId}
-              className="w-full"
-              value={category.iconKey}
-              onChange={(event) => handleIconChange(event.target.value)}
-              placeholder="Icon identifier"
-            />
-          </div>
-        </div>
-        <div className="mt-3 space-y-1">
-          <label htmlFor={categoryNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
-          <Textarea
-            id={categoryNotesId}
-            className="min-h-[90px] w-full"
-            value={category.notes ?? ""}
-            onChange={(event) => handleNotesChange(event.target.value)}
-            placeholder="Optional editor notes for this category"
-          />
-        </div>
-      </div>
-    ) : null;
-
-    return (
-      <article className="w-full">
-        <div className="group relative overflow-hidden rounded-2xl bg-white/5 p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe">
-          <div className="flex flex-col gap-4">
-            <header className="flex items-start gap-4 text-white/90">
-              <div className="mt-1">
-                <IconBadge icon={categoryIcon} label={`${category.label} icon`} />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <Input
-                  className="w-full text-lg font-semibold"
-                  value={category.label}
-                  onChange={(event) => handleLabelChange(event.target.value)}
-                  placeholder="Category label"
-                />
-              </div>
-              <div className="ml-auto mt-1 flex items-center gap-1 text-white/70">
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => handleMoveCategory("up")}
-                  disabled={index === 0}
-                  aria-label="Move category up"
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => handleMoveCategory("down")}
-                  disabled={index === total - 1}
-                  aria-label="Move category down"
-                >
-                  <ArrowDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={handleAddSection}
-                  aria-label="Add section"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => setDetailsOpen((previous) => !previous)}
-                  className={detailsOpen ? "bg-white/15 text-white" : ""}
-                  aria-expanded={detailsOpen}
-                  aria-label="Toggle category details"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={handleRemoveCategory}
-                  className="hover:bg-rose-500/20 hover:text-rose-200 hover:ring-rose-400/40"
-                  aria-label="Remove category"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </header>
-
-            <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-[11px] uppercase tracking-[0.3em] text-white/45">
-              <span>
-                {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
-              </span>
-              <span className="text-white/30">•</span>
-              <span>
-                {sectionCount} section{sectionCount === 1 ? "" : "s"}
-              </span>
-              <span className="text-white/30">•</span>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => handleChangeColumn("left")}
-                  disabled={!canMoveLeft}
-                  className="h-5 w-5"
-                  aria-label="Move to left column"
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                <span
-                  className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-fuchsia-200"
-                  title={`Column ${currentColumn + 1}`}
-                >
-                  {currentColumn + 1}
-                </span>
-                <Button
-                  variant="glass"
-                  size="icon"
-                  onClick={() => handleChangeColumn("right")}
-                  disabled={!canMoveRight}
-                  className="h-5 w-5"
-                  aria-label="Move to right column"
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {detailsPanel}
-
-            <div className="space-y-[30px] text-sm text-white/80">
-              <AddSlugControl
-                label="Add top level categoryless substance..."
-                existingSlugs={[
-                  ...category.drugs,
-                  ...category.sections.flatMap((section) => section.drugs),
-                ]}
-                onAdd={handleTopLevelAdd}
-                options={substanceOptions}
-                filterContext={{
-                  sectionSlugs: topLevelSlugSet,
-                  categorySlugs: categorySlugSet,
-                  datasetSlugs: datasetSlugSet,
-                }}
-              />
-
-              {totalPrimary > 0 ? (
-                <ul className="space-y-1">
-                  {sortedPrimaryDrugs.map((slug) => (
-                    <SubstanceListItem
-                      key={slug}
-                      status={slugStatuses.get(slug) ?? { slug, issues: [] }}
-                      onRemove={() => handleTopLevelRemove(slug)}
-                    />
-                  ))}
-                </ul>
-              ) : null}
-
-              {sectionCount > 0
-                ? category.sections.map((section, sectionIndex) => (
-                    <SectionEditor
-                      key={`${section.key}-${sectionIndex}`}
-                      section={section}
-                      onUpdate={(next) => handleSectionUpdate(sectionIndex, next)}
-                      onRemove={() => handleSectionRemove(sectionIndex)}
-                      onMove={(direction) => handleSectionMove(sectionIndex, direction)}
-                      isFirst={sectionIndex === 0}
-                      isLast={sectionIndex === category.sections.length - 1}
-                      showTopDivider={sectionIndex > 0 || totalPrimary > 0}
-                      substanceOptions={substanceOptions}
-                      slugStatuses={slugStatuses}
-                      categorySlugSet={categorySlugSet}
-                      datasetSlugSet={datasetSlugSet}
-                      sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
-                    />
-                  ))
-                : null}
-
-              {totalPrimary === 0 && sectionCount === 0 ? (
-                <p className="rounded-xl border border-dashed border-white/12 bg-slate-950/45 px-4 py-5 text-sm text-white/65 shadow-inner shadow-black/20">
-                  No substances assigned yet. Use the plus icons to start building this category.
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </article>
-    );
-  },
-  (previous, next) =>
-    previous.category === next.category
-    && previous.index === next.index
-    && previous.total === next.total
-    && previous.maxColumns === next.maxColumns
-    && previous.substanceOptions === next.substanceOptions
-    && previous.datasetSlugSet === next.datasetSlugSet
-    && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority
-    && previous.resolveSlugStatus === next.resolveSlugStatus
-    && previous.onAddSection === next.onAddSection
-    && previous.onMoveCategory === next.onMoveCategory
-    && previous.onChangeColumn === next.onChangeColumn
-    && previous.onRemoveCategory === next.onRemoveCategory
-    && previous.onUpdateCategory === next.onUpdateCategory,
-);
 
 export function IndexLayoutTab({
   commitPanel,
 }: IndexLayoutTabProps) {
-  const columnCount = useResponsiveColumnCount();
+  const [columnMode, setColumnMode] = useState<"auto" | 1 | 2 | 3 | 4>("auto");
+  const autoColumnCount = useResponsiveColumnCount();
+  const columnCount = columnMode === "auto" ? autoColumnCount : columnMode;
 
   const {
     psychoactiveIndexManual,
@@ -1276,116 +316,35 @@ export function IndexLayoutTab({
     [sortSlugsForDataset],
   );
 
-  const createNormalizedManual = (datasetKey: ManualDatasetKey, manual: ManualIndexConfig) =>
-    normalizeManualOrdering(datasetKey, deepClone(manual));
-
-  const createManualMap = (
-    source: (definition: DatasetDefinition) => ManualIndexConfig,
-  ): Record<ManualDatasetKey, ManualIndexConfig> => {
-    const map: Partial<Record<ManualDatasetKey, ManualIndexConfig>> = {};
-    datasetOrder.forEach((datasetKey) => {
-      const definition = datasetDefinitions[datasetKey];
-      map[datasetKey] = createNormalizedManual(datasetKey, source(definition));
-    });
-    return map as Record<ManualDatasetKey, ManualIndexConfig>;
-  };
-
   const [activeDataset, setActiveDataset] = useState<ManualDatasetKey>("psychoactive");
-  const [normalizedOriginalManuals, setNormalizedOriginalManuals] = useState<
-    Record<ManualDatasetKey, ManualIndexConfig>
-  >(() => createManualMap((definition) => definition.getOriginalManual()));
-  const [normalizedCurrentManuals, setNormalizedCurrentManuals] = useState<
-    Record<ManualDatasetKey, ManualIndexConfig>
-  >(() => createManualMap((definition) => definition.manual));
-  const [draftManuals, setDraftManuals] = useState<Record<ManualDatasetKey, ManualIndexConfig>>(() =>
-    createManualMap((definition) => definition.manual),
-  );
-  const [rawJsonDrafts, setRawJsonDrafts] = useState<Record<ManualDatasetKey, string>>(() => {
-    const jsonMap: Partial<Record<ManualDatasetKey, string>> = {};
-    datasetOrder.forEach((datasetKey) => {
-      const manual = createNormalizedManual(datasetKey, datasetDefinitions[datasetKey].manual);
-      jsonMap[datasetKey] = JSON.stringify(manual, null, 2);
-    });
-    return jsonMap as Record<ManualDatasetKey, string>;
-  });
-  const [jsonErrors, setJsonErrors] = useState<Record<ManualDatasetKey, string | null>>({
-    psychoactive: null,
-    chemical: null,
-    mechanism: null,
-  });
-  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [showJsonEditor, setShowJsonEditor] = useState(false);
+  const {
+    state,
+    setRawJsonForDataset,
+    clearJsonErrorForDataset,
+    setJsonErrorForDataset,
+    updateDraftManualForDataset,
+    applyJsonForDataset,
+    saveDataset,
+    resetDraft,
+    resetToOriginal,
+    organizeEntries,
+    setSaveNotice,
+  } = useLayoutEditor({
+    datasetOrder,
+    datasetDefinitions,
+    normalizeManualOrdering,
+    organizeManualEntries,
+    deepClone,
+    areManualsEqual,
+  });
 
-  useEffect(() => {
-    setNormalizedOriginalManuals((previous) => {
-      let changed = false;
-      const next = { ...previous };
-      datasetOrder.forEach((datasetKey) => {
-        const definition = datasetDefinitions[datasetKey];
-        const normalized = createNormalizedManual(datasetKey, definition.getOriginalManual());
-        if (!areManualsEqual(previous[datasetKey], normalized)) {
-          next[datasetKey] = normalized;
-          changed = true;
-        }
-      });
-      return changed ? next : previous;
-    });
-  }, [datasetDefinitions, datasetOrder]);
-
-  useEffect(() => {
-    setNormalizedCurrentManuals((previous) => {
-      let changed = false;
-      const next = { ...previous };
-      datasetOrder.forEach((datasetKey) => {
-        const definition = datasetDefinitions[datasetKey];
-        const normalized = createNormalizedManual(datasetKey, definition.manual);
-        if (!areManualsEqual(previous[datasetKey], normalized)) {
-          next[datasetKey] = normalized;
-          changed = true;
-        }
-      });
-      return changed ? next : previous;
-    });
-  }, [datasetDefinitions, datasetOrder]);
-
-  useEffect(() => {
-    setDraftManuals((previous) => {
-      let changed = false;
-      const next = { ...previous };
-      datasetOrder.forEach((datasetKey) => {
-        const normalized = normalizedCurrentManuals[datasetKey];
-        if (!areManualsEqual(previous[datasetKey], normalized)) {
-          next[datasetKey] = normalized;
-          changed = true;
-        }
-      });
-      return changed ? next : previous;
-    });
-    setRawJsonDrafts((previous) => {
-      let changed = false;
-      const next = { ...previous };
-      datasetOrder.forEach((datasetKey) => {
-        const normalized = normalizedCurrentManuals[datasetKey];
-        const serialized = JSON.stringify(normalized, null, 2);
-        if (previous[datasetKey] !== serialized) {
-          next[datasetKey] = serialized;
-          changed = true;
-        }
-      });
-      return changed ? next : previous;
-    });
-    setJsonErrors((previous) => {
-      let changed = false;
-      const next = { ...previous };
-      datasetOrder.forEach((datasetKey) => {
-        if (previous[datasetKey]) {
-          next[datasetKey] = null;
-          changed = true;
-        }
-      });
-      return changed ? next : previous;
-    });
-  }, [datasetOrder, normalizedCurrentManuals]);
+  const activeDefinition = datasetDefinitions[activeDataset];
+  const { normalizedCurrentManuals, draftManuals, rawJsonDrafts, jsonErrors, saveNotice } = state;
+  const normalizedCurrentManual = normalizedCurrentManuals[activeDataset];
+  const draftManual = draftManuals[activeDataset];
+  const rawJsonDraft = rawJsonDrafts[activeDataset];
+  const jsonError = jsonErrors[activeDataset];
 
   useEffect(() => {
     if (!saveNotice) {
@@ -1403,58 +362,9 @@ export function IndexLayoutTab({
     setSaveNotice(null);
   }, [activeDataset]);
 
-  const activeDefinition = datasetDefinitions[activeDataset];
-  const normalizedOriginalManual = normalizedOriginalManuals[activeDataset];
-  const normalizedCurrentManual = normalizedCurrentManuals[activeDataset];
-  const draftManual = draftManuals[activeDataset];
-  const rawJsonDraft = rawJsonDrafts[activeDataset];
-  const jsonError = jsonErrors[activeDataset];
-
   const hasUnsavedChanges = useMemo(
     () => !areManualsEqual(normalizedCurrentManual, draftManual),
     [draftManual, normalizedCurrentManual],
-  );
-
-  const clearJsonErrorForDataset = useCallback((datasetKey: ManualDatasetKey) => {
-    setJsonErrors((previous) => {
-      if (!previous[datasetKey]) {
-        return previous;
-      }
-      return {
-        ...previous,
-        [datasetKey]: null,
-      };
-    });
-  }, []);
-
-  const setRawJsonForDataset = useCallback((datasetKey: ManualDatasetKey, value: string) => {
-    setRawJsonDrafts((previous) => {
-      if (previous[datasetKey] === value) {
-        return previous;
-      }
-      return {
-        ...previous,
-        [datasetKey]: value,
-      };
-    });
-  }, []);
-
-  const updateDraftManualForDataset = useCallback(
-    (datasetKey: ManualDatasetKey, updater: (manual: ManualIndexConfig) => ManualIndexConfig) => {
-      setDraftManuals((previous) => {
-        const current = previous[datasetKey];
-        const next = updater(current);
-        if (next === current) {
-          return previous;
-        }
-        return {
-          ...previous,
-          [datasetKey]: next,
-        };
-      });
-      clearJsonErrorForDataset(datasetKey);
-    },
-    [clearJsonErrorForDataset],
   );
 
   const updateDraftManualForActive = useCallback(
@@ -1489,8 +399,9 @@ export function IndexLayoutTab({
   }, [draftManual]);
 
   // Group categories by their assigned column for explicit column layout
-  const columnGroups = useMemo(() => {
+  const { columnGroups, columnById } = useMemo(() => {
     const columns: Map<number, { category: ManualCategoryDefinition; originalIndex: number }[]> = new Map();
+    const columnLookup = new Map<string, number>();
 
     // Initialize all columns
     for (let i = 0; i < columnCount; i++) {
@@ -1503,10 +414,80 @@ export function IndexLayoutTab({
       // Mod by columnCount to handle responsive column reduction
       const effectiveColumn = assignedColumn % columnCount;
       columns.get(effectiveColumn)?.push({ category, originalIndex: index });
+      columnLookup.set(category.key, effectiveColumn);
     });
 
-    return columns;
+    return { columnGroups: columns, columnById: columnLookup };
   }, [draftManual.categories, columnCount]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const getEffectiveColumn = useCallback(
+    (category: ManualCategoryDefinition, index: number) => {
+      const assignedColumn = category.column ?? index;
+      return assignedColumn % columnCount;
+    },
+    [columnCount],
+  );
+
+  const handleDragEnd = useCallback(
+    ({ active, over }: DragEndEvent) => {
+      if (!over) {
+        return;
+      }
+      const activeId = String(active.id);
+      const overId = String(over.id);
+      if (activeId === overId) {
+        return;
+      }
+
+      updateDraftManualForActive((previous) => {
+        const categories = previous.categories;
+        const fromIndex = categories.findIndex((category) => category.key === activeId);
+        if (fromIndex < 0) {
+          return previous;
+        }
+        const toIndex = categories.findIndex((category) => category.key === overId);
+        const activeCategory = categories[fromIndex];
+        const activeColumn = getEffectiveColumn(activeCategory, fromIndex);
+
+        let targetColumn = columnById.get(overId) ?? activeColumn;
+        if (overId.startsWith("column-")) {
+          const parsed = Number(overId.replace("column-", ""));
+          if (Number.isInteger(parsed)) {
+            targetColumn = parsed;
+          }
+        }
+
+        const nextCategories = categories.slice();
+        const [moved] = nextCategories.splice(fromIndex, 1);
+        const nextMoved = targetColumn !== activeColumn ? { ...moved, column: targetColumn } : moved;
+
+        let insertIndex = toIndex;
+        if (insertIndex < 0 || overId.startsWith("column-")) {
+          let lastIndex = -1;
+          nextCategories.forEach((category, index) => {
+            if (getEffectiveColumn(category, index) === targetColumn) {
+              lastIndex = index;
+            }
+          });
+          insertIndex = lastIndex + 1;
+        } else if (fromIndex < insertIndex) {
+          insertIndex -= 1;
+        }
+
+        nextCategories.splice(insertIndex, 0, nextMoved);
+        return {
+          ...previous,
+          categories: nextCategories,
+        };
+      });
+    },
+    [columnById, getEffectiveColumn, updateDraftManualForActive],
+  );
 
   const updateCategory = useCallback(
     (index: number, updater: (category: ManualCategoryDefinition) => ManualCategoryDefinition) => {
@@ -1601,181 +582,103 @@ export function IndexLayoutTab({
     });
   }, [updateCategory]);
 
-  const changeColumn = useCallback(
-    (index: number, direction: "left" | "right") => {
+  const setColumn = useCallback(
+    (index: number, column: number) => {
       updateDraftManualForActive((previous) => {
         if (index < 0 || index >= previous.categories.length) {
           return previous;
         }
         const category = previous.categories[index];
-        // Get current column (default to round-robin if not set)
-        const currentColumn = category.column ?? index % columnCount;
-        const newColumn = direction === "left" ? currentColumn - 1 : currentColumn + 1;
-
-        // Validate new column is within bounds
-        if (newColumn < 0 || newColumn >= MAX_COLUMNS) {
+        if (!Number.isInteger(column) || column < 0 || column >= MAX_COLUMNS) {
           return previous;
         }
 
         const nextCategories = previous.categories.slice();
-        nextCategories[index] = { ...category, column: newColumn };
+        nextCategories[index] = { ...category, column };
         return {
           ...previous,
           categories: nextCategories,
         };
       });
     },
-    [columnCount, updateDraftManualForActive],
+    [updateDraftManualForActive],
   );
 
   const handleApplyJson = useCallback(() => {
     try {
-      const parsed = JSON.parse(rawJsonDraft) as ManualIndexConfig;
-      if (!parsed || typeof parsed !== "object") {
-        throw new Error("Invalid manual dataset");
-      }
-      const normalized = normalizeManualOrdering(activeDataset, parsed);
-      updateDraftManualForDataset(activeDataset, () => normalized);
-      setRawJsonForDataset(activeDataset, JSON.stringify(normalized, null, 2));
+      applyJsonForDataset(activeDataset, rawJsonDraft);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "Unable to parse JSON";
-      setJsonErrors((previous) => ({
-        ...previous,
-        [activeDataset]: reason,
-      }));
+      setJsonErrorForDataset(activeDataset, reason);
     }
-  }, [activeDataset, rawJsonDraft, setRawJsonForDataset, updateDraftManualForDataset]);
+  }, [activeDataset, applyJsonForDataset, rawJsonDraft, setJsonErrorForDataset]);
 
   const handleSave = useCallback(() => {
-    const normalized = normalizeManualOrdering(activeDataset, draftManual);
-    activeDefinition.replaceManual(deepClone(normalized));
-    setNormalizedCurrentManuals((previous) => ({
-      ...previous,
-      [activeDataset]: normalized,
-    }));
-    updateDraftManualForDataset(activeDataset, () => normalized);
-    setRawJsonForDataset(activeDataset, JSON.stringify(normalized, null, 2));
-    setSaveNotice(`${activeDefinition.label} layout updated`);
-  }, [
-    activeDataset,
-    activeDefinition,
-    draftManual,
-    setRawJsonForDataset,
-    updateDraftManualForDataset,
-  ]);
+    saveDataset(activeDataset);
+  }, [activeDataset, saveDataset]);
 
   const handleResetDraft = useCallback(() => {
-    updateDraftManualForDataset(activeDataset, () => deepClone(normalizedCurrentManual));
-    setRawJsonForDataset(activeDataset, JSON.stringify(normalizedCurrentManual, null, 2));
-  }, [activeDataset, normalizedCurrentManual, setRawJsonForDataset, updateDraftManualForDataset]);
+    resetDraft(activeDataset);
+  }, [activeDataset, resetDraft]);
 
   const handleResetToOriginal = useCallback(() => {
-    updateDraftManualForDataset(activeDataset, () => deepClone(normalizedOriginalManual));
-    setRawJsonForDataset(activeDataset, JSON.stringify(normalizedOriginalManual, null, 2));
-  }, [
-    activeDataset,
-    normalizedOriginalManual,
-    setRawJsonForDataset,
-    updateDraftManualForDataset,
-  ]);
+    resetToOriginal(activeDataset);
+  }, [activeDataset, resetToOriginal]);
 
   const handleOrganizeEntries = useCallback(() => {
-    let organizedManual: ManualIndexConfig | null = null;
-    updateDraftManualForActive((previous) => {
-      organizedManual = organizeManualEntries(activeDataset, previous);
-      return organizedManual;
-    });
-    if (organizedManual) {
-      setRawJsonForDataset(activeDataset, JSON.stringify(organizedManual, null, 2));
-    }
-  }, [
-    activeDataset,
-    setRawJsonForDataset,
-    updateDraftManualForActive,
-  ]);
+    organizeEntries(activeDataset);
+  }, [activeDataset, organizeEntries]);
 
   return (
     <div className="space-y-6">
       {commitPanel ? <div>{commitPanel}</div> : null}
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        {datasetOrder.map((datasetKey) => {
-          const definition = datasetDefinitions[datasetKey];
-          const isActive = datasetKey === activeDataset;
-          const Icon = definition.icon;
-          return (
-            <Button
-              key={datasetKey}
-              variant={isActive ? "toggleActive" : "toggleInactive"}
-              size="pill"
-              onClick={() => setActiveDataset(datasetKey)}
-              className="gap-2 px-5 py-2.5"
-              aria-pressed={isActive}
-            >
-              <Icon
-                className={isActive ? "h-5 w-5 text-fuchsia-100 drop-shadow" : "h-5 w-5 text-fuchsia-200/70"}
-                aria-hidden="true"
-                focusable="false"
-              />
-              <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
-                {definition.label}
-              </span>
-            </Button>
-          );
-        })}
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          variant="glass"
-          size="sm"
-          onClick={handleSave}
-          disabled={!hasUnsavedChanges}
-          className="bg-fuchsia-500/20 text-fuchsia-200 hover:bg-fuchsia-500/30"
-          aria-label="Save layout"
+      <DatasetTabs
+        datasets={datasetOrder.map((datasetKey) => ({
+          key: datasetKey,
+          label: datasetDefinitions[datasetKey].label,
+          icon: datasetDefinitions[datasetKey].icon,
+        }))}
+        activeKey={activeDataset}
+        onChange={(key) => setActiveDataset(key as ManualDatasetKey)}
+      />
+      <LayoutToolbar
+        hasUnsavedChanges={hasUnsavedChanges}
+        saveNotice={saveNotice}
+        showJsonEditor={showJsonEditor}
+        onSave={handleSave}
+        onOrganize={handleOrganizeEntries}
+        onReset={handleResetDraft}
+        onRestore={handleResetToOriginal}
+        onToggleJson={() => setShowJsonEditor((previous) => !previous)}
+      />
+      <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+        <label className="text-[11px] uppercase tracking-[0.3em] text-white/40" htmlFor="layout-column-mode">
+          Columns
+        </label>
+        <Select
+          value={String(columnMode)}
+          onValueChange={(value) => {
+            if (value === "auto") {
+              setColumnMode("auto");
+              return;
+            }
+            const next = Number(value);
+            if (next >= 1 && next <= MAX_COLUMNS) {
+              setColumnMode(next as 1 | 2 | 3 | 4);
+            }
+          }}
         >
-          <Save className="h-4 w-4" aria-hidden="true" focusable="false" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Save</span>
-        </Button>
-        <Button
-          variant="glass"
-          size="sm"
-          onClick={handleOrganizeEntries}
-          aria-label="Organize entries"
-        >
-          <ArrowDownAZ className="h-4 w-4" aria-hidden="true" focusable="false" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Organize</span>
-        </Button>
-        <Button
-          variant="glass"
-          size="sm"
-          onClick={handleResetDraft}
-          aria-label="Reset unsaved changes"
-        >
-          <RotateCcw className="h-4 w-4" aria-hidden="true" focusable="false" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Reset</span>
-        </Button>
-        <Button
-          variant="glass"
-          size="sm"
-          onClick={handleResetToOriginal}
-          aria-label="Restore original dataset"
-        >
-          <ArrowLeftRight className="h-4 w-4" aria-hidden="true" focusable="false" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">Restore</span>
-        </Button>
-        <Button
-          variant="glass"
-          size="sm"
-          onClick={() => setShowJsonEditor((previous) => !previous)}
-          aria-pressed={showJsonEditor}
-          aria-label={showJsonEditor ? "Hide JSON editor" : "Show JSON editor"}
-        >
-          <Braces className="h-4 w-4" aria-hidden="true" focusable="false" />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.3em]">
-            {showJsonEditor ? "Hide JSON" : "Show JSON"}
-          </span>
-        </Button>
-        {saveNotice && <span className="text-sm text-emerald-300">{saveNotice}</span>}
-        {hasUnsavedChanges && <span className="text-sm text-white/60">Unsaved changes</span>}
+          <SelectTrigger id="layout-column-mode" selectSize="compact" className="w-auto min-w-[9rem] bg-slate-950/80">
+            <SelectValue placeholder="Auto" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">Auto</SelectItem>
+            <SelectItem value="1">1 column</SelectItem>
+            <SelectItem value="2">2 columns</SelectItem>
+            <SelectItem value="3">3 columns</SelectItem>
+            <SelectItem value="4">4 columns</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {jsonError && (
@@ -1809,41 +712,62 @@ export function IndexLayoutTab({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex gap-6">
-            {Array.from({ length: columnCount }).map((_, colIndex) => (
-              <div key={colIndex} className="flex flex-1 flex-col gap-6">
-                {columnGroups.get(colIndex)?.map(({ category, originalIndex }) => (
-                  <CategoryEditor
-                    key={`${category.key}-${originalIndex}`}
-                    category={category}
-                    index={originalIndex}
-                    total={draftManual.categories.length}
-                    maxColumns={MAX_COLUMNS}
-                    onUpdateCategory={updateCategory}
-                    onRemoveCategory={removeCategory}
-                    onMoveCategory={moveCategory}
-                    onChangeColumn={changeColumn}
-                    onAddSection={addSection}
-                    substanceOptions={substanceOptions}
-                    datasetSlugSet={datasetSlugSet}
-                    sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
-                    resolveSlugStatus={resolveSlugStatus}
-                  />
-                ))}
-                {colIndex === 0 && (
-                  <Button
-                    variant="addCard"
-                    size="addCard"
-                    onClick={addCategory}
-                    aria-label="Add category"
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="overflow-x-auto pb-2">
+              <div className="flex w-max gap-5">
+              {Array.from({ length: columnCount }).map((_, colIndex) => {
+                const columnItems = columnGroups.get(colIndex) ?? [];
+                return (
+                  <SortableContext
+                    key={colIndex}
+                    items={columnItems.map(({ category }) => category.key)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <PlusCircle className="h-6 w-6" />
-                    <span className="text-xs uppercase tracking-[0.3em]">New category</span>
-                  </Button>
-                )}
+                    <ColumnDroppable
+                      id={`column-${colIndex}`}
+                      className="flex w-[320px] flex-col gap-4"
+                    >
+                      {columnItems.map(({ category, originalIndex }) => (
+                        <CategoryEditor
+                          key={`${category.key}-${originalIndex}`}
+                          category={category}
+                          index={originalIndex}
+                          total={draftManual.categories.length}
+                          maxColumns={MAX_COLUMNS}
+                          sortableId={category.key}
+                          onUpdateCategory={updateCategory}
+                          onRemoveCategory={removeCategory}
+                          onMoveCategory={moveCategory}
+                          onSetColumn={setColumn}
+                          onAddSection={addSection}
+                          substanceOptions={substanceOptions}
+                          datasetSlugSet={datasetSlugSet}
+                          sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
+                          resolveSlugStatus={resolveSlugStatus}
+                        />
+                      ))}
+                      {colIndex === 0 && (
+                        <Button
+                          variant="addCard"
+                          size="addCard"
+                          onClick={addCategory}
+                          aria-label="Add category"
+                        >
+                          <PlusCircle className="h-6 w-6" />
+                          <span className="text-xs uppercase tracking-[0.3em]">New category</span>
+                        </Button>
+                      )}
+                    </ColumnDroppable>
+                  </SortableContext>
+                );
+              })}
               </div>
-            ))}
-          </div>
+            </div>
+          </DndContext>
         </div>
       )}
     </div>

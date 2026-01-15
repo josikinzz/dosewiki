@@ -3,46 +3,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import type { DosageCategoryGroup } from "../../data/builders/library";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
-
-/**
- * Breakpoints for responsive column count.
- * - Mobile (<640px): 1 column
- * - Tablet (640-1024px): 2 columns
- * - Desktop (1024-1536px): 3 columns
- * - Wide (>1536px): 4 columns (only if limitColumns=false)
- */
-const BREAKPOINTS = {
-  sm: 640,
-  lg: 1024,
-  "2xl": 1536,
-};
-
-function useResponsiveColumnCount(limitColumns: boolean): number {
-  const getColumnCount = useCallback(() => {
-    if (typeof window === "undefined") return limitColumns ? 3 : 4;
-    const width = window.innerWidth;
-    if (width < BREAKPOINTS.sm) return 1;
-    if (width < BREAKPOINTS.lg) return 2;
-    if (width < BREAKPOINTS["2xl"]) return 3;
-    return limitColumns ? 3 : 4;
-  }, [limitColumns]);
-
-  const [columnCount, setColumnCount] = useState(getColumnCount);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setColumnCount(getColumnCount());
-    };
-
-    window.addEventListener("resize", handleResize);
-    // Initial calculation
-    handleResize();
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, [getColumnCount]);
-
-  return columnCount;
-}
+import { useResponsiveColumnCount } from "../../hooks/useResponsiveColumnCount";
 
 interface CategoryGridProps {
   groups: DosageCategoryGroup[];
@@ -61,7 +22,7 @@ export function CategoryGrid({
   hideEmptyGroups = false,
   limitColumns = false,
 }: CategoryGridProps) {
-  const columnCount = useResponsiveColumnCount(limitColumns);
+  const columnCount = useResponsiveColumnCount({ limitColumns });
 
   const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) =>
     drug.alias ? `${drug.name} (${drug.alias})` : drug.name;

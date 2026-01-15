@@ -6,6 +6,7 @@
       "key": "psychedelic",
       "label": "Psychedelic",
       "iconKey": "psychedelic",
+      "column": 0,
       "sections": [
         {
           "key": "common",
@@ -24,38 +25,20 @@
           "key": "tryptamine",
           "label": "Tryptamine",
           "drugs": [
-            "2-me-dmt",
-            "2-meo-dmt",
             "4-aco-det",
             "4-aco-dipt",
             "4-aco-dmt",
-            "4-aco-dpt",
             "4-aco-mipt",
-            "4-ho-det",
             "4-ho-dipt",
-            "4-ho-ept",
-            "4-ho-mcpt",
-            "4-ho-met",
-            "4-ho-mpt",
-            "4-meo-mipt",
-            "5-bromo-dmt",
-            "5-meo-amt",
-            "5-meo-dalt",
-            "5-meo-dibf",
             "5-meo-dipt",
-            "5-meo-dmt",
-            "5-meo-dpt",
             "5-meo-mipt",
             "amt",
-            "ayahuasca",
-            "bufotenin",
             "det",
             "dipt",
             "dpt",
             "ept",
             "ibogaine",
-            "met",
-            "psilocin"
+            "met"
           ]
         },
         {
@@ -66,38 +49,28 @@
             "1cp-al-lad",
             "1cp-lsd",
             "1cp-mipla",
-            "1d-lsd",
             "1p-eth-lad",
             "1p-lsd",
-            "1s-lsd",
             "1v-lsd",
             "al-lad",
-            "ald-52",
             "eth-lad",
             "lsa",
-            "lsm-775",
             "lsz",
-            "mipla",
-            "pro-lad"
+            "mipla"
           ]
         },
         {
           "key": "2c-x",
           "label": "2C-X",
           "drugs": [
-            "2c-b",
             "2c-b-an",
             "2c-b-fly",
-            "2c-bz",
             "2c-c",
             "2c-d",
             "2c-e",
-            "2c-ef",
             "2c-g",
             "2c-i",
             "2c-ip",
-            "2c-n",
-            "2c-p",
             "2c-t",
             "2c-t-2",
             "2c-t-4",
@@ -111,7 +84,6 @@
           "drugs": [
             "allylescaline",
             "escaline",
-            "mal",
             "proscaline"
           ]
         },
@@ -119,8 +91,6 @@
           "key": "amphetamine-psychedelic",
           "label": "Amphetamines",
           "drugs": [
-            "3c-e",
-            "3c-p",
             "aleph",
             "aleph-2",
             "bromo-dragonfly",
@@ -129,7 +99,6 @@
             "doet",
             "doi",
             "dom",
-            "mem",
             "tma-2",
             "tma-6"
           ]
@@ -139,131 +108,15 @@
           "label": "NBOMes",
           "drugs": [
             "2c-b-fly-nbome",
-            "2c-t-7-nbome",
             "25b-nboh",
             "25c-nboh",
             "25d-nbome",
             "25e-nboh",
-            "25h-nbome",
             "25i-nbf",
             "25i-nbmd",
             "25i-nboh",
             "25i-nbome",
-            "25ip-nbome",
-            "25n-nbome",
-            "25p-nbome",
-            "25t-2-nbome",
-            "c30-nbome"
-          ]
-        },
-        {
-          "key": "phenethylamine-substituted",
-          "label": "Phenethylamine (substituted)",
-          "drugs": [
-            "pma"
-          ]
-        },
-        {
-          "key": "other-psychedelics",
-          "label": "Other psychedelics",
-          "drugs": [
-            "yopo"
-          ]
-        }
-      ],
-      "drugs": []
-    },
-    {
-      "key": "dissociative",
-      "label": "Dissociative",
-      "iconKey": "dissociative",
-      "sections": [
-        {
-          "key": "common",
-          "label": "Common",
-          "drugs": [
-            "dextromethorphan",
-            "ketamine",
-            "pcp"
-          ]
-        },
-        {
-          "key": "other-dissociatives",
-          "label": "Other dissociatives",
-          "drugs": [
-            "memantine",
-            "mk-801"
-          ]
-        },
-        {
-          "key": "arylcyclohexylamine",
-          "label": "Arylcyclohexylamine",
-          "drugs": [
-            "2-fdck",
-            "3-cl-pcp",
-            "3-fluoro-pcp",
-            "3-ho-pce",
-            "3-ho-pcp",
-            "3-me-pcpy",
-            "3-meo-pce",
-            "3-meo-pcmo",
-            "3-meo-pcp",
-            "3-meo-pcpr",
-            "3-meo-pcpy",
-            "3-4-md-pcp",
-            "4-meo-pcp",
-            "dck",
-            "dmxe",
-            "esketamine",
-            "fxe",
-            "hxe",
-            "methoxetamine",
-            "mxipr",
-            "mxm",
-            "mxpcp",
-            "o-pce",
-            "o-pcp",
-            "o-pcpr",
-            "pce",
-            "tiletamine",
-            "tilmetamine"
-          ]
-        },
-        {
-          "key": "diarylethylamine-substituted",
-          "label": "Diarylethylamine (substituted)",
-          "drugs": [
-            "2-chloroephenidine",
-            "diphenidine",
-            "ephenidine",
-            "fluorolintane",
-            "mxp"
-          ]
-        },
-        {
-          "key": "diterpenoid",
-          "label": "Diterpenoid",
-          "drugs": [
-            "salvia-divinorum"
-          ]
-        },
-        {
-          "key": "morphinan",
-          "label": "Morphinan",
-          "drugs": []
-        },
-        {
-          "key": "neoclerodane",
-          "label": "Neoclerodane",
-          "drugs": [
-            "salvia-divinorum"
-          ]
-        },
-        {
-          "key": "nitrogen-oxide",
-          "label": "Nitrogen oxide",
-          "drugs": [
-            "nitrous-oxide"
+            "25ip-nbome"
           ]
         }
       ],
@@ -273,6 +126,7 @@
       "key": "deliriant",
       "label": "Deliriant",
       "iconKey": "deliriant",
+      "column": 1,
       "sections": [
         {
           "key": "antihistamines",
@@ -290,47 +144,21 @@
           ]
         },
         {
-          "key": "3-hydroxyisoxazole",
-          "label": "3-Hydroxyisoxazole",
-          "drugs": [
-            "gaboxadol",
-            "ibotenic-acid"
-          ]
-        },
-        {
           "key": "alkaloid-tropane",
           "label": "Alkaloid (tropane)",
           "drugs": [
-            "atropine",
             "datura",
             "scopolamine"
-          ]
-        },
-        {
-          "key": "indazole",
-          "label": "Indazole",
-          "drugs": [
-            "benzydamine"
           ]
         }
       ],
       "drugs": []
     },
     {
-      "key": "hallucinogen",
-      "label": "A-typical Hallucinogen",
-      "iconKey": "hallucinogen",
-      "sections": [],
-      "drugs": [
-        "amanita-muscaria",
-        "zolpidem",
-        "zopiclone"
-      ]
-    },
-    {
       "key": "stimulant",
       "label": "Stimulant",
       "iconKey": "stimulant",
+      "column": 2,
       "sections": [
         {
           "key": "common",
@@ -340,7 +168,6 @@
             "caffeine",
             "cocaine",
             "dextroamphetamine",
-            "lisdexamfetamine",
             "mdma",
             "methylphenidate"
           ]
@@ -349,53 +176,15 @@
           "key": "other-stimulants",
           "label": "Other stimulants",
           "drugs": [
-            "2-mppp",
-            "2-pa",
-            "2-pta",
-            "4-mpm",
-            "bromantane",
             "nicotine",
-            "phenethylamine",
-            "phenylpropylaminopentane",
-            "viloxazine"
-          ]
-        },
-        {
-          "key": "alkaloid-tropane",
-          "label": "Alkaloid (tropane)",
-          "drugs": []
-        },
-        {
-          "key": "alkyl-amine",
-          "label": "Alkyl amine",
-          "drugs": []
-        },
-        {
-          "key": "amino-acid",
-          "label": "Amino acid",
-          "drugs": [
-            "creatine",
-            "l-tyrosine"
+            "phenethylamine"
           ]
         },
         {
           "key": "aminoindane",
           "label": "Aminoindane",
           "drugs": [
-            "2-ai",
-            "5-iai",
-            "mdai",
             "nm-2-ai"
-          ]
-        },
-        {
-          "key": "aminorex",
-          "label": "Aminorex",
-          "drugs": [
-            "4-4-dimethylaminorex",
-            "4-fluoro-4-methylaminorex",
-            "aminorex",
-            "pemoline"
           ]
         },
         {
@@ -405,98 +194,39 @@
             "2-fa",
             "2-fea",
             "2-fma",
-            "2-ma",
-            "3-caf",
             "3-fea",
-            "3-fluoroamphetamine",
             "4-fa",
-            "4-fea",
             "4-fma",
-            "4-methylthioamphetamine",
-            "5-adpi",
-            "6-apdb",
-            "adderall",
-            "adderall-xr",
-            "amfecloral",
-            "desoxyn",
             "ephedrine",
-            "fenethylline",
-            "mdea",
-            "methamphetamine",
-            "pmma"
-          ]
-        },
-        {
-          "key": "amphetamine-substituted",
-          "label": "Amphetamine (substituted)",
-          "drugs": [
-            "4-cma",
-            "pmma"
+            "methamphetamine"
           ]
         },
         {
           "key": "benzofuran",
           "label": "Benzofuran",
           "drugs": [
-            "5-eapb",
             "5-mapb",
-            "5-mapdb",
-            "6-apb",
-            "6-apdb"
+            "6-apb"
           ]
         },
         {
           "key": "cathinone",
           "label": "Cathinone",
           "drugs": [
-            "2-methylethcathinone",
             "2-mmc",
-            "2-nmc",
             "3-cmc",
             "3-fmc",
             "3-mec",
             "3-mmc",
-            "3-4-trimethylenepentedrone",
-            "4-cbc",
-            "4-chloroethcathinone",
-            "4-chloromethcathinone",
             "4-emc",
-            "4-epd",
-            "4-fluoropentedrone",
             "4-fmc",
             "4-mec",
-            "4-mmc",
-            "4-mpd",
-            "5-bpdi",
-            "brephedrone",
-            "bupropion",
             "butylone",
             "ethylone",
             "eutylone",
-            "hexedrone",
-            "hexen",
-            "khat",
             "methcathinone",
-            "methylenedioxypyrovalerone",
             "methylone",
-            "mexedrone",
-            "naphyrone",
-            "nep",
-            "pentedrone"
-          ]
-        },
-        {
-          "key": "cathinone-substituted",
-          "label": "Cathinone (substituted)",
-          "drugs": [
-            "mexedrone"
-          ]
-        },
-        {
-          "key": "cycloalkylamine",
-          "label": "Cycloalkylamine",
-          "drugs": [
-            "propylhexedrine"
+            "nep"
           ]
         },
         {
@@ -505,121 +235,8 @@
           "drugs": [
             "adrafinil",
             "armodafinil",
-            "dehydroxyfluorafinil",
             "flmodafinil",
             "modafinil"
-          ]
-        },
-        {
-          "key": "mdxx",
-          "label": "MDxx",
-          "drugs": [
-            "mdea"
-          ]
-        },
-        {
-          "key": "oxazolinone",
-          "label": "Oxazolinone",
-          "drugs": [
-            "cyclazodone"
-          ]
-        },
-        {
-          "key": "phenethylamine",
-          "label": "Phenethylamine",
-          "drugs": [
-            "khat",
-            "l-tyrosine"
-          ]
-        },
-        {
-          "key": "phenethylamine-substituted",
-          "label": "Phenethylamine (substituted)",
-          "drugs": [
-            "4f-eph",
-            "methylone"
-          ]
-        },
-        {
-          "key": "phenidate",
-          "label": "Phenidate",
-          "drugs": [
-            "4-fluoromethylphenidate",
-            "4f-eph",
-            "eph",
-            "isopropylphenidate",
-            "methylnaphthidate",
-            "serdexmethylphenidate"
-          ]
-        },
-        {
-          "key": "phenmetrazine",
-          "label": "Phenmetrazine",
-          "drugs": [
-            "3-fluorophenmetrazine"
-          ]
-        },
-        {
-          "key": "phenylpiperazine",
-          "label": "Phenylpiperazine",
-          "drugs": [
-            "mcpp"
-          ]
-        },
-        {
-          "key": "phenyltropane",
-          "label": "Phenyltropane",
-          "drugs": []
-        },
-        {
-          "key": "piperazine",
-          "label": "Piperazine",
-          "drugs": [
-            "1-2-3-4-trimethoxybenzyl-piperazine",
-            "4-benzylpiperidine",
-            "4-fluorophenylpiperazine",
-            "4-fpp",
-            "bzp"
-          ]
-        },
-        {
-          "key": "pipradrol-homologue",
-          "label": "Pipradrol (homologue)",
-          "drugs": [
-            "d2pm",
-            "desoxypipradol"
-          ]
-        },
-        {
-          "key": "propargylamine",
-          "label": "Propargylamine",
-          "drugs": []
-        },
-        {
-          "key": "pyrrolidine-substituted",
-          "label": "Pyrrolidine (substituted)",
-          "drugs": [
-            "3-fluoro-pihp",
-            "3-methyl-4-fluoro-pyrrolidinovalerophenone",
-            "4-fluoro-alpha-php",
-            "5-dbfpv",
-            "alpha-php",
-            "alpha-pihp",
-            "alpha-pvp",
-            "md-php",
-            "md-pihp",
-            "mdpv",
-            "prolintane",
-            "pyrrolidinopropiophenone"
-          ]
-        },
-        {
-          "key": "racetam",
-          "label": "Racetam",
-          "drugs": [
-            "oxiracetam",
-            "phenylpiracetam",
-            "pramiracetam"
           ]
         },
         {
@@ -627,168 +244,6 @@
           "label": "Thiophene",
           "drugs": [
             "methiopropamine"
-          ]
-        },
-        {
-          "key": "xanthine",
-          "label": "Xanthine",
-          "drugs": [
-            "theacrine"
-          ]
-        }
-      ],
-      "drugs": []
-    },
-    {
-      "key": "entactogen",
-      "label": "Entactogen",
-      "iconKey": "entactogen",
-      "sections": [
-        {
-          "key": "common",
-          "label": "Common",
-          "drugs": [
-            "mda",
-            "mdma"
-          ]
-        },
-        {
-          "key": "mdxx",
-          "label": "MDXX",
-          "drugs": [
-            "mda",
-            "mdma",
-            "mdea"
-          ]
-        },
-        {
-          "key": "aminoindane",
-          "label": "Aminoindane",
-          "drugs": [
-            "5-iai",
-            "mdai",
-            "nm-2-ai"
-          ]
-        },
-        {
-          "key": "amphetamine-substituted",
-          "label": "Amphetamine (substituted)",
-          "drugs": [
-            "4-cma",
-            "pmma"
-          ]
-        },
-        {
-          "key": "amphetamine",
-          "label": "Amphetamine",
-          "drugs": [
-            "2-fea",
-            "3-caf",
-            "3-fea",
-            "4-fa",
-            "4-fea",
-            "4-fma",
-            "4-methylthioamphetamine",
-            "5-adpi",
-            "6-apdb",
-            "pmma"
-          ]
-        },
-        {
-          "key": "benzofuran",
-          "label": "Benzofuran",
-          "drugs": [
-            "5-apb",
-            "5-eapb",
-            "5-mapb",
-            "5-mapdb",
-            "6-apb",
-            "6-apdb"
-          ]
-        },
-        {
-          "key": "phenethylamine-substituted",
-          "label": "Phenethylamine (substituted)",
-          "drugs": [
-            "methylone"
-          ]
-        },
-        {
-          "key": "cathinone-substituted",
-          "label": "Cathinone (substituted)",
-          "drugs": [
-            "mexedrone"
-          ]
-        },
-        {
-          "key": "cathinone",
-          "label": "Cathinone",
-          "drugs": [
-            "2-methylethcathinone",
-            "2-mmc",
-            "2-nmc",
-            "3-cmc",
-            "3-fmc",
-            "3-mec",
-            "3-mmc",
-            "3-4-trimethylenepentedrone",
-            "4-cbc-4-chlorobuphedrone",
-            "4-chloromethcathinone",
-            "4-emc",
-            "4-fluoropentedrone",
-            "4-fmc",
-            "4-mec",
-            "4-mmc",
-            "4-mpd",
-            "5-bpdi",
-            "brephedrone",
-            "bupropion",
-            "butylone",
-            "ethylone",
-            "eutylone",
-            "hexedrone",
-            "hexen",
-            "khat",
-            "methcathinone",
-            "methylenedioxypyrovalerone",
-            "methylone",
-            "mexedrone",
-            "naphyrone",
-            "nep",
-            "pentedrone"
-          ]
-        },
-        {
-          "key": "phenylmorpholine-substituted",
-          "label": "Phenylmorpholine (substituted)",
-          "drugs": [
-            "4-mpm"
-          ]
-        },
-        {
-          "key": "piperazine",
-          "label": "Piperazine",
-          "drugs": [
-            "1-2-3-4-trimethoxybenzyl-piperazine",
-            "4-fluorophenylpiperazine",
-            "4-fpp"
-          ]
-        },
-        {
-          "key": "tryptamine",
-          "label": "Tryptamine",
-          "drugs": [
-            "5-meo-dibf",
-            "5-meo-dipt",
-            "amt"
-          ]
-        },
-        {
-          "key": "other-entactogens",
-          "label": "Other entactogens",
-          "drugs": [
-            "4-fpp",
-            "amt"
           ]
         }
       ],
@@ -798,6 +253,7 @@
       "key": "opioid",
       "label": "Opioid",
       "iconKey": "opioid",
+      "column": 3,
       "sections": [
         {
           "key": "common",
@@ -816,7 +272,6 @@
           "key": "phenylpropylaminopentane",
           "label": "Phenylpropylaminopentane",
           "drugs": [
-            "o-dsmt",
             "tapentadol"
           ]
         },
@@ -824,25 +279,14 @@
           "key": "other-opioids",
           "label": "Other opioids",
           "drugs": [
-            "dpp-26",
-            "lean",
             "tianeptine"
-          ]
-        },
-        {
-          "key": "alkaloid-indole",
-          "label": "Alkaloid (indole)",
-          "drugs": [
-            "7-oh",
-            "mitragynine"
           ]
         },
         {
           "key": "anilidopiperidine",
           "label": "Anilidopiperidine",
           "drugs": [
-            "acetylfentanyl",
-            "sufentanil"
+            "acetylfentanyl"
           ]
         },
         {
@@ -854,40 +298,12 @@
           ]
         },
         {
-          "key": "benzamide",
-          "label": "Benzamide",
-          "drugs": [
-            "u-47700"
-          ]
-        },
-        {
-          "key": "benzimidazole",
-          "label": "Benzimidazole",
-          "drugs": [
-            "etonitazene",
-            "isotonitazene",
-            "isotonitazepyne",
-            "metonitazene",
-            "pronitazene",
-            "sr-17018"
-          ]
-        },
-        {
-          "key": "diphenylheptane",
-          "label": "Diphenylheptane",
-          "drugs": [
-            "ic-26"
-          ]
-        },
-        {
           "key": "morphinan",
           "label": "Morphinan",
           "drugs": [
-            "6-mam",
             "buprenorphine",
             "codeine",
             "desomorphine",
-            "dhc",
             "hydrocodone",
             "hydromorphone",
             "oxymorphone"
@@ -899,20 +315,194 @@
           "drugs": [
             "ethylmorphine"
           ]
-        },
+        }
+      ],
+      "drugs": []
+    },
+    {
+      "key": "antidepressant",
+      "label": "Antidepressant",
+      "iconKey": "antidepressant",
+      "column": 0,
+      "sections": [
         {
-          "key": "phenylpiperidine",
-          "label": "Phenylpiperidine",
+          "key": "serotonin-reuptake-and-receptor-modulators",
+          "label": "Serotonin reuptake and receptor modulators",
           "drugs": [
-            "imodium",
-            "pethidine"
+            "trazodone"
           ]
         },
         {
-          "key": "phenylpropylamine",
-          "label": "Phenylpropylamine",
+          "key": "beta-adrenergic-receptor-antagonists",
+          "label": "Beta-adrenergic receptor antagonists",
           "drugs": [
-            "dextropropoxyphene"
+            "propranolol"
+          ]
+        },
+        {
+          "key": "other-antidepressants",
+          "label": "Other antidepressants",
+          "drugs": [
+            "lithium"
+          ]
+        }
+      ],
+      "drugs": []
+    },
+    {
+      "key": "antipsychotic",
+      "label": "Antipsychotic",
+      "iconKey": "antipsychotic",
+      "column": 1,
+      "sections": [
+        {
+          "key": "dibenzothiazepine-derivative",
+          "label": "Dibenzothiazepine derivative",
+          "drugs": [
+            "quetiapine"
+          ]
+        }
+      ],
+      "drugs": []
+    },
+    {
+      "key": "dissociative",
+      "label": "Dissociative",
+      "iconKey": "dissociative",
+      "column": 2,
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "drugs": [
+            "dextromethorphan",
+            "ketamine",
+            "pcp"
+          ]
+        },
+        {
+          "key": "other-dissociatives",
+          "label": "Other dissociatives",
+          "drugs": [
+            "memantine"
+          ]
+        },
+        {
+          "key": "arylcyclohexylamine",
+          "label": "Arylcyclohexylamine",
+          "drugs": [
+            "3-cl-pcp",
+            "3-ho-pce",
+            "3-ho-pcp",
+            "3-me-pcpy",
+            "3-meo-pce",
+            "3-meo-pcmo",
+            "3-meo-pcp",
+            "3-meo-pcpr",
+            "3-meo-pcpy",
+            "4-meo-pcp",
+            "dmxe",
+            "hxe",
+            "methoxetamine",
+            "o-pce",
+            "pce"
+          ]
+        },
+        {
+          "key": "diarylethylamine-substituted",
+          "label": "Diarylethylamine (substituted)",
+          "drugs": [
+            "2-chloroephenidine",
+            "diphenidine",
+            "ephenidine"
+          ]
+        }
+      ],
+      "drugs": []
+    },
+    {
+      "key": "hallucinogen",
+      "label": "A-typical Hallucinogen",
+      "iconKey": "hallucinogen",
+      "column": 3,
+      "sections": [],
+      "drugs": [
+        "zolpidem",
+        "zopiclone"
+      ]
+    },
+    {
+      "key": "entactogen",
+      "label": "Entactogen",
+      "iconKey": "entactogen",
+      "column": 0,
+      "sections": [
+        {
+          "key": "common",
+          "label": "Common",
+          "drugs": [
+            "mda",
+            "mdma"
+          ]
+        },
+        {
+          "key": "aminoindane",
+          "label": "Aminoindane",
+          "drugs": [
+            "nm-2-ai"
+          ]
+        },
+        {
+          "key": "amphetamine",
+          "label": "Amphetamine",
+          "drugs": [
+            "2-fea",
+            "3-fea",
+            "4-fa",
+            "4-fma"
+          ]
+        },
+        {
+          "key": "benzofuran",
+          "label": "Benzofuran",
+          "drugs": [
+            "5-apb",
+            "5-mapb",
+            "6-apb"
+          ]
+        },
+        {
+          "key": "phenethylamine-substituted",
+          "label": "Phenethylamine (substituted)",
+          "drugs": [
+            "methylone"
+          ]
+        },
+        {
+          "key": "cathinone",
+          "label": "Cathinone",
+          "drugs": [
+            "2-mmc",
+            "3-cmc",
+            "3-fmc",
+            "3-mec",
+            "3-mmc",
+            "4-emc",
+            "4-fmc",
+            "4-mec",
+            "butylone",
+            "ethylone",
+            "eutylone",
+            "methcathinone",
+            "nep"
+          ]
+        },
+        {
+          "key": "tryptamine",
+          "label": "Tryptamine",
+          "drugs": [
+            "5-meo-dipt",
+            "amt"
           ]
         }
       ],
@@ -922,6 +512,7 @@
       "key": "gabaergic",
       "label": "GABAergic",
       "iconKey": "gabaergic",
+      "column": 1,
       "sections": [
         {
           "key": "common",
@@ -929,7 +520,6 @@
           "drugs": [
             "alprazolam",
             "diazepam",
-            "gamma-hydroxybutyric-acid",
             "lorazepam",
             "oxazepam",
             "temazepam"
@@ -939,43 +529,23 @@
           "key": "benzodiazepines",
           "label": "Benzodiazepines",
           "drugs": [
-            "adinazolam",
-            "avizafone",
             "bromazepam",
             "bromazolam",
-            "bromonordiazepam",
             "brotizolam",
-            "chlordiazepoxide",
-            "clobazam",
-            "clobromazolam",
             "clonazepam",
             "delorazepam",
             "deschloroetizolam",
             "desmethylflunitrazepam",
             "diclazepam",
-            "ethylbromazolam",
             "etizolam",
             "flualprazolam",
             "flubromazepam",
             "flubromazolam",
-            "flubrotizolam",
             "fluclotizolam",
-            "fluetizolam",
             "flunitrazepam",
             "flunitrazolam",
-            "flurazepam",
-            "flutoprazepam",
-            "gidazepam",
-            "halazepam",
-            "medazepam",
             "midazolam",
             "nifoxipam",
-            "nimetazepam",
-            "nitrazepam",
-            "norflurazepam",
-            "phenazepam",
-            "phenazolam",
-            "prazepam",
             "pyrazolam",
             "triazolam"
           ]
@@ -996,7 +566,6 @@
           "label": "GABA analogues",
           "drugs": [
             "1-4-butanediol",
-            "4-fluorophenibut",
             "baclofen",
             "gabapentin",
             "gbl",
@@ -1007,7 +576,6 @@
           "key": "quinazolinones",
           "label": "Quinazolinones",
           "drugs": [
-            "afloqualone",
             "methaqualone"
           ]
         },
@@ -1022,7 +590,6 @@
           "key": "other-gabaergics",
           "label": "Other GABAergics",
           "drugs": [
-            "chloral-hydrate",
             "kava"
           ]
         },
@@ -1039,51 +606,6 @@
           "drugs": [
             "metizolam"
           ]
-        },
-        {
-          "key": "thienotriazolodiazepine",
-          "label": "Thienotriazolodiazepine",
-          "drugs": [
-            "metizolam"
-          ]
-        }
-      ],
-      "drugs": []
-    },
-    {
-      "key": "antidepressant",
-      "label": "Antidepressant",
-      "iconKey": "antidepressant",
-      "sections": [
-        {
-          "key": "serotonin-reuptake-and-receptor-modulators",
-          "label": "Serotonin reuptake and receptor modulators",
-          "drugs": [
-            "mirtazapine",
-            "trazodone"
-          ]
-        },
-        {
-          "key": "sodium-channel-blockers",
-          "label": "Sodium channel blockers",
-          "drugs": []
-        },
-        {
-          "key": "beta-adrenergic-receptor-antagonists",
-          "label": "Beta-adrenergic receptor antagonists",
-          "drugs": [
-            "propranolol"
-          ]
-        },
-        {
-          "key": "other-antidepressants",
-          "label": "Other antidepressants",
-          "drugs": [
-            "lithium",
-            "moclobemide",
-            "pre-084",
-            "selegiline"
-          ]
         }
       ],
       "drugs": []
@@ -1092,14 +614,8 @@
       "key": "cannabinoid",
       "label": "Cannabinoid",
       "iconKey": "cannabinoid",
+      "column": 2,
       "sections": [
-        {
-          "key": "cannabinoid",
-          "label": "Cannabinoid",
-          "drugs": [
-            "cannabidiolic-acid"
-          ]
-        },
         {
           "key": "cannabinoid-phytocannabinoid",
           "label": "Cannabinoid (phytocannabinoid)",
@@ -1111,7 +627,6 @@
           "key": "cannabinoid-synthetic",
           "label": "Cannabinoid (synthetic)",
           "drugs": [
-            "am-2201",
             "jwh-018"
           ]
         },
@@ -1120,13 +635,6 @@
           "label": "Indazolecarboxamide",
           "drugs": [
             "ab-fubinaca"
-          ]
-        },
-        {
-          "key": "naphthoylindazole",
-          "label": "Naphthoylindazole",
-          "drugs": [
-            "thj-018"
           ]
         },
         {
@@ -1140,146 +648,14 @@
       "drugs": []
     },
     {
-      "key": "nootropic",
-      "label": "Nootropic",
-      "iconKey": "nootropic",
-      "sections": [
-        {
-          "key": "alkaloid-amaryllidaceae",
-          "label": "Alkaloid (Amaryllidaceae)",
-          "drugs": [
-            "galantamine"
-          ]
-        },
-        {
-          "key": "amino-acid-derivative",
-          "label": "Amino acid (derivative)",
-          "drugs": [
-            "l-theanine"
-          ]
-        },
-        {
-          "key": "ammonium-salt",
-          "label": "Ammonium salt",
-          "drugs": [
-            "choline-bitartrate",
-            "citicoline"
-          ]
-        },
-        {
-          "key": "choline-derivative",
-          "label": "Choline derivative",
-          "drugs": [
-            "alpha-gpc"
-          ]
-        },
-        {
-          "key": "cholinergic",
-          "label": "Cholinergic",
-          "drugs": [
-            "meclofenoxate"
-          ]
-        },
-        {
-          "key": "cysteine-derivative",
-          "label": "Cysteine derivative",
-          "drugs": [
-            "n-acetylcysteine"
-          ]
-        },
-        {
-          "key": "nitrogenous-organic-acid",
-          "label": "Nitrogenous organic acid",
-          "drugs": [
-            "sam-e"
-          ]
-        },
-        {
-          "key": "nucleotide",
-          "label": "Nucleotide",
-          "drugs": [
-            "citicoline"
-          ]
-        },
-        {
-          "key": "peptide-derivative",
-          "label": "Peptide derivative",
-          "drugs": [
-            "noopept"
-          ]
-        },
-        {
-          "key": "polyamine",
-          "label": "Polyamine",
-          "drugs": []
-        },
-        {
-          "key": "propargylamine",
-          "label": "Propargylamine",
-          "drugs": []
-        },
-        {
-          "key": "racetam",
-          "label": "Racetam",
-          "drugs": [
-            "aniracetam",
-            "coluracetam",
-            "piracetam"
-          ]
-        },
-        {
-          "key": "carboline",
-          "label": "β-carboline",
-          "drugs": []
-        }
-      ],
-      "drugs": []
-    },
-    {
-      "key": "antipsychotic",
-      "label": "Antipsychotic",
-      "iconKey": "antipsychotic",
-      "sections": [
-        {
-          "key": "benzisothiazolyl-piperazine",
-          "label": "Benzisothiazolyl piperazine",
-          "drugs": []
-        },
-        {
-          "key": "dibenzothiazepine-derivative",
-          "label": "Dibenzothiazepine derivative",
-          "drugs": [
-            "quetiapine"
-          ]
-        },
-        {
-          "key": "second-generation-atypical-antipsychotic",
-          "label": "Second-generation (atypical) antipsychotic",
-          "drugs": []
-        },
-        {
-          "key": "thienobenzodiazepine",
-          "label": "Thienobenzodiazepine",
-          "drugs": [
-            "olanzapine"
-          ]
-        }
-      ],
-      "drugs": []
-    },
-    {
       "key": "miscellaneous",
       "label": "Miscellaneous",
       "iconKey": "miscellaneous",
+      "column": 3,
       "sections": [],
       "drugs": [
         "2m2b",
-        "acetildenafil",
-        "eszopiclone",
-        "flexeril",
-        "melatonin",
-        "ondansetron",
-        "ro5-4864"
+        "eszopiclone"
       ]
     }
   ]
