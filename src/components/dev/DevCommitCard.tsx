@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { SectionCard } from "../common/SectionCard";
 import { Button } from "@/components/ui/button";
+import { isConvexEnabled } from "../../lib/convex";
 
 export type DevCommitNotice = {
   type: "success" | "error";
@@ -33,6 +34,8 @@ export function DevCommitCard({
   footerSlot,
   actionSlot,
 }: DevCommitCardProps) {
+  const convexEnabled = isConvexEnabled();
+  
   const message = (() => {
     if (notice) {
       return (
@@ -61,8 +64,21 @@ export function DevCommitCard({
           <ShieldCheck className="h-5 w-5 text-fuchsia-200" />
           <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
         </div>
-        <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
-        <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
+        {convexEnabled ? (
+          <>
+            <p className="text-sm text-white/65">
+              Commit changelog, indexes, and site config to GitHub. Article data syncs to Convex automatically.
+            </p>
+            <p className="text-xs text-white/45">
+              Commits trigger a Vercel rebuild for index layouts and about page changes.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
+            <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
+          </>
+        )}
       </div>
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
         <div className="min-h-[1.25rem]">{message}</div>
