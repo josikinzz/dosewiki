@@ -47,6 +47,7 @@ export interface ManualCategoryDefinition {
   label: string;
   iconKey: string;
   notes?: string;
+  column?: number;
   drugs: string[];
   sections: ManualCategorySection[];
 }
@@ -63,6 +64,7 @@ export interface NormalizedManualCategorySection extends ManualCategorySection {
 
 export interface NormalizedManualCategoryDefinition extends ManualCategoryDefinition {
   normalizedKey: string;
+  column?: number;
   sectionMap: Map<string, NormalizedManualCategorySection>;
   drugSet: Set<string>;
 }
@@ -168,6 +170,10 @@ const parseCategory = (value: unknown, index: number): NormalizedManualCategoryD
   const label = assertString(value.label, `categories[${index}].label`);
   const iconKey = assertString(value.iconKey, `categories[${index}].iconKey`);
   const notes = typeof value.notes === "string" ? value.notes.trim() || undefined : undefined;
+  const column =
+    typeof value.column === "number" && Number.isInteger(value.column) && value.column >= 0
+      ? value.column
+      : undefined;
   const drugs = parseDrugs(value.drugs, `categories[${index}].drugs`);
   const sectionValues = Array.isArray(value.sections) ? value.sections : [];
   const sections = sectionValues.map((section, sectionIndex) =>
@@ -187,6 +193,7 @@ const parseCategory = (value: unknown, index: number): NormalizedManualCategoryD
     label,
     iconKey,
     notes,
+    column,
     drugs,
     sections,
     normalizedKey,

@@ -26,6 +26,7 @@ export interface DosageCategoryGroup {
   total: number;
   drugs: DrugListEntry[];
   sections?: CategoryDetailGroup[];
+  column?: number;
 }
 
 export interface CategoryDetailGroup {

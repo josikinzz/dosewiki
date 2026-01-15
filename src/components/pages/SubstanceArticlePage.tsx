@@ -16,6 +16,7 @@ interface SubstanceArticlePageProps {
   onSelectMechanism: (mechanismSlug: string, qualifierSlug?: string) => void;
   onSelectClassification: (type: "psychoactive" | "chemical", label: string) => void;
   onSelectInteraction?: (substance: string) => void;
+  onSelectReport?: (slug: string) => void;
 }
 
 export const SubstanceArticlePage = memo(function SubstanceArticlePage({
@@ -25,6 +26,7 @@ export const SubstanceArticlePage = memo(function SubstanceArticlePage({
   onSelectMechanism,
   onSelectClassification,
   onSelectInteraction,
+  onSelectReport,
 }: SubstanceArticlePageProps) {
   // Handle interaction click - navigate to interactions page with this substance
   const handleInteractionClick = (substance: string) => {
@@ -42,6 +44,7 @@ export const SubstanceArticlePage = memo(function SubstanceArticlePage({
         onSelectMechanism={onSelectMechanism}
         onSelectClassification={onSelectClassification}
         onSelectInteraction={handleInteractionClick}
+        onSelectReport={onSelectReport}
       />
     </main>
   );

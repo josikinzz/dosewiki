@@ -108,6 +108,10 @@
         "notes": {
           "type": "string"
         },
+        "column": {
+          "type": "integer",
+          "minimum": 0
+        },
         "drugs": {
           "$ref": "#/definitions/slugList"
         },

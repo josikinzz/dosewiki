@@ -11,6 +11,7 @@ import { HarmPotentialSection } from "../sections/HarmPotentialSection";
 import { ReagentSection } from "../sections/ReagentSection";
 import { LegalitySection } from "../sections/LegalitySection";
 import { CitationsSection } from "../sections/CitationsSection";
+import { TripReportsSection } from "../sections/TripReportsSection";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -24,6 +25,8 @@ export interface ArticleLayoutProps {
   onSelectClassification?: (type: "psychoactive" | "chemical", label: string) => void;
   /** Called when an interaction substance is clicked */
   onSelectInteraction?: (substance: string) => void;
+  /** Called when a trip report is clicked */
+  onSelectReport?: (slug: string) => void;
 }
 
 /**
@@ -40,6 +43,7 @@ export const ArticleLayout = memo(function ArticleLayout({
   onSelectMechanism,
   onSelectClassification,
   onSelectInteraction,
+  onSelectReport,
 }: ArticleLayoutProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
@@ -66,6 +70,7 @@ export const ArticleLayout = memo(function ArticleLayout({
       <ToleranceSection article={article} />
       <HarmPotentialSection article={article} />
       <HistoryCultureSection article={article} />
+      <TripReportsSection article={article} onSelectReport={onSelectReport} />
       <LegalitySection article={article} />
       <CitationsSection article={article} />
     </div>

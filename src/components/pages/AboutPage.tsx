@@ -134,7 +134,7 @@ export const AboutPage = memo(function AboutPage() {
             </div>
             <ul className="grid gap-4 md:grid-cols-2">
               {founders.map((profile) => {
-                const contributorHref = `#/contributors/${profile.key}`;
+                const contributorHref = `/contributors/${profile.key.toLowerCase()}`;
                 const initials = toInitials(profile.displayName || profile.key);
 
                 return (

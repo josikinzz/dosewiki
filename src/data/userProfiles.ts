@@ -21,6 +21,7 @@ export type UserProfileLink = {
 export type UserProfileRecord = {
   key: string;
   displayName?: string;
+  aliases?: string[];
   avatarUrl?: string | null;
   bio?: string | null;
   links?: UserProfileLink[] | null;
@@ -29,6 +30,7 @@ export type UserProfileRecord = {
 export type NormalizedUserProfile = {
   key: string;
   displayName: string;
+  aliases: string[];
   avatarUrl: string | null;
   bio: string;
   links: UserProfileLink[];
@@ -126,6 +128,16 @@ const sanitizeAvatarUrl = (value: unknown) => {
   return null;
 };
 
+const sanitizeAliases = (aliases: unknown): string[] => {
+  if (!Array.isArray(aliases)) {
+    return [];
+  }
+  return aliases
+    .filter((a): a is string => typeof a === "string")
+    .map((a) => a.trim().toLowerCase())
+    .filter((a) => a.length > 0);
+};
+
 const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null => {
   if (!record || typeof record !== "object") {
     return null;
@@ -146,6 +158,7 @@ const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null =
     ? rawDisplayName.trim()
     : toDisplayName(key);
 
+  const aliases = sanitizeAliases((record as { aliases?: unknown }).aliases);
   const avatarUrl = sanitizeAvatarUrl((record as { avatarUrl?: unknown }).avatarUrl);
   const bio = sanitizeBio((record as { bio?: unknown }).bio ?? null);
   const links = sanitizeLinks((record as { links?: unknown }).links ?? null);
@@ -153,6 +166,7 @@ const normalizeProfileRecord = (record: unknown): NormalizedUserProfile | null =
   return {
     key,
     displayName,
+    aliases,
     avatarUrl,
     bio,
     links,
@@ -187,6 +201,7 @@ const buildFallbackProfile = (rawKey: string): NormalizedUserProfile => {
   return {
     key,
     displayName,
+    aliases: [],
     avatarUrl: null,
     bio: "",
     links: [],
@@ -221,6 +236,37 @@ export const buildProfileHistory = (key: string, limit = 10): ChangeLogEntry[] =
 };
 
 export const listProfileKeys = () => [...profilesByKey.keys()];
+
+/**
+ * Find a profile by author name (case-insensitive matching).
+ * Matches against displayName, aliases, and first word of displayName.
+ */
+export const findProfileByAuthorName = (authorName: string): NormalizedUserProfile | null => {
+  const normalized = authorName.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  for (const profile of normalizedProfiles) {
+    // Exact match on displayName
+    if (profile.displayName.toLowerCase() === normalized) {
+      return profile;
+    }
+
+    // Match on aliases
+    if (profile.aliases.includes(normalized)) {
+      return profile;
+    }
+
+    // Match on first word of displayName (e.g., "Josie" matches "Josie Kins")
+    const firstWord = profile.displayName.split(/\s+/)[0]?.toLowerCase();
+    if (firstWord && firstWord === normalized) {
+      return profile;
+    }
+  }
+
+  return null;
+};
 
 export const updateProfileCache = (profile: NormalizedUserProfile) => {
   profilesByKey.set(profile.key, profile);

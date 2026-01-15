@@ -1,16 +1,21 @@
 import ReactMarkdown from "react-markdown";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { ExternalLink, FileText, Link2, Sparkles, UserRound } from "lucide-react";
+import { ChevronDown, ExternalLink, FileSignature, FileText, Link2, Sparkles } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 import { SectionCard } from "../common/SectionCard";
+import { ReportCard } from "../reports/ReportCard";
 import type { NormalizedUserProfile } from "../../data/userProfiles";
 import type { ChangeLogEntry } from "../../data/changelog/changeLog";
+import type { TripReport } from "../../types/tripReport";
 
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: ChangeLogEntry[];
+  onSelectReport?: (slug: string) => void;
 }
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
@@ -79,10 +84,37 @@ const bioComponents = {
 const contributionBadgeClass =
   "inline-flex items-center rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/80 shadow-sm shadow-fuchsia-500/10 ring-1 ring-white/20";
 
-export function UserProfilePage({ profile, history }: UserProfilePageProps) {
+export function UserProfilePage({ profile, history, onSelectReport }: UserProfilePageProps) {
+  const [isContributionsExpanded, setIsContributionsExpanded] = useState(false);
+  
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
   const hasHistory = history.length > 0;
+
+  // Query trip reports by this author's display name
+  const tripReportsRaw = useQuery(
+    api.tripReports.getByAuthor,
+    { authorName: profile.displayName }
+  ) as TripReport[] | undefined;
+
+  // Sort reports with featured first, then by title
+  const tripReports = tripReportsRaw?.slice().sort((a, b) => {
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return a.title.localeCompare(b.title);
+  });
+
+  const hasReports = tripReports && tripReports.length > 0;
+
+  const handleReportClick = (slug: string) => {
+    if (onSelectReport) {
+      onSelectReport(slug);
+    } else {
+      // Fallback to standard navigation
+      window.history.pushState({}, "", `/reports/${slug}`);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  };
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12">
@@ -112,110 +144,137 @@ export function UserProfilePage({ profile, history }: UserProfilePageProps) {
             </div>
           ) : null}
         </div>
-        {!hasBio && (
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/65">
-            <UserRound className="h-4 w-4" />
-            <span>This contributor has not published a bio yet.</span>
-          </div>
-        )}
       </div>
 
       <div className="mt-10 space-y-6">
-        <SectionCard className="space-y-4 bg-white/[0.04]">
-          <div className="flex items-center gap-3">
-            <FileText className="h-5 w-5 text-fuchsia-300" />
-            <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
-          </div>
+        {hasBio && (
+          <SectionCard className="space-y-4 bg-white/[0.04]">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-fuchsia-300" />
+              <h2 className="text-lg font-semibold text-fuchsia-200">Bio</h2>
+            </div>
 
-          {hasBio ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkBreaks]}
               components={bioComponents}
             >
               {profile.bio}
             </ReactMarkdown>
-          ) : (
-            <p className="text-sm text-white/70">
-              Use the Dev Tools profile editor to add Markdown copy introducing yourself to the community.
-            </p>
-          )}
-        </SectionCard>
+          </SectionCard>
+        )}
 
+        {/* Trip Reports Section */}
         <SectionCard className="space-y-5 bg-white/[0.04]">
           <div className="flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-fuchsia-300" />
-            <h2 className="text-lg font-semibold text-fuchsia-200">Latest contributions</h2>
+            <FileSignature className="h-5 w-5 text-fuchsia-300" />
+            <h2 className="text-lg font-semibold text-fuchsia-200">Trip Reports</h2>
           </div>
 
-          {hasHistory ? (
-            <div className="space-y-4">
-              {history.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
-                >
-                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-white/90">{dateFormat.format(new Date(entry.createdAt))}</p>
-                      <p className="text-xs text-white/60">
-                        {entry.commit?.url ? (
-                          <a
-                            href={entry.commit.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-fuchsia-200 transition hover:text-fuchsia-100"
-                          >
-                            {entry.commit.message}
-                          </a>
-                        ) : (
-                          entry.commit.message
-                        )}
-                      </p>
-                    </div>
-                    <span className={contributionBadgeClass}>
-                      {entry.articles.length} article{entry.articles.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  {entry.markdown.trim().length > 0 && (
-                    <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60">
-                      <pre className="max-h-96 overflow-x-auto overflow-y-auto text-xs leading-relaxed">
-                        <code>
-                          {entry.markdown.split("\n").map((line, index) => {
-                            const isAdded = line.startsWith("+");
-                            const isRemoved = line.startsWith("-");
-                            const isHunk = line.startsWith("@@");
-                            const lineClass = isHunk
-                              ? "text-rose-200"
-                              : isAdded
-                                ? "text-emerald-300"
-                                : isRemoved
-                                  ? "text-rose-300"
-                                  : "text-white/75";
-
-                            return (
-                              <span
-                                key={`${entry.id}-line-${index}`}
-                                className={`block whitespace-pre px-4 py-1 font-mono ${lineClass}`}
-                              >
-                                {line.trim().length > 0 ? line : "\u00A0"}
-                              </span>
-                            );
-                          })}
-                        </code>
-                      </pre>
-                    </div>
-                  )}
-                </div>
+          {hasReports ? (
+            <div className="space-y-3">
+              {tripReports.map((report) => (
+                <ReportCard
+                  key={report.slug}
+                  report={report}
+                  onClick={() => handleReportClick(report.slug)}
+                />
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-transparent px-6 py-16 text-center">
-              <Sparkles className="mb-4 h-9 w-9 text-white/35" />
-              <p className="text-base font-semibold text-white/80">No commits yet</p>
-              <p className="mt-2 text-sm text-white/60">Publish a change via Dev Tools to surface activity here.</p>
+              <FileSignature className="mb-4 h-9 w-9 text-white/35" />
+              <p className="text-base font-semibold text-white/80">No trip reports yet</p>
+              <p className="mt-2 text-sm text-white/60">
+                Trip reports by {profile.displayName} will appear here.
+              </p>
             </div>
           )}
         </SectionCard>
+
+        {/* Latest Contributions Section - Only shown if user has contributions */}
+        {hasHistory && (
+          <SectionCard className="bg-white/[0.04]">
+            <button
+              type="button"
+              onClick={() => setIsContributionsExpanded(!isContributionsExpanded)}
+              className="flex w-full items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-fuchsia-300" />
+                <h2 className="text-lg font-semibold text-fuchsia-200">Latest contributions</h2>
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/60">
+                  {history.length}
+                </span>
+              </div>
+              <ChevronDown 
+                className={`h-5 w-5 text-white/50 transition-transform ${isContributionsExpanded ? "rotate-180" : ""}`} 
+              />
+            </button>
+
+            {isContributionsExpanded && (
+              <div className="mt-5 space-y-4">
+                {history.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
+                  >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-white/90">{dateFormat.format(new Date(entry.createdAt))}</p>
+                        <p className="text-xs text-white/60">
+                          {entry.commit?.url ? (
+                            <a
+                              href={entry.commit.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-fuchsia-200 transition hover:text-fuchsia-100"
+                            >
+                              {entry.commit.message}
+                            </a>
+                          ) : (
+                            entry.commit.message
+                          )}
+                        </p>
+                      </div>
+                      <span className={contributionBadgeClass}>
+                        {entry.articles.length} article{entry.articles.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    {entry.markdown.trim().length > 0 && (
+                      <div className="overflow-hidden rounded-xl border border-white/10 bg-black/60">
+                        <pre className="max-h-96 overflow-x-auto overflow-y-auto text-xs leading-relaxed">
+                          <code>
+                            {entry.markdown.split("\n").map((line, index) => {
+                              const isAdded = line.startsWith("+");
+                              const isRemoved = line.startsWith("-");
+                              const isHunk = line.startsWith("@@");
+                              const lineClass = isHunk
+                                ? "text-rose-200"
+                                : isAdded
+                                  ? "text-emerald-300"
+                                  : isRemoved
+                                    ? "text-rose-300"
+                                    : "text-white/75";
+
+                              return (
+                                <span
+                                  key={`${entry.id}-line-${index}`}
+                                  className={`block whitespace-pre px-4 py-1 font-mono ${lineClass}`}
+                                >
+                                  {line.trim().length > 0 ? line : "\u00A0"}
+                                </span>
+                              );
+                            })}
+                          </code>
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        )}
       </div>
     </main>
   );

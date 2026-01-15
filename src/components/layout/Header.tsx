@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FlaskConical, Info, Menu, Wrench, X } from "lucide-react";
+import { FlaskConical, Info, Menu, Wrench, X, FileSignature } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
@@ -14,10 +14,12 @@ interface HeaderProps {
 
 export function Header({ currentView, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
+  const reportsView: AppView = { type: "reports" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: LucideIcon }> = [
-    { label: "Substance Index", view: substancesView, icon: FlaskConical },
+    { label: "Substances", view: substancesView, icon: FlaskConical },
+    { label: "Reports", view: reportsView, icon: FileSignature },
     { label: "Dev Tools", view: devView, icon: Wrench },
   ];
   const aboutPath = viewToPath(aboutView);
@@ -31,6 +33,10 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
         currentView.type === "substance" ||
         currentView.type === "mechanism"
       );
+    }
+
+    if (itemView.type === "reports") {
+      return currentView.type === "reports" || currentView.type === "report";
     }
 
     if (itemView.type === "dev") {

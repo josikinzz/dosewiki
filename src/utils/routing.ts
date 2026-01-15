@@ -6,6 +6,12 @@ export function viewToPath(view: AppView): string {
       return "/substances";
     case "effects":
       return "/effects";
+    case "reports":
+      return "/reports";
+    case "report": {
+      const slug = view.slug.trim();
+      return slug.length > 0 ? `/reports/${slug}` : "/reports";
+    }
     case "interactions": {
       const primary = view.primarySlug?.trim();
       const secondary = view.secondarySlug?.trim();
@@ -83,6 +89,11 @@ export function parsePath(
         return { type: "substances" };
       case "effects":
         return { type: "effects" };
+      case "reports":
+        if (slug) {
+          return { type: "report", slug };
+        }
+        return { type: "reports" };
       case "interactions": {
         const primarySlug = slug;
         const secondarySlug = segments[2];

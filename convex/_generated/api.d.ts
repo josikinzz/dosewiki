@@ -13,6 +13,7 @@ import type * as articles from "../articles.js";
 import type * as changelog from "../changelog.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
+import type * as tripReports from "../tripReports.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   changelog: typeof changelog;
   prompts: typeof prompts;
   quotes: typeof quotes;
+  tripReports: typeof tripReports;
 }>;
 
 /**

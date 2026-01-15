@@ -6,8 +6,22 @@
     "links": []
   },
   {
+    "key": "ANONYMOUS",
+    "displayName": "Anonymous",
+    "aliases": ["anonymous reader"],
+    "bio": "",
+    "links": []
+  },
+  {
     "key": "ARCTIC",
     "displayName": "Arctic",
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "BLUURAE",
+    "displayName": "BluuRae",
+    "aliases": ["natalie"],
     "bio": "",
     "links": []
   },
@@ -18,14 +32,38 @@
     "links": []
   },
   {
-    "key": "GABRIEL",
-    "displayName": "Gabriel",
+    "key": "COCOA",
+    "displayName": "Cocoa",
+    "aliases": ["gabriel"],
     "bio": "",
     "links": []
   },
   {
+    "key": "DEMFRACTALSYO",
+    "displayName": "DemFractalsYo",
+    "aliases": ["amethyst"],
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "EMOBOY",
+    "displayName": "EmoBoy",
+    "aliases": ["alex"],
+    "bio": "",
+    "links": []
+  },
+  {
+    "key": "GREGASAURUS",
+    "displayName": "Gregasaurus",
+    "aliases": ["greg"],
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/gregasaurus/avatar.webp"
+  },
+  {
     "key": "JOSIE",
     "displayName": "Josie Kins",
+    "aliases": ["josie"],
     "bio": "Hi, I'm josie. I like making websites.",
     "links": [
       {
@@ -33,13 +71,43 @@
         "url": "https://josiekins.xyz/"
       }
     ],
-    "avatarUrl": "/profile-avatars/josie/avatar.jpg?v=2025-10-15T01-49-44-554Z"
+    "avatarUrl": "/profile-avatars/josie/avatar.webp"
+  },
+  {
+    "key": "KAYTWO",
+    "displayName": "Kaytwo",
+    "aliases": ["kaylee"],
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/kaylee/avatar.webp"
+  },
+  {
+    "key": "OSCARETTE",
+    "displayName": "Oscarette",
+    "aliases": ["jenny", "oskykins"],
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/oscarette/avatar.webp"
+  },
+  {
+    "key": "PLURALIST-ART",
+    "displayName": "Pluralist-Art",
+    "aliases": ["rho"],
+    "bio": "",
+    "links": []
   },
   {
     "key": "KOSM",
     "displayName": "Kosm",
     "bio": "",
     "links": []
+  },
+  {
+    "key": "NERVEWING",
+    "displayName": "Nervewing",
+    "bio": "",
+    "links": [],
+    "avatarUrl": "/profile-avatars/nervewing/avatar.webp"
   },
   {
     "key": "WITCHY",

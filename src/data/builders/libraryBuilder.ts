@@ -774,6 +774,7 @@ function createManualIndexGroups(
         total: flattened.length,
         drugs: flattened,
         sections: combinedSections,
+        column: category.column,
       } satisfies DosageCategoryGroup;
     })
     .filter((group): group is DosageCategoryGroup => group !== null);

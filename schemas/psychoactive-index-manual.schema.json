@@ -57,6 +57,7 @@
         "label": { "type": "string", "minLength": 1 },
         "iconKey": { "type": "string", "minLength": 1 },
         "notes": { "type": "string" },
+        "column": { "type": "integer", "minimum": 0 },
         "drugs": { "$ref": "#/definitions/slugList" },
         "sections": {
           "type": "array",

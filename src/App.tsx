@@ -9,6 +9,8 @@ import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
 import { ClassificationDetailPage } from "./components/pages/ClassificationDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import { AboutPage } from "./components/pages/AboutPage";
+import { TripReportsPage } from "./components/pages/TripReportsPage";
+import { TripReportDetailPage } from "./components/pages/TripReportDetailPage";
 
 // Lazy load DevModePage - only needed by authenticated editors
 const DevModePage = lazy(() => 
@@ -54,6 +56,10 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
       return "About dose.wiki";
     case "contributor":
       return `Contributor Profile`;
+    case "reports":
+      return "Trip Reports";
+    case "report":
+      return `Trip Report`;
     case "dev":
       return `Developer Tools - ${view.tab}`;
     default:
@@ -444,6 +450,22 @@ export default function App() {
         <main id="main-content" ref={mainRef} tabIndex={-1}>
           <AboutPage />
         </main>
+      ) : view.type === "reports" ? (
+        <TripReportsPage
+          onSelectReport={(slug) => navigate({ type: "report", slug })}
+        />
+      ) : view.type === "report" ? (
+        <TripReportDetailPage
+          slug={view.slug}
+          fromSubstanceSlug={view.fromSubstanceSlug}
+          onBack={() => {
+            if (view.fromSubstanceSlug) {
+              navigate({ type: "substance", slug: view.fromSubstanceSlug });
+            } else {
+              navigate({ type: "reports" });
+            }
+          }}
+        />
       ) : view.type === "contributor" ? (
         (() => {
           const rawKey = view.profileKey.trim();
@@ -479,6 +501,7 @@ export default function App() {
           onSelectEffect={selectEffect}
           onSelectMechanism={selectMechanism}
           onSelectClassification={selectClassification}
+          onSelectReport={(slug) => navigate({ type: "report", slug, fromSubstanceSlug: activeSlug ?? undefined })}
         />
       ) : (
         <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">

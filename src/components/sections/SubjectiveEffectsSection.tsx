@@ -492,7 +492,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                   className="relative z-10 pointer-events-auto"
                 >
                   <img
-                    src="/profile-avatars/josie/avatar.jpg"
+                    src="/profile-avatars/josie/avatar.webp"
                     alt="Josie Kins"
                     className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 hover:ring-fuchsia-400/50 transition"
                   />

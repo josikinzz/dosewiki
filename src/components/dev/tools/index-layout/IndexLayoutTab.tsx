@@ -8,6 +8,8 @@ import {
   Braces,
   BrainCircuit,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Cog,
   Hexagon,
   ListFilter,
@@ -53,6 +55,43 @@ import {
   ensureString,
 } from "./utils";
 
+/**
+ * Breakpoints for responsive column count in the dev tools layout editor.
+ * Matches the public CategoryGrid breakpoints.
+ */
+const BREAKPOINTS = {
+  sm: 640,
+  lg: 1024,
+  "2xl": 1536,
+};
+
+const MAX_COLUMNS = 4;
+
+function useResponsiveColumnCount(): number {
+  const getColumnCount = useCallback(() => {
+    if (typeof window === "undefined") return 3;
+    const width = window.innerWidth;
+    if (width < BREAKPOINTS.sm) return 1;
+    if (width < BREAKPOINTS.lg) return 2;
+    if (width < BREAKPOINTS["2xl"]) return 3;
+    return MAX_COLUMNS;
+  }, []);
+
+  const [columnCount, setColumnCount] = useState(getColumnCount);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setColumnCount(getColumnCount());
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [getColumnCount]);
+
+  return columnCount;
+}
 
 const formatSubstanceLabel = (option: SubstanceOption): string => {
   const parts = [option.name];
@@ -574,12 +613,14 @@ interface CategoryEditorProps {
   category: ManualCategoryDefinition;
   index: number;
   total: number;
+  maxColumns: number;
   onUpdateCategory: (
     index: number,
     updater: (current: ManualCategoryDefinition) => ManualCategoryDefinition,
   ) => void;
   onRemoveCategory: (index: number) => void;
   onMoveCategory: (index: number, direction: "up" | "down") => void;
+  onChangeColumn: (index: number, direction: "left" | "right") => void;
   onAddSection: (index: number) => void;
   substanceOptions: SubstanceOption[];
   datasetSlugSet: ReadonlySet<string>;
@@ -592,9 +633,11 @@ const CategoryEditor = memo(
     category,
     index,
     total,
+    maxColumns,
     onUpdateCategory,
     onRemoveCategory,
     onMoveCategory,
+    onChangeColumn,
     onAddSection,
     substanceOptions,
     datasetSlugSet,
@@ -620,6 +663,11 @@ const CategoryEditor = memo(
       () => sortSlugsWithCommonPriority(category.drugs),
       [category.drugs, sortSlugsWithCommonPriority],
     );
+
+    // Column assignment - default to round-robin based on index if not explicitly set
+    const currentColumn = category.column ?? index % maxColumns;
+    const canMoveLeft = currentColumn > 0;
+    const canMoveRight = currentColumn < maxColumns - 1;
 
     const handleLabelChange = useCallback(
       (value: string) => {
@@ -732,6 +780,13 @@ const CategoryEditor = memo(
       [index, onMoveCategory],
     );
 
+    const handleChangeColumn = useCallback(
+      (direction: "left" | "right") => {
+        onChangeColumn(index, direction);
+      },
+      [index, onChangeColumn],
+    );
+
     const handleAddSection = useCallback(() => {
       onAddSection(index);
     }, [index, onAddSection]);
@@ -791,7 +846,7 @@ const CategoryEditor = memo(
     ) : null;
 
     return (
-      <article className="mb-6 w-full break-inside-avoid break-inside-avoid-column">
+      <article className="w-full">
         <div className="group relative overflow-hidden rounded-2xl bg-white/5 p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe">
           <div className="flex flex-col gap-4">
             <header className="flex items-start gap-4 text-white/90">
@@ -855,7 +910,7 @@ const CategoryEditor = memo(
               </div>
             </header>
 
-            <div className="flex items-center gap-2 whitespace-nowrap text-[11px] uppercase tracking-[0.3em] text-white/45">
+            <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-[11px] uppercase tracking-[0.3em] text-white/45">
               <span>
                 {totalPrimary} primary item{totalPrimary === 1 ? "" : "s"}
               </span>
@@ -863,6 +918,35 @@ const CategoryEditor = memo(
               <span>
                 {sectionCount} section{sectionCount === 1 ? "" : "s"}
               </span>
+              <span className="text-white/30">•</span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="glass"
+                  size="icon"
+                  onClick={() => handleChangeColumn("left")}
+                  disabled={!canMoveLeft}
+                  className="h-5 w-5"
+                  aria-label="Move to left column"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                </Button>
+                <span
+                  className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-fuchsia-200"
+                  title={`Column ${currentColumn + 1}`}
+                >
+                  {currentColumn + 1}
+                </span>
+                <Button
+                  variant="glass"
+                  size="icon"
+                  onClick={() => handleChangeColumn("right")}
+                  disabled={!canMoveRight}
+                  className="h-5 w-5"
+                  aria-label="Move to right column"
+                >
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
 
             {detailsPanel}
@@ -930,12 +1014,14 @@ const CategoryEditor = memo(
     previous.category === next.category
     && previous.index === next.index
     && previous.total === next.total
+    && previous.maxColumns === next.maxColumns
     && previous.substanceOptions === next.substanceOptions
     && previous.datasetSlugSet === next.datasetSlugSet
     && previous.sortSlugsWithCommonPriority === next.sortSlugsWithCommonPriority
     && previous.resolveSlugStatus === next.resolveSlugStatus
     && previous.onAddSection === next.onAddSection
     && previous.onMoveCategory === next.onMoveCategory
+    && previous.onChangeColumn === next.onChangeColumn
     && previous.onRemoveCategory === next.onRemoveCategory
     && previous.onUpdateCategory === next.onUpdateCategory,
 );
@@ -943,6 +1029,8 @@ const CategoryEditor = memo(
 export function IndexLayoutTab({
   commitPanel,
 }: IndexLayoutTabProps) {
+  const columnCount = useResponsiveColumnCount();
+
   const {
     psychoactiveIndexManual,
     chemicalIndexManual,
@@ -1400,6 +1488,26 @@ export function IndexLayoutTab({
     return set;
   }, [draftManual]);
 
+  // Group categories by their assigned column for explicit column layout
+  const columnGroups = useMemo(() => {
+    const columns: Map<number, { category: ManualCategoryDefinition; originalIndex: number }[]> = new Map();
+
+    // Initialize all columns
+    for (let i = 0; i < columnCount; i++) {
+      columns.set(i, []);
+    }
+
+    draftManual.categories.forEach((category, index) => {
+      // Use assigned column if available, otherwise fall back to round-robin
+      const assignedColumn = category.column ?? index;
+      // Mod by columnCount to handle responsive column reduction
+      const effectiveColumn = assignedColumn % columnCount;
+      columns.get(effectiveColumn)?.push({ category, originalIndex: index });
+    });
+
+    return columns;
+  }, [draftManual.categories, columnCount]);
+
   const updateCategory = useCallback(
     (index: number, updater: (category: ManualCategoryDefinition) => ManualCategoryDefinition) => {
       updateDraftManualForActive((previous) => {
@@ -1492,6 +1600,33 @@ export function IndexLayoutTab({
       };
     });
   }, [updateCategory]);
+
+  const changeColumn = useCallback(
+    (index: number, direction: "left" | "right") => {
+      updateDraftManualForActive((previous) => {
+        if (index < 0 || index >= previous.categories.length) {
+          return previous;
+        }
+        const category = previous.categories[index];
+        // Get current column (default to round-robin if not set)
+        const currentColumn = category.column ?? index % columnCount;
+        const newColumn = direction === "left" ? currentColumn - 1 : currentColumn + 1;
+
+        // Validate new column is within bounds
+        if (newColumn < 0 || newColumn >= MAX_COLUMNS) {
+          return previous;
+        }
+
+        const nextCategories = previous.categories.slice();
+        nextCategories[index] = { ...category, column: newColumn };
+        return {
+          ...previous,
+          categories: nextCategories,
+        };
+      });
+    },
+    [columnCount, updateDraftManualForActive],
+  );
 
   const handleApplyJson = useCallback(() => {
     try {
@@ -1674,34 +1809,40 @@ export function IndexLayoutTab({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="[column-gap:1.5rem] columns-1 sm:columns-2 xl:columns-3">
-            {draftManual.categories.map((category, index) => (
-              <CategoryEditor
-                key={`${category.key}-${index}`}
-                category={category}
-                index={index}
-                total={draftManual.categories.length}
-                onUpdateCategory={updateCategory}
-                onRemoveCategory={removeCategory}
-                onMoveCategory={moveCategory}
-                onAddSection={addSection}
-                substanceOptions={substanceOptions}
-                datasetSlugSet={datasetSlugSet}
-                sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
-                resolveSlugStatus={resolveSlugStatus}
-              />
+          <div className="flex gap-6">
+            {Array.from({ length: columnCount }).map((_, colIndex) => (
+              <div key={colIndex} className="flex flex-1 flex-col gap-6">
+                {columnGroups.get(colIndex)?.map(({ category, originalIndex }) => (
+                  <CategoryEditor
+                    key={`${category.key}-${originalIndex}`}
+                    category={category}
+                    index={originalIndex}
+                    total={draftManual.categories.length}
+                    maxColumns={MAX_COLUMNS}
+                    onUpdateCategory={updateCategory}
+                    onRemoveCategory={removeCategory}
+                    onMoveCategory={moveCategory}
+                    onChangeColumn={changeColumn}
+                    onAddSection={addSection}
+                    substanceOptions={substanceOptions}
+                    datasetSlugSet={datasetSlugSet}
+                    sortSlugsWithCommonPriority={sortSlugsWithCommonPriority}
+                    resolveSlugStatus={resolveSlugStatus}
+                  />
+                ))}
+                {colIndex === 0 && (
+                  <Button
+                    variant="addCard"
+                    size="addCard"
+                    onClick={addCategory}
+                    aria-label="Add category"
+                  >
+                    <PlusCircle className="h-6 w-6" />
+                    <span className="text-xs uppercase tracking-[0.3em]">New category</span>
+                  </Button>
+                )}
+              </div>
             ))}
-            <div className="mb-6 break-inside-avoid break-inside-avoid-column">
-              <Button
-                variant="addCard"
-                size="addCard"
-                onClick={addCategory}
-                aria-label="Add category"
-              >
-                <PlusCircle className="h-6 w-6" />
-                <span className="text-xs uppercase tracking-[0.3em]">New category</span>
-              </Button>
-            </div>
           </div>
         </div>
       )}
