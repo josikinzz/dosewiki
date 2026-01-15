@@ -43,10 +43,19 @@ if (isSafari) {
 function AppWithConvexData() {
   const convexArticles = useQuery(api.articles.getAll);
   const [error, setError] = useState<Error | null>(null);
+  const [isConnecting, setIsConnecting] = useState(true);
+
+  // Track connection state - Convex returns undefined while connecting
+  useEffect(() => {
+    if (convexArticles !== undefined) {
+      setIsConnecting(false);
+    }
+  }, [convexArticles]);
 
   // Build library when Convex articles are loaded
   const libraryData = useMemo(() => {
-    if (!convexArticles || convexArticles.length === 0) {
+    // Still connecting or no articles yet
+    if (convexArticles === undefined || convexArticles.length === 0) {
       return null;
     }
     // Strip Convex _id and _creationTime fields to match SubstanceArticle type
@@ -60,7 +69,8 @@ function AppWithConvexData() {
     return <ErrorScreen error={error} />;
   }
 
-  if (!libraryData) {
+  // Show loading while connecting to Convex or building library
+  if (isConnecting || !libraryData) {
     return <LoadingScreen />;
   }
 

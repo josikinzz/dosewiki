@@ -65,11 +65,21 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingArticlesRef = useRef<SubstanceArticle[] | null>(null);
   const isSyncingRef = useRef(false);
+  const isReadyRef = useRef(false);
 
   const saveArticlesMutation = useConvexMutation(api.articles.saveArticles);
 
+  // Mark as ready after a short delay to let Convex connect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      isReadyRef.current = true;
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const performSync = useCallback(async (articles: SubstanceArticle[]) => {
-    if (isSyncingRef.current) {
+    // Don't sync if not ready or already syncing
+    if (!isReadyRef.current || isSyncingRef.current) {
       return;
     }
 
