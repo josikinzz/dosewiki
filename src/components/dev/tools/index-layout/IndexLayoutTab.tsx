@@ -244,7 +244,7 @@ export function IndexLayoutTab({
       chemical: {
         key: "chemical",
         label: "Chemical class",
-        icon: "solar:benzene-ring-line-duotone",
+        icon: "solar:benzene-ring-linear",
         description: "Compose the curated chemical class ordering for the substance index.",
         helperLabel: "Chemical class manual",
         helperDetail: "Feeds the Chemical class tab and Dev Tools previews when editing articles.",

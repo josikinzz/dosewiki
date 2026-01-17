@@ -58,7 +58,7 @@ const buttonVariants = cva(
         iconGhost:
           "rounded-xl p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white",
         categoryHeader:
-          "flex flex-1 flex-col items-start text-left",
+          "flex flex-1 flex-row items-baseline gap-4 whitespace-normal text-left sm:flex-col sm:items-start sm:gap-0",
         searchOption:
           "flex h-auto w-full flex-col items-stretch justify-start gap-1.5 px-4 py-3 text-left text-sm whitespace-normal transition hover:bg-fuchsia-500/15 data-[highlighted=true]:bg-fuchsia-500/20 data-[highlighted=false]:bg-transparent",
         brand:

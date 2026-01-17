@@ -4,13 +4,17 @@ import { Footer } from "./components/layout/Footer";
 import { DosagesPage } from "./components/pages/DosagesPage";
 import { CategoryPage } from "./components/pages/CategoryPage";
 import { EffectsPage } from "./components/pages/EffectsPage";
+import { EffectsIndexPage } from "./components/pages/EffectsIndexPage";
 import { EffectDetailPage } from "./components/pages/EffectDetailPage";
+import { EffectArticlePage } from "./components/pages/EffectArticlePage";
+import { EffectCategoryPage } from "./components/pages/EffectCategoryPage";
 import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
 import { ClassificationDetailPage } from "./components/pages/ClassificationDetailPage";
 import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import { AboutPage } from "./components/pages/AboutPage";
 import { TripReportsPage } from "./components/pages/TripReportsPage";
 import { TripReportDetailPage } from "./components/pages/TripReportDetailPage";
+import { useSubjectiveEffects, useSubjectiveEffect } from "./hooks/useSubjectiveEffects";
 
 // Lazy load DevModePage - only needed by authenticated editors
 const DevModePage = lazy(() => 
@@ -41,9 +45,11 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
     case "category":
       return `${view.categoryKey} Category`;
     case "effects":
-      return "Effects Index";
+      return "Subjective Effects Index";
     case "effect":
-      return `${view.effectSlug} Effect`;
+      return `${view.effectSlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} - Subjective Effect`;
+    case "effect-category":
+      return `${view.categorySlug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")} Effects`;
     case "mechanism":
       return `${view.mechanismSlug} Mechanism`;
     case "classification":
@@ -71,6 +77,9 @@ const DEFAULT_VIEW: AppView = { type: "substances" };
 export default function App() {
   // Get library data from context
   const library = useLibrary();
+  
+  // Get subjective effects from Convex
+  const { effects: subjectiveEffects, isLoading: effectsLoading } = useSubjectiveEffects();
   const {
     articles,
     substanceRecords,
@@ -341,7 +350,13 @@ export default function App() {
 
           return (
             <main id="main-content" ref={mainRef} tabIndex={-1}>
-              <CategoryPage detail={detail} onSelectDrug={selectSubstance} />
+              <CategoryPage 
+                detail={detail} 
+                onSelectDrug={selectSubstance} 
+                onNavigate={(path) => navigate(parsePath(path, defaultSlug, DEFAULT_VIEW))}
+                onSelectEffect={selectEffect}
+                effects={subjectiveEffects}
+              />
             </main>
           );
         })()
@@ -357,10 +372,59 @@ export default function App() {
         </main>
       ) : view.type === "effects" ? (
         <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <EffectsPage effects={effectSummaries} onSelectEffect={selectEffect} />
+          {subjectiveEffects.length > 0 ? (
+            <EffectsIndexPage 
+              effects={subjectiveEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags }))} 
+              onSelectEffect={selectEffect} 
+            />
+          ) : effectsLoading ? (
+            <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+              <div className="flex items-center justify-center py-20">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+              </div>
+            </div>
+          ) : (
+            <EffectsPage effects={effectSummaries} onSelectEffect={selectEffect} />
+          )}
+        </main>
+      ) : view.type === "effect-category" ? (
+        <main id="main-content" ref={mainRef} tabIndex={-1}>
+          <EffectCategoryPage
+            categorySlug={view.categorySlug}
+            effects={subjectiveEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags, summary: e.summary }))}
+            onSelectEffect={selectEffect}
+            onNavigateBack={() => navigate({ type: "effects" })}
+          />
         </main>
       ) : view.type === "effect" ? (
         (() => {
+          // First try to find the effect in Convex
+          const convexEffect = subjectiveEffects.find(e => e.slug === view.effectSlug);
+          
+          if (convexEffect) {
+            // Get related substances from library
+            const libraryDetail = getEffectDetail(view.effectSlug);
+            
+            return (
+              <main id="main-content" ref={mainRef} tabIndex={-1}>
+                <EffectArticlePage
+                  effect={convexEffect}
+                  relatedSubstances={libraryDetail ? {
+                    groups: libraryDetail.groups,
+                    total: libraryDetail.definition.total,
+                  } : undefined}
+                  onNavigate={(path) => {
+                    const parsed = parsePath(path, defaultSlug, DEFAULT_VIEW);
+                    navigate(parsed);
+                  }}
+                  onSelectDrug={selectSubstance}
+                  onSelectCategory={selectCategory}
+                />
+              </main>
+            );
+          }
+          
+          // Fall back to library-based detail view
           const detail = getEffectDetail(view.effectSlug);
           if (!detail) {
             return (

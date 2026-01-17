@@ -13,13 +13,15 @@ interface HeaderProps {
 
 export function Header({ currentView, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
+  const effectsView: AppView = { type: "effects" };
   const reportsView: AppView = { type: "reports" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: IconName }> = [
     { label: "Substances", view: substancesView, icon: "lucide:flask-conical" },
+    { label: "Effects", view: effectsView, icon: "lucide:sparkles" },
     { label: "Reports", view: reportsView, icon: "lucide:file-signature" },
-    { label: "Dev Tools", view: devView, icon: "lucide:wrench" },
+    { label: "Dev", view: devView, icon: "lucide:wrench" },
   ];
   const aboutPath = viewToPath(aboutView);
   const isAboutActive = currentView.type === "about";
@@ -31,6 +33,14 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
         currentView.type === "category" ||
         currentView.type === "substance" ||
         currentView.type === "mechanism"
+      );
+    }
+
+    if (itemView.type === "effects") {
+      return (
+        currentView.type === "effects" ||
+        currentView.type === "effect" ||
+        currentView.type === "effect-category"
       );
     }
 

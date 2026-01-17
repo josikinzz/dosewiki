@@ -12,6 +12,7 @@ export type AppView =
   | { type: "category"; categoryKey: string }
   | { type: "effects" }
   | { type: "effect"; effectSlug: string }
+  | { type: "effect-category"; categorySlug: string }
   | { type: "mechanism"; mechanismSlug: string; qualifierSlug?: string }
   | { type: "classification"; classification: "chemical" | "psychoactive"; slug: string }
   | { type: "interactions"; primarySlug?: string; secondarySlug?: string }

@@ -44,14 +44,14 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject, delay = 
   return (
     <SectionCard delay={delay}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={User} label="Context" />
+        <IconBadge icon="lucide:user" label="Context" />
         Context
       </h2>
 
       {/* Trip date displayed prominently if available */}
       {hasTripDate && (
         <div className="mb-4 flex items-center gap-2 text-sm text-white/70">
-          <Calendar className="h-4 w-4 text-fuchsia-200" />
+          <Icon icon="lucide:calendar" className="h-4 w-4 text-fuchsia-200" />
           <span>{subject.trip_date}</span>
         </div>
       )}
@@ -59,7 +59,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject, delay = 
       {/* Info tiles grid */}
       {visibleFields.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2">
-          {visibleFields.map(({ key, label, icon: Icon }) => {
+          {visibleFields.map(({ key, label, icon: iconName }) => {
             const value = subject[key];
             return (
               <div
@@ -67,7 +67,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject, delay = 
                 className="rounded-xl border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/40 hover:bg-white/8"
               >
                 <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">
-                  <Icon className="h-3.5 w-3.5 text-fuchsia-200/70" />
+                  <Icon icon={iconName} className="h-3.5 w-3.5 text-fuchsia-200/70" />
                   {label}
                 </span>
                 <p className="mt-1.5 text-sm text-white/90">{value}</p>
@@ -86,7 +86,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject, delay = 
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-fuchsia-200 hover:text-fuchsia-100 transition-colors"
           >
-            <ExternalLink className="h-4 w-4" />
+            <Icon icon="lucide:external-link" className="h-4 w-4" />
             Subjective Effect Tracker PDF
           </a>
         </div>

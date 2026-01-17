@@ -24,7 +24,7 @@ export const ReportCard = memo(function ReportCard({ report, onClick }: ReportCa
       {/* Featured star badge */}
       {featured && (
         <div className="absolute right-3 top-3 sm:relative sm:right-auto sm:top-auto sm:order-last">
-          <Star className="h-5 w-5 fill-amber-400/80 text-amber-400" />
+          <Icon icon="lucide:star" className="h-5 w-5 fill-amber-400/80 text-amber-400" />
         </div>
       )}
 

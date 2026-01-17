@@ -2,7 +2,7 @@ import { memo, useMemo, useState } from "react";
 import { Icon, type IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DosageCategoryGroup } from "../../data/builders/library";
 import { useLibrary } from "../../data/ArticlesProvider";
 
@@ -95,37 +95,17 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
             </>
           }
         />
-        <div className="mt-10 mb-8">
-          <p className="md:text-center text-xs uppercase tracking-wide text-white/50">Sort index by</p>
-          <div className="mt-4 flex flex-wrap items-center gap-3 sm:justify-center">
-            {SORT_OPTIONS.map((option) => {
-              const isActive = option.key === sortKey;
-
-              return (
-                <Button
-                  key={option.key}
-                  variant={isActive ? "toggleActive" : "toggleInactive"}
-                  onClick={() => setSortKey(option.key)}
-                  aria-pressed={isActive}
-                  className="gap-2 px-5 py-2.5"
-                >
-                  <Icon
-                    icon={option.icon}
-                    size={20}
-                    className={
-                      isActive
-                        ? "text-fuchsia-100 drop-shadow"
-                        : "text-fuchsia-200/70"
-                    }
-                  />
-                  <span className={isActive ? "tracking-wide text-white" : "tracking-wide text-white/80"}>
-                    {option.label}
-                  </span>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Sort Tabs */}
+        <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as IndexSortKey)} className="mt-8 mb-8 flex justify-center">
+          <TabsList className="flex-wrap">
+            {SORT_OPTIONS.map((option) => (
+              <TabsTrigger key={option.key} value={option.key} className="gap-2">
+                <Icon icon={option.icon} size={16} />
+                {option.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
       <CategoryGrid
         groups={resolvedGroups}

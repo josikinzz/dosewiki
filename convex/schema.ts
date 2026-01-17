@@ -124,6 +124,101 @@ const tripReport = v.object({
   tags: v.array(v.string()),
 });
 
+// EffectIndex articles - intensity scales, substance analyses, methodology docs
+const effectIndexArticle = v.object({
+  slug: v.string(),           // URL-safe identifier (e.g., "dissociative-intensity-scale")
+  title: v.string(),          // Display title
+  tags: v.array(v.string()),  // Categorization (e.g., ["intensity scale", "dissociative"])
+  featured: v.optional(v.boolean()),
+  shortDescription: v.optional(v.string()),  // Brief summary
+  publicationDate: v.optional(v.string()),   // ISO date
+  
+  // Content (raw VCode markup + parsed AST)
+  body_raw: v.string(),
+  body_ast: v.optional(v.any()),
+  
+  // Authors
+  authors: v.optional(v.array(v.string())),
+  
+  // Citations
+  citations: v.optional(v.array(v.object({
+    url: v.string(),
+    text: v.string(),
+  }))),
+});
+
+// Subjective effect article - imported from EffectIndex
+const subjectiveEffect = v.object({
+  slug: v.string(),           // URL-safe identifier (e.g., "geometry")
+  name: v.string(),           // Display name (e.g., "Geometry")
+  tags: v.array(v.string()),  // Categorization tags (e.g., ["visual", "geometric"])
+  featured: v.optional(v.boolean()),
+
+  // Content sections (raw + parsed VCode AST)
+  summary: v.string(),        // Plain text summary for SEO/cards
+  description_raw: v.string(),
+  description_ast: v.optional(v.any()), // Parsed VCode AST (array of nodes)
+  long_summary_raw: v.optional(v.string()),   // Extended summary (VCode markup)
+  long_summary_ast: v.optional(v.any()),      // Extended summary parsed AST
+  analysis_raw: v.optional(v.string()),
+  analysis_ast: v.optional(v.any()),
+  style_variations_raw: v.optional(v.string()),
+  style_variations_ast: v.optional(v.any()),
+  personal_commentary_raw: v.optional(v.string()),
+  personal_commentary_ast: v.optional(v.any()),
+
+  // Media
+  social_media_image: v.optional(v.string()),
+  gallery_order: v.optional(v.array(v.string())),  // Replication slugs
+  audio_replications: v.optional(v.array(v.object({
+    title: v.string(),
+    artist: v.string(),
+    resource: v.string(),
+  }))),
+
+  // Links & References
+  see_also: v.optional(v.array(v.object({
+    location: v.string(),
+    title: v.string(),
+  }))),
+  external_links: v.optional(v.array(v.object({
+    url: v.string(),
+    title: v.string(),
+  }))),
+  citations: v.optional(v.array(v.object({
+    url: v.string(),
+    text: v.string(),
+    from: v.optional(v.string()),
+  }))),
+
+  // Subarticles for ToC anchors
+  subarticles: v.optional(v.array(v.object({
+    id: v.string(),
+    title: v.string(),
+  }))),
+
+  // Contributors
+  contributors: v.optional(v.array(v.string())),
+});
+
+// Replication - video or image representation of an effect
+const replication = v.object({
+  slug: v.string(),                    // URL-friendly identifier (e.g., "breathing-by-artist-name")
+  title: v.string(),                   // Display title
+  artist: v.string(),                  // Artist/creator name
+  artist_url: v.optional(v.string()),  // Artist portfolio/social link
+  type: v.union(v.literal("video"), v.literal("image")),  // "video" or "image"
+  storage_id: v.string(),              // Convex file storage ID
+  effect_slug: v.string(),             // Parent effect (normalized folder name)
+  thumbnail_storage_id: v.optional(v.string()), // Video thumbnail storage ID
+  width: v.optional(v.number()),       // For responsive display
+  height: v.optional(v.number()),
+  format: v.string(),                  // File extension (mp4, jpg, etc.)
+  file_size: v.optional(v.number()),   // In bytes
+  duration: v.optional(v.number()),    // Video duration in seconds
+  created_at: v.string(),              // ISO timestamp
+});
+
 export default defineSchema({
   // Main articles table - each document is a complete SubstanceArticle
   articles: defineTable(substanceArticle)
@@ -152,4 +247,20 @@ export default defineSchema({
   tripReports: defineTable(tripReport)
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"]),
+
+  // Subjective effect articles - imported from EffectIndex
+  subjectiveEffects: defineTable(subjectiveEffect)
+    .index("by_slug", ["slug"])
+    .index("by_featured", ["featured"]),
+
+  // EffectIndex articles - intensity scales, substance analyses, methodology
+  effectIndexArticles: defineTable(effectIndexArticle)
+    .index("by_slug", ["slug"])
+    .index("by_tag", ["tags"]),
+
+  // Video and image replications of effects
+  replications: defineTable(replication)
+    .index("by_effect", ["effect_slug"])
+    .index("by_slug", ["slug"])
+    .index("by_artist", ["artist"]),
 });

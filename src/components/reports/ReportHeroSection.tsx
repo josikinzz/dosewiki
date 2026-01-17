@@ -28,7 +28,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
       {/* Featured badge */}
       {report.featured && (
         <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300">
-          <Star className="h-3 w-3 fill-amber-400" />
+          <Icon icon="lucide:star" className="h-3 w-3 fill-amber-400" />
           Featured
         </div>
       )}
@@ -63,7 +63,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
 
       {/* Author byline with icon */}
       <div className="mt-3 flex items-center gap-3 text-base text-white/70">
-        <User className="h-5 w-5 text-fuchsia-200" />
+        <Icon icon="lucide:user" className="h-5 w-5 text-fuchsia-200" />
         <span>
           by <AuthorLink authorName={report.subject.name} className="font-medium text-white/90 hover:text-fuchsia-200" />
         </span>
@@ -72,7 +72,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
       {/* Trip date */}
       {hasTripDate && (
         <div className="mt-2 flex items-center gap-2 text-sm text-white/50">
-          <Calendar className="h-4 w-4" />
+          <Icon icon="lucide:calendar" className="h-4 w-4" />
           <span>{report.subject.trip_date}</span>
         </div>
       )}
@@ -85,7 +85,7 @@ export const ReportHeroSection = memo(function ReportHeroSection({
               key={tag}
               className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50"
             >
-              <Tag className="h-3 w-3" />
+              <Icon icon="lucide:tag" className="h-3 w-3" />
               {tag}
             </span>
           ))}

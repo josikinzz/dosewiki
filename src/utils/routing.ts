@@ -28,7 +28,9 @@ export function viewToPath(view: AppView): string {
     case "category":
       return `/category/${view.categoryKey}`;
     case "effect":
-      return `/effect/${view.effectSlug}`;
+      return `/effects/${view.effectSlug}`;
+    case "effect-category":
+      return `/effects/category/${view.categorySlug}`;
     case "mechanism":
       return view.qualifierSlug
         ? `/mechanism/${view.mechanismSlug}/${view.qualifierSlug}`
@@ -71,6 +73,13 @@ export function parsePath(
   const resolveDefault = () => defaultView;
   try {
     const source = typeof pathValue === "string" ? pathValue : typeof window !== "undefined" ? window.location.pathname : "";
+    
+    // Handle hash-only paths (same-page anchor navigation)
+    // Return the default view to indicate no route change needed
+    if (source.startsWith("#")) {
+      return resolveDefault();
+    }
+    
     const raw = source.replace(/^\//, "");
 
     if (!raw) {
@@ -87,8 +96,6 @@ export function parsePath(
     switch (root) {
       case "substances":
         return { type: "substances" };
-      case "effects":
-        return { type: "effects" };
       case "reports":
         if (slug) {
           return { type: "report", slug };
@@ -113,7 +120,18 @@ export function parsePath(
         }
         return { type: "substances" };
       case "effect":
+        // Legacy /effect/{slug} route - redirect to /effects/{slug}
         if (slug) {
+          return { type: "effect", effectSlug: slug };
+        }
+        return { type: "effects" };
+      case "effects":
+        if (slug === "category" && segments[2]) {
+          // /effects/category/{categorySlug}
+          return { type: "effect-category", categorySlug: segments[2] };
+        }
+        if (slug) {
+          // /effects/{effectSlug}
           return { type: "effect", effectSlug: slug };
         }
         return { type: "effects" };

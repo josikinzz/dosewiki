@@ -318,7 +318,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="streamline-flex:critical-thinking-2" label="Subjective Effects" />
+        <IconBadge icon="lucide:sparkles" label="Subjective Effects" />
         Subjective Effects
       </h2>
       {/* Overview note as intro paragraph, or fallback to generic text */}

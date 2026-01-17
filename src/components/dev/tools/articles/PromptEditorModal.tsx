@@ -166,7 +166,7 @@ export function PromptEditorModal({
               <div className="h-3 w-3 rounded-full bg-purple-500/60" />
             </div>
             <span className="font-medium text-white">
-              <FileCode className="mr-2 inline-block h-4 w-4" />
+              <Icon icon="lucide:file-code" className="mr-2 inline-block h-4 w-4" size={16} />
               {sectionLabel} - Prompt Editor
             </span>
             {(promptHasChanges || quoteHasChanges) && (

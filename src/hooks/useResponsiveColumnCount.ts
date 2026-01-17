@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 const BREAKPOINTS = {
-  sm: 640,
+  sm: 480,
+  md: 768,
   lg: 1024,
+  xl: 1280,
   "2xl": 1536,
-  "3xl": 1920,
 };
 
 type ResponsiveColumnOptions = {
@@ -21,9 +22,10 @@ export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): num
     }
     const width = window.innerWidth;
     if (width < BREAKPOINTS.sm) return 1;
-    if (width < BREAKPOINTS.lg) return 2;
-    if (width < BREAKPOINTS["2xl"]) return 4;
-    if (width < BREAKPOINTS["3xl"]) return 5;
+    if (width < BREAKPOINTS.md) return 2;
+    if (width < BREAKPOINTS.lg) return 3;
+    if (width < BREAKPOINTS.xl) return 4;
+    if (width < BREAKPOINTS["2xl"]) return 5;
     return maxColumns;
   }, [maxColumns]);
 

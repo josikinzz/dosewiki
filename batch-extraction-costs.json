@@ -1,0 +1,116 @@
+{
+  "batches": [
+    {
+      "category": "legality",
+      "startedAt": "2026-01-17T04:34:48.132Z",
+      "completedAt": "2026-01-17T04:34:48.344Z",
+      "itemsProcessed": 0,
+      "itemsFailed": 1,
+      "itemsSkipped": 0,
+      "tokensUsed": {
+        "input": 0,
+        "output": 0
+      },
+      "estimatedCost": "$0.0000",
+      "durationSeconds": 0.212
+    },
+    {
+      "category": "legality",
+      "startedAt": "2026-01-17T04:35:00.219Z",
+      "completedAt": "2026-01-17T04:35:39.827Z",
+      "itemsProcessed": 1,
+      "itemsFailed": 0,
+      "itemsSkipped": 0,
+      "tokensUsed": {
+        "input": 120679,
+        "output": 7815
+      },
+      "estimatedCost": "$0.0228",
+      "durationSeconds": 39.608
+    },
+    {
+      "category": "tolerance",
+      "startedAt": "2026-01-17T05:02:32.931Z",
+      "completedAt": "2026-01-17T05:12:35.526Z",
+      "itemsProcessed": 206,
+      "itemsFailed": 1,
+      "itemsSkipped": 1,
+      "tokensUsed": {
+        "input": 2573460,
+        "output": 73814
+      },
+      "estimatedCost": "$0.4303",
+      "durationSeconds": 602.595
+    },
+    {
+      "category": "tolerance",
+      "startedAt": "2026-01-17T05:14:39.046Z",
+      "completedAt": "2026-01-17T05:14:47.547Z",
+      "itemsProcessed": 2,
+      "itemsFailed": 0,
+      "itemsSkipped": 0,
+      "tokensUsed": {
+        "input": 47539,
+        "output": 915
+      },
+      "estimatedCost": "$0.0077",
+      "durationSeconds": 8.501
+    },
+    {
+      "category": "subjective-effects",
+      "startedAt": "2026-01-17T05:14:54.921Z",
+      "completedAt": "2026-01-17T05:19:44.702Z",
+      "itemsProcessed": 66,
+      "itemsFailed": 0,
+      "itemsSkipped": 1,
+      "tokensUsed": {
+        "input": 495326,
+        "output": 38870
+      },
+      "estimatedCost": "$0.0976",
+      "durationSeconds": 289.781
+    },
+    {
+      "category": "subjective-effects",
+      "startedAt": "2026-01-17T05:20:38.757Z",
+      "completedAt": "2026-01-17T05:20:38.758Z",
+      "itemsProcessed": 0,
+      "itemsFailed": 0,
+      "itemsSkipped": 1,
+      "tokensUsed": {
+        "input": 0,
+        "output": 0
+      },
+      "estimatedCost": "$0.0000",
+      "durationSeconds": 0.001
+    },
+    {
+      "category": "intro-text",
+      "startedAt": "2026-01-17T05:20:46.524Z",
+      "completedAt": "2026-01-17T05:28:47.046Z",
+      "itemsProcessed": 108,
+      "itemsFailed": 0,
+      "itemsSkipped": 0,
+      "tokensUsed": {
+        "input": 1452453,
+        "output": 73354
+      },
+      "estimatedCost": "$0.2619",
+      "durationSeconds": 480.522
+    },
+    {
+      "category": "intro-text",
+      "startedAt": "2026-01-17T05:22:48.448Z",
+      "completedAt": "2026-01-17T05:28:54.698Z",
+      "itemsProcessed": 82,
+      "itemsFailed": 0,
+      "itemsSkipped": 0,
+      "tokensUsed": {
+        "input": 1254637,
+        "output": 57341
+      },
+      "estimatedCost": "$0.2226",
+      "durationSeconds": 366.25
+    }
+  ]
+}

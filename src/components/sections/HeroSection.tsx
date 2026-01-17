@@ -196,7 +196,7 @@ export const HeroSection = memo(function HeroSection({
           )}
           {classification.chemical_class.length > 0 && (
             <div className="flex items-start gap-3">
-              <Icon icon="solar:benzene-ring-line-duotone" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
+              <Icon icon="lucide:flask-conical" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
               <div>
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Chemical Class

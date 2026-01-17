@@ -35,7 +35,7 @@ export function ClassificationFieldsRHF({
           placeholder="Add class"
           options={chemicalClassOptions}
           openStrategy="button"
-          icon={<Icon icon="solar:benzene-ring-line-duotone" size={14} className="text-fuchsia-300" />}
+          icon={<Icon icon="solar:benzene-ring-linear" size={14} className="text-fuchsia-300" />}
         />
       </div>
     </section>

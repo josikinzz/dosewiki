@@ -72,12 +72,11 @@ export const TimelineSection = memo(function TimelineSection({
   }
 
   const config = PHASE_CONFIG[phase];
-  const Icon = config.icon;
 
   return (
     <SectionCard delay={delay} className={`${config.sectionBorder} ${config.sectionBg}`}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Icon} label={config.label} className={config.iconBadgeBg} />
+        <IconBadge icon={config.icon} label={config.label} className={config.iconBadgeBg} />
         {config.label}
       </h2>
 
@@ -100,7 +99,7 @@ export const TimelineSection = memo(function TimelineSection({
                 {/* Time stamp */}
                 {entry.time && (
                   <div className="mb-2 flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-white/40" />
+                    <Icon icon="lucide:clock" className="h-3 w-3 text-white/40" />
                     <span className={`text-sm font-medium ${config.timeColor}`}>
                       {entry.time}
                     </span>

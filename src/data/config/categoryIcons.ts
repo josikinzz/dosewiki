@@ -58,7 +58,7 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
   "habit-forming": "lucide:repeat-2",
   "habit forming": "lucide:repeat-2",
   common: "lucide:swatch-book",
-  chemical: "solar:benzene-ring-line-duotone",
+  chemical: "solar:benzene-ring-linear",
   mechanism: "lucide:cog",
 };
 

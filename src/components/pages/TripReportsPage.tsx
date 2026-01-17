@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import { Icon, type IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { ReportCard } from "../reports/ReportCard";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TripReport, ReportViewMode } from "../../types/tripReport";
 import { getConvexUrl, isConvexEnabled } from "../../lib/convex";
 
@@ -135,28 +136,26 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
       />
 
       {/* View mode selector */}
-      <div className="mt-6 flex flex-wrap gap-2">
-        {VIEW_MODES.map(({ key, label, icon }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => handleViewModeClick(key)}
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-              viewMode === key
-                ? "bg-fuchsia-500/20 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
-                : "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80"
-            }`}
-          >
-            <Icon icon={icon} size={16} />
-            {label}
-            {viewMode === key && (
-              <span className="text-xs opacity-70">
-                {sortDirection === "asc" ? "↑" : "↓"}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <Tabs value={viewMode} className="mt-6 mb-8 flex justify-center">
+        <TabsList className="flex-wrap">
+          {VIEW_MODES.map(({ key, label, icon }) => (
+            <TabsTrigger 
+              key={key} 
+              value={key} 
+              onClick={() => handleViewModeClick(key)}
+              className="gap-2"
+            >
+              <Icon icon={icon} size={16} />
+              {label}
+              {viewMode === key && (
+                <span className="text-xs opacity-70">
+                  {sortDirection === "asc" ? "↑" : "↓"}
+                </span>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Loading state */}
       {isLoading && (

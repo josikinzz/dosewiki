@@ -20,7 +20,7 @@ export const SubstancesCard = memo(function SubstancesCard({ substances, delay =
   return (
     <SectionCard delay={delay}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon={Pill} label="Substances" />
+        <IconBadge icon="lucide:pill" label="Substances" />
         Substances
       </h2>
 
@@ -32,7 +32,7 @@ export const SubstancesCard = memo(function SubstancesCard({ substances, delay =
           >
             {/* Substance name */}
             <div className="flex items-center gap-2">
-              <Beaker className="h-4 w-4 text-fuchsia-200" />
+              <Icon icon="lucide:beaker" className="h-4 w-4 text-fuchsia-200" />
               <span className="font-medium text-white/90">{substance.name}</span>
             </div>
 
@@ -47,7 +47,7 @@ export const SubstancesCard = memo(function SubstancesCard({ substances, delay =
                 )}
                 {substance.roa && (
                   <span className="flex items-center gap-1.5 text-white/70">
-                    <Syringe className="h-3 w-3 text-white/40" />
+                    <Icon icon="lucide:syringe" className="h-3 w-3 text-white/40" />
                     <span className="text-xs">{substance.roa}</span>
                   </span>
                 )}
