@@ -14,25 +14,33 @@ export interface ArticlesContextValue {
   apiKey: string;
   model: string;
   isKeyValid: boolean | null;
-  
+
   // Selected substance info
   selectedSubstanceSlug: string | null;
   substanceModule: SubstanceModule | null;
   availableSources: SourceInfo[];
-  
+
   // Extracted content for section generators (raw content)
+  summaryQuotes: string | null;
   harmPotentialQuotes: string | null;
   pharmacologyQuotes: string | null;
   historyCultureQuotes: string | null;
-  
+  dosageDurationQuotes: string | null;
+  toleranceQuotes: string | null;
+  legalityQuotes: string | null;
+
   // Parsed source info with favicons for section generators
+  summarySources: ExtractedSourceInfo | null;
   harmPotentialSources: ExtractedSourceInfo | null;
   pharmacologySources: ExtractedSourceInfo | null;
   historyCultureSources: ExtractedSourceInfo | null;
-  
+  dosageDurationSources: ExtractedSourceInfo | null;
+  toleranceSources: ExtractedSourceInfo | null;
+  legalitySources: ExtractedSourceInfo | null;
+
   // Helper to get source content
   getSourceContent: (sourceId: string) => string | null;
-  
+
   // Get all sources as array for section generators
   getAllSources: () => Array<{ source: string; content: string }>;
 }

@@ -48,7 +48,7 @@ export function SourcePreviewModal({ source, content, onClose }: SourcePreviewMo
             onClick={onClose}
             title="Close"
           >
-            <X className="h-5 w-5" />
+            <Icon icon="lucide:x" className="h-5 w-5" size={20} />
           </Button>
         </div>
         {/* Window Content */}

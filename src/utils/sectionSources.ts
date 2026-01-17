@@ -1,13 +1,21 @@
 /**
  * Section-specific source loading utilities.
- * 
+ *
  * Currently supports:
+ * - Summary: Extracted quotes from intro-text-quotes/{slug}-intro-text.md
  * - Harm Potential: Extracted quotes from harmpotential-quotes/{slug}-harmpotential.md
  * - Pharmacology: Extracted quotes from pharmacology-quotes/{slug}-pharmacology.md
  * - History & Culture: Extracted quotes from history-culture-quotes/{slug}-history-culture.md
- * 
- * Future sections can be added as extraction is completed.
+ * - Dosage & Duration: Extracted quotes from dosage-duration-quotes/{slug}-dosage-duration.md
+ * - Tolerance: Extracted quotes from tolerance-quotes/{slug}-tolerance.md
+ * - Legality: Extracted quotes from legality-quotes/{slug}-legality.md
  */
+
+// Import all summary/intro quote files using Vite's glob import
+const summaryModules = import.meta.glob<string>(
+  '/intro-text-quotes/*-intro-text.md',
+  { query: '?raw', import: 'default', eager: false }
+);
 
 // Import all harm potential quote files using Vite's glob import
 const harmPotentialModules = import.meta.glob<string>(
@@ -26,6 +34,35 @@ const historyCultureModules = import.meta.glob<string>(
   '/history-culture-quotes/*-history-culture.md',
   { query: '?raw', import: 'default', eager: false }
 );
+
+// Import all dosage & duration quote files using Vite's glob import
+const dosageDurationModules = import.meta.glob<string>(
+  '/dosage-duration-quotes/*-dosage-duration.md',
+  { query: '?raw', import: 'default', eager: false }
+);
+
+// Import all tolerance quote files using Vite's glob import
+const toleranceModules = import.meta.glob<string>(
+  '/tolerance-quotes/*-tolerance.md',
+  { query: '?raw', import: 'default', eager: false }
+);
+
+// Import all legality quote files using Vite's glob import
+const legalityModules = import.meta.glob<string>(
+  '/legality-quotes/*-legality.md',
+  { query: '?raw', import: 'default', eager: false }
+);
+
+// Build a lookup map from slug to module path for summary/intro
+const summarySlugMap = new Map<string, string>();
+
+for (const path of Object.keys(summaryModules)) {
+  // Path format: /intro-text-quotes/{slug}-intro-text.md
+  const match = path.match(/\/intro-text-quotes\/(.+)-intro-text\.md$/);
+  if (match) {
+    summarySlugMap.set(match[1], path);
+  }
+}
 
 // Build a lookup map from slug to module path for harm potential
 const harmPotentialSlugMap = new Map<string, string>();
@@ -58,6 +95,77 @@ for (const path of Object.keys(historyCultureModules)) {
   if (match) {
     historyCultureSlugMap.set(match[1], path);
   }
+}
+
+// Build a lookup map from slug to module path for dosage & duration
+const dosageDurationSlugMap = new Map<string, string>();
+
+for (const path of Object.keys(dosageDurationModules)) {
+  // Path format: /dosage-duration-quotes/{slug}-dosage-duration.md
+  const match = path.match(/\/dosage-duration-quotes\/(.+)-dosage-duration\.md$/);
+  if (match) {
+    dosageDurationSlugMap.set(match[1], path);
+  }
+}
+
+// Build a lookup map from slug to module path for tolerance
+const toleranceSlugMap = new Map<string, string>();
+
+for (const path of Object.keys(toleranceModules)) {
+  // Path format: /tolerance-quotes/{slug}-tolerance.md
+  const match = path.match(/\/tolerance-quotes\/(.+)-tolerance\.md$/);
+  if (match) {
+    toleranceSlugMap.set(match[1], path);
+  }
+}
+
+// Build a lookup map from slug to module path for legality
+const legalitySlugMap = new Map<string, string>();
+
+for (const path of Object.keys(legalityModules)) {
+  // Path format: /legality-quotes/{slug}-legality.md
+  const match = path.match(/\/legality-quotes\/(.+)-legality\.md$/);
+  if (match) {
+    legalitySlugMap.set(match[1], path);
+  }
+}
+
+/**
+ * Check if summary extracted sources exist for a given slug.
+ */
+export function hasSummaryQuotes(slug: string): boolean {
+  return summarySlugMap.has(slug);
+}
+
+/**
+ * Load summary extracted quotes for a substance.
+ * Returns null if no extracted quotes exist.
+ */
+export async function loadSummaryQuotes(slug: string): Promise<string | null> {
+  const path = summarySlugMap.get(slug);
+  if (!path) {
+    return null;
+  }
+
+  const loader = summaryModules[path];
+  if (!loader) {
+    return null;
+  }
+
+  try {
+    const content = await loader();
+    return content;
+  } catch (error) {
+    console.error(`Failed to load summary quotes for ${slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get list of all slugs that have summary extracted sources.
+ */
+export function getSummarySlugs(): string[] {
+  return Array.from(summarySlugMap.keys());
 }
 
 /**
@@ -174,6 +282,120 @@ export function getHistoryCultureSlugs(): string[] {
   return Array.from(historyCultureSlugMap.keys());
 }
 
+/**
+ * Check if dosage & duration extracted sources exist for a given slug.
+ */
+export function hasDosageDurationQuotes(slug: string): boolean {
+  return dosageDurationSlugMap.has(slug);
+}
+
+/**
+ * Load dosage & duration extracted quotes for a substance.
+ * Returns null if no extracted quotes exist.
+ */
+export async function loadDosageDurationQuotes(slug: string): Promise<string | null> {
+  const path = dosageDurationSlugMap.get(slug);
+  if (!path) {
+    return null;
+  }
+
+  const loader = dosageDurationModules[path];
+  if (!loader) {
+    return null;
+  }
+
+  try {
+    const content = await loader();
+    return content;
+  } catch (error) {
+    console.error(`Failed to load dosage & duration quotes for ${slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get list of all slugs that have dosage & duration extracted sources.
+ */
+export function getDosageDurationSlugs(): string[] {
+  return Array.from(dosageDurationSlugMap.keys());
+}
+
+/**
+ * Check if tolerance extracted sources exist for a given slug.
+ */
+export function hasToleranceQuotes(slug: string): boolean {
+  return toleranceSlugMap.has(slug);
+}
+
+/**
+ * Load tolerance extracted quotes for a substance.
+ * Returns null if no extracted quotes exist.
+ */
+export async function loadToleranceQuotes(slug: string): Promise<string | null> {
+  const path = toleranceSlugMap.get(slug);
+  if (!path) {
+    return null;
+  }
+
+  const loader = toleranceModules[path];
+  if (!loader) {
+    return null;
+  }
+
+  try {
+    const content = await loader();
+    return content;
+  } catch (error) {
+    console.error(`Failed to load tolerance quotes for ${slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get list of all slugs that have tolerance extracted sources.
+ */
+export function getToleranceSlugs(): string[] {
+  return Array.from(toleranceSlugMap.keys());
+}
+
+/**
+ * Check if legality extracted sources exist for a given slug.
+ */
+export function hasLegalityQuotes(slug: string): boolean {
+  return legalitySlugMap.has(slug);
+}
+
+/**
+ * Load legality extracted quotes for a substance.
+ * Returns null if no extracted quotes exist.
+ */
+export async function loadLegalityQuotes(slug: string): Promise<string | null> {
+  const path = legalitySlugMap.get(slug);
+  if (!path) {
+    return null;
+  }
+
+  const loader = legalityModules[path];
+  if (!loader) {
+    return null;
+  }
+
+  try {
+    const content = await loader();
+    return content;
+  } catch (error) {
+    console.error(`Failed to load legality quotes for ${slug}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get list of all slugs that have legality extracted sources.
+ */
+export function getLegalitySlugs(): string[] {
+  return Array.from(legalitySlugMap.keys());
+}
+
 // Type for extracted source info with favicon metadata
 export interface ExtractedSourceInfo {
   /** Raw markdown content */
@@ -220,14 +442,14 @@ export interface SectionSourceAvailability {
 export function getSectionSourceAvailability(slug: string): SectionSourceAvailability {
   return {
     harm_potential: hasHarmPotentialQuotes(slug),
-    dosage_duration: false, // Future: dosage-quotes/{slug}-dosage.md
-    subjective_effects: false, // Future: effects-quotes/{slug}-effects.md
+    dosage_duration: hasDosageDurationQuotes(slug),
+    subjective_effects: false, // Subjective effects handled separately
     pharmacology: hasPharmacologyQuotes(slug),
-    interactions: false,
-    tolerance: false,
+    interactions: false, // Interactions use TripSit combos data
+    tolerance: hasToleranceQuotes(slug),
     history_culture: hasHistoryCultureQuotes(slug),
-    legality: false,
-    identification: false,
+    legality: hasLegalityQuotes(slug),
+    identification: false, // Identification uses general sources
   };
 }
 

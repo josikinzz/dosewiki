@@ -38,10 +38,14 @@ import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
 import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
-import { 
-  loadHarmPotentialQuotes, 
-  loadPharmacologyQuotes, 
+import {
+  loadHarmPotentialQuotes,
+  loadPharmacologyQuotes,
   loadHistoryCultureQuotes,
+  loadSummaryQuotes,
+  loadDosageDurationQuotes,
+  loadToleranceQuotes,
+  loadLegalityQuotes,
   parseSourcesFromQuotes,
   type ExtractedSourceInfo,
 } from "../../../../utils/sectionSources";
@@ -112,14 +116,22 @@ export const ArticlesTab = memo(function ArticlesTab({
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
 
   // Extracted quotes for section generators
+  const [summaryQuotes, setSummaryQuotes] = useState<string | null>(null);
   const [harmPotentialQuotes, setHarmPotentialQuotes] = useState<string | null>(null);
   const [pharmacologyQuotes, setPharmacologyQuotes] = useState<string | null>(null);
   const [historyCultureQuotes, setHistoryCultureQuotes] = useState<string | null>(null);
-  
+  const [dosageDurationQuotes, setDosageDurationQuotes] = useState<string | null>(null);
+  const [toleranceQuotes, setToleranceQuotes] = useState<string | null>(null);
+  const [legalityQuotes, setLegalityQuotes] = useState<string | null>(null);
+
   // Parsed source info with favicons
+  const [summarySources, setSummarySources] = useState<ExtractedSourceInfo | null>(null);
   const [harmPotentialSources, setHarmPotentialSources] = useState<ExtractedSourceInfo | null>(null);
   const [pharmacologySources, setPharmacologySources] = useState<ExtractedSourceInfo | null>(null);
   const [historyCultureSources, setHistoryCultureSources] = useState<ExtractedSourceInfo | null>(null);
+  const [dosageDurationSources, setDosageDurationSources] = useState<ExtractedSourceInfo | null>(null);
+  const [toleranceSources, setToleranceSources] = useState<ExtractedSourceInfo | null>(null);
+  const [legalitySources, setLegalitySources] = useState<ExtractedSourceInfo | null>(null);
 
   // Save to database state
   const [isSaving, setIsSaving] = useState(false);
@@ -240,6 +252,25 @@ export const ArticlesTab = memo(function ArticlesTab({
     };
   }, []);
 
+  // Load summary quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setSummaryQuotes(null);
+      setSummarySources(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setSummaryQuotes(null);
+    setSummarySources(null);
+    loadSummaryQuotes(selectedSubstanceSlug).then((quotes) => {
+      setSummaryQuotes(quotes);
+      if (quotes) {
+        setSummarySources(buildSourceInfo(quotes));
+      }
+    });
+  }, [selectedSubstanceSlug, buildSourceInfo]);
+
   // Load harm potential quotes when substance changes
   useEffect(() => {
     if (!selectedSubstanceSlug) {
@@ -293,6 +324,63 @@ export const ArticlesTab = memo(function ArticlesTab({
       setHistoryCultureQuotes(quotes);
       if (quotes) {
         setHistoryCultureSources(buildSourceInfo(quotes));
+      }
+    });
+  }, [selectedSubstanceSlug, buildSourceInfo]);
+
+  // Load dosage & duration quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setDosageDurationQuotes(null);
+      setDosageDurationSources(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setDosageDurationQuotes(null);
+    setDosageDurationSources(null);
+    loadDosageDurationQuotes(selectedSubstanceSlug).then((quotes) => {
+      setDosageDurationQuotes(quotes);
+      if (quotes) {
+        setDosageDurationSources(buildSourceInfo(quotes));
+      }
+    });
+  }, [selectedSubstanceSlug, buildSourceInfo]);
+
+  // Load tolerance quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setToleranceQuotes(null);
+      setToleranceSources(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setToleranceQuotes(null);
+    setToleranceSources(null);
+    loadToleranceQuotes(selectedSubstanceSlug).then((quotes) => {
+      setToleranceQuotes(quotes);
+      if (quotes) {
+        setToleranceSources(buildSourceInfo(quotes));
+      }
+    });
+  }, [selectedSubstanceSlug, buildSourceInfo]);
+
+  // Load legality quotes when substance changes
+  useEffect(() => {
+    if (!selectedSubstanceSlug) {
+      setLegalityQuotes(null);
+      setLegalitySources(null);
+      return;
+    }
+
+    // Clear stale data immediately before loading new data
+    setLegalityQuotes(null);
+    setLegalitySources(null);
+    loadLegalityQuotes(selectedSubstanceSlug).then((quotes) => {
+      setLegalityQuotes(quotes);
+      if (quotes) {
+        setLegalitySources(buildSourceInfo(quotes));
       }
     });
   }, [selectedSubstanceSlug, buildSourceInfo]);
@@ -487,12 +575,20 @@ export const ArticlesTab = memo(function ArticlesTab({
     selectedSubstanceSlug,
     substanceModule,
     availableSources,
+    summaryQuotes,
     harmPotentialQuotes,
     pharmacologyQuotes,
     historyCultureQuotes,
+    dosageDurationQuotes,
+    toleranceQuotes,
+    legalityQuotes,
+    summarySources,
     harmPotentialSources,
     pharmacologySources,
     historyCultureSources,
+    dosageDurationSources,
+    toleranceSources,
+    legalitySources,
     getSourceContent,
     getAllSources,
   }), [
@@ -502,12 +598,20 @@ export const ArticlesTab = memo(function ArticlesTab({
     selectedSubstanceSlug,
     substanceModule,
     availableSources,
+    summaryQuotes,
     harmPotentialQuotes,
     pharmacologyQuotes,
     historyCultureQuotes,
+    dosageDurationQuotes,
+    toleranceQuotes,
+    legalityQuotes,
+    summarySources,
     harmPotentialSources,
     pharmacologySources,
     historyCultureSources,
+    dosageDurationSources,
+    toleranceSources,
+    legalitySources,
     getSourceContent,
     getAllSources,
   ]);

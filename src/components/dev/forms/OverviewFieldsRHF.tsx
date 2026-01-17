@@ -2,7 +2,9 @@
  * RHF-based Overview fields component.
  */
 
+import { useCallback } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import yaml from "yaml";
 import { Icon } from "../../common/Icon";
 
 import { Input } from "@/components/ui/input";
@@ -18,7 +20,10 @@ import {
 import { CollapsibleSubsection, FieldGroup, helperTextClass } from "./FormHelpers";
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "../../../data/config/tagOptions";
-import type { SubstanceArticle } from "../../../schema";
+import type { SubstanceArticle, Identification, Classification } from "../../../schema";
+import { SectionGenerator } from "../tools/articles/SectionGenerator";
+import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { identificationPrompt } from "../../../data/config/sectionPrompts";
 
 const PRIORITY_OPTIONS = [
   { value: "high", label: "High", description: "Featured in listings" },
@@ -37,7 +42,8 @@ export function OverviewFieldsRHF({
   categoryOptions: _categoryOptions,
   indexCategoryOptions,
 }: OverviewFieldsRHFProps) {
-  const { register, watch, setValue, control } = useFormContext<SubstanceArticle>();
+  const { register, watch, setValue, control, getValues } = useFormContext<SubstanceArticle>();
+  const articlesContext = useOptionalArticlesContext();
 
   // Sync title and common_name together
   const handleDisplayTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,8 +54,65 @@ export function OverviewFieldsRHF({
 
   const displayTitle = watch("identification.common_name") || watch("title") || "";
 
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated identification YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const identification: Identification = parsed.identification ?? {};
+      const classification: Classification = parsed.classification ?? {};
+
+      // Update identification fields
+      if (identification.common_name) {
+        setValue("identification.common_name", identification.common_name);
+        setValue("title", identification.common_name);
+      }
+      if (identification.substitutive_name) setValue("identification.substitutive_name", identification.substitutive_name);
+      if (identification.iupac_name) setValue("identification.iupac_name", identification.iupac_name);
+      if (identification.cas_number) setValue("identification.cas_number", identification.cas_number);
+      if (identification.smiles) setValue("identification.smiles", identification.smiles);
+      if (identification.inchi_key) setValue("identification.inchi_key", identification.inchi_key);
+      if (identification.molecular_formula) setValue("identification.molecular_formula", identification.molecular_formula);
+      if (identification.molecular_weight) setValue("identification.molecular_weight", identification.molecular_weight);
+      if (identification.alternative_names) setValue("identification.alternative_names", identification.alternative_names);
+      if (identification.botanical_name) setValue("identification.botanical_name", identification.botanical_name);
+
+      // Update classification fields
+      if (classification.psychoactive_class) setValue("classification.psychoactive_class", classification.psychoactive_class);
+      if (classification.chemical_class) setValue("classification.chemical_class", classification.chemical_class);
+    } catch (error) {
+      console.error("Failed to parse generated identification YAML:", error);
+    }
+  }, [setValue]);
+
   return (
     <section className="space-y-6">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Identification & Classification"
+          sectionKey="identification"
+          prompt={identificationPrompt}
+          extractedContent={null}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+        />
+      )}
+
       {/* Article metadata - first for quick reference */}
       <FieldGroup label="Article Metadata">
         <div className="grid gap-4 md:grid-cols-2">

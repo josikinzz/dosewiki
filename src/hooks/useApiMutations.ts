@@ -82,7 +82,9 @@ export interface SaveProfileResult {
     displayName: string;
     bio: string;
     links: Array<{ label: string; url: string }>;
-    avatarUrl?: string;
+    avatarUrl: string | null;
+    aliases: string[];
+    hasCustomBio: boolean;
   };
   error?: string;
 }

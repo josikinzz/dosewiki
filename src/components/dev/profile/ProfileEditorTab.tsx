@@ -281,7 +281,9 @@ export function ProfileEditorTab({
         displayName: normalizedForm.displayName,
         bio: normalizedForm.bio,
         links: normalizedForm.links,
-        avatarUrl: result.avatarUrl ?? normalizedForm.avatarUrl,
+        avatarUrl: result.avatarUrl ?? normalizedForm.avatarUrl ?? null,
+        aliases: profile.aliases,
+        hasCustomBio: normalizedForm.bio.trim().length > 0,
       };
 
       onProfileUpdated(updatedProfile, credentials.key);
@@ -317,7 +319,7 @@ export function ProfileEditorTab({
               <Icon icon="lucide:external-link" size={14} />
               View public profile
             </a>
-            <UserRound className="hidden h-10 w-10 text-fuchsia-200/80 sm:block" />
+            <Icon icon="lucide:user-round" className="hidden h-10 w-10 text-fuchsia-200/80 sm:block" size={40} />
           </div>
         </div>
 

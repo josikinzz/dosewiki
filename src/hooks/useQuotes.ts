@@ -6,13 +6,24 @@ import {
   loadHarmPotentialQuotes,
   loadPharmacologyQuotes,
   loadHistoryCultureQuotes,
+  loadSummaryQuotes,
+  loadDosageDurationQuotes,
+  loadToleranceQuotes,
+  loadLegalityQuotes,
 } from "../utils/sectionSources";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type QuoteSection = "harm_potential" | "pharmacology" | "history_culture";
+export type QuoteSection =
+  | "harm_potential"
+  | "pharmacology"
+  | "history_culture"
+  | "summary"
+  | "dosage_duration"
+  | "tolerance"
+  | "legality";
 
 export interface QuoteData {
   slug: string;
@@ -50,6 +61,10 @@ const staticLoaders: Record<QuoteSection, (slug: string) => Promise<string | nul
   harm_potential: loadHarmPotentialQuotes,
   pharmacology: loadPharmacologyQuotes,
   history_culture: loadHistoryCultureQuotes,
+  summary: loadSummaryQuotes,
+  dosage_duration: loadDosageDurationQuotes,
+  tolerance: loadToleranceQuotes,
+  legality: loadLegalityQuotes,
 };
 
 // ============================================================================

@@ -385,7 +385,7 @@ export const TagMultiSelect = ({
     [commitHighlightedItem, disabled, handleRemoveTag, isOpen, menuItems.length, normalizedQuery.length, value.length],
   );
 
-  const handleOptionMouseDown = useCallback((event: MouseEvent<HTMLDivElement>) => {
+  const handleOptionMouseDown = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
   }, []);
 

@@ -51,7 +51,7 @@ export function SchemaSection({
     return null;
   }
 
-  const Icon = section.icon;
+  const sectionIcon = section.icon || "lucide:folder";
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.02]">
@@ -61,7 +61,7 @@ export function SchemaSection({
         className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.02]"
       >
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-fuchsia-500/20 text-fuchsia-200">
-          <Icon icon={section.icon || "lucide:folder"} className="h-5 w-5" size={20} />
+          <Icon icon={sectionIcon} className="h-5 w-5" size={20} />
         </div>
         <div className="flex-1">
           <h3 className="text-base font-semibold text-white">{section.label}</h3>

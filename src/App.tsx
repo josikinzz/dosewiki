@@ -238,12 +238,13 @@ export default function App() {
     [navigate],
   );
 
+  const searchQuery = view.type === "search" ? view.query : "";
   const searchResults = useMemo(() => {
     if (view.type !== "search") {
       return [];
     }
     return querySearchWithData(view.query, library);
-  }, [view.type, view.query, library]);
+  }, [view.type, searchQuery, library]);
 
   // Ref for main content focus management
   const mainRef = useRef<HTMLElement | null>(null);

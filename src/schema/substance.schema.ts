@@ -212,6 +212,8 @@ export const pharmacologySchema = z.object({
   receptor_binding: z.record(z.string(), z.string()),
   metabolism: z.string(),
   metabolites: z.array(z.string()),
+  protein_binding: z.string().optional(),
+  volume_of_distribution: z.string().optional(),
 });
 
 // ============================================================================

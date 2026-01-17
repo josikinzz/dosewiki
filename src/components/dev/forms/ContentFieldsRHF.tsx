@@ -14,10 +14,15 @@ import { Input } from "@/components/ui/input";
 
 import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
-import type { SubstanceArticle, HarmPotential } from "../../../schema";
+import type { SubstanceArticle, HarmPotential, Tolerance, Interactions } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { harmPotentialPrompt } from "../../../data/config/sectionPrompts";
+import {
+  harmPotentialPrompt,
+  tolerancePrompt,
+  interactionsPrompt,
+  summaryPrompt,
+} from "../../../data/config/sectionPrompts";
 
 // Tolerance field labels with icons matching ToleranceSection.tsx
 const toleranceLabels: Array<{
@@ -235,8 +240,52 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 }
 
 export function InteractionsFieldsRHF() {
+  const { setValue, getValues } = useFormContext<SubstanceArticle>();
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated interactions YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const interactions: Interactions = parsed.interactions ?? parsed;
+
+      setValue("interactions.dangerous", interactions.dangerous ?? []);
+      setValue("interactions.unsafe", interactions.unsafe ?? []);
+      setValue("interactions.caution", interactions.caution ?? []);
+    } catch (error) {
+      console.error("Failed to parse generated interactions YAML:", error);
+    }
+  }, [setValue]);
+
   return (
     <section className="space-y-4">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Interactions"
+          sectionKey="interactions"
+          prompt={interactionsPrompt}
+          extractedContent={null}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+        />
+      )}
+
       <CollapsibleSubsection
         title="Dangerous Combinations"
         icon={<Icon icon="lucide:skull" className="h-5 w-5 text-red-400" size={20} />}
@@ -248,7 +297,7 @@ export function InteractionsFieldsRHF() {
           addButtonLabel="Add dangerous"
         />
       </CollapsibleSubsection>
-      
+
       <CollapsibleSubsection
         title="Unsafe Combinations"
         icon={<Icon icon="lucide:hospital" className="h-5 w-5 text-orange-400" size={20} />}
@@ -260,7 +309,7 @@ export function InteractionsFieldsRHF() {
           addButtonLabel="Add unsafe"
         />
       </CollapsibleSubsection>
-      
+
       <CollapsibleSubsection
         title="Use with Caution"
         icon={<Icon icon="lucide:triangle-alert" className="h-5 w-5 text-amber-400" size={20} />}
@@ -281,10 +330,55 @@ export type ToleranceFieldsRHFProps = {
 };
 
 export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
+  const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated tolerance YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const tolerance: Tolerance = parsed.tolerance ?? parsed;
+
+      setValue("tolerance.full_tolerance", tolerance.full_tolerance ?? "");
+      setValue("tolerance.half_tolerance", tolerance.half_tolerance ?? "");
+      setValue("tolerance.baseline_tolerance", tolerance.baseline_tolerance ?? "");
+      setValue("tolerance.cross_tolerance", tolerance.cross_tolerance ?? []);
+    } catch (error) {
+      console.error("Failed to parse generated tolerance YAML:", error);
+    }
+  }, [setValue]);
 
   return (
     <section className="space-y-6">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Tolerance"
+          sectionKey="tolerance"
+          prompt={tolerancePrompt}
+          extractedContent={articlesContext.toleranceQuotes}
+          extractedSources={articlesContext.toleranceSources}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="tolerance"
+        />
+      )}
+
       <div className="grid gap-4 md:grid-cols-3">
         {toleranceLabels.map(({ key, label, icon }) => (
           <div key={`${idPrefix}-${key}`} className="space-y-1">
@@ -319,11 +413,55 @@ export type NotesFieldsRHFProps = {
 };
 
 export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
-  const { register, watch } = useFormContext<SubstanceArticle>();
+  const { register, watch, setValue, getValues } = useFormContext<SubstanceArticle>();
   const summaryValue = watch("summary") ?? "";
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated summary YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const summary = parsed.summary ?? parsed;
+
+      if (typeof summary === "string") {
+        setValue("summary", summary);
+      }
+    } catch (error) {
+      console.error("Failed to parse generated summary YAML:", error);
+    }
+  }, [setValue]);
 
   return (
     <section className="space-y-6">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Summary"
+          sectionKey="summary"
+          prompt={summaryPrompt}
+          extractedContent={articlesContext.summaryQuotes}
+          extractedSources={articlesContext.summarySources}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="summary"
+        />
+      )}
+
       <div className="space-y-1">
         <Label htmlFor={`${idPrefix}-summary`} className="flex items-center gap-1.5">
           <Icon icon="lucide:notebook-text" className="h-4 w-4 text-white/60" size={16} />

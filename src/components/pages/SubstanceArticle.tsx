@@ -10,8 +10,8 @@ import { slugify } from "../../utils/slug";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
 import { UiJsonToggle } from "../common/UiJsonToggle";
-import { Hero } from "../sections/Hero";
-import { DosageDurationCard } from "../sections/DosageDurationCard";
+import { HeroSection } from "../sections/HeroSection";
+import { DosageDurationSection } from "../sections/DosageDurationSection";
 import { InfoSections, InfoSectionItemCard } from "../sections/InfoSections";
 import { SubjectiveEffectsSection } from "../sections/SubjectiveEffectsSection";
 import { InteractionsSection } from "../sections/InteractionsSection";
@@ -19,7 +19,7 @@ import { ToleranceSection } from "../sections/ToleranceSection";
 import { AddictionCard } from "../sections/AddictionCard";
 import { NotesSection } from "../sections/NotesSection";
 import { CitationsSection } from "../sections/CitationsSection";
-import { ReagentTestingSection } from "../sections/ReagentTestingSection";
+import { ReagentSection } from "../sections/ReagentSection";
 import {
   extractInfoSectionBuckets,
   buildHeroVariantLines,

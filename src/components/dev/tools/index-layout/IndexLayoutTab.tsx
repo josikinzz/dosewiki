@@ -22,6 +22,7 @@ import {
   type SlugIssue,
   type ManualDatasetKey,
   type ManualCategoryDefinition,
+  type ManualCategorySection,
   type ManualIndexConfig,
 } from "./types";
 

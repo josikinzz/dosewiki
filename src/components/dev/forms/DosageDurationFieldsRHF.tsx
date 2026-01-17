@@ -3,8 +3,10 @@
  * Uses useFieldArray for route management.
  */
 
+import { useCallback } from "react";
 import { useFormContext, type UseFieldArrayReturn } from "react-hook-form";
 import { Icon } from "../../common/Icon";
+import yaml from "yaml";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +14,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
-import type { SubstanceArticle } from "../../../schema";
+import type { SubstanceArticle, Dosage, Duration } from "../../../schema";
+import { SectionGenerator } from "../tools/articles/SectionGenerator";
+import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { dosageDurationPrompt } from "../../../data/config/sectionPrompts";
 
 // Dose range tier labels
 const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "heavy", string]> = [
@@ -50,10 +55,61 @@ export function DosageDurationFieldsRHF({
   removeDosageRoute,
   applyDurationFromRoute,
 }: DosageDurationFieldsRHFProps) {
-  const { register } = useFormContext<SubstanceArticle>();
+  const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated dosage/duration YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const dosage: Dosage = parsed.dosage ?? {};
+      const duration: Duration = parsed.duration ?? {};
+
+      // Update dosage routes
+      if (dosage.routes && Array.isArray(dosage.routes)) {
+        setValue("dosage.routes", dosage.routes);
+      }
+
+      // Update duration routes
+      if (duration.routes && Array.isArray(duration.routes)) {
+        setValue("duration.routes", duration.routes);
+      }
+    } catch (error) {
+      console.error("Failed to parse generated dosage/duration YAML:", error);
+    }
+  }, [setValue]);
 
   return (
     <section className="space-y-6">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Dosage & Duration"
+          sectionKey="dosage_duration"
+          prompt={dosageDurationPrompt}
+          extractedContent={articlesContext.dosageDurationQuotes}
+          extractedSources={articlesContext.dosageDurationSources}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="dosage_duration"
+        />
+      )}
+
       <div className="space-y-4">
         {dosageRoutes.fields.map((field, index) => {
           const routeKey = `${idPrefix}-route-${index}`;

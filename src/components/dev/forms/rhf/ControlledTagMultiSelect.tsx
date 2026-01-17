@@ -9,6 +9,7 @@ import type { SubstanceArticle } from "../../../../schema";
 
 // NOTE: Subjective effects fields are now Record<string, EffectEntry[]> and need
 // a different component to handle the flexible subcategory structure.
+// NOTE: comparisons field is { drug: string; comparison: string; }[] and needs a different component.
 type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "index_categories"
   | "identification.alternative_names"
@@ -22,7 +23,6 @@ type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "tolerance.cross_tolerance"
   | "legality.international"
   | "harm_potential.risks.other"
-  | "comparisons"
 );
 
 export type ControlledTagMultiSelectProps = Omit<TagMultiSelectProps, "value" | "onChange"> & {

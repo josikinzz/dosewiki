@@ -11,6 +11,7 @@ import tolerancePrompt from './tolerance.md?raw';
 import historyCulturePrompt from './historyCulture.md?raw';
 import legalityPrompt from './legality.md?raw';
 import identificationPrompt from './identification.md?raw';
+import summaryPrompt from './summary.md?raw';
 
 export const sectionPrompts = {
   base: basePrompt,
@@ -23,6 +24,7 @@ export const sectionPrompts = {
   history_culture: historyCulturePrompt,
   legality: legalityPrompt,
   identification: identificationPrompt,
+  summary: summaryPrompt,
 } as const;
 
 export type SectionKey = keyof typeof sectionPrompts;
@@ -37,6 +39,12 @@ export interface SectionMeta {
 
 export const sectionMetadata: SectionMeta[] = [
   {
+    key: 'summary',
+    label: 'Summary',
+    description: 'Brief overview paragraph introducing the substance',
+    hasExtractedSources: true, // intro-text-quotes folder exists
+  },
+  {
     key: 'identification',
     label: 'Identification & Classification',
     description: 'Chemical names, SMILES, CAS numbers, and classification tags',
@@ -46,13 +54,13 @@ export const sectionMetadata: SectionMeta[] = [
     key: 'dosage_duration',
     label: 'Dosage & Duration',
     description: 'Dose ranges by route and duration timelines',
-    hasExtractedSources: false,
+    hasExtractedSources: true, // dosage-duration-quotes folder exists
   },
   {
     key: 'subjective_effects',
     label: 'Subjective Effects',
     description: 'Sensory, cognitive, and physical effects',
-    hasExtractedSources: false,
+    hasExtractedSources: true, // subjective-effects-quotes folder exists
   },
   {
     key: 'pharmacology',
@@ -70,7 +78,7 @@ export const sectionMetadata: SectionMeta[] = [
     key: 'tolerance',
     label: 'Tolerance',
     description: 'Tolerance development and cross-tolerance',
-    hasExtractedSources: false,
+    hasExtractedSources: true, // tolerance-quotes folder exists
   },
   {
     key: 'harm_potential',
@@ -88,7 +96,7 @@ export const sectionMetadata: SectionMeta[] = [
     key: 'legality',
     label: 'Legality',
     description: 'International and country-specific legal status',
-    hasExtractedSources: false,
+    hasExtractedSources: true, // legality-quotes folder exists
   },
 ];
 
@@ -103,4 +111,5 @@ export {
   historyCulturePrompt,
   legalityPrompt,
   identificationPrompt,
+  summaryPrompt,
 };

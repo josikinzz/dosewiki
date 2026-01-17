@@ -4,17 +4,71 @@
  * Layout mirrors the public article display with International and By Country subsections.
  */
 
+import { useCallback } from "react";
+import { useFormContext } from "react-hook-form";
+import yaml from "yaml";
 import { Icon } from "../../common/Icon";
 import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, CountryLegalityCardEditor } from "./rhf";
+import type { SubstanceArticle, Legality } from "../../../schema";
+import { SectionGenerator } from "../tools/articles/SectionGenerator";
+import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { legalityPrompt } from "../../../data/config/sectionPrompts";
 
 export type LegalityFieldsRHFProps = {
   idPrefix: string;
 };
 
 export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProps) {
+  const { setValue, getValues } = useFormContext<SubstanceArticle>();
+  const articlesContext = useOptionalArticlesContext();
+
+  // Get current article as YAML for context in generation
+  const getCurrentArticleYaml = useCallback((): string | null => {
+    try {
+      const values = getValues();
+      return yaml.stringify(values, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return null;
+    }
+  }, [getValues]);
+
+  // Handle applying generated legality YAML to form
+  const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
+      const parsed = yaml.parse(generatedYaml);
+      const legality: Legality = parsed.legality ?? parsed;
+
+      setValue("legality.international", legality.international ?? []);
+      if (legality.countries) {
+        setValue("legality.countries", legality.countries);
+      }
+    } catch (error) {
+      console.error("Failed to parse generated legality YAML:", error);
+    }
+  }, [setValue]);
+
   return (
     <section className="space-y-4">
+      {/* AI Section Generator - only shown when in Articles context */}
+      {articlesContext && (
+        <SectionGenerator
+          sectionLabel="Legality"
+          sectionKey="legality"
+          prompt={legalityPrompt}
+          extractedContent={articlesContext.legalityQuotes}
+          extractedSources={articlesContext.legalitySources}
+          genericSources={articlesContext.getAllSources()}
+          currentArticleYaml={getCurrentArticleYaml()}
+          onApply={handleApplyGenerated}
+          apiKey={articlesContext.apiKey}
+          model={articlesContext.model}
+          isKeyValid={articlesContext.isKeyValid}
+          substanceSlug={articlesContext.selectedSubstanceSlug}
+          quoteSection="legality"
+        />
+      )}
+
       {/* International Status */}
       <CollapsibleSubsection
         title="International"

@@ -264,6 +264,7 @@ function normalizeDosageRoute(raw: unknown): SubstanceArticle["dosage"]["routes"
   return {
     route: getString(obj.route),
     bioavailability: getString(obj.bioavailability),
+    bioavailability_notes: getString(obj.bioavailability_notes),
     dose_ranges: normalizeDoseRanges(obj.dose_ranges),
     notes: getString(obj.notes),
   };
@@ -336,6 +337,8 @@ function normalizeDurationRoute(raw: unknown): SubstanceArticle["duration"]["rou
   const obj = getObject(raw);
   return {
     route: getString(obj.route),
+    half_life: getString(obj.half_life),
+    half_life_notes: getString(obj.half_life_notes),
     stages: normalizeDurationStages(obj.stages),
   };
 }
@@ -355,7 +358,7 @@ function normalizeDuration(raw: unknown): SubstanceArticle["duration"] {
  * - Legacy format: Record<string, EffectEntry[]> (wraps in { note: "", subcategories: ... })
  * - New format: { note, subcategories }
  */
-function getSenseCategory(value: unknown): { note: string; subcategories: Record<string, { name: string; description: string }[]> } {
+function getSenseCategory(value: unknown): { note: string; subcategories: Record<string, { note: string; effects: { name: string; description: string }[] }> } {
   if (!value || typeof value !== "object") {
     return { note: "", subcategories: {} };
   }
@@ -435,8 +438,8 @@ function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {
     receptor_binding: binding,
     metabolism: getString(obj.metabolism),
     metabolites: getStringArray(obj.metabolites),
-    half_life: getString(obj.half_life),
-    bioavailability_notes: getString(obj.bioavailability_notes),
+    protein_binding: obj.protein_binding ? getString(obj.protein_binding) : undefined,
+    volume_of_distribution: obj.volume_of_distribution ? getString(obj.volume_of_distribution) : undefined,
   };
 }
 
