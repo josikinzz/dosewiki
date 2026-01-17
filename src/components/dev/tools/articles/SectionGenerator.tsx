@@ -8,6 +8,7 @@
  */
 
 import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
+import yaml from "yaml";
 import { Icon } from "../../../common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +26,7 @@ import type { SectionKey } from "../../../../data/config/sectionPrompts";
 import type { QuoteSection } from "../../../../hooks/useQuotes";
 
 type ReasoningEffort = "minimal" | "low" | "medium" | "high" | "xhigh";
+type GenerationMode = "fresh_slate" | "review";
 
 const REASONING_OPTIONS: { value: ReasoningEffort; label: string; description: string }[] = [
   { value: "minimal", label: "Minimal", description: "5% tokens" },
@@ -95,6 +97,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [streamedReasoning, setStreamedReasoning] = useState("");
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>("medium");
+  const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
@@ -103,6 +106,52 @@ export const SectionGenerator = memo(function SectionGenerator({
   
   // Check if current model supports reasoning
   const supportsReasoning = model.includes("claude");
+
+  // Check if current section has content (for disabling Review mode)
+  const sectionHasContent = useMemo(() => {
+    if (!currentArticleYaml) return false;
+    try {
+      const parsed = yaml.parse(currentArticleYaml);
+
+      // Helper to check if an object has non-empty values
+      const hasNonEmptyValues = (obj: unknown): boolean => {
+        if (!obj || typeof obj !== 'object') return false;
+        return Object.values(obj).some(v =>
+          v !== null && v !== undefined && v !== '' &&
+          !(Array.isArray(v) && v.length === 0) &&
+          !(typeof v === 'object' && !hasNonEmptyValues(v))
+        );
+      };
+
+      // Handle dosage_duration which maps to separate dosage and duration keys
+      if (sectionKey === 'dosage_duration') {
+        return hasNonEmptyValues(parsed.dosage) || hasNonEmptyValues(parsed.duration);
+      }
+
+      const sectionData = parsed[sectionKey];
+      if (!sectionData) return false;
+      return hasNonEmptyValues(sectionData);
+    } catch {
+      return false;
+    }
+  }, [currentArticleYaml, sectionKey]);
+
+  // Filter out target section from YAML (for Fresh Slate mode)
+  const getFilteredArticleYaml = useCallback((fullYaml: string): string => {
+    try {
+      const parsed = yaml.parse(fullYaml);
+      // Handle dosage_duration which maps to separate dosage and duration keys
+      if (sectionKey === 'dosage_duration') {
+        delete parsed.dosage;
+        delete parsed.duration;
+      } else {
+        delete parsed[sectionKey];
+      }
+      return yaml.stringify(parsed, { lineWidth: 0, nullStr: "" });
+    } catch {
+      return fullYaml;
+    }
+  }, [sectionKey]);
 
   // Determine if we can generate
   const hasContent = extractedContent || genericSources.length > 0;
@@ -115,11 +164,19 @@ export const SectionGenerator = memo(function SectionGenerator({
   const userMessage = useMemo(() => {
     const messageParts: string[] = [];
 
-    // Include current article YAML so the model knows what's already filled in
     if (currentArticleYaml) {
-      messageParts.push(
-        `## Current Article State\n\nBelow is the current state of the article. Use this to understand what information already exists in other sections. Do NOT duplicate information that belongs in other sections.\n\n\`\`\`yaml\n${currentArticleYaml}\n\`\`\``
-      );
+      if (generationMode === 'fresh_slate') {
+        // Fresh Slate: exclude target section, provide other sections for context
+        const filteredYaml = getFilteredArticleYaml(currentArticleYaml);
+        messageParts.push(
+          `## Current Article Context\n\nBelow is the current state of OTHER sections in the article (the ${sectionLabel} section is excluded). Use this to understand what exists elsewhere and avoid duplication. Generate the ${sectionLabel} section from scratch based on the provided sources.\n\n\`\`\`yaml\n${filteredYaml}\n\`\`\``
+        );
+      } else {
+        // Review: include full article with review instructions
+        messageParts.push(
+          `## Current Article State (Review Mode)\n\nBelow is the current article including the existing ${sectionLabel} section. Review the existing ${sectionLabel} content and improve it where applicable:\n- Enhance clarity and readability\n- Add any missing information from sources\n- Correct any inaccuracies\n- Preserve accurate content that doesn't need changes\n\n\`\`\`yaml\n${currentArticleYaml}\n\`\`\``
+        );
+      }
     }
 
     // Add source content
@@ -135,7 +192,7 @@ export const SectionGenerator = memo(function SectionGenerator({
     }
 
     return messageParts.join("\n\n---\n\n");
-  }, [currentArticleYaml, extractedContent, genericSources, sectionLabel]);
+  }, [currentArticleYaml, generationMode, getFilteredArticleYaml, extractedContent, genericSources, sectionLabel]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -206,6 +263,7 @@ export const SectionGenerator = memo(function SectionGenerator({
     setStreamedReasoning("");
     setHasGenerated(false);
     setError(null);
+    setGenerationMode('fresh_slate'); // Reset to default
   }, []);
 
   const toggleReasoningExpanded = useCallback(() => {
@@ -271,6 +329,30 @@ export const SectionGenerator = memo(function SectionGenerator({
         {/* Right side: controls */}
         {!disabled && (
           <div className="flex items-center gap-2">
+            {/* Mode toggle - icon button */}
+            {!isGenerating && (
+              <button
+                type="button"
+                onClick={() => setGenerationMode(m => m === 'fresh_slate' ? 'review' : 'fresh_slate')}
+                disabled={generationMode === 'fresh_slate' && !sectionHasContent}
+                className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors ${
+                  generationMode === 'review'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'bg-slate-800/50 text-white/50 hover:text-white/70 border border-transparent'
+                } ${!sectionHasContent ? 'opacity-40 cursor-not-allowed' : ''}`}
+                title={generationMode === 'fresh_slate'
+                  ? 'Fresh Slate: Generate from scratch'
+                  : 'Review: Improve existing content'}
+              >
+                <Icon
+                  icon={generationMode === 'fresh_slate' ? 'lucide:file-plus' : 'lucide:scan-eye'}
+                  className="h-4 w-4"
+                  size={16}
+                />
+                {generationMode === 'fresh_slate' ? 'Fresh' : 'Review'}
+              </button>
+            )}
+
             {/* Reasoning effort selector - only for Claude models, hidden during generation */}
             {supportsReasoning && !isGenerating && (
               <div className="flex items-center gap-1.5">
