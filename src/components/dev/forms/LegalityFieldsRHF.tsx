@@ -13,7 +13,7 @@ import { ControlledTagMultiSelect, CountryLegalityCardEditor } from "./rhf";
 import type { SubstanceArticle, Legality } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { legalityPrompt } from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 export type LegalityFieldsRHFProps = {
   idPrefix: string;
@@ -22,6 +22,7 @@ export type LegalityFieldsRHFProps = {
 export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProps) {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
   const articlesContext = useOptionalArticlesContext();
+  const { content: legalityPrompt, isLoading: isPromptLoading } = useSectionPrompt("legality");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
@@ -66,6 +67,8 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProp
           isKeyValid={articlesContext.isKeyValid}
           substanceSlug={articlesContext.selectedSubstanceSlug}
           quoteSection="legality"
+          disabled={isPromptLoading || !legalityPrompt}
+          disabledMessage={isPromptLoading ? "Loading prompt..." : "Prompt not found in Convex"}
         />
       )}
 

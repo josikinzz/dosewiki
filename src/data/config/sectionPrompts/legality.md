@@ -35,7 +35,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 **Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class.
 
-**Use ISO Codes:** Use ISO 3166-1 alpha-2 country codes for the countries object keys.
+**Use Full Country Names:** Use complete, human-readable country names as keys (e.g., "United States" not "US", "United Kingdom" not "UK", "Australia" not "AU").
 
 **Include Notes:** Add relevant context like specific legislation names or exceptions.
 
@@ -58,52 +58,52 @@ legality:
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | `international` | `array` | International treaties and agreements | `["UN Schedule I", "EU Council Decision 2003/847/JHA"]` |
-| `countries` | `object` | Country-specific status keyed by ISO code | See below |
+| `countries` | `object` | Country-specific status keyed by full country name | See below |
 
 ### Country Object Format
 
 ```yaml
 countries:
-  US:
+  United States:
     status: "Schedule I"
     notes: ""
-  UK:
+  United Kingdom:
     status: "Class A"
     notes: "Psychoactive Substances Act 2016"
-  DE:
+  Germany:
     status: "Anlage I BtMG"
     notes: ""
-  AU:
+  Australia:
     status: "Schedule 9"
     notes: ""
 ```
 
 ---
 
-## Common Country Codes
+## Common Countries
 
-| Code | Country |
-|------|---------|
-| US | United States |
-| UK | United Kingdom |
-| DE | Germany |
-| FR | France |
-| NL | Netherlands |
-| AU | Australia |
-| CA | Canada |
-| CH | Switzerland |
-| AT | Austria |
-| BE | Belgium |
-| ES | Spain |
-| IT | Italy |
-| PL | Poland |
-| CZ | Czech Republic |
-| BR | Brazil |
-| JP | Japan |
-| NZ | New Zealand |
-| SE | Sweden |
-| NO | Norway |
-| DK | Denmark |
+Use these full names as keys (never abbreviations):
+
+- United States
+- United Kingdom
+- Germany
+- France
+- Netherlands
+- Australia
+- Canada
+- Switzerland
+- Austria
+- Belgium
+- Spain
+- Italy
+- Poland
+- Czech Republic
+- Brazil
+- Japan
+- New Zealand
+- Sweden
+- Norway
+- Denmark
 
 ---
 
@@ -160,22 +160,22 @@ legality:
   international:
     - "UN Convention on Psychotropic Substances 1971 (Schedule I)"
   countries:
-    US:
+    United States:
       status: "Schedule I"
       notes: "Placed in Schedule I in 1970. No accepted medical use."
-    UK:
+    United Kingdom:
       status: "Class A"
       notes: "Controlled under the Misuse of Drugs Act 1971."
-    DE:
+    Germany:
       status: "Anlage I BtMG"
       notes: ""
-    AU:
+    Australia:
       status: "Schedule 9"
       notes: "Prohibited substance under the Poisons Standard."
-    CA:
+    Canada:
       status: "Schedule III CDSA"
       notes: "Controlled Drugs and Substances Act."
-    NL:
+    Netherlands:
       status: "List I (Opium Act)"
       notes: ""
 ```
@@ -184,7 +184,7 @@ legality:
 
 ## Validation Checklist
 
-- [ ] Country keys use ISO 3166-1 alpha-2 codes (uppercase)
+- [ ] Country keys use full country names (e.g., "United States" not "US")
 - [ ] Each country entry has both `status` and `notes` fields
 - [ ] `international` is an array of strings
 - [ ] Only includes jurisdictions mentioned in sources
