@@ -37,7 +37,9 @@ export interface QuoteData {
 export interface UseQuoteResult {
   /** The quote content (from Convex if available, otherwise static) */
   content: string | null;
-  /** Whether the quote is loaded from Convex */
+  /** Whether the quote exists (from Convex or static) */
+  exists: boolean;
+  /** Whether the quote is loaded from Convex (vs static fallback) */
   isFromConvex: boolean;
   /** Whether the query is still loading */
   isLoading: boolean;
@@ -145,6 +147,7 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
   
   return {
     content,
+    exists: content !== null,
     isFromConvex,
     isLoading,
     updatedAt: isFromConvex ? convexQuote.updatedAt : undefined,

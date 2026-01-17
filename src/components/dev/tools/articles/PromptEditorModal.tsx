@@ -221,7 +221,7 @@ export function PromptEditorModal({
                 <span className="text-xs text-white/40">
                   ({editedPrompt.length.toLocaleString()} chars)
                 </span>
-                {promptResult.isFromConvex && (
+                {promptResult.exists && (
                   <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">
                     Convex
                   </span>
@@ -279,7 +279,7 @@ export function PromptEditorModal({
                   <span className="text-xs text-white/40">
                     ({editedQuote.length.toLocaleString()} chars)
                   </span>
-                  {quoteResult.isFromConvex && (
+                  {quoteResult.exists && (
                     <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">
                       Convex
                     </span>
@@ -350,7 +350,7 @@ export function PromptEditorModal({
         <div className="shrink-0 border-t border-fuchsia-500/20 bg-fuchsia-950/30 px-4 py-2 flex items-center justify-between text-xs text-white/40">
           <span>Total: {totalChars.toLocaleString()} characters</span>
           <span>
-            {promptResult.isFromConvex ? "Loading from Convex" : "Using static fallback"}
+            {promptResult.isLoading ? "Loading from Convex..." : promptResult.exists ? "Loaded from Convex" : "Prompt not found in Convex"}
           </span>
         </div>
       </div>
