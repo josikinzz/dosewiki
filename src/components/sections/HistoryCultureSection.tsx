@@ -41,7 +41,7 @@ function needsTruncation(content: string): boolean {
   return estimateVisualLines(content) > MIN_LINES_TO_TRUNCATE;
 }
 
-/** Truncates content to approximately 3 visual lines */
+/** Truncates content to approximately 3 visual lines, returns text ending cleanly at a word */
 function truncateContent(content: string): string {
   const paragraphs = content.split('\n');
   const resultParts: string[] = [];
@@ -73,7 +73,8 @@ function truncateContent(content: string): string {
     }
   }
 
-  return resultParts.join('\n');
+  // Join and trim trailing whitespace/newlines so ellipsis appears right after last word
+  return resultParts.join('\n').trimEnd();
 }
 
 // Exact heading to icon mapping for all known history/culture section headings
@@ -566,6 +567,8 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   article,
 }: HistoryCultureSectionProps) {
   const { history_culture } = article;
+  // Track whether freeform content is expanded
+  const [freeformExpanded, setFreeformExpanded] = useState(false);
   // Track which sections are expanded (by index)
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   // Track which individual cards are expanded (by "sectionIdx-subIdx" key)
@@ -625,11 +628,34 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
       </h2>
 
       {/* Freeform content (no subsections) */}
-      {hasContent && sections.length === 0 && (
-        <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-          {history_culture.content}
-        </p>
-      )}
+      {hasContent && sections.length === 0 && (() => {
+        const content = history_culture.content!;
+        const canTruncateFreeform = needsTruncation(content);
+        const displayFreeformContent = canTruncateFreeform && !freeformExpanded
+          ? truncateContent(content)
+          : content;
+
+        return (
+          <>
+            <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+              {displayFreeformContent}
+              {canTruncateFreeform && !freeformExpanded && "…"}
+            </p>
+            {canTruncateFreeform && (
+              <div className="flex justify-center mt-1.5 -mb-4">
+                <button
+                  type="button"
+                  onClick={() => setFreeformExpanded(!freeformExpanded)}
+                  className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                >
+                  <Icon icon="lucide:ellipsis" size={14} />
+                  <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${freeformExpanded ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* Subsections as stacked cards */}
       {sections.length > 0 && (
@@ -706,16 +732,18 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                   )
                 )}
 
-                {/* See More button */}
+                {/* See More button - centered */}
                 {canTruncate && (
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(idx)}
-                    className="mt-3 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-                  >
-                    <Icon icon="lucide:ellipsis" size={14} />
-                    <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </button>
+                  <div className="flex justify-center mt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(idx)}
+                      className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                    >
+                      <Icon icon="lucide:ellipsis" size={14} />
+                      <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    </button>
+                  </div>
                 )}
               </div>
             );
