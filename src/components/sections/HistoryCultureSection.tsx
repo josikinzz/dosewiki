@@ -677,64 +677,68 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
 
         return (
           <>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col">
               {sectionsToShow.map((section, idx) => {
                 const sectionIcon = getIconForHeading(section.heading);
                 const hasSubsections = section.subsections && section.subsections.length > 0;
                 const sectionHasContent = section.content.trim().length > 0;
                 const displayContent = getDisplayContent(section, idx);
                 const isTruncated = !isExpanded && idx === 0 && sectionHasContent && needsTruncation(section.content);
+                const isFirst = idx === 0;
 
                 return (
-                  <div
-                    key={idx}
-                    className="relative rounded-xl border border-white/10 bg-white/5 p-4"
-                  >
-                    <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                      <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
-                      {section.heading}
-                    </h3>
-                    {sectionHasContent && (
-                      <div className="relative">
-                        <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-                          {renderWithBoldYears(displayContent)}
-                          {isTruncated && "…"}
-                        </p>
-                      </div>
+                  <div key={idx}>
+                    {/* Fading divider line between sections */}
+                    {!isFirst && (
+                      <div className="my-5 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
                     )}
+                    <div>
+                      <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                        <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
+                        {section.heading}
+                      </h3>
+                      {sectionHasContent && (
+                        <div className="relative">
+                          <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+                            {renderWithBoldYears(displayContent)}
+                            {isTruncated && "…"}
+                          </p>
+                        </div>
+                      )}
 
-                    {/* Nested subsections - only show when expanded */}
-                    {isExpanded && hasSubsections && (
-                      section.heading === "Notable Individuals" ? (
-                        // Special card-based layout for Notable Individuals
-                        <div className={`flex flex-col gap-2 ${sectionHasContent ? 'mt-4' : ''}`}>
-                          {section.subsections!.map((sub, subIdx) => {
-                            const key = `${idx}-${subIdx}`;
-                            return (
-                              <NotableIndividualCard
-                                key={subIdx}
-                                name={sub.heading}
-                                content={sub.content}
-                                isExpanded={expandedIndividuals.has(key)}
-                                onToggle={() => toggleIndividual(key)}
-                              />
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        // Default nested subsection layout
-                        <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4 border-l-2 border-white/10`}>
-                          {section.subsections!.map((sub, subIdx) => (
-                            <div key={subIdx}>
-                              <h4 className="font-medium text-white/90 mb-1">
-                                {sub.heading}
-                              </h4>
-                              <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    )}
+                      {/* Nested subsections - only show when expanded */}
+                      {isExpanded && hasSubsections && (
+                        section.heading === "Notable Individuals" ? (
+                          // Special card-based layout for Notable Individuals
+                          <div className={`flex flex-col gap-2 ${sectionHasContent ? 'mt-4' : ''}`}>
+                            {section.subsections!.map((sub, subIdx) => {
+                              const key = `${idx}-${subIdx}`;
+                              return (
+                                <NotableIndividualCard
+                                  key={subIdx}
+                                  name={sub.heading}
+                                  content={sub.content}
+                                  isExpanded={expandedIndividuals.has(key)}
+                                  onToggle={() => toggleIndividual(key)}
+                                />
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          // Default nested subsection layout
+                          <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4 border-l-2 border-white/10`}>
+                            {section.subsections!.map((sub, subIdx) => (
+                              <div key={subIdx}>
+                                <h4 className="font-medium text-white/90 mb-1">
+                                  {sub.heading}
+                                </h4>
+                                <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
                 );
               })}
