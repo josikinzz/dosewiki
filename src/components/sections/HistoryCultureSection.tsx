@@ -732,18 +732,16 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                   )
                 )}
 
-                {/* See More button - centered */}
+                {/* See More button - left-aligned for subsections */}
                 {canTruncate && (
-                  <div className="flex justify-center mt-1.5">
-                    <button
-                      type="button"
-                      onClick={() => toggleSection(idx)}
-                      className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-                    >
-                      <Icon icon="lucide:ellipsis" size={14} />
-                      <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(idx)}
+                    className="mt-1.5 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                  >
+                    <Icon icon="lucide:ellipsis" size={14} />
+                    <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
                 )}
               </div>
             );

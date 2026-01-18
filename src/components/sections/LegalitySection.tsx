@@ -238,16 +238,14 @@ export const LegalitySection = memo(function LegalitySection({
                     </p>
                   )}
                   {isLongText && displayText && (
-                    <div className="flex justify-end mt-1">
-                      <button
-                        onClick={() => toggleExpanded(countryName)}
-                        className="flex items-center gap-0.5 text-white/50 hover:text-white/70 transition-colors"
-                        aria-label={isExpanded ? "Collapse" : "Expand"}
-                      >
-                        <Icon icon="lucide:ellipsis" size={16} />
-                        <Icon icon="lucide:chevron-down" size={16} className={cn("transition-transform", isExpanded && "rotate-180")} />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => toggleExpanded(countryName)}
+                      className="mt-1.5 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                      aria-label={isExpanded ? "Collapse" : "Expand"}
+                    >
+                      <Icon icon="lucide:ellipsis" size={14} />
+                      <Icon icon="lucide:chevron-down" size={14} className={cn("transition-transform", isExpanded && "rotate-180")} />
+                    </button>
                   )}
                 </div>
               );

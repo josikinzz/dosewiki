@@ -70,7 +70,7 @@ export const PharmacologySection = memo(function PharmacologySection({
       >
         {/* Mechanism of Action (with expandable Receptor Binding) */}
         {hasMoA && (
-          <div className="relative rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="fluent:brain-circuit-28-filled" size={20} className="text-fuchsia-200" />
               Mechanism of Action
@@ -113,7 +113,7 @@ export const PharmacologySection = memo(function PharmacologySection({
             {hasReceptorBinding && (
               <>
                 {showReceptorBinding && (
-                  <ul className="mt-4 space-y-2 border-t border-white/10 pt-4 pb-6">
+                  <ul className="mt-4 space-y-2 border-t border-white/10 pt-4">
                     {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
                       <li key={receptor} className="flex items-center gap-2 text-sm text-white/80">
                         <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
@@ -124,10 +124,10 @@ export const PharmacologySection = memo(function PharmacologySection({
                 )}
                 <button
                   onClick={() => setShowReceptorBinding(!showReceptorBinding)}
-                  className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                  className="mt-3 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
-                  <Icon icon="lucide:ellipsis" size={12} />
-                  <Icon icon="lucide:chevron-down" size={12}
+                  <Icon icon="lucide:ellipsis" size={14} />
+                  <Icon icon="lucide:chevron-down" size={14}
                     className={`transition-transform ${showReceptorBinding ? "rotate-180" : ""}`}
                   />
                 </button>
