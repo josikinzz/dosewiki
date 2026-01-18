@@ -374,40 +374,46 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
 
       {/* ALL TAB: Responsive column layout */}
       {activeTab === "all" && (
-        <div className="flex gap-4">
-          {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <div key={colIndex} className="flex min-w-0 flex-1 flex-col gap-4">
-              {categoriesByColumn.get(colIndex)?.map(cat => (
-                <ParentCategoryCard
-                  key={cat.key}
-                  title={cat.title}
-                  icon={cat.icon}
-                  subcategories={cat.subcategories}
-                  effects={effects}
-                  onSelectEffect={onSelectEffect}
-                />
-              ))}
-            </div>
-          ))}
+        <div className="mx-auto flex justify-center gap-4">
+          {Array.from({ length: columnCount })
+            .map((_, i) => ({ index: i, cats: categoriesByColumn.get(i) ?? [] }))
+            .filter(col => col.cats.length > 0)
+            .map((col) => (
+              <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+                {col.cats.map(cat => (
+                  <ParentCategoryCard
+                    key={cat.key}
+                    title={cat.title}
+                    icon={cat.icon}
+                    subcategories={cat.subcategories}
+                    effects={effects}
+                    onSelectEffect={onSelectEffect}
+                  />
+                ))}
+              </div>
+            ))}
         </div>
       )}
 
       {/* SENSORY/COGNITIVE/PHYSICAL TABS: Responsive column layout */}
       {activeTab !== "all" && (
-        <div className="flex gap-4">
-          {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <div key={colIndex} className="flex min-w-0 flex-1 flex-col gap-4">
-              {flatCategoriesByColumn.get(colIndex)?.map(cat => (
-                <EffectCategoryCard
-                  key={cat.key}
-                  title={cat.title}
-                  icon={cat.icon}
-                  effects={cat.effects}
-                  onSelectEffect={onSelectEffect}
-                />
-              ))}
-            </div>
-          ))}
+        <div className="mx-auto flex justify-center gap-4">
+          {Array.from({ length: columnCount })
+            .map((_, i) => ({ index: i, cats: flatCategoriesByColumn.get(i) ?? [] }))
+            .filter(col => col.cats.length > 0)
+            .map((col) => (
+              <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+                {col.cats.map(cat => (
+                  <EffectCategoryCard
+                    key={cat.key}
+                    title={cat.title}
+                    icon={cat.icon}
+                    effects={cat.effects}
+                    onSelectEffect={onSelectEffect}
+                  />
+                ))}
+              </div>
+            ))}
         </div>
       )}
 

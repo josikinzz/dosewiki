@@ -44,6 +44,7 @@ const createEmptyCitation = () => ({
 const createEmptyHistoryCultureSection = () => ({
   heading: "",
   content: "",
+  subsections: [],
 });
 
 export type ArticleFormMethods = UseFormReturn<SubstanceArticle>;

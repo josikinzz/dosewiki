@@ -494,16 +494,42 @@ function normalizeTolerance(raw: unknown): SubstanceArticle["tolerance"] {
   };
 }
 
+/**
+ * Normalizes a date_range object from YAML.
+ * Returns undefined if no valid start date is present.
+ */
+function normalizeDateRange(raw: unknown): { start: string; end?: string } | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const obj = getObject(raw);
+  const start = getString(obj.start);
+  if (!start) return undefined;
+  const end = getString(obj.end);
+  return end ? { start, end } : { start };
+}
+
 function normalizeHistoryCulture(raw: unknown): SubstanceArticle["history_culture"] {
   const obj = getObject(raw);
-  
-  // Normalize sections array
+
+  // Normalize sections array with nested subsections
   const sections = Array.isArray(obj.sections)
     ? obj.sections.map((section) => {
         const sectionObj = getObject(section);
+        // Normalize subsections array if present
+        const subsections = Array.isArray(sectionObj.subsections)
+          ? sectionObj.subsections.map((sub) => {
+              const subObj = getObject(sub);
+              return {
+                heading: getString(subObj.heading),
+                content: getString(subObj.content),
+                date_range: normalizeDateRange(subObj.date_range),
+              };
+            })
+          : [];
         return {
           heading: getString(sectionObj.heading),
           content: getString(sectionObj.content),
+          date_range: normalizeDateRange(sectionObj.date_range),
+          subsections,
         };
       })
     : [];

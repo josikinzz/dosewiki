@@ -44,10 +44,10 @@ export const PharmacologySection = memo(function PharmacologySection({
   const { pharmacology } = article;
   const [showReceptorBinding, setShowReceptorBinding] = useState(false);
 
-  const hasMoA = pharmacology.mechanism_of_action.length > 0;
-  const hasReceptorBinding = Object.keys(pharmacology.receptor_binding).length > 0;
-  const hasMetabolism = pharmacology.metabolism.trim().length > 0;
-  const hasMetabolites = pharmacology.metabolites.length > 0;
+  const hasMoA = pharmacology.mechanism_of_action?.length > 0;
+  const hasReceptorBinding = pharmacology.receptor_binding && Object.keys(pharmacology.receptor_binding).length > 0;
+  const hasMetabolism = pharmacology.metabolism?.trim().length > 0;
+  const hasMetabolites = pharmacology.metabolites?.length > 0;
 
   const hasAnyContent =
     hasMoA || hasReceptorBinding || hasMetabolism || hasMetabolites;

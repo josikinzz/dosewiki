@@ -10,8 +10,8 @@ interface DosageDurationSectionProps {
   article: SubstanceArticle;
 }
 
-function formatDose(range: DoseRange, isThreshold = false): string {
-  if (range.min === null && range.max === null) return "N/A";
+function formatDose(range: DoseRange | null, isThreshold = false): string {
+  if (!range || (range.min === null && range.max === null)) return "N/A";
   if (range.min !== null && range.max !== null) {
     return `${range.min}-${range.max} ${range.unit}`;
   }
@@ -22,8 +22,8 @@ function formatDose(range: DoseRange, isThreshold = false): string {
   return `${range.max} ${range.unit}`;
 }
 
-function formatDuration(stage: DurationStage): string {
-  if (stage.min === null && stage.max === null) return "N/A";
+function formatDuration(stage: DurationStage | null): string {
+  if (!stage || (stage.min === null && stage.max === null)) return "N/A";
   if (stage.min !== null && stage.max !== null) {
     return `${stage.min}-${stage.max} ${stage.unit}`;
   }
@@ -64,7 +64,7 @@ const ROUTE_ICONS: Record<string, IconName> = {
 
 /** Standard dose tiers table */
 function DoseTiersTable({ route }: { route: DosageRoute }) {
-  const hasNotes = route.notes?.trim().length > 0;
+  const hasNotes = !!route.notes?.trim();
 
   return (
     <>
@@ -110,7 +110,7 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
     setExpandedPlateau((prev) => (prev === key ? null : key));
   };
 
-  const hasNotes = plateauDosing.notes?.trim().length > 0;
+  const hasNotes = !!plateauDosing.notes?.trim();
 
   return (
     <>
@@ -128,7 +128,7 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
               : `${plateau.min}+ ${plateau.unit}`
             : "via redosing";
           
-          const hasEffects = plateau.effects?.trim().length > 0;
+          const hasEffects = !!plateau.effects?.trim();
           const isExpanded = expandedPlateau === key;
           
           return (
@@ -218,8 +218,8 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
 }
 
 function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"] }) {
-  const hasBioavailability = route.bioavailability?.trim().length > 0;
-  const hasBioavailabilityNotes = route.bioavailability_notes?.trim().length > 0;
+  const hasBioavailability = !!route.bioavailability?.trim();
+  const hasBioavailabilityNotes = !!route.bioavailability_notes?.trim();
   const hasPlateauDosing = !!plateauDosing;
 
   return (
@@ -267,8 +267,8 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
 }
 
 function DurationPanel({ route }: { route: DurationRoute }) {
-  const hasHalfLife = route.half_life?.trim().length > 0;
-  const hasHalfLifeNotes = route.half_life_notes?.trim().length > 0;
+  const hasHalfLife = !!route.half_life?.trim();
+  const hasHalfLifeNotes = !!route.half_life_notes?.trim();
   
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4">

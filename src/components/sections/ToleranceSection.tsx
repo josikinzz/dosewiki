@@ -25,10 +25,10 @@ export const ToleranceSection = memo(function ToleranceSection({
 }: ToleranceSectionProps) {
   const { tolerance } = article;
 
-  const hasFull = tolerance.full_tolerance.trim().length > 0;
-  const hasHalf = tolerance.half_tolerance.trim().length > 0;
-  const hasBaseline = tolerance.baseline_tolerance.trim().length > 0;
-  const hasCross = tolerance.cross_tolerance.length > 0;
+  const hasFull = tolerance?.full_tolerance?.trim().length > 0;
+  const hasHalf = tolerance?.half_tolerance?.trim().length > 0;
+  const hasBaseline = tolerance?.baseline_tolerance?.trim().length > 0;
+  const hasCross = tolerance?.cross_tolerance?.length > 0;
 
   if (!hasFull && !hasHalf && !hasBaseline && !hasCross) {
     return null;

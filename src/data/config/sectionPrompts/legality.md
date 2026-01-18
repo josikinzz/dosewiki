@@ -33,11 +33,27 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Core Principles
 
+**Extract ALL Countries:** You MUST extract every country mentioned in the source material. Do not skip any jurisdiction that has legal status information, even if the information is minimal.
+
 **Evidence Only:** Only include legal statuses explicitly mentioned in sources. Laws change frequently - do not assume based on drug class.
 
 **Use Full Country Names:** Use complete, human-readable country names as keys (e.g., "United States" not "US", "United Kingdom" not "UK", "Australia" not "AU").
 
-**Include Notes:** Add relevant context like specific legislation names or exceptions.
+**MANDATORY Notes - NEVER Empty:** Every country entry MUST have a non-empty `notes` field. This is a hard requirement.
+- If the source provides legislation names, penalties, or details → include them
+- If the source only states a classification → explain what that classification means
+- Minimum acceptable note: describe what the status entails (e.g., "Classified as a controlled narcotic substance" or "Prohibited under national drug legislation")
+
+Examples of VALID notes (even with minimal source info):
+- "Classified as a narcotic substance on January 18, 2019."
+- "Class A drug under the N-benzylphenethylamine catch-all clause in the Misuse of Drugs Act 1971."
+- "Listed as a controlled substance under national drug legislation."
+- "Prohibited substance. Possession, production, and distribution are illegal."
+
+Examples of INVALID notes (never do this):
+- "" (empty string)
+- " " (whitespace only)
+- Notes that just repeat the status without explanation
 
 ---
 
@@ -62,20 +78,25 @@ legality:
 
 ### Country Object Format
 
+Every entry must have both `status` and `notes`. Notes should always explain the status:
+
 ```yaml
 countries:
   United States:
     status: "Schedule I"
-    notes: ""
+    notes: "Controlled under the Controlled Substances Act. Classified as having high abuse potential with no accepted medical use."
   United Kingdom:
     status: "Class A"
-    notes: "Psychoactive Substances Act 2016"
+    notes: "Controlled under the Misuse of Drugs Act 1971. Class A carries the most severe penalties."
   Germany:
     status: "Anlage I BtMG"
-    notes: ""
+    notes: "Listed in Anlage I of the Betäubungsmittelgesetz (Narcotics Act). Prohibited with no medical use permitted."
   Australia:
     status: "Schedule 9"
-    notes: ""
+    notes: "Prohibited substance under the Poisons Standard. No therapeutic use recognized."
+  Netherlands:
+    status: "List I (Opiumwet)"
+    notes: "Controlled under the Opium Act. Possession, distribution, and production without license is illegal."
 ```
 
 ---
@@ -162,30 +183,38 @@ legality:
   countries:
     United States:
       status: "Schedule I"
-      notes: "Placed in Schedule I in 1970. No accepted medical use."
+      notes: "Controlled under the Controlled Substances Act of 1970. Classified as having high abuse potential with no accepted medical use."
     United Kingdom:
       status: "Class A"
-      notes: "Controlled under the Misuse of Drugs Act 1971."
+      notes: "Controlled under the Misuse of Drugs Act 1971. Possession punishable by up to 7 years imprisonment."
     Germany:
       status: "Anlage I BtMG"
-      notes: ""
+      notes: "Listed in Anlage I of the Betäubungsmittelgesetz. Manufacturing, possession, and distribution prohibited without license."
     Australia:
       status: "Schedule 9"
-      notes: "Prohibited substance under the Poisons Standard."
+      notes: "Prohibited substance under the Poisons Standard. No therapeutic use recognized."
     Canada:
       status: "Schedule III CDSA"
-      notes: "Controlled Drugs and Substances Act."
+      notes: "Controlled under the Controlled Drugs and Substances Act. Possession and trafficking carry criminal penalties."
     Netherlands:
-      status: "List I (Opium Act)"
-      notes: ""
+      status: "List I (Opiumwet)"
+      notes: "Controlled under the Opium Act. Personal use not criminalized but possession, distribution, and production without license is illegal."
+    Portugal:
+      status: "Decriminalized (personal use)"
+      notes: "Production and sale remain illegal. Since 2001, personal possession of small quantities is not a criminal offense; individuals may be referred to dissuasion commission."
 ```
 
 ---
 
-## Validation Checklist
+## Validation Checklist (MUST pass all before output)
 
+- [ ] **ALL countries from source are included** - do not skip any jurisdiction
 - [ ] Country keys use full country names (e.g., "United States" not "US")
 - [ ] Each country entry has both `status` and `notes` fields
+- [ ] **EVERY notes field contains text** - zero empty notes allowed
+- [ ] Notes explain the status (what it means, legislation, or consequences)
 - [ ] `international` is an array of strings
 - [ ] Only includes jurisdictions mentioned in sources
 - [ ] No markdown code fences in output
+
+**CRITICAL:** If you are about to output a country with an empty `notes` field, STOP and add an explanatory note. Empty notes will cause a validation failure.

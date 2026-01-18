@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "current": 1,
+  "total": 1,
+  "completed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "currentBatch": [],
+  "startTime": "2026-01-18T04:53:20.325Z",
+  "inputTokens": 5583,
+  "outputTokens": 654,
+  "estimatedCost": 0.132795
+}

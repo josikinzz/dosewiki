@@ -7,6 +7,120 @@ import { IconBadge } from "../common/IconBadge";
 import { getCountryCode } from "../../utils/data/countryCodes";
 import type { SubstanceArticle } from "../../schema";
 
+// ============================================================================
+// Status Color System
+// ============================================================================
+
+type StatusColor = 'red' | 'yellow' | 'blue' | 'green' | 'gray';
+
+const COLOR_CLASSES: Record<StatusColor, string> = {
+  red: 'bg-red-500/20 text-red-300',
+  yellow: 'bg-yellow-500/20 text-yellow-300',
+  blue: 'bg-blue-500/20 text-blue-300',
+  green: 'bg-emerald-500/20 text-emerald-300',
+  gray: 'bg-white/10 text-white/70',
+};
+
+// Exact matches for common statuses (case-sensitive)
+const STATUS_COLOR_MAP: Record<string, StatusColor> = {
+  // Red - Strictly illegal (no medical use)
+  'Illegal': 'red',
+  'Prohibited': 'red',
+  'Banned': 'red',
+  'Forbidden': 'red',
+  'Schedule I': 'red',
+  'Schedule I (CDSA)': 'red',
+  'Class A': 'red',
+  'Controlled (narcotic)': 'red',
+  'Illegal (NPSG)': 'red',
+
+  // Yellow - Controlled (regulated, has medical uses)
+  'Controlled': 'yellow',
+  'Controlled substance': 'yellow',
+  'Controlled (Verzeichnis E)': 'yellow',
+  'Controlled (NpSG)': 'yellow',
+  'Scheduled': 'yellow',
+  'Schedule II': 'yellow',
+  'Schedule III': 'yellow',
+  'Schedule III (CDSA)': 'yellow',
+  'Schedule IV': 'yellow',
+  'Schedule IV (CDSA)': 'yellow',
+  'Schedule V': 'yellow',
+  'Class B': 'yellow',
+  'Class C': 'yellow',
+  'Class D': 'yellow',
+  'Anlage I BtMG': 'yellow',
+  'Anlage II BtMG': 'yellow',
+  'Anlage III BtMG': 'yellow',
+  'Tabella I': 'yellow',
+  'Tabella II': 'yellow',
+  'Tabella III': 'yellow',
+  'Tabella IV': 'yellow',
+  'List I': 'yellow',
+  'List II': 'yellow',
+  'List III': 'yellow',
+  'Category 1': 'yellow',
+  'Category 2': 'yellow',
+  'Category 3': 'yellow',
+
+  // Blue - Prescription/Medical
+  'Prescription only': 'blue',
+  'Prescription required': 'blue',
+  'Medical use only': 'blue',
+  'Regulated': 'blue',
+  'Restricted': 'blue',
+
+  // Green - Legal/Uncontrolled
+  'Legal': 'green',
+  'Unscheduled': 'green',
+  'Uncontrolled': 'green',
+  'Not controlled': 'green',
+  'Not scheduled': 'green',
+  'Decriminalized': 'green',
+};
+
+// Pattern fallbacks for variations (checked in order)
+const STATUS_PATTERNS: [RegExp, StatusColor][] = [
+  // Red patterns - check first
+  [/\billegal\b|\bprohibited\b|\bbanned\b|\bforbidden\b/i, 'red'],
+  [/\bclass\s*a\b/i, 'red'],
+  [/\bschedule\s*i\b(?!\s*i)/i, 'red'],  // Schedule I but not II/III/IV
+  [/\bnarcotic\b/i, 'red'],
+
+  // Blue patterns - prescription/medical
+  [/\bprescription\b|\bmedical\s*use\b/i, 'blue'],
+  [/\brestricted\b|\bregulated\b/i, 'blue'],
+
+  // Green patterns - legal/uncontrolled
+  [/\blegal\b|\bunscheduled\b|\buncontrolled\b|\bdecriminalized\b/i, 'green'],
+  [/\bnot\s*(controlled|scheduled)\b/i, 'green'],
+
+  // Yellow patterns - catch-all for controlled substances (checked last)
+  [/\bcontrolled\b|\bschedule\b|\bscheduled\b/i, 'yellow'],
+  [/\bclass\s*[b-z]\b/i, 'yellow'],
+  [/\banlage\b|\btabella\b|\blist\s*[ivx\d]/i, 'yellow'],
+  [/\bcategory\s*\d/i, 'yellow'],
+  [/\bverzeichnis\b|\bnpsg\b|\bbtmg\b/i, 'yellow'],
+];
+
+function getStatusColor(status: string): string {
+  // Try exact match first
+  const exactMatch = STATUS_COLOR_MAP[status];
+  if (exactMatch) {
+    return COLOR_CLASSES[exactMatch];
+  }
+
+  // Try pattern matching
+  for (const [pattern, color] of STATUS_PATTERNS) {
+    if (pattern.test(status)) {
+      return COLOR_CLASSES[color];
+    }
+  }
+
+  // Fallback to gray
+  return COLOR_CLASSES.gray;
+}
+
 const MASONRY_BREAKPOINTS = {
   default: 2,
   640: 1,
@@ -83,32 +197,17 @@ export const LegalitySection = memo(function LegalitySection({
               const isExpanded = expandedCards.has(countryName);
               const hasNotes = info.notes?.trim().length > 0;
 
-              // Only show status as badge if it's short (1-2 words)
-              const statusWordCount = info.status?.trim().split(/\s+/).length || 0;
-              const showStatusAsBadge = statusWordCount <= 2 && hasNotes;
+              // Always show status as badge when present
+              const showStatusAsBadge = Boolean(info.status?.trim());
 
-              // Build display text: if status is long, show it first, then notes
-              let displayText: string;
-              if (showStatusAsBadge) {
-                displayText = info.notes || info.status;
-              } else if (hasNotes) {
-                displayText = `${info.status}\n\n${info.notes}`;
-              } else {
-                displayText = info.status;
-              }
+              // Display text is just the notes (status goes in badge)
+              const displayText = info.notes || "";
 
               // Rough estimate: 4 lines at ~60 chars per line
               const isLongText = displayText.length > 240;
 
-              // Status badge color based on status text
-              const statusLower = info.status?.toLowerCase() || "";
-              const statusColor = statusLower.includes("illegal") || statusLower.includes("prohibited")
-                ? "bg-red-500/20 text-red-300"
-                : statusLower.includes("legal") || statusLower.includes("uncontrolled")
-                ? "bg-emerald-500/20 text-emerald-300"
-                : statusLower.includes("controlled") || statusLower.includes("schedule")
-                ? "bg-amber-500/20 text-amber-300"
-                : "bg-white/10 text-white/70";
+              // Status badge color using lookup table
+              const statusColor = info.status ? getStatusColor(info.status) : COLOR_CLASSES.gray;
 
               return (
                 <div
@@ -130,13 +229,15 @@ export const LegalitySection = memo(function LegalitySection({
                       </span>
                     )}
                   </div>
-                  <p className={cn(
-                    "mt-1 text-xs leading-[1.125rem] text-white/70 whitespace-pre-line",
-                    !isExpanded && isLongText && "max-h-[3.375rem] overflow-hidden"
-                  )}>
-                    {displayText}
-                  </p>
-                  {isLongText && (
+                  {displayText && (
+                    <p className={cn(
+                      "mt-1 text-xs leading-[1.125rem] text-white/70 whitespace-pre-line",
+                      !isExpanded && isLongText && "max-h-[3.375rem] overflow-hidden"
+                    )}>
+                      {displayText}
+                    </p>
+                  )}
+                  {isLongText && displayText && (
                     <div className="flex justify-end mt-1">
                       <button
                         onClick={() => toggleExpanded(countryName)}

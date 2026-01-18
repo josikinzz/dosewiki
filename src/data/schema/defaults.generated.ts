@@ -83,7 +83,9 @@ export function createEmptyArticle(): SubstanceArticle {
     mechanism_of_action: [],
     receptor_binding: {},
     metabolism: "",
-    metabolites: []
+    metabolites: [],
+    protein_binding: null,
+    volume_of_distribution: null
   },
   interactions: {
     dangerous: [],

@@ -387,6 +387,18 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
     default: [],
     isNullable: false,
   },
+  "pharmacology.protein_binding": {
+    path: "pharmacology.protein_binding",
+    type: "text",
+    default: null,
+    isNullable: false,
+  },
+  "pharmacology.volume_of_distribution": {
+    path: "pharmacology.volume_of_distribution",
+    type: "text",
+    default: null,
+    isNullable: false,
+  },
   "interactions.dangerous": {
     path: "interactions.dangerous",
     type: "tagArray",
@@ -593,6 +605,8 @@ export const FIELD_PATHS = [
   "pharmacology.receptor_binding",
   "pharmacology.metabolism",
   "pharmacology.metabolites",
+  "pharmacology.protein_binding",
+  "pharmacology.volume_of_distribution",
   "interactions.dangerous",
   "interactions.unsafe",
   "interactions.caution",

@@ -297,11 +297,16 @@ export function CategoryGrid({
     );
   };
 
+  // Filter to only columns that have content
+  const nonEmptyColumns = Array.from({ length: columnCount })
+    .map((_, i) => ({ index: i, groups: columnGroups.get(i) ?? [] }))
+    .filter(col => col.groups.length > 0);
+
   return (
-    <div className="flex gap-4">
-      {Array.from({ length: columnCount }).map((_, colIndex) => (
-        <div key={colIndex} className="flex min-w-0 flex-1 flex-col gap-4">
-          {columnGroups.get(colIndex)?.map((group) => renderCard(group))}
+    <div className="mx-auto flex justify-center gap-4">
+      {nonEmptyColumns.map((col) => (
+        <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+          {col.groups.map((group) => renderCard(group))}
         </div>
       ))}
     </div>

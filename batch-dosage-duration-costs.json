@@ -1,0 +1,66 @@
+{
+  "runs": [
+    {
+      "timestamp": "2026-01-18T07:38:51.926Z",
+      "articlesProcessed": 7,
+      "inputTokens": 33210,
+      "outputTokens": 10575,
+      "estimatedCost": "$1.2913",
+      "avgCostPerArticle": "$0.1845",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 86.834
+    },
+    {
+      "timestamp": "2026-01-18T07:41:03.747Z",
+      "articlesProcessed": 1,
+      "inputTokens": 5176,
+      "outputTokens": 772,
+      "estimatedCost": "$0.1355",
+      "avgCostPerArticle": "$0.1355",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 20.843
+    },
+    {
+      "timestamp": "2026-01-18T07:41:33.033Z",
+      "articlesProcessed": 1,
+      "inputTokens": 5176,
+      "outputTokens": 1003,
+      "estimatedCost": "$0.1529",
+      "avgCostPerArticle": "$0.1529",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 20.281
+    },
+    {
+      "timestamp": "2026-01-18T07:42:58.208Z",
+      "articlesProcessed": 1,
+      "inputTokens": 11234,
+      "outputTokens": 3991,
+      "estimatedCost": "$0.4678",
+      "avgCostPerArticle": "$0.4678",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 69.387
+    },
+    {
+      "timestamp": "2026-01-18T07:45:10.370Z",
+      "articlesProcessed": 5,
+      "inputTokens": 28024,
+      "outputTokens": 12114,
+      "estimatedCost": "$1.3289",
+      "avgCostPerArticle": "$0.2658",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 44.828
+    },
+    {
+      "timestamp": "2026-01-18T07:51:44.051Z",
+      "articlesProcessed": 10,
+      "inputTokens": 55968,
+      "outputTokens": 25592,
+      "estimatedCost": "$2.7589",
+      "avgCostPerArticle": "$0.2759",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 143.107
+    }
+  ],
+  "totalCost": "$6.14",
+  "totalArticles": 25
+}

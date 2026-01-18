@@ -14,18 +14,18 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
 }: HarmPotentialSectionProps) {
   const { harm_potential } = article;
 
-  const hasAddiction = harm_potential.addiction_liability.trim().length > 0;
-  const hasDependence = harm_potential.dependence_liability.trim().length > 0;
+  const hasAddiction = harm_potential?.addiction_liability?.trim().length > 0;
+  const hasDependence = harm_potential?.dependence_liability?.trim().length > 0;
   const hasToxicity =
-    harm_potential.toxicity.ld50.trim().length > 0 ||
-    harm_potential.toxicity.organ_toxicity.trim().length > 0 ||
-    harm_potential.toxicity.carcinogenicity.trim().length > 0 ||
-    harm_potential.toxicity.other.trim().length > 0;
+    harm_potential?.toxicity?.ld50?.trim().length > 0 ||
+    harm_potential?.toxicity?.organ_toxicity?.trim().length > 0 ||
+    harm_potential?.toxicity?.carcinogenicity?.trim().length > 0 ||
+    harm_potential?.toxicity?.other?.trim().length > 0;
   const hasRisks =
-    harm_potential.risks.psychosis.trim().length > 0 ||
-    harm_potential.risks.self_harm.trim().length > 0 ||
-    harm_potential.risks.seizure.trim().length > 0 ||
-    harm_potential.risks.other.length > 0;
+    harm_potential?.risks?.psychosis?.trim().length > 0 ||
+    harm_potential?.risks?.self_harm?.trim().length > 0 ||
+    harm_potential?.risks?.seizure?.trim().length > 0 ||
+    harm_potential?.risks?.other?.length > 0;
 
   if (!hasAddiction && !hasDependence && !hasToxicity && !hasRisks) {
     return null;

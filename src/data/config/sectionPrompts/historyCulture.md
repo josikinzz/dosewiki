@@ -45,17 +45,79 @@ history_culture:
   sections: []  # Empty when using content alone
 ```
 
-OR with subsections when there's enough material:
+OR with sections when there's enough material:
 
 ```yaml
 history_culture:
   content: ""  # Empty when using sections
   sections:
     - heading: "Your Chosen Heading"
-      content: "Flowing prose content for this subsection..."
+      content: "Flowing prose content for this section..."
+      subsections: []  # Empty for most sections
     - heading: "Another Heading"
       content: "More content..."
+      subsections: []
 ```
+
+### Optional Date Ranges
+
+Sections and subsections can have an optional `date_range` field to indicate when events occurred:
+
+```yaml
+history_culture:
+  content: ""
+  sections:
+    - heading: "Discovery and Synthesis"
+      date_range:
+        start: "1938"      # Required if date_range is present
+        end: "1943"        # Optional - omit for single dates
+      content: "LSD was first synthesized..."
+      subsections: []
+```
+
+**Guidelines for date_range:**
+- Only include `date_range` when there's a clear time period for the section
+- Use years for most historical events (e.g., "1943")
+- Use ranges when the section covers a span of time (e.g., start: "1960", end: "1970")
+- Date ranges can overlap between sections
+- Omit `date_range` entirely if the section is not time-specific (like "Notable Individuals")
+- Formats allowed: years ("1943"), decades ("1960s"), or full dates if needed ("1943-04-19")
+
+### Nested Subsections (for Notable Individuals, etc.)
+
+Sections can have **nested subsections** for topics like "Notable Individuals" where each person deserves their own heading:
+
+```yaml
+history_culture:
+  content: ""
+  sections:
+    - heading: "Discovery and Synthesis"
+      date_range:
+        start: "1938"
+        end: "1943"
+      content: "LSD was first synthesized..."
+      subsections: []  # Empty for most sections
+    - heading: "Notable Individuals"
+      content: ""  # Empty when using subsections
+      subsections:
+        - heading: "Albert Hofmann"
+          date_range:
+            start: "1938"  # Single date for when this person became relevant
+          content: "Swiss chemist who first synthesized and discovered the psychoactive properties..."
+        - heading: "Timothy Leary"
+          date_range:
+            start: "1963"
+            end: "1996"
+          content: "Harvard psychologist who became a prominent advocate..."
+        - heading: "Steve Jobs"
+          # No date_range - optional field can be omitted entirely
+          content: "Co-founder of Apple who publicly discussed his LSD use..."
+```
+
+**When to use subsections:**
+- "Notable Individuals" or "Key Figures" - each person gets a subsection
+- "Research Programs" - each distinct program (e.g., "Project MKUltra", "Good Friday Experiment")
+- Any section where you're listing multiple distinct entities that each warrant a heading
 
 ## When to Use Each Approach
 
@@ -101,9 +163,18 @@ tolerance:                         # Tolerance info - DO NOT include
 
 history_culture:                   # <- YOU ARE GENERATING THIS
   content: string                  # Freeform paragraphs (use alone for simpler substances)
-  sections:                        # Subsections (use when content warrants structure)
+  sections:                        # Sections (use when content warrants structure)
     - heading: string
+      date_range:                  # Optional - include only when time-specific
+        start: string              # Required if date_range present (e.g., "1943")
+        end: string                # Optional - omit for single dates
       content: string
+      subsections:                 # Nested subsections (for Notable Individuals, etc.)
+        - heading: string
+          date_range:              # Optional date range for subsections too
+            start: string
+            end: string
+          content: string
 
 legality:                          # Legal status - DO NOT include
 citations: [{ name, url }]
@@ -168,8 +239,23 @@ history_culture:
   sections:
     - heading: "First Section Title"
       content: "Content goes here..."
+      subsections: []
     - heading: "Second Section Title"
       content: "More content..."
+      subsections: []
+
+For sections with nested subsections (e.g., Notable Individuals):
+
+history_culture:
+  content: ""
+  sections:
+    - heading: "Notable Individuals"
+      content: ""
+      subsections:
+        - heading: "Person Name"
+          content: "Description of their significance..."
+        - heading: "Another Person"
+          content: "Their contribution..."
 
 ---
 
@@ -190,8 +276,26 @@ history_culture:
   sections:
     - heading: "[Heading derived from source content]"
       content: "[Synthesized prose from relevant source quotes]"
+      subsections: []
     - heading: "[Another heading based on what sources cover]"
       content: "[More synthesized content]"
+      subsections: []
+
+### Example 3: Substance with notable individuals (using nested subsections)
+
+history_culture:
+  content: ""
+  sections:
+    - heading: "Discovery and Development"
+      content: "[Prose about the substance's discovery]"
+      subsections: []
+    - heading: "Notable Individuals"
+      content: ""
+      subsections:
+        - heading: "[Person's Name]"
+          content: "[1-2 paragraphs about their significance to this substance]"
+        - heading: "[Another Person]"
+          content: "[Their contribution or notable use]"
 
 **Key principle:** Let the sources guide your structure. If the sources focus heavily on one chemist's work, that might be a section. If they discuss a specific cultural movement in depth, that's another. Don't force topics that aren't well-supported in your sources.
 
@@ -229,6 +333,13 @@ Before returning output:
 - [ ] Used `content` for simpler substances OR `sections` for detailed histories (not both)
 - [ ] If using `content`, `sections` is empty array `[]`
 - [ ] If using `sections`, `content` is empty string `""`
+- [ ] Each section has `heading`, `content`, and `subsections` fields
+- [ ] `date_range` is only included when section has a clear time period
+- [ ] If `date_range` is present, `start` is required (e.g., "1943")
+- [ ] `date_range.end` is only included for ranges, omitted for single dates
+- [ ] `subsections` is empty array `[]` for most sections
+- [ ] Use `subsections` only for "Notable Individuals" or similar list-of-entities sections
+- [ ] If a section uses `subsections`, its `content` should be empty `""`
 - [ ] Only created sections when there's enough material to warrant 3+ distinct topics
 - [ ] No markdown code fences in output
 - [ ] No commentary or explanation, just YAML

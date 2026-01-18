@@ -271,10 +271,25 @@ export const toleranceSchema = z.object({
 // History & Culture Schemas
 // ============================================================================
 
-/** Single subsection within history & culture (freeform heading chosen by author) */
+/** Optional date range for history sections (e.g., "1938" or "1963-1971") */
+export const historyCultureDateRangeSchema = z.object({
+  start: z.string(),
+  end: z.string().optional(),
+});
+
+/** Nested subsection within a history & culture section (e.g., individual people in "Notable Individuals") */
+export const historyCultureSubsectionSchema = z.object({
+  heading: z.string(),
+  content: z.string(),
+  date_range: historyCultureDateRangeSchema.optional(),
+});
+
+/** Single section within history & culture (freeform heading chosen by author) */
 export const historyCultureSectionSchema = z.object({
   heading: z.string(),
   content: z.string(),
+  date_range: historyCultureDateRangeSchema.optional(),
+  subsections: z.array(historyCultureSubsectionSchema).optional().default([]),
 });
 
 /** History and culture section - freeform content with optional subsections */
@@ -361,6 +376,8 @@ export type HarmPotential = z.infer<typeof harmPotentialSchema>;
 
 export type Tolerance = z.infer<typeof toleranceSchema>;
 
+export type HistoryCultureDateRange = z.infer<typeof historyCultureDateRangeSchema>;
+export type HistoryCultureSubsection = z.infer<typeof historyCultureSubsectionSchema>;
 export type HistoryCultureSection = z.infer<typeof historyCultureSectionSchema>;
 export type HistoryCulture = z.infer<typeof historyCultureSchema>;
 

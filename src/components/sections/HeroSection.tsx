@@ -67,7 +67,7 @@ export const HeroSection = memo(function HeroSection({
   const hasClassification =
     classification.psychoactive_class.length > 0 ||
     classification.chemical_class.length > 0;
-  const hasSummary = summary.trim().length > 0;
+  const hasSummary = summary?.trim().length > 0;
   const hasCategories = index_categories.length > 0;
 
   // Check if there are expandable chemistry details

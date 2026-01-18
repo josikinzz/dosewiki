@@ -1,10 +1,11 @@
 /**
  * RHF-based History & Culture fields component.
- * Supports freeform sections with custom headings chosen by the author/LLM.
+ * Supports freeform sections with custom headings chosen by the author/LLM,
+ * and nested subsections for sections like "Notable Individuals".
  */
 
 import { useCallback } from "react";
-import { useFormContext, useFieldArray } from "react-hook-form";
+import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
 import { Icon } from "../../common/Icon";
 import yaml from "yaml";
 
@@ -22,6 +23,109 @@ import type { SubstanceArticle, HistoryCulture } from "../../../schema";
 export type HistoryCultureFieldsRHFProps = {
   idPrefix: string;
 };
+
+/** Nested subsections field array component for a single section */
+function SubsectionsFieldArray({
+  sectionIndex,
+  idPrefix,
+}: {
+  sectionIndex: number;
+  idPrefix: string;
+}) {
+  const { register, control } = useFormContext<SubstanceArticle>();
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `history_culture.sections.${sectionIndex}.subsections` as const,
+  });
+
+  const handleAddSubsection = useCallback(() => {
+    append({ heading: "", content: "", date_range: undefined });
+  }, [append]);
+
+  if (fields.length === 0) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleAddSubsection}
+        className="mt-2 text-xs text-white/50 hover:text-white/80"
+      >
+        <Icon icon="lucide:plus" className="h-3 w-3 mr-1" size={12} />
+        Add subsection (for notable individuals, etc.)
+      </Button>
+    );
+  }
+
+  return (
+    <div className="mt-3 pl-4 border-l-2 border-white/10 space-y-3">
+      <div className="text-xs text-white/50 font-medium">Subsections</div>
+      {fields.map((field, subIndex) => (
+        <div
+          key={field.id}
+          className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2"
+        >
+          <div className="flex items-start gap-2">
+            <div className="flex-1 space-y-2">
+              <Input
+                id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-heading`}
+                {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.heading`)}
+                placeholder="Subsection heading (e.g., person name)"
+                className="text-sm h-8"
+              />
+              {/* Date range inputs for subsections */}
+              <div className="flex gap-2">
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs text-white/50">Start Date (optional)</Label>
+                  <Input
+                    {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.start`)}
+                    placeholder="e.g., 1943"
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <Label className="text-xs text-white/50">End Date (optional)</Label>
+                  <Input
+                    {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.end`)}
+                    placeholder="e.g., 1970"
+                    className="h-7 text-xs"
+                  />
+                </div>
+              </div>
+              <Textarea
+                id={`${idPrefix}-section-${sectionIndex}-sub-${subIndex}-content`}
+                className="min-h-[80px] text-sm"
+                {...register(`history_culture.sections.${sectionIndex}.subsections.${subIndex}.content`)}
+                placeholder="Subsection content..."
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => remove(subIndex)}
+              className="h-8 w-8 text-red-400/70 hover:text-red-300 hover:bg-red-500/10"
+              title="Remove subsection"
+            >
+              <Icon icon="lucide:x" className="h-3 w-3" size={12} />
+            </Button>
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleAddSubsection}
+        className="text-xs text-white/50 hover:text-white/80"
+      >
+        <Icon icon="lucide:plus" className="h-3 w-3 mr-1" size={12} />
+        Add subsection
+      </Button>
+    </div>
+  );
+}
 
 export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFProps) {
   const { register, control, getValues, setValue, watch } = useFormContext<SubstanceArticle>();
@@ -70,7 +174,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
   }, [setValue]);
 
   const handleAddSection = useCallback(() => {
-    append({ heading: "", content: "" });
+    append({ heading: "", content: "", date_range: undefined, subsections: [] });
   }, [append]);
 
   const handleMoveUp = useCallback((index: number) => {
@@ -162,7 +266,27 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                     placeholder="e.g., Discovery & Synthesis, Cultural Significance, Notable Figures..."
                   />
                 </div>
-                
+
+                {/* Date range inputs for sections */}
+                <div className="flex gap-2">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs text-white/50">Start Date (optional)</Label>
+                    <Input
+                      {...register(`history_culture.sections.${index}.date_range.start`)}
+                      placeholder="e.g., 1943"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs text-white/50">End Date (optional)</Label>
+                    <Input
+                      {...register(`history_culture.sections.${index}.date_range.end`)}
+                      placeholder="e.g., 1970"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1">
                   <Label htmlFor={`${idPrefix}-section-${index}-content`}>
                     Content
@@ -171,9 +295,12 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
                     id={`${idPrefix}-section-${index}-content`}
                     className="min-h-[120px]"
                     {...register(`history_culture.sections.${index}.content`)}
-                    placeholder="Section content..."
+                    placeholder="Section content (leave empty if using subsections)..."
                   />
                 </div>
+
+                {/* Nested subsections */}
+                <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} />
               </div>
               
               {/* Delete button */}
