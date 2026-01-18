@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 /**
- * Import articles.json into Convex.
- * 
- * This script reads the local articles.json file and uploads all articles
+ * Import SubstanceIndex.json into Convex.
+ *
+ * This script reads the local SubstanceIndex.json file and uploads all substances
  * to the Convex database. Use this for initial data migration.
- * 
+ *
  * Prerequisites:
  * 1. Run `bunx convex dev` to set up the Convex project and generate types
  * 2. Ensure CONVEX_URL is set in your environment or .env.local
- * 
+ *
  * Usage:
- *   node scripts/convex-import-articles.mjs
- *   node scripts/convex-import-articles.mjs --dry-run
+ *   node scripts/convex-import-substance-index.mjs
+ *   node scripts/convex-import-substance-index.mjs --dry-run
  */
 
 import { readFileSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 
-const ARTICLES_PATH = "./src/data/articles.json";
+const SUBSTANCE_INDEX_PATH = "./src/data/SubstanceIndex.json";
 
 /**
  * Greek letter replacements for Convex field name compatibility.
@@ -71,10 +71,10 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("Reading articles from:", ARTICLES_PATH);
+  console.log("Reading articles from:", SUBSTANCE_INDEX_PATH);
   
   // Read articles.json
-  const articlesJson = readFileSync(ARTICLES_PATH, "utf-8");
+  const articlesJson = readFileSync(SUBSTANCE_INDEX_PATH, "utf-8");
   const articles = JSON.parse(articlesJson);
   
   console.log(`Found ${articles.length} articles to import.`);
@@ -101,8 +101,8 @@ async function main() {
     // Sanitize articles to ensure all field names are ASCII-only
     const sanitizedArticles = articles.map(sanitizeKeys);
     
-    // Use replaceAllArticles to do a clean import
-    const result = await client.mutation(api.articles.replaceAllArticles, {
+    // Use replaceAllSubstances to do a clean import
+    const result = await client.mutation(api.substanceIndex.replaceAllSubstances, {
       articles: sanitizedArticles,
     });
 

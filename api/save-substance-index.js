@@ -16,9 +16,9 @@ import {
   updateReference,
 } from "./_utils/github.js";
 
-const log = createLogger("save-articles");
+const log = createLogger("save-substance-index");
 
-const ARTICLES_PATH = "src/data/articles.json";
+const SUBSTANCE_INDEX_PATH = "src/data/SubstanceIndex.json";
 const CHANGE_LOG_PATH = "src/data/changelog/devChangeLog.json";
 const PSYCHOACTIVE_INDEX_PATH = "src/data/indexes/psychoactiveIndexManual.json";
 const ABOUT_MARKDOWN_PATH = "src/data/content/aboutContent.md";
@@ -302,7 +302,7 @@ export default async function handler(req, res) {
       log.debug("Articles blob created:", articlesBlobSha?.slice(0, 7));
       
       treeEntries.push({
-        path: ARTICLES_PATH,
+        path: SUBSTANCE_INDEX_PATH,
         mode: "100644",
         type: "blob",
         sha: articlesBlobSha,

@@ -24,20 +24,20 @@ import {
   type SourceInfo,
   type SubstanceModule,
 } from "../../../../data/article-sources";
-import { useLibrary } from "../../../../data/ArticlesProvider";
+import { useLibrary } from "../../../../data/SubstanceIndexProvider";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
 import { parseGeneratedYaml } from "./yamlParser";
 import {
   STORAGE_KEYS,
-  type ArticlesTabProps,
+  type SubstanceEditorTabProps,
   type OutputViewMode,
 } from "./types";
 import { useDevMode } from "../../DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
 import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
-import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
+import { SubstanceEditorProvider, type SubstanceEditorContextValue } from "./SubstanceEditorContext";
 import {
   parseSourcesFromQuotes,
   type ExtractedSourceInfo,
@@ -45,7 +45,7 @@ import {
 import { getFaviconForSourceName } from "../../../../data/config/sourceFavicons";
 import { useQuote } from "../../../../hooks/useQuotes";
 
-export const ArticlesTab = memo(function ArticlesTab({
+export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
   // since section-based generation uses individual prompts per section
   generatorPrompt: _generatorPrompt,
@@ -57,7 +57,7 @@ export const ArticlesTab = memo(function ArticlesTab({
   onCopyPrompt: _onCopyPrompt,
   renderCommitPanel,
   commitPanel,
-}: ArticlesTabProps) {
+}: SubstanceEditorTabProps) {
   // API state
   // Use sessionStorage for API key (more secure - cleared when browser closes)
   const [apiKey, setApiKey] = useState(() => {
@@ -458,8 +458,8 @@ export const ArticlesTab = memo(function ArticlesTab({
     return sources;
   }, [substanceModule, availableSources]);
 
-  // Articles context value for section generators
-  const articlesContextValue = useMemo<ArticlesContextValue>(() => ({
+  // Substance editor context value for section generators
+  const substanceEditorContextValue = useMemo<SubstanceEditorContextValue>(() => ({
     apiKey,
     model: selectedModel,
     isKeyValid,
@@ -765,7 +765,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                 );
               }
               return (
-                <ArticlesProvider value={articlesContextValue}>
+                <SubstanceEditorProvider value={substanceEditorContextValue}>
                   <ArticleDraftFormFieldsRHF
                     key={selectedSubstanceSlug}
                     idPrefix="generator-form"
@@ -773,7 +773,7 @@ export const ArticlesTab = memo(function ArticlesTab({
                     onMutate={handleFormMutate}
                     formRef={formRef}
                   />
-                </ArticlesProvider>
+                </SubstanceEditorProvider>
               );
             })()
           )}

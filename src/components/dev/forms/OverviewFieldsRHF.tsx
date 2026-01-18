@@ -21,8 +21,8 @@ import { CollapsibleSubsection, FieldGroup, helperTextClass } from "./FormHelper
 import { ControlledTagMultiSelect } from "./rhf";
 import type { TagOption } from "../../../data/config/tagOptions";
 import type { SubstanceArticle, Identification, Classification } from "../../../schema";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 const PRIORITY_OPTIONS = [
@@ -43,7 +43,7 @@ export function OverviewFieldsRHF({
   indexCategoryOptions,
 }: OverviewFieldsRHFProps) {
   const { register, watch, setValue, control, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: identificationPrompt } = useSectionPrompt("identification");

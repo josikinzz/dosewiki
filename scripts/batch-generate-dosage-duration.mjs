@@ -75,7 +75,7 @@ const CONFIG = {
   retryAttempts: 3,
   retryDelayMs: 2000,
   reasoningEffort: "medium",
-  articlesFile: join(PROJECT_ROOT, "src/data/articles.json"),
+  articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "dosage-duration-quotes"),
   costsFile: join(PROJECT_ROOT, "batch-dosage-duration-costs.json"),
   backupFile: join(PROJECT_ROOT, "src/data/articles.backup.json"),
@@ -176,7 +176,7 @@ function titleToSlug(title) {
 // Load articles from JSON
 function loadArticles() {
   if (!existsSync(CONFIG.articlesFile)) {
-    console.error("Error: articles.json not found at", CONFIG.articlesFile);
+    console.error("Error: SubstanceIndex.json not found at", CONFIG.articlesFile);
     process.exit(1);
   }
   return JSON.parse(readFileSync(CONFIG.articlesFile, "utf-8"));

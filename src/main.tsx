@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useQuery } from "convex/react";
 import App from "./App";
 import { DevModeProvider } from "./components/dev/DevModeContext";
-import { ArticlesProvider, type LibraryData } from "./data/ArticlesProvider";
-import { loadArticles, initializeWithSyncData, setArticlesCache } from "./data/articlesLoader";
+import { SubstanceIndexProvider, type LibraryData } from "./data/SubstanceIndexProvider";
+import { loadSubstanceIndex, initializeWithSyncData, setSubstanceIndexCache } from "./data/substanceIndexLoader";
 import { buildLibrary } from "./data/builders/libraryBuilder";
 import { LoadingScreen } from "./components/common/LoadingScreen";
 import { ConvexProvider, isConvexEnabled } from "./lib/convex";
@@ -41,7 +41,7 @@ if (isSafari) {
  * Used when VITE_CONVEX_URL is configured.
  */
 function AppWithConvexData() {
-  const convexArticles = useQuery(api.articles.getAll);
+  const convexArticles = useQuery(api.substanceIndex.getAll);
   const [error, setError] = useState<Error | null>(null);
   const [isConnecting, setIsConnecting] = useState(true);
 
@@ -60,8 +60,8 @@ function AppWithConvexData() {
     }
     // Strip Convex _id and _creationTime fields to match SubstanceArticle type
     const articles = convexArticles.map(({ _id, _creationTime, ...article }) => article) as SubstanceArticle[];
-    // Update the articles cache so other parts of the app can access it
-    setArticlesCache(articles);
+    // Update the substance index cache so other parts of the app can access it
+    setSubstanceIndexCache(articles);
     return buildLibrary(articles);
   }, [convexArticles]);
 
@@ -75,13 +75,13 @@ function AppWithConvexData() {
   }
 
   return (
-    <ArticlesProvider libraryData={libraryData}>
+    <SubstanceIndexProvider libraryData={libraryData}>
       <ConvexSyncProvider>
         <DevModeProvider>
           <App />
         </DevModeProvider>
       </ConvexSyncProvider>
-    </ArticlesProvider>
+    </SubstanceIndexProvider>
   );
 }
 
@@ -99,16 +99,16 @@ function AppWithFileData() {
 
     if (isInlineBuild) {
       // For inline builds, data is bundled synchronously
-      import("./data/articles.compressed")
+      import("./data/SubstanceIndex.compressed")
         .then((mod) => {
-          const articles = initializeWithSyncData(mod.articlesCompressedBase64);
+          const articles = initializeWithSyncData(mod.substanceIndexCompressedBase64);
           const library = buildLibrary(articles);
           setLibraryData(library);
         })
         .catch(setError);
     } else {
       // For standard builds, load asynchronously from compressed file
-      loadArticles()
+      loadSubstanceIndex()
         .then((articles) => {
           const library = buildLibrary(articles);
           setLibraryData(library);
@@ -126,13 +126,13 @@ function AppWithFileData() {
   }
 
   return (
-    <ArticlesProvider libraryData={libraryData}>
+    <SubstanceIndexProvider libraryData={libraryData}>
       <ConvexSyncProvider>
         <DevModeProvider>
           <App />
         </DevModeProvider>
       </ConvexSyncProvider>
-    </ArticlesProvider>
+    </SubstanceIndexProvider>
   );
 }
 

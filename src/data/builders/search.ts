@@ -1,5 +1,5 @@
 import type { IconName } from "@/components/common/Icon";
-import type { LibraryData } from "../ArticlesProvider";
+import type { LibraryData } from "../SubstanceIndexProvider";
 import type { SubstanceRecord } from "./contentBuilder";
 
 export type SearchEntryType = "substance" | "category" | "effect";

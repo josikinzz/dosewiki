@@ -7,7 +7,7 @@ import { JsonEditor } from "../../../common/JsonEditor";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDevMode } from "../../../dev/DevModeContext";
-import { useLibrary } from "../../../../data/ArticlesProvider";
+import { useLibrary } from "../../../../data/SubstanceIndexProvider";
 import { slugify } from "../../../../utils/slug";
 import { useResponsiveColumnCount } from "../../../../hooks/useResponsiveColumnCount";
 import { CategoryEditor } from "./CategoryEditor";

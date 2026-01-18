@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from "react";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import { slugify } from "../../utils/slug";
 import type { GraphNode, GraphLink, GraphData, HierarchyData, SubstanceData } from "./graphTypes";
 

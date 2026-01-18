@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
 import type { SubstanceArticle, HarmPotential, Tolerance, Interactions } from "../../../schema";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 // Tolerance field labels with icons matching ToleranceSection.tsx
@@ -44,7 +44,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const dependenceValue = watch("harm_potential.dependence_liability") ?? "";
 
   // Get articles context if available (only in Articles tab)
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: harmPotentialPrompt } = useSectionPrompt("harm_potential");
@@ -239,7 +239,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 
 export function InteractionsFieldsRHF() {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: interactionsPrompt } = useSectionPrompt("interactions");
@@ -332,7 +332,7 @@ export type ToleranceFieldsRHFProps = {
 
 export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: tolerancePrompt } = useSectionPrompt("tolerance");
@@ -419,7 +419,7 @@ export type NotesFieldsRHFProps = {
 export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
   const { register, watch, setValue, getValues } = useFormContext<SubstanceArticle>();
   const summaryValue = watch("summary") ?? "";
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: summaryPrompt } = useSectionPrompt("summary");

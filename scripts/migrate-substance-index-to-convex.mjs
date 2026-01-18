@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 /**
- * Migrate articles.json to Convex.
- * 
- * This script reads articles.json and uploads all articles to the Convex database.
- * 
+ * Migrate SubstanceIndex.json to Convex.
+ *
+ * This script reads SubstanceIndex.json and uploads all substances to the Convex database.
+ *
  * Prerequisites:
  * 1. Run `bunx convex dev` to set up the Convex project and generate types
  * 2. Ensure CONVEX_URL is set in your environment or .env.local
- * 
+ *
  * Usage:
- *   node scripts/migrate-articles-to-convex.mjs
- *   node scripts/migrate-articles-to-convex.mjs --dry-run
- *   node scripts/migrate-articles-to-convex.mjs --replace  # Replace all articles (destructive)
+ *   node scripts/migrate-substance-index-to-convex.mjs
+ *   node scripts/migrate-substance-index-to-convex.mjs --dry-run
+ *   node scripts/migrate-substance-index-to-convex.mjs --replace  # Replace all substances (destructive)
  */
 
 import { readFileSync } from "fs";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 
-const ARTICLES_PATH = "./src/data/articles.json";
+const SUBSTANCE_INDEX_PATH = "./src/data/SubstanceIndex.json";
 
 // Greek letter to ASCII mapping for field name sanitization
 const GREEK_TO_ASCII = {
@@ -132,7 +132,7 @@ async function main() {
 
   console.log("Reading articles.json...\n");
   
-  const articlesContent = readFileSync(ARTICLES_PATH, "utf-8");
+  const articlesContent = readFileSync(SUBSTANCE_INDEX_PATH, "utf-8");
   const articles = JSON.parse(articlesContent);
   
   console.log(`Found ${articles.length} articles.`);
@@ -179,7 +179,7 @@ async function main() {
     console.log("This will DELETE all existing articles first.");
     
     try {
-      const result = await client.mutation(api.articles.replaceAllArticles, {
+      const result = await client.mutation(api.substanceIndex.replaceAllSubstances, {
         articles: sanitizedArticles,
       });
       
@@ -208,7 +208,7 @@ async function main() {
       process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} articles)... `);
       
       try {
-        const result = await client.mutation(api.articles.saveArticles, {
+        const result = await client.mutation(api.substanceIndex.saveSubstances, {
           articles: batch,
         });
         

@@ -1,6 +1,6 @@
 /**
- * ArticlesContext - Shares AI generation state across the Articles tab.
- * 
+ * SubstanceEditorContext - Shares AI generation state across the Substance Editor tab.
+ *
  * Provides API configuration, source content, and extracted quotes
  * to section components for per-section AI generation.
  */
@@ -9,7 +9,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { SubstanceModule, SourceInfo } from "../../../../data/article-sources";
 import type { ExtractedSourceInfo } from "../../../../utils/sectionSources";
 
-export interface ArticlesContextValue {
+export interface SubstanceEditorContextValue {
   // API configuration
   apiKey: string;
   model: string;
@@ -45,34 +45,34 @@ export interface ArticlesContextValue {
   getAllSources: () => Array<{ source: string; content: string }>;
 }
 
-const ArticlesContext = createContext<ArticlesContextValue | null>(null);
+const SubstanceEditorContext = createContext<SubstanceEditorContextValue | null>(null);
 
-export function ArticlesProvider({
+export function SubstanceEditorProvider({
   children,
   value,
 }: {
   children: ReactNode;
-  value: ArticlesContextValue;
+  value: SubstanceEditorContextValue;
 }) {
   return (
-    <ArticlesContext.Provider value={value}>
+    <SubstanceEditorContext.Provider value={value}>
       {children}
-    </ArticlesContext.Provider>
+    </SubstanceEditorContext.Provider>
   );
 }
 
-export function useArticlesContext(): ArticlesContextValue {
-  const context = useContext(ArticlesContext);
+export function useSubstanceEditorContext(): SubstanceEditorContextValue {
+  const context = useContext(SubstanceEditorContext);
   if (!context) {
-    throw new Error("useArticlesContext must be used within an ArticlesProvider");
+    throw new Error("useSubstanceEditorContext must be used within a SubstanceEditorProvider");
   }
   return context;
 }
 
 /**
- * Hook that returns null if not in articles context.
- * Useful for form sections that may be used outside the articles tab.
+ * Hook that returns null if not in substance editor context.
+ * Useful for form sections that may be used outside the substance editor tab.
  */
-export function useOptionalArticlesContext(): ArticlesContextValue | null {
-  return useContext(ArticlesContext);
+export function useOptionalSubstanceEditorContext(): SubstanceEditorContextValue | null {
+  return useContext(SubstanceEditorContext);
 }

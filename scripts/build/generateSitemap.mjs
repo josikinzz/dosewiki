@@ -1,7 +1,7 @@
 /**
  * Sitemap Generator
  *
- * Generates sitemap.xml from articles.json and static routes.
+ * Generates sitemap.xml from SubstanceIndex.json and static routes.
  * Run this as part of the build process.
  */
 
@@ -65,7 +65,7 @@ ${urlEntries}
 }
 
 async function main() {
-  const articlesPath = path.resolve(__dirname, "../../src/data/articles.json");
+  const articlesPath = path.resolve(__dirname, "../../src/data/SubstanceIndex.json");
   const outputPath = path.resolve(__dirname, "../../public/sitemap.xml");
 
   // Read articles
@@ -74,7 +74,7 @@ async function main() {
     const articlesContent = fs.readFileSync(articlesPath, "utf-8");
     articles = JSON.parse(articlesContent);
   } catch (error) {
-    console.warn("Warning: Could not read articles.json, generating sitemap with static routes only");
+    console.warn("Warning: Could not read SubstanceIndex.json, generating sitemap with static routes only");
   }
 
   // Generate substance URLs

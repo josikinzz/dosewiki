@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "../../data/content/about";
 import { getProfileByKey } from "../../data/userProfiles";
 

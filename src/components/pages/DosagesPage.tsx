@@ -4,7 +4,7 @@ import { PageHeader } from "../layout/PageHeader";
 import { CategoryGrid } from "../sections/CategoryGrid";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DosageCategoryGroup } from "../../data/builders/library";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 
 type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 

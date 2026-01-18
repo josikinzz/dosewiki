@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../../schema";
 import psychoactiveIndexManualSource from "../../data/indexes/psychoactiveIndexManual.json";
 import chemicalIndexManualSource from "../../data/indexes/chemicalIndexManual.json";

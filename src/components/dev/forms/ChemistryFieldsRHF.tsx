@@ -14,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, RecordStringInput } from "./rhf";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 import type { TagOption } from "../../../data/config/tagOptions";
 import type { SubstanceArticle, Pharmacology, DosageRoute, DurationRoute } from "../../../schema";
@@ -121,7 +121,7 @@ export function ChemistryFieldsRHF({
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
 
   // Get articles context if available (only in Articles tab)
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: pharmacologyPrompt } = useSectionPrompt("pharmacology");

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "../..");
-const ARTICLES_PATH = resolve(ROOT, "src/data/articles.json");
+const ARTICLES_PATH = resolve(ROOT, "src/data/SubstanceIndex.json");
 const SHARE_OUTPUT_DIR = resolve(ROOT, "public/share");
 const SHARE_IMAGE_PATH = "/dosewiki-logo.png";
 const SHARE_IMAGE_ALT = "dose.wiki logo";

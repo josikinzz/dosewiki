@@ -1,5 +1,5 @@
 import { Icon } from "../common/Icon";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import {
   useCallback,
   useEffect,
@@ -38,7 +38,7 @@ import { DevCommitCard } from "../dev/DevCommitCard";
 import { TagEditorTab } from "../dev/tags";
 import { ProfileEditorTab } from "../dev/profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
-import { ArticlesTab } from "../dev/tools/articles/ArticlesTab";
+import { SubstanceEditorTab } from "../dev/tools/substance-editor/SubstanceEditorTab";
 
 // Helper to stringify articles as YAML for human-readable display
 const toYaml = (value: unknown): string => {
@@ -2985,7 +2985,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
           onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
         />
       ) : activeTab === "articles" ? (
-        <ArticlesTab
+        <SubstanceEditorTab
           generatorPrompt={generatorPrompt}
           originalGeneratorPrompt={originalGeneratorPrompt}
           onPromptChange={handleGeneratorPromptChange}

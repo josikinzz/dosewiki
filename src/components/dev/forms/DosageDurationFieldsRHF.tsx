@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 
 import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
 import type { SubstanceArticle, Dosage, Duration } from "../../../schema";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 // Dose range tier labels
@@ -56,7 +56,7 @@ export function DosageDurationFieldsRHF({
   applyDurationFromRoute,
 }: DosageDurationFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: dosageDurationPrompt } = useSectionPrompt("dosage_duration");

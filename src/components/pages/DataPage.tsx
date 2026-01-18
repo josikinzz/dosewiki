@@ -3,7 +3,7 @@ import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { Icon } from "../common/Icon";
 import { Button } from "@/components/ui/button";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../../schema";
 
 

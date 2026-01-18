@@ -79,10 +79,10 @@ async function main() {
   });
 
   // Write to articles.json
-  const outputPath = resolve(process.cwd(), "src/data/articles.json");
+  const outputPath = resolve(process.cwd(), "src/data/SubstanceIndex.json");
   writeFileSync(outputPath, JSON.stringify(cleanedArticles, null, 2) + "\n");
 
-  console.log(`✅ Exported ${cleanedArticles.length} articles to src/data/articles.json`);
+  console.log(`✅ Exported ${cleanedArticles.length} articles to src/data/SubstanceIndex.json`);
   console.log("\nNext steps:");
   console.log("  1. node scripts/build/buildCompressedArticles.mjs");
   console.log("  2. git add . && git commit -m 'Sync articles from Convex'");

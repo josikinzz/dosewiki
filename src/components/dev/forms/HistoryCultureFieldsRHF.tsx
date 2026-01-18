@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 import { CharacterCount } from "./FormHelpers";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 import type { SubstanceArticle, HistoryCulture } from "../../../schema";
 
@@ -138,7 +138,7 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
   const contentValue = watch("history_culture.content") ?? "";
 
   // Get articles context if available (only in Articles tab)
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: historyCulturePrompt } = useSectionPrompt("history_culture");

@@ -1,7 +1,7 @@
 /**
- * React context provider for lazy-loaded article data.
+ * React context provider for lazy-loaded substance index data.
  *
- * Wraps the application and provides article data via context.
+ * Wraps the application and provides substance data via context.
  * Uses React Suspense for loading states.
  */
 
@@ -26,7 +26,7 @@ import type {
 } from "./builders/library";
 
 /**
- * Shape of the library data computed from articles.
+ * Shape of the library data computed from substance index.
  * This mirrors the exports from library.ts.
  */
 export interface LibraryData {
@@ -70,12 +70,12 @@ export interface LibraryData {
 /**
  * Context for library data.
  */
-const ArticlesContext = createContext<LibraryData | null>(null);
+const SubstanceIndexContext = createContext<LibraryData | null>(null);
 
 /**
- * Props for ArticlesProvider.
+ * Props for SubstanceIndexProvider.
  */
-interface ArticlesProviderProps {
+interface SubstanceIndexProviderProps {
   children: ReactNode;
   libraryData: LibraryData;
 }
@@ -85,28 +85,28 @@ interface ArticlesProviderProps {
  *
  * Usage:
  * ```tsx
- * <ArticlesProvider libraryData={data}>
+ * <SubstanceIndexProvider libraryData={data}>
  *   <App />
- * </ArticlesProvider>
+ * </SubstanceIndexProvider>
  * ```
  */
-export function ArticlesProvider({ children, libraryData }: ArticlesProviderProps) {
+export function SubstanceIndexProvider({ children, libraryData }: SubstanceIndexProviderProps) {
   return (
-    <ArticlesContext.Provider value={libraryData}>
+    <SubstanceIndexContext.Provider value={libraryData}>
       {children}
-    </ArticlesContext.Provider>
+    </SubstanceIndexContext.Provider>
   );
 }
 
 /**
  * Hook to access the full library data.
  *
- * @throws Error if used outside of ArticlesProvider
+ * @throws Error if used outside of SubstanceIndexProvider
  */
 export function useLibrary(): LibraryData {
-  const context = useContext(ArticlesContext);
+  const context = useContext(SubstanceIndexContext);
   if (context === null) {
-    throw new Error("useLibrary must be used within an ArticlesProvider");
+    throw new Error("useLibrary must be used within a SubstanceIndexProvider");
   }
   return context;
 }
@@ -148,9 +148,9 @@ export function useSubstance(slug: string | undefined): SubstanceRecord | null {
 
 /**
  * Hook to check if library data is available.
- * Returns true if inside ArticlesProvider with data.
+ * Returns true if inside SubstanceIndexProvider with data.
  */
 export function useLibraryReady(): boolean {
-  const context = useContext(ArticlesContext);
+  const context = useContext(SubstanceIndexContext);
   return context !== null;
 }

@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import type { SourceInfo } from "../../../../data/article-sources";
 
 export const STORAGE_KEYS = {
-  API_KEY: "articleGenerator_apiKey",
-  SELECTED_MODEL: "articleGenerator_model",
+  API_KEY: "substanceEditor_apiKey",
+  SELECTED_MODEL: "substanceEditor_model",
 };
 
 export const PROMPT_COLLAPSED_HEIGHT = 200;
@@ -12,7 +12,7 @@ export const PROMPT_COLLAPSED_HEIGHT = 200;
 export const DXM_SECTION_START = "**Special: DXM Plateau Dosing**";
 export const DXM_SECTION_END = "For non-DXM substances, set `plateau_dosing` to `null`.";
 
-export interface ArticlesTabProps {
+export interface SubstanceEditorTabProps {
   generatorPrompt: string;
   originalGeneratorPrompt: string;
   onPromptChange: (value: string) => void;

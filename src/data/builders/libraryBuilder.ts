@@ -27,7 +27,7 @@ import type {
   NameVariantKind,
 } from "../../types/content";
 import type { SubstanceArticle } from "../../schema";
-import type { LibraryData } from "../ArticlesProvider";
+import type { LibraryData } from "../SubstanceIndexProvider";
 import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../constants";
 
 // Re-export types from library.ts for convenience

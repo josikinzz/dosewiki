@@ -10,7 +10,7 @@ import {
   ReportHeroSection,
 } from "../reports";
 import type { TripReport } from "../../types/tripReport";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import { slugify } from "../../utils/slug";
 import { isConvexEnabled } from "../../lib/convex";
 

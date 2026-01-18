@@ -122,7 +122,7 @@ async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesR
 
   let response: Response;
   try {
-    response = await fetch("/api/save-articles", {
+    response = await fetch("/api/save-substance-index", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

@@ -1,7 +1,7 @@
 /**
  * Prebuild orchestrator - runs prebuild scripts in parallel groups.
  *
- * Group A (parallel): generateEmbedLogo.mjs, buildCompressedArticles.mjs
+ * Group A (parallel): generateEmbedLogo.mjs, buildCompressedSubstanceIndex.mjs
  * Group B (parallel, after A): buildSocialSharePages.mjs, buildArticleSources.mjs, generateSitemap.mjs
  *
  * This provides faster builds compared to sequential execution while respecting
@@ -68,7 +68,7 @@ async function main() {
     // Group A: Independent scripts that can run in parallel
     // generateEmbedLogo and buildCompressedArticles have no interdependencies
     await runGroup(
-      ["generateEmbedLogo.mjs", "buildCompressedArticles.mjs"],
+      ["generateEmbedLogo.mjs", "buildCompressedSubstanceIndex.mjs"],
       "Group A"
     );
 

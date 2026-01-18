@@ -9,13 +9,13 @@
  */
 
 import type * as articleSources from "../articleSources.js";
-import type * as articles from "../articles.js";
 import type * as changelog from "../changelog.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
 import type * as replications from "../replications.js";
 import type * as subjectiveEffects from "../subjectiveEffects.js";
+import type * as substanceIndex from "../substanceIndex.js";
 import type * as tripReports from "../tripReports.js";
 
 import type {
@@ -26,13 +26,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   articleSources: typeof articleSources;
-  articles: typeof articles;
   changelog: typeof changelog;
   effectIndexArticles: typeof effectIndexArticles;
   prompts: typeof prompts;
   quotes: typeof quotes;
   replications: typeof replications;
   subjectiveEffects: typeof subjectiveEffects;
+  substanceIndex: typeof substanceIndex;
   tripReports: typeof tripReports;
 }>;
 

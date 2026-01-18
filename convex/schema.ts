@@ -220,8 +220,8 @@ const replication = v.object({
 });
 
 export default defineSchema({
-  // Main articles table - each document is a complete SubstanceArticle
-  articles: defineTable(substanceArticle)
+  // Main substance index table - each document is a complete SubstanceArticle
+  substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
     .index("by_article_id", ["id"]),
 

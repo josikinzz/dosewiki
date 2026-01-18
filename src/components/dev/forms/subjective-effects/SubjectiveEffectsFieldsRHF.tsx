@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 import { CollapsibleSubsection } from "../FormHelpers";
-import { SectionGenerator } from "../../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../../hooks/usePrompts";
 import { EffectCategoryCard } from "./EffectCategoryCard";
 import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
@@ -38,7 +38,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
   const { register, getValues, setValue } = useFormContext<SubstanceArticle>();
 
   // Get articles context if available (only in Articles tab)
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
 
   // Load prompt from Convex
   const { content: subjectiveEffectsPrompt } = useSectionPrompt("subjective_effects");

@@ -11,8 +11,8 @@ import { Icon } from "../../common/Icon";
 import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, CountryLegalityCardEditor } from "./rhf";
 import type { SubstanceArticle, Legality } from "../../../schema";
-import { SectionGenerator } from "../tools/articles/SectionGenerator";
-import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
+import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
+import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 export type LegalityFieldsRHFProps = {
@@ -21,7 +21,7 @@ export type LegalityFieldsRHFProps = {
 
 export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProps) {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
-  const articlesContext = useOptionalArticlesContext();
+  const articlesContext = useOptionalSubstanceEditorContext();
   const { content: legalityPrompt, isLoading: isPromptLoading } = useSectionPrompt("legality");
 
   // Get current article as YAML for context in generation

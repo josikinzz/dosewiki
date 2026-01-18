@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
-import { useLibrary } from "../../data/ArticlesProvider";
+import { useLibrary } from "../../data/SubstanceIndexProvider";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

@@ -21,7 +21,7 @@ import { useSubjectiveEffects, useSubjectiveEffect } from "./hooks/useSubjective
 const DevModePage = lazy(() => 
   import("./components/pages/DevModePage").then(mod => ({ default: mod.DevModePage }))
 );
-import { useLibrary } from "./data/ArticlesProvider";
+import { useLibrary } from "./data/SubstanceIndexProvider";
 import { querySearchWithData } from "./data/builders/search";
 import { RouteAnnouncer } from "./components/common/RouteAnnouncer";
 import type { AppView } from "./types/navigation";

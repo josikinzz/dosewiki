@@ -5,7 +5,7 @@ import type { SubstanceRecord } from "../../data/builders/contentBuilder";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { MoleculeAsset, RouteKey } from "../../types/content";
-import { useArticles } from "../../data/ArticlesProvider";
+import { useArticles } from "../../data/SubstanceIndexProvider";
 import { slugify } from "../../utils/slug";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
