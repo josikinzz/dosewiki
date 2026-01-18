@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { Icon, type IconName } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import type { SubstanceArticle, HistoryCultureDateRange } from "../../schema";
+import type { SubstanceArticle } from "../../schema";
 
 /** Number of lines to show when collapsed */
 const COLLAPSED_LINE_COUNT = 3;
@@ -11,13 +11,30 @@ const MIN_LINES_TO_TRUNCATE = 6;
 /** Approximate characters per line for truncation estimation */
 const CHARS_PER_LINE = 100;
 
-/** Formats a date range for display (e.g., "1943" or "1963–1971") */
-function formatDateRange(dateRange?: HistoryCultureDateRange): string | null {
-  if (!dateRange?.start) return null;
-  if (dateRange.end) {
-    return `${dateRange.start}–${dateRange.end}`;
+/** Renders text with 4-digit years automatically bolded */
+function renderWithBoldYears(text: string): React.ReactNode {
+  // Match 4-digit years (1000-2999 range to be reasonable)
+  const yearPattern = /\b([12]\d{3})\b/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = yearPattern.exec(text)) !== null) {
+    // Add text before the year
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    // Add the bolded year
+    parts.push(<strong key={match.index} className="font-semibold text-fuchsia-300">{match[1]}</strong>);
+    lastIndex = match.index + match[0].length;
   }
-  return dateRange.start;
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
 }
 
 /** Estimates the number of visual lines content will take (accounting for wrapping) */
@@ -510,13 +527,11 @@ interface HistoryCultureSectionProps {
 /** Card component for individual notable people */
 function NotableIndividualCard({
   name,
-  dateRange,
   content,
   isExpanded,
   onToggle,
 }: {
   name: string;
-  dateRange?: HistoryCultureDateRange;
   content: string;
   isExpanded: boolean;
   onToggle: () => void;
@@ -533,16 +548,9 @@ function NotableIndividualCard({
           <Icon icon="lucide:user" size={20} className="text-white/40" />
         </div>
 
-        {/* Name and year */}
+        {/* Name */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-white/90 truncate">{name}</span>
-            {dateRange?.start && (
-              <span className="text-sm text-white/50 flex-shrink-0">
-                ({formatDateRange(dateRange)})
-              </span>
-            )}
-          </div>
+          <span className="font-medium text-white/90 truncate">{name}</span>
         </div>
 
         {/* Expand/collapse indicator */}
@@ -556,7 +564,7 @@ function NotableIndividualCard({
       {/* Expanded content */}
       {isExpanded && (
         <p className="mt-3 pt-3 border-t border-white/10 text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-          {content}
+          {renderWithBoldYears(content)}
         </p>
       )}
     </button>
@@ -567,11 +575,9 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   article,
 }: HistoryCultureSectionProps) {
   const { history_culture } = article;
-  // Track whether freeform content is expanded
-  const [freeformExpanded, setFreeformExpanded] = useState(false);
-  // Track which sections are expanded (by index)
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
-  // Track which individual cards are expanded (by "sectionIdx-subIdx" key)
+  // Track whether the entire section is expanded
+  const [isExpanded, setIsExpanded] = useState(false);
+  // Track which individual cards are expanded (by "sectionIdx-subIdx" key) - only used when section is expanded
   const [expandedIndividuals, setExpandedIndividuals] = useState<Set<string>>(new Set());
 
   // Return null if history_culture is not present (optional field)
@@ -596,17 +602,14 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
     return null;
   }
 
-  const toggleSection = (idx: number) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev);
-      if (next.has(idx)) {
-        next.delete(idx);
-      } else {
-        next.add(idx);
-      }
-      return next;
-    });
-  };
+  // Determine if we need truncation for the sections view
+  // We truncate based on the first section's content
+  const firstSection = sections[0];
+  const needsSectionsTruncation = sections.length > 0 && (
+    sections.length > 1 || // Multiple sections always truncate
+    (firstSection && needsTruncation(firstSection.content)) || // First section content is long
+    (firstSection?.subsections && firstSection.subsections.length > 0) // Has subsections
+  );
 
   const toggleIndividual = (key: string) => {
     setExpandedIndividuals(prev => {
@@ -631,25 +634,25 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
       {hasContent && sections.length === 0 && (() => {
         const content = history_culture.content!;
         const canTruncateFreeform = needsTruncation(content);
-        const displayFreeformContent = canTruncateFreeform && !freeformExpanded
+        const displayFreeformContent = canTruncateFreeform && !isExpanded
           ? truncateContent(content)
           : content;
 
         return (
           <>
             <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-              {displayFreeformContent}
-              {canTruncateFreeform && !freeformExpanded && "…"}
+              {renderWithBoldYears(displayFreeformContent)}
+              {canTruncateFreeform && !isExpanded && "…"}
             </p>
             {canTruncateFreeform && (
               <div className="flex justify-center mt-1.5 -mb-4">
                 <button
                   type="button"
-                  onClick={() => setFreeformExpanded(!freeformExpanded)}
+                  onClick={() => setIsExpanded(!isExpanded)}
                   className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
                 >
                   <Icon icon="lucide:ellipsis" size={14} />
-                  <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${freeformExpanded ? "rotate-180" : ""}`} />
+                  <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
               </div>
             )}
@@ -658,96 +661,101 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
       })()}
 
       {/* Subsections as stacked cards */}
-      {sections.length > 0 && (
-        <div className="flex flex-col gap-4">
-          {sections.map((section, idx) => {
-            const sectionIcon = getIconForHeading(section.heading);
-            const hasSubsections = section.subsections && section.subsections.length > 0;
-            const hasContent = section.content.trim().length > 0;
-            const isExpanded = expandedSections.has(idx);
-            const canTruncate = hasContent && needsTruncation(section.content);
-            const displayContent = canTruncate && !isExpanded
-              ? truncateContent(section.content)
-              : section.content;
+      {sections.length > 0 && (() => {
+        // When collapsed, only show first section with truncated content
+        const sectionsToShow = isExpanded ? sections : [firstSection];
 
-            return (
-              <div
-                key={idx}
-                className="relative rounded-xl border border-white/10 bg-white/5 p-4"
-              >
-                <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                  <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
-                  {section.heading}
-                  {section.date_range?.start && (
-                    <span className="text-sm font-normal text-white/50">
-                      ({formatDateRange(section.date_range)})
-                    </span>
-                  )}
-                </h3>
-                {hasContent && (
-                  <div className="relative">
-                    <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
-                      {displayContent}
-                      {canTruncate && !isExpanded && "…"}
-                    </p>
-                  </div>
-                )}
+        // For collapsed view, truncate the first section's content
+        const getDisplayContent = (section: typeof firstSection, idx: number) => {
+          if (!section.content.trim()) return "";
+          // When collapsed and it's the first section, truncate
+          if (!isExpanded && idx === 0) {
+            return truncateContent(section.content);
+          }
+          return section.content;
+        };
 
-                {/* Nested subsections */}
-                {hasSubsections && (
-                  section.heading === "Notable Individuals" ? (
-                    // Special card-based layout for Notable Individuals
-                    <div className={`flex flex-col gap-2 ${hasContent ? 'mt-4' : ''}`}>
-                      {section.subsections!.map((sub, subIdx) => {
-                        const key = `${idx}-${subIdx}`;
-                        return (
-                          <NotableIndividualCard
-                            key={subIdx}
-                            name={sub.heading}
-                            dateRange={sub.date_range}
-                            content={sub.content}
-                            isExpanded={expandedIndividuals.has(key)}
-                            onToggle={() => toggleIndividual(key)}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    // Default nested subsection layout
-                    <div className={`flex flex-col gap-3 ${hasContent ? 'mt-4' : ''} pl-4 border-l-2 border-white/10`}>
-                      {section.subsections!.map((sub, subIdx) => (
-                        <div key={subIdx}>
-                          <h4 className="font-medium text-white/90 mb-1">
-                            {sub.heading}
-                            {sub.date_range?.start && (
-                              <span className="text-sm font-normal text-white/50 ml-2">
-                                ({formatDateRange(sub.date_range)})
-                              </span>
-                            )}
-                          </h4>
-                          <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{sub.content}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                )}
+        return (
+          <>
+            <div className="flex flex-col gap-4">
+              {sectionsToShow.map((section, idx) => {
+                const sectionIcon = getIconForHeading(section.heading);
+                const hasSubsections = section.subsections && section.subsections.length > 0;
+                const sectionHasContent = section.content.trim().length > 0;
+                const displayContent = getDisplayContent(section, idx);
+                const isTruncated = !isExpanded && idx === 0 && sectionHasContent && needsTruncation(section.content);
 
-                {/* See More button - left-aligned for subsections */}
-                {canTruncate && (
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(idx)}
-                    className="mt-1.5 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                return (
+                  <div
+                    key={idx}
+                    className="relative rounded-xl border border-white/10 bg-white/5 p-4"
                   >
-                    <Icon icon="lucide:ellipsis" size={14} />
-                    <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </button>
-                )}
+                    <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                      <Icon icon={sectionIcon} size={20} className="text-fuchsia-200" />
+                      {section.heading}
+                    </h3>
+                    {sectionHasContent && (
+                      <div className="relative">
+                        <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
+                          {renderWithBoldYears(displayContent)}
+                          {isTruncated && "…"}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Nested subsections - only show when expanded */}
+                    {isExpanded && hasSubsections && (
+                      section.heading === "Notable Individuals" ? (
+                        // Special card-based layout for Notable Individuals
+                        <div className={`flex flex-col gap-2 ${sectionHasContent ? 'mt-4' : ''}`}>
+                          {section.subsections!.map((sub, subIdx) => {
+                            const key = `${idx}-${subIdx}`;
+                            return (
+                              <NotableIndividualCard
+                                key={subIdx}
+                                name={sub.heading}
+                                content={sub.content}
+                                isExpanded={expandedIndividuals.has(key)}
+                                onToggle={() => toggleIndividual(key)}
+                              />
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        // Default nested subsection layout
+                        <div className={`flex flex-col gap-3 ${sectionHasContent ? 'mt-4' : ''} pl-4 border-l-2 border-white/10`}>
+                          {section.subsections!.map((sub, subIdx) => (
+                            <div key={subIdx}>
+                              <h4 className="font-medium text-white/90 mb-1">
+                                {sub.heading}
+                              </h4>
+                              <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Central See More button - same style as freeform content */}
+            {needsSectionsTruncation && (
+              <div className="flex justify-center mt-1.5 -mb-4">
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                >
+                  <Icon icon="lucide:ellipsis" size={14} />
+                  <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+          </>
+        );
+      })()}
     </SectionCard>
   );
 });
