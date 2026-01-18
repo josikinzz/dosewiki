@@ -105,7 +105,7 @@ function EffectBadge({
       <div
         className={cn(
           "relative flex flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
-          "bg-white/[0.08] backdrop-blur-sm ring-1 ring-white/15 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)]",
+          "bg-black/20 ring-1 ring-white/10",
           "w-full my-2"
         )}
       >

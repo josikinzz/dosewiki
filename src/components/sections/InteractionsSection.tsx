@@ -121,7 +121,7 @@ export const InteractionsSection = memo(function InteractionsSection({
                         return (
                           <div
                             key={item.raw}
-                            className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-white/[0.08] backdrop-blur-sm ring-1 ring-white/15 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] px-4 py-3 my-1"
+                            className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-black/20 ring-1 ring-white/10 px-4 py-3 my-1"
                           >
                             <button
                               onClick={() => toggleExpand(item.raw)}
