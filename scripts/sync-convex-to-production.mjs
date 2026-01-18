@@ -13,6 +13,9 @@
  *   - tripReports
  *   - subjectiveEffects
  *   - effectIndexArticles
+ *   - prompts
+ *   - quotes
+ *   - articleSources
  *   - replications (metadata only - file storage IDs are deployment-specific)
  */
 
@@ -71,6 +74,25 @@ function sanitize(docs) {
 }
 
 /**
+ * Transform documents for specific tables that have different bulkImport schemas.
+ */
+function transformForTable(name, docs) {
+  switch (name) {
+    case "quotes":
+      // bulkImport expects: { slug, section, content }
+      return docs.map(({ slug, section, content }) => ({ slug, section, content }));
+    case "prompts":
+      // bulkImport expects: { key, content }
+      return docs.map(({ key, content }) => ({ key, content }));
+    case "replications":
+      // bulkImport expects all fields except created_at
+      return docs.map(({ created_at, ...rest }) => rest);
+    default:
+      return docs;
+  }
+}
+
+/**
  * Sync a table from source to target.
  */
 async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
@@ -79,7 +101,7 @@ async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
   try {
     // Fetch all documents from source
     const docs = await sourceClient.query(getAllQuery, {});
-    const sanitizedDocs = sanitize(docs);
+    const sanitizedDocs = transformForTable(name, sanitize(docs));
 
     console.log(`   Found ${sanitizedDocs.length} documents in source`);
 
@@ -130,6 +152,28 @@ async function main() {
 
   const results = [];
 
+  // Sync articles (substance articles with batch-generated content)
+  console.log("\n📦 Syncing articles...");
+  try {
+    const articles = await sourceClient.query(api.articles.getAll, {});
+    const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
+    console.log(`   Found ${sanitizedArticles.length} articles in source`);
+
+    if (sanitizedArticles.length > 0) {
+      // Use replaceAllArticles for full sync
+      const result = await targetClient.mutation(api.articles.replaceAllArticles, { articles: sanitizedArticles });
+      console.log(`   ✓ Replaced all articles (deleted: ${result.deleted}, inserted: ${result.inserted})`);
+      results.push({ table: "articles", created: result.inserted, updated: 0, errors: [] });
+    } else {
+      console.log("   ⏭️  Skipping (no data)");
+      results.push({ table: "articles", created: 0, updated: 0, errors: [] });
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`   ❌ Failed: ${msg}`);
+    results.push({ table: "articles", created: 0, updated: 0, errors: [msg] });
+  }
+
   // Sync tripReports
   results.push(await syncTable(
     "tripReports",
@@ -153,6 +197,27 @@ async function main() {
     api.effectIndexArticles.bulkImport,
     { argName: "articles" }
   ));
+
+  // Sync prompts
+  results.push(await syncTable(
+    "prompts",
+    api.prompts.getAll,
+    api.prompts.bulkImport,
+    { argName: "prompts" }
+  ));
+
+  // Sync quotes
+  results.push(await syncTable(
+    "quotes",
+    api.quotes.getAll,
+    api.quotes.bulkImport,
+    { argName: "quotes" }
+  ));
+
+  // Skip articleSources - too large (hits 16MB Convex limit)
+  // Use scripts/migrate-sources-to-convex.mjs for direct migration
+  console.log("\n📦 Syncing articleSources...");
+  console.log("   ⏭️  Skipping (too large - use migrate-sources-to-convex.mjs)");
 
   // Sync replications (metadata only - storage IDs won't resolve in prod)
   results.push(await syncTable(
