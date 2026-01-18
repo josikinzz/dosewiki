@@ -152,26 +152,26 @@ async function main() {
 
   const results = [];
 
-  // Sync articles (substance articles with batch-generated content)
-  console.log("\n📦 Syncing articles...");
+  // Sync substanceIndex (substance articles with batch-generated content)
+  console.log("\n📦 Syncing substanceIndex...");
   try {
-    const articles = await sourceClient.query(api.articles.getAll, {});
+    const articles = await sourceClient.query(api.substanceIndex.getAll, {});
     const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
     console.log(`   Found ${sanitizedArticles.length} articles in source`);
 
     if (sanitizedArticles.length > 0) {
-      // Use replaceAllArticles for full sync
-      const result = await targetClient.mutation(api.articles.replaceAllArticles, { articles: sanitizedArticles });
-      console.log(`   ✓ Replaced all articles (deleted: ${result.deleted}, inserted: ${result.inserted})`);
-      results.push({ table: "articles", created: result.inserted, updated: 0, errors: [] });
+      // Use replaceAllSubstances for full sync
+      const result = await targetClient.mutation(api.substanceIndex.replaceAllSubstances, { articles: sanitizedArticles });
+      console.log(`   ✓ Replaced all substances (deleted: ${result.deleted}, inserted: ${result.inserted})`);
+      results.push({ table: "substanceIndex", created: result.inserted, updated: 0, errors: [] });
     } else {
       console.log("   ⏭️  Skipping (no data)");
-      results.push({ table: "articles", created: 0, updated: 0, errors: [] });
+      results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.log(`   ❌ Failed: ${msg}`);
-    results.push({ table: "articles", created: 0, updated: 0, errors: [msg] });
+    results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [msg] });
   }
 
   // Sync tripReports
