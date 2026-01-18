@@ -227,7 +227,7 @@ export function useSaveProfileMutation() {
  */
 export function useSaveArticlesToConvex() {
   const enabled = isConvexEnabled();
-  const convexMutation = useConvexMutation(api.articles.saveArticles);
+  const convexMutation = useConvexMutation(api.substanceIndex.saveSubstances);
 
   if (!enabled) {
     return null;
@@ -245,7 +245,7 @@ export function useSaveArticlesToConvex() {
  */
 export function useReplaceAllArticlesInConvex() {
   const enabled = isConvexEnabled();
-  const convexMutation = useConvexMutation(api.articles.replaceAllArticles);
+  const convexMutation = useConvexMutation(api.substanceIndex.replaceAllSubstances);
 
   if (!enabled) {
     return null;

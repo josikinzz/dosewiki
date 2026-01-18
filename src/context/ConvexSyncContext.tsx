@@ -67,7 +67,7 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
   const isSyncingRef = useRef(false);
   const isReadyRef = useRef(false);
 
-  const saveArticlesMutation = useConvexMutation(api.articles.saveArticles);
+  const saveArticlesMutation = useConvexMutation(api.substanceIndex.saveSubstances);
 
   // Mark as ready after a short delay to let Convex connect
   useEffect(() => {
