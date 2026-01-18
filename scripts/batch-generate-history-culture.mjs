@@ -183,13 +183,18 @@ function createBackup() {
   }
 }
 
-// Load history culture quotes for a substance
-function loadHistoryCultureQuotes(slug) {
-  const quotesPath = join(CONFIG.quotesDir, `${slug}-history-culture.md`);
-  if (!existsSync(quotesPath)) {
+// Load history culture quotes for a substance from Convex
+async function loadHistoryCultureQuotes(slug) {
+  try {
+    const quote = await convexClient.query(api.quotes.getBySlugAndSection, {
+      slug,
+      section: "history_culture",
+    });
+    return quote?.content ?? null;
+  } catch (error) {
+    console.error(`  Error loading quotes for ${slug}:`, error.message);
     return null;
   }
-  return readFileSync(quotesPath, "utf-8");
 }
 
 // Check if article has existing history_culture content
@@ -352,10 +357,10 @@ function parseGeneratedYaml(response) {
 async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = titleToSlug(article.title);
 
-  // Load history culture quotes
-  const quotes = loadHistoryCultureQuotes(slug);
+  // Load history culture quotes from Convex
+  const quotes = await loadHistoryCultureQuotes(slug);
   if (!quotes) {
-    return { slug, status: "skipped", reason: "No history culture quotes file", tokens: 0 };
+    return { slug, status: "skipped", reason: "No history culture quotes in Convex", tokens: 0 };
   }
 
   // Build user message
@@ -473,13 +478,13 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       }
 
       if (dryRun) {
-        const quotes = loadHistoryCultureQuotes(slug);
+        const quotes = await loadHistoryCultureQuotes(slug);
         return {
           slug,
           title: article.title,
           status: quotes ? "dry-run" : "would-skip",
-          reason: quotes ? null : "No history culture quotes file",
-          tokens: 0
+          reason: quotes ? null : "No history culture quotes in Convex",
+          tokens: 0,
         };
       }
 
@@ -657,9 +662,9 @@ async function main() {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
-      const hasQuotes = existsSync(join(CONFIG.quotesDir, `${slug}-history-culture.md`));
+      const quotes = await loadHistoryCultureQuotes(slug);
       const hasExisting = hasExistingHistoryCulture(article);
-      const status = hasQuotes ? "has quotes" : "NO QUOTES";
+      const status = quotes ? "has quotes" : "NO QUOTES";
       const existing = hasExisting ? "(has content)" : "(no content)";
       console.log(`  - ${article.title} ${existing} [${status}]`);
     }

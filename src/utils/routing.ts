@@ -25,6 +25,8 @@ export function viewToPath(view: AppView): string {
     }
     case "about":
       return "/about";
+    case "data":
+      return "/data";
     case "category":
       return `/category/${view.categoryKey}`;
     case "effect":
@@ -114,6 +116,8 @@ export function parsePath(
       }
       case "about":
         return { type: "about" };
+      case "data":
+        return { type: "data" };
       case "category":
         if (slug) {
           return { type: "category", categoryKey: slug };

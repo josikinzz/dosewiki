@@ -171,13 +171,18 @@ function createBackup() {
   }
 }
 
-// Load legality quotes for a substance
-function loadLegalityQuotes(slug) {
-  const quotesPath = join(CONFIG.quotesDir, `${slug}-legality.md`);
-  if (!existsSync(quotesPath)) {
+// Load legality quotes for a substance from Convex
+async function loadLegalityQuotes(slug) {
+  try {
+    const quote = await convexClient.query(api.quotes.getBySlugAndSection, {
+      slug,
+      section: "legality",
+    });
+    return quote?.content ?? null;
+  } catch (error) {
+    console.error(`  Error loading quotes for ${slug}:`, error.message);
     return null;
   }
-  return readFileSync(quotesPath, "utf-8");
 }
 
 // Convex client (initialized in main)
@@ -326,10 +331,10 @@ function parseGeneratedYaml(response) {
 async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = titleToSlug(article.title);
 
-  // Load legality quotes
-  const quotes = loadLegalityQuotes(slug);
+  // Load legality quotes from Convex
+  const quotes = await loadLegalityQuotes(slug);
   if (!quotes) {
-    return { slug, status: "skipped", reason: "No legality quotes file", tokens: 0 };
+    return { slug, status: "skipped", reason: "No legality quotes in Convex", tokens: 0 };
   }
 
   // Build user message
@@ -410,13 +415,13 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       }
 
       if (dryRun) {
-        const quotes = loadLegalityQuotes(slug);
+        const quotes = await loadLegalityQuotes(slug);
         return {
           slug,
           title: article.title,
           status: quotes ? "dry-run" : "would-skip",
-          reason: quotes ? null : "No legality quotes file",
-          tokens: 0
+          reason: quotes ? null : "No legality quotes in Convex",
+          tokens: 0,
         };
       }
 
@@ -549,8 +554,8 @@ async function main() {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
-      const hasQuotes = existsSync(join(CONFIG.quotesDir, `${slug}-legality.md`));
-      const status = hasQuotes ? "has quotes" : "NO QUOTES";
+      const quotes = await loadLegalityQuotes(slug);
+      const status = quotes ? "has quotes" : "NO QUOTES";
       console.log(`  - ${article.title} (${status})`);
     }
     if (articles.length > 20) {

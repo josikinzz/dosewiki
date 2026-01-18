@@ -56,18 +56,7 @@ const resolveAppChunk = (id: string): string | undefined => {
     return 'article-sources';
   }
 
-  if (id.includes('/harmpotential-quotes/')) {
-    return 'quotes-harm-potential';
-  }
-
-  if (id.includes('/pharmacology-quotes/')) {
-    return 'quotes-pharmacology';
-  }
-
-  if (id.includes('/history-culture-quotes/')) {
-    return 'quotes-history-culture';
-  }
-
+  // Quote files are now loaded from Convex only - no bundling needed
   return undefined;
 };
 

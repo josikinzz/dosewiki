@@ -68,13 +68,13 @@ function sanitizeObjectKeys(obj) {
 
 // Configuration
 const CONFIG = {
-  model: "anthropic/claude-opus-4.5",
-  maxTokens: 16384,
+  model: "anthropic/claude-haiku-4.5",
+  maxTokens: 8192,
   temperature: 0.3,
   maxConcurrency: 5,
   retryAttempts: 3,
   retryDelayMs: 2000,
-  reasoningEffort: "high",
+  reasoningEffort: "medium",
   articlesFile: join(PROJECT_ROOT, "src/data/articles.json"),
   quotesDir: join(PROJECT_ROOT, "dosage-duration-quotes"),
   costsFile: join(PROJECT_ROOT, "batch-dosage-duration-costs.json"),
@@ -82,13 +82,14 @@ const CONFIG = {
   progressFile: join(PROJECT_ROOT, "batch-dosage-duration-progress.json"),
 };
 
-// Pricing for cost estimation (per 1M tokens)
-const PRICING = {
-  "anthropic/claude-opus-4.5": {
-    input: 15.00,
-    output: 75.00,
-  },
-};
+// Pricing disabled - user will check OpenRouter dashboard
+const PRICING = {};
+
+// Articles to skip (manually curated, don't overwrite)
+const SKIP_ARTICLES = [
+  "dextromethorphan",
+  "ketamine",
+];
 
 // Parse command line arguments
 function parseArgs() {
@@ -194,7 +195,7 @@ function createBackup() {
   }
 }
 
-// Load dosage/duration quotes for a substance
+// Load dosage/duration quotes for a substance from local file
 function loadDosageDurationQuotes(slug) {
   const quotesPath = join(CONFIG.quotesDir, `${slug}-dosage-duration.md`);
   if (!existsSync(quotesPath)) {
@@ -256,44 +257,49 @@ async function loadPromptFromConvex() {
 /**
  * Build user message for Review Mode.
  *
- * Key differences from Fresh Slate mode:
- * - KEEPS existing dosage/duration sections in context
- * - Strips pharmacology-owned fields to prevent AI from touching them
+ * MINIMAL CONTEXT: Only sends what's needed for dosage/duration generation:
+ * - Substance identification (name, class)
+ * - Existing dosage/duration data (for review)
+ * - Source quotes
+ *
+ * Does NOT include: history, legality, subjective effects, pharmacology details, etc.
+ * This keeps token usage low as articles grow larger.
  */
 function buildUserMessage(article, quotes) {
-  // Deep clone to avoid mutating original
-  const filtered = JSON.parse(JSON.stringify(article));
+  // Build minimal context with only relevant fields
+  const minimalContext = {
+    title: article.title,
+    identification: {
+      common_name: article.identification?.common_name || "",
+      substitutive_name: article.identification?.substitutive_name || "",
+    },
+    classification: article.classification || {},
+  };
 
-  // Strip pharmacology-owned fields from dosage routes
-  if (filtered.dosage?.routes) {
-    filtered.dosage.routes = filtered.dosage.routes.map(route => {
-      const { bioavailability, bioavailability_notes, ...rest } = route;
-      return rest;
-    });
+  // Include existing dosage (strip pharmacology-owned fields)
+  if (article.dosage?.routes?.length > 0) {
+    minimalContext.dosage = {
+      routes: article.dosage.routes.map(route => {
+        const { bioavailability, bioavailability_notes, ...rest } = route;
+        return rest;
+      }),
+      plateau_dosing: article.dosage.plateau_dosing || null,
+    };
   }
 
-  // Strip pharmacology-owned fields from duration routes
-  if (filtered.duration?.routes) {
-    filtered.duration.routes = filtered.duration.routes.map(route => {
-      const { half_life, half_life_notes, ...rest } = route;
-      return rest;
-    });
+  // Include existing duration (strip pharmacology-owned fields)
+  if (article.duration?.routes?.length > 0) {
+    minimalContext.duration = {
+      routes: article.duration.routes.map(route => {
+        const { half_life, half_life_notes, ...rest } = route;
+        return rest;
+      }),
+    };
   }
 
-  // Strip pharmacology fields that overlap
-  if (filtered.pharmacology) {
-    delete filtered.pharmacology.half_life;
-    delete filtered.pharmacology.bioavailability_notes;
-  }
+  const articleYaml = yaml.stringify(minimalContext, { lineWidth: 0, nullStr: "" });
 
-  const articleYaml = yaml.stringify(filtered, { lineWidth: 0, nullStr: "" });
-
-  return `## Current Article Context (Review Mode)
-
-Below is the current article state with existing dosage/duration sections INCLUDED.
-Your task: Review and improve the existing data, not generate from scratch.
-
-**Note:** Bioavailability and half_life fields are excluded (handled by Pharmacology section).
+  return `## Substance Context
 
 \`\`\`yaml
 ${articleYaml}
@@ -483,6 +489,11 @@ function mergeGeneratedWithExisting(existingArticle, generatedDosage, generatedD
 async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = titleToSlug(article.title);
 
+  // Skip manually curated articles
+  if (SKIP_ARTICLES.includes(slug)) {
+    return { slug, status: "skipped", reason: "Manually curated - skip", tokens: 0 };
+  }
+
   // Load dosage/duration quotes
   const quotes = loadDosageDurationQuotes(slug);
   if (!quotes) {
@@ -540,9 +551,7 @@ function saveCosts(costs) {
 
 // Calculate estimated cost
 function calculateCost(promptTokens, completionTokens) {
-  const pricing = PRICING[CONFIG.model];
-  return (promptTokens / 1_000_000) * pricing.input +
-         (completionTokens / 1_000_000) * pricing.output;
+  return 0; // Pricing disabled - check OpenRouter dashboard
 }
 
 // Write progress to file for cross-terminal monitoring
@@ -550,8 +559,8 @@ function writeProgress(state) {
   writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
 }
 
-// Process articles with controlled concurrency
-async function processAll(apiKey, articles, systemPrompt, options) {
+// Process articles with controlled concurrency and incremental saving
+async function processAll(apiKey, articles, systemPrompt, options, allArticles) {
   const { concurrency, verbose, dryRun } = options;
 
   // Track progress
@@ -562,6 +571,9 @@ async function processAll(apiKey, articles, systemPrompt, options) {
   let totalCompletionTokens = 0;
   const failedItems = [];
   const successfulUpdates = [];
+
+  // Build articles map once for incremental saving
+  const articlesMap = new Map(allArticles.map(a => [a.title, a]));
 
   const total = articles.length;
   const startTime = new Date().toISOString();
@@ -598,7 +610,7 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
+      estimatedCost: 0,
     });
 
     const promises = batch.map(async (article) => {
@@ -615,7 +627,7 @@ async function processAll(apiKey, articles, systemPrompt, options) {
           title: article.title,
           status: quotes ? "dry-run" : "would-skip",
           reason: quotes ? null : "No dosage duration quotes file",
-          tokens: 0
+          tokens: 0,
         };
       }
 
@@ -674,8 +686,21 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
+      estimatedCost: 0,
     });
+
+    // INCREMENTAL SAVE: Apply updates from this batch and save immediately
+    if (!dryRun && successfulUpdates.length > 0) {
+      const batchUpdates = successfulUpdates.slice(-results.filter(r => r.status === "success").length);
+      for (const update of batchUpdates) {
+        const article = articlesMap.get(update.title);
+        if (article) {
+          article.dosage = update.dosage;
+          article.duration = update.duration;
+        }
+      }
+      saveArticles(allArticles);
+    }
   }
 
   console.log(); // New line after progress
@@ -692,7 +717,7 @@ async function processAll(apiKey, articles, systemPrompt, options) {
     startTime,
     inputTokens: totalPromptTokens,
     outputTokens: totalCompletionTokens,
-    estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
+    estimatedCost: 0,
   });
 
   return {
@@ -796,9 +821,9 @@ async function main() {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
-      const hasQuotes = existsSync(join(CONFIG.quotesDir, `${slug}-dosage-duration.md`));
+      const quotes = loadDosageDurationQuotes(slug);
       const hasExisting = hasExistingDosageDuration(article);
-      const status = hasQuotes ? "has quotes" : "NO QUOTES";
+      const status = quotes ? "has quotes" : "NO QUOTES";
       const existing = hasExisting ? "(has content)" : "(no content)";
       console.log(`  - ${article.title} ${existing} [${status}]`);
     }
@@ -817,38 +842,18 @@ async function main() {
 
   const startTime = Date.now();
 
-  const results = await processAll(apiKey, articles, systemPrompt, options);
+  // Pass allArticles for incremental saving
+  const results = await processAll(apiKey, articles, systemPrompt, options, allArticles);
 
   const endTime = Date.now();
   const duration = (endTime - startTime) / 1000;
 
-  // Apply updates to articles
+  // Articles are saved incrementally after each batch - just do Convex sync at end
   if (results.successfulUpdates.length > 0) {
-    console.log(`\nApplying ${results.successfulUpdates.length} updates to articles.json...`);
-
-    const articlesMap = new Map(allArticles.map(a => [a.title, a]));
-
-    for (const update of results.successfulUpdates) {
-      const article = articlesMap.get(update.title);
-      if (article) {
-        // Debug: show what we're applying
-        if (options.verbose) {
-          console.log(`  Applying to "${update.title}":`);
-          console.log(`    dosage routes: ${update.dosage?.routes?.length || 0}`);
-          console.log(`    duration routes: ${update.duration?.routes?.length || 0}`);
-        }
-        article.dosage = update.dosage;
-        article.duration = update.duration;
-      } else {
-        console.log(`  Warning: Article not found in map: "${update.title}"`);
-      }
-    }
-
-    saveArticles(allArticles);
-    console.log("Articles saved successfully.");
+    console.log(`\n${results.successfulUpdates.length} articles updated (saved incrementally).`);
 
     // Sync updated articles to Convex (batch, with field name sanitization)
-    console.log(`\nSyncing ${results.successfulUpdates.length} articles to Convex...`);
+    console.log(`Syncing to Convex...`);
     try {
       const updatedArticles = results.successfulUpdates.map(u =>
         allArticles.find(a => a.title === u.title)

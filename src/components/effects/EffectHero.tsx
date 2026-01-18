@@ -61,13 +61,13 @@ export function EffectHero({
     
     if (tagSet.has("visual")) return "lucide:eye";
     if (tagSet.has("auditory")) return "lucide:ear";
-    if (tagSet.has("cognitive")) return "streamline:brain-cognitive-remix";
+    if (tagSet.has("cognitive")) return "fluent:thinking-24-regular";
     if (tagSet.has("physical")) return "lucide:activity";
     if (tagSet.has("tactile")) return "lucide:hand";
     if (tagSet.has("multisensory")) return "lucide:cog";
     if (tagSet.has("smell and taste")) return "lucide:utensils";
     if (tagSet.has("geometric")) return "lucide:shapes";
-    if (tagSet.has("hallucinatory state")) return "lucide:scan-eye";
+    if (tagSet.has("hallucinatory state")) return "custom:elf";
     
     return "lucide:sparkles";
   };

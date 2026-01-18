@@ -14,6 +14,7 @@ import { SearchResultsPage } from "./components/pages/SearchResultsPage";
 import { AboutPage } from "./components/pages/AboutPage";
 import { TripReportsPage } from "./components/pages/TripReportsPage";
 import { TripReportDetailPage } from "./components/pages/TripReportDetailPage";
+import { DataPage } from "./components/pages/DataPage";
 import { useSubjectiveEffects, useSubjectiveEffect } from "./hooks/useSubjectiveEffects";
 
 // Lazy load DevModePage - only needed by authenticated editors
@@ -66,6 +67,8 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
       return "Trip Reports";
     case "report":
       return `Trip Report`;
+    case "data":
+      return "Download";
     case "dev":
       return `Developer Tools - ${view.tab}`;
     default:
@@ -515,6 +518,8 @@ export default function App() {
         <main id="main-content" ref={mainRef} tabIndex={-1}>
           <AboutPage />
         </main>
+      ) : view.type === "data" ? (
+        <DataPage />
       ) : view.type === "reports" ? (
         <TripReportsPage
           onSelectReport={(slug) => navigate({ type: "report", slug })}

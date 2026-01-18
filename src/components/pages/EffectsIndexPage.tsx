@@ -46,7 +46,7 @@ const TABS: TabConfig[] = [
   { 
     id: "cognitive", 
     label: "Cognitive", 
-    icon: "streamline:brain-cognitive-remix", 
+    icon: "fluent:thinking-24-regular", 
     filterTags: ["cognitive"],
     blob: "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition.",
   },
@@ -148,7 +148,7 @@ const PARENT_CATEGORIES: ParentCategoryConfig[] = [
   {
     key: "cognitive",
     title: "Cognitive Effects",
-    icon: "streamline:brain-cognitive-remix",
+    icon: "fluent:thinking-24-regular",
     columns: { "1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 2 },
     tab: "cognitive",
     subcategories: [
@@ -196,7 +196,7 @@ const FLAT_CATEGORIES: FlatCategoryConfig[] = [
   { key: "visual-suppressions", title: "Visual Suppressions", icon: "lucide:arrow-down", tags: ["visual", "suppression"], tab: "sensory" },
   { key: "visual-distortions", title: "Visual Distortions", icon: "lucide:move", tags: ["visual", "distortion"], tab: "sensory" },
   { key: "geometric-patterns", title: "Geometric Patterns", icon: "lucide:shapes", tags: ["visual", "geometric"], tab: "sensory" },
-  { key: "hallucinatory-states", title: "Hallucinatory States", icon: "lucide:scan-eye", tags: ["visual", "hallucinatory state"], tab: "sensory" },
+  { key: "hallucinatory-states", title: "Hallucinatory States", icon: "custom:elf", tags: ["visual", "hallucinatory state"], tab: "sensory" },
   
   // Sensory - Other
   { key: "auditory", title: "Auditory Effects", icon: "lucide:ear", tags: ["auditory"], tab: "sensory" },
@@ -218,7 +218,7 @@ const FLAT_CATEGORIES: FlatCategoryConfig[] = [
   { key: "physical-alterations", title: "Alterations", icon: "lucide:refresh-cw", tags: ["physical", "alteration"], tab: "physical" },
   { key: "uncomfortable-bodily", title: "Uncomfortable Bodily Effects", icon: "lucide:frown", tags: ["uncomfortable", "bodily"], tab: "physical" },
   { key: "cardiovascular", title: "Cardiovascular Effects", icon: "lucide:heart-pulse", tags: ["uncomfortable", "cardiovascular"], tab: "physical" },
-  { key: "neurological", title: "Neurological Effects", icon: "streamline:brain-cognitive-remix", tags: ["uncomfortable", "neurological"], tab: "physical" },
+  { key: "neurological", title: "Neurological Effects", icon: "fluent:thinking-24-regular", tags: ["uncomfortable", "neurological"], tab: "physical" },
 ];
 
 /**

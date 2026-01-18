@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { CharacterCount } from "./FormHelpers";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { historyCulturePrompt } from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 import type { SubstanceArticle, HistoryCulture } from "../../../schema";
 
 export type HistoryCultureFieldsRHFProps = {
@@ -129,16 +129,19 @@ function SubsectionsFieldArray({
 
 export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFProps) {
   const { register, control, getValues, setValue, watch } = useFormContext<SubstanceArticle>();
-  
+
   const { fields, append, remove, move } = useFieldArray({
     control,
     name: "history_culture.sections",
   });
 
   const contentValue = watch("history_culture.content") ?? "";
-  
+
   // Get articles context if available (only in Articles tab)
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: historyCulturePrompt } = useSectionPrompt("history_culture");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {

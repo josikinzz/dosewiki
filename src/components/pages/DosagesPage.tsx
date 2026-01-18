@@ -12,6 +12,7 @@ interface SortOption {
   key: IndexSortKey;
   label: string;
   icon: IconName;
+  disabled?: boolean;
 }
 
 const SORT_OPTIONS: SortOption[] = [
@@ -24,11 +25,13 @@ const SORT_OPTIONS: SortOption[] = [
     key: "chemical",
     label: "Chemical class",
     icon: "lucide:hexagon",
+    disabled: true,
   },
   {
     key: "mechanism",
     label: "Mechanism of action",
     icon: "lucide:cog",
+    disabled: true,
   },
 ];
 
@@ -99,7 +102,7 @@ export const DosagesPage = memo(function DosagesPage({ groups, onSelectDrug, onS
         <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as IndexSortKey)} className="mt-8 mb-8 flex justify-center">
           <TabsList className="flex-wrap">
             {SORT_OPTIONS.map((option) => (
-              <TabsTrigger key={option.key} value={option.key} className="gap-2">
+              <TabsTrigger key={option.key} value={option.key} disabled={option.disabled} className="gap-2">
                 <Icon icon={option.icon} size={16} />
                 {option.label}
               </TabsTrigger>

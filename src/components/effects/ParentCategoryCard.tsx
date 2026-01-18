@@ -9,7 +9,7 @@ const SUBCATEGORY_ICONS: Record<string, IconName> = {
   "Suppressions": "lucide:arrow-down",
   "Distortions": "icon-park-outline:distortion",
   "Geometric Patterns": "lucide:shapes",
-  "Hallucinatory States": "lucide:scan-eye",
+  "Hallucinatory States": "custom:elf",
   // Cognitive subcategories
   "Novel States": "lucide:lightbulb",
   "Psychological States": "lucide:heart",
@@ -18,7 +18,7 @@ const SUBCATEGORY_ICONS: Record<string, IconName> = {
   "Alterations": "lucide:cog",
   "Uncomfortable Bodily Effects": "lucide:frown",
   "Cardiovascular": "lucide:heart-pulse",
-  "Neurological": "streamline:brain-cognitive-remix",
+  "Neurological": "fluent:thinking-24-regular",
   // Sensory subcategories
   "Gustatory Effects": "lucide:cookie",
   "Olfactory Effects": "lucide:flower-2",

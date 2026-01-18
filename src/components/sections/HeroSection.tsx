@@ -201,7 +201,7 @@ export const HeroSection = memo(function HeroSection({
                 <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
                   Chemical Class
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {classification.chemical_class.map((cls) => (
                     <Badge
                       key={cls}
@@ -212,6 +212,16 @@ export const HeroSection = memo(function HeroSection({
                       {cls}
                     </Badge>
                   ))}
+                  {hasExpandableDetails && (
+                    <button
+                      type="button"
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                    >
+                      <Icon icon="lucide:ellipsis" size={12} />
+                      <Icon icon="lucide:chevron-down" size={12} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -231,7 +241,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
-        <div className="mt-3 space-y-1 pb-10">
+        <div className="mt-3 space-y-1">
           {identification.iupac_name && (
             <p className="text-sm text-white/50">
               <span className="font-semibold text-white/60">IUPAC:</span>{" "}
@@ -307,17 +317,6 @@ export const HeroSection = memo(function HeroSection({
         <p className="mt-6 text-base leading-relaxed text-white/80">{summary}</p>
       )}
 
-      {/* See more button - positioned bottom right */}
-      {hasExpandableDetails && (
-        <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-        >
-          <Icon icon="lucide:ellipsis" size={16} />
-          <Icon icon="lucide:chevron-down" size={16} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-        </button>
-      )}
     </div>
   );
 });

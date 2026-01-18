@@ -39,17 +39,11 @@ import type { UseArticleFormReturn } from "../../../../hooks/useArticleForm";
 import type { SubstanceArticle } from "../../../../schema";
 import { ArticlesProvider, type ArticlesContextValue } from "./ArticlesContext";
 import {
-  loadHarmPotentialQuotes,
-  loadPharmacologyQuotes,
-  loadHistoryCultureQuotes,
-  loadSummaryQuotes,
-  loadDosageDurationQuotes,
-  loadToleranceQuotes,
-  loadLegalityQuotes,
   parseSourcesFromQuotes,
   type ExtractedSourceInfo,
 } from "../../../../utils/sectionSources";
 import { getFaviconForSourceName } from "../../../../data/config/sourceFavicons";
+import { useQuote } from "../../../../hooks/useQuotes";
 
 export const ArticlesTab = memo(function ArticlesTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
@@ -115,23 +109,14 @@ export const ArticlesTab = memo(function ArticlesTab({
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
 
-  // Extracted quotes for section generators
-  const [summaryQuotes, setSummaryQuotes] = useState<string | null>(null);
-  const [harmPotentialQuotes, setHarmPotentialQuotes] = useState<string | null>(null);
-  const [pharmacologyQuotes, setPharmacologyQuotes] = useState<string | null>(null);
-  const [historyCultureQuotes, setHistoryCultureQuotes] = useState<string | null>(null);
-  const [dosageDurationQuotes, setDosageDurationQuotes] = useState<string | null>(null);
-  const [toleranceQuotes, setToleranceQuotes] = useState<string | null>(null);
-  const [legalityQuotes, setLegalityQuotes] = useState<string | null>(null);
-
-  // Parsed source info with favicons
-  const [summarySources, setSummarySources] = useState<ExtractedSourceInfo | null>(null);
-  const [harmPotentialSources, setHarmPotentialSources] = useState<ExtractedSourceInfo | null>(null);
-  const [pharmacologySources, setPharmacologySources] = useState<ExtractedSourceInfo | null>(null);
-  const [historyCultureSources, setHistoryCultureSources] = useState<ExtractedSourceInfo | null>(null);
-  const [dosageDurationSources, setDosageDurationSources] = useState<ExtractedSourceInfo | null>(null);
-  const [toleranceSources, setToleranceSources] = useState<ExtractedSourceInfo | null>(null);
-  const [legalitySources, setLegalitySources] = useState<ExtractedSourceInfo | null>(null);
+  // Quotes loaded from Convex via hooks
+  const summaryQuoteResult = useQuote(selectedSubstanceSlug, "summary");
+  const harmPotentialQuoteResult = useQuote(selectedSubstanceSlug, "harm_potential");
+  const pharmacologyQuoteResult = useQuote(selectedSubstanceSlug, "pharmacology");
+  const historyCultureQuoteResult = useQuote(selectedSubstanceSlug, "history_culture");
+  const dosageDurationQuoteResult = useQuote(selectedSubstanceSlug, "dosage_duration");
+  const toleranceQuoteResult = useQuote(selectedSubstanceSlug, "tolerance");
+  const legalityQuoteResult = useQuote(selectedSubstanceSlug, "legality");
 
   // Save to database state
   const [isSaving, setIsSaving] = useState(false);
@@ -245,145 +230,51 @@ export const ArticlesTab = memo(function ArticlesTab({
     return {
       content,
       count: sourceNames.length,
-      sources: sourceNames.map(name => ({
+      sources: sourceNames.map((name) => ({
         name,
         favicon: getFaviconForSourceName(name),
       })),
     };
   }, []);
 
-  // Load summary quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setSummaryQuotes(null);
-      setSummarySources(null);
-      return;
-    }
+  // Memoized quote content and sources from Convex hooks
+  const summaryQuotes = summaryQuoteResult.content;
+  const harmPotentialQuotes = harmPotentialQuoteResult.content;
+  const pharmacologyQuotes = pharmacologyQuoteResult.content;
+  const historyCultureQuotes = historyCultureQuoteResult.content;
+  const dosageDurationQuotes = dosageDurationQuoteResult.content;
+  const toleranceQuotes = toleranceQuoteResult.content;
+  const legalityQuotes = legalityQuoteResult.content;
 
-    // Clear stale data immediately before loading new data
-    setSummaryQuotes(null);
-    setSummarySources(null);
-    loadSummaryQuotes(selectedSubstanceSlug).then((quotes) => {
-      setSummaryQuotes(quotes);
-      if (quotes) {
-        setSummarySources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load harm potential quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setHarmPotentialQuotes(null);
-      setHarmPotentialSources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setHarmPotentialQuotes(null);
-    setHarmPotentialSources(null);
-    loadHarmPotentialQuotes(selectedSubstanceSlug).then((quotes) => {
-      setHarmPotentialQuotes(quotes);
-      if (quotes) {
-        setHarmPotentialSources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load pharmacology quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setPharmacologyQuotes(null);
-      setPharmacologySources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setPharmacologyQuotes(null);
-    setPharmacologySources(null);
-    loadPharmacologyQuotes(selectedSubstanceSlug).then((quotes) => {
-      setPharmacologyQuotes(quotes);
-      if (quotes) {
-        setPharmacologySources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load history & culture quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setHistoryCultureQuotes(null);
-      setHistoryCultureSources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setHistoryCultureQuotes(null);
-    setHistoryCultureSources(null);
-    loadHistoryCultureQuotes(selectedSubstanceSlug).then((quotes) => {
-      setHistoryCultureQuotes(quotes);
-      if (quotes) {
-        setHistoryCultureSources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load dosage & duration quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setDosageDurationQuotes(null);
-      setDosageDurationSources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setDosageDurationQuotes(null);
-    setDosageDurationSources(null);
-    loadDosageDurationQuotes(selectedSubstanceSlug).then((quotes) => {
-      setDosageDurationQuotes(quotes);
-      if (quotes) {
-        setDosageDurationSources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load tolerance quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setToleranceQuotes(null);
-      setToleranceSources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setToleranceQuotes(null);
-    setToleranceSources(null);
-    loadToleranceQuotes(selectedSubstanceSlug).then((quotes) => {
-      setToleranceQuotes(quotes);
-      if (quotes) {
-        setToleranceSources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
-
-  // Load legality quotes when substance changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setLegalityQuotes(null);
-      setLegalitySources(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setLegalityQuotes(null);
-    setLegalitySources(null);
-    loadLegalityQuotes(selectedSubstanceSlug).then((quotes) => {
-      setLegalityQuotes(quotes);
-      if (quotes) {
-        setLegalitySources(buildSourceInfo(quotes));
-      }
-    });
-  }, [selectedSubstanceSlug, buildSourceInfo]);
+  // Memoized source info built from quote content
+  const summarySources = useMemo(
+    () => (summaryQuotes ? buildSourceInfo(summaryQuotes) : null),
+    [summaryQuotes, buildSourceInfo]
+  );
+  const harmPotentialSources = useMemo(
+    () => (harmPotentialQuotes ? buildSourceInfo(harmPotentialQuotes) : null),
+    [harmPotentialQuotes, buildSourceInfo]
+  );
+  const pharmacologySources = useMemo(
+    () => (pharmacologyQuotes ? buildSourceInfo(pharmacologyQuotes) : null),
+    [pharmacologyQuotes, buildSourceInfo]
+  );
+  const historyCultureSources = useMemo(
+    () => (historyCultureQuotes ? buildSourceInfo(historyCultureQuotes) : null),
+    [historyCultureQuotes, buildSourceInfo]
+  );
+  const dosageDurationSources = useMemo(
+    () => (dosageDurationQuotes ? buildSourceInfo(dosageDurationQuotes) : null),
+    [dosageDurationQuotes, buildSourceInfo]
+  );
+  const toleranceSources = useMemo(
+    () => (toleranceQuotes ? buildSourceInfo(toleranceQuotes) : null),
+    [toleranceQuotes, buildSourceInfo]
+  );
+  const legalitySources = useMemo(
+    () => (legalityQuotes ? buildSourceInfo(legalityQuotes) : null),
+    [legalityQuotes, buildSourceInfo]
+  );
 
   // Detect and auto-load existing articles when substance is selected
   useEffect(() => {

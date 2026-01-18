@@ -177,13 +177,18 @@ function createBackup() {
   }
 }
 
-// Load harm potential quotes for a substance
-function loadHarmPotentialQuotes(slug) {
-  const quotesPath = join(CONFIG.quotesDir, `${slug}-harmpotential.md`);
-  if (!existsSync(quotesPath)) {
+// Load harm potential quotes for a substance from Convex
+async function loadHarmPotentialQuotes(slug) {
+  try {
+    const quote = await convexClient.query(api.quotes.getBySlugAndSection, {
+      slug,
+      section: "harm_potential",
+    });
+    return quote?.content ?? null;
+  } catch (error) {
+    console.error(`  Error loading quotes for ${slug}:`, error.message);
     return null;
   }
-  return readFileSync(quotesPath, "utf-8");
 }
 
 // Check if article has existing harm_potential content
@@ -354,10 +359,10 @@ function parseGeneratedYaml(response) {
 async function processArticle(apiKey, article, systemPrompt, verbose) {
   const slug = titleToSlug(article.title);
 
-  // Load harm potential quotes
-  const quotes = loadHarmPotentialQuotes(slug);
+  // Load harm potential quotes from Convex
+  const quotes = await loadHarmPotentialQuotes(slug);
   if (!quotes) {
-    return { slug, status: "skipped", reason: "No harm potential quotes file", tokens: 0 };
+    return { slug, status: "skipped", reason: "No harm potential quotes in Convex", tokens: 0 };
   }
 
   // Build user message
@@ -439,13 +444,13 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       }
 
       if (dryRun) {
-        const quotes = loadHarmPotentialQuotes(slug);
+        const quotes = await loadHarmPotentialQuotes(slug);
         return {
           slug,
           title: article.title,
           status: quotes ? "dry-run" : "would-skip",
-          reason: quotes ? null : "No harm potential quotes file",
-          tokens: 0
+          reason: quotes ? null : "No harm potential quotes in Convex",
+          tokens: 0,
         };
       }
 
@@ -584,9 +589,9 @@ async function main() {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
       const slug = titleToSlug(article.title);
-      const hasQuotes = existsSync(join(CONFIG.quotesDir, `${slug}-harmpotential.md`));
+      const quotes = await loadHarmPotentialQuotes(slug);
       const hasExisting = hasExistingHarmPotential(article);
-      const status = hasQuotes ? "has quotes" : "NO QUOTES";
+      const status = quotes ? "has quotes" : "NO QUOTES";
       const existing = hasExisting ? "(has content)" : "(no content)";
       console.log(`  - ${article.title} ${existing} [${status}]`);
     }

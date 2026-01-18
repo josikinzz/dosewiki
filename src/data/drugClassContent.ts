@@ -64,7 +64,7 @@ export const DRUG_CLASS_CONTENT: DrugClassContent[] = [
       },
       {
         title: "Hallucinatory States",
-        icon: "lucide:scan-eye",
+        icon: "custom:elf",
         description: "Hallucinatory states are any subjective effect which changes the perception or appearance of pre-existing visual data by adding entirely new content in a manner which is similar to that of dreams.",
         effectTags: ["psychedelic", "visual", "hallucinatory state"],
       },
@@ -157,7 +157,7 @@ export const DRUG_CLASS_CONTENT: DrugClassContent[] = [
       },
       {
         title: "Cognitive Effects",
-        icon: "streamline:brain-cognitive-remix",
+        icon: "fluent:thinking-24-regular",
         description: "Cognitive effects are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
         effectTags: ["dissociative", "cognitive"],
         excludeTags: ["disconnective"],
@@ -209,7 +209,7 @@ export const DRUG_CLASS_CONTENT: DrugClassContent[] = [
       },
       {
         title: "Cognitive Effects",
-        icon: "streamline:brain-cognitive-remix",
+        icon: "fluent:thinking-24-regular",
         description: "Cognitive effects are any subjective experience which directly alter or introduce new content to an element of a person's cognition.",
         effectTags: ["deliriant", "cognitive"],
       },

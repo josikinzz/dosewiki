@@ -53,7 +53,7 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
   "cognitive": {
     title: "Cognitive Effects",
     description: "Effects that alter thought processes, memory, attention, and mental states.",
-    icon: "streamline:brain-cognitive-remix",
+    icon: "fluent:thinking-24-regular",
     tags: ["cognitive"],
   },
   "physical": {
@@ -83,7 +83,7 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
   "hallucinatory-state": {
     title: "Hallucinatory States",
     description: "Immersive visual experiences including transformations and autonomous entities.",
-    icon: "lucide:scan-eye",
+    icon: "custom:elf",
     tags: ["hallucinatory state"],
   },
   "amplification": {

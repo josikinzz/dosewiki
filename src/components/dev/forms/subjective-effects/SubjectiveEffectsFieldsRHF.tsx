@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { CollapsibleSubsection } from "../FormHelpers";
 import { SectionGenerator } from "../../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../../tools/articles/ArticlesContext";
-import { subjectiveEffectsPrompt } from "../../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../../hooks/usePrompts";
 import { EffectCategoryCard } from "./EffectCategoryCard";
 import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
 import { AttributionEditor } from "./AttributionEditor";
@@ -39,6 +39,9 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
 
   // Get articles context if available (only in Articles tab)
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: subjectiveEffectsPrompt } = useSectionPrompt("subjective_effects");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
@@ -158,7 +161,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
       <EffectCategoryCard
         fieldPath="subjective_effects.cognitive"
         title="Cognitive Effects"
-        icon="streamline:brain-cognitive-remix"
+        icon="fluent:thinking-24-regular"
         idPrefix={idPrefix}
         noteFieldPath="subjective_effects.notes.cognitive"
       />

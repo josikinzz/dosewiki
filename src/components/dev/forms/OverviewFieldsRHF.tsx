@@ -23,7 +23,7 @@ import type { TagOption } from "../../../data/config/tagOptions";
 import type { SubstanceArticle, Identification, Classification } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { identificationPrompt } from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 const PRIORITY_OPTIONS = [
   { value: "high", label: "High", description: "Featured in listings" },
@@ -44,6 +44,9 @@ export function OverviewFieldsRHF({
 }: OverviewFieldsRHFProps) {
   const { register, watch, setValue, control, getValues } = useFormContext<SubstanceArticle>();
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: identificationPrompt } = useSectionPrompt("identification");
 
   // Sync title and common_name together
   const handleDisplayTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery, useMutation as useConvexMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
-import {
-  loadHarmPotentialQuotes,
-  loadPharmacologyQuotes,
-  loadHistoryCultureQuotes,
-  loadSummaryQuotes,
-  loadDosageDurationQuotes,
-  loadToleranceQuotes,
-  loadLegalityQuotes,
-} from "../utils/sectionSources";
+
+// Convex skip token for conditional queries
+const SKIP = "skip" as const;
 
 // ============================================================================
 // Types
@@ -23,7 +17,8 @@ export type QuoteSection =
   | "summary"
   | "dosage_duration"
   | "tolerance"
-  | "legality";
+  | "legality"
+  | "subjective_effects";
 
 export interface QuoteData {
   slug: string;
@@ -35,17 +30,17 @@ export interface QuoteData {
 }
 
 export interface UseQuoteResult {
-  /** The quote content (from Convex if available, otherwise static) */
+  /** The quote content from Convex */
   content: string | null;
-  /** Whether the quote exists (from Convex or static) */
+  /** Whether the quote exists in Convex */
   exists: boolean;
-  /** Whether the quote is loaded from Convex (vs static fallback) */
+  /** Whether the quote is loaded from Convex (always true when exists) */
   isFromConvex: boolean;
   /** Whether the query is still loading */
   isLoading: boolean;
-  /** Last update timestamp (only if from Convex) */
+  /** Last update timestamp */
   updatedAt?: string;
-  /** Last updater (only if from Convex) */
+  /** Last updater */
   updatedBy?: string;
   /** Save the quote to Convex */
   save: (content: string, updatedBy?: string) => Promise<void>;
@@ -56,102 +51,69 @@ export interface UseQuoteResult {
 }
 
 // ============================================================================
-// Static Loaders Map
-// ============================================================================
-
-const staticLoaders: Record<QuoteSection, (slug: string) => Promise<string | null>> = {
-  harm_potential: loadHarmPotentialQuotes,
-  pharmacology: loadPharmacologyQuotes,
-  history_culture: loadHistoryCultureQuotes,
-  summary: loadSummaryQuotes,
-  dosage_duration: loadDosageDurationQuotes,
-  tolerance: loadToleranceQuotes,
-  legality: loadLegalityQuotes,
-};
-
-// ============================================================================
 // Hooks
 // ============================================================================
 
 /**
- * Hook to load and optionally save a quote document.
- * 
+ * Hook to load and optionally save a quote document from Convex.
+ *
+ * Quotes are stored ONLY in Convex - there is no static fallback.
+ * Run `node scripts/migrate-quotes-to-convex.mjs` to populate quotes.
+ *
  * @param slug - The substance slug (e.g., "ketamine")
  * @param section - The section type (e.g., "harm_potential")
  * @returns QuoteData with content and save function
  */
 export function useQuote(slug: string | null, section: QuoteSection): UseQuoteResult {
   const enabled = isConvexEnabled();
-  
-  // State for static content (loaded asynchronously)
-  const [staticContent, setStaticContent] = useState<string | null>(null);
-  const [staticLoading, setStaticLoading] = useState(false);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
-  
-  // Query Convex for the quote
+
+  // Query Convex for the quote (use "skip" to conditionally skip the query)
   const convexQuote = useQuery(
-    enabled && slug ? api.quotes.getBySlugAndSection : undefined as never,
-    enabled && slug ? { slug, section } : undefined as never
+    api.quotes.getBySlugAndSection,
+    enabled && slug ? { slug, section } : SKIP
   );
-  
+
   // Mutation for saving
   const saveMutation = useConvexMutation(api.quotes.save);
-  
-  // Load static content as fallback
-  useEffect(() => {
-    if (!slug) {
-      setStaticContent(null);
-      return;
-    }
-    
-    // Only load static if Convex is not enabled or returns null
-    if (!enabled || convexQuote === null) {
-      setStaticLoading(true);
-      const loader = staticLoaders[section];
-      loader(slug)
-        .then((content) => {
-          setStaticContent(content);
-          setStaticLoading(false);
-        })
-        .catch(() => {
-          setStaticContent(null);
-          setStaticLoading(false);
-        });
-    }
-  }, [slug, section, enabled, convexQuote, refetchTrigger]);
-  
-  // Determine content source
-  const isFromConvex = enabled && convexQuote !== undefined && convexQuote !== null;
-  const content = isFromConvex ? convexQuote.content : staticContent;
-  
-  // Loading state
-  const isLoading = (enabled && convexQuote === undefined) || staticLoading;
-  
+
+  // Determine content and loading state
+  const isLoading = enabled && convexQuote === undefined;
+  const exists = convexQuote !== undefined && convexQuote !== null;
+  const content = exists ? convexQuote.content : null;
+  const isFromConvex = exists;
+
   // Save function
-  const save = useCallback(async (newContent: string, updatedBy?: string) => {
-    if (!enabled) {
-      console.warn("Convex is not enabled. Quote save skipped.");
-      return;
-    }
-    if (!slug) {
-      console.warn("No slug provided. Quote save skipped.");
-      return;
-    }
-    await saveMutation({ slug, section, content: newContent, updatedBy });
-  }, [enabled, slug, section, saveMutation]);
-  
+  const save = useCallback(
+    async (newContent: string, updatedBy?: string) => {
+      if (!enabled) {
+        console.warn("Convex is not enabled. Quote save skipped.");
+        return;
+      }
+      if (!slug) {
+        console.warn("No slug provided. Quote save skipped.");
+        return;
+      }
+      await saveMutation({ slug, section, content: newContent, updatedBy });
+    },
+    [enabled, slug, section, saveMutation]
+  );
+
   // Refetch function
   const refetch = useCallback(() => {
     setRefetchTrigger((prev) => prev + 1);
   }, []);
-  
+
+  // Use refetchTrigger in the dependency to ensure it's not optimized away
+  void refetchTrigger;
+
   return {
     content,
-    exists: content !== null,
+    exists,
     isFromConvex,
     isLoading,
-    updatedAt: isFromConvex ? convexQuote.updatedAt : undefined,
-    updatedBy: isFromConvex ? convexQuote.updatedBy : undefined,
+    updatedAt: exists ? convexQuote.updatedAt : undefined,
+    updatedBy: exists ? convexQuote.updatedBy : undefined,
     save,
     isSaving: false,
     refetch,
@@ -160,19 +122,19 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
 
 /**
  * Hook to load all quotes for a substance.
- * 
+ *
  * @param slug - The substance slug
  */
 export function useQuotesBySlug(slug: string | null) {
   const enabled = isConvexEnabled();
-  
+
   const convexQuotes = useQuery(
-    enabled && slug ? api.quotes.getBySlug : undefined as never,
-    enabled && slug ? { slug } : undefined as never
+    api.quotes.getBySlug,
+    enabled && slug ? { slug } : SKIP
   );
-  
+
   const isLoading = enabled && convexQuotes === undefined;
-  
+
   return {
     quotes: convexQuotes ?? [],
     isLoading,
@@ -195,6 +157,26 @@ export function useHistoryCultureQuote(slug: string | null): UseQuoteResult {
   return useQuote(slug, "history_culture");
 }
 
+export function useSummaryQuote(slug: string | null): UseQuoteResult {
+  return useQuote(slug, "summary");
+}
+
+export function useDosageDurationQuote(slug: string | null): UseQuoteResult {
+  return useQuote(slug, "dosage_duration");
+}
+
+export function useToleranceQuote(slug: string | null): UseQuoteResult {
+  return useQuote(slug, "tolerance");
+}
+
+export function useLegalityQuote(slug: string | null): UseQuoteResult {
+  return useQuote(slug, "legality");
+}
+
+export function useSubjectiveEffectsQuote(slug: string | null): UseQuoteResult {
+  return useQuote(slug, "subjective_effects");
+}
+
 /**
  * Hook to get all available quote sections for a substance.
  * Returns which sections have content available.
@@ -203,7 +185,12 @@ export function useQuoteAvailability(slug: string | null) {
   const harmPotential = useQuote(slug, "harm_potential");
   const pharmacology = useQuote(slug, "pharmacology");
   const historyCulture = useQuote(slug, "history_culture");
-  
+  const summary = useQuote(slug, "summary");
+  const dosageDuration = useQuote(slug, "dosage_duration");
+  const tolerance = useQuote(slug, "tolerance");
+  const legality = useQuote(slug, "legality");
+  const subjectiveEffects = useQuote(slug, "subjective_effects");
+
   return {
     harm_potential: {
       available: harmPotential.content !== null,
@@ -219,6 +206,31 @@ export function useQuoteAvailability(slug: string | null) {
       available: historyCulture.content !== null,
       isLoading: historyCulture.isLoading,
       isFromConvex: historyCulture.isFromConvex,
+    },
+    summary: {
+      available: summary.content !== null,
+      isLoading: summary.isLoading,
+      isFromConvex: summary.isFromConvex,
+    },
+    dosage_duration: {
+      available: dosageDuration.content !== null,
+      isLoading: dosageDuration.isLoading,
+      isFromConvex: dosageDuration.isFromConvex,
+    },
+    tolerance: {
+      available: tolerance.content !== null,
+      isLoading: tolerance.isLoading,
+      isFromConvex: tolerance.isFromConvex,
+    },
+    legality: {
+      available: legality.content !== null,
+      isLoading: legality.isLoading,
+      isFromConvex: legality.isFromConvex,
+    },
+    subjective_effects: {
+      available: subjectiveEffects.content !== null,
+      isLoading: subjectiveEffects.isLoading,
+      isFromConvex: subjectiveEffects.isFromConvex,
     },
   };
 }

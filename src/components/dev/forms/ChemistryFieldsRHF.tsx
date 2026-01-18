@@ -16,7 +16,7 @@ import { CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, RecordStringInput } from "./rhf";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { pharmacologyPrompt } from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 import type { TagOption } from "../../../data/config/tagOptions";
 import type { SubstanceArticle, Pharmacology, DosageRoute, DurationRoute } from "../../../schema";
 
@@ -119,9 +119,12 @@ export function ChemistryFieldsRHF({
   mechanismOptions,
 }: ChemistryFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
-  
+
   // Get articles context if available (only in Articles tab)
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: pharmacologyPrompt } = useSectionPrompt("pharmacology");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {

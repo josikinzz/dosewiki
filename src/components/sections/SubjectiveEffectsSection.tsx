@@ -26,7 +26,7 @@ const SUBCATEGORY_ICONS: Record<string, IconName> = {
   "Suppressions": "lucide:arrow-down",
   "Distortions": "icon-park-outline:distortion",
   "Geometry": "lucide:shapes",
-  "Hallucinatory States": "lucide:scan-eye",
+  "Hallucinatory States": "custom:elf",
   "1. Taking Off": "lucide:trending-up",
   "2. The Waiting Room": "lucide:loader",
   "3. The Other Side": "lucide:house",
@@ -362,7 +362,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
         {hasCognitive && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Icon icon="streamline:brain-cognitive-remix" size={20} className="text-fuchsia-200" />
+              <Icon icon="fluent:thinking-24-regular" size={20} className="text-fuchsia-200" />
               Cognitive
             </h3>
             {hasCognitiveNote && (

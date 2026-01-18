@@ -24,3 +24,17 @@ npm-dev.err.log
 # Local knowledge + assets
 notes\ and\ plans/
 archive/
+
+# Quote files (Convex-only, not bundled)
+intro-text-quotes/
+harmpotential-quotes/
+pharmacology-quotes/
+history-culture-quotes/
+dosage-duration-quotes/
+tolerance-quotes/
+subjective-effects-quotes/
+legality-quotes/
+
+# Prompt files (Convex-only, not bundled)
+src/data/config/sectionPrompts/*.md
+src/data/config/generatorPrompt.md

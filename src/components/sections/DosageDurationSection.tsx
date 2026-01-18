@@ -60,6 +60,20 @@ const ROUTE_ICONS: Record<string, IconName> = {
   insufflated: "mingcute:nose-line",
   intranasal: "mingcute:nose-line",
   snorted: "mingcute:nose-line",
+  iv: "fluent:syringe-24-regular",
+  intravenous: "fluent:syringe-24-regular",
+  im: "fluent:syringe-24-regular",
+  intramuscular: "fluent:syringe-24-regular",
+  "i.m.": "fluent:syringe-24-regular",
+  "iv/im": "fluent:syringe-24-regular",
+  injection: "fluent:syringe-24-regular",
+  transdermal: "fluent:syringe-24-regular",
+  smoked: "tabler:lungs",
+  inhaled: "tabler:lungs",
+  vaporized: "tabler:lungs",
+  sublingual: "hugeicons:tongue",
+  rectal: "custom:rectal",
+  buccal: "la:teeth-open",
 };
 
 /** Standard dose tiers table */

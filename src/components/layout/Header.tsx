@@ -15,12 +15,14 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
   const effectsView: AppView = { type: "effects" };
   const reportsView: AppView = { type: "reports" };
+  const dataView: AppView = { type: "data" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: IconName }> = [
     { label: "Substances", view: substancesView, icon: "lucide:flask-conical" },
     { label: "Effects", view: effectsView, icon: "lucide:sparkles" },
     { label: "Reports", view: reportsView, icon: "lucide:file-signature" },
+    { label: "Data", view: dataView, icon: "lucide:database" },
     { label: "Dev", view: devView, icon: "lucide:wrench" },
   ];
   const aboutPath = viewToPath(aboutView);
@@ -46,6 +48,10 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
 
     if (itemView.type === "reports") {
       return currentView.type === "reports" || currentView.type === "report";
+    }
+
+    if (itemView.type === "data") {
+      return currentView.type === "data";
     }
 
     if (itemView.type === "dev") {

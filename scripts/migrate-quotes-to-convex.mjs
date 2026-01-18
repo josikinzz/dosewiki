@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 /**
  * Migrate quote documents to Convex.
- * 
+ *
  * This script reads all quote files from:
+ * - intro-text-quotes/
  * - harmpotential-quotes/
  * - pharmacology-quotes/
  * - history-culture-quotes/
- * 
+ * - dosage-duration-quotes/
+ * - tolerance-quotes/
+ * - legality-quotes/
+ * - subjective-effects-quotes/
+ *
  * And uploads them to the Convex database.
  * 
  * Prerequisites:
@@ -25,6 +30,11 @@ import { api } from "../convex/_generated/api.js";
 
 const QUOTES_DIRS = [
   {
+    path: "./intro-text-quotes",
+    section: "summary",
+    suffix: "-intro-text.md",
+  },
+  {
     path: "./harmpotential-quotes",
     section: "harm_potential",
     suffix: "-harmpotential.md",
@@ -38,6 +48,26 @@ const QUOTES_DIRS = [
     path: "./history-culture-quotes",
     section: "history_culture",
     suffix: "-history-culture.md",
+  },
+  {
+    path: "./dosage-duration-quotes",
+    section: "dosage_duration",
+    suffix: "-dosage-duration.md",
+  },
+  {
+    path: "./tolerance-quotes",
+    section: "tolerance",
+    suffix: "-tolerance.md",
+  },
+  {
+    path: "./legality-quotes",
+    section: "legality",
+    suffix: "-legality.md",
+  },
+  {
+    path: "./subjective-effects-quotes",
+    section: "subjective_effects",
+    suffix: "-subjective-effects.md",
   },
 ];
 

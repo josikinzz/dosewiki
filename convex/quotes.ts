@@ -70,6 +70,16 @@ export const getAllMetadata = query({
 });
 
 /**
+ * Get all quotes (for migration/sync).
+ */
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("quotes").collect();
+  },
+});
+
+/**
  * Save (create or update) a quote document.
  */
 export const save = mutation({

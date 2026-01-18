@@ -53,6 +53,16 @@ export const getAllMetadata = query({
 });
 
 /**
+ * Get all article sources (for migration/sync).
+ */
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("articleSources").collect();
+  },
+});
+
+/**
  * Bulk import article sources (one-time migration).
  */
 export const bulkImport = mutation({

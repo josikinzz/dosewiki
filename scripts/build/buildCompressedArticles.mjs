@@ -176,6 +176,11 @@ export const articlesSourceCharacters = ${input.length};
 
   fs.writeFileSync(publicOutputPath, compressed, "utf8");
   console.log(`Successfully generated ${publicOutputPath}`);
+
+  // Also copy articles.json to public for download functionality
+  const publicArticlesPath = path.join(publicDir, "articles.json");
+  fs.copyFileSync(articlesPath, publicArticlesPath);
+  console.log(`Successfully copied ${publicArticlesPath}`);
 } catch (error) {
   if (error.code === 'ENOENT') {
     console.error(`Error: File not found during operation: ${error.path || 'unknown path'}`);

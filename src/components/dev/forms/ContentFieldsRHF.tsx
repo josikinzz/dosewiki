@@ -17,12 +17,7 @@ import { ControlledTagMultiSelect, TextListInput } from "./rhf";
 import type { SubstanceArticle, HarmPotential, Tolerance, Interactions } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import {
-  harmPotentialPrompt,
-  tolerancePrompt,
-  interactionsPrompt,
-  summaryPrompt,
-} from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 // Tolerance field labels with icons matching ToleranceSection.tsx
 const toleranceLabels: Array<{
@@ -47,9 +42,12 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const { register, watch, setValue, getValues } = useFormContext<SubstanceArticle>();
   const addictionValue = watch("harm_potential.addiction_liability") ?? "";
   const dependenceValue = watch("harm_potential.dependence_liability") ?? "";
-  
+
   // Get articles context if available (only in Articles tab)
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: harmPotentialPrompt } = useSectionPrompt("harm_potential");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
@@ -243,6 +241,9 @@ export function InteractionsFieldsRHF() {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
   const articlesContext = useOptionalArticlesContext();
 
+  // Load prompt from Convex
+  const { content: interactionsPrompt } = useSectionPrompt("interactions");
+
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
     try {
@@ -333,6 +334,9 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
   const articlesContext = useOptionalArticlesContext();
 
+  // Load prompt from Convex
+  const { content: tolerancePrompt } = useSectionPrompt("tolerance");
+
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
     try {
@@ -416,6 +420,9 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
   const { register, watch, setValue, getValues } = useFormContext<SubstanceArticle>();
   const summaryValue = watch("summary") ?? "";
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: summaryPrompt } = useSectionPrompt("summary");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {

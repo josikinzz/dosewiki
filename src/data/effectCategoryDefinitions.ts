@@ -52,7 +52,7 @@ export const EFFECT_CATEGORY_DEFINITIONS: EffectCategoryDefinition[] = [
     slug: "hallucinatory-states",
     name: "Hallucinatory Effects",
     description: "Hallucinatory states are defined as any subjective effect that changes the perception or appearance of pre-existing sensory data by adding entirely new content in a manner similar to that of dreams.",
-    icon: "lucide:scan-eye",
+    icon: "custom:elf",
   },
   
   // Sensory Categories
@@ -92,7 +92,7 @@ export const EFFECT_CATEGORY_DEFINITIONS: EffectCategoryDefinition[] = [
     slug: "cognitive-effects",
     name: "Cognitive Effects",
     description: "Cognitive effects are subjective effects that directly alter or introduce new content to an element of a person's cognition.",
-    icon: "streamline:brain-cognitive-remix",
+    icon: "fluent:thinking-24-regular",
   },
   {
     slug: "cognitive-amplifications",

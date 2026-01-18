@@ -17,7 +17,7 @@ import { DoseRangeStringInput, DurationStageStringInput } from "./rhf";
 import type { SubstanceArticle, Dosage, Duration } from "../../../schema";
 import { SectionGenerator } from "../tools/articles/SectionGenerator";
 import { useOptionalArticlesContext } from "../tools/articles/ArticlesContext";
-import { dosageDurationPrompt } from "../../../data/config/sectionPrompts";
+import { useSectionPrompt } from "../../../hooks/usePrompts";
 
 // Dose range tier labels
 const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "heavy", string]> = [
@@ -57,6 +57,9 @@ export function DosageDurationFieldsRHF({
 }: DosageDurationFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
   const articlesContext = useOptionalArticlesContext();
+
+  // Load prompt from Convex
+  const { content: dosageDurationPrompt } = useSectionPrompt("dosage_duration");
 
   // Get current article as YAML for context in generation
   const getCurrentArticleYaml = useCallback((): string | null => {
