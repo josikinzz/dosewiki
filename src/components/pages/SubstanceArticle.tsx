@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "../common/Icon";
 
@@ -26,6 +27,7 @@ import {
 } from "../../utils/substanceLayout";
 import { useDevMode } from "../dev/DevModeContext";
 import { getMoleculeAssetsByArticleId } from "../../data/mappings/moleculeAssets";
+import { cardAnimation } from "../../constants/motion";
 
 interface SubstanceArticleProps {
   record: SubstanceRecord;
@@ -299,65 +301,115 @@ export function SubstanceArticle({
               <div className="space-y-8">
                 {desktopViewMode === "ui" ? (
                   <>
-                    <div>
-                      <h1 className="font-display text-[2.3rem] font-semibold text-fuchsia-300 xl:text-[3.1rem]">{content.name}</h1>
-                      {hasHeroVariantLines ? (
-                        <div className="mt-4 flex flex-col gap-2">
-                          {decoratedHeroVariantLines.map((line) => (
-                            <p key={line.key} className="flex flex-wrap items-center gap-2 text-sm text-white/80 md:text-base">
-                              <line.Icon className="h-4 w-4 text-fuchsia-300" aria-hidden="true" focusable="false" />
-                              <span className="flex flex-wrap items-center gap-2 text-white/80">
-                                {line.values.map((value, index) => (
-                                  <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
-                                    <span className="italic">{value}</span>
-                                    {index < line.values.length - 1 ? <span className="text-white/60">·</span> : null}
-                                  </span>
-                                ))}
-                              </span>
-                            </p>
-                          ))}
+                    <motion.div {...cardAnimation} className="relative">
+                      {/* Decorative background glow */}
+                      <div className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[80px]" aria-hidden="true" />
+
+                      <div className="relative">
+                        <h1 className="font-display text-[2.5rem] font-bold tracking-tight text-fuchsia-300 xl:text-[3.5rem] leading-none">
+                          {content.name}
+                        </h1>
+                        {hasHeroVariantLines ? (
+                          <div className="mt-8 flex flex-col gap-3">
+                            {decoratedHeroVariantLines.map((line) => (
+                              <p key={line.key} className="flex flex-wrap items-center gap-3 text-sm text-white/70 md:text-base">
+                                <line.Icon className="h-4 w-4 text-fuchsia-400/60" aria-hidden="true" focusable="false" />
+                                <span className="flex flex-wrap items-center gap-2">
+                                  {line.values.map((value, index) => (
+                                    <span key={`${line.key}-${value}-${index}`} className="flex items-center gap-2">
+                                      <span className="italic text-white/90">{value}</span>
+                                      {index < line.values.length - 1 ? <span className="text-white/20">·</span> : null}
+                                    </span>
+                                  ))}
+                                </span>
+                              </p>
+                            ))}
+                          </div>
+                        ) : hasAliases ? (
+                          <p className="mt-6 text-lg text-white/60 tracking-tight leading-relaxed">{content.aliases.join(" · ")}</p>
+                        ) : shouldShowSubtitle ? (
+                          <p className="mt-6 text-lg text-white/60 tracking-tight leading-relaxed">{content.subtitle}</p>
+                        ) : null}
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      {...cardAnimation}
+                      transition={{ ...cardAnimation.transition, delay: 0.1 }}
+                      className="space-y-16"
+                    >
+                      {resolvedRouteKey ? (
+                        <div className="space-y-8">
+                          <DosageDurationCard
+                            route={resolvedRouteKey}
+                            onRouteChange={onRouteChange}
+                            routes={content.routes}
+                            routeOrder={content.routeOrder}
+                            note={content.dosageUnitsNote}
+                          />
+                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
                         </div>
-                      ) : hasAliases ? (
-                        <p className="mt-4 text-base text-white/80">{content.aliases.join(" · ")}</p>
-                      ) : shouldShowSubtitle ? (
-                        <p className="mt-4 text-base text-white/80">{content.subtitle}</p>
                       ) : null}
-                    </div>
 
-                    {resolvedRouteKey ? (
-                      <DosageDurationCard
-                        route={resolvedRouteKey}
-                        onRouteChange={onRouteChange}
-                        routes={content.routes}
-                        routeOrder={content.routeOrder}
-                        note={content.dosageUnitsNote}
-                      />
-                    ) : null}
+                      <div className="space-y-16">
+                        <section className="space-y-8">
+                          <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
+                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                        </section>
 
-                    <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
-                    <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
-                    <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
-                    <ToleranceSection tolerance={content.tolerance} />
-                    <AddictionCard summary={content.addictionSummary} />
-                    <NotesSection notes={content.notes} />
-                    <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
+                        <section className="space-y-8">
+                          <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
+                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                        </section>
+
+                        <section className="space-y-8">
+                          <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
+                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                        </section>
+
+                        <section className="space-y-8">
+                          <ToleranceSection tolerance={content.tolerance} />
+                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                        </section>
+
+                        <section className="space-y-8">
+                          <AddictionCard summary={content.addictionSummary} />
+                        </section>
+
+                        <section className="space-y-8">
+                          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                          <NotesSection notes={content.notes} />
+                        </section>
+
+                        <section className="space-y-8">
+                          <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
+                        </section>
+                      </div>
+                    </motion.div>
                   </>
                 ) : (
-                  <div className="space-y-4">
+                  <motion.div {...cardAnimation} className="space-y-4">
                     <p className="text-sm text-white/70">Viewing JSON for {content.name}.</p>
-                    <JsonEditor value={articleJsonString} readOnly minHeight={640} />
-                  </div>
+                    <div className="rounded-3xl border border-white/10 bg-black/40 p-1 backdrop-blur-xl">
+                      <JsonEditor value={articleJsonString} readOnly minHeight={640} />
+                    </div>
+                  </motion.div>
                 )}
               </div>
 
               <div className="space-y-8">
-                <div className="w-full max-w-[22rem] rounded-[28px] border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-600/15 via-violet-500/12 to-indigo-500/12 p-6 ring-1 ring-white/10">
-                  <div className="rounded-2xl border border-white/10 bg-[#0f0a1f] p-4">
+                <motion.div
+                  {...cardAnimation}
+                  transition={{ ...cardAnimation.transition, delay: 0.2 }}
+                  className="w-full max-w-[22rem] rounded-2xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-500/[0.05] via-transparent to-violet-500/[0.05] p-6 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-md"
+                >
+                  <div className="relative rounded-2xl border border-white/5 bg-[#0f0a1f]/80 p-5 shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-500/5 to-transparent rounded-2xl pointer-events-none" />
                     {moleculeAsset ? (
                       <img
                         src={moleculeAsset.url}
                         alt={`Molecule depiction for ${content.name}`}
-                        className="h-56 w-full object-contain"
+                        className="relative h-56 w-full object-contain drop-shadow-[0_0_15px_rgba(217,70,239,0.2)]"
                       />
                     ) : (
                       <div className="flex h-56 w-full items-center justify-center rounded-xl border border-dashed border-white/15 bg-[#120d27] text-sm text-white/55">
@@ -365,7 +417,7 @@ export function SubstanceArticle({
                       </div>
                     )}
                     {moleculeIdentityEntries.length > 0 ? (
-                      <dl className="mt-6 space-y-4">
+                      <dl className="mt-8 space-y-5">
                         {moleculeIdentityEntries.map((item) => {
                           const normalizedLabel = item.label.toLowerCase().trim();
                           const key = `${normalizedLabel}-${item.value}`;
@@ -374,7 +426,7 @@ export function SubstanceArticle({
                               href={item.href}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-xs leading-snug text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline"
+                              className="text-xs leading-snug text-fuchsia-300 underline-offset-4 transition hover:text-fuchsia-200 hover:underline"
                             >
                               {item.value}
                             </a>
@@ -384,7 +436,7 @@ export function SubstanceArticle({
 
                           return (
                             <div key={key} className="space-y-1 text-left">
-                              <dt className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/55">{item.label}</dt>
+                              <dt className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">{item.label}</dt>
                               <dd>{valueNode}</dd>
                             </div>
                           );
@@ -393,7 +445,7 @@ export function SubstanceArticle({
                     ) : null}
                   </div>
                   {moleculeCardEntries.length > 0 ? (
-                    <div className="mt-6 space-y-4">
+                    <div className="mt-8 space-y-4">
                       {moleculeCardEntries.map((item) => (
                         <InfoSectionItemCard
                           key={`${item.label}-${item.value}`}
@@ -405,45 +457,62 @@ export function SubstanceArticle({
                       ))}
                     </div>
                   ) : null}
-                </div>
+                </motion.div>
 
-                <SectionCard className="w-full max-w-[22rem] space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/20 text-fuchsia-200">
-                      <Icon icon="lucide:wrench" size={20} />
+                <motion.div
+                  {...cardAnimation}
+                  transition={{ ...cardAnimation.transition, delay: 0.3 }}
+                >
+                  <SectionCard className="w-full max-w-[22rem] space-y-5 border-white/10 bg-white/[0.02] shadow-xl ring-1 ring-white/5">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-fuchsia-500/20 text-fuchsia-300 shadow-lg shadow-fuchsia-500/10 ring-1 ring-fuchsia-500/30">
+                        <Icon icon="lucide:wrench" size={22} />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold tracking-tight text-white/90">Curator Utils</h3>
+                        <p className="text-[11px] font-medium text-white/40 uppercase tracking-widest">Article Tools</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-white">Dev Tools</h3>
-                      <p className="text-xs text-white/65">Toggle JSON mode without leaving the article.</p>
-                    </div>
-                  </div>
-                  <UiJsonToggle
-                    mode={desktopViewMode}
-                    onModeChange={handleDesktopViewModeChange}
-                    className="mx-0"
-                  />
-                  <Button
-                    variant="default"
-                    size="chipXs"
-                    onClick={handleOpenDevEditor}
-                    className="self-start rounded-full"
-                  >
-                    <Icon icon="lucide:edit-3" size={16} />
-                    Open editor
-                  </Button>
-                </SectionCard>
+                    <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
+                    <UiJsonToggle
+                      mode={desktopViewMode}
+                      onModeChange={handleDesktopViewModeChange}
+                      className="mx-0"
+                    />
+                    <Button
+                      variant="ghostPill"
+                      size="chipXs"
+                      onClick={handleOpenDevEditor}
+                      className="self-start rounded-full bg-white/[0.03] border border-white/10 hover:bg-fuchsia-500/10 hover:border-fuchsia-500/30 transition-all"
+                    >
+                      <Icon icon="lucide:edit-3" size={16} />
+                      Open developer editor
+                    </Button>
+                  </SectionCard>
+                </motion.div>
 
                 {content.heroBadges && content.heroBadges.length > 0 ? (
-                  <div className="w-full max-w-[22rem]">{renderHeroBadgesDesktop()}</div>
+                  <motion.div
+                    {...cardAnimation}
+                    transition={{ ...cardAnimation.transition, delay: 0.35 }}
+                    className="w-full max-w-[22rem]"
+                  >
+                    {renderHeroBadgesDesktop()}
+                  </motion.div>
                 ) : null}
 
                 {filteredInfoSections.length > 0 ? (
-                  <InfoSections
-                    sections={filteredInfoSections}
-                    layoutVariant="single-column"
-                    onMechanismSelect={onSelectMechanism}
-                    onClassificationSelect={onSelectClassification}
-                  />
+                  <motion.div
+                    {...cardAnimation}
+                    transition={{ ...cardAnimation.transition, delay: 0.4 }}
+                  >
+                    <InfoSections
+                      sections={filteredInfoSections}
+                      layoutVariant="single-column"
+                      onMechanismSelect={onSelectMechanism}
+                      onClassificationSelect={onSelectClassification}
+                    />
+                  </motion.div>
                 ) : null}
               </div>
             </div>

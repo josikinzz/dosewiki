@@ -209,9 +209,11 @@ const replication = v.object({
   artist: v.string(),                  // Artist/creator name
   artist_url: v.optional(v.string()),  // Artist portfolio/social link
   type: v.union(v.literal("video"), v.literal("image")),  // "video" or "image"
-  storage_id: v.string(),              // Convex file storage ID
+  storage_id: v.string(),              // Convex file storage ID (or placeholder for external URLs)
   effect_slug: v.string(),             // Parent effect (normalized folder name)
   thumbnail_storage_id: v.optional(v.string()), // Video thumbnail storage ID
+  url: v.optional(v.string()),         // Direct URL (external Convex storage or CDN)
+  thumbnail_url: v.optional(v.string()), // Direct thumbnail URL (for videos)
   width: v.optional(v.number()),       // For responsive display
   height: v.optional(v.number()),
   format: v.string(),                  // File extension (mp4, jpg, etc.)

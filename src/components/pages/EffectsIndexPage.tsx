@@ -390,13 +390,17 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
       </div>
 
       {/* ALL TAB: Responsive column layout */}
-      {activeTab === "all" && (
-        <div className="mx-auto flex justify-center gap-4">
-          {Array.from({ length: columnCount })
-            .map((_, i) => ({ index: i, cats: categoriesByColumn.get(i) ?? [] }))
-            .filter(col => col.cats.length > 0)
-            .map((col) => (
-              <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+      {activeTab === "all" && (() => {
+        const nonEmptyCols = Array.from({ length: columnCount })
+          .map((_, i) => ({ index: i, cats: categoriesByColumn.get(i) ?? [] }))
+          .filter(col => col.cats.length > 0);
+        return (
+          <div
+            className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
+            style={{ gridTemplateColumns: `repeat(${nonEmptyCols.length}, minmax(0, 1fr))` }}
+          >
+            {nonEmptyCols.map((col) => (
+              <div key={col.index} className="flex flex-col gap-4">
                 {col.cats.map(cat => (
                   <ParentCategoryCard
                     key={cat.key}
@@ -409,17 +413,22 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
                 ))}
               </div>
             ))}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* SENSORY/COGNITIVE/PHYSICAL TABS: Responsive column layout */}
-      {activeTab !== "all" && (
-        <div className="mx-auto flex justify-center gap-4">
-          {Array.from({ length: columnCount })
-            .map((_, i) => ({ index: i, cats: flatCategoriesByColumn.get(i) ?? [] }))
-            .filter(col => col.cats.length > 0)
-            .map((col) => (
-              <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+      {activeTab !== "all" && (() => {
+        const nonEmptyCols = Array.from({ length: columnCount })
+          .map((_, i) => ({ index: i, cats: flatCategoriesByColumn.get(i) ?? [] }))
+          .filter(col => col.cats.length > 0);
+        return (
+          <div
+            className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
+            style={{ gridTemplateColumns: `repeat(${nonEmptyCols.length}, minmax(0, 1fr))` }}
+          >
+            {nonEmptyCols.map((col) => (
+              <div key={col.index} className="flex flex-col gap-4">
                 {col.cats.map(cat => (
                   <EffectCategoryCard
                     key={cat.key}
@@ -431,8 +440,9 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
                 ))}
               </div>
             ))}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Empty State */}
       {filteredEffects.length === 0 && (

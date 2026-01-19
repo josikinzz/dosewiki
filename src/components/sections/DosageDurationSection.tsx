@@ -88,7 +88,7 @@ function DoseTiersTable({ route }: { route: DosageRoute }) {
           const value = formatDose(range, key === "threshold");
           if (value === "N/A") return null;
           return (
-            <div key={key} className="relative flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07] overflow-hidden">
+            <div key={key} className="relative flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10 overflow-hidden">
               <div className={`absolute left-0 top-0 bottom-0 w-3/4 bg-gradient-to-r ${gradientFrom} to-transparent rounded-l-lg pointer-events-none`} />
               <span className="relative font-medium text-white/80">{label}</span>
               <span className="relative font-mono text-xs text-white/70">{value}</span>
@@ -158,7 +158,7 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
                   "relative flex items-center justify-between px-3 py-1.5 text-sm overflow-hidden",
                   isSigma
                     ? "bg-rose-500/10"
-                    : "bg-white/[0.03]",
+                    : "bg-white/5",
                   !isExpanded && "rounded-lg",
                   !isExpanded && isSigma && "ring-1 ring-rose-500/30"
                 )}
@@ -241,7 +241,7 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
   const hasPlateauDosing = !!plateauDosing;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-column-increasing" size={16} className="text-fuchsia-200" />
@@ -289,7 +289,7 @@ function DurationPanel({ route }: { route: DurationRoute }) {
   const hasHalfLifeNotes = !!route.half_life_notes?.trim();
   
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
@@ -307,7 +307,7 @@ function DurationPanel({ route }: { route: DurationRoute }) {
           const value = formatDuration(stage);
           if (value === "N/A") return null;
           return (
-            <div key={key} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-1.5 text-sm odd:bg-white/[0.07]">
+            <div key={key} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-1.5 text-sm odd:bg-white/10">
               <span className="text-white/70 font-medium">{label}</span>
               <span className="font-mono text-xs text-white/70">{value}</span>
             </div>

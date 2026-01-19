@@ -303,9 +303,14 @@ export function CategoryGrid({
     .filter(col => col.groups.length > 0);
 
   return (
-    <div className="mx-auto flex justify-center gap-4">
+    <div
+      className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
+      style={{
+        gridTemplateColumns: `repeat(${nonEmptyColumns.length}, minmax(0, 1fr))`
+      }}
+    >
       {nonEmptyColumns.map((col) => (
-        <div key={col.index} className="flex w-full max-w-sm flex-col gap-4">
+        <div key={col.index} className="flex flex-col gap-4">
           {col.groups.map((group) => renderCard(group))}
         </div>
       ))}

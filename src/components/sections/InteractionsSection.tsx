@@ -23,7 +23,7 @@ const INTERACTION_CATEGORIES: Array<{
     key: "dangerous",
     label: "Dangerous",
     icon: "lucide:skull",
-    borderClass: "border-rose-500/40",
+    borderClass: "ring-1 ring-rose-500/30",
     bgClass: "bg-rose-500/10",
     iconClass: "text-rose-300",
     definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
@@ -32,7 +32,7 @@ const INTERACTION_CATEGORIES: Array<{
     key: "unsafe",
     label: "Unsafe",
     icon: "lucide:hospital",
-    borderClass: "border-orange-500/40",
+    borderClass: "ring-1 ring-orange-500/30",
     bgClass: "bg-orange-500/10",
     iconClass: "text-orange-300",
     definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
@@ -41,7 +41,7 @@ const INTERACTION_CATEGORIES: Array<{
     key: "caution",
     label: "Caution",
     icon: "lucide:triangle-alert",
-    borderClass: "border-amber-500/40",
+    borderClass: "ring-1 ring-amber-500/30",
     bgClass: "bg-amber-500/10",
     iconClass: "text-amber-300",
     definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
@@ -92,7 +92,7 @@ export const InteractionsSection = memo(function InteractionsSection({
           return (
             <div
               key={key}
-              className={`rounded-xl border p-4 ${borderClass} ${bgClass}`}
+              className={`rounded-xl p-4 ${borderClass} ${bgClass}`}
             >
               <h3 className="flex items-center gap-2 font-semibold text-white">
                 <Icon icon={icon} size={20} className={iconClass} />

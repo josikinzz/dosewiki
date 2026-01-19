@@ -112,8 +112,8 @@ export function VCodeRenderer({
         return (
           <SeparatedTextbox
             key={index}
-            leftHeader={node.properties.leftHeader}
-            rightHeader={node.properties.rightHeader}
+            leftHeader={node.properties.leftHeader || node.properties.a}
+            rightHeader={node.properties.rightHeader || node.properties.b}
           >
             {renderChildren(node.children)}
           </SeparatedTextbox>

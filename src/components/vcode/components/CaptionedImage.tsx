@@ -40,10 +40,11 @@ function rewriteImageUrl(url: string): string {
 
 /**
  * Image with caption and artist attribution.
- * 
+ *
  * Adapts EffectIndex's captioned-image to DoseWiki's visual style.
+ * Supports Wikipedia-style floating when align is "left" or "right".
  */
-export function CaptionedImage({ 
+export function CaptionedImage({
   src,
   width,
   artist,
@@ -54,23 +55,27 @@ export function CaptionedImage({
 }: CaptionedImageProps) {
   // Rewrite old URLs to R2 CDN
   const imageSrc = rewriteImageUrl(src || "");
-  
+
   if (!imageSrc) return null;
 
-  const alignClass = {
-    left: "mr-auto",
-    right: "ml-auto",
-    center: "mx-auto",
+  // Wikipedia-style float classes for left/right alignment
+  const containerClass = {
+    left: "float-left mr-6 mb-4",
+    right: "float-right ml-6 mb-4",
+    center: "mx-auto my-4 clear-both",
   }[align];
 
-  const maxWidth = width ? `${width}px` : "100%";
+  // Constrain floated images to reasonable width
+  const maxWidth = width
+    ? `${width}px`
+    : align === "center" ? "100%" : "min(350px, 40%)";
 
   return (
-    <figure 
-      className={`my-4 ${alignClass}`}
+    <figure
+      className={containerClass}
       style={{ maxWidth }}
     >
-      <div 
+      <div
         className={`
           rounded-xl overflow-hidden
           ${border ? "border border-fuchsia-400/30 p-1 bg-gradient-to-br from-fuchsia-500/10 to-violet-500/10" : ""}

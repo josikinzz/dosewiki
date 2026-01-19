@@ -4,13 +4,12 @@ import { useEffect, useRef, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import LightGallery from 'lightgallery';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
-import lgZoom from 'lightgallery/plugins/zoom';
 import lgVideo from 'lightgallery/plugins/video';
 import { api } from '../../../convex/_generated/api';
 import { type ReplicationWithUrl } from '../../types/replications';
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-thumbnail.css';
-import 'lightgallery/css/lg-zoom.css';
+import 'lightgallery/css/lg-video.css';
 
 interface ReplicationGalleryProps {
   effectSlug: string;
@@ -36,6 +35,19 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
     effect_slug: effectSlug,
   });
 
+  // Debug logging
+  console.log('[ReplicationGallery] effectSlug:', effectSlug);
+  console.log('[ReplicationGallery] replications:', replications);
+  console.log('[ReplicationGallery] replications count:', replications?.length ?? 'loading');
+  if (replications && replications.length > 0) {
+    console.log('[ReplicationGallery] First replication:', {
+      slug: replications[0].slug,
+      url: replications[0].url,
+      thumbnail_url: replications[0].thumbnail_url,
+      type: replications[0].type,
+    });
+  }
+
   // Sort replications according to gallery_order if provided
   const sortedReplications = useMemo(() => {
     if (!replications) return [];
@@ -52,21 +64,31 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
     return replications;
   }, [replications, galleryOrder]);
 
+  console.log('[ReplicationGallery] sortedReplications count:', sortedReplications.length);
+
   // Initialize Lightgallery
   useEffect(() => {
     if (!lightGalleryRef.current || !sortedReplications || sortedReplications.length === 0) {
       return;
     }
 
+    // Capture ref value for cleanup
+    const galleryElement = lightGalleryRef.current;
+
     // Destroy previous instance if it exists
     if (lgInstanceRef.current) {
-      lgInstanceRef.current.destroy();
+      try {
+        lgInstanceRef.current.destroy();
+      } catch {
+        // Ignore errors during cleanup of previous instance
+      }
+      lgInstanceRef.current = null;
     }
 
     // Initialize new instance
     try {
-      lgInstanceRef.current = LightGallery(lightGalleryRef.current, {
-        plugins: [lgThumbnail, lgZoom, lgVideo],
+      lgInstanceRef.current = LightGallery(galleryElement, {
+        plugins: [lgThumbnail, lgVideo],
         speed: 500,
         elementClassNames: 'replication-item',
         loadYoutubeThumbnail: false,
@@ -82,13 +104,15 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
     }
 
     return () => {
-      if (lgInstanceRef.current) {
+      // Only destroy if the gallery element is still in the DOM
+      if (lgInstanceRef.current && galleryElement && document.body.contains(galleryElement)) {
         try {
           lgInstanceRef.current.destroy();
-        } catch (error) {
-          console.error('Error destroying Lightgallery:', error);
+        } catch {
+          // Ignore errors - element may already be removed
         }
       }
+      lgInstanceRef.current = null;
     };
   }, [sortedReplications]);
 
@@ -117,29 +141,45 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
           const caption = `<h4 class="text-sm font-medium">${rep.title}</h4><p class="text-xs text-gray-400">by ${rep.artist}</p>`;
           const thumbnailUrl = rep.type === 'video' ? rep.thumbnail_url : rep.url;
 
-          // For videos, use lightgallery's video player
+          // Map file extensions to proper MIME types
+          const getMimeType = (format: string) => {
+            const mimeMap: Record<string, string> = {
+              'mp4': 'video/mp4',
+              'webm': 'video/webm',
+              'mov': 'video/quicktime',
+              'm4v': 'video/x-m4v',
+              'ogv': 'video/ogg',
+            };
+            return mimeMap[format?.toLowerCase()] || `video/${format}`;
+          };
+
+          // Debug: log video info
           if (rep.type === 'video') {
+            console.log('[ReplicationGallery] Video:', rep.slug, 'URL:', rep.url?.substring(0, 50), 'format:', rep.format);
+          }
+
+          // For videos, use LightGallery video plugin
+          if (rep.type === 'video') {
+            // Skip videos without URLs
+            if (!rep.url) {
+              console.warn('[ReplicationGallery] Skipping video without URL:', rep.slug);
+              return null;
+            }
+
+            // LightGallery video plugin expects this JSON format
+            const videoData = JSON.stringify({
+              source: [{ src: rep.url, type: getMimeType(rep.format) }],
+              attributes: { preload: 'none', controls: true, playsinline: true },
+            });
+
             return (
               <a
                 key={rep._id}
-                href={rep.url}
+                href="#"
                 className="replication-item group relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer aspect-square"
-                data-src={rep.url}
+                data-video={videoData}
+                data-poster={thumbnailUrl || ''}
                 data-sub-html={caption}
-                data-lg-size={rep.width && rep.height ? `${rep.width}-${rep.height}` : undefined}
-                data-video={JSON.stringify({
-                  source: [
-                    {
-                      src: rep.url,
-                      type: `video/${rep.format}`,
-                    },
-                  ],
-                  attributes: {
-                    preload: false,
-                    controlsList: 'nodownload',
-                    disablePictureInPicture: true,
-                  },
-                })}
               >
                 {thumbnailUrl && (
                   <img
@@ -150,10 +190,10 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
                   />
                 )}
                 {!thumbnailUrl && (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-900/20 to-violet-900/20">
                     <div className="text-center px-2">
                       <svg
-                        className="w-8 h-8 mx-auto mb-1 text-white/40"
+                        className="w-10 h-10 mx-auto mb-2 text-fuchsia-400/60"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -161,17 +201,18 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
+                          strokeWidth={1.5}
                           d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
                         />
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
+                          strokeWidth={1.5}
                           d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <p className="text-xs text-white/40">Video</p>
+                      <p className="text-xs text-white/70 font-medium truncate max-w-[90%] mx-auto">{rep.title}</p>
+                      <p className="text-[10px] text-white/40 mt-0.5">by {rep.artist}</p>
                     </div>
                   </div>
                 )}

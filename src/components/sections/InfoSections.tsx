@@ -119,10 +119,10 @@ export function InfoSectionItemCard({
     <span className={textClasses}>{value}</span>
   ));
 
-  const mergedHeadingClasses = headingClassName ?? "flex items-center gap-2 text-base font-semibold leading-tight text-white";
+  const mergedHeadingClasses = headingClassName ?? "flex items-center gap-2 text-base font-semibold leading-tight text-fuchsia-300";
 
   return (
-    <article className="flex w-full flex-col gap-3 rounded-xl bg-white/5 px-4 py-4 text-white/85 ring-1 ring-white/10 transition hover:bg-white/10 hover:ring-white/20">
+    <article className="flex w-full flex-col gap-3 rounded-2xl bg-white/[0.03] px-4 py-4 text-white/85 ring-1 ring-white/5 transition hover:bg-white/10 hover:ring-white/20">
       <h3 className={mergedHeadingClasses}>
         {ItemIcon ? <ItemIcon className="h-5 w-5 text-fuchsia-300" aria-hidden="true" focusable="false" /> : null}
         <span>{label}</span>
