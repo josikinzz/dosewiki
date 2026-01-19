@@ -16,6 +16,7 @@ import type * as indexLayouts from "../indexLayouts.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
 import type * as replications from "../replications.js";
+import type * as siteConfig from "../siteConfig.js";
 import type * as subjectiveEffects from "../subjectiveEffects.js";
 import type * as substanceIndex from "../substanceIndex.js";
 import type * as tripReports from "../tripReports.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   prompts: typeof prompts;
   quotes: typeof quotes;
   replications: typeof replications;
+  siteConfig: typeof siteConfig;
   subjectiveEffects: typeof subjectiveEffects;
   substanceIndex: typeof substanceIndex;
   tripReports: typeof tripReports;

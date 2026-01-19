@@ -10,12 +10,15 @@
  *   TARGET_CONVEX_URL - Prod deployment (required)
  *
  * Tables synced:
+ *   - substanceIndex
+ *   - categoryLayout
+ *   - siteConfig (About page content)
+ *   - indexLayouts
  *   - tripReports
  *   - subjectiveEffects
  *   - effectIndexArticles
  *   - prompts
  *   - quotes
- *   - articleSources
  *   - replications (metadata only - file storage IDs are deployment-specific)
  */
 
@@ -191,6 +194,28 @@ async function main() {
     const msg = error instanceof Error ? error.message : String(error);
     console.log(`   ❌ Failed: ${msg}`);
     results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [msg] });
+  }
+
+  // Sync siteConfig (About page content)
+  console.log("\n📦 Syncing siteConfig...");
+  try {
+    const config = await sourceClient.query(api.siteConfig.getAbout, {});
+    if (config) {
+      const { _id, _creationTime, key, updatedAt, ...data } = config;
+      await targetClient.mutation(api.siteConfig.saveAbout, {
+        ...data,
+        updatedBy: "sync-script",
+      });
+      console.log("   ✓ Synced siteConfig (About page)");
+      results.push({ table: "siteConfig", created: 1, updated: 0, errors: [] });
+    } else {
+      console.log("   ⏭️  Skipping (no data)");
+      results.push({ table: "siteConfig", created: 0, updated: 0, errors: [] });
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`   ❌ Failed: ${msg}`);
+    results.push({ table: "siteConfig", created: 0, updated: 0, errors: [msg] });
   }
 
   // Sync indexLayouts (psychoactive, chemical, mechanism)

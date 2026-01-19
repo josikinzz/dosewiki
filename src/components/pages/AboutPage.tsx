@@ -7,7 +7,7 @@ import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { useLightweightData } from "../../data/LightweightDataProvider";
-import { aboutFounderKeys, resolveAboutMarkdown, resolveAboutSubtitle } from "../../data/content/about";
+import { applyPlaceholders } from "../../data/content/about";
 import { getProfileByKey } from "../../data/userProfiles";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -62,6 +62,9 @@ export const AboutPage = memo(function AboutPage() {
   const effects = useQuery(api.subjectiveEffects.getAll);
   const effectCount = effects?.length ?? 233; // Fallback to known count
 
+  // Get About content from Convex (no static fallback)
+  const aboutConfig = useQuery(api.siteConfig.getAbout);
+
   // Derive counts from layout (psychoactive classes are the categories)
   const psychoactiveClassCount = layout.categories.length;
 
@@ -82,22 +85,24 @@ export const AboutPage = memo(function AboutPage() {
     [chemicalClassCount, substanceCount, effectCount, mechanismClassCount, psychoactiveClassCount],
   );
 
-  const aboutMarkdown = useMemo(
-    () => resolveAboutMarkdown(placeholderValues),
-    [placeholderValues],
-  );
+  const aboutMarkdown = useMemo(() => {
+    const rawMarkdown = aboutConfig?.aboutMarkdown ?? "";
+    return applyPlaceholders(rawMarkdown, placeholderValues);
+  }, [aboutConfig?.aboutMarkdown, placeholderValues]);
 
   const aboutSubtitle = useMemo(() => {
-    const resolved = resolveAboutSubtitle(placeholderValues);
+    const rawSubtitle = aboutConfig?.aboutSubtitle ?? "";
+    const resolved = applyPlaceholders(rawSubtitle, placeholderValues);
     return resolved.length > 0
       ? resolved
       : "Structured psychoactive data for quick reference and research workflows.";
-  }, [placeholderValues]);
+  }, [aboutConfig?.aboutSubtitle, placeholderValues]);
 
   const founders = useMemo(() => {
-    const profiles = aboutFounderKeys.map((key) => getProfileByKey(key));
+    const founderKeys = aboutConfig?.founderProfileKeys ?? [];
+    const profiles = founderKeys.map((key) => getProfileByKey(key));
     return profiles.sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }, []);
+  }, [aboutConfig?.founderProfileKeys]);
 
   const isSafari =
     typeof document !== "undefined" &&

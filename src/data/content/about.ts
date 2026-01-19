@@ -94,3 +94,6 @@ export const resolveAboutSubtitle = (values: AboutPlaceholderValues): string =>
   applyPlaceholders(aboutSubtitleMarkdown, values);
 
 export const normalizeFounderKeys = sanitizeFounderKeys;
+
+// Export applyPlaceholders for use with Convex content
+export { applyPlaceholders };

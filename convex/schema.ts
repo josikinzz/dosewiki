@@ -285,6 +285,16 @@ export default defineSchema({
     })),
   }),
 
+  // Site configuration - About page content and other global settings
+  siteConfig: defineTable({
+    key: v.string(),           // "about" for About page content
+    aboutMarkdown: v.optional(v.string()),
+    aboutSubtitle: v.optional(v.string()),
+    founderProfileKeys: v.optional(v.array(v.string())),
+    updatedAt: v.string(),
+    updatedBy: v.optional(v.string()),
+  }).index("by_key", ["key"]),
+
   // Index layouts - stores all category/classification index definitions
   // Replaces the bundled JSON files in src/data/indexes/
   indexLayouts: defineTable({

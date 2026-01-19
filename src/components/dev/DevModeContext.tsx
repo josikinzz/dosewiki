@@ -4,12 +4,7 @@ import { api } from "../../../convex/_generated/api";
 
 import { useLibrary } from "../../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../../schema";
-import {
-  aboutMarkdown as aboutMarkdownSource,
-  aboutSubtitleMarkdown as aboutSubtitleSource,
-  aboutFounderKeys as aboutFounderKeysSource,
-  normalizeFounderKeys,
-} from "../../data/content/about";
+import { normalizeFounderKeys } from "../../data/content/about";
 import { systemPrompt as generatorPromptSource } from "../../data/config/generatorPrompt";
 import type { ManualIndexConfig } from "../../data/builders/manualIndexLoader";
 
@@ -179,12 +174,31 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
       setMechanismIndexManual(deepClone(config));
     }
   }, [mechanismLayout]);
-  const originalAboutMarkdownRef = useRef<string>(aboutMarkdownSource);
-  const originalAboutSubtitleRef = useRef<string>(aboutSubtitleSource);
-  const [aboutMarkdown, setAboutMarkdown] = useState<string>(() => aboutMarkdownSource);
-  const [aboutSubtitle, setAboutSubtitle] = useState<string>(() => aboutSubtitleSource);
-  const originalAboutFounderKeysRef = useRef<string[]>([...aboutFounderKeysSource]);
-  const [aboutFounderKeys, setAboutFounderKeys] = useState<string[]>(() => [...aboutFounderKeysSource]);
+  // Query About config from Convex (no static fallback - Convex is the source of truth)
+  const aboutConfig = useQuery(api.siteConfig.getAbout, {});
+
+  const originalAboutMarkdownRef = useRef<string>("");
+  const originalAboutSubtitleRef = useRef<string>("");
+  const [aboutMarkdown, setAboutMarkdown] = useState<string>("");
+  const [aboutSubtitle, setAboutSubtitle] = useState<string>("");
+  const originalAboutFounderKeysRef = useRef<string[]>([]);
+  const [aboutFounderKeys, setAboutFounderKeys] = useState<string[]>([]);
+
+  // Sync About content when Convex data loads (Convex is the only source)
+  useEffect(() => {
+    if (aboutConfig) {
+      const markdown = aboutConfig.aboutMarkdown ?? "";
+      const subtitle = aboutConfig.aboutSubtitle ?? "";
+      const founderKeys = aboutConfig.founderProfileKeys ?? [];
+
+      originalAboutMarkdownRef.current = markdown;
+      setAboutMarkdown(markdown);
+      originalAboutSubtitleRef.current = subtitle;
+      setAboutSubtitle(subtitle);
+      originalAboutFounderKeysRef.current = [...founderKeys];
+      setAboutFounderKeys([...founderKeys]);
+    }
+  }, [aboutConfig]);
   const originalGeneratorPromptRef = useRef<string>(generatorPromptSource);
   const [generatorPrompt, setGeneratorPrompt] = useState<string>(() => generatorPromptSource);
   const lastVisitedPathRef = useRef<string | null>(null);
