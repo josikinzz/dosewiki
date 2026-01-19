@@ -174,6 +174,33 @@ async function main() {
     results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [msg] });
   }
 
+  // Sync categoryLayout (single document for home page)
+  console.log("\n📦 Syncing categoryLayout...");
+  try {
+    const layout = await sourceClient.query(api.categoryLayout.get, {});
+    if (layout) {
+      const { _id, _creationTime, ...data } = layout;
+      await targetClient.mutation(api.categoryLayout.save, data);
+      console.log("   ✓ Synced categoryLayout");
+      results.push({ table: "categoryLayout", created: 1, updated: 0, errors: [] });
+    } else {
+      console.log("   ⏭️  Skipping (no data)");
+      results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [] });
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.log(`   ❌ Failed: ${msg}`);
+    results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [msg] });
+  }
+
+  // Sync indexLayouts (psychoactive, chemical, mechanism)
+  results.push(await syncTable(
+    "indexLayouts",
+    api.indexLayouts.getAll,
+    api.indexLayouts.bulkImport,
+    { argName: "layouts" }
+  ));
+
   // Sync tripReports
   results.push(await syncTable(
     "tripReports",
