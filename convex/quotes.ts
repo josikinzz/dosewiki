@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Quote document functions.
  * 
@@ -90,6 +96,7 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const { slug, section, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
 
@@ -130,6 +137,7 @@ export const deleteBySlugAndSection = mutation({
     section: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("quotes")
       .withIndex("by_slug_section", (q) =>
@@ -159,6 +167,7 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const updatedAt = new Date().toISOString();
     const results = {
       created: 0,

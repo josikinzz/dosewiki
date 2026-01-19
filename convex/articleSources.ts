@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Article source functions.
  * 
@@ -80,6 +86,7 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -127,6 +134,7 @@ export const importOne = mutation({
     contents: v.any(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     // Check if source with this slug already exists
     const existing = await ctx.db
       .query("articleSources")

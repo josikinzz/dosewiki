@@ -1,5 +1,11 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
+
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
 
 /**
  * Replication functions for video and image replications of effects.
@@ -7,6 +13,49 @@ import { query, mutation } from "./_generated/server";
  * Replications are stored with Convex file storage IDs.
  * Storage URLs are generated on-the-fly using ctx.storage.getUrl().
  */
+
+function isPlaceholderStorageId(storageId?: string | null) {
+  return !storageId || storageId.startsWith("placeholder-");
+}
+
+async function resolveReplicationUrls(
+  ctx: { storage: { getUrl: (storageId: string) => Promise<string> } },
+  rep: {
+    storage_id: string;
+    thumbnail_storage_id?: string;
+    url?: string;
+    thumbnail_url?: string;
+  }
+) {
+  let url = null;
+  let thumbnail_url = null;
+
+  if (!isPlaceholderStorageId(rep.storage_id)) {
+    try {
+      url = await ctx.storage.getUrl(rep.storage_id);
+    } catch (e) {
+      // Storage ID might be invalid or missing
+    }
+  }
+
+  if (!url && rep.url) {
+    url = rep.url;
+  }
+
+  if (!isPlaceholderStorageId(rep.thumbnail_storage_id)) {
+    try {
+      thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id);
+    } catch (e) {
+      // Storage ID might be invalid or missing
+    }
+  }
+
+  if (!thumbnail_url && rep.thumbnail_url) {
+    thumbnail_url = rep.thumbnail_url;
+  }
+
+  return { url, thumbnail_url };
+}
 
 /**
  * Get all replications.
@@ -20,6 +69,10 @@ export const getAll = query({
 
 /**
  * Get a single replication by slug.
+ *
+ * URL resolution priority:
+ * 1. Direct `url` field (external Convex storage or CDN URLs)
+ * 2. Convex storage lookup via `storage_id`
  */
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -33,21 +86,7 @@ export const getBySlug = query({
       return null;
     }
 
-    // Attach storage URLs (gracefully handle placeholder/invalid storage IDs)
-    let url = null;
-    let thumbnail_url = null;
-    try {
-      url = await ctx.storage.getUrl(replication.storage_id);
-    } catch (e) {
-      // Storage ID might be a placeholder
-    }
-    if (replication.thumbnail_storage_id) {
-      try {
-        thumbnail_url = await ctx.storage.getUrl(replication.thumbnail_storage_id);
-      } catch (e) {
-        // Storage ID might be a placeholder
-      }
-    }
+    const { url, thumbnail_url } = await resolveReplicationUrls(ctx, replication);
 
     return {
       ...replication,
@@ -60,6 +99,10 @@ export const getBySlug = query({
 /**
  * Get all replications for a specific effect by effect slug.
  * Returns replications with storage URLs attached.
+ *
+ * URL resolution priority:
+ * 1. Direct `url` field (external Convex storage or CDN URLs)
+ * 2. Convex storage lookup via `storage_id`
  */
 export const getReplicationsByEffect = query({
   args: { effect_slug: v.string() },
@@ -69,23 +112,9 @@ export const getReplicationsByEffect = query({
       .withIndex("by_effect", (q) => q.eq("effect_slug", args.effect_slug))
       .collect();
 
-    // Attach storage URLs to each replication (gracefully handle invalid IDs)
     return Promise.all(
       replications.map(async (rep) => {
-        let url = null;
-        let thumbnail_url = null;
-        try {
-          url = await ctx.storage.getUrl(rep.storage_id);
-        } catch (e) {
-          // Storage ID might be a placeholder
-        }
-        if (rep.thumbnail_storage_id) {
-          try {
-            thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id);
-          } catch (e) {
-            // Storage ID might be a placeholder
-          }
-        }
+        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
         return {
           ...rep,
           url,
@@ -98,6 +127,10 @@ export const getReplicationsByEffect = query({
 
 /**
  * Get all replications by a specific artist.
+ *
+ * URL resolution priority:
+ * 1. Direct `url` field (external Convex storage or CDN URLs)
+ * 2. Convex storage lookup via `storage_id`
  */
 export const getByArtist = query({
   args: { artist: v.string() },
@@ -107,23 +140,9 @@ export const getByArtist = query({
       .withIndex("by_artist", (q) => q.eq("artist", args.artist))
       .collect();
 
-    // Attach storage URLs (gracefully handle invalid IDs)
     return Promise.all(
       replications.map(async (rep) => {
-        let url = null;
-        let thumbnail_url = null;
-        try {
-          url = await ctx.storage.getUrl(rep.storage_id);
-        } catch (e) {
-          // Storage ID might be a placeholder
-        }
-        if (rep.thumbnail_storage_id) {
-          try {
-            thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id);
-          } catch (e) {
-            // Storage ID might be a placeholder
-          }
-        }
+        const { url, thumbnail_url } = await resolveReplicationUrls(ctx, rep);
         return {
           ...rep,
           url,
@@ -141,6 +160,7 @@ export const getByArtist = query({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
+    requireAuth(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -158,6 +178,8 @@ export const insertReplication = mutation({
     storage_id: v.string(),
     effect_slug: v.string(),
     thumbnail_storage_id: v.optional(v.string()),
+    url: v.optional(v.string()),
+    thumbnail_url: v.optional(v.string()),
     width: v.optional(v.number()),
     height: v.optional(v.number()),
     format: v.string(),
@@ -165,6 +187,7 @@ export const insertReplication = mutation({
     duration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const replicationId = await ctx.db.insert("replications", {
       ...args,
       created_at: new Date().toISOString(),
@@ -188,6 +211,8 @@ export const bulkImport = mutation({
         storage_id: v.string(),
         effect_slug: v.string(),
         thumbnail_storage_id: v.optional(v.string()),
+        url: v.optional(v.string()),
+        thumbnail_url: v.optional(v.string()),
         width: v.optional(v.number()),
         height: v.optional(v.number()),
         format: v.string(),
@@ -197,6 +222,7 @@ export const bulkImport = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -247,6 +273,7 @@ export const updateGalleryOrder = mutation({
     replication_slugs: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     // Update the effect's gallery_order in subjectiveEffects
     const effect = await ctx.db
       .query("subjectiveEffects")
@@ -271,6 +298,7 @@ export const updateGalleryOrder = mutation({
 export const deleteBySlug = mutation({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const replication = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -308,6 +336,7 @@ export const updateEffectSlug = mutation({
     effect_slug: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const rep = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -323,11 +352,56 @@ export const updateEffectSlug = mutation({
 });
 
 /**
+ * Update the URL for a replication by its _id.
+ * Used by migration scripts to set direct URLs for external storage.
+ */
+export const updateUrl = mutation({
+  args: {
+    id: v.id("replications"),
+    url: v.string(),
+    thumbnail_url: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    requireAuth(ctx);
+    const updates: { url: string; thumbnail_url?: string } = { url: args.url };
+    if (args.thumbnail_url) {
+      updates.thumbnail_url = args.thumbnail_url;
+    }
+    await ctx.db.patch(args.id, updates);
+    return { success: true };
+  },
+});
+
+/**
+ * Update storage IDs for a replication by its _id.
+ * Used by migration scripts to point to locally uploaded media.
+ */
+export const updateStorageIds = mutation({
+  args: {
+    id: v.id("replications"),
+    storage_id: v.string(),
+    thumbnail_storage_id: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    requireAuth(ctx);
+    const updates: { storage_id: string; thumbnail_storage_id?: string } = {
+      storage_id: args.storage_id,
+    };
+    if (args.thumbnail_storage_id) {
+      updates.thumbnail_storage_id = args.thumbnail_storage_id;
+    }
+    await ctx.db.patch(args.id, updates);
+    return { success: true };
+  },
+});
+
+/**
  * Delete all replications (for re-migration).
  */
 export const deleteAll = mutation({
   args: {},
   handler: async (ctx) => {
+    requireAuth(ctx);
     const allReplications = await ctx.db.query("replications").collect();
 
     for (const rep of allReplications) {

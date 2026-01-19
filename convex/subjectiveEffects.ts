@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Subjective effect functions.
  * 
@@ -180,6 +186,7 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -216,6 +223,7 @@ export const bulkImport = mutation({
 export const deleteAll = mutation({
   args: {},
   handler: async (ctx) => {
+    requireAuth(ctx);
     const allEffects = await ctx.db.query("subjectiveEffects").collect();
     
     for (const effect of allEffects) {
@@ -275,6 +283,7 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("subjectiveEffects")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))

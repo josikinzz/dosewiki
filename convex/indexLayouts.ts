@@ -1,6 +1,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Index layouts - stores category/classification index definitions.
  *
@@ -73,6 +79,7 @@ export const getAll = query({
 export const save = mutation({
   args: indexLayoutValidator,
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("indexLayouts")
       .withIndex("by_type", (q) => q.eq("type", args.type))
@@ -96,6 +103,7 @@ export const bulkImport = mutation({
     layouts: v.array(indexLayoutValidator),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -131,6 +139,7 @@ export const bulkImport = mutation({
 export const deleteByType = mutation({
   args: { type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")) },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("indexLayouts")
       .withIndex("by_type", (q) => q.eq("type", args.type))

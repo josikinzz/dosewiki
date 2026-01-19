@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Query to get all changelog entries.
  * Returns entries sorted by createdAt descending (newest first).
@@ -61,6 +67,7 @@ export const addEntry = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     // Check if entry with this ID already exists (prevent duplicates)
     const existing = await ctx.db
       .query("changelog")
@@ -99,6 +106,7 @@ export const addEntry = mutation({
 export const deleteEntry = mutation({
   args: { entryId: v.string() },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("changelog")
       .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))

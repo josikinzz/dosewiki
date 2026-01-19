@@ -1808,7 +1808,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       setTimeout(() => setConvexNotice(null), 5000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to save to Convex.";
-      setConvexNotice({ type: "error", message });
+      const normalized = message.toLowerCase();
+      const isAuthError = normalized.includes("unauthenticated") || normalized.includes("not authenticated");
+      const displayMessage = isAuthError
+        ? "Convex requires authentication for writes. Sign in and try again."
+        : message;
+      setConvexNotice({ type: "error", message: displayMessage });
       setTimeout(() => setConvexNotice(null), 10000);
     } finally {
       setIsConvexSaving(false);

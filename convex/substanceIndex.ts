@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
+  if (!ctx.auth?.userId) {
+    throw new Error("Unauthenticated");
+  }
+};
+
 /**
  * Query to get all substances from the index.
  * Returns the complete list of substance articles.
@@ -85,6 +91,7 @@ function slugify(text: string): string {
 export const saveSubstance = mutation({
   args: { article: v.any() },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const { article } = args;
 
     // Ensure slug is set
@@ -121,6 +128,7 @@ export const saveSubstance = mutation({
 export const saveSubstances = mutation({
   args: { articles: v.array(v.any()) },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -170,6 +178,7 @@ export const saveSubstances = mutation({
 export const replaceAllSubstances = mutation({
   args: { articles: v.array(v.any()) },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     // Delete all existing substances
     const existing = await ctx.db.query("substanceIndex").collect();
     for (const article of existing) {
@@ -198,6 +207,7 @@ export const replaceAllSubstances = mutation({
 export const deleteSubstance = mutation({
   args: { id: v.number() },
   handler: async (ctx, args) => {
+    requireAuth(ctx);
     const existing = await ctx.db
       .query("substanceIndex")
       .withIndex("by_article_id", (q) => q.eq("id", args.id))
