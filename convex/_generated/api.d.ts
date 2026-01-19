@@ -9,8 +9,10 @@
  */
 
 import type * as articleSources from "../articleSources.js";
+import type * as categoryLayout from "../categoryLayout.js";
 import type * as changelog from "../changelog.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
+import type * as indexLayouts from "../indexLayouts.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
 import type * as replications from "../replications.js";
@@ -26,8 +28,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   articleSources: typeof articleSources;
+  categoryLayout: typeof categoryLayout;
   changelog: typeof changelog;
   effectIndexArticles: typeof effectIndexArticles;
+  indexLayouts: typeof indexLayouts;
   prompts: typeof prompts;
   quotes: typeof quotes;
   replications: typeof replications;

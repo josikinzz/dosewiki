@@ -10,7 +10,9 @@ import {
   RelatedSubstancesSection,
   ReplicationGallery,
 } from "../effects";
+import { useSubjectiveEffect } from "../../hooks/useSubjectiveEffects";
 import type { DosageCategoryGroup } from "../../data/builders/library";
+import type { EffectDetail } from "../../data/builders/library";
 
 /**
  * Subjective effect article from Convex.
@@ -42,11 +44,8 @@ export interface SubjectiveEffectArticle {
 }
 
 interface EffectArticlePageProps {
-  effect: SubjectiveEffectArticle;
-  relatedSubstances?: {
-    groups: DosageCategoryGroup[];
-    total: number;
-  };
+  effectSlug: string;
+  getEffectDetail: (slug: string) => EffectDetail | undefined;
   onNavigate: (path: string) => void;
   onSelectDrug: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
@@ -54,16 +53,50 @@ interface EffectArticlePageProps {
 
 /**
  * Full effect article page.
- * 
+ *
  * Displays a subjective effect article with all sections from EffectIndex.
  */
 export function EffectArticlePage({
-  effect,
-  relatedSubstances,
+  effectSlug,
+  getEffectDetail,
   onNavigate,
   onSelectDrug,
   onSelectCategory,
 }: EffectArticlePageProps) {
+  // Fetch effect from Convex at route level
+  const { effect, isLoading } = useSubjectiveEffect(effectSlug);
+
+  // Get related substances from library
+  const libraryDetail = getEffectDetail(effectSlug);
+  const relatedSubstances = libraryDetail
+    ? { groups: libraryDetail.groups, total: libraryDetail.definition.total }
+    : undefined;
+
+  // Show loading state while fetching
+  if (isLoading) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found if effect doesn't exist
+  if (!effect) {
+    return (
+      <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+        <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+          <p className="text-lg font-semibold text-white">Effect not found.</p>
+          <p className="mt-2 text-sm text-white/70">
+            Browse the effects catalog to choose another entry.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   // Prefer AST content, fall back to raw
   const descriptionContent = effect.description_ast || effect.description_raw;
   const analysisContent = effect.analysis_ast || effect.analysis_raw;

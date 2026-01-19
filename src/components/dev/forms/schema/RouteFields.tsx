@@ -190,7 +190,7 @@ export function RouteFields({ article, onChange, disabled }: RouteFieldsProps) {
                 </div>
 
                 {isExpanded && (
-                  <div className="space-y-6 border-t border-white/10 p-4">
+                  <div className="space-y-6 p-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
                     {/* Route Name */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-1.5">

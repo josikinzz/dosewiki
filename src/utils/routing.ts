@@ -12,17 +12,6 @@ export function viewToPath(view: AppView): string {
       const slug = view.slug.trim();
       return slug.length > 0 ? `/reports/${slug}` : "/reports";
     }
-    case "interactions": {
-      const primary = view.primarySlug?.trim();
-      const secondary = view.secondarySlug?.trim();
-      if (primary && secondary) {
-        return `/interactions/${primary}/${secondary}`;
-      }
-      if (primary) {
-        return `/interactions/${primary}`;
-      }
-      return "/interactions";
-    }
     case "about":
       return "/about";
     case "data":
@@ -103,17 +92,9 @@ export function parsePath(
           return { type: "report", slug };
         }
         return { type: "reports" };
-      case "interactions": {
-        const primarySlug = slug;
-        const secondarySlug = segments[2];
-        if (primarySlug && secondarySlug) {
-          return { type: "interactions", primarySlug, secondarySlug };
-        }
-        if (primarySlug) {
-          return { type: "interactions", primarySlug };
-        }
-        return { type: "interactions" };
-      }
+      case "interactions":
+        // Legacy route - redirect to substances
+        return { type: "substances" };
       case "about":
         return { type: "about" };
       case "data":

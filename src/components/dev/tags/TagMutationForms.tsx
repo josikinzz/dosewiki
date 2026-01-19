@@ -55,7 +55,7 @@ export function TagMutationForms({
         </div>
       </form>
 
-      <div className="h-px w-full bg-white/10" />
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Move Form */}
       <form className="space-y-3" onSubmit={onMove}>
@@ -113,7 +113,7 @@ export function TagMutationForms({
         </div>
       </form>
 
-      <div className="h-px w-full bg-white/10" />
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Delete Zone */}
       <div className="space-y-3 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4">

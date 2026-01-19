@@ -21,6 +21,7 @@ const substanceArticle = v.object({
   // Core fields needed for indexing and identification
   id: v.union(v.number(), v.null()),
   title: v.string(),
+  slug: v.optional(v.string()),  // URL-friendly identifier, computed from title
   priority: v.optional(v.union(v.literal("high"), v.literal("normal"), v.literal("low"), v.null())),
   index_categories: v.array(v.string()),
 
@@ -223,7 +224,8 @@ export default defineSchema({
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
-    .index("by_article_id", ["id"]),
+    .index("by_article_id", ["id"])
+    .index("by_slug", ["slug"]),
 
   // Changelog table - tracks all article changes
   changelog: defineTable(changelogEntry)
@@ -263,4 +265,48 @@ export default defineSchema({
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"]),
+
+  // Category layout - stores the manually curated psychoactive index structure
+  // This is a single document containing the full layout configuration
+  // @deprecated Use indexLayouts table instead
+  categoryLayout: defineTable({
+    version: v.number(),
+    categories: v.array(v.object({
+      key: v.string(),
+      label: v.string(),
+      iconKey: v.string(),
+      sections: v.array(v.object({
+        key: v.string(),
+        label: v.string(),
+        drugs: v.array(v.string()),  // Just slugs - names resolved client-side
+      })),
+      drugs: v.array(v.string()),    // Top-level drugs not in sections
+      columns: v.optional(v.any()),  // Responsive column configuration
+    })),
+  }),
+
+  // Index layouts - stores all category/classification index definitions
+  // Replaces the bundled JSON files in src/data/indexes/
+  indexLayouts: defineTable({
+    type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
+    version: v.number(),
+    categories: v.array(v.object({
+      key: v.string(),
+      label: v.string(),
+      iconKey: v.string(),
+      notes: v.optional(v.string()),
+      columns: v.optional(v.any()),
+      drugs: v.array(v.string()),
+      sections: v.array(v.object({
+        key: v.string(),
+        label: v.string(),
+        notes: v.optional(v.string()),
+        link: v.optional(v.object({
+          type: v.union(v.literal("chemicalClass"), v.literal("psychoactiveClass"), v.literal("mechanism")),
+          value: v.string(),
+        })),
+        drugs: v.array(v.string()),
+      })),
+    })),
+  }).index("by_type", ["type"]),
 });

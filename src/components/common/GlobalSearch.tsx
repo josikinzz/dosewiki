@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
-import { useLibrary } from "../../data/SubstanceIndexProvider";
+import { useLazyLibrary } from "../../hooks/useLazyLibrary";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const MAX_SUGGESTIONS = 8;
+const DEBOUNCE_MS = 200;
+
+/** Debounce a value by the specified delay */
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface GlobalSearchProps {
   currentView: AppView;
@@ -21,16 +34,20 @@ export function GlobalSearch({
   containerClassName,
   compact = false,
 }: GlobalSearchProps) {
-  const library = useLibrary();
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [listboxPosition, setListboxPosition] = useState<{ top: number; left: number } | null>(null);
+  const [libraryEnabled, setLibraryEnabled] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const positionRafRef = useRef<number | null>(null);
   const listboxId = useId();
+
+  // Lazy-load library when search is activated
+  const { library, isLoading: libraryLoading } = useLazyLibrary(libraryEnabled);
+
   useEffect(() => {
     if (currentView.type === "search") {
       setQuery(currentView.query);
@@ -41,13 +58,20 @@ export function GlobalSearch({
     setActiveIndex(-1);
   }, [currentView]);
 
-  const suggestions = useMemo(
-    () => querySearchWithData(query, library, MAX_SUGGESTIONS),
-    [query, library],
-  );
+  // Debounce search query to avoid expensive searches on every keystroke
+  const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
+
+  const suggestions = useMemo(() => {
+    if (!library || !debouncedQuery.trim()) {
+      return [];
+    }
+    return querySearchWithData(debouncedQuery, library, MAX_SUGGESTIONS);
+  }, [debouncedQuery, library]);
+
   const hasQuery = query.trim().length > 0;
   const clearButtonVisible = hasQuery;
   const showSuggestions = isActiveSearch && hasQuery && suggestions.length > 0;
+  const showLoadingIndicator = libraryEnabled && libraryLoading && hasQuery;
 
   useEffect(() => {
     if (activeIndex >= suggestions.length) {
@@ -247,7 +271,11 @@ export function GlobalSearch({
 
   const handleFocus = useCallback(() => {
     setIsActiveSearch(true);
-  }, []);
+    // Start loading library on first focus
+    if (!libraryEnabled) {
+      setLibraryEnabled(true);
+    }
+  }, [libraryEnabled]);
 
   const handleBlur = useCallback(() => {
     requestAnimationFrame(() => {
@@ -261,7 +289,11 @@ export function GlobalSearch({
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
     setIsActiveSearch(true);
-  }, []);
+    // Start loading library when user types
+    if (!libraryEnabled) {
+      setLibraryEnabled(true);
+    }
+  }, [libraryEnabled]);
 
   const handleClear = useCallback(() => {
     setQuery("");
@@ -388,6 +420,15 @@ export function GlobalSearch({
             >
               <Icon icon="lucide:x" size={16} />
             </Button>
+          </div>
+        )}
+        {/* Loading indicator while library loads */}
+        {showLoadingIndicator && (
+          <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50">
+            <div className="flex items-center gap-3">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+              <span className="text-sm text-white/60">Loading search...</span>
+            </div>
           </div>
         )}
         {showSuggestions && (

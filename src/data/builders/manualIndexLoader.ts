@@ -84,9 +84,10 @@ export interface NormalizedManualCategorySection extends ManualCategorySection {
   drugSet: Set<string>;
 }
 
-export interface NormalizedManualCategoryDefinition extends ManualCategoryDefinition {
+export interface NormalizedManualCategoryDefinition extends Omit<ManualCategoryDefinition, 'sections'> {
   normalizedKey: string;
   columns?: ColumnAssignments;
+  sections: NormalizedManualCategorySection[];  // Override to use normalized sections
   sectionMap: Map<string, NormalizedManualCategorySection>;
   drugSet: Set<string>;
 }

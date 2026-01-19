@@ -98,7 +98,7 @@ function DoseTiersTable({ route }: { route: DosageRoute }) {
       </div>
       {hasNotes && (
         <div className="mt-3 pt-3">
-          <div className="mb-3 h-px bg-gradient-to-r from-white/15 via-white/10 to-transparent" />
+          <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <p className="text-xs text-white/60 whitespace-pre-line">
             {route.notes}
           </p>
@@ -204,9 +204,13 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
               </div>
               {isExpanded && hasEffects && (
                 <div className={cn(
-                  "px-3 py-2 border-t",
-                  isSigma ? "bg-rose-500/5 border-rose-500/20" : "bg-white/[0.02] border-white/5"
+                  "px-3 py-2",
+                  isSigma ? "bg-rose-500/5" : "bg-white/[0.02]"
                 )}>
+                  <div className={cn(
+                    "mb-2 -mt-2 -mx-3 h-px bg-gradient-to-r from-transparent to-transparent",
+                    isSigma ? "via-rose-500/20" : "via-white/5"
+                  )} />
                   <p className={cn(
                     "text-xs leading-relaxed",
                     isSigma ? "text-rose-200/70" : "text-white/50"
@@ -221,7 +225,7 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
       </div>
       {hasNotes && (
         <div className="mt-3 pt-3">
-          <div className="mb-3 h-px bg-gradient-to-r from-white/15 via-white/10 to-transparent" />
+          <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <p className="text-xs text-white/60 whitespace-pre-line">
             {plateauDosing.notes}
           </p>

@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
-import type { SubjectiveEffect } from "@/hooks/useSubjectiveEffects";
+import { useSubjectiveEffects, type SubjectiveEffect } from "@/hooks/useSubjectiveEffects";
 
 interface CategoryPageProps {
   detail: CategoryDetail;
   onSelectDrug: (slug: string) => void;
   onNavigate?: (path: string) => void;
   onSelectEffect?: (slug: string) => void;
-  effects?: SubjectiveEffect[];
 }
 
 /**
@@ -71,7 +70,7 @@ const EffectLongSummary = memo(function EffectLongSummary({
   };
 
   return (
-    <div className="mb-8 pb-6 border-b border-white/10 last:border-b-0 last:mb-0 last:pb-0">
+    <div className="mb-8 pb-6 last:mb-0 last:pb-0 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent last:after:hidden">
       {/* Effect title */}
       <h4 
         id={effect.slug}
@@ -145,7 +144,7 @@ const EffectSection = memo(function EffectSection({
       </div>
       
       {/* Section description */}
-      <p className="text-sm text-white/70 leading-relaxed mb-6 pb-4 border-b border-white/10">
+      <p className="text-sm text-white/70 leading-relaxed mb-6 pb-4 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent">
         <b className="text-white/85">{section.title}</b> {section.description.replace(/^[A-Za-z\s]+ are /, 'are ')}
       </p>
       
@@ -231,10 +230,13 @@ export const CategoryPage = memo(function CategoryPage({
   onSelectDrug,
   onNavigate,
   onSelectEffect,
-  effects = [],
 }: CategoryPageProps) {
   // Check if this category has drug class content
   const hasDrugClassContent = getDrugClassContent(detail.definition.key) !== undefined;
+
+  // Fetch effects from Convex only if this category has drug class content
+  const { effects: fetchedEffects } = useSubjectiveEffects();
+  const effects = hasDrugClassContent ? fetchedEffects : [];
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">

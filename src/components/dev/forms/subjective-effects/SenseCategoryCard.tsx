@@ -92,7 +92,7 @@ export function SenseCategoryCard({
       </button>
 
       {/* Content */}
-      <div className="border-t border-white/10 p-3 space-y-4">
+      <div className="p-3 space-y-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
         {/* Sense-level note */}
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-${sense}-note`} className="text-xs text-white/50">

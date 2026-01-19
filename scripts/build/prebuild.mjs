@@ -1,11 +1,12 @@
 /**
  * Prebuild orchestrator - runs prebuild scripts in parallel groups.
  *
- * Group A (parallel): generateEmbedLogo.mjs, buildCompressedSubstanceIndex.mjs
- * Group B (parallel, after A): buildSocialSharePages.mjs, buildArticleSources.mjs, generateSitemap.mjs
+ * Group A (parallel): generateEmbedLogo.mjs
+ * Group B (parallel, after A): buildSocialSharePages.mjs, generateSitemap.mjs
  *
- * This provides faster builds compared to sequential execution while respecting
- * dependencies (Group B scripts may depend on compressed articles from Group A).
+ * Note: buildArticleSources.mjs was removed - article sources now load from Convex at runtime.
+ *
+ * This provides faster builds compared to sequential execution.
  */
 
 import { spawn } from "child_process";
@@ -66,15 +67,14 @@ async function main() {
 
   try {
     // Group A: Independent scripts that can run in parallel
-    // generateEmbedLogo and buildCompressedArticles have no interdependencies
     await runGroup(
-      ["generateEmbedLogo.mjs", "buildCompressedSubstanceIndex.mjs"],
+      ["generateEmbedLogo.mjs"],
       "Group A"
     );
 
-    // Group B: Scripts that may depend on compressed articles
-    // These run after Group A completes
-    const groupBScripts = ["buildSocialSharePages.mjs", "buildArticleSources.mjs"];
+    // Group B: Scripts that run after Group A completes
+    // Note: buildArticleSources.mjs removed - sources now load from Convex at runtime
+    const groupBScripts = ["buildSocialSharePages.mjs"];
     if (!skipSitemap) {
       groupBScripts.push("generateSitemap.mjs");
     }

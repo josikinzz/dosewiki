@@ -3,7 +3,7 @@ import { Icon } from "../../../common/Icon";
 
 import { Button } from "@/components/ui/button";
 
-import type { SourceInfo } from "../../../../data/article-sources";
+import type { SourceInfo } from "../../../../hooks/useArticleSources";
 
 interface SourcePreviewModalProps {
   source: SourceInfo;

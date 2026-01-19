@@ -11,14 +11,21 @@ import { icons } from "@/utils/iconNames";
 import { buildSubstanceRecord, type SubstanceRecord } from "./contentBuilder";
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
-import { psychoactiveIndexManualConfig } from "../psychoactiveIndexManual";
-import { chemicalIndexManualConfig } from "../chemicalIndexManual";
-import { mechanismIndexManualConfig } from "../mechanismIndexManual";
 import type {
   NormalizedManualCategoryDefinition,
   NormalizedManualCategorySection,
   NormalizedManualIndexConfig,
 } from "./manualIndexLoader";
+
+/**
+ * Index configs required by buildLibrary.
+ * These are loaded from Convex at runtime via useIndexLayouts hook.
+ */
+export interface IndexConfigs {
+  psychoactive: NormalizedManualIndexConfig;
+  chemical: NormalizedManualIndexConfig;
+  mechanism: NormalizedManualIndexConfig;
+}
 import { INTERACTION_CLASSES, type InteractionClassDefinition } from "../config/interactionClasses";
 import type {
   InteractionGroup,
@@ -216,8 +223,14 @@ function parseEffectEntryLabel(entry: string): { base: string; qualifier?: strin
  *
  * This is the main factory function that computes all indexes and lookups
  * from the raw articles array.
+ *
+ * @param articles - The substance articles to build the library from
+ * @param configs - Index configs loaded from Convex via useIndexLayouts hook.
  */
-export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
+export function buildLibrary(articles: SubstanceArticle[], configs: IndexConfigs): LibraryData {
+  const psychoactiveIndexManualConfig = configs.psychoactive;
+  const chemicalIndexManualConfig = configs.chemical;
+  const mechanismIndexManualConfig = configs.mechanism;
   // Build substance records
   const rawSubstanceRecords: SubstanceRecord[] = articles
     .map((article) => buildSubstanceRecord(article))
@@ -246,7 +259,7 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
     manualCategoryPresentations,
     manualSlugLookup,
     fallbackCategoryKey,
-  } = buildCategorySystem(substanceBySlug);
+  } = buildCategorySystem(substanceBySlug, psychoactiveIndexManualConfig);
 
   // Build classification lookups
   const { chemicalClassLookup, psychoactiveClassLookup } = buildClassificationLookups(
@@ -327,6 +340,7 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
       manualSlugLookup,
       manualCategoryPresentations,
       fallbackCategoryKey,
+      psychoactiveIndexManualConfig,
     );
 
     return {
@@ -356,6 +370,7 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
         manualSlugLookup,
         manualCategoryPresentations,
         fallbackCategoryKey,
+        psychoactiveIndexManualConfig,
       );
 
       const label = qualifierEntry.qualifier
@@ -413,6 +428,7 @@ export function buildLibrary(articles: SubstanceArticle[]): LibraryData {
       manualSlugLookup,
       manualCategoryPresentations,
       fallbackCategoryKey,
+      psychoactiveIndexManualConfig,
     );
 
   return {
@@ -588,7 +604,10 @@ function buildInteractionIndex(records: SubstanceRecord[]): InteractionIndex {
   return index;
 }
 
-function buildCategorySystem(substanceBySlug: Map<string, SubstanceRecord>) {
+function buildCategorySystem(
+  substanceBySlug: Map<string, SubstanceRecord>,
+  psychoactiveIndexManualConfig: NormalizedManualIndexConfig,
+) {
   const categoryDefinitionMap = new Map<string, CategoryDefinition>();
   const categoryLookup = new Map<string, CategoryDefinition>();
   const manualCategoryPresentations = new Map<string, ManualCategoryPresentation>();
@@ -1048,6 +1067,7 @@ function buildCategoryGroupsForRecords(
   manualSlugLookup: Map<string, { categoryKey: string; sectionKey?: string }[]>,
   manualCategoryPresentations: Map<string, ManualCategoryPresentation>,
   fallbackCategoryKey: string | null,
+  psychoactiveIndexManualConfig: NormalizedManualIndexConfig,
 ): DosageCategoryGroup[] {
   const buckets = new Map<string, ManualAggregationBucket>();
 

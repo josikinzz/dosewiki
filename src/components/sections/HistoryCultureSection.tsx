@@ -11,10 +11,10 @@ const MIN_LINES_TO_TRUNCATE = 6;
 /** Approximate characters per line for truncation estimation */
 const CHARS_PER_LINE = 100;
 
-/** Renders text with 4-digit years automatically bolded */
+/** Renders text with 4-digit years automatically bolded (including decade forms like 1960s) */
 function renderWithBoldYears(text: string): React.ReactNode {
-  // Match 4-digit years (1000-2999 range to be reasonable)
-  const yearPattern = /\b([12]\d{3})\b/g;
+  // Match 4-digit years (1000-2999 range), optionally followed by 's' for decades
+  const yearPattern = /\b([12]\d{3}s?)\b/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match;
@@ -563,9 +563,12 @@ function NotableIndividualCard({
 
       {/* Expanded content */}
       {isExpanded && (
-        <p className="mt-3 pt-3 border-t border-white/10 text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-          {renderWithBoldYears(content)}
-        </p>
+        <>
+          <div className="mt-3 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+            {renderWithBoldYears(content)}
+          </p>
+        </>
       )}
     </button>
   );

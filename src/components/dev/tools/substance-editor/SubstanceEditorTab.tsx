@@ -19,11 +19,11 @@ import {
   validateApiKey,
 } from "../../../../utils/api/openrouter";
 import {
-  substances as allSourceSubstances,
-  loadSubstanceSources,
+  useSubstanceSourceList,
+  loadSubstanceSourcesFromConvex,
   type SourceInfo,
   type SubstanceModule,
-} from "../../../../data/article-sources";
+} from "../../../../hooks/useArticleSources";
 import { useLibrary } from "../../../../data/SubstanceIndexProvider";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
@@ -88,12 +88,15 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   const { articles, applyArticlesTransform } = useDevMode();
   const { substanceRecords, allSubstanceRecords } = useLibrary();
 
+  // Load substance source list from Convex
+  const { substances: allSourceSubstances, isLoading: isLoadingSources } = useSubstanceSourceList();
+
   // Compute visible substances based on priority toggle
   const substances = useMemo(() => {
     const records = showLowPriority ? allSubstanceRecords : substanceRecords;
     const visibleSlugs = new Set(records.map((r) => r.slug));
     return allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
-  }, [allSubstanceRecords, showLowPriority, substanceRecords]);
+  }, [allSubstanceRecords, allSourceSubstances, showLowPriority, substanceRecords]);
 
   // Article output state
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -204,7 +207,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     // Clear stale data immediately before loading new data
     setSubstanceModule(null);
     setIsLoadingSubstance(true);
-    loadSubstanceSources(selectedSubstanceSlug)
+    loadSubstanceSourcesFromConvex(selectedSubstanceSlug)
       .then((module) => {
         setSubstanceModule(module);
         setIsLoadingSubstance(false);

@@ -2,45 +2,52 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { DosagesPage } from "./components/pages/DosagesPage";
-import { CategoryPage } from "./components/pages/CategoryPage";
-import { EffectsPage } from "./components/pages/EffectsPage";
-import { EffectsIndexPage } from "./components/pages/EffectsIndexPage";
-import { EffectDetailPage } from "./components/pages/EffectDetailPage";
-import { EffectArticlePage } from "./components/pages/EffectArticlePage";
-import { EffectCategoryPage } from "./components/pages/EffectCategoryPage";
-import { MechanismDetailPage } from "./components/pages/MechanismDetailPage";
-import { ClassificationDetailPage } from "./components/pages/ClassificationDetailPage";
-import { SearchResultsPage } from "./components/pages/SearchResultsPage";
-import { AboutPage } from "./components/pages/AboutPage";
-import { TripReportsPage } from "./components/pages/TripReportsPage";
-import { TripReportDetailPage } from "./components/pages/TripReportDetailPage";
-import { DataPage } from "./components/pages/DataPage";
-import { useSubjectiveEffects, useSubjectiveEffect } from "./hooks/useSubjectiveEffects";
-
-// Lazy load DevModePage - only needed by authenticated editors
-const DevModePage = lazy(() => 
-  import("./components/pages/DevModePage").then(mod => ({ default: mod.DevModePage }))
-);
-import { useLibrary } from "./data/SubstanceIndexProvider";
+import { useLightweightData } from "./data/LightweightDataProvider";
+import { useLazyLibrary } from "./hooks/useLazyLibrary";
 import { querySearchWithData } from "./data/builders/search";
 import { RouteAnnouncer } from "./components/common/RouteAnnouncer";
 import type { AppView } from "./types/navigation";
 import { parsePath, viewToPath } from "./utils/routing";
-import { InteractionsPage } from "./components/pages/InteractionsPage";
-import { UserProfilePage } from "./components/pages/UserProfilePage";
 import { buildProfileHistory, getProfileByKey, profilesByKey } from "./data/userProfiles";
-import { SubstanceArticlePage } from "./components/pages/SubstanceArticlePage";
 import { slugify } from "./utils/slug";
+
+// Lazy load page components - only loaded when navigated to
+const CategoryPage = lazy(() => import("./components/pages/CategoryPage").then(mod => ({ default: mod.CategoryPage })));
+const EffectsIndexPage = lazy(() => import("./components/pages/EffectsIndexPage").then(mod => ({ default: mod.EffectsIndexPage })));
+const EffectArticlePage = lazy(() => import("./components/pages/EffectArticlePage").then(mod => ({ default: mod.EffectArticlePage })));
+const EffectCategoryPage = lazy(() => import("./components/pages/EffectCategoryPage").then(mod => ({ default: mod.EffectCategoryPage })));
+const MechanismDetailPage = lazy(() => import("./components/pages/MechanismDetailPage").then(mod => ({ default: mod.MechanismDetailPage })));
+const ClassificationDetailPage = lazy(() => import("./components/pages/ClassificationDetailPage").then(mod => ({ default: mod.ClassificationDetailPage })));
+const SearchResultsPage = lazy(() => import("./components/pages/SearchResultsPage").then(mod => ({ default: mod.SearchResultsPage })));
+const AboutPage = lazy(() => import("./components/pages/AboutPage").then(mod => ({ default: mod.AboutPage })));
+const TripReportsPage = lazy(() => import("./components/pages/TripReportsPage").then(mod => ({ default: mod.TripReportsPage })));
+const TripReportDetailPage = lazy(() => import("./components/pages/TripReportDetailPage").then(mod => ({ default: mod.TripReportDetailPage })));
+const DataPage = lazy(() => import("./components/pages/DataPage").then(mod => ({ default: mod.DataPage })));
+const UserProfilePage = lazy(() => import("./components/pages/UserProfilePage").then(mod => ({ default: mod.UserProfilePage })));
+const SubstanceArticlePage = lazy(() => import("./components/pages/SubstanceArticlePage").then(mod => ({ default: mod.SubstanceArticlePage })));
+const DevModePage = lazy(() => import("./components/pages/DevModePage").then(mod => ({ default: mod.DevModePage })));
+
+/** Loading fallback for lazy-loaded pages */
+function PageLoadingFallback() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+        <p className="text-sm text-white/60">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Generate a human-readable page title for screen reader announcements.
  */
-function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string }>): string {
+function getPageTitle(view: AppView, lookup: Map<string, { name: string }>): string {
   switch (view.type) {
     case "substances":
       return "Substance Index";
     case "substance": {
-      const record = substanceBySlug.get(view.slug);
+      const record = lookup.get(view.slug);
       return record ? `${record.name} - Substance Profile` : "Substance Profile";
     }
     case "category":
@@ -55,8 +62,6 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
       return `${view.mechanismSlug} Mechanism`;
     case "classification":
       return `${view.slug} ${view.classification === "chemical" ? "Chemical" : "Psychoactive"} Class`;
-    case "interactions":
-      return "Drug Interactions";
     case "search":
       return `Search Results for "${view.query}"`;
     case "about":
@@ -77,93 +82,32 @@ function getPageTitle(view: AppView, substanceBySlug: Map<string, { name: string
 }
 
 const DEFAULT_VIEW: AppView = { type: "substances" };
+const DEFAULT_SUBSTANCE_SLUG = "lsd";
+
 export default function App() {
-  // Get library data from context
-  const library = useLibrary();
-  
-  // Get subjective effects from Convex
-  const { effects: subjectiveEffects, isLoading: effectsLoading } = useSubjectiveEffects();
-  const {
-    articles,
-    substanceRecords,
-    substanceBySlug,
-    dosageCategoryGroups,
-    effectSummaries,
-    getCategoryDetail,
-    findCategoryByKey,
-    normalizeCategoryKey,
-    getEffectDetail,
-    getEffectSummary,
-    getMechanismDetail,
-    getMechanismSummary,
-    getChemicalClassDetail,
-    getPsychoactiveClassDetail,
-  } = library;
+  // Lightweight data - always available (loaded in main.tsx)
+  const { lookup, substances } = useLightweightData();
 
-  // Compute default slug from substance records
-  const defaultSlug = useMemo(() => {
-    // Try to find LSD first
-    const lsd = substanceRecords.find(
-      (r) => r.slug === "lsd" || r.name.toLowerCase() === "lsd",
-    );
-    if (lsd) return lsd.slug;
-
-    // Fall back to first substance
-    return substanceRecords[0]?.slug ?? null;
-  }, [substanceRecords]);
-
-  // Create a map of raw articles by slug for the new article layout
-  const articlesBySlug = useMemo(() => {
-    const map = new Map<string, (typeof articles)[0]>();
-    for (const article of articles) {
-      const slug = slugify(article.title);
-      map.set(slug, article);
-    }
-    return map;
-  }, [articles]);
-
-  const [view, setView] = useState<AppView>(() => parsePath(undefined, defaultSlug, DEFAULT_VIEW));
+  // Parse initial view from URL - no validation needed
+  const [view, setView] = useState<AppView>(() => parsePath(undefined, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW));
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
-  const isInvalidSubstanceView = view.type === "substance" &&
-    (defaultSlug === null || !substanceBySlug.has(view.slug));
 
-  useEffect(() => {
-    if (!isInvalidSubstanceView) {
-      return;
-    }
+  // Determine if we need the full library for this view
+  const needsFullLibrary = useMemo(() => {
+    return (
+      view.type === "mechanism" ||
+      view.type === "classification" ||
+      view.type === "category" ||
+      view.type === "search"
+    );
+  }, [view.type]);
 
-    if (defaultSlug) {
-      const fallbackView: AppView = { type: "substance", slug: defaultSlug };
-      setView(fallbackView);
-
-      if (typeof window !== "undefined") {
-        const fallbackPath = viewToPath(fallbackView);
-        if (window.location.pathname !== fallbackPath) {
-          window.history.replaceState(null, "", fallbackPath);
-        }
-      }
-    } else {
-      // No substances exist - redirect to index
-      setView({ type: "substances" });
-      if (typeof window !== "undefined" && window.location.pathname !== "/substances") {
-        window.history.replaceState(null, "", "/substances");
-      }
-    }
-  }, [isInvalidSubstanceView]);
-
-  const effectiveView = useMemo<AppView>(() => {
-    if (isInvalidSubstanceView) {
-      if (defaultSlug) {
-        return { type: "substance", slug: defaultSlug };
-      }
-      return { type: "substances" };
-    }
-    return view;
-  }, [isInvalidSubstanceView, view]);
+  // Lazy-load library only for pages that need it
+  const { library, isLoading: libraryLoading } = useLazyLibrary(needsFullLibrary);
 
   useEffect(() => {
     const handlePopState = () => {
-      setView(parsePath(undefined, defaultSlug, DEFAULT_VIEW));
+      setView(parsePath(undefined, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW));
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -185,69 +129,45 @@ export default function App() {
   }, [navigate]);
 
   const selectCategory = useCallback((identifier: string) => {
-    const key = normalizeCategoryKey(identifier);
-    const definition = findCategoryByKey(key);
-    if (definition) {
-      navigate({ type: "category", categoryKey: definition.key });
-    }
-  }, [navigate, normalizeCategoryKey, findCategoryByKey]);
+    // Simplified - just navigate directly with the key
+    const key = slugify(identifier);
+    navigate({ type: "category", categoryKey: key || identifier });
+  }, [navigate]);
 
   const selectEffect = useCallback((identifier: string) => {
-    const summary = getEffectSummary(identifier);
-    if (summary) {
-      navigate({ type: "effect", effectSlug: summary.slug });
-    }
-  }, [navigate, getEffectSummary]);
+    const slug = slugify(identifier);
+    navigate({ type: "effect", effectSlug: slug || identifier });
+  }, [navigate]);
 
   const selectMechanism = useCallback(
     (mechanismSlug: string, qualifierSlug?: string) => {
-      const summary = getMechanismSummary(mechanismSlug);
-      if (!summary) {
-        return;
-      }
-
+      const slug = slugify(mechanismSlug);
       if (qualifierSlug) {
-        navigate({ type: "mechanism", mechanismSlug: summary.slug, qualifierSlug });
-        return;
+        navigate({ type: "mechanism", mechanismSlug: slug || mechanismSlug, qualifierSlug });
+      } else {
+        navigate({ type: "mechanism", mechanismSlug: slug || mechanismSlug });
       }
-
-      navigate({ type: "mechanism", mechanismSlug: summary.slug });
-    },
-    [navigate, getMechanismSummary],
-  );
-
-  const selectClassification = useCallback(
-    (classification: "chemical" | "psychoactive", label: string) => {
-      const detail = classification === "chemical"
-        ? getChemicalClassDetail(label)
-        : getPsychoactiveClassDetail(label);
-
-      if (!detail) {
-        return;
-      }
-
-      navigate({ type: "classification", classification, slug: detail.slug });
-    },
-    [navigate, getChemicalClassDetail, getPsychoactiveClassDetail],
-  );
-
-  const activeSlug = effectiveView.type === "substance" ? effectiveView.slug : defaultSlug;
-  const activeArticle = activeSlug ? articlesBySlug.get(activeSlug) ?? null : null;
-
-  const handleInteractionSelectionChange = useCallback(
-    (primarySlug: string, secondarySlug: string) => {
-      navigate({ type: "interactions", primarySlug, secondarySlug });
     },
     [navigate],
   );
 
-  const searchQuery = view.type === "search" ? view.query : "";
+  const selectClassification = useCallback(
+    (classification: "chemical" | "psychoactive", label: string) => {
+      const slug = slugify(label);
+      navigate({ type: "classification", classification, slug: slug || label });
+    },
+    [navigate],
+  );
+
+  const activeSlug = view.type === "substance" ? view.slug : null;
+
+  // Search results - only computed when library is available and we're on search page
   const searchResults = useMemo(() => {
-    if (view.type !== "search") {
+    if (view.type !== "search" || !library) {
       return [];
     }
     return querySearchWithData(view.query, library);
-  }, [view.type, searchQuery, library]);
+  }, [view, library]);
 
   // Ref for main content focus management
   const mainRef = useRef<HTMLElement | null>(null);
@@ -268,13 +188,13 @@ export default function App() {
 
   // Generate page title for screen reader announcements
   const pageTitle = useMemo(
-    () => getPageTitle(effectiveView, substanceBySlug),
-    [effectiveView, substanceBySlug],
+    () => getPageTitle(view, lookup),
+    [view, lookup],
   );
 
   // Update canonical link and document title for SEO
   useEffect(() => {
-    const path = viewToPath(effectiveView);
+    const path = viewToPath(view);
     const canonicalUrl = `https://dose.wiki${path}`;
 
     // Update or create canonical link
@@ -287,10 +207,13 @@ export default function App() {
     canonical.href = canonicalUrl;
 
     // Update document title
-    document.title = effectiveView.type === "substances"
+    document.title = view.type === "substances"
       ? "dose.wiki - Substance Information Database"
       : `${pageTitle} | dose.wiki`;
-  }, [effectiveView, pageTitle]);
+  }, [view, pageTitle]);
+
+  // Show loading for library-dependent pages
+  const showLibraryLoading = needsFullLibrary && libraryLoading;
 
   return (
     <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
@@ -310,7 +233,7 @@ export default function App() {
         <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
       </div>
 
-      <Header currentView={effectiveView} onNavigate={navigate} />
+      <Header currentView={view} onNavigate={navigate} />
 
       <div ref={contentScrollRef} className="app-content relative">
         {view.type === "dev" ? (
@@ -329,260 +252,256 @@ export default function App() {
             />
           </Suspense>
         ) : view.type === "substances" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <DosagesPage
-            groups={dosageCategoryGroups}
-            onSelectDrug={selectSubstance}
-            onSelectCategory={selectCategory}
-          />
-        </main>
-      ) : view.type === "category" ? (
-        (() => {
-          const detail = getCategoryDetail(view.categoryKey);
-          if (!detail) {
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-                  <p className="text-lg font-semibold text-white">Category not found.</p>
-                  <p className="mt-2 text-sm text-white/70">
-                    Try selecting a category from the Substances index.
-                  </p>
-                </div>
-              </main>
-            );
-          }
-
-          return (
-            <main id="main-content" ref={mainRef} tabIndex={-1}>
-              <CategoryPage 
-                detail={detail} 
-                onSelectDrug={selectSubstance} 
-                onNavigate={(path) => navigate(parsePath(path, defaultSlug, DEFAULT_VIEW))}
-                onSelectEffect={selectEffect}
-                effects={subjectiveEffects}
-              />
-            </main>
-          );
-        })()
-      ) : view.type === "search" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <SearchResultsPage
-            query={view.query}
-            results={searchResults}
-            onSelectSubstance={selectSubstance}
-            onSelectCategory={selectCategory}
-            onSelectEffect={selectEffect}
-          />
-        </main>
-      ) : view.type === "effects" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          {subjectiveEffects.length > 0 ? (
-            <EffectsIndexPage 
-              effects={subjectiveEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags }))} 
-              onSelectEffect={selectEffect} 
+          <main id="main-content" ref={mainRef} tabIndex={-1}>
+            <DosagesPage
+              onSelectDrug={selectSubstance}
+              onSelectCategory={selectCategory}
             />
-          ) : effectsLoading ? (
-            <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-              <div className="flex items-center justify-center py-20">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-              </div>
-            </div>
+          </main>
+        ) : view.type === "category" ? (
+          showLibraryLoading ? (
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <PageLoadingFallback />
+            </main>
+          ) : library ? (
+            (() => {
+              const detail = library.getCategoryDetail(view.categoryKey);
+              if (!detail) {
+                return (
+                  <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                      <p className="text-lg font-semibold text-white">Category not found.</p>
+                      <p className="mt-2 text-sm text-white/70">
+                        Try selecting a category from the Substances index.
+                      </p>
+                    </div>
+                  </main>
+                );
+              }
+
+              return (
+                <main id="main-content" ref={mainRef} tabIndex={-1}>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <CategoryPage
+                      detail={detail}
+                      onSelectDrug={selectSubstance}
+                      onNavigate={(path) => navigate(parsePath(path, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW))}
+                      onSelectEffect={selectEffect}
+                    />
+                  </Suspense>
+                </main>
+              );
+            })()
           ) : (
-            <EffectsPage effects={effectSummaries} onSelectEffect={selectEffect} />
-          )}
-        </main>
-      ) : view.type === "effect-category" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <EffectCategoryPage
-            categorySlug={view.categorySlug}
-            effects={subjectiveEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags, summary: e.summary }))}
-            onSelectEffect={selectEffect}
-            onNavigateBack={() => navigate({ type: "effects" })}
-          />
-        </main>
-      ) : view.type === "effect" ? (
-        (() => {
-          // First try to find the effect in Convex
-          const convexEffect = subjectiveEffects.find(e => e.slug === view.effectSlug);
-          
-          if (convexEffect) {
-            // Get related substances from library
-            const libraryDetail = getEffectDetail(view.effectSlug);
-            
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1}>
-                <EffectArticlePage
-                  effect={convexEffect}
-                  relatedSubstances={libraryDetail ? {
-                    groups: libraryDetail.groups,
-                    total: libraryDetail.definition.total,
-                  } : undefined}
-                  onNavigate={(path) => {
-                    const parsed = parsePath(path, defaultSlug, DEFAULT_VIEW);
-                    navigate(parsed);
-                  }}
-                  onSelectDrug={selectSubstance}
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <PageLoadingFallback />
+            </main>
+          )
+        ) : view.type === "search" ? (
+          showLibraryLoading ? (
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <PageLoadingFallback />
+            </main>
+          ) : (
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <Suspense fallback={<PageLoadingFallback />}>
+                <SearchResultsPage
+                  query={view.query}
+                  results={searchResults}
+                  onSelectSubstance={selectSubstance}
                   onSelectCategory={selectCategory}
+                  onSelectEffect={selectEffect}
                 />
-              </main>
-            );
-          }
-          
-          // Fall back to library-based detail view
-          const detail = getEffectDetail(view.effectSlug);
-          if (!detail) {
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-                  <p className="text-lg font-semibold text-white">Effect not found.</p>
-                  <p className="mt-2 text-sm text-white/70">
-                    Browse the effects catalog to choose another entry.
-                  </p>
-                </div>
-              </main>
-            );
-          }
-
-          return (
-            <main id="main-content" ref={mainRef} tabIndex={-1}>
-              <EffectDetailPage
-                detail={detail}
+              </Suspense>
+            </main>
+          )
+        ) : view.type === "effects" ? (
+          <main id="main-content" ref={mainRef} tabIndex={-1}>
+            <Suspense fallback={<PageLoadingFallback />}>
+              <EffectsIndexPage onSelectEffect={selectEffect} />
+            </Suspense>
+          </main>
+        ) : view.type === "effect-category" ? (
+          <main id="main-content" ref={mainRef} tabIndex={-1}>
+            <Suspense fallback={<PageLoadingFallback />}>
+              <EffectCategoryPage
+                categorySlug={view.categorySlug}
+                onSelectEffect={selectEffect}
+                onNavigateBack={() => navigate({ type: "effects" })}
+              />
+            </Suspense>
+          </main>
+        ) : view.type === "effect" ? (
+          <main id="main-content" ref={mainRef} tabIndex={-1}>
+            <Suspense fallback={<PageLoadingFallback />}>
+              <EffectArticlePage
+                effectSlug={view.effectSlug}
+                getEffectDetail={library?.getEffectDetail ?? (() => null)}
+                onNavigate={(path) => {
+                  const parsed = parsePath(path, DEFAULT_SUBSTANCE_SLUG, DEFAULT_VIEW);
+                  navigate(parsed);
+                }}
                 onSelectDrug={selectSubstance}
                 onSelectCategory={selectCategory}
               />
-            </main>
-          );
-        })()
-      ) : view.type === "mechanism" ? (
-        (() => {
-          const detail = getMechanismDetail(view.mechanismSlug);
-          if (!detail) {
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-                  <p className="text-lg font-semibold text-white">Mechanism not found.</p>
-                  <p className="mt-2 text-sm text-white/70">Select a mechanism badge from a substance to explore related entries.</p>
-                </div>
-              </main>
-            );
-          }
-
-          return (
+            </Suspense>
+          </main>
+        ) : view.type === "mechanism" ? (
+          showLibraryLoading ? (
             <main id="main-content" ref={mainRef} tabIndex={-1}>
-              <MechanismDetailPage
-                detail={detail}
-                onSelectDrug={selectSubstance}
-                onSelectCategory={selectCategory}
-                onSelectMechanism={selectMechanism}
-                activeQualifierSlug={view.qualifierSlug}
-              />
+              <PageLoadingFallback />
             </main>
-          );
-        })()
-      ) : view.type === "classification" ? (
-        (() => {
-          const detail =
-            view.classification === "chemical"
-              ? getChemicalClassDetail(view.slug)
-              : getPsychoactiveClassDetail(view.slug);
+          ) : library ? (
+            (() => {
+              const detail = library.getMechanismDetail(view.mechanismSlug);
+              if (!detail) {
+                return (
+                  <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                      <p className="text-lg font-semibold text-white">Mechanism not found.</p>
+                      <p className="mt-2 text-sm text-white/70">Select a mechanism badge from a substance to explore related entries.</p>
+                    </div>
+                  </main>
+                );
+              }
 
-          if (!detail) {
-            const descriptor = view.classification === "chemical" ? "Chemical class" : "Psychoactive class";
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-                  <p className="text-lg font-semibold text-white">{descriptor} not found.</p>
-                  <p className="mt-2 text-sm text-white/70">Select a class tag from a substance profile to view related entries.</p>
-                </div>
-              </main>
-            );
-          }
-
-          return (
+              return (
+                <main id="main-content" ref={mainRef} tabIndex={-1}>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <MechanismDetailPage
+                      detail={detail}
+                      onSelectDrug={selectSubstance}
+                      onSelectCategory={selectCategory}
+                      onSelectMechanism={selectMechanism}
+                      activeQualifierSlug={view.qualifierSlug}
+                    />
+                  </Suspense>
+                </main>
+              );
+            })()
+          ) : (
             <main id="main-content" ref={mainRef} tabIndex={-1}>
-              <ClassificationDetailPage detail={detail} onSelectDrug={selectSubstance} />
+              <PageLoadingFallback />
             </main>
-          );
-        })()
-      ) : view.type === "interactions" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <InteractionsPage
-            substances={substanceRecords}
-            initialPrimarySlug={view.primarySlug}
-            initialSecondarySlug={view.secondarySlug}
-            onNavigateToSubstance={selectSubstance}
-            onSelectionChange={handleInteractionSelectionChange}
-          />
-        </main>
-      ) : view.type === "about" ? (
-        <main id="main-content" ref={mainRef} tabIndex={-1}>
-          <AboutPage />
-        </main>
-      ) : view.type === "data" ? (
-        <DataPage />
-      ) : view.type === "reports" ? (
-        <TripReportsPage
-          onSelectReport={(slug) => navigate({ type: "report", slug })}
-        />
-      ) : view.type === "report" ? (
-        <TripReportDetailPage
-          slug={view.slug}
-          fromSubstanceSlug={view.fromSubstanceSlug}
-          onBack={() => {
-            if (view.fromSubstanceSlug) {
-              navigate({ type: "substance", slug: view.fromSubstanceSlug });
-            } else {
-              navigate({ type: "reports" });
-            }
-          }}
-        />
-      ) : view.type === "contributor" ? (
-        (() => {
-          const rawKey = view.profileKey.trim();
-          const canonicalKey = rawKey.toUpperCase();
-          const profile = getProfileByKey(canonicalKey);
-          const history = buildProfileHistory(canonicalKey, 5);
-          const isKnownProfile = profilesByKey.has(canonicalKey);
+          )
+        ) : view.type === "classification" ? (
+          showLibraryLoading ? (
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <PageLoadingFallback />
+            </main>
+          ) : library ? (
+            (() => {
+              const detail =
+                view.classification === "chemical"
+                  ? library.getChemicalClassDetail(view.slug)
+                  : library.getPsychoactiveClassDetail(view.slug);
 
-          if (!isKnownProfile && history.length === 0) {
-            return (
-              <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-                  <p className="text-lg font-semibold text-white">Contributor not found.</p>
-                  <p className="mt-2 text-sm text-white/70">
-                    Check the profile key or request access via the Dev Tools workflow.
-                  </p>
-                </div>
-              </main>
-            );
-          }
+              if (!detail) {
+                const descriptor = view.classification === "chemical" ? "Chemical class" : "Psychoactive class";
+                return (
+                  <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+                    <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                      <p className="text-lg font-semibold text-white">{descriptor} not found.</p>
+                      <p className="mt-2 text-sm text-white/70">Select a class tag from a substance profile to view related entries.</p>
+                    </div>
+                  </main>
+                );
+              }
 
-          return (
-            <UserProfilePage
-              profile={profile}
-              history={history}
+              return (
+                <main id="main-content" ref={mainRef} tabIndex={-1}>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <ClassificationDetailPage detail={detail} onSelectDrug={selectSubstance} />
+                  </Suspense>
+                </main>
+              );
+            })()
+          ) : (
+            <main id="main-content" ref={mainRef} tabIndex={-1}>
+              <PageLoadingFallback />
+            </main>
+          )
+        ) : view.type === "about" ? (
+          <main id="main-content" ref={mainRef} tabIndex={-1}>
+            <Suspense fallback={<PageLoadingFallback />}>
+              <AboutPage />
+            </Suspense>
+          </main>
+        ) : view.type === "data" ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <DataPage />
+          </Suspense>
+        ) : view.type === "reports" ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TripReportsPage
+              onSelectReport={(slug) => navigate({ type: "report", slug })}
             />
-          );
-        })()
-      ) : activeArticle ? (
-        <SubstanceArticlePage
-          article={activeArticle}
-          onSelectCategory={selectCategory}
-          onSelectEffect={selectEffect}
-          onSelectMechanism={selectMechanism}
-          onSelectClassification={selectClassification}
-          onSelectReport={(slug) => navigate({ type: "report", slug, fromSubstanceSlug: activeSlug ?? undefined })}
-        />
-      ) : (
-        <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-          <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-            <p className="text-lg font-semibold text-white">No substances in database.</p>
-            <p className="mt-2 text-sm text-white/70">
-              Use DevMode to generate and add new articles.
-            </p>
-          </div>
-        </main>
-      )}
+          </Suspense>
+        ) : view.type === "report" ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <TripReportDetailPage
+              slug={view.slug}
+              fromSubstanceSlug={view.fromSubstanceSlug}
+              onBack={() => {
+                if (view.fromSubstanceSlug) {
+                  navigate({ type: "substance", slug: view.fromSubstanceSlug });
+                } else {
+                  navigate({ type: "reports" });
+                }
+              }}
+            />
+          </Suspense>
+        ) : view.type === "contributor" ? (
+          (() => {
+            const rawKey = view.profileKey.trim();
+            const canonicalKey = rawKey.toUpperCase();
+            const profile = getProfileByKey(canonicalKey);
+            const history = buildProfileHistory(canonicalKey, 5);
+            const isKnownProfile = profilesByKey.has(canonicalKey);
+
+            if (!isKnownProfile && history.length === 0) {
+              return (
+                <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+                  <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+                    <p className="text-lg font-semibold text-white">Contributor not found.</p>
+                    <p className="mt-2 text-sm text-white/70">
+                      Check the profile key or request access via the Dev Tools workflow.
+                    </p>
+                  </div>
+                </main>
+              );
+            }
+
+            return (
+              <Suspense fallback={<PageLoadingFallback />}>
+                <UserProfilePage
+                  profile={profile}
+                  history={history}
+                />
+              </Suspense>
+            );
+          })()
+        ) : activeSlug ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <SubstanceArticlePage
+              slug={activeSlug}
+              onSelectCategory={selectCategory}
+              onSelectEffect={selectEffect}
+              onSelectMechanism={selectMechanism}
+              onSelectClassification={selectClassification}
+              onSelectReport={(slug) => navigate({ type: "report", slug, fromSubstanceSlug: activeSlug })}
+            />
+          </Suspense>
+        ) : (
+          <main id="main-content" ref={mainRef} tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+            <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
+              <p className="text-lg font-semibold text-white">No substances in database.</p>
+              <p className="mt-2 text-sm text-white/70">
+                Use DevMode to generate and add new articles.
+              </p>
+            </div>
+          </main>
+        )}
 
         <Footer />
       </div>

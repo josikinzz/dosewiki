@@ -79,7 +79,7 @@ export const SubjectInfoCard = memo(function SubjectInfoCard({ subject, delay = 
 
       {/* PDF tracker link */}
       {subject.pdf_url && (
-        <div className="mt-4 pt-3 border-t border-white/10">
+        <div className="mt-4 pt-3 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
           <a
             href={subject.pdf_url}
             target="_blank"

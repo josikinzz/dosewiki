@@ -8,6 +8,7 @@ import {
   getEffectCategoryDefinition,
   CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
+import { useSubjectiveEffects } from "../../hooks/useSubjectiveEffects";
 
 /**
  * Minimal effect type for category display.
@@ -21,7 +22,6 @@ interface EffectSummary {
 
 interface EffectCategoryPageProps {
   categorySlug: string;
-  effects: EffectSummary[];
   onSelectEffect: (slug: string) => void;
   onNavigateBack: () => void;
 }
@@ -144,15 +144,27 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
 
 /**
  * Effect category page.
- * 
+ *
  * Displays all effects within a specific category.
  */
 export const EffectCategoryPage = memo(function EffectCategoryPage({
   categorySlug,
-  effects,
   onSelectEffect,
   onNavigateBack,
 }: EffectCategoryPageProps) {
+  // Fetch effects from Convex at route level
+  const { effects: convexEffects, isLoading } = useSubjectiveEffects();
+
+  // Map Convex effects to EffectSummary
+  const effects: EffectSummary[] = useMemo(() => {
+    return convexEffects.map(e => ({
+      slug: e.slug,
+      name: e.name,
+      tags: e.tags,
+      summary: e.summary,
+    }));
+  }, [convexEffects]);
+
   // Get category info - prefer canonical definitions, then fallback, then generate
   const canonicalDef = getEffectCategoryDefinition(categorySlug);
   const canonicalTags = CATEGORY_SLUG_TO_TAGS[categorySlug];
@@ -184,6 +196,17 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
       )
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [effects, categoryInfo.tags]);
+
+  // Show loading state while fetching
+  if (isLoading && effects.length === 0) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f]">

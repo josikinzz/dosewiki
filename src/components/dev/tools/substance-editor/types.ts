@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { SourceInfo } from "../../../../data/article-sources";
+import type { SourceInfo } from "../../../../hooks/useArticleSources";
 
 export const STORAGE_KEYS = {
   API_KEY: "substanceEditor_apiKey",

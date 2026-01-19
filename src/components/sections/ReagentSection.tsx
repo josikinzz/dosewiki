@@ -403,10 +403,10 @@ export const ReagentSection = memo(function ReagentSection({
         {hasMore && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+            className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
           >
             <span className="font-medium">+{hiddenCount}</span>
-            <Icon icon="lucide:chevron-down" size={16} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+            <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
         )}
       </div>

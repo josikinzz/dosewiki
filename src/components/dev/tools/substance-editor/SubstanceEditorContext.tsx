@@ -6,7 +6,7 @@
  */
 
 import { createContext, useContext, type ReactNode } from "react";
-import type { SubstanceModule, SourceInfo } from "../../../../data/article-sources";
+import type { SubstanceModule, SourceInfo } from "../../../../hooks/useArticleSources";
 import type { ExtractedSourceInfo } from "../../../../utils/sectionSources";
 
 export interface SubstanceEditorContextValue {

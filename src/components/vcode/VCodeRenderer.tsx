@@ -243,7 +243,7 @@ export function VCodeRenderer({
 
       // Horizontal rule
       case "hr":
-        return <hr key={index} className="my-6 border-white/10" />;
+        return <div key={index} className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />;
 
       // Headings - fuchsia accented to match substance articles
       case "h1":

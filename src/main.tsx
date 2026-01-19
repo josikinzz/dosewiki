@@ -4,14 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useQuery } from "convex/react";
 import App from "./App";
 import { DevModeProvider } from "./components/dev/DevModeContext";
+import { LightweightDataProvider, type SubstanceLookupEntry } from "./data/LightweightDataProvider";
 import { SubstanceIndexProvider, type LibraryData } from "./data/SubstanceIndexProvider";
-import { loadSubstanceIndex, initializeWithSyncData, setSubstanceIndexCache } from "./data/substanceIndexLoader";
-import { buildLibrary } from "./data/builders/libraryBuilder";
+import { useLazyLibrary } from "./hooks/useLazyLibrary";
 import { LoadingScreen } from "./components/common/LoadingScreen";
 import { ConvexProvider, isConvexEnabled } from "./lib/convex";
 import { ConvexSyncProvider } from "./context/ConvexSyncContext";
 import { api } from "../convex/_generated/api";
-import type { SubstanceArticle } from "./schema";
+import type { CategoryLayout } from "./hooks/useCategoryLayout";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -37,104 +37,206 @@ if (isSafari) {
 }
 
 /**
- * Component that loads articles from Convex.
- * Used when VITE_CONVEX_URL is configured.
+ * Empty library placeholder used before the full library is loaded.
+ * Pages can check if articles.length === 0 to show loading states.
  */
-function AppWithConvexData() {
-  const convexArticles = useQuery(api.substanceIndex.getAll);
-  const [error, setError] = useState<Error | null>(null);
-  const [isConnecting, setIsConnecting] = useState(true);
+const EMPTY_LIBRARY: LibraryData = {
+  articles: [],
+  allSubstanceRecords: [],
+  substanceRecords: [],
+  allSubstancesBySlug: new Map(),
+  substanceBySlug: new Map(),
+  interactionIndex: {
+    entries: [],
+    bySlug: new Map(),
+    bySourceSlug: new Map(),
+    findMatchingEntry: () => undefined,
+    getInteractionsForEntry: () => [],
+    hasInteractions: () => false,
+  },
+  dosageCategoryGroups: [],
+  chemicalClassIndexGroups: [],
+  mechanismIndexGroups: [],
+  effectSummaries: [],
+  mechanismSummaries: [],
+  findCategoryByKey: () => undefined,
+  normalizeCategoryKey: (v) => v.toLowerCase().replace(/\s+/g, "-"),
+  getCategoryDetail: () => null,
+  getEffectDetail: () => null,
+  getEffectSummary: () => undefined,
+  getMechanismDetail: () => null,
+  getMechanismSummary: () => undefined,
+  getChemicalClassDetail: () => null,
+  getPsychoactiveClassDetail: () => null,
+  getInteractionsForSubstance: () => undefined,
+  buildCategoryGroupsForRecords: () => [],
+};
 
-  // Track connection state - Convex returns undefined while connecting
-  useEffect(() => {
-    if (convexArticles !== undefined) {
-      setIsConnecting(false);
-    }
-  }, [convexArticles]);
-
-  // Build library when Convex articles are loaded
-  const libraryData = useMemo(() => {
-    // Still connecting or no articles yet
-    if (convexArticles === undefined || convexArticles.length === 0) {
-      return null;
-    }
-    // Strip Convex _id and _creationTime fields to match SubstanceArticle type
-    const articles = convexArticles.map(({ _id, _creationTime, ...article }) => article) as SubstanceArticle[];
-    // Update the substance index cache so other parts of the app can access it
-    setSubstanceIndexCache(articles);
-    return buildLibrary(articles);
-  }, [convexArticles]);
-
-  if (error) {
-    return <ErrorScreen error={error} />;
-  }
-
-  // Show loading while connecting to Convex or building library
-  if (isConnecting || !libraryData) {
-    return <LoadingScreen />;
-  }
-
+/**
+ * Check if a path needs the full library loaded.
+ * Once true, stays true for the session (no point unloading).
+ */
+function checkIfNeedsLibrary(path: string): boolean {
   return (
-    <SubstanceIndexProvider libraryData={libraryData}>
-      <ConvexSyncProvider>
-        <DevModeProvider>
-          <App />
-        </DevModeProvider>
-      </ConvexSyncProvider>
+    path.startsWith("/dev") ||
+    path.startsWith("/data") ||
+    path.startsWith("/mechanism") ||
+    path.startsWith("/chemical") ||
+    path.startsWith("/psychoactive") ||
+    path.startsWith("/category") ||
+    path.startsWith("/search") ||
+    // TripReportDetailPage uses useLibrary for substance linking
+    (path.startsWith("/reports/") && path.length > 9)
+  );
+}
+
+/**
+ * Lazy-loading wrapper for SubstanceIndexProvider.
+ * Starts loading library when on /dev routes or pages that need full library.
+ */
+function LazySubstanceIndexProvider({ children }: { children: React.ReactNode }) {
+  // Single state for whether library is needed - once true, stays true
+  const [needsLibrary, setNeedsLibrary] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const initialPath = window.location.pathname;
+    const needs = checkIfNeedsLibrary(initialPath);
+    console.log("[LazySubstanceIndexProvider] Initial check - path:", initialPath, "needsLibrary:", needs);
+    return needs;
+  });
+
+  // Listen for route changes - needs to intercept pushState/replaceState too
+  useEffect(() => {
+    const handleRouteChange = () => {
+      const path = window.location.pathname;
+      const needs = checkIfNeedsLibrary(path);
+      console.log("[LazySubstanceIndexProvider] Route change - path:", path, "needsLibrary:", needs);
+      if (needs) {
+        setNeedsLibrary(true);
+      }
+    };
+
+    // Handle popstate (back/forward navigation)
+    window.addEventListener("popstate", handleRouteChange);
+
+    // Intercept pushState and replaceState to detect SPA navigation
+    const originalPushState = history.pushState.bind(history);
+    const originalReplaceState = history.replaceState.bind(history);
+
+    history.pushState = function (...args) {
+      originalPushState(...args);
+      console.log("[LazySubstanceIndexProvider] pushState intercepted, new path:", window.location.pathname);
+      handleRouteChange();
+    };
+
+    history.replaceState = function (...args) {
+      originalReplaceState(...args);
+      console.log("[LazySubstanceIndexProvider] replaceState intercepted, new path:", window.location.pathname);
+      handleRouteChange();
+    };
+
+    // Check immediately in case URL already needs library
+    handleRouteChange();
+
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange);
+      // Restore original methods
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, []); // Empty deps = stable listener, no recreation
+
+  // Lazy-load library only when needed
+  const { library } = useLazyLibrary(needsLibrary);
+
+  console.log("[LazySubstanceIndexProvider] needsLibrary:", needsLibrary, "library:", library ? `loaded(${library.articles.length})` : "null");
+
+  // Always provide SubstanceIndexProvider - with real data or empty placeholder
+  return (
+    <SubstanceIndexProvider libraryData={library ?? EMPTY_LIBRARY}>
+      {children}
     </SubstanceIndexProvider>
   );
 }
 
 /**
- * Component that loads articles from compressed file (fallback).
- * Used when Convex is not configured or for inline builds.
+ * Component that loads lightweight data from Convex for fast initial render.
+ * Only loads category layout (~14KB) and slug-name map (~20KB) on startup.
+ * Full article data is loaded on-demand by individual pages.
  */
-function AppWithFileData() {
-  const [libraryData, setLibraryData] = useState<LibraryData | null>(null);
+function AppWithConvexData() {
+  // Load lightweight data only - not the full 5MB article collection
+  const categoryLayout = useQuery(api.categoryLayout.get);
+  const slugNameMap = useQuery(api.substanceIndex.getSlugNameMap);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    // Check if we're in inline build mode (sync data available)
-    const isInlineBuild = import.meta.env.VITE_INLINE_BUILD === "true";
+  // Compute substances from slug-name map
+  const substances = useMemo<SubstanceLookupEntry[]>(() => {
+    if (!slugNameMap) return [];
+    return slugNameMap.map((item) => ({
+      slug: item.slug,
+      name: item.name,
+      priority: item.priority,
+    }));
+  }, [slugNameMap]);
 
-    if (isInlineBuild) {
-      // For inline builds, data is bundled synchronously
-      import("./data/SubstanceIndex.compressed")
-        .then((mod) => {
-          const articles = initializeWithSyncData(mod.substanceIndexCompressedBase64);
-          const library = buildLibrary(articles);
-          setLibraryData(library);
-        })
-        .catch(setError);
-    } else {
-      // For standard builds, load asynchronously from compressed file
-      loadSubstanceIndex()
-        .then((articles) => {
-          const library = buildLibrary(articles);
-          setLibraryData(library);
-        })
-        .catch(setError);
-    }
-  }, []);
+  // Create layout from Convex data
+  const layout = useMemo<CategoryLayout | null>(() => {
+    if (!categoryLayout) return null;
+    return {
+      version: categoryLayout.version,
+      categories: categoryLayout.categories.map((cat: {
+        key: string;
+        label: string;
+        iconKey: string;
+        sections: { key: string; label: string; drugs: string[] }[];
+        drugs: string[];
+        columns?: Record<string, number>;
+      }) => ({
+        key: cat.key,
+        label: cat.label,
+        iconKey: cat.iconKey,
+        sections: cat.sections.map((sec: { key: string; label: string; drugs: string[] }) => ({
+          key: sec.key,
+          label: sec.label,
+          drugs: sec.drugs,
+        })),
+        drugs: cat.drugs,
+        columns: cat.columns,
+      })),
+    };
+  }, [categoryLayout]);
 
   if (error) {
     return <ErrorScreen error={error} />;
   }
 
-  if (!libraryData) {
+  // Show loading while fetching lightweight data (fast - ~34KB total)
+  if (categoryLayout === undefined || slugNameMap === undefined) {
     return <LoadingScreen />;
   }
 
+  // Handle case where category layout doesn't exist yet
+  if (!layout) {
+    return (
+      <ErrorScreen
+        error={new Error("Category layout not found. Run: node scripts/seed-category-layout.mjs")}
+      />
+    );
+  }
+
   return (
-    <SubstanceIndexProvider libraryData={libraryData}>
-      <ConvexSyncProvider>
-        <DevModeProvider>
-          <App />
-        </DevModeProvider>
-      </ConvexSyncProvider>
-    </SubstanceIndexProvider>
+    <LightweightDataProvider layout={layout} substances={substances}>
+      <LazySubstanceIndexProvider>
+        <ConvexSyncProvider>
+          <DevModeProvider>
+            <App />
+          </DevModeProvider>
+        </ConvexSyncProvider>
+      </LazySubstanceIndexProvider>
+    </LightweightDataProvider>
   );
 }
+
 
 /**
  * Error screen component.
@@ -155,19 +257,18 @@ function ErrorScreen({ error }: { error: Error }) {
 }
 
 /**
- * Wrapper that decides which data loader to use.
- * - If Convex is enabled → load from Convex (real-time updates)
- * - Otherwise → load from compressed file (static)
+ * Wrapper that ensures Convex is configured before loading the app.
+ * Shows an error screen if VITE_CONVEX_URL is not set.
  */
 function AppWithData() {
-  // Check if we should use Convex
-  const useConvex = isConvexEnabled();
-
-  if (useConvex) {
-    return <AppWithConvexData />;
+  if (!isConvexEnabled()) {
+    return (
+      <ErrorScreen
+        error={new Error("Convex not configured. Set VITE_CONVEX_URL environment variable.")}
+      />
+    );
   }
-
-  return <AppWithFileData />;
+  return <AppWithConvexData />;
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

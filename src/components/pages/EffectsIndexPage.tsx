@@ -9,6 +9,7 @@ import { EffectCategoryCard } from "../effects/EffectCategoryCard";
 import { ParentCategoryCard } from "../effects/ParentCategoryCard";
 import { SEIIntroSection } from "../effects/SEIIntroSection";
 import { useResponsiveColumnCount } from "../../hooks/useResponsiveColumnCount";
+import { useSubjectiveEffects } from "../../hooks/useSubjectiveEffects";
 
 /**
  * Minimal effect type for index display.
@@ -20,7 +21,6 @@ interface EffectSummary {
 }
 
 interface EffectsIndexPageProps {
-  effects: EffectSummary[];
   onSelectEffect: (slug: string) => void;
 }
 
@@ -223,16 +223,23 @@ const FLAT_CATEGORIES: FlatCategoryConfig[] = [
 
 /**
  * Tabbed effects index page.
- * 
+ *
  * "All" tab: 3-column layout with hierarchical parent category cards.
  * Sensory/Cognitive/Physical tabs: Flat card layout with subcategories as individual cards.
  */
 export const EffectsIndexPage = memo(function EffectsIndexPage({
-  effects,
   onSelectEffect,
 }: EffectsIndexPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>("all");
   const columnCount = useResponsiveColumnCount({ limitColumns: true });
+
+  // Fetch effects from Convex at route level
+  const { effects: convexEffects, isLoading } = useSubjectiveEffects();
+
+  // Map Convex effects to local type
+  const effects: EffectSummary[] = useMemo(() => {
+    return convexEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags }));
+  }, [convexEffects]);
 
   const activeTabConfig = TABS.find(t => t.id === activeTab);
 
@@ -242,9 +249,9 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
     if (!tab || tab.filterTags.length === 0) {
       return effects;
     }
-    
+
     return effects.filter(effect =>
-      effect.tags.some(tag => 
+      effect.tags.some(tag =>
         tab.filterTags.includes(tag.toLowerCase())
       )
     );
@@ -253,14 +260,14 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
   // For "all" tab: get categories grouped by responsive column
   const categoriesByColumn = useMemo(() => {
     if (activeTab !== "all") return new Map<number, ParentCategoryConfig[]>();
-    
+
     const columns = new Map<number, ParentCategoryConfig[]>();
-    
+
     // Initialize all columns
     for (let i = 0; i < columnCount; i++) {
       columns.set(i, []);
     }
-    
+
     // Distribute categories to columns based on responsive assignments
     PARENT_CATEGORIES.forEach((cat, index) => {
       let targetColumn: number;
@@ -272,14 +279,14 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
       }
       columns.get(targetColumn)?.push(cat);
     });
-    
+
     return columns;
   }, [activeTab, columnCount]);
 
   // For other tabs: get flat categories with effects
   const flatCategoriesWithEffects = useMemo(() => {
     if (activeTab === "all") return [];
-    
+
     return FLAT_CATEGORIES
       .filter(cat => cat.tab === activeTab)
       .map(cat => {
@@ -287,7 +294,7 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
           const effectTags = effect.tags.map(t => t.toLowerCase());
           return cat.tags.every(catTag => effectTags.includes(catTag.toLowerCase()));
         });
-        
+
         return {
           ...cat,
           effects: matchingEffects.sort((a, b) => a.name.localeCompare(b.name)),
@@ -299,23 +306,33 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
   // Distribute flat categories across columns
   const flatCategoriesByColumn = useMemo(() => {
     if (activeTab === "all") return new Map<number, typeof flatCategoriesWithEffects>();
-    
+
     const columns = new Map<number, typeof flatCategoriesWithEffects>();
-    
+
     // Initialize all columns
     for (let i = 0; i < columnCount; i++) {
       columns.set(i, []);
     }
-    
+
     // Round-robin distribution for flat categories
     flatCategoriesWithEffects.forEach((cat, index) => {
       const targetColumn = index % columnCount;
       columns.get(targetColumn)?.push(cat);
     });
-    
+
     return columns;
   }, [flatCategoriesWithEffects, activeTab, columnCount]);
 
+  // Show loading state while fetching (AFTER all hooks)
+  if (isLoading && effects.length === 0) {
+    return (
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">

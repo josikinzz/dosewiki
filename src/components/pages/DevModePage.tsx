@@ -240,6 +240,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     resetGeneratorPrompt,
     getOriginalGeneratorPrompt,
   } = useDevMode();
+
+  console.log("[DevModePage] useDevMode() returned articles:", articles.length);
+
   const {
     chemicalClassIndexGroups,
     dosageCategoryGroups,
@@ -1342,6 +1345,17 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       return;
     }
 
+    // Don't update editor if articles haven't loaded yet
+    if (!selectedArticle) {
+      return;
+    }
+
+    // Don't update editor if editArticleValues hasn't been initialized yet
+    // (race condition: selectedArticle loads before resetEditArticleForm completes)
+    if (!editArticleValues) {
+      return;
+    }
+
     // editArticleValues is already a SubstanceArticle
     const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
     setEditorValue(toYaml(merged));
@@ -1349,6 +1363,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
   const _switchToJsonMode = useCallback(() => {
     if (draftMode === "json") {
+      return;
+    }
+
+    if (!selectedArticle || !editArticleValues) {
       return;
     }
 
@@ -1382,6 +1400,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const _handleDraftModeChange = useCallback((mode: "ui" | "json") => {
     if (mode === "json") {
       if (draftMode === "json") return;
+      if (!selectedArticle || !editArticleValues) return;
       const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
       setEditorValue(toYaml(merged));
       setDraftMode("json");
@@ -1437,6 +1456,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     }
 
     if (draftMode === "ui") {
+      if (!editArticleValues) {
+        setNotice({ type: "error", message: "Article data not loaded yet." });
+        return;
+      }
       // editArticleValues is already a SubstanceArticle
       const merged = mergeArticleWithOriginal(selectedArticle, editArticleValues);
       updateArticleAt(selectedIndex, merged);
@@ -2491,6 +2514,28 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       }
     />
   );
+
+  // Show loading state while articles are loading
+  console.log("[DevModePage] Render - articles.length:", articles.length);
+  if (articles.length === 0) {
+    console.log("[DevModePage] Showing loading state (articles.length === 0)");
+    return (
+      <main className={mainClassName}>
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
+              <Icon icon="lucide:wrench" size={32} className="text-current" />
+              <span>Dev Tools</span>
+            </h1>
+          </div>
+          <div className="mt-20 flex flex-col items-center justify-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
+            <p className="text-sm text-white/60">Loading articles...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={mainClassName}>

@@ -22,35 +22,34 @@ export const getBySlug = query({
 });
 
 /**
- * Get all available substance slugs.
+ * Get all available substance slugs with pagination.
+ * Returns lightweight metadata for building substance list in DevMode.
  */
-export const getAllSlugs = query({
-  args: {},
-  handler: async (ctx) => {
-    const sources = await ctx.db.query("articleSources").collect();
-    return sources.map((s) => ({
-      slug: s.slug,
-      substanceName: s.substanceName,
-      sourceCount: s.sources.length,
-    }));
+export const getSubstanceList = query({
+  args: {
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 100;
+
+    let query = ctx.db.query("articleSources");
+
+    const results = await query
+      .paginate({ numItems: limit, cursor: args.cursor ?? null });
+
+    return {
+      items: results.page.map((s) => ({
+        slug: s.slug,
+        name: s.substanceName,
+        sources: s.sources,
+      })),
+      cursor: results.continueCursor,
+      isDone: results.isDone,
+    };
   },
 });
 
-/**
- * Get all article sources (for listing in dev tools).
- * Returns metadata only, not full content.
- */
-export const getAllMetadata = query({
-  args: {},
-  handler: async (ctx) => {
-    const sources = await ctx.db.query("articleSources").collect();
-    return sources.map((s) => ({
-      slug: s.slug,
-      substanceName: s.substanceName,
-      sources: s.sources,
-    }));
-  },
-});
 
 /**
  * Get all article sources (for migration/sync).

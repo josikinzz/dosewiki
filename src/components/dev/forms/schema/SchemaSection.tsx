@@ -77,7 +77,7 @@ export function SchemaSection({
       </button>
 
       {!isCollapsed && (
-        <div className="space-y-4 border-t border-white/10 p-4">
+        <div className="space-y-4 p-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
           {nonRouteDependentFields.map((path) => {
             const meta = FIELD_REGISTRY[path];
             if (!meta) return null;

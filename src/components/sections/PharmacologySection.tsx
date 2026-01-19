@@ -113,14 +113,17 @@ export const PharmacologySection = memo(function PharmacologySection({
             {hasReceptorBinding && (
               <>
                 {showReceptorBinding && (
-                  <ul className="mt-4 space-y-2 border-t border-white/10 pt-4">
-                    {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
-                      <li key={receptor} className="flex items-center gap-2 text-sm text-white/80">
-                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
-                        {receptor} {value}
-                      </li>
-                    ))}
-                  </ul>
+                  <>
+                    <div className="mt-4 mb-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <ul className="space-y-2">
+                      {Object.entries(pharmacology.receptor_binding).map(([receptor, value]) => (
+                        <li key={receptor} className="flex items-center gap-2 text-sm text-white/80">
+                          <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                          {receptor} {value}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
                 )}
                 <button
                   onClick={() => setShowReceptorBinding(!showReceptorBinding)}

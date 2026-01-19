@@ -96,7 +96,7 @@ export function EffectCategoryCard({
 
       {/* Content */}
       {isExpanded && (
-        <div className="border-t border-white/10 p-4 space-y-4">
+        <div className="p-4 space-y-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
           {/* Category-level note at top of section */}
           {noteFieldPath && (
             <div className="space-y-1">

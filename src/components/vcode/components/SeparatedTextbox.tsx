@@ -19,7 +19,7 @@ export function SeparatedTextbox({
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 my-3">
       {(leftHeader || rightHeader) && (
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+        <div className="flex items-center justify-between mb-3 pb-2 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent">
           {leftHeader && (
             <span className="text-sm font-medium text-fuchsia-300">
               {leftHeader}

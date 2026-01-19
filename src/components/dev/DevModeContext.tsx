@@ -1,10 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 import { useLibrary } from "../../data/SubstanceIndexProvider";
 import type { SubstanceArticle } from "../../schema";
-import psychoactiveIndexManualSource from "../../data/indexes/psychoactiveIndexManual.json";
-import chemicalIndexManualSource from "../../data/indexes/chemicalIndexManual.json";
-import mechanismIndexManualSource from "../../data/indexes/mechanismIndexManual.json";
 import {
   aboutMarkdown as aboutMarkdownSource,
   aboutSubtitleMarkdown as aboutSubtitleSource,
@@ -12,9 +11,12 @@ import {
   normalizeFounderKeys,
 } from "../../data/content/about";
 import { systemPrompt as generatorPromptSource } from "../../data/config/generatorPrompt";
-import type { ManualPsychoactiveIndexConfig } from "../../data/psychoactiveIndexManual";
-import type { ManualChemicalIndexConfig } from "../../data/chemicalIndexManual";
-import type { ManualMechanismIndexConfig } from "../../data/mechanismIndexManual";
+import type { ManualIndexConfig } from "../../data/builders/manualIndexLoader";
+
+// Type aliases for backwards compatibility
+type ManualPsychoactiveIndexConfig = ManualIndexConfig;
+type ManualChemicalIndexConfig = ManualIndexConfig;
+type ManualMechanismIndexConfig = ManualIndexConfig;
 import type { DevTab } from "../../types/navigation";
 
 type ArticleRecord = SubstanceArticle;
@@ -78,17 +80,54 @@ const DevModeContext = createContext<DevModeContextValue | undefined>(undefined)
 
 const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
+// Default empty index config for initial state
+const EMPTY_INDEX_CONFIG: ManualIndexConfig = { version: 1, categories: [] };
+
 export function DevModeProvider({ children }: { children: ReactNode }) {
-  // Get articles from the library context (already loaded by ArticlesProvider)
+  // Get library from SubstanceIndexProvider (already in tree via LazySubstanceIndexProvider)
+  // LazySubstanceIndexProvider handles the lazy loading based on route detection
   const library = useLibrary();
   const articlesSource = library.articles;
 
+  // Load index layouts from Convex
+  const psychoactiveLayout = useQuery(api.indexLayouts.getByType, { type: "psychoactive" });
+  const chemicalLayout = useQuery(api.indexLayouts.getByType, { type: "chemical" });
+  const mechanismLayout = useQuery(api.indexLayouts.getByType, { type: "mechanism" });
+
+  // Convert Convex layouts to ManualIndexConfig format
+  const psychoactiveIndexManualSource = useMemo(() => {
+    if (!psychoactiveLayout) return EMPTY_INDEX_CONFIG;
+    return { version: psychoactiveLayout.version, categories: psychoactiveLayout.categories };
+  }, [psychoactiveLayout]);
+
+  const chemicalIndexManualSource = useMemo(() => {
+    if (!chemicalLayout) return EMPTY_INDEX_CONFIG;
+    return { version: chemicalLayout.version, categories: chemicalLayout.categories };
+  }, [chemicalLayout]);
+
+  const mechanismIndexManualSource = useMemo(() => {
+    if (!mechanismLayout) return EMPTY_INDEX_CONFIG;
+    return { version: mechanismLayout.version, categories: mechanismLayout.categories };
+  }, [mechanismLayout]);
+
+  console.log("[DevModeProvider] useLibrary() returned articles:", articlesSource.length);
+  console.log("[DevModeProvider] Index layouts from Convex:", {
+    psychoactive: psychoactiveLayout ? psychoactiveLayout.categories.length : "loading",
+    chemical: chemicalLayout ? chemicalLayout.categories.length : "loading",
+    mechanism: mechanismLayout ? mechanismLayout.categories.length : "loading",
+  });
+
   // Store original articles in ref (initialized once when provider mounts)
   const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
-  const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(originalArticlesRef.current));
+  const [articles, setArticles] = useState<ArticleRecord[]>(() => {
+    console.log("[DevModeProvider] Initial state - articlesSource:", articlesSource.length);
+    return deepClone(articlesSource);
+  });
 
-  // Sync articles when source data changes (e.g., hot reload updates articles.json)
+  // Sync articles when source data changes (e.g., when library loads or hot reload)
+  // Always update state to match source - the loading UI will handle the empty case
   useEffect(() => {
+    console.log("[DevModeProvider] Sync effect triggered - articlesSource changed to:", articlesSource.length);
     originalArticlesRef.current = deepClone(articlesSource);
     setArticles(deepClone(articlesSource));
   }, [articlesSource]);
@@ -99,18 +138,47 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [psychoactiveIndexManual, setPsychoactiveIndexManual] = useState<ManualPsychoactiveIndexConfig>(
     () => deepClone(originalManualIndexRef.current),
   );
+
+  // Sync psychoactive index when Convex data loads
+  useEffect(() => {
+    if (psychoactiveLayout) {
+      const config = { version: psychoactiveLayout.version, categories: psychoactiveLayout.categories };
+      originalManualIndexRef.current = deepClone(config);
+      setPsychoactiveIndexManual(deepClone(config));
+    }
+  }, [psychoactiveLayout]);
+
   const originalChemicalManualRef = useRef<ManualChemicalIndexConfig>(
     deepClone(chemicalIndexManualSource as ManualChemicalIndexConfig),
   );
   const [chemicalIndexManual, setChemicalIndexManual] = useState<ManualChemicalIndexConfig>(
     () => deepClone(originalChemicalManualRef.current),
   );
+
+  // Sync chemical index when Convex data loads
+  useEffect(() => {
+    if (chemicalLayout) {
+      const config = { version: chemicalLayout.version, categories: chemicalLayout.categories };
+      originalChemicalManualRef.current = deepClone(config);
+      setChemicalIndexManual(deepClone(config));
+    }
+  }, [chemicalLayout]);
+
   const originalMechanismManualRef = useRef<ManualMechanismIndexConfig>(
     deepClone(mechanismIndexManualSource as ManualMechanismIndexConfig),
   );
   const [mechanismIndexManual, setMechanismIndexManual] = useState<ManualMechanismIndexConfig>(
     () => deepClone(originalMechanismManualRef.current),
   );
+
+  // Sync mechanism index when Convex data loads
+  useEffect(() => {
+    if (mechanismLayout) {
+      const config = { version: mechanismLayout.version, categories: mechanismLayout.categories };
+      originalMechanismManualRef.current = deepClone(config);
+      setMechanismIndexManual(deepClone(config));
+    }
+  }, [mechanismLayout]);
   const originalAboutMarkdownRef = useRef<string>(aboutMarkdownSource);
   const originalAboutSubtitleRef = useRef<string>(aboutSubtitleSource);
   const [aboutMarkdown, setAboutMarkdown] = useState<string>(() => aboutMarkdownSource);

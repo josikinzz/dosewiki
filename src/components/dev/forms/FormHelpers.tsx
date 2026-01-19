@@ -79,7 +79,7 @@ export function CollapsibleFormSectionCard({
         )}
       </button>
       {isExpanded && (
-        <div className="border-t border-white/10 p-6 space-y-6">
+        <div className="p-6 space-y-6 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
           {description && (
             <p className="text-sm text-white/60 -mt-2 mb-4">{description}</p>
           )}
@@ -128,7 +128,7 @@ export function CollapsibleSubsection({
         )}
       </button>
       {isExpanded && (
-        <div className="border-t border-white/10 p-4 space-y-4">
+        <div className="p-4 space-y-4 relative before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">
           {description && (
             <p className="text-[11px] text-white/45 -mt-2">{description}</p>
           )}

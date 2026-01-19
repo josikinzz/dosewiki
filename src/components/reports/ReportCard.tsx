@@ -53,7 +53,7 @@ export const ReportCard = memo(function ReportCard({ report, onClick }: ReportCa
       </div>
 
       {/* Substances list */}
-      <div className="flex flex-col gap-1 border-t border-white/10 pt-3 sm:min-w-[200px] sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+      <div className="relative flex flex-col gap-1 pt-3 sm:min-w-[200px] sm:pl-4 sm:pt-0 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent sm:before:left-0 sm:before:right-auto sm:before:top-0 sm:before:bottom-0 sm:before:h-auto sm:before:w-px sm:before:bg-gradient-to-b">
         {substances.map((substance, index) => (
           <div key={`${substance.name}-${index}`} className="flex flex-col">
             <span className="text-sm font-medium tracking-wide text-white/70">
