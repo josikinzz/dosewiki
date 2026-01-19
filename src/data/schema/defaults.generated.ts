@@ -100,18 +100,43 @@ export function createEmptyArticle(): SubstanceArticle {
     cross_tolerance: []
   },
   harm_potential: {
-    addiction_liability: "",
-    dependence_liability: "",
+    addiction: {
+      psychological: {
+        level: null,
+        description: ""
+      },
+      physical_dependence: {
+        level: null,
+        description: ""
+      }
+    },
     toxicity: {
-      ld50: "",
-      organ_toxicity: "",
-      carcinogenicity: "",
+      ld50: [],
+      organ_toxicity: [],
+      carcinogenicity: {
+        level: null,
+        evidence: null,
+        description: ""
+      },
+      antibiotic_function: {
+        level: null,
+        description: ""
+      },
       other: ""
     },
     risks: {
-      psychosis: "",
-      self_harm: "",
-      seizure: "",
+      psychosis: {
+        level: null,
+        description: ""
+      },
+      seizure: {
+        level: null,
+        description: ""
+      },
+      self_harm: {
+        level: null,
+        description: ""
+      },
       other: []
     }
   },

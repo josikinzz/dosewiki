@@ -191,21 +191,36 @@ async function loadHarmPotentialQuotes(slug) {
   }
 }
 
-// Check if article has existing harm_potential content
+// Check if article has existing harm_potential content (supports both old and new schema)
 function hasExistingHarmPotential(article) {
   const hp = article.harm_potential;
   if (!hp) return false;
 
-  return !!(
+  // Check new schema format
+  const hasNewFormat = !!(
+    hp.addiction?.psychological?.description?.trim() ||
+    hp.addiction?.physical_dependence?.description?.trim() ||
+    hp.toxicity?.ld50?.length > 0 ||
+    hp.toxicity?.organ_toxicity?.length > 0 ||
+    hp.toxicity?.carcinogenicity?.description?.trim() ||
+    hp.toxicity?.antibiotic_function?.description?.trim() ||
+    hp.risks?.psychosis?.description?.trim() ||
+    hp.risks?.seizure?.description?.trim() ||
+    hp.risks?.self_harm?.description?.trim()
+  );
+
+  // Check old schema format (for backwards compatibility)
+  const hasOldFormat = !!(
     hp.addiction_liability?.trim() ||
     hp.dependence_liability?.trim() ||
-    hp.toxicity?.ld50?.trim() ||
-    hp.toxicity?.organ_toxicity?.trim() ||
-    hp.risks?.psychosis?.trim() ||
-    hp.risks?.seizures?.trim() ||
-    hp.risks?.respiratory_depression?.trim() ||
-    hp.risks?.serotonin_syndrome?.trim()
+    (typeof hp.toxicity?.ld50 === 'string' && hp.toxicity?.ld50?.trim()) ||
+    (typeof hp.toxicity?.organ_toxicity === 'string' && hp.toxicity?.organ_toxicity?.trim()) ||
+    (typeof hp.risks?.psychosis === 'string' && hp.risks?.psychosis?.trim()) ||
+    (typeof hp.risks?.seizure === 'string' && hp.risks?.seizure?.trim()) ||
+    (typeof hp.risks?.self_harm === 'string' && hp.risks?.self_harm?.trim())
   );
+
+  return hasNewFormat || hasOldFormat;
 }
 
 // Convex client (initialized in main)
@@ -228,31 +243,30 @@ async function loadPromptFromConvex() {
   return prompt.content;
 }
 
-// Build user message for Fresh Slate mode
+// Build user message (lightweight - no full article context to save tokens)
 function buildUserMessage(article, quotes) {
-  // Remove harm_potential section for Fresh Slate mode
-  const filtered = { ...article };
-  delete filtered.harm_potential;
+  // Only include substance name and classification for context
+  const context = {
+    title: article.title,
+    psychoactive_class: article.classification?.psychoactive_class || [],
+    chemical_class: article.classification?.chemical_class || [],
+  };
 
-  const articleYaml = yaml.stringify(filtered, { lineWidth: 0, nullStr: "" });
+  return `## Substance
 
-  return `## Current Article Context
+**${context.title}**
+- Psychoactive class: ${context.psychoactive_class.join(", ") || "Unknown"}
+- Chemical class: ${context.chemical_class.join(", ") || "Unknown"}
 
-Below is the current state of the article (harm_potential section excluded). Use this to understand what exists elsewhere and avoid duplication.
+## Source Material
 
-\`\`\`yaml
-${articleYaml}
-\`\`\`
-
-## Extracted Harm Potential Information
-
-Generate the harm_potential section from scratch based on these sources:
+Generate the harm_potential section based on these extracted quotes:
 
 ${quotes}
 
 ## Instructions
 
-Generate the harm_potential section from scratch based on the provided sources.`;
+Generate ONLY the harm_potential section as valid YAML. Do not include information that belongs in other sections (pharmacology, interactions, tolerance, dosage, duration, legality).`;
 }
 
 // Call OpenRouter API (non-streaming)
@@ -335,24 +349,102 @@ function parseGeneratedYaml(response) {
     const parsed = yaml.parse(yamlContent);
 
     // Handle case where the response wraps in a "harm_potential" key
-    if (parsed.harm_potential) {
-      return parsed.harm_potential;
-    }
+    let hp = parsed.harm_potential || parsed;
 
-    // Validate expected structure - harm_potential has these top-level fields
+    // Validate expected structure for new schema
     if (
-      parsed.addiction_liability !== undefined ||
-      parsed.dependence_liability !== undefined ||
-      parsed.toxicity !== undefined ||
-      parsed.risks !== undefined
+      hp.addiction !== undefined ||
+      hp.toxicity !== undefined ||
+      hp.risks !== undefined
     ) {
-      return parsed;
+      // Normalize and validate the structure
+      return normalizeHarmPotential(hp);
     }
 
-    throw new Error("Invalid harm_potential structure - missing expected fields");
+    throw new Error("Invalid harm_potential structure - missing expected fields (addiction, toxicity, risks)");
   } catch (error) {
     throw new Error(`Failed to parse YAML: ${error.message}`);
   }
+}
+
+// Normalize harm_potential to ensure all required fields exist with correct types
+function normalizeHarmPotential(hp) {
+  const normalized = {
+    addiction: {
+      psychological: {
+        level: hp.addiction?.psychological?.level ?? null,
+        description: hp.addiction?.psychological?.description ?? "",
+      },
+      physical_dependence: {
+        level: hp.addiction?.physical_dependence?.level ?? null,
+        description: hp.addiction?.physical_dependence?.description ?? "",
+      },
+    },
+    toxicity: {
+      ld50: Array.isArray(hp.toxicity?.ld50) ? hp.toxicity.ld50 : [],
+      organ_toxicity: Array.isArray(hp.toxicity?.organ_toxicity) ? hp.toxicity.organ_toxicity : [],
+      carcinogenicity: {
+        level: hp.toxicity?.carcinogenicity?.level ?? null,
+        evidence: hp.toxicity?.carcinogenicity?.evidence ?? null,
+        description: hp.toxicity?.carcinogenicity?.description ?? "",
+      },
+      antibiotic_function: {
+        level: hp.toxicity?.antibiotic_function?.level ?? null,
+        description: hp.toxicity?.antibiotic_function?.description ?? "",
+      },
+      other: hp.toxicity?.other ?? "",
+    },
+    risks: {
+      psychosis: {
+        level: hp.risks?.psychosis?.level ?? null,
+        description: hp.risks?.psychosis?.description ?? "",
+      },
+      seizure: {
+        level: hp.risks?.seizure?.level ?? null,
+        description: hp.risks?.seizure?.description ?? "",
+      },
+      self_harm: {
+        level: hp.risks?.self_harm?.level ?? null,
+        description: hp.risks?.self_harm?.description ?? "",
+      },
+      other: Array.isArray(hp.risks?.other) ? hp.risks.other : [],
+    },
+  };
+
+  // Validate severity level enums
+  const validRiskLevels = ["extremely_low", "low", "moderate", "high", "extremely_high", null];
+  const validCarcinogenicityLevels = ["confirmed", "probable", "possible", "no_evidence", "unknown", null];
+
+  // Validate addiction levels
+  if (!validRiskLevels.includes(normalized.addiction.psychological.level)) {
+    normalized.addiction.psychological.level = null;
+  }
+  if (!validRiskLevels.includes(normalized.addiction.physical_dependence.level)) {
+    normalized.addiction.physical_dependence.level = null;
+  }
+
+  // Validate carcinogenicity level
+  if (!validCarcinogenicityLevels.includes(normalized.toxicity.carcinogenicity.level)) {
+    normalized.toxicity.carcinogenicity.level = null;
+  }
+
+  // Validate antibiotic function level (uses same levels as carcinogenicity)
+  if (!validCarcinogenicityLevels.includes(normalized.toxicity.antibiotic_function.level)) {
+    normalized.toxicity.antibiotic_function.level = null;
+  }
+
+  // Validate risk levels
+  if (!validRiskLevels.includes(normalized.risks.psychosis.level)) {
+    normalized.risks.psychosis.level = null;
+  }
+  if (!validRiskLevels.includes(normalized.risks.seizure.level)) {
+    normalized.risks.seizure.level = null;
+  }
+  if (!validRiskLevels.includes(normalized.risks.self_harm.level)) {
+    normalized.risks.self_harm.level = null;
+  }
+
+  return normalized;
 }
 
 // Process a single article
@@ -378,9 +470,12 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   if (verbose) {
     console.log(`  Generated harm_potential for ${slug}:`);
-    console.log(`    addiction_liability: ${newHarmPotential.addiction_liability ? "yes" : "no"}`);
-    console.log(`    toxicity fields: ${Object.keys(newHarmPotential.toxicity || {}).length}`);
-    console.log(`    risk fields: ${Object.keys(newHarmPotential.risks || {}).length}`);
+    console.log(`    psychological addiction: ${newHarmPotential.addiction?.psychological?.description ? "yes" : "no"} (level: ${newHarmPotential.addiction?.psychological?.level || "null"})`);
+    console.log(`    physical dependence: ${newHarmPotential.addiction?.physical_dependence?.description ? "yes" : "no"} (level: ${newHarmPotential.addiction?.physical_dependence?.level || "null"})`);
+    console.log(`    ld50 entries: ${newHarmPotential.toxicity?.ld50?.length || 0}`);
+    console.log(`    organ toxicity entries: ${newHarmPotential.toxicity?.organ_toxicity?.length || 0}`);
+    console.log(`    carcinogenicity: ${newHarmPotential.toxicity?.carcinogenicity?.description ? "yes" : "no"} (level: ${newHarmPotential.toxicity?.carcinogenicity?.level || "null"})`);
+    console.log(`    risks.other count: ${newHarmPotential.risks?.other?.length || 0}`);
   }
 
   return {
@@ -641,8 +736,8 @@ async function main() {
       // Sanitize field names (Greek letters → ASCII) for Convex compatibility
       const sanitizedArticles = updatedArticles.map(sanitizeObjectKeys);
 
-      // Use batch saveArticles instead of per-article saveArticle
-      const result = await convexClient.mutation(api.articles.saveArticles, {
+      // Use substanceIndex.saveSubstances for batch updates
+      const result = await convexClient.mutation(api.substanceIndex.saveSubstances, {
         articles: sanitizedArticles,
       });
       console.log(`Convex sync complete (${result.created} created, ${result.updated} updated).`);

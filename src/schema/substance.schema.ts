@@ -212,8 +212,8 @@ export const pharmacologySchema = z.object({
   receptor_binding: z.record(z.string(), z.string()),
   metabolism: z.string(),
   metabolites: z.array(z.string()),
-  protein_binding: z.string().optional(),
-  volume_of_distribution: z.string().optional(),
+  protein_binding: z.string().nullable(),
+  volume_of_distribution: z.string().nullable(),
 });
 
 // ============================================================================
@@ -231,26 +231,131 @@ export const interactionsSchema = z.object({
 // Harm Potential Schemas
 // ============================================================================
 
-/** Toxicity subsection */
+/** Severity levels for addiction, dependence, and risk assessments */
+export const riskLevelSchema = z.enum([
+  "extremely_low",
+  "low",
+  "moderate",
+  "high",
+  "extremely_high",
+]);
+
+/** Carcinogenicity classification levels */
+export const carcinogenicityLevelSchema = z.enum([
+  "confirmed",
+  "probable",
+  "possible",
+  "no_evidence",
+  "unknown",
+]);
+
+/** Evidence level for carcinogenicity studies */
+export const evidenceLevelSchema = z.enum([
+  "none",
+  "negative",
+  "limited",
+  "positive",
+]);
+
+/** Antibiotic function classification levels */
+export const antibioticFunctionLevelSchema = z.enum([
+  "confirmed",
+  "probable",
+  "possible",
+  "no_evidence",
+  "unknown",
+]);
+
+/** Risk field with severity level and description */
+export const riskFieldSchema = z.object({
+  level: riskLevelSchema.nullable(),
+  description: z.string(),
+});
+
+/** Addiction subsection with psychological and physical components */
+export const addictionSchema = z.object({
+  psychological: riskFieldSchema,
+  physical_dependence: riskFieldSchema,
+});
+
+/** Structured LD50 entry */
+export const ld50EntrySchema = z.object({
+  species: z.string(),
+  route: z.string(),
+  value: z.number().nullable(),
+  unit: z.string(),
+});
+
+/** Structured organ toxicity entry */
+export const organToxicityEntrySchema = z.object({
+  system: z.string(),
+  findings: z.string(),
+  mechanism: z.string(),
+  notes: z.string(),
+});
+
+/** Human epidemiological evidence for carcinogenicity */
+export const humanEpidemiologicalEvidenceSchema = evidenceLevelSchema.nullable();
+
+/** Animal model evidence for carcinogenicity */
+export const animalModelEvidenceSchema = z.object({
+  level: evidenceLevelSchema.nullable(),
+  species: z.array(z.string()),
+}).nullable();
+
+/** In vitro evidence for carcinogenicity */
+export const inVitroEvidenceSchema = z.object({
+  type: z.string(),
+  assay_type: z.string(),
+}).nullable();
+
+/** Mechanistic evidence for carcinogenicity */
+export const mechanisticEvidenceSchema = z.object({
+  level: evidenceLevelSchema.nullable(),
+  basis: z.string(),
+}).nullable();
+
+/** Detailed carcinogenicity evidence breakdown */
+export const carcinogenicityEvidenceSchema = z.object({
+  human_epidemiological: humanEpidemiologicalEvidenceSchema,
+  animal_models: animalModelEvidenceSchema,
+  in_vitro: inVitroEvidenceSchema,
+  mechanistic: mechanisticEvidenceSchema,
+}).nullable();
+
+/** Carcinogenicity subsection with level, evidence, and description */
+export const carcinogenicitySchema = z.object({
+  level: carcinogenicityLevelSchema.nullable(),
+  evidence: carcinogenicityEvidenceSchema,
+  description: z.string(),
+});
+
+/** Antibiotic function subsection */
+export const antibioticFunctionSchema = z.object({
+  level: antibioticFunctionLevelSchema.nullable(),
+  description: z.string(),
+});
+
+/** Toxicity subsection with structured data */
 export const toxicitySchema = z.object({
-  ld50: z.string(),
-  organ_toxicity: z.string(),
-  carcinogenicity: z.string(),
+  ld50: z.array(ld50EntrySchema),
+  organ_toxicity: z.array(organToxicityEntrySchema),
+  carcinogenicity: carcinogenicitySchema,
+  antibiotic_function: antibioticFunctionSchema,
   other: z.string(),
 });
 
-/** Risks subsection */
+/** Risks subsection with structured severity levels */
 export const risksSchema = z.object({
-  psychosis: z.string(),
-  self_harm: z.string(),
-  seizure: z.string(),
+  psychosis: riskFieldSchema,
+  seizure: riskFieldSchema,
+  self_harm: riskFieldSchema,
   other: z.array(z.string()),
 });
 
 /** Harm potential section */
 export const harmPotentialSchema = z.object({
-  addiction_liability: z.string(),
-  dependence_liability: z.string(),
+  addiction: addictionSchema,
   toxicity: toxicitySchema,
   risks: risksSchema,
 });
@@ -370,6 +475,17 @@ export type Pharmacology = z.infer<typeof pharmacologySchema>;
 
 export type Interactions = z.infer<typeof interactionsSchema>;
 
+export type RiskLevel = z.infer<typeof riskLevelSchema>;
+export type CarcinogenicityLevel = z.infer<typeof carcinogenicityLevelSchema>;
+export type EvidenceLevel = z.infer<typeof evidenceLevelSchema>;
+export type AntibioticFunctionLevel = z.infer<typeof antibioticFunctionLevelSchema>;
+export type RiskField = z.infer<typeof riskFieldSchema>;
+export type Addiction = z.infer<typeof addictionSchema>;
+export type LD50Entry = z.infer<typeof ld50EntrySchema>;
+export type OrganToxicityEntry = z.infer<typeof organToxicityEntrySchema>;
+export type CarcinogenicityEvidence = z.infer<typeof carcinogenicityEvidenceSchema>;
+export type Carcinogenicity = z.infer<typeof carcinogenicitySchema>;
+export type AntibioticFunction = z.infer<typeof antibioticFunctionSchema>;
 export type Toxicity = z.infer<typeof toxicitySchema>;
 export type Risks = z.infer<typeof risksSchema>;
 export type HarmPotential = z.infer<typeof harmPotentialSchema>;

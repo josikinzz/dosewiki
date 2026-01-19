@@ -123,17 +123,52 @@ reagent_testing:                   # Reagent test results
   [reagent_name]: string           # e.g., { "Marquis": "Purple to black" }
 
 harm_potential:                    # ← YOU ARE GENERATING THIS SECTION
-  addiction_liability: string
-  dependence_liability: string
+  addiction:
+    psychological:
+      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
+      description: string
+    physical_dependence:
+      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
+      description: string
   toxicity:
-    ld50: string
-    organ_toxicity: string
-    carcinogenicity: string
+    ld50:
+      - species: string
+        route: string
+        value: number | null
+        unit: string
+    organ_toxicity:
+      - system: string
+        findings: string
+        mechanism: string
+        notes: string
+    carcinogenicity:
+      level: "confirmed" | "probable" | "possible" | "no_evidence" | "unknown" | null
+      evidence:                    # Optional - include if detailed evidence available
+        human_epidemiological: "none" | "negative" | "limited" | "positive" | null
+        animal_models:
+          level: "none" | "negative" | "limited" | "positive" | null
+          species: string[]
+        in_vitro:
+          type: string
+          assay_type: string
+        mechanistic:
+          level: "none" | "negative" | "limited" | "positive" | null
+          basis: string
+      description: string
+    antibiotic_function:
+      level: "confirmed" | "probable" | "possible" | "no_evidence" | "unknown" | null
+      description: string
     other: string
   risks:
-    psychosis: string
-    self_harm: string
-    seizure: string
+    psychosis:
+      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
+      description: string
+    seizure:
+      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
+      description: string
+    self_harm:
+      level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
+      description: string
     other: string[]
 
 tolerance:                         # Tolerance info - DO NOT include tolerance details
@@ -165,25 +200,52 @@ citations: [{ name, url }]         # Further reading
 
 ---
 
-## Current Article Context
+## Severity Level Definitions
 
-You will receive the **current state of the article** as YAML in the user message. This shows you:
-- What information already exists in the article
-- What other sections contain (so you don't duplicate)
-- The substance name and classification
+### Risk Levels (addiction, dependence, psychosis, seizure, self_harm)
 
-**Use this context to:**
-1. Avoid duplicating information that already exists elsewhere
-2. Understand the substance you're writing about
-3. Maintain consistency with the existing article tone and detail level
+| Level | Definition | Examples |
+|-------|------------|----------|
+| `extremely_low` | Minimal risk even with regular use; virtually no documented cases in literature | Classic psychedelics (LSD, psilocybin) for addiction |
+| `low` | Rare occurrences; typically requires predisposing factors or unusually heavy use | Cannabis, MDMA for physical dependence |
+| `moderate` | Documented risk at typical doses; occurs in a notable minority of users | Ketamine for psychological addiction |
+| `high` | Common occurrence; expected with regular use or at moderate-high doses | Opioids for physical dependence, stimulants for psychological addiction |
+| `extremely_high` | Near-certain with regular use; potentially life-threatening | Alcohol/benzodiazepine physical dependence (fatal withdrawal possible) |
 
-**The current article state is for reference only.** Your output should ONLY contain the `harm_potential` section.
+### Carcinogenicity Levels
+
+| Level | Definition |
+|-------|------------|
+| `confirmed` | IARC Group 1 or equivalent; established human carcinogen |
+| `probable` | IARC Group 2A; strong evidence in animals, limited human data |
+| `possible` | IARC Group 2B; some evidence, not conclusive |
+| `no_evidence` | Studies exist showing no carcinogenic activity |
+| `unknown` | Insufficient data; no studies conducted |
+
+### Antibiotic Function Levels
+
+| Level | Definition |
+|-------|------------|
+| `confirmed` | Documented antimicrobial activity at pharmacological doses |
+| `probable` | Strong in vitro evidence, mechanism understood |
+| `possible` | Some evidence of antimicrobial properties |
+| `no_evidence` | Studies show no antimicrobial activity |
+| `unknown` | Not studied for antimicrobial properties |
+
+### Evidence Levels (for carcinogenicity evidence breakdown)
+
+| Level | Definition |
+|-------|------------|
+| `none` | No studies conducted |
+| `negative` | Studies show no effect/carcinogenic activity |
+| `limited` | Some studies suggest activity but inconclusive |
+| `positive` | Clear evidence of carcinogenic activity |
 
 ---
 
 ## Core Principles
 
-**Evidence Only:** Every value must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, leave the field empty (`""`).
+**Evidence Only:** Every value must be explicitly stated or clearly implied in the source quotes. If information cannot be verified from the provided sources, leave the field empty (`""`), null, or use empty arrays (`[]`).
 
 **Source Priority:** When sources conflict, defer to the most conservative (more cautious) assessment. Prefer primary medical sources (DrugBank, Wikipedia citing studies) over community sources.
 
@@ -191,7 +253,9 @@ You will receive the **current state of the article** as YAML in the user messag
 
 **Completeness:** Fill every field that has supporting evidence. Empty fields are acceptable when no data exists, but do not leave fields empty if the sources contain relevant information.
 
-**If something is rare, say so** While we are trying to help with harm reduction, over-exaggerating the dangers of a pretty safe or benign experience can be equally risky, as it causes people to develop a false sense of inflated confidence around more important areas of harm reduction which are perhaps more subtle and nuanced. 
+**If something is rare, say so:** While we are trying to help with harm reduction, over-exaggerating the dangers of a relatively safe substance can be equally risky, as it causes people to develop a false sense of inflated confidence around more important areas of harm reduction.
+
+**Assign Severity Levels Carefully:** Only assign a level if the sources provide enough information to make a confident assessment. Use `null` if uncertain. Refer to the level definitions above.
 
 **Ignore Drug Interactions:** The source quotes may contain information about dangerous drug combinations (e.g., "combining with MAOIs causes serotonin syndrome"). **Do not include this information.** Drug interactions are covered in a separate `interactions` section of the article with its own dedicated fields (`dangerous`, `unsafe`, `caution` arrays). This section focuses solely on the intrinsic harm potential of the substance itself, not its interactions with other drugs.
 
@@ -203,17 +267,34 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 
 ```yaml
 harm_potential:
-  addiction_liability: ""
-  dependence_liability: ""
+  addiction:
+    psychological:
+      level: null
+      description: ""
+    physical_dependence:
+      level: null
+      description: ""
   toxicity:
-    ld50: ""
-    organ_toxicity: ""
-    carcinogenicity: ""
+    ld50: []
+    organ_toxicity: []
+    carcinogenicity:
+      level: null
+      evidence: null
+      description: ""
+    antibiotic_function:
+      level: null
+      description: ""
     other: ""
   risks:
-    psychosis: ""
-    self_harm: ""
-    seizure: ""
+    psychosis:
+      level: null
+      description: ""
+    seizure:
+      level: null
+      description: ""
+    self_harm:
+      level: null
+      description: ""
     other: []
 ```
 
@@ -223,44 +304,100 @@ harm_potential:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `addiction_liability` | `string` | 1-2 sentences on psychological addiction potential, abuse potential, compulsive redosing patterns | "Moderate abuse potential with risk of psychological dependence. Compulsive redosing is commonly reported, particularly with insufflation." |
-| `dependence_liability` | `string` | Physical dependence risk, withdrawal symptoms, tolerance development | "Physical dependence develops with chronic use. Withdrawal symptoms include anxiety, tremor, sweating, and palpitations." |
-| `toxicity.ld50` | `string` | LD50 with species and route if known | "400 mg/kg (mice, IV); estimated human lethal dose ~200 mg/kg" |
-| `toxicity.organ_toxicity` | `string` | Organ-specific damage risks (liver, kidney, bladder, heart, brain) | "Chronic use causes bladder damage (drug-induced cystitis) and liver toxicity. Brain damage including reduced white/grey matter observed in heavy users." |
-| `toxicity.carcinogenicity` | `string` | Cancer risk data if available | "No carcinogenicity studies available" or "Not shown to be carcinogenic in animal studies" |
-| `toxicity.other` | `string` | Other toxicity notes not covered above (neurotoxicity, immunotoxicity, etc.) | "Neurotoxicity at high doses with evidence of prefrontal cortex cell death in primate studies." |
-| `risks.psychosis` | `string` | Psychosis, psychotic episodes, emergence delirium, dissociative states | "10-20% of adults experience psychiatric reactions during emergence. Long-term chronic use may lead to persistent psychosis." |
-| `risks.self_harm` | `string` | Self-harm, suicidal ideation, dangerous behavior while intoxicated | "Loss of pain sensation and motor control increases injury risk. Drowning deaths reported from unsupervised use near water." |
-| `risks.seizure` | `string` | Seizure threshold effects, convulsion risk | "Seizures rare but reported at very high doses. May lower seizure threshold." |
-| `risks.other` | `array` | Array of other notable risks as strings (NOT drug interactions - those go elsewhere) | `["Aspiration risk if unconscious", "Positional asphyxia from rapid loss of consciousness", "Date rape facilitation due to amnesia effects"]` |
+| `addiction.psychological.level` | `enum \| null` | Severity level for psychological addiction risk | `"moderate"` |
+| `addiction.psychological.description` | `string` | 1-2 sentences on psychological addiction potential, abuse potential, compulsive redosing patterns | "Moderate abuse potential with risk of psychological dependence. Compulsive redosing is commonly reported, particularly with insufflation." |
+| `addiction.physical_dependence.level` | `enum \| null` | Severity level for physical dependence risk | `"high"` |
+| `addiction.physical_dependence.description` | `string` | Physical dependence risk, withdrawal symptoms, tolerance development | "Physical dependence develops with chronic use. Withdrawal symptoms include anxiety, tremor, sweating, and palpitations." |
+| `toxicity.ld50` | `array` | Array of LD50 entries with species, route, value, and unit | See example below |
+| `toxicity.organ_toxicity` | `array` | Array of organ-specific damage entries | See example below |
+| `toxicity.carcinogenicity.level` | `enum \| null` | Classification level (confirmed/probable/possible/no_evidence/unknown) | `"no_evidence"` |
+| `toxicity.carcinogenicity.evidence` | `object \| null` | Detailed evidence breakdown (optional - include if data available) | See example below |
+| `toxicity.carcinogenicity.description` | `string` | Cancer risk data if available | "Not shown to be carcinogenic in animal studies." |
+| `toxicity.antibiotic_function.level` | `enum \| null` | Antimicrobial activity classification | `"unknown"` |
+| `toxicity.antibiotic_function.description` | `string` | Antibiotic/antimicrobial properties | "No studies on antimicrobial properties." |
+| `toxicity.other` | `string` | Other toxicity notes (neurotoxicity, immunotoxicity, etc.) | "Neurotoxicity at high doses with evidence of prefrontal cortex cell death in primate studies." |
+| `risks.psychosis.level` | `enum \| null` | Severity level for psychosis risk | `"moderate"` |
+| `risks.psychosis.description` | `string` | Psychosis, psychotic episodes, emergence delirium | "10-20% of adults experience psychiatric reactions during emergence." |
+| `risks.seizure.level` | `enum \| null` | Severity level for seizure risk | `"low"` |
+| `risks.seizure.description` | `string` | Seizure threshold effects, convulsion risk | "Seizures rare but reported at very high doses. May lower seizure threshold." |
+| `risks.self_harm.level` | `enum \| null` | Severity level for self-harm/dangerous behavior risk | `"moderate"` |
+| `risks.self_harm.description` | `string` | Self-harm, suicidal ideation, dangerous behavior while intoxicated | "Loss of pain sensation and motor control increases injury risk." |
+| `risks.other` | `array` | Array of other notable risks as strings | `["Aspiration risk if unconscious", "Positional asphyxia from rapid loss of consciousness"]` |
+
+### LD50 Entry Example
+```yaml
+ld50:
+  - species: "Mouse"
+    route: "IV"
+    value: 400
+    unit: "mg/kg"
+  - species: "Rat"
+    route: "Oral"
+    value: 1500
+    unit: "mg/kg"
+```
+
+### Organ Toxicity Entry Example
+```yaml
+organ_toxicity:
+  - system: "Urinary System"
+    findings: "Bladder damage and drug-induced cystitis"
+    mechanism: "Direct cytotoxic effects on bladder epithelium"
+    notes: "More common with chronic high-dose use"
+  - system: "Hepatic"
+    findings: "Elevated liver enzymes and hepatotoxicity"
+    mechanism: "CYP450-mediated metabolite formation"
+    notes: "Reversible with cessation in most cases"
+```
+
+### Carcinogenicity Evidence Example
+```yaml
+carcinogenicity:
+  level: "no_evidence"
+  evidence:
+    human_epidemiological: "none"
+    animal_models:
+      level: "negative"
+      species: ["rat", "mouse"]
+    in_vitro: null
+    mechanistic: null
+  description: "No carcinogenicity observed in two-year rodent studies."
+```
 
 ---
 
 ## Extraction Rules
 
-### For addiction_liability:
+### For addiction.psychological:
 - Look for: "abuse potential", "addiction", "habit-forming", "compulsive", "psychological dependence", "reinforcing"
 - Note frequency patterns: "daily use", "bingeing", "difficulty stopping"
-- Include severity qualifiers: "low", "moderate", "high"
+- Assign level based on how commonly psychological addiction develops
 
-### For dependence_liability:
-- Look for: "physical dependence", "withdrawal", "tolerance", "discontinuation symptoms"
+### For addiction.physical_dependence:
+- Look for: "physical dependence", "withdrawal", "discontinuation symptoms"
 - Distinguish from psychological addiction
-- Note timeline: "develops after X days/weeks of use"
+- Note severity of withdrawal (can it be fatal? hospitalization needed?)
+- Assign level based on likelihood and severity of physical dependence
 
 ### For toxicity.ld50:
 - Extract exact values with species and route
-- Convert units consistently (mg/kg preferred)
-- Note if extrapolated to humans
+- Parse into structured entries: species, route, value (number), unit (string)
+- If only a text description is available, put it in the unit field with value: null
 
 ### For toxicity.organ_toxicity:
 - Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
+- Create separate entries for each organ system affected
+- Include mechanism if mentioned
 - Note if damage is reversible or permanent
-- Include frequency/dose thresholds if mentioned
 
 ### For toxicity.carcinogenicity:
-- Look for: "carcinogenic", "cancer", "mutagenic", "clastogenic"
-- Note if studies exist or are absent
+- Look for: "carcinogenic", "cancer", "mutagenic", "IARC", "Group 1/2A/2B"
+- Assign level based on classification or available evidence
+- Include evidence breakdown if source provides detailed study information
+
+### For toxicity.antibiotic_function:
+- Look for: "antimicrobial", "antibiotic", "bactericidal", "bacteriostatic"
+- Most recreational drugs will be "unknown" unless specifically studied
 
 ### For toxicity.other:
 - Catch-all for toxicity not fitting other categories
@@ -269,20 +406,22 @@ harm_potential:
 ### For risks.psychosis:
 - Look for: "psychosis", "psychotic", "hallucinations", "delusions", "paranoia", "emergence delirium"
 - Note if acute (during use) or persistent (after use)
-
-### For risks.self_harm:
-- Look for: "self-harm", "suicidal", "dangerous behavior", "injury risk", "accidents", "drowning"
-- Include indirect risks from impaired judgment
+- Assign level based on frequency and severity
 
 ### For risks.seizure:
 - Look for: "seizure", "convulsion", "epileptic", "seizure threshold"
 - Note conditions that increase risk
+- Assign level based on how commonly seizures occur
+
+### For risks.self_harm:
+- Look for: "self-harm", "suicidal", "dangerous behavior", "injury risk", "accidents", "drowning"
+- Include indirect risks from impaired judgment or pain insensitivity
+- Assign level based on likelihood of harm during intoxication
 
 ### For risks.other:
 - Each item should be a complete, standalone risk statement
 - Include: aspiration, hyperthermia, hyponatremia, dehydration, positional asphyxia, etc.
 - **Exclude drug interactions** - don't include "risk when combined with X" statements
-- Exclude detailing the tolerance of the drug as there is a separate tolerance section in the complete article which will be handled by a different AI agent.
 - Format as array of strings, not a single concatenated string
 
 ---
@@ -290,23 +429,27 @@ harm_potential:
 ## Formatting Rules
 
 1. **String fields**: 1-3 sentences, clear, concise, and factual
-2. **Empty values**: Use `""` for empty strings, `[]` for empty arrays
-3. **No speculation**: If sources don't mention it, leave empty
+2. **Empty values**: Use `""` for empty strings, `[]` for empty arrays, `null` for unassigned levels
+3. **No speculation**: If sources don't mention it, leave empty or null
 4. **Consistent tone**: Clinical, factual, harm-reduction focused
 5. **No dosage advice**: Don't include "safe dose" recommendations
 6. **Cite severity**: Use qualifiers like "rare", "common", "severe", "life-threatening"
-7. Do not be afraid to leave any or alls ections empty if no text in the document pertains to them.
-8. Keep the outputs as succinct while still containing the essential information.
+7. Do not be afraid to leave any or all sections empty if no text in the document pertains to them
+8. Keep the outputs as succinct while still containing the essential information
+9. Only assign severity levels when confident based on source material
 
 ---
 
 ## Validation Checklist
 
 Before returning output:
-- [ ] All fields present (even if empty)
+- [ ] All fields present (even if empty/null)
 - [ ] YAML is valid (proper indentation, no tabs)
 - [ ] `risks.other` is an array, not a string
+- [ ] `toxicity.ld50` is an array of objects
+- [ ] `toxicity.organ_toxicity` is an array of objects
+- [ ] Severity levels are valid enum values or null
 - [ ] No markdown code fences in output
 - [ ] No commentary or explanation, just YAML
 - [ ] Content derived only from provided sources
-- [ ] Empty string `""` used for missing data, not `null` or omitted
+- [ ] Empty string `""` used for missing descriptions, `null` for missing levels

@@ -29,6 +29,7 @@ export const fullArticleWithDosage: SubstanceArticle = {
     molecular_formula: 'C20H25N3O',
     molecular_weight: '323.43 g/mol',
     skeletal_structure_image: '',
+    botanical_name: null,
   },
   classification: {
     psychoactive_class: ['Psychedelic'],
@@ -39,6 +40,7 @@ export const fullArticleWithDosage: SubstanceArticle = {
       {
         route: 'Sublingual',
         bioavailability: '71%',
+        bioavailability_notes: '',
         dose_ranges: {
           threshold: { min: 15, max: null, unit: 'μg' },
           light: { min: 25, max: 75, unit: 'μg' },
@@ -55,6 +57,8 @@ export const fullArticleWithDosage: SubstanceArticle = {
     routes: [
       {
         route: 'Sublingual',
+        half_life: '',
+        half_life_notes: '',
         stages: {
           onset: { min: 15, max: 30, unit: 'minutes' },
           come_up: { min: 45, max: 90, unit: 'minutes' },
@@ -76,17 +80,8 @@ export const fullArticleWithDosage: SubstanceArticle = {
     mechanism_of_action: ['5-HT2A receptor agonist'],
   },
   subjective_effects: {
+    ...createEmptyArticle().subjective_effects,
     notes: { overview: '', sensory: '', cognitive: '', physical: '' },
-    sensory: {
-      visual: ['Geometry', 'Color enhancement'],
-      auditory: [],
-      tactile: [],
-      gustatory: [],
-      olfactory: [],
-      multisensory: [],
-    },
-    cognitive: ['Time distortion', 'Thought loops'],
-    physical: ['Stimulation', 'Pupil dilation'],
   },
   tolerance: {
     full_tolerance: '1-2 days',
@@ -96,7 +91,13 @@ export const fullArticleWithDosage: SubstanceArticle = {
   },
   harm_potential: {
     ...createEmptyArticle().harm_potential,
-    addiction_liability: 'Low',
+    addiction: {
+      ...createEmptyArticle().harm_potential.addiction,
+      psychological: {
+        level: 'extremely_low',
+        description: 'Low addiction potential.',
+      },
+    },
   },
   legality: {
     international: ['Schedule I (UN)'],

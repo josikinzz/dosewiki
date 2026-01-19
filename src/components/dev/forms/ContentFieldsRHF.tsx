@@ -11,10 +11,17 @@ import yaml from "yaml";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
-import type { SubstanceArticle, HarmPotential, Tolerance, Interactions } from "../../../schema";
+import type { SubstanceArticle, HarmPotential, Tolerance, Interactions, RiskLevel, CarcinogenicityLevel } from "../../../schema";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
@@ -30,9 +37,59 @@ const toleranceLabels: Array<{
   { key: "baseline_tolerance", label: "Baseline Reset", icon: "lucide:arrow-down-wide-narrow" },
 ];
 
+// Risk level options for select dropdowns
+const RISK_LEVEL_OPTIONS: Array<{ value: RiskLevel | ""; label: string }> = [
+  { value: "", label: "Not assessed" },
+  { value: "extremely_low", label: "Extremely Low" },
+  { value: "low", label: "Low" },
+  { value: "moderate", label: "Moderate" },
+  { value: "high", label: "High" },
+  { value: "extremely_high", label: "Extremely High" },
+];
+
+const CARCINOGENICITY_LEVEL_OPTIONS: Array<{ value: CarcinogenicityLevel | ""; label: string }> = [
+  { value: "", label: "Not assessed" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "probable", label: "Probable" },
+  { value: "possible", label: "Possible" },
+  { value: "no_evidence", label: "No Evidence" },
+  { value: "unknown", label: "Unknown" },
+];
+
 export type AddictionFieldsRHFProps = {
   idPrefix: string;
 };
+
+/**
+ * Risk level select component
+ */
+function RiskLevelSelect({
+  value,
+  onChange,
+  id
+}: {
+  value: RiskLevel | null;
+  onChange: (value: RiskLevel | null) => void;
+  id: string;
+}) {
+  return (
+    <Select
+      value={value ?? ""}
+      onValueChange={(v) => onChange(v === "" ? null : v as RiskLevel)}
+    >
+      <SelectTrigger id={id} className="w-full">
+        <SelectValue placeholder="Select level" />
+      </SelectTrigger>
+      <SelectContent>
+        {RISK_LEVEL_OPTIONS.map((option) => (
+          <SelectItem key={option.value || "none"} value={option.value || "none"}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 /**
  * Harm Potential fields - covers addiction, dependence, toxicity, and risks.
@@ -40,8 +97,16 @@ export type AddictionFieldsRHFProps = {
  */
 export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const { register, watch, setValue, getValues } = useFormContext<SubstanceArticle>();
-  const addictionValue = watch("harm_potential.addiction_liability") ?? "";
-  const dependenceValue = watch("harm_potential.dependence_liability") ?? "";
+
+  // Watch new schema fields
+  const psychologicalDesc = watch("harm_potential.addiction.psychological.description") ?? "";
+  const physicalDesc = watch("harm_potential.addiction.physical_dependence.description") ?? "";
+  const psychologicalLevel = watch("harm_potential.addiction.psychological.level");
+  const physicalLevel = watch("harm_potential.addiction.physical_dependence.level");
+  const psychosisLevel = watch("harm_potential.risks.psychosis.level");
+  const seizureLevel = watch("harm_potential.risks.seizure.level");
+  const selfHarmLevel = watch("harm_potential.risks.self_harm.level");
+  const carcinogenicityLevel = watch("harm_potential.toxicity.carcinogenicity.level");
 
   // Get articles context if available (only in Articles tab)
   const articlesContext = useOptionalSubstanceEditorContext();
@@ -59,24 +124,36 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
     }
   }, [getValues]);
 
-  // Handle applying generated harm potential YAML to form
-  // Always overwrites all fields - use empty defaults for missing fields
+  // Handle applying generated harm potential YAML to form (new schema)
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
       const parsed = yaml.parse(generatedYaml);
-      const harmPotential: HarmPotential = parsed.harm_potential ?? parsed;
-      
-      // Always overwrite - use empty defaults for missing fields
-      setValue("harm_potential.addiction_liability", harmPotential.addiction_liability ?? "");
-      setValue("harm_potential.dependence_liability", harmPotential.dependence_liability ?? "");
-      setValue("harm_potential.toxicity.ld50", harmPotential.toxicity?.ld50 ?? "");
-      setValue("harm_potential.toxicity.organ_toxicity", harmPotential.toxicity?.organ_toxicity ?? "");
-      setValue("harm_potential.toxicity.carcinogenicity", harmPotential.toxicity?.carcinogenicity ?? "");
-      setValue("harm_potential.toxicity.other", harmPotential.toxicity?.other ?? "");
-      setValue("harm_potential.risks.psychosis", harmPotential.risks?.psychosis ?? "");
-      setValue("harm_potential.risks.self_harm", harmPotential.risks?.self_harm ?? "");
-      setValue("harm_potential.risks.seizure", harmPotential.risks?.seizure ?? "");
-      setValue("harm_potential.risks.other", harmPotential.risks?.other ?? []);
+      const hp: HarmPotential = parsed.harm_potential ?? parsed;
+
+      // Addiction
+      setValue("harm_potential.addiction.psychological.level", hp.addiction?.psychological?.level ?? null);
+      setValue("harm_potential.addiction.psychological.description", hp.addiction?.psychological?.description ?? "");
+      setValue("harm_potential.addiction.physical_dependence.level", hp.addiction?.physical_dependence?.level ?? null);
+      setValue("harm_potential.addiction.physical_dependence.description", hp.addiction?.physical_dependence?.description ?? "");
+
+      // Toxicity
+      setValue("harm_potential.toxicity.ld50", hp.toxicity?.ld50 ?? []);
+      setValue("harm_potential.toxicity.organ_toxicity", hp.toxicity?.organ_toxicity ?? []);
+      setValue("harm_potential.toxicity.carcinogenicity.level", hp.toxicity?.carcinogenicity?.level ?? null);
+      setValue("harm_potential.toxicity.carcinogenicity.evidence", hp.toxicity?.carcinogenicity?.evidence ?? null);
+      setValue("harm_potential.toxicity.carcinogenicity.description", hp.toxicity?.carcinogenicity?.description ?? "");
+      setValue("harm_potential.toxicity.antibiotic_function.level", hp.toxicity?.antibiotic_function?.level ?? null);
+      setValue("harm_potential.toxicity.antibiotic_function.description", hp.toxicity?.antibiotic_function?.description ?? "");
+      setValue("harm_potential.toxicity.other", hp.toxicity?.other ?? "");
+
+      // Risks
+      setValue("harm_potential.risks.psychosis.level", hp.risks?.psychosis?.level ?? null);
+      setValue("harm_potential.risks.psychosis.description", hp.risks?.psychosis?.description ?? "");
+      setValue("harm_potential.risks.seizure.level", hp.risks?.seizure?.level ?? null);
+      setValue("harm_potential.risks.seizure.description", hp.risks?.seizure?.description ?? "");
+      setValue("harm_potential.risks.self_harm.level", hp.risks?.self_harm?.level ?? null);
+      setValue("harm_potential.risks.self_harm.description", hp.risks?.self_harm?.description ?? "");
+      setValue("harm_potential.risks.other", hp.risks?.other ?? []);
     } catch (error) {
       console.error("Failed to parse generated harm potential YAML:", error);
     }
@@ -102,7 +179,7 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           quoteSection="harm_potential"
         />
       )}
-      
+
       {/* Addiction & Dependence */}
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -110,74 +187,121 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
           Addiction & Dependence
         </h3>
         <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor={`${idPrefix}-addiction-liability`}>
-            Addiction Liability
-          </Label>
-          <Textarea
-            id={`${idPrefix}-addiction-liability`}
-            className="min-h-[100px]"
-            {...register("harm_potential.addiction_liability")}
-            placeholder="Describe psychological dependence risk and compulsive use patterns."
-          />
-          <CharacterCount value={addictionValue} />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={`${idPrefix}-dependence-liability`}>
-            Dependence Liability
-          </Label>
-          <Textarea
-            id={`${idPrefix}-dependence-liability`}
-            className="min-h-[100px]"
-            {...register("harm_potential.dependence_liability")}
-            placeholder="Describe physical dependence risk and withdrawal potential."
-          />
-          <CharacterCount value={dependenceValue} />
-        </div>
+          {/* Psychological Addiction */}
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-psych-level`}>
+              Psychological Addiction
+            </Label>
+            <RiskLevelSelect
+              id={`${idPrefix}-psych-level`}
+              value={psychologicalLevel}
+              onChange={(v) => setValue("harm_potential.addiction.psychological.level", v)}
+            />
+            <Textarea
+              id={`${idPrefix}-psych-desc`}
+              className="min-h-[80px]"
+              {...register("harm_potential.addiction.psychological.description")}
+              placeholder="Describe psychological dependence risk and compulsive use patterns."
+            />
+            <CharacterCount value={psychologicalDesc} />
+          </div>
+
+          {/* Physical Dependence */}
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-phys-level`}>
+              Physical Dependence
+            </Label>
+            <RiskLevelSelect
+              id={`${idPrefix}-phys-level`}
+              value={physicalLevel}
+              onChange={(v) => setValue("harm_potential.addiction.physical_dependence.level", v)}
+            />
+            <Textarea
+              id={`${idPrefix}-phys-desc`}
+              className="min-h-[80px]"
+              {...register("harm_potential.addiction.physical_dependence.description")}
+              placeholder="Describe physical dependence risk and withdrawal potential."
+            />
+            <CharacterCount value={physicalDesc} />
+          </div>
         </div>
       </div>
 
       {/* Toxicity */}
       <CollapsibleSubsection title="Toxicity" icon={<Icon icon="healthicons:poison-24px" className="h-5 w-5" size={20} />}>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
+          {/* LD50 - simplified display for now */}
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-ld50`}>
-              LD50
-            </Label>
-            <Input
-              id={`${idPrefix}-ld50`}
-              {...register("harm_potential.toxicity.ld50")}
-              placeholder="e.g., 1475 mg/kg (mice, oral)"
+            <Label>LD50 Data (JSON)</Label>
+            <Textarea
+              className="min-h-[60px] font-mono text-xs"
+              value={JSON.stringify(watch("harm_potential.toxicity.ld50") ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value);
+                  setValue("harm_potential.toxicity.ld50", parsed);
+                } catch {
+                  // Invalid JSON, ignore
+                }
+              }}
+              placeholder='[{"species": "Mouse", "route": "IV", "value": 400, "unit": "mg/kg"}]'
             />
           </div>
+
+          {/* Organ Toxicity - simplified display */}
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-organ-toxicity`}>
-              Organ Toxicity
-            </Label>
-            <Input
-              id={`${idPrefix}-organ-toxicity`}
-              {...register("harm_potential.toxicity.organ_toxicity")}
-              placeholder="e.g., Bladder damage with chronic use"
+            <Label>Organ Toxicity (JSON)</Label>
+            <Textarea
+              className="min-h-[80px] font-mono text-xs"
+              value={JSON.stringify(watch("harm_potential.toxicity.organ_toxicity") ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value);
+                  setValue("harm_potential.toxicity.organ_toxicity", parsed);
+                } catch {
+                  // Invalid JSON, ignore
+                }
+              }}
+              placeholder='[{"system": "Urinary", "findings": "...", "mechanism": "...", "notes": "..."}]'
             />
           </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-carcinogenicity`}>
-              Carcinogenicity
-            </Label>
-            <Input
-              id={`${idPrefix}-carcinogenicity`}
-              {...register("harm_potential.toxicity.carcinogenicity")}
-              placeholder="e.g., No evidence / IARC Group 2B"
-            />
+
+          {/* Carcinogenicity */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-1">
+              <Label htmlFor={`${idPrefix}-carc-level`}>Carcinogenicity Level</Label>
+              <Select
+                value={carcinogenicityLevel ?? ""}
+                onValueChange={(v) => setValue("harm_potential.toxicity.carcinogenicity.level", v === "" ? null : v as CarcinogenicityLevel)}
+              >
+                <SelectTrigger id={`${idPrefix}-carc-level`}>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CARCINOGENICITY_LEVEL_OPTIONS.map((option) => (
+                    <SelectItem key={option.value || "none"} value={option.value || "none"}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`${idPrefix}-carc-desc`}>Carcinogenicity Notes</Label>
+              <Input
+                id={`${idPrefix}-carc-desc`}
+                {...register("harm_potential.toxicity.carcinogenicity.description")}
+                placeholder="e.g., No evidence / IARC Group 2B"
+              />
+            </div>
           </div>
+
+          {/* Other Toxicity */}
           <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-toxicity-other`}>
-              Other Toxicity Notes
-            </Label>
-            <Input
+            <Label htmlFor={`${idPrefix}-toxicity-other`}>Other Toxicity Notes</Label>
+            <Textarea
               id={`${idPrefix}-toxicity-other`}
+              className="min-h-[60px]"
               {...register("harm_potential.toxicity.other")}
               placeholder="e.g., Neurotoxicity at high doses"
             />
@@ -188,41 +312,55 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       {/* Risks */}
       <CollapsibleSubsection title="Risks" icon={<Icon icon="streamline:dangerous-zone-sign-remix" className="h-5 w-5" size={20} />}>
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-psychosis`}>
-              Psychosis Risk
-            </Label>
+          {/* Psychosis */}
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-psychosis-level`}>Psychosis Risk</Label>
+            <RiskLevelSelect
+              id={`${idPrefix}-psychosis-level`}
+              value={psychosisLevel}
+              onChange={(v) => setValue("harm_potential.risks.psychosis.level", v)}
+            />
             <Textarea
-              id={`${idPrefix}-psychosis`}
-              className="min-h-[80px]"
-              {...register("harm_potential.risks.psychosis")}
-              placeholder="Describe psychosis risk factors and incidence."
+              id={`${idPrefix}-psychosis-desc`}
+              className="min-h-[60px]"
+              {...register("harm_potential.risks.psychosis.description")}
+              placeholder="Describe psychosis risk factors."
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-self-harm`}>
-              Self-Harm Risk
-            </Label>
-            <Textarea
-              id={`${idPrefix}-self-harm`}
-              className="min-h-[80px]"
-              {...register("harm_potential.risks.self_harm")}
-              placeholder="Describe self-harm or suicidal ideation risks."
+
+          {/* Seizure */}
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-seizure-level`}>Seizure Risk</Label>
+            <RiskLevelSelect
+              id={`${idPrefix}-seizure-level`}
+              value={seizureLevel}
+              onChange={(v) => setValue("harm_potential.risks.seizure.level", v)}
             />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor={`${idPrefix}-seizure`}>
-              Seizure Risk
-            </Label>
             <Textarea
-              id={`${idPrefix}-seizure`}
-              className="min-h-[80px]"
-              {...register("harm_potential.risks.seizure")}
+              id={`${idPrefix}-seizure-desc`}
+              className="min-h-[60px]"
+              {...register("harm_potential.risks.seizure.description")}
               placeholder="Describe seizure threshold effects."
             />
           </div>
+
+          {/* Self-harm */}
+          <div className="space-y-2">
+            <Label htmlFor={`${idPrefix}-selfharm-level`}>Self-Harm Risk</Label>
+            <RiskLevelSelect
+              id={`${idPrefix}-selfharm-level`}
+              value={selfHarmLevel}
+              onChange={(v) => setValue("harm_potential.risks.self_harm.level", v)}
+            />
+            <Textarea
+              id={`${idPrefix}-selfharm-desc`}
+              className="min-h-[60px]"
+              {...register("harm_potential.risks.self_harm.description")}
+              placeholder="Describe self-harm or injury risks."
+            />
+          </div>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-1 mt-4">
           <ControlledTagMultiSelect
             name="harm_potential.risks.other"
             label="Other Risks"
