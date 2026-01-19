@@ -29,8 +29,38 @@
       "avgCostPerArticle": "$0.4634",
       "model": "anthropic/claude-opus-4.5",
       "durationSeconds": 62.527
+    },
+    {
+      "timestamp": "2026-01-19T23:10:15.694Z",
+      "articlesProcessed": 1,
+      "inputTokens": 8901,
+      "outputTokens": 2777,
+      "estimatedCost": "$0.3418",
+      "avgCostPerArticle": "$0.3418",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 46.005
+    },
+    {
+      "timestamp": "2026-01-19T23:12:05.189Z",
+      "articlesProcessed": 1,
+      "inputTokens": 10544,
+      "outputTokens": 2907,
+      "estimatedCost": "$0.3762",
+      "avgCostPerArticle": "$0.3762",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 51.218
+    },
+    {
+      "timestamp": "2026-01-19T23:52:03.328Z",
+      "articlesProcessed": 1,
+      "inputTokens": 10544,
+      "outputTokens": 3275,
+      "estimatedCost": "$0.4038",
+      "avgCostPerArticle": "$0.4038",
+      "model": "anthropic/claude-opus-4.5",
+      "durationSeconds": 74.111
     }
   ],
-  "totalCost": "$1.29",
-  "totalArticles": 3
+  "totalCost": "$2.41",
+  "totalArticles": 6
 }

@@ -196,7 +196,7 @@ function hasExistingHarmPotential(article) {
   const hp = article.harm_potential;
   if (!hp) return false;
 
-  // Check new schema format
+  // Check new schema format (psychosis/seizure at top level, no risks wrapper)
   const hasNewFormat = !!(
     hp.addiction?.psychological?.description?.trim() ||
     hp.addiction?.physical_dependence?.description?.trim() ||
@@ -204,20 +204,20 @@ function hasExistingHarmPotential(article) {
     hp.toxicity?.organ_toxicity?.length > 0 ||
     hp.toxicity?.carcinogenicity?.description?.trim() ||
     hp.toxicity?.antibiotic_function?.description?.trim() ||
-    hp.risks?.psychosis?.description?.trim() ||
-    hp.risks?.seizure?.description?.trim() ||
-    hp.risks?.self_harm?.description?.trim()
+    hp.psychosis?.description?.trim() ||
+    hp.seizure?.description?.trim()
   );
 
-  // Check old schema format (for backwards compatibility)
+  // Check old schema format (for backwards compatibility - has risks wrapper)
   const hasOldFormat = !!(
     hp.addiction_liability?.trim() ||
     hp.dependence_liability?.trim() ||
     (typeof hp.toxicity?.ld50 === 'string' && hp.toxicity?.ld50?.trim()) ||
     (typeof hp.toxicity?.organ_toxicity === 'string' && hp.toxicity?.organ_toxicity?.trim()) ||
+    hp.risks?.psychosis?.description?.trim() ||
+    hp.risks?.seizure?.description?.trim() ||
     (typeof hp.risks?.psychosis === 'string' && hp.risks?.psychosis?.trim()) ||
-    (typeof hp.risks?.seizure === 'string' && hp.risks?.seizure?.trim()) ||
-    (typeof hp.risks?.self_harm === 'string' && hp.risks?.self_harm?.trim())
+    (typeof hp.risks?.seizure === 'string' && hp.risks?.seizure?.trim())
   );
 
   return hasNewFormat || hasOldFormat;
@@ -351,17 +351,18 @@ function parseGeneratedYaml(response) {
     // Handle case where the response wraps in a "harm_potential" key
     let hp = parsed.harm_potential || parsed;
 
-    // Validate expected structure for new schema
+    // Validate expected structure for new schema (psychosis/seizure at top level)
     if (
       hp.addiction !== undefined ||
       hp.toxicity !== undefined ||
-      hp.risks !== undefined
+      hp.psychosis !== undefined ||
+      hp.seizure !== undefined
     ) {
       // Normalize and validate the structure
       return normalizeHarmPotential(hp);
     }
 
-    throw new Error("Invalid harm_potential structure - missing expected fields (addiction, toxicity, risks)");
+    throw new Error("Invalid harm_potential structure - missing expected fields (addiction, toxicity, psychosis, seizure)");
   } catch (error) {
     throw new Error(`Failed to parse YAML: ${error.message}`);
   }
@@ -392,22 +393,14 @@ function normalizeHarmPotential(hp) {
         level: hp.toxicity?.antibiotic_function?.level ?? null,
         description: hp.toxicity?.antibiotic_function?.description ?? "",
       },
-      other: hp.toxicity?.other ?? "",
     },
-    risks: {
-      psychosis: {
-        level: hp.risks?.psychosis?.level ?? null,
-        description: hp.risks?.psychosis?.description ?? "",
-      },
-      seizure: {
-        level: hp.risks?.seizure?.level ?? null,
-        description: hp.risks?.seizure?.description ?? "",
-      },
-      self_harm: {
-        level: hp.risks?.self_harm?.level ?? null,
-        description: hp.risks?.self_harm?.description ?? "",
-      },
-      other: Array.isArray(hp.risks?.other) ? hp.risks.other : [],
+    psychosis: {
+      level: hp.psychosis?.level ?? null,
+      description: hp.psychosis?.description ?? "",
+    },
+    seizure: {
+      level: hp.seizure?.level ?? null,
+      description: hp.seizure?.description ?? "",
     },
   };
 
@@ -433,15 +426,12 @@ function normalizeHarmPotential(hp) {
     normalized.toxicity.antibiotic_function.level = null;
   }
 
-  // Validate risk levels
-  if (!validRiskLevels.includes(normalized.risks.psychosis.level)) {
-    normalized.risks.psychosis.level = null;
+  // Validate psychosis and seizure levels
+  if (!validRiskLevels.includes(normalized.psychosis.level)) {
+    normalized.psychosis.level = null;
   }
-  if (!validRiskLevels.includes(normalized.risks.seizure.level)) {
-    normalized.risks.seizure.level = null;
-  }
-  if (!validRiskLevels.includes(normalized.risks.self_harm.level)) {
-    normalized.risks.self_harm.level = null;
+  if (!validRiskLevels.includes(normalized.seizure.level)) {
+    normalized.seizure.level = null;
   }
 
   return normalized;
@@ -475,7 +465,8 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
     console.log(`    ld50 entries: ${newHarmPotential.toxicity?.ld50?.length || 0}`);
     console.log(`    organ toxicity entries: ${newHarmPotential.toxicity?.organ_toxicity?.length || 0}`);
     console.log(`    carcinogenicity: ${newHarmPotential.toxicity?.carcinogenicity?.description ? "yes" : "no"} (level: ${newHarmPotential.toxicity?.carcinogenicity?.level || "null"})`);
-    console.log(`    risks.other count: ${newHarmPotential.risks?.other?.length || 0}`);
+    console.log(`    psychosis: ${newHarmPotential.psychosis?.description ? "yes" : "no"} (level: ${newHarmPotential.psychosis?.level || "null"})`);
+    console.log(`    seizure: ${newHarmPotential.seizure?.description ? "yes" : "no"} (level: ${newHarmPotential.seizure?.level || "null"})`);
   }
 
   return {

@@ -121,23 +121,15 @@ export function createEmptyArticle(): SubstanceArticle {
       antibiotic_function: {
         level: null,
         description: ""
-      },
-      other: ""
+      }
     },
-    risks: {
-      psychosis: {
-        level: null,
-        description: ""
-      },
-      seizure: {
-        level: null,
-        description: ""
-      },
-      self_harm: {
-        level: null,
-        description: ""
-      },
-      other: []
+    psychosis: {
+      level: null,
+      description: ""
+    },
+    seizure: {
+      level: null,
+      description: ""
     }
   },
   history_culture: null,

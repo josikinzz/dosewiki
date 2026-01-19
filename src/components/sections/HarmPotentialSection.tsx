@@ -2,7 +2,6 @@ import { memo } from "react";
 import { Icon } from "../common/Icon";
 import { SectionCard } from "../common/SectionCard";
 import { IconBadge } from "../common/IconBadge";
-import { Bullet } from "../common/Bullet";
 import type { SubstanceArticle, RiskLevel, CarcinogenicityLevel, EvidenceLevel } from "../../schema";
 
 interface HarmPotentialSectionProps {
@@ -78,7 +77,7 @@ function EvidenceLevelIndicator({ level, label }: { level: EvidenceLevel | null 
   );
 }
 
-// Type for old schema format
+// Type for old schema format (for backward compatibility)
 interface OldHarmPotential {
   addiction_liability?: string;
   dependence_liability?: string;
@@ -89,9 +88,9 @@ interface OldHarmPotential {
     other?: string;
   };
   risks?: {
-    psychosis?: string;
-    seizure?: string;
-    self_harm?: string;
+    psychosis?: string | { level?: RiskLevel | null; description?: string };
+    seizure?: string | { level?: RiskLevel | null; description?: string };
+    self_harm?: string | { level?: RiskLevel | null; description?: string };
     other?: string[];
   };
 }
@@ -103,12 +102,12 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   const hp = article.harm_potential as any;
   if (!hp) return null;
 
-  // Detect old schema (has addiction_liability at top level or toxicity.ld50 is string)
+  // Detect old schema (has addiction_liability at top level, toxicity.ld50 is string, or risks wrapper)
   const isOldSchema =
     typeof hp.addiction_liability === "string" ||
     typeof hp.dependence_liability === "string" ||
     typeof hp.toxicity?.ld50 === "string" ||
-    typeof hp.risks?.psychosis === "string";
+    hp.risks !== undefined; // Old schema has risks wrapper
 
   // Normalize addiction
   const addiction = isOldSchema
@@ -135,23 +134,27 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   // Normalize antibiotic_function (new schema only)
   const antibioticFunction = hp.toxicity?.antibiotic_function || { level: null, description: "" };
 
-  // Normalize toxicity other
-  const toxicityOther = typeof hp.toxicity?.other === "string" ? hp.toxicity.other : "";
+  // Normalize psychosis and seizure - handle both old (under risks) and new (top-level) schema
+  const normalizeRiskField = (
+    topLevel: { level?: RiskLevel | null; description?: string } | undefined,
+    risksLevel: string | { level?: RiskLevel | null; description?: string } | undefined
+  ): { level: RiskLevel | null; description: string } => {
+    // New schema: top-level field
+    if (topLevel && typeof topLevel === "object" && "description" in topLevel) {
+      return { level: topLevel.level || null, description: topLevel.description || "" };
+    }
+    // Old schema: under risks wrapper
+    if (typeof risksLevel === "string") {
+      return { level: null, description: risksLevel };
+    }
+    if (risksLevel && typeof risksLevel === "object" && "description" in risksLevel) {
+      return { level: risksLevel.level || null, description: risksLevel.description || "" };
+    }
+    return { level: null, description: "" };
+  };
 
-  // Normalize risks
-  const psychosis =
-    typeof hp.risks?.psychosis === "string"
-      ? { level: null as RiskLevel | null, description: hp.risks.psychosis }
-      : hp.risks?.psychosis || { level: null, description: "" };
-  const seizure =
-    typeof hp.risks?.seizure === "string"
-      ? { level: null as RiskLevel | null, description: hp.risks.seizure }
-      : hp.risks?.seizure || { level: null, description: "" };
-  const selfHarm =
-    typeof hp.risks?.self_harm === "string"
-      ? { level: null as RiskLevel | null, description: hp.risks.self_harm }
-      : hp.risks?.self_harm || { level: null, description: "" };
-  const risksOther = Array.isArray(hp.risks?.other) ? hp.risks.other : [];
+  const psychosis = normalizeRiskField(hp.psychosis, hp.risks?.psychosis);
+  const seizure = normalizeRiskField(hp.seizure, hp.risks?.seizure);
 
   // Check for content
   const hasAddiction =
@@ -164,15 +167,12 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
     (carcinogenicity?.description || "").trim().length > 0 || carcinogenicity?.level != null;
   const hasAntibioticFunction =
     (antibioticFunction?.description || "").trim().length > 0 || antibioticFunction?.level != null;
-  const hasToxicityOther = toxicityOther.trim().length > 0;
 
-  const hasToxicity = hasLD50 || hasOrganToxicity || hasCarcinogenicity || hasAntibioticFunction || hasToxicityOther;
+  const hasToxicity = hasLD50 || hasOrganToxicity || hasCarcinogenicity || hasAntibioticFunction;
 
-  const hasRisks =
-    (psychosis?.description || "").trim().length > 0 ||
-    (seizure?.description || "").trim().length > 0 ||
-    (selfHarm?.description || "").trim().length > 0 ||
-    risksOther.length > 0;
+  const hasPsychosis = (psychosis?.description || "").trim().length > 0;
+  const hasSeizure = (seizure?.description || "").trim().length > 0;
+  const hasRisks = hasPsychosis || hasSeizure;
 
   if (!hasAddiction && !hasToxicity && !hasRisks) {
     return null;
@@ -347,7 +347,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
                   </div>
                 )}
 
-                {/* Antibiotic Function (new schema only) */}
+                {/* Antibiotic Function */}
                 {hasAntibioticFunction && (
                   <div className="rounded-lg bg-white/5 p-3">
                     <div className="flex items-center justify-between">
@@ -367,21 +367,13 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
                     )}
                   </div>
                 )}
-
-                {/* Other toxicity */}
-                {hasToxicityOther && (
-                  <div className="rounded-lg bg-white/5 p-3">
-                    <span className="text-sm font-semibold text-white">Other</span>
-                    <p className="mt-1 text-sm text-white/80">{toxicityOther}</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Risks - single column */}
+      {/* Psychosis & Seizure Risks */}
       {hasRisks && (
         <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
@@ -389,7 +381,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
             Risks
           </h3>
           <div className="flex flex-col gap-3">
-            {psychosis?.description && (
+            {hasPsychosis && (
               <div className="rounded-lg bg-white/5 p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-white">Psychosis</span>
@@ -398,35 +390,13 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
                 <p className="mt-1 text-sm text-white/80">{psychosis.description}</p>
               </div>
             )}
-            {seizure?.description && (
+            {hasSeizure && (
               <div className="rounded-lg bg-white/5 p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-white">Seizure</span>
                   <RiskLevelBadge level={seizure.level} />
                 </div>
                 <p className="mt-1 text-sm text-white/80">{seizure.description}</p>
-              </div>
-            )}
-            {selfHarm?.description && (
-              <div className="rounded-lg bg-white/5 p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">Self-harm</span>
-                  <RiskLevelBadge level={selfHarm.level} />
-                </div>
-                <p className="mt-1 text-sm text-white/80">{selfHarm.description}</p>
-              </div>
-            )}
-            {risksOther.length > 0 && (
-              <div className="rounded-lg bg-white/5 p-3">
-                <span className="text-sm font-semibold text-white">Other Risks</span>
-                <ul className="mt-1 space-y-1">
-                  {risksOther.map((risk: string, idx: number) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
-                      <Bullet color="rose" />
-                      {risk}
-                    </li>
-                  ))}
-                </ul>
               </div>
             )}
           </div>

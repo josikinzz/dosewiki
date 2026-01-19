@@ -19,12 +19,8 @@
  *       organ_toxicity: Array<{ system, findings, mechanism, notes }>
  *       carcinogenicity: { level, evidence, description }
  *       antibiotic_function: { level, description }
- *       other: string
- *     risks:
- *       psychosis: { level, description }
- *       seizure: { level, description }
- *       self_harm: { level, description }
- *       other: string[]
+ *     psychosis: { level, description }
+ *     seizure: { level, description }
  *
  * Usage:
  *   node scripts/migrate-harm-potential-schema.mjs --dry-run
@@ -62,14 +58,9 @@ function createEmptyHarmPotential() {
       organ_toxicity: [],
       carcinogenicity: { level: null, evidence: null, description: "" },
       antibiotic_function: { level: null, description: "" },
-      other: "",
     },
-    risks: {
-      psychosis: { level: null, description: "" },
-      seizure: { level: null, description: "" },
-      self_harm: { level: null, description: "" },
-      other: [],
-    },
+    psychosis: { level: null, description: "" },
+    seizure: { level: null, description: "" },
   };
 }
 
@@ -79,16 +70,15 @@ function createEmptyHarmPotential() {
 function isOldFormat(hp) {
   if (!hp) return false;
   // Old format has addiction_liability/dependence_liability at top level
+  // OR has risks wrapper with psychosis/seizure underneath
   return (
     hp.addiction_liability !== undefined ||
     hp.dependence_liability !== undefined ||
+    hp.risks !== undefined ||
     // Or toxicity fields are strings instead of structured
     typeof hp.toxicity?.ld50 === "string" ||
     typeof hp.toxicity?.organ_toxicity === "string" ||
-    // Or risks fields are strings instead of objects
-    typeof hp.risks?.psychosis === "string" ||
-    typeof hp.risks?.seizure === "string" ||
-    typeof hp.risks?.self_harm === "string"
+    typeof hp.toxicity?.other === "string"
   );
 }
 
@@ -103,29 +93,31 @@ function migrateHarmPotential(oldHp) {
   // Migrate addiction fields
   if (oldHp.addiction_liability) {
     newHp.addiction.psychological.description = oldHp.addiction_liability;
+  } else if (oldHp.addiction?.psychological) {
+    newHp.addiction.psychological = oldHp.addiction.psychological;
   }
+
   if (oldHp.dependence_liability) {
     newHp.addiction.physical_dependence.description = oldHp.dependence_liability;
+  } else if (oldHp.addiction?.physical_dependence) {
+    newHp.addiction.physical_dependence = oldHp.addiction.physical_dependence;
   }
 
   // Migrate toxicity fields
   if (oldHp.toxicity) {
-    // ld50: string -> array (keep as single entry in description for now)
+    // ld50: string -> array OR keep array
     if (typeof oldHp.toxicity.ld50 === "string" && oldHp.toxicity.ld50.trim()) {
-      // Parse simple LD50 string if possible, otherwise leave as-is
-      // The batch generation will fill in structured data later
-      newHp.toxicity.ld50 = [];
-      // Store in carcinogenicity.description temporarily? No, better to use other
-      // Actually, let's store the old ld50 text in a special first entry
       newHp.toxicity.ld50.push({
         species: "",
         route: "",
         value: null,
-        unit: oldHp.toxicity.ld50.trim(),  // Store full text in unit field temporarily
+        unit: oldHp.toxicity.ld50.trim(),
       });
+    } else if (Array.isArray(oldHp.toxicity.ld50)) {
+      newHp.toxicity.ld50 = oldHp.toxicity.ld50;
     }
 
-    // organ_toxicity: string -> array
+    // organ_toxicity: string -> array OR keep array
     if (typeof oldHp.toxicity.organ_toxicity === "string" && oldHp.toxicity.organ_toxicity.trim()) {
       newHp.toxicity.organ_toxicity.push({
         system: "",
@@ -133,39 +125,68 @@ function migrateHarmPotential(oldHp) {
         mechanism: "",
         notes: "",
       });
+    } else if (Array.isArray(oldHp.toxicity.organ_toxicity)) {
+      newHp.toxicity.organ_toxicity = oldHp.toxicity.organ_toxicity;
     }
 
-    // carcinogenicity: string -> object
+    // carcinogenicity: string -> object OR keep object
     if (typeof oldHp.toxicity.carcinogenicity === "string" && oldHp.toxicity.carcinogenicity.trim()) {
       newHp.toxicity.carcinogenicity.description = oldHp.toxicity.carcinogenicity.trim();
+    } else if (typeof oldHp.toxicity.carcinogenicity === "object" && oldHp.toxicity.carcinogenicity) {
+      newHp.toxicity.carcinogenicity = {
+        level: oldHp.toxicity.carcinogenicity.level ?? null,
+        evidence: oldHp.toxicity.carcinogenicity.evidence ?? null,
+        description: oldHp.toxicity.carcinogenicity.description ?? "",
+      };
     }
 
-    // other: string -> string (keep as-is)
-    if (typeof oldHp.toxicity.other === "string") {
-      newHp.toxicity.other = oldHp.toxicity.other;
+    // antibiotic_function: keep if exists
+    if (oldHp.toxicity.antibiotic_function) {
+      newHp.toxicity.antibiotic_function = {
+        level: oldHp.toxicity.antibiotic_function.level ?? null,
+        description: oldHp.toxicity.antibiotic_function.description ?? "",
+      };
     }
+
+    // Note: toxicity.other is removed from new schema - discard it
   }
 
-  // Migrate risks fields
+  // Migrate psychosis/seizure - from risks wrapper OR top level
   if (oldHp.risks) {
-    // psychosis: string -> object
+    // psychosis: string -> object OR object -> object
     if (typeof oldHp.risks.psychosis === "string" && oldHp.risks.psychosis.trim()) {
-      newHp.risks.psychosis.description = oldHp.risks.psychosis.trim();
+      newHp.psychosis.description = oldHp.risks.psychosis.trim();
+    } else if (typeof oldHp.risks.psychosis === "object" && oldHp.risks.psychosis) {
+      newHp.psychosis = {
+        level: oldHp.risks.psychosis.level ?? null,
+        description: oldHp.risks.psychosis.description ?? "",
+      };
     }
 
-    // seizure: string -> object
+    // seizure: string -> object OR object -> object
     if (typeof oldHp.risks.seizure === "string" && oldHp.risks.seizure.trim()) {
-      newHp.risks.seizure.description = oldHp.risks.seizure.trim();
+      newHp.seizure.description = oldHp.risks.seizure.trim();
+    } else if (typeof oldHp.risks.seizure === "object" && oldHp.risks.seizure) {
+      newHp.seizure = {
+        level: oldHp.risks.seizure.level ?? null,
+        description: oldHp.risks.seizure.description ?? "",
+      };
     }
 
-    // self_harm: string -> object
-    if (typeof oldHp.risks.self_harm === "string" && oldHp.risks.self_harm.trim()) {
-      newHp.risks.self_harm.description = oldHp.risks.self_harm.trim();
+    // Note: risks.self_harm and risks.other are removed from new schema - discard them
+  } else {
+    // Already at top level (intermediate schema)
+    if (oldHp.psychosis) {
+      newHp.psychosis = {
+        level: oldHp.psychosis.level ?? null,
+        description: oldHp.psychosis.description ?? "",
+      };
     }
-
-    // other: array -> array (keep as-is)
-    if (Array.isArray(oldHp.risks.other)) {
-      newHp.risks.other = oldHp.risks.other;
+    if (oldHp.seizure) {
+      newHp.seizure = {
+        level: oldHp.seizure.level ?? null,
+        description: oldHp.seizure.description ?? "",
+      };
     }
   }
 

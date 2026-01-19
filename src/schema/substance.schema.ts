@@ -342,22 +342,14 @@ export const toxicitySchema = z.object({
   organ_toxicity: z.array(organToxicityEntrySchema),
   carcinogenicity: carcinogenicitySchema,
   antibiotic_function: antibioticFunctionSchema,
-  other: z.string(),
-});
-
-/** Risks subsection with structured severity levels */
-export const risksSchema = z.object({
-  psychosis: riskFieldSchema,
-  seizure: riskFieldSchema,
-  self_harm: riskFieldSchema,
-  other: z.array(z.string()),
 });
 
 /** Harm potential section */
 export const harmPotentialSchema = z.object({
   addiction: addictionSchema,
   toxicity: toxicitySchema,
-  risks: risksSchema,
+  psychosis: riskFieldSchema,
+  seizure: riskFieldSchema,
 });
 
 // ============================================================================
@@ -487,7 +479,6 @@ export type CarcinogenicityEvidence = z.infer<typeof carcinogenicityEvidenceSche
 export type Carcinogenicity = z.infer<typeof carcinogenicitySchema>;
 export type AntibioticFunction = z.infer<typeof antibioticFunctionSchema>;
 export type Toxicity = z.infer<typeof toxicitySchema>;
-export type Risks = z.infer<typeof risksSchema>;
 export type HarmPotential = z.infer<typeof harmPotentialSchema>;
 
 export type Tolerance = z.infer<typeof toleranceSchema>;
