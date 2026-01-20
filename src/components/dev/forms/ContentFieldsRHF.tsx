@@ -11,6 +11,7 @@ import yaml from "yaml";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,7 @@ import {
 
 import { CharacterCount, CollapsibleSubsection } from "./FormHelpers";
 import { ControlledTagMultiSelect, TextListInput } from "./rhf";
-import type { SubstanceArticle, HarmPotential, Tolerance, Interactions, RiskLevel, CarcinogenicityLevel } from "../../../schema";
+import type { SubstanceArticle, HarmPotential, Tolerance, Interactions, RiskLevel, CarcinogenicityLevel, LD50Entry, OrganToxicityEntry } from "../../../schema";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "../../../hooks/usePrompts";
@@ -88,6 +89,328 @@ function RiskLevelSelect({
         ))}
       </SelectContent>
     </Select>
+  );
+}
+
+// Common route options for LD50
+const LD50_ROUTE_OPTIONS = [
+  "Oral",
+  "IV",
+  "Intravenous",
+  "Subcutaneous",
+  "Intraperitoneal",
+  "Intramuscular",
+  "Inhalation",
+  "Dermal",
+  "Unspecified",
+];
+
+// Common species options for LD50
+const LD50_SPECIES_OPTIONS = [
+  "Mouse",
+  "Rat",
+  "Rabbit",
+  "Dog",
+  "Guinea pig",
+  "Human",
+];
+
+// Common organ system options
+const ORGAN_SYSTEM_OPTIONS = [
+  "Cardiovascular",
+  "Central Nervous System",
+  "Hepatic",
+  "Renal",
+  "Respiratory",
+  "Urinary System",
+  "Gastrointestinal",
+  "Hematological",
+  "Dermatological",
+  "Endocrine",
+  "Immune System",
+  "Musculoskeletal",
+];
+
+/**
+ * LD50 Entry Editor - a single LD50 data point
+ */
+function LD50EntryEditor({
+  entry,
+  index,
+  onChange,
+  onRemove,
+}: {
+  entry: LD50Entry;
+  index: number;
+  onChange: (updated: LD50Entry) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-white/60">Entry {index + 1}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="h-6 w-6 p-0 text-white/40 hover:text-red-400"
+        >
+          <Icon icon="lucide:x" size={14} />
+        </Button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-4">
+        <div className="space-y-1">
+          <Label className="text-xs">Species</Label>
+          <Select
+            value={entry.species}
+            onValueChange={(v) => onChange({ ...entry, species: v })}
+          >
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue placeholder="Species" />
+            </SelectTrigger>
+            <SelectContent>
+              {LD50_SPECIES_OPTIONS.map((species) => (
+                <SelectItem key={species} value={species}>{species}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Route</Label>
+          <Select
+            value={entry.route}
+            onValueChange={(v) => onChange({ ...entry, route: v })}
+          >
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue placeholder="Route" />
+            </SelectTrigger>
+            <SelectContent>
+              {LD50_ROUTE_OPTIONS.map((route) => (
+                <SelectItem key={route} value={route}>{route}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Value</Label>
+          <Input
+            type="number"
+            className="h-8 text-sm"
+            value={entry.value ?? ""}
+            onChange={(e) => onChange({ ...entry, value: e.target.value ? Number(e.target.value) : null })}
+            placeholder="e.g., 400"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Unit</Label>
+          <Input
+            className="h-8 text-sm"
+            value={entry.unit}
+            onChange={(e) => onChange({ ...entry, unit: e.target.value })}
+            placeholder="mg/kg"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * LD50 Array Editor - manages array of LD50 entries
+ */
+function LD50ArrayEditor({
+  entries,
+  onChange,
+}: {
+  entries: LD50Entry[];
+  onChange: (entries: LD50Entry[]) => void;
+}) {
+  const handleAdd = () => {
+    onChange([...entries, { species: "", route: "", value: null, unit: "mg/kg" }]);
+  };
+
+  const handleUpdate = (index: number, updated: LD50Entry) => {
+    const newEntries = [...entries];
+    newEntries[index] = updated;
+    onChange(newEntries);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(entries.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">LD50 Data</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          className="h-7 text-xs"
+        >
+          <Icon icon="lucide:plus" size={14} className="mr-1" />
+          Add Entry
+        </Button>
+      </div>
+      {entries.length === 0 ? (
+        <p className="text-xs text-white/40 italic py-2">No LD50 data. Click "Add Entry" to add.</p>
+      ) : (
+        <div className="space-y-2">
+          {entries.map((entry, index) => (
+            <LD50EntryEditor
+              key={index}
+              entry={entry}
+              index={index}
+              onChange={(updated) => handleUpdate(index, updated)}
+              onRemove={() => handleRemove(index)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Organ Toxicity Entry Editor - a single organ toxicity data point
+ */
+function OrganToxicityEntryEditor({
+  entry,
+  index,
+  onChange,
+  onRemove,
+}: {
+  entry: OrganToxicityEntry;
+  index: number;
+  onChange: (updated: OrganToxicityEntry) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-white/5 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon icon="lucide:activity" size={14} className="text-rose-400/70" />
+          <span className="text-sm font-medium text-white/80">{entry.system || `Entry ${index + 1}`}</span>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="h-6 w-6 p-0 text-white/40 hover:text-red-400"
+        >
+          <Icon icon="lucide:x" size={14} />
+        </Button>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Organ System</Label>
+        <Select
+          value={entry.system}
+          onValueChange={(v) => onChange({ ...entry, system: v })}
+        >
+          <SelectTrigger className="h-8 text-sm">
+            <SelectValue placeholder="Select system" />
+          </SelectTrigger>
+          <SelectContent>
+            {ORGAN_SYSTEM_OPTIONS.map((system) => (
+              <SelectItem key={system} value={system}>{system}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Findings</Label>
+        <Textarea
+          className="min-h-[60px] text-sm"
+          value={entry.findings}
+          onChange={(e) => onChange({ ...entry, findings: e.target.value })}
+          placeholder="Observable symptoms, clinical findings, diagnoses..."
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Mechanism</Label>
+        <Textarea
+          className="min-h-[50px] text-sm"
+          value={entry.mechanism}
+          onChange={(e) => onChange({ ...entry, mechanism: e.target.value })}
+          placeholder="Biochemical pathways, cellular processes (leave empty if unknown)..."
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Notes</Label>
+        <Textarea
+          className="min-h-[50px] text-sm"
+          value={entry.notes}
+          onChange={(e) => onChange({ ...entry, notes: e.target.value })}
+          placeholder="Prevalence, reversibility, risk factors, case counts..."
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Organ Toxicity Array Editor - manages array of organ toxicity entries
+ */
+function OrganToxicityArrayEditor({
+  entries,
+  onChange,
+}: {
+  entries: OrganToxicityEntry[];
+  onChange: (entries: OrganToxicityEntry[]) => void;
+}) {
+  const handleAdd = () => {
+    onChange([...entries, { system: "", findings: "", mechanism: "", notes: "" }]);
+  };
+
+  const handleUpdate = (index: number, updated: OrganToxicityEntry) => {
+    const newEntries = [...entries];
+    newEntries[index] = updated;
+    onChange(newEntries);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(entries.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">Organ Toxicity</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAdd}
+          className="h-7 text-xs"
+        >
+          <Icon icon="lucide:plus" size={14} className="mr-1" />
+          Add Entry
+        </Button>
+      </div>
+      {entries.length === 0 ? (
+        <p className="text-xs text-white/40 italic py-2">No organ toxicity data. Click "Add Entry" to add.</p>
+      ) : (
+        <div className="space-y-3">
+          {entries.map((entry, index) => (
+            <OrganToxicityEntryEditor
+              key={index}
+              entry={entry}
+              index={index}
+              onChange={(updated) => handleUpdate(index, updated)}
+              onRemove={() => handleRemove(index)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -226,41 +549,27 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       {/* Toxicity */}
       <CollapsibleSubsection title="Toxicity" icon={<Icon icon="healthicons:poison-24px" className="h-5 w-5" size={20} />}>
         <div className="space-y-4">
-          {/* LD50 - simplified display for now */}
-          <div className="space-y-1">
-            <Label>LD50 Data (JSON)</Label>
-            <Textarea
-              className="min-h-[60px] font-mono text-xs"
-              value={JSON.stringify(watch("harm_potential.toxicity.ld50") ?? [], null, 2)}
-              onChange={(e) => {
-                try {
-                  const parsed = JSON.parse(e.target.value);
-                  setValue("harm_potential.toxicity.ld50", parsed);
-                } catch {
-                  // Invalid JSON, ignore
-                }
-              }}
-              placeholder='[{"species": "Mouse", "route": "IV", "value": 400, "unit": "mg/kg"}]'
-            />
-          </div>
+          {/* LD50 Data */}
+          <LD50ArrayEditor
+            entries={(() => {
+              const val = watch("harm_potential.toxicity.ld50");
+              // Handle both array format and legacy string format
+              if (Array.isArray(val)) return val as LD50Entry[];
+              return [];
+            })()}
+            onChange={(entries) => setValue("harm_potential.toxicity.ld50", entries)}
+          />
 
-          {/* Organ Toxicity - simplified display */}
-          <div className="space-y-1">
-            <Label>Organ Toxicity (JSON)</Label>
-            <Textarea
-              className="min-h-[80px] font-mono text-xs"
-              value={JSON.stringify(watch("harm_potential.toxicity.organ_toxicity") ?? [], null, 2)}
-              onChange={(e) => {
-                try {
-                  const parsed = JSON.parse(e.target.value);
-                  setValue("harm_potential.toxicity.organ_toxicity", parsed);
-                } catch {
-                  // Invalid JSON, ignore
-                }
-              }}
-              placeholder='[{"system": "Urinary", "findings": "...", "mechanism": "...", "notes": "..."}]'
-            />
-          </div>
+          {/* Organ Toxicity */}
+          <OrganToxicityArrayEditor
+            entries={(() => {
+              const val = watch("harm_potential.toxicity.organ_toxicity");
+              // Handle both array format and legacy string format
+              if (Array.isArray(val)) return val as OrganToxicityEntry[];
+              return [];
+            })()}
+            onChange={(entries) => setValue("harm_potential.toxicity.organ_toxicity", entries)}
+          />
 
           {/* Carcinogenicity */}
           <div className="grid gap-4 md:grid-cols-2">
