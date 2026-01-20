@@ -1,126 +1,62 @@
 # Amphetamine - Harm Potential Quotes
 
-> Verbatim extractions from source articles. Generated 2026-01-11.
-
----
-
-## Source: DrugBank
-
-### Toxicity
-
-Symptoms of an amphetamine overdose include **restlessness, tremor, tachypnea, confusion, assaultiveness, hallucinations, panic states, hyperpyrexia, and rhabdomyolysis**.
-
-### Agents Classification
-
-Agents that **reduce seizure threshold**
-
----
-
-## Source: Drug Users Bible
-
-### Addiction and Tolerance
-
-Its recreational use is now well established and unsurprisingly, given its composition, **addiction potential and increased tolerance build quickly**.
-
----
-
-## Source: Erowid
-
-### Illicit Abuse Origin
-
-During World War II, amphetamine was used to promote wakefulness in the soldiers. This use derived into a large overproduction of amphetamine and **all the surplus after the war finalized ended up in the black market, producing the initiation of the illicit abuse**.
-
-### Amphetamine Psychosis
-
-**Users of large amounts of amphetamines over a long period of time can develop an amphetamine psychosis**, which is a mental disorder similar to **paranoid schizophrenia**. The psychosis is manifested by **hallucinations, delusions, and paranoia**. **Bizarre, sometime violent, behavior** is exhibited by those with amphetamine psychosis.
-
-### Withdrawal Symptoms
-
-**Amphetamines have the potential to produce tolerance**, which means that increased amounts of the drug are needed to achieve the desired effects. Withdrawal symptoms can occur when use of amphetamines is stopped abruptly. Users may experience **fatigue; long, disturbed periods of sleep; irritability; intense hunger, and moderate to severe depression**.
-
-### Birth Defects
-
-**cardiac defects, cleft palate, birth defects, addiction and withdrawal**
-
-### Overdose
-
-**30 mg can produce severe reactions**, yet doses of 400 to 500 mg are not necessarily fatal. **Fatal poisoning is usually preceded by convulsions and coma.**
-
-Cardiovascular effects include **arrhythmias, hypertension or hypotension, and circulatory collapse**.
-
-### Health Risks Summary
-
-**Health risks and problems associated with amphetamine use:**
-
-- **Cardiovascular Stress**: Increased heart rate and blood pressure. Tachycardia and palpitations are common at high doses. *Frequency: very common. Certainty: clear causation.*
-
-- **Heart Attack & Hypertensive Crisis**: With higher doses and for vulnerable individuals, Cardiovascular Stress can precipitate **severe hypertensive crises and Heart Attacks**. *Frequency: uncommon. Certainty: clear causation.*
-
-- **Stroke**: Increases risk of stroke as dose increases. *Certainty: medium.*
-
-- **Overheating**: High doses can cause **overheating (hyperthermia)** which can be dangerous. *Frequency: common. Certainty: clear causation.*
-
-- **Sleep Deprivation**: Repeated dosing can lead to lack of sleep for days on end, resulting in **cognitive impairment, poor judgement, confusion, hallucinations, and paranoia**. *Frequency: typical with repeated dosing.*
-
-- **Paranoia**: Regular amphetamine use can cause **paranoid, delusional thinking** and sometimes **auditory and visual hallucinations**. **Chronic, high dose use may lead to long term mental health problems.**
-
-- **Damage to Teeth and Gums**: Jaw tension can lead to **teeth grinding (bruxia/bruxism) and permanent wear and cracking**. Long-term use can result in **tooth rot (dental caries) and loss of teeth**.
-
-- **Neurotoxicity (Methamphetamine)**: At high doses, methamphetamine causes **damage to dopamine and serotonin neurons in the brain**.
-
-- **Neurotoxicity (D/L-Amphetamine)**: At very high doses and frequencies, **neurotoxicity does occur in mice and rats**.
-
-- **Rhabdomyolysis and Kidney Damage**: High-dose use can result in **rhabdomyolysis**, causing large amounts of proteins to be released into the blood. The **kidneys can suffer mild to severe damage**. *Frequency: rare.*
-
-- **Dangerous to combine with other stimulants**: Amphetamines used with MDMA appear to cause **damage to the dopamine neurons in the brain**. Can substantially increase risk of **dangerous hyperthermia, rhabdomyolysis**, and other problems.
-
-- **Death**: Usually resulting from **cardiac arrest, stroke, or hyperthermia**. Acute renal failure associated with rhabdomyolysis, acidosis, and ischemic renal failure also associated with methamphetamine fatalities. *Frequency: rare. Certainty: clear causation.*
-
-### Warnings
-
-- **Do not take amphetamines if you are using, or have used an MAO Inhibitor within the last 2 weeks.**
-- **Regular or frequent amphetamine use can lead to dependence.**
+> Verbatim extractions from source articles. Generated 2026-01-19.
 
 ---
 
 ## Source: PsychonautWiki
 
-### High Abuse Potential
+**Abuse Potential & Dependence:**
 
-**Amphetamine has high abuse potential.** Chronic use (i.e. high dose, repeat administration) is associated with **compulsive redosing, escalating tolerance, and psychological dependence**.
+Amphetamine has high abuse potential. Chronic use (i.e. high dose, repeat administration) is associated with compulsive redosing, escalating tolerance, and psychological dependence. Additionally, abuse has been linked to a number of health conditions, especially cardiovascular issues such as high blood pressure and increased risk of stroke.
 
-Additionally, abuse has been linked to a number of health conditions, especially **cardiovascular issues such as high blood pressure and increased risk of stroke**.
+Amphetamine has high abuse potential and can cause psychological dependence with chronic use.
 
-### Controlled Substance History
+When dependence has developed, cravings and withdrawal effects may occur if use is suddenly discontinued. Withdrawal symptoms include paranoia, depression, dream potentiation, anxiety, itching, mood swings, irritability, fatigue, insomnia, an intense craving for more amphetamine or other stimulants.
 
-Due to issues with **addiction and abuse**, it was eventually listed as a **controlled substance** under the United Nations 1971 "Convention on Psychotropic Substances".
+Addiction is a serious risk with chronic or heavy recreational amphetamine use, but is unlikely to arise from typical medical use.
+
+**Neurotoxicity:**
+
+As of March 2014, there is no evidence that amphetamine is directly neurotoxic in humans. However, high-dose amphetamine can cause indirect neurotoxicity as a result of increased oxidative stress from reactive oxygen species and autoxidation of dopamine.
+
+In rodents and primates, sufficiently high doses of amphetamine causes damage to dopamine neurons, characterized as reduced transporter and receptor function. Animal models of neurotoxicity from high-dose amphetamine exposure indicate that the occurrence of hyperpyrexia (i.e., core body temperature ≥ 40 °C) is necessary for the development of amphetamine-induced neurotoxicity.
+
+**Lethal Dosage:**
+
+The LD50 (the dosage required to kill 50% of the test subjects) of amphetamine in rats has been found to be between roughly 15 mg and 180 mg per kilogram, depending on the study. No formal studies in humans have been carried out and the exact toxic dosage is unknown.
+
+**Psychosis:**
+
+Severe amphetamine overdose can result in a stimulant psychosis that may present with a variety of symptoms (e.g., paranoia, hallucinations, delusions). A review on treatment for amphetamine abuse-induced psychosis states that about 5–15% of users fail to recover completely.
 
 ---
 
-## Source: TripSit Factsheets
+## Source: Wikipedia
 
-### Classification
+**Addiction Risk:**
+Addiction is a serious risk with heavy recreational amphetamine use, but is unlikely to occur from long-term medical use at therapeutic doses. Very high doses can result in psychosis (e.g., hallucinations, delusions, and paranoia) which rarely occurs at therapeutic doses even during long-term use.
 
-stimulant, common, **habit-forming**
+**Contraindications:**
+According to the International Programme on Chemical Safety (IPCS) and the U.S. Food and Drug Administration (FDA), amphetamine is contraindicated in people with a history of drug abuse, cardiovascular disease, severe agitation, or severe anxiety. It is also contraindicated in individuals with advanced arteriosclerosis (hardening of the arteries), glaucoma (increased eye pressure), hyperthyroidism (excessive production of thyroid hormone), or moderate to severe hypertension.
 
-### Dangerous Interactions
+**Adverse Effects - Physical:**
+Cardiovascular side effects can include hypertension or hypotension from a vasovagal response, Raynaud's phenomenon (reduced blood flow to the hands and feet), and tachycardia (increased heart rate). Amphetamine induces contraction in the urinary bladder sphincter, the muscle which controls urination, which can result in difficulty urinating.
 
-- **Alcohol** - Drinking on stimulants is risky because the sedative effects of the alcohol are reduced, and these are what the body uses to gauge drunkenness
-- **GHB/GBL** - Stimulants increase respiration rate allowing a higher dose of sedatives. If the stimulant wears off first then the **effects of the sedative will be much more pronounced**
-- **Opioids** - **Stimulants increase respiration rate** allowing a higher dose of opiates. If the stimulant wears off first then the opiate may overcome the patient and cause **respiratory arrest**
-- **Cocaine** - This combination of stimulants will increase strain on the heart. It is **not recommended**
-- **Cannabis** - Stimulants increase anxiety levels and the risk of thought loops and paranoia which can lead to **negative experiences**
-- **Caffeine** - This combination of stimulants is **not generally recommended** as it can increase strain on the heart
-- **Tramadol** - This combination can increase the risk of **seizures**
-- **DXM** - Both substances raise heart rate, in extreme cases, **panic attacks** caused by these drugs have put people in the hospital
-- **Ketamine** - Combining amphetamines and ketamine may result in **psychoses** that resemble schizophrenia, violent behaviour and seizures
-- **PCP** - This combination can easily lead to **hypermanic states**
-- **Methoxetamine** - **Little data exists about this combination**
-- **Psychedelics** - The focus and anxiety caused by stimulants is **magnified by psychedelics** and can result in a negative experience
-- **25x-NBOMe** - Amphetamines and NBOMes both **provide stimulation, and when combined they can result in tachycardia, hypertension, vasoconstriction and in extreme cases heart failure**
-- **2C-T-x** - Stimulants increase anxiety levels and the risk of thought loops and paranoia
-- **5-MeO-xxT** - The anxiogenic and focusing effects of stimulants increase the chance of unpleasant thought loops
-- **DOx** - The combined stimulating effects of the two can lead to an uncomfortable body-loss and **unpleasant cardiovascular effects**
-- **aMT** - aMT has MAOI properties. **Stimulants with MAOI's can be dangerous**
-- **MAOIs** - This combination is **very dangerous**, possibly **fatal**
+**Toxicity - Neurotoxicity:**
+In rodents and primates, sufficiently high doses of amphetamine cause dopaminergic neurotoxicity, or damage to dopamine neurons, which is characterized by dopamine terminal degeneration and reduced transporter and receptor function. There is no evidence that amphetamine is directly neurotoxic in humans. However, large doses of amphetamine may indirectly cause dopaminergic neurotoxicity as a result of hyperpyrexia, the excessive formation of reactive oxygen species, and increased autoxidation of dopamine.
 
+**Dependence and Withdrawal:**
+According to a Cochrane review on withdrawal in individuals who compulsively use amphetamine and methamphetamine, "when chronic heavy users abruptly discontinue amphetamine use, many report a time-limited withdrawal syndrome that occurs within 24 hours of their last dose." This review noted that withdrawal symptoms in chronic, high-dose users are frequent, occurring in roughly 88% of cases, and persist for 3–4 weeks with a marked "crash" phase occurring during the first week.
+
+**Overdose:**
+An amphetamine overdose can lead to many different symptoms, but is rarely fatal with appropriate care. In 2013, overdose on amphetamine, methamphetamine, and other compounds implicated in an "amphetamine use disorder" resulted in an estimated 3,788 deaths worldwide.
+
+---
+
+## Source: DrugBank
+
+**Toxicity:**
+The mean lethal serum concentration is reported to be of 6.4 mg/l. Acute amphetamine overdose can lead to hyperthermia, respiratory depression, seizures, metabolic acidosis, renal failure, hepatic injury, and coma. Some of the neurologic effects have been shown to be agitation, aggressive behavior, irritability, headache, and hallucinations. In the cardiovascular site, there have been reports of arrhythmia, cardiomyopathy, myocardial infarction or ischemic stroke. A dose of 1-2 g of amphetamine is known to cause severe intoxication but some chronic abusers can report usage of even 5-15 g per day.
+
+In animal studies, there is no evidence of carcinogenic potential, not clastogenic or to affect fertility or early embryonic development.

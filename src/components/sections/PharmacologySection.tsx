@@ -59,7 +59,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   return (
     <SectionCard delay={0}>
       <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="fa-solid:cogs" label="Pharmacology" />
+        <IconBadge icon="mingcute:settings-6-line" label="Pharmacology" />
         Pharmacology
       </h2>
 
@@ -72,7 +72,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {hasMoA && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Icon icon="fluent:brain-circuit-28-filled" size={20} className="text-fuchsia-200" />
+              <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
@@ -143,7 +143,7 @@ export const PharmacologySection = memo(function PharmacologySection({
         {!hasMoA && hasReceptorBinding && (
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-              <Icon icon="fluent:brain-circuit-28-filled" size={20} className="text-fuchsia-200" />
+              <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
               Mechanism of Action
             </h3>
             <ul className="space-y-2">
