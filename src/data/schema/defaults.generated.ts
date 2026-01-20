@@ -85,7 +85,9 @@ export function createEmptyArticle(): SubstanceArticle {
     metabolism: "",
     metabolites: [],
     protein_binding: null,
-    volume_of_distribution: null
+    volume_of_distribution: null,
+    bioavailability_notes: null,
+    half_life: null
   },
   interactions: {
     dangerous: [],
@@ -99,39 +101,7 @@ export function createEmptyArticle(): SubstanceArticle {
     baseline_tolerance: "",
     cross_tolerance: []
   },
-  harm_potential: {
-    addiction: {
-      psychological: {
-        level: null,
-        description: ""
-      },
-      physical_dependence: {
-        level: null,
-        description: ""
-      }
-    },
-    toxicity: {
-      ld50: [],
-      organ_toxicity: [],
-      carcinogenicity: {
-        level: null,
-        evidence: null,
-        description: ""
-      },
-      antibiotic_function: {
-        level: null,
-        description: ""
-      }
-    },
-    psychosis: {
-      level: null,
-      description: ""
-    },
-    seizure: {
-      level: null,
-      description: ""
-    }
-  },
+  harm_potential: null,
   history_culture: null,
   legality: {
     international: [],

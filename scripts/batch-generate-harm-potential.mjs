@@ -60,13 +60,13 @@ function sanitizeObjectKeys(obj) {
 
 // Configuration
 const CONFIG = {
-  model: "anthropic/claude-opus-4.5",
+  model: process.env.OPENROUTER_MODEL || "anthropic/claude-opus-4.5",
   maxTokens: 16384,
   temperature: 0.3,
   maxConcurrency: 3,
   retryAttempts: 3,
   retryDelayMs: 2000,
-  reasoningEffort: "high",
+  reasoningEffort: "high", // For Anthropic models with extended thinking
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "harmpotential-quotes"),
   costsFile: join(PROJECT_ROOT, "batch-harm-potential-costs.json"),
@@ -78,6 +78,10 @@ const PRICING = {
   "anthropic/claude-opus-4.5": {
     input: 15.00,
     output: 75.00,
+  },
+  "google/gemini-3-flash-preview": {
+    input: 0.15,
+    output: 0.60,
   },
 };
 
@@ -287,7 +291,9 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
       ],
       temperature: CONFIG.temperature,
       max_tokens: CONFIG.maxTokens,
-      reasoning: { effort: CONFIG.reasoningEffort },
+      ...(CONFIG.reasoningEffort && CONFIG.model.startsWith("anthropic/")
+        ? { reasoning: { effort: CONFIG.reasoningEffort } }
+        : {}),
     }),
   });
 
@@ -498,7 +504,7 @@ function saveCosts(costs) {
 
 // Calculate estimated cost
 function calculateCost(promptTokens, completionTokens) {
-  const pricing = PRICING[CONFIG.model];
+  const pricing = PRICING[CONFIG.model] || { input: 0, output: 0 };
   return (promptTokens / 1_000_000) * pricing.input +
          (completionTokens / 1_000_000) * pricing.output;
 }

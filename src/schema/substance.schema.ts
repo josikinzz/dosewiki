@@ -212,8 +212,10 @@ export const pharmacologySchema = z.object({
   receptor_binding: z.record(z.string(), z.string()),
   metabolism: z.string(),
   metabolites: z.array(z.string()),
-  protein_binding: z.string().nullable(),
-  volume_of_distribution: z.string().nullable(),
+  protein_binding: z.string().nullable().optional(),
+  volume_of_distribution: z.string().nullable().optional(),
+  bioavailability_notes: z.string().optional(),
+  half_life: z.string().optional(),
 });
 
 // ============================================================================
@@ -270,13 +272,13 @@ export const antibioticFunctionLevelSchema = z.enum([
 export const riskFieldSchema = z.object({
   level: riskLevelSchema.nullable(),
   description: z.string(),
-});
+}).passthrough();
 
 /** Addiction subsection with psychological and physical components */
 export const addictionSchema = z.object({
-  psychological: riskFieldSchema,
-  physical_dependence: riskFieldSchema,
-});
+  psychological: riskFieldSchema.optional(),
+  physical_dependence: riskFieldSchema.optional(),
+}).passthrough();
 
 /** Structured LD50 entry */
 export const ld50EntrySchema = z.object({
@@ -326,31 +328,31 @@ export const carcinogenicityEvidenceSchema = z.object({
 /** Carcinogenicity subsection with level, evidence, and description */
 export const carcinogenicitySchema = z.object({
   level: carcinogenicityLevelSchema.nullable(),
-  evidence: carcinogenicityEvidenceSchema,
-  description: z.string(),
-});
+  evidence: carcinogenicityEvidenceSchema.optional(),
+  description: z.string().optional(),
+}).passthrough();
 
 /** Antibiotic function subsection */
 export const antibioticFunctionSchema = z.object({
   level: antibioticFunctionLevelSchema.nullable(),
-  description: z.string(),
-});
+  description: z.string().optional(),
+}).passthrough();
 
-/** Toxicity subsection with structured data */
+/** Toxicity subsection with structured data - accepts both new objects and legacy strings */
 export const toxicitySchema = z.object({
-  ld50: z.array(ld50EntrySchema),
-  organ_toxicity: z.array(organToxicityEntrySchema),
-  carcinogenicity: carcinogenicitySchema,
-  antibiotic_function: antibioticFunctionSchema,
-});
+  ld50: z.union([z.array(ld50EntrySchema), z.string()]).optional(),
+  organ_toxicity: z.union([z.array(organToxicityEntrySchema), z.string()]).optional(),
+  carcinogenicity: z.union([carcinogenicitySchema, z.string()]).optional(),
+  antibiotic_function: z.union([antibioticFunctionSchema, z.string()]).optional(),
+}).passthrough();
 
-/** Harm potential section */
+/** Harm potential section - passthrough for legacy 'risks' object */
 export const harmPotentialSchema = z.object({
-  addiction: addictionSchema,
-  toxicity: toxicitySchema,
-  psychosis: riskFieldSchema,
-  seizure: riskFieldSchema,
-});
+  addiction: addictionSchema.optional(),
+  toxicity: toxicitySchema.optional(),
+  psychosis: riskFieldSchema.optional(),
+  seizure: riskFieldSchema.optional(),
+}).passthrough().optional();
 
 // ============================================================================
 // Tolerance Schemas

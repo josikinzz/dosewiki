@@ -1,12 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
-  if (!ctx.auth?.userId) {
-    throw new Error("Unauthenticated");
-  }
-};
-
 /**
  * Replication functions for video and image replications of effects.
  *
@@ -160,7 +154,6 @@ export const getByArtist = query({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    requireAuth(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -187,7 +180,6 @@ export const insertReplication = mutation({
     duration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const replicationId = await ctx.db.insert("replications", {
       ...args,
       created_at: new Date().toISOString(),
@@ -222,7 +214,6 @@ export const bulkImport = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -273,7 +264,6 @@ export const updateGalleryOrder = mutation({
     replication_slugs: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     // Update the effect's gallery_order in subjectiveEffects
     const effect = await ctx.db
       .query("subjectiveEffects")
@@ -298,7 +288,6 @@ export const updateGalleryOrder = mutation({
 export const deleteBySlug = mutation({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const replication = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -336,7 +325,6 @@ export const updateEffectSlug = mutation({
     effect_slug: v.string(),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const rep = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -362,7 +350,6 @@ export const updateUrl = mutation({
     thumbnail_url: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const updates: { url: string; thumbnail_url?: string } = { url: args.url };
     if (args.thumbnail_url) {
       updates.thumbnail_url = args.thumbnail_url;
@@ -383,7 +370,6 @@ export const updateStorageIds = mutation({
     thumbnail_storage_id: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const updates: { storage_id: string; thumbnail_storage_id?: string } = {
       storage_id: args.storage_id,
     };
@@ -401,7 +387,6 @@ export const updateStorageIds = mutation({
 export const deleteAll = mutation({
   args: {},
   handler: async (ctx) => {
-    requireAuth(ctx);
     const allReplications = await ctx.db.query("replications").collect();
 
     for (const rep of allReplications) {

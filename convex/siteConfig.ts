@@ -1,12 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
-  if (!ctx.auth?.userId) {
-    throw new Error("Unauthenticated");
-  }
-};
-
 /**
  * Site configuration storage - About page content and other global settings.
  * Uses a single document pattern with key="about" for the About page.
@@ -34,7 +28,6 @@ export const saveAbout = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const existing = await ctx.db
       .query("siteConfig")
       .withIndex("by_key", (q) => q.eq("key", "about"))

@@ -1,12 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
-  if (!ctx.auth?.userId) {
-    throw new Error("Unauthenticated");
-  }
-};
-
 /**
  * Prompt functions.
  * 
@@ -47,7 +41,6 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const { key, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
 
@@ -82,7 +75,6 @@ export const save = mutation({
 export const deleteByKey = mutation({
   args: { key: v.string() },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const existing = await ctx.db
       .query("prompts")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -109,7 +101,6 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const updatedAt = new Date().toISOString();
     const results = {
       created: 0,

@@ -1,12 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-const requireAuth = (ctx: { auth?: { userId?: string | null } | null }) => {
-  if (!ctx.auth?.userId) {
-    throw new Error("Unauthenticated");
-  }
-};
-
 /**
  * Trip report functions.
  * 
@@ -151,7 +145,6 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const results = {
       created: 0,
       updated: 0,
@@ -188,7 +181,6 @@ export const bulkImport = mutation({
 export const deleteAll = mutation({
   args: {},
   handler: async (ctx) => {
-    requireAuth(ctx);
     const allReports = await ctx.db.query("tripReports").collect();
     
     for (const report of allReports) {
@@ -208,7 +200,6 @@ export const renameAuthor = mutation({
     newName: v.string(),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx);
     const allReports = await ctx.db.query("tripReports").collect();
     const lowerOldName = args.oldName.toLowerCase();
     
