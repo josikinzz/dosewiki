@@ -103,9 +103,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   const physicalDesc = watch("harm_potential.addiction.physical_dependence.description") ?? "";
   const psychologicalLevel = watch("harm_potential.addiction.psychological.level");
   const physicalLevel = watch("harm_potential.addiction.physical_dependence.level");
-  const psychosisLevel = watch("harm_potential.risks.psychosis.level");
-  const seizureLevel = watch("harm_potential.risks.seizure.level");
-  const selfHarmLevel = watch("harm_potential.risks.self_harm.level");
+  const psychosisLevel = watch("harm_potential.psychosis.level");
+  const seizureLevel = watch("harm_potential.seizure.level");
   const carcinogenicityLevel = watch("harm_potential.toxicity.carcinogenicity.level");
 
   // Get articles context if available (only in Articles tab)
@@ -146,14 +145,11 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       setValue("harm_potential.toxicity.antibiotic_function.description", hp.toxicity?.antibiotic_function?.description ?? "");
       setValue("harm_potential.toxicity.other", hp.toxicity?.other ?? "");
 
-      // Risks
-      setValue("harm_potential.risks.psychosis.level", hp.risks?.psychosis?.level ?? null);
-      setValue("harm_potential.risks.psychosis.description", hp.risks?.psychosis?.description ?? "");
-      setValue("harm_potential.risks.seizure.level", hp.risks?.seizure?.level ?? null);
-      setValue("harm_potential.risks.seizure.description", hp.risks?.seizure?.description ?? "");
-      setValue("harm_potential.risks.self_harm.level", hp.risks?.self_harm?.level ?? null);
-      setValue("harm_potential.risks.self_harm.description", hp.risks?.self_harm?.description ?? "");
-      setValue("harm_potential.risks.other", hp.risks?.other ?? []);
+      // Psychosis and Seizure risks (direct on harm_potential in new schema)
+      setValue("harm_potential.psychosis.level", hp.psychosis?.level ?? null);
+      setValue("harm_potential.psychosis.description", hp.psychosis?.description ?? "");
+      setValue("harm_potential.seizure.level", hp.seizure?.level ?? null);
+      setValue("harm_potential.seizure.description", hp.seizure?.description ?? "");
     } catch (error) {
       console.error("Failed to parse generated harm potential YAML:", error);
     }
@@ -311,19 +307,19 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
 
       {/* Risks */}
       <CollapsibleSubsection title="Risks" icon={<Icon icon="streamline:dangerous-zone-sign-remix" className="h-5 w-5" size={20} />}>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {/* Psychosis */}
           <div className="space-y-2">
             <Label htmlFor={`${idPrefix}-psychosis-level`}>Psychosis Risk</Label>
             <RiskLevelSelect
               id={`${idPrefix}-psychosis-level`}
               value={psychosisLevel}
-              onChange={(v) => setValue("harm_potential.risks.psychosis.level", v)}
+              onChange={(v) => setValue("harm_potential.psychosis.level", v)}
             />
             <Textarea
               id={`${idPrefix}-psychosis-desc`}
               className="min-h-[60px]"
-              {...register("harm_potential.risks.psychosis.description")}
+              {...register("harm_potential.psychosis.description")}
               placeholder="Describe psychosis risk factors."
             />
           </div>
@@ -334,41 +330,15 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
             <RiskLevelSelect
               id={`${idPrefix}-seizure-level`}
               value={seizureLevel}
-              onChange={(v) => setValue("harm_potential.risks.seizure.level", v)}
+              onChange={(v) => setValue("harm_potential.seizure.level", v)}
             />
             <Textarea
               id={`${idPrefix}-seizure-desc`}
               className="min-h-[60px]"
-              {...register("harm_potential.risks.seizure.description")}
+              {...register("harm_potential.seizure.description")}
               placeholder="Describe seizure threshold effects."
             />
           </div>
-
-          {/* Self-harm */}
-          <div className="space-y-2">
-            <Label htmlFor={`${idPrefix}-selfharm-level`}>Self-Harm Risk</Label>
-            <RiskLevelSelect
-              id={`${idPrefix}-selfharm-level`}
-              value={selfHarmLevel}
-              onChange={(v) => setValue("harm_potential.risks.self_harm.level", v)}
-            />
-            <Textarea
-              id={`${idPrefix}-selfharm-desc`}
-              className="min-h-[60px]"
-              {...register("harm_potential.risks.self_harm.description")}
-              placeholder="Describe self-harm or injury risks."
-            />
-          </div>
-        </div>
-        <div className="space-y-1 mt-4">
-          <ControlledTagMultiSelect
-            name="harm_potential.risks.other"
-            label="Other Risks"
-            placeholder="Add risk"
-            options={[]}
-            addButtonLabel="Add"
-            openStrategy="focus"
-          />
         </div>
       </CollapsibleSubsection>
     </section>

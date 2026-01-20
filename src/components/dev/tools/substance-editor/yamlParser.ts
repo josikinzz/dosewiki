@@ -462,26 +462,115 @@ function normalizeReagentTesting(raw: unknown): Record<string, string> {
 }
 
 function normalizeHarmPotential(raw: unknown): SubstanceArticle["harm_potential"] {
+  if (!raw) return undefined;
   const obj = getObject(raw);
-  const toxicity = getObject(obj.toxicity);
-  const risks = getObject(obj.risks);
 
-  return {
-    addiction_liability: getString(obj.addiction_liability),
-    dependence_liability: getString(obj.dependence_liability),
-    toxicity: {
-      ld50: getString(toxicity.ld50),
-      organ_toxicity: getString(toxicity.organ_toxicity),
-      carcinogenicity: getString(toxicity.carcinogenicity),
-      other: getString(toxicity.other),
-    },
-    risks: {
-      psychosis: getString(risks.psychosis),
-      self_harm: getString(risks.self_harm),
-      seizure: getString(risks.seizure),
-      other: getStringArray(risks.other),
-    },
+  // Handle toxicity - can have ld50/organ_toxicity as arrays or strings
+  const toxicity = getObject(obj.toxicity);
+  const normalizedToxicity: NonNullable<SubstanceArticle["harm_potential"]>["toxicity"] = {};
+
+  // LD50 - preserve array or string format
+  if (Array.isArray(toxicity.ld50)) {
+    normalizedToxicity.ld50 = toxicity.ld50.map((entry) => {
+      const e = getObject(entry);
+      return {
+        species: getString(e.species),
+        route: getString(e.route),
+        value: typeof e.value === "number" ? e.value : null,
+        unit: getString(e.unit),
+      };
+    });
+  } else if (typeof toxicity.ld50 === "string" && toxicity.ld50) {
+    normalizedToxicity.ld50 = toxicity.ld50;
+  }
+
+  // Organ toxicity - preserve array or string format
+  if (Array.isArray(toxicity.organ_toxicity)) {
+    normalizedToxicity.organ_toxicity = toxicity.organ_toxicity.map((entry) => {
+      const e = getObject(entry);
+      return {
+        system: getString(e.system),
+        findings: getString(e.findings),
+        mechanism: getString(e.mechanism),
+        notes: getString(e.notes),
+      };
+    });
+  } else if (typeof toxicity.organ_toxicity === "string" && toxicity.organ_toxicity) {
+    normalizedToxicity.organ_toxicity = toxicity.organ_toxicity;
+  }
+
+  // Carcinogenicity - can be object or string
+  if (toxicity.carcinogenicity && typeof toxicity.carcinogenicity === "object") {
+    const carc = getObject(toxicity.carcinogenicity);
+    normalizedToxicity.carcinogenicity = {
+      level: carc.level as typeof normalizedToxicity.carcinogenicity extends { level: infer L } ? L : never ?? null,
+      evidence: carc.evidence as typeof normalizedToxicity.carcinogenicity extends { evidence?: infer E } ? E : never,
+      description: getString(carc.description),
+    };
+  } else if (typeof toxicity.carcinogenicity === "string" && toxicity.carcinogenicity) {
+    normalizedToxicity.carcinogenicity = toxicity.carcinogenicity;
+  }
+
+  // Antibiotic function
+  if (toxicity.antibiotic_function && typeof toxicity.antibiotic_function === "object") {
+    const ab = getObject(toxicity.antibiotic_function);
+    normalizedToxicity.antibiotic_function = {
+      level: ab.level as typeof normalizedToxicity.antibiotic_function extends { level: infer L } ? L : never ?? null,
+      description: getString(ab.description),
+    };
+  }
+
+  // Other toxicity notes
+  if (toxicity.other) {
+    (normalizedToxicity as Record<string, unknown>).other = getString(toxicity.other);
+  }
+
+  // Normalize addiction - new format with psychological and physical_dependence
+  const addiction = getObject(obj.addiction);
+  const normalizedAddiction: NonNullable<SubstanceArticle["harm_potential"]>["addiction"] = {};
+
+  if (addiction.psychological) {
+    const psych = getObject(addiction.psychological);
+    normalizedAddiction.psychological = {
+      level: psych.level as typeof normalizedAddiction.psychological extends { level: infer L } ? L : never ?? null,
+      description: getString(psych.description),
+    };
+  }
+
+  if (addiction.physical_dependence) {
+    const phys = getObject(addiction.physical_dependence);
+    normalizedAddiction.physical_dependence = {
+      level: phys.level as typeof normalizedAddiction.physical_dependence extends { level: infer L } ? L : never ?? null,
+      description: getString(phys.description),
+    };
+  }
+
+  // Normalize psychosis and seizure - top-level in new schema
+  const normalizeRiskField = (field: unknown) => {
+    if (!field || typeof field !== "object") return undefined;
+    const f = getObject(field);
+    return {
+      level: f.level as "Low" | "Moderate" | "High" | "Very High" | null ?? null,
+      description: getString(f.description),
+    };
   };
+
+  // Build the result, preserving any extra fields via passthrough
+  const result: NonNullable<SubstanceArticle["harm_potential"]> = {
+    ...(obj as Record<string, unknown>), // Passthrough for legacy fields
+    addiction: Object.keys(normalizedAddiction).length > 0 ? normalizedAddiction : undefined,
+    toxicity: Object.keys(normalizedToxicity).length > 0 ? normalizedToxicity : undefined,
+    psychosis: normalizeRiskField(obj.psychosis),
+    seizure: normalizeRiskField(obj.seizure),
+  };
+
+  // Clean up undefined values
+  if (!result.addiction) delete result.addiction;
+  if (!result.toxicity) delete result.toxicity;
+  if (!result.psychosis) delete result.psychosis;
+  if (!result.seizure) delete result.seizure;
+
+  return result;
 }
 
 function normalizeTolerance(raw: unknown): SubstanceArticle["tolerance"] {
