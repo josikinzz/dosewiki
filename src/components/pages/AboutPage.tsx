@@ -1,11 +1,12 @@
-import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import { motion } from "framer-motion";
 
-import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
 import { Icon } from "../common/Icon";
+import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { useLightweightData } from "../../data/LightweightDataProvider";
@@ -14,17 +15,18 @@ import { getProfileByKey } from "../../data/userProfiles";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { SubstanceArticle } from "../../schema";
+import { cardAnimation } from "../../constants/motion";
 
 const markdownComponents = {
   p: ({ node: _node, ...props }: { node?: unknown }) => (
-    <p className="mt-4 text-sm leading-7 text-white/75 first:mt-0 md:text-base" {...props} />
+    <p className="mt-4 text-[1.0625rem] leading-7 text-white/80 first:mt-0" {...props} />
   ),
-  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="text-fuchsia-200" {...props} />,
+  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="font-semibold text-fuchsia-200" {...props} />,
   a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
     const { children, ...rest } = props;
     return (
       <a
-        className="text-fuchsia-200 transition hover:text-fuchsia-100"
+        className="font-medium text-fuchsia-300 transition hover:text-fuchsia-200 hover:underline hover:decoration-fuchsia-300/30 hover:underline-offset-2"
         target="_blank"
         rel="noopener noreferrer"
         {...rest}
@@ -34,12 +36,18 @@ const markdownComponents = {
     );
   },
   ul: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ul className="mt-4 list-disc space-y-3 pl-5 text-sm text-white/75 marker:text-white/60 md:text-base" {...props} />
+    <ul className="mt-4 list-disc space-y-2 pl-6 text-[1.0625rem] text-white/80 marker:text-fuchsia-400/50" {...props} />
   ),
   ol: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-white/75 marker:text-white/60 md:text-base" {...props} />
+    <ol className="mt-4 list-decimal space-y-2 pl-6 text-[1.0625rem] text-white/80 marker:text-fuchsia-400/50" {...props} />
   ),
-  li: ({ node: _node, ...props }: { node?: unknown }) => <li {...props} />,
+  li: ({ node: _node, ...props }: { node?: unknown }) => <li className="pl-1" {...props} />,
+  h1: ({ node: _node, ...props }: { node?: unknown }) => <h1 className="mt-8 mb-4 text-2xl font-bold text-white" {...props} />,
+  h2: ({ node: _node, ...props }: { node?: unknown }) => <h2 className="mt-8 mb-4 text-xl font-bold text-white" {...props} />,
+  h3: ({ node: _node, ...props }: { node?: unknown }) => <h3 className="mt-6 mb-3 text-lg font-bold text-white" {...props} />,
+  blockquote: ({ node: _node, ...props }: { node?: unknown }) => (
+    <blockquote className="mt-6 border-l-4 border-fuchsia-500/30 pl-4 italic text-white/70" {...props} />
+  ),
 };
 
 /** Canonical field order from substance.schema.ts */
@@ -67,7 +75,7 @@ function reorderArticleFields(article: SubstanceArticle): SubstanceArticle {
 }
 
 function JsonSyntaxHighlight({ json }: { json: string }) {
-  const highlighted = useMemo(() => {
+  const highlightedLines = useMemo(() => {
     const escaped = json
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -118,14 +126,27 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         i++;
       }
     }
-    return tokens.join('');
+    return tokens.join("").split("\n");
   }, [json]);
 
   return (
-    <pre
-      className="overflow-x-auto text-xs leading-relaxed"
-      dangerouslySetInnerHTML={{ __html: highlighted }}
-    />
+    <div className="font-mono text-xs leading-relaxed text-white/55">
+      {highlightedLines.map((line, idx) => (
+        <div
+          key={idx}
+          className="grid grid-cols-[2.5rem,1fr] items-start gap-3"
+        >
+          <span className="select-none pr-2 text-right tabular-nums text-white/20">
+            {idx + 1}
+          </span>
+          <span
+            className="min-w-0 whitespace-pre-wrap break-words"
+            // Preserve empty lines so the line-number gutter stays consistent.
+            dangerouslySetInnerHTML={{ __html: line.length ? line : "&nbsp;" }}
+          />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -146,7 +167,7 @@ const toInitials = (value: string) => {
 
 export const AboutPage = memo(function AboutPage() {
   // Use lightweight data for substance count
-  const { substanceCount, layout } = useLightweightData();
+  const { substanceCount, layout, substances } = useLightweightData();
 
   // Get effect count from Convex
   const effects = useQuery(api.subjectiveEffects.getAll);
@@ -155,14 +176,25 @@ export const AboutPage = memo(function AboutPage() {
   // Get About content from Convex (no static fallback)
   const aboutConfig = useQuery(api.siteConfig.getAbout);
 
-  // State for shuffling random articles (seed triggers new Convex query)
-  const [shuffleSeed, setShuffleSeed] = useState(() => Date.now());
+  const eligiblePreviewSubstances = useMemo(() => {
+    return substances.filter((s) => s.priority !== "low");
+  }, [substances]);
 
-  // Fetch 5 random articles directly from Convex (lightweight - only 5 articles, not 679)
-  const randomArticles = useQuery(api.substanceIndex.getRandomSample, {
-    count: 5,
-    seed: shuffleSeed,
-  });
+  // Random slug selection for the preview (chosen from the precomputed non-low list).
+  const [previewSlug, setPreviewSlug] = useState<string | null>(null);
+
+  // Initialize preview slug once the lightweight list is available.
+  useEffect(() => {
+    if (previewSlug) return;
+    if (eligiblePreviewSubstances.length === 0) return;
+    const pick = eligiblePreviewSubstances[Math.floor(Math.random() * eligiblePreviewSubstances.length)];
+    setPreviewSlug(pick?.slug ?? null);
+  }, [eligiblePreviewSubstances, previewSlug]);
+
+  const previewDoc = useQuery(
+    api.substanceIndex.getBySlug,
+    previewSlug ? { slug: previewSlug } : "skip",
+  ) as (SubstanceArticle & { _id?: unknown; _creationTime?: number }) | null | undefined;
 
   // Download handler for JSON export
   const handleDownload = useCallback(() => {
@@ -176,20 +208,95 @@ export const AboutPage = memo(function AboutPage() {
 
   // Handler to re-randomize articles
   const handleShuffle = useCallback(() => {
-    setShuffleSeed(Date.now());
-  }, []);
+    if (eligiblePreviewSubstances.length === 0) return;
+    if (eligiblePreviewSubstances.length === 1) {
+      setPreviewSlug(eligiblePreviewSubstances[0]?.slug ?? null);
+      return;
+    }
 
-  // Process articles for preview (strip Convex metadata, reorder fields)
-  const previewArticles = useMemo(() => {
-    if (!randomArticles) return [];
-    return randomArticles.map(({ _id, _creationTime, ...article }) =>
-      reorderArticleFields(article as SubstanceArticle)
-    );
-  }, [randomArticles]);
+    let next: string | null = null;
+    // Try a few times to avoid picking the same slug.
+    for (let i = 0; i < 6; i++) {
+      const pick = eligiblePreviewSubstances[Math.floor(Math.random() * eligiblePreviewSubstances.length)];
+      const slug = pick?.slug ?? null;
+      if (slug && slug !== previewSlug) {
+        next = slug;
+        break;
+      }
+    }
+    setPreviewSlug(next ?? eligiblePreviewSubstances[0]?.slug ?? null);
+  }, [eligiblePreviewSubstances, previewSlug]);
+
+  const previewArticle = useMemo(() => {
+    if (previewDoc === undefined) return undefined; // loading
+    if (previewDoc === null) return null; // not found
+    if (!previewDoc) return null;
+    const { _id: _ignoredId, _creationTime: _ignoredCreationTime, ...article } = previewDoc as unknown as Record<
+      string,
+      unknown
+    >;
+    return reorderArticleFields(article as SubstanceArticle);
+  }, [previewDoc]);
 
   const previewJson = useMemo(() => {
-    return JSON.stringify(previewArticles, null, 2);
-  }, [previewArticles]);
+    if (previewArticle === undefined) return JSON.stringify("Loading…", null, 2);
+    if (previewArticle === null) return JSON.stringify("No preview available.", null, 2);
+    return JSON.stringify(previewArticle, null, 2);
+  }, [previewArticle]);
+
+  // Debug logs for the JSON preview pipeline (dev only).
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.debug("[AboutPage] JSON preview eligibility:", {
+      total: substances.length,
+      eligibleNonLow: eligiblePreviewSubstances.length,
+      previewSlug,
+    });
+  }, [eligiblePreviewSubstances.length, previewSlug, substances.length]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.debug("[AboutPage] JSON preview doc:", {
+      status: previewDoc === undefined ? "loading" : previewDoc === null ? "not_found" : "loaded",
+      slug: previewSlug,
+      priority: (previewDoc as { priority?: string } | null | undefined)?.priority,
+    });
+  }, [previewDoc, previewSlug]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.debug("[AboutPage] JSON preview render:", {
+      hasArticle: previewArticle !== null && previewArticle !== undefined,
+      previewJsonLength: previewJson.length,
+      previewJsonStartsWith: previewJson.slice(0, 24),
+    });
+  }, [previewArticle, previewJson]);
+
+  const [hasCopied, setHasCopied] = useState(false);
+  const handleCopyPreview = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(previewJson);
+      setHasCopied(true);
+      window.setTimeout(() => setHasCopied(false), 1400);
+    } catch {
+      // Fallback for older browsers / insecure contexts
+      const textarea = document.createElement("textarea");
+      textarea.value = previewJson;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        setHasCopied(true);
+        window.setTimeout(() => setHasCopied(false), 1400);
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
+  }, [previewJson]);
 
   // Derive counts from layout (psychoactive classes are the categories)
   const psychoactiveClassCount = layout.categories.length;
@@ -228,133 +335,277 @@ export const AboutPage = memo(function AboutPage() {
   const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-12 md:max-w-4xl">
-      <img
-        src={logoSrc}
-        alt="dose.wiki logo"
-        className="mx-auto mb-8 h-24 w-24 animate-[spin_30s_linear_infinite] md:h-28 md:w-28"
-        draggable={false}
-      />
-      <PageHeader
-        title="About dose.wiki"
-        icon="lucide:info"
-      />
-      <div className="space-y-6 md:space-y-8">
-        <SectionCard className="space-y-2 md:space-y-3">
-          <div className="prose prose-invert max-w-none">
-            <ReactMarkdown
-              components={markdownComponents}
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-            >
-              {aboutMarkdown}
-            </ReactMarkdown>
-          </div>
-        </SectionCard>
+    <main className="min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f]">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
+        <div className="space-y-12">
+          
+          {/* Hero Section */}
+          <motion.div 
+            className="mb-10"
+            {...cardAnimation}
+          >
+            <div className="relative flex flex-col gap-6">
+              {/* Decorative background glow */}
+              <div className="pointer-events-none absolute -left-12 -top-12 h-64 w-64 rounded-full bg-fuchsia-500/10 blur-[80px]" aria-hidden="true" />
+              
+              <div className="flex flex-col gap-6">
+                {/* Title with icon */}
+                <div className="flex items-center gap-6">
+                  <img
+                    src={logoSrc}
+                    alt="dose.wiki logo"
+                    className="h-24 w-24 animate-[spin_30s_linear_infinite]"
+                    draggable={false}
+                  />
+                  <div>
+                    <h1 className="font-display text-[2.5rem] font-bold tracking-tight text-fuchsia-300 sm:text-[3.2rem] leading-none">
+                      About dose.wiki
+                    </h1>
+                    <p className="mt-2 text-lg text-white/60 font-medium">
+                      The open-source encyclopedia of psychoactive substances
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
-        {/* Download & Data Preview */}
-        <SectionCard className="space-y-5">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-fuchsia-200">Download</h2>
-            <p className="text-sm text-white/70">
-              All data is public domain under{" "}
-              <a
-                href="https://creativecommons.org/publicdomain/zero/1.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-fuchsia-300 hover:text-fuchsia-200"
-              >
-                CC0 1.0
-              </a>
-              .
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={handleDownload} className="gap-2">
-                <Icon icon="lucide:download" size={16} />
-                SubstanceIndex.json
-              </Button>
-              <Button variant="secondary" asChild className="gap-2">
-                <a
-                  href="https://github.com/dose-wiki/dose.wiki"
-                  target="_blank"
-                  rel="noopener noreferrer"
+          {/* Main Content */}
+          <motion.section
+            {...cardAnimation}
+            transition={{ ...cardAnimation.transition, delay: 0.1 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                  <Icon icon="lucide:book-open" className="h-8 w-8" />
+                  Project Mission
+                </h2>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+            </div>
+            
+            <div className="relative px-4 py-2">
+              <div className="prose prose-invert prose-fuchsia max-w-none">
+                <ReactMarkdown
+                  components={{
+                    ...markdownComponents,
+                    p: ({ node, children, ...props }) => {
+                      // Check if this is the first paragraph
+                      const isFirst = node?.position?.start.line === 1 || (node?.position?.start.offset === 0);
+                      
+                      if (isFirst && typeof children === 'string') {
+                        const [firstWord, ...rest] = children.split(' ');
+                        return (
+                          <p className="mt-4 text-[1.125rem] leading-8 text-white/90 first:mt-0" {...props}>
+                            <span className="font-bold text-fuchsia-300">{firstWord}</span> {rest.join(' ')}
+                          </p>
+                        );
+                      }
+                      
+                      // For other paragraphs or complex children, use default styling
+                      return (
+                        <p className="mt-4 text-[1.0625rem] leading-7 text-white/80 first:mt-0" {...props}>
+                          {children}
+                        </p>
+                      );
+                    }
+                  }}
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
                 >
-                  <Icon icon="lucide:github" size={16} />
-                  GitHub
-                </a>
-              </Button>
+                  {aboutMarkdown}
+                </ReactMarkdown>
+              </div>
             </div>
-          </div>
+          </motion.section>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-white/80">Preview (5 random articles)</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShuffle}
-                className="gap-1.5 text-white/60 hover:text-white"
-              >
-                <Icon icon="lucide:dices" size={14} />
-                Shuffle
-              </Button>
+          {/* Data & Tools */}
+          <motion.section
+            {...cardAnimation}
+            transition={{ ...cardAnimation.transition, delay: 0.2 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                  <Icon icon="lucide:database" className="h-8 w-8" />
+                  Open Data & Tools
+                </h2>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
             </div>
-            <div className="max-h-[32rem] overflow-auto rounded-lg border border-white/10 bg-[#0a0612] p-4 font-mono">
-              <JsonSyntaxHighlight json={previewJson} />
-            </div>
-          </div>
-        </SectionCard>
 
-        {founders.length > 0 ? (
-          <SectionCard className="space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-fuchsia-200">Founders</h2>
-            </div>
-            <ul className="grid gap-4 md:grid-cols-2">
-              {founders.map((profile) => {
-                const contributorHref = `/contributors/${profile.key.toLowerCase()}`;
-                const initials = toInitials(profile.displayName || profile.key);
-
-                return (
-                  <li key={profile.key} className="group">
+            <div className="grid gap-6 lg:grid-cols-[1fr,1.5fr]">
+              <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/[0.02] p-8 shadow-xl shadow-black/20 backdrop-blur-sm">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white/90">Download the Database</h3>
+                  <p className="text-sm text-white/60 leading-relaxed">
+                    All data is public domain under{" "}
                     <a
-                      href={contributorHref}
-                      className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm shadow-black/30 transition hover:border-fuchsia-400/60 hover:bg-fuchsia-500/10 hover:text-white"
+                      href="https://creativecommons.org/publicdomain/zero/1.0/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-fuchsia-300 hover:text-fuchsia-200 underline decoration-fuchsia-300/30 underline-offset-2"
                     >
-                      <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-white/10 text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20">
-                        {profile.avatarUrl ? (
-                          <img
-                            src={profile.avatarUrl}
-                            alt={`${profile.displayName} avatar`}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span className="flex h-full w-full items-center justify-center text-lg">{initials}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white/90 group-hover:text-white">
-                          {profile.displayName}
-                        </p>
-                        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/45 group-hover:text-white/75">
-                          @{profile.key.toLowerCase()}
-                        </p>
-                      </div>
+                      CC0 1.0
                     </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </SectionCard>
-        ) : (
-          <SectionCard className="space-y-3">
-            <h2 className="text-xl font-semibold text-fuchsia-200">Founders</h2>
-            <p className="text-sm text-white/65">
-              Founder profiles have not been published yet. Pin contributors from the Dev Tools About tab to surface them here.
-            </p>
-          </SectionCard>
-        )}
+                    . You are free to use, modify, and distribute it without restriction.
+                  </p>
+                  <div className="flex flex-col gap-3 pt-2">
+                    <Button onClick={handleDownload} className="w-full justify-start gap-3 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/5">
+                      <IconBadge icon="lucide:download" className="bg-fuchsia-500/20 text-fuchsia-200" />
+                      <div className="flex flex-col items-start text-xs">
+                        <span className="font-semibold text-sm">SubstanceIndex.json</span>
+                        <span className="text-white/50">Full database export</span>
+                      </div>
+                    </Button>
+                    <Button variant="ghost" asChild className="w-full justify-start gap-3 h-12 rounded-xl hover:bg-white/5 text-white/80 hover:text-white border border-transparent hover:border-white/10">
+                      <a
+                        href="https://github.com/dose-wiki/dose.wiki"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <IconBadge icon="lucide:github" className="bg-white/10 text-white/80" />
+                        <div className="flex flex-col items-start text-xs">
+                          <span className="font-semibold text-sm">GitHub Repository</span>
+                          <span className="text-white/50">Source code & contribution</span>
+                        </div>
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0612] shadow-xl shadow-black/20">
+                <div className="flex items-center justify-between border-b border-white/5 px-6 py-4 bg-white/[0.02]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-rose-500/20 border border-rose-500/50" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-amber-500/20 border border-amber-500/50" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/50" />
+                    </div>
+                    <span className="ml-2 text-xs font-medium text-white/40">SubstanceIndex.json</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCopyPreview}
+                      className="h-7 gap-1.5 rounded-lg px-2 text-xs text-white/40 hover:bg-white/5 hover:text-white"
+                    >
+                      <Icon icon={hasCopied ? "lucide:check" : "lucide:copy"} size={12} />
+                      {hasCopied ? "Copied" : "Copy"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleShuffle}
+                      className="h-7 gap-1.5 rounded-lg px-2 text-xs text-white/40 hover:bg-white/5 hover:text-white"
+                    >
+                      <Icon icon="lucide:dices" size={12} />
+                      Shuffle
+                    </Button>
+                  </div>
+                </div>
+                <div className="relative flex-1 min-h-[16rem] overflow-hidden bg-[#06020c]">
+                  {/* Subtle \"hacker terminal\" texture */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 opacity-[0.65]"
+                    style={{
+                      backgroundImage:
+                        "radial-gradient(900px 420px at 10% -10%, rgba(217,70,239,0.16), transparent 55%), radial-gradient(700px 340px at 90% 0%, rgba(16,185,129,0.10), transparent 55%), linear-gradient(to bottom, rgba(255,255,255,0.03), transparent 18%, transparent 82%, rgba(255,255,255,0.03))",
+                    }}
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(to bottom, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 6px)",
+                      opacity: 0.07,
+                      mixBlendMode: "overlay",
+                    }}
+                  />
+
+                  <div className="absolute inset-0 overflow-auto py-6 pr-6 pl-3 custom-scrollbar">
+                    <JsonSyntaxHighlight json={previewJson} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Founders */}
+          <motion.section
+            {...cardAnimation}
+            transition={{ ...cardAnimation.transition, delay: 0.3 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                  <Icon icon="lucide:users" className="h-8 w-8" />
+                  Founders & Contributors
+                </h2>
+              </div>
+              <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+            </div>
+
+            {founders.length > 0 ? (
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {founders.map((profile) => {
+                  const contributorHref = `/contributors/${profile.key.toLowerCase()}`;
+                  const initials = toInitials(profile.displayName || profile.key);
+
+                  return (
+                    <li key={profile.key} className="group">
+                      <a
+                        href={contributorHref}
+                        className="relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.05] hover:border-fuchsia-500/20 hover:shadow-lg hover:shadow-fuchsia-500/5"
+                      >
+                        <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-fuchsia-500/5 blur-xl group-hover:bg-fuchsia-500/10 transition" />
+                        
+                        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/5 text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20 ring-1 ring-white/5 group-hover:ring-fuchsia-500/30 transition">
+                          {profile.avatarUrl ? (
+                            <img
+                              src={profile.avatarUrl}
+                              alt={`${profile.displayName} avatar`}
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="flex h-full w-full items-center justify-center text-lg">{initials}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-base font-semibold text-white/90 group-hover:text-white transition">
+                            {profile.displayName}
+                          </p>
+                          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.15em] text-fuchsia-300/50 group-hover:text-fuchsia-300/80 transition">
+                            @{profile.key.toLowerCase()}
+                          </p>
+                        </div>
+                        <Icon icon="lucide:arrow-right" className="h-5 w-5 text-white/20 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
+                <p className="text-sm text-white/60">
+                  Founder profiles have not been published yet. Pin contributors from the Dev Tools About tab to surface them here.
+                </p>
+              </div>
+            )}
+          </motion.section>
+        </div>
       </div>
-    </div>
+    </main>
   );
 });
