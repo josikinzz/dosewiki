@@ -1,5 +1,5 @@
 /**
- * Migrate Selected Fields from Old articles.json
+ * Migrate Selected Fields from Old SubstanceIndex.json
  *
  * Migrates 4 specific fields from the old dose.wiki codebase:
  * - chemical_class
@@ -169,8 +169,8 @@ const FALSE_POSITIVE_ALIASES = new Set([
 // Main migration function
 function migrate() {
   // Paths
-  const oldPath = "/Users/josie/Documents/Utilities/dose.wiki old/src/data/articles.json";
-  const newPath = path.resolve(__dirname, "../../src/data/articles.json");
+  const oldPath = "/Users/josie/Documents/Utilities/dose.wiki old/src/data/SubstanceIndex.json";
+  const newPath = path.resolve(__dirname, "../../src/data/SubstanceIndex.json");
   const articleSourcesPath = path.resolve(__dirname, "../../src/data/article-sources");
 
   // Load old articles

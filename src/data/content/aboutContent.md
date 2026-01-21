@@ -5,4 +5,4 @@ Dose.Wiki is maintained on [GitHub](https://github.com/josikinzz/dosewiki) and c
 - Review combination guidance on the [Interactions](#/interactions) hub as risk annotations continue to expand.
 - Audit edits or draft new entries in the [Dev Tools](#/dev/edit) workspace, which mirrors the live JSON schema.
 
-Every surface reads from the [articles dataset](https://raw.githubusercontent.com/josikinzz/dosewiki/main/src/data/articles.json). Use the global search in the header to jump straight to any record or open a mechanism detail via the badges on each substance.
+Every surface reads from the [articles dataset](https://raw.githubusercontent.com/josikinzz/dosewiki/main/src/data/SubstanceIndex.json). Use the global search in the header to jump straight to any record or open a mechanism detail via the badges on each substance.

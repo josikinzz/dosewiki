@@ -16,7 +16,7 @@ const splitToList = (value) => {
     .filter(Boolean);
 };
 
-const articles = JSON.parse(fs.readFileSync(path.join("src", "data", "articles.json"), "utf8"));
+const articles = JSON.parse(fs.readFileSync(path.join("src", "data", "SubstanceIndex.json"), "utf8"));
 
 const records = articles
   .map((article) => {

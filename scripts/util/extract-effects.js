@@ -5,8 +5,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Read the articles.json file
-const articlesPath = path.join(__dirname, '../..', 'src', 'data', 'articles.json');
+// Read the SubstanceIndex.json file
+const articlesPath = path.join(__dirname, '../..', 'src', 'data', 'SubstanceIndex.json');
 const articles = JSON.parse(fs.readFileSync(articlesPath, 'utf-8'));
 
 // Sets to store unique effects by category

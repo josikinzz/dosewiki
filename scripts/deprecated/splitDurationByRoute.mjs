@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, "../..");
 
-const ARTICLES_PATH = path.join(ROOT, "src", "data", "articles.json");
+const ARTICLES_PATH = path.join(ROOT, "src", "data", "SubstanceIndex.json");
 const OUTPUT_PATH = path.join(ROOT, "src", "data", "articles.duration-migrated.json");
 const SKIP_LIST_PATH = path.join(ROOT, "src", "data", "durationMigrationSkips.json");
 

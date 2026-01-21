@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Normalize articles.json to align with the current Zod schema defaults.
+ * Normalize SubstanceIndex.json to align with the current Zod schema defaults.
  * 
  * This script fixes data inconsistencies that have accumulated over time:
  * - botanical_name: null -> ""
@@ -21,7 +21,7 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const ARTICLES_PATH = join(__dirname, "../../src/data/articles.json");
+const ARTICLES_PATH = join(__dirname, "../../src/data/SubstanceIndex.json");
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -131,7 +131,7 @@ function normalizeArticle(article) {
 }
 
 function main() {
-  console.log(`\n📋 Normalizing articles.json${DRY_RUN ? " (DRY RUN)" : ""}\n`);
+  console.log(`\n📋 Normalizing SubstanceIndex.json${DRY_RUN ? " (DRY RUN)" : ""}\n`);
 
   // Read articles
   const articlesRaw = readFileSync(ARTICLES_PATH, "utf-8");
@@ -162,12 +162,12 @@ function main() {
   if (!DRY_RUN && totalChanges > 0) {
     // Write back
     writeFileSync(ARTICLES_PATH, JSON.stringify(articles, null, 2) + "\n");
-    console.log(`\n✅ Wrote changes to articles.json`);
+    console.log(`\n✅ Wrote changes to SubstanceIndex.json`);
     console.log(`\n⚠️  Don't forget to run: node scripts/build/buildCompressedArticles.mjs`);
   } else if (DRY_RUN && totalChanges > 0) {
     console.log(`\n🔍 Dry run complete. Run without --dry-run to apply changes.`);
   } else {
-    console.log(`\n✅ No changes needed. articles.json is already normalized.`);
+    console.log(`\n✅ No changes needed. SubstanceIndex.json is already normalized.`);
   }
 }
 

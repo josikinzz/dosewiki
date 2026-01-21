@@ -23,6 +23,19 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 
 ## Critical Constraints
 
+**CRITICAL: SOURCE MATERIAL ONLY - THIS APPLIES TO EVERY SINGLE FIELD**
+
+This rule applies to ALL fields in the entire harm_potential section: addiction levels, addiction descriptions, ld50 values, organ_toxicity entries, carcinogenicity, antibiotic_function, psychosis, seizure, and all other fields.
+
+- If information is NOT explicitly stated in the provided source excerpts, leave the field EMPTY ("", null, or [])
+- Do NOT fill in fields with general knowledge, assumptions, or information from your training data
+- Do NOT infer or extrapolate beyond what the sources explicitly state
+- When in doubt, leave it empty - an empty field is better than fabricated data
+- This is a harm reduction database - accuracy is paramount, speculation is dangerous
+- It is BETTER to return mostly empty fields than to fabricate information
+- Only populate a field if you can point to specific text in the sources that supports it
+
+**Writing Style:**
 - SYNTHESIZE information from the provided excerpts into original prose
 - Do not copy sentences or lengthy phrases verbatim from any source
 - Standard technical terminology (medical terms, toxicology terms) can remain as-is
@@ -98,11 +111,11 @@ harm_potential:
 
 | Level | Definition |
 |-------|------------|
-| `confirmed` | Established human carcinogen; sufficient evidence from human epidemiological studies |
-| `probable` | Probable human carcinogen; strong animal evidence with limited/suggestive human data |
-| `possible` | Possible carcinogen; some evidence exists but inconclusive |
-| `no_evidence` | Studies conducted showing no carcinogenic activity |
-| `unknown` | Insufficient data; not adequately studied |
+| `confirmed` | IARC Group 1 or equivalent; established human carcinogen |
+| `probable` | IARC Group 2A; strong evidence in animals, limited human data |
+| `possible` | IARC Group 2B; some evidence, not conclusive |
+| `no_evidence` | Studies exist showing no carcinogenic activity |
+| `unknown` | Insufficient data; no studies conducted |
 
 ### Antibiotic Function Levels
 
@@ -113,6 +126,15 @@ harm_potential:
 | `possible` | Some evidence of antimicrobial properties |
 | `no_evidence` | Studies show no antimicrobial activity |
 | `unknown` | Not studied for antimicrobial properties |
+
+### Evidence Levels (for carcinogenicity evidence breakdown)
+
+| Level | Definition |
+|-------|------------|
+| `none` | No studies conducted |
+| `negative` | Studies show no effect/carcinogenic activity |
+| `limited` | Some studies suggest activity but inconclusive |
+| `positive` | Clear evidence of carcinogenic activity |
 
 ---
 
@@ -132,18 +154,39 @@ harm_potential:
 
 ---
 
+## What Belongs Elsewhere (DO NOT Include)
+
+| Information Type | Correct Section |
+|------------------|-----------------|
+| Receptor binding, mechanism of action | `pharmacology` |
+| Drug interactions/combinations | `interactions` |
+| Tolerance development timeline | `tolerance` |
+| Effect descriptions (euphoria, visuals, etc.) | `subjective_effects` |
+| Dosing information | `dosage` |
+| Duration/timeline of effects | `duration` |
+| Legal status | `legality` |
+
+---
+
 ## Field Definitions
 
-### addiction.psychological
-- **level**: How commonly psychological addiction develops with this substance
-- **description**: 1-2 sentences on abuse potential, compulsive redosing patterns, psychological dependence
-- Look for: "abuse potential", "addiction", "habit-forming", "compulsive", "psychological dependence", "reinforcing"
-
-### addiction.physical_dependence
-- **level**: Likelihood and severity of physical dependence developing
-- **description**: Physical dependence risk, withdrawal symptoms, whether withdrawal can be dangerous/fatal
-- Look for: "physical dependence", "withdrawal", "discontinuation symptoms"
-- Note: "Extremely high" reserved for potentially fatal withdrawals (GABAergics)
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `addiction.psychological.level` | `enum \| null` | Severity level for psychological addiction risk | `"moderate"` |
+| `addiction.psychological.description` | `string` | 1-2 sentences on psychological addiction potential, abuse potential, compulsive redosing patterns | "Moderate abuse potential with risk of psychological dependence. Compulsive redosing is commonly reported, particularly with insufflation." |
+| `addiction.physical_dependence.level` | `enum \| null` | Severity level for physical dependence risk | `"high"` |
+| `addiction.physical_dependence.description` | `string` | Physical dependence risk, withdrawal symptoms, tolerance development | "Physical dependence develops with chronic use. Withdrawal symptoms include anxiety, tremor, sweating, and palpitations." |
+| `toxicity.ld50` | `array` | Array of LD50 entries with species, route, value, and unit | See example below |
+| `toxicity.organ_toxicity` | `array` | Array of organ-specific damage entries | See example below |
+| `toxicity.carcinogenicity.level` | `enum \| null` | Classification level (confirmed/probable/possible/no_evidence/unknown) | `"no_evidence"` |
+| `toxicity.carcinogenicity.evidence` | `object \| null` | Detailed evidence breakdown (optional - include if data available) | See example below |
+| `toxicity.carcinogenicity.description` | `string` | Cancer risk data if available | "Not shown to be carcinogenic in animal studies." |
+| `toxicity.antibiotic_function.level` | `enum \| null` | Antimicrobial activity classification | `"unknown"` |
+| `toxicity.antibiotic_function.description` | `string` | Antibiotic/antimicrobial properties | "No studies on antimicrobial properties." |
+| `psychosis.level` | `enum \| null` | Severity level for psychosis risk | `"moderate"` |
+| `psychosis.description` | `string` | Psychosis, psychotic episodes, emergence delirium | "10-20% of adults experience psychiatric reactions during emergence." |
+| `seizure.level` | `enum \| null` | Severity level for seizure risk | `"low"` |
+| `seizure.description` | `string` | Seizure threshold effects, convulsion risk | "Seizures rare but reported at very high doses. May lower seizure threshold." |
 
 ### toxicity.ld50
 Array of lethal dose data. Each entry:
@@ -155,37 +198,100 @@ Array of lethal dose data. Each entry:
 Avoid estimates. Do not imply human applicability.
 
 ### toxicity.organ_toxicity
-Array of organ-specific damage. Each entry:
-- **system**: Organ system affected (e.g., "Cardiovascular", "Hepatic", "Urinary", "Neurological")
-- **findings**: What damage/effects occur (e.g., "Elevated liver enzymes", "Bladder inflammation")
-- **mechanism**: The BIOLOGICAL mechanism causing damage (e.g., "5-HT2B agonism", "Direct cytotoxic effects on epithelium", "CYP450-mediated reactive metabolite formation"). **NOT** dose-response observations like "associated with higher doses" - that goes in notes.
-- **notes**: Contextual information (reversibility, dose-dependence, ROA-specific differences, biomarkers)
+Array of organ-specific damage. Each entry has 4 fields with STRICT definitions:
+
+| Field | Purpose | Content Type |
+|-------|---------|--------------|
+| `system` | Which organ/body system | Anatomical system name |
+| `findings` | WHAT damage occurs | Observable symptoms, clinical findings, diagnoses |
+| `mechanism` | HOW/WHY it causes damage at molecular level | Biochemical pathways, cellular processes, receptor interactions |
+| `notes` | EVERYTHING ELSE | Prevalence, reversibility, risk factors, case counts, dosing patterns |
+
+#### Mechanism Field - STRICT Definition
+
+The `mechanism` field describes ONLY the biochemical/molecular pathway of damage:
+- Molecular targets (enzymes, receptors, DNA, proteins)
+- Cellular processes (apoptosis, necrosis, oxidative stress, inflammation)
+- Biochemical pathways (CYP450 metabolism, ROS generation, membrane disruption)
+
+**mechanism is NOT for:**
+- Prevalence statistics ("affects 20% of users") → PUT IN NOTES
+- Dosing patterns ("associated with high doses") → PUT IN NOTES
+- Reversibility ("usually reversible") → PUT IN NOTES
+- Case counts ("over 100 documented cases") → PUT IN NOTES
+- Risk factors ("more common in chronic users") → PUT IN NOTES
+- Clinical observations without biochemical explanation → PUT IN NOTES
+
+**If the sources don't describe the biochemical mechanism, leave it EMPTY ("")**
+
+#### Notes Field - Catch-All
+
+The `notes` field is for ALL contextual information:
+- Prevalence and statistics
+- Reversibility status
+- Risk factors and populations
+- Case counts and documentation
+- Dosing/frequency patterns
+- Any other relevant context
+
+#### CORRECT vs INCORRECT Examples
+
+**WRONG - Non-mechanism in mechanism field:**
+```yaml
+- system: "Hepatic"
+  findings: "Elevated liver enzymes, hepatotoxicity"
+  mechanism: "Associated with higher doses and repeated administration"  # NOT a mechanism!
+  notes: ""
+```
+
+**CORRECT - Proper separation:**
+```yaml
+- system: "Hepatic"
+  findings: "Elevated liver enzymes, hepatotoxicity"
+  mechanism: ""  # Empty because biochemical pathway unknown
+  notes: "Associated with higher doses and repeated administration. Reversibility depends on severity."
+```
+
+**WRONG:**
+```yaml
+- system: "Urinary System"
+  findings: "Cystitis, bladder damage"
+  mechanism: "Affects 20-30% of frequent users. Over 110 documented cases."  # These are statistics!
+  notes: ""
+```
+
+**CORRECT:**
+```yaml
+- system: "Urinary System"
+  findings: "Cystitis, hydronephrosis, decreased bladder capacity, painful haematuria"
+  mechanism: "Direct cytotoxic effects on urothelium; metabolites damage epithelial cells and increase barrier permeability"
+  notes: "Affects 20-30% of frequent users. Over 110 documented cases. May be reversible with cessation in less severe cases."
+```
+
+**WRONG:**
+```yaml
+- system: "Central Nervous System"
+  findings: "Cognitive deficits, brain atrophy"
+  mechanism: "Daily use causes indicators of cell death. Primate studies showed damage after 6 months."  # Study info, not mechanism!
+  notes: ""
+```
+
+**CORRECT:**
+```yaml
+- system: "Central Nervous System"
+  findings: "Reduction in white and grey matter, brain atrophy, cognitive deficits in memory and learning"
+  mechanism: "NMDA receptor blockade leads to increased apoptosis, particularly in developing brain tissue"
+  notes: "Daily use causes prefrontal cortex cell death. Primate studies showed damage after 6 months at 1 mg/kg IV. Deficits may be reversible with infrequent use."
+```
 
 Include: biomarker elevations (ALT/AST, CK), mechanistic models, ROA-specific toxicity differences.
 
-### toxicity.carcinogenicity
-- **level**: Overall classification based on available evidence
-- **evidence**: Detailed breakdown (include if data available):
-  - `human_epidemiological`: none/negative/limited/positive
-  - `animal_models`: level + species tested
-  - `in_vitro`: genotoxic/non-genotoxic + assay type
-  - `mechanistic`: none/possible + receptor/mechanism basis
-- **description**: Summary of carcinogenicity data
-
-### toxicity.antibiotic_function
-- **level**: Whether antimicrobial activity documented
-- **description**: Details on antibiotic/antimicrobial properties if any
-- Most recreational drugs will be "unknown"
-
-### psychosis
-- **level**: How commonly psychosis/psychotic symptoms occur
-- **description**: Psychosis risk, psychotic episodes, emergence delirium, hallucinations, delusions
-- Note if acute (during use) or persistent (after use)
-
-### seizure
-- **level**: How commonly seizures occur
-- **description**: Seizure risk, convulsions, effects on seizure threshold
-- Note conditions that increase risk
+### toxicity.carcinogenicity.evidence
+Detailed evidence breakdown (include if source data available):
+- `human_epidemiological`: none/negative/limited/positive
+- `animal_models`: level + species tested
+- `in_vitro`: genotoxic/non-genotoxic + assay type
+- `mechanistic`: none/possible + receptor/mechanism basis
 
 ---
 
@@ -271,6 +377,51 @@ carcinogenicity:
   evidence: null
   description: "No human, animal, or genotoxicity data available."
 ```
+
+---
+
+## Extraction Rules
+
+### For addiction.psychological:
+- Look for: "abuse potential", "addiction", "habit-forming", "compulsive", "psychological dependence", "reinforcing"
+- Note frequency patterns: "daily use", "bingeing", "difficulty stopping"
+- Assign level based on how commonly psychological addiction develops
+
+### For addiction.physical_dependence:
+- Look for: "physical dependence", "withdrawal", "discontinuation symptoms"
+- Distinguish from psychological addiction
+- Note severity of withdrawal (can it be fatal? hospitalization needed?)
+- Assign level based on likelihood and severity of physical dependence
+
+### For toxicity.ld50:
+- Extract exact values with species and route
+- Parse into structured entries: species, route, value (number), unit (string)
+- If only a text description is available, put it in the unit field with value: null
+
+### For toxicity.organ_toxicity:
+- Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
+- Create separate entries for each organ system affected
+- Include mechanism ONLY if biochemical pathway is described
+- Note if damage is reversible or permanent (in notes field)
+
+### For toxicity.carcinogenicity:
+- Look for: "carcinogenic", "cancer", "mutagenic", "IARC", "Group 1/2A/2B"
+- Assign level based on classification or available evidence
+- Include evidence breakdown if source provides detailed study information
+
+### For toxicity.antibiotic_function:
+- Look for: "antimicrobial", "antibiotic", "bactericidal", "bacteriostatic"
+- Most recreational drugs will be "unknown" unless specifically studied
+
+### For psychosis:
+- Look for: "psychosis", "psychotic", "hallucinations", "delusions", "paranoia", "emergence delirium"
+- Note if acute (during use) or persistent (after use)
+- Assign level based on frequency and severity
+
+### For seizure:
+- Look for: "seizure", "convulsion", "epileptic", "seizure threshold"
+- Note conditions that increase risk
+- Assign level based on how commonly seizures occur
 
 ---
 

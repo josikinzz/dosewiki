@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const articlesPath = resolve(__dirname, "../src/data/articles.json");
+const articlesPath = resolve(__dirname, "../src/data/SubstanceIndex.json");
 
 const desiredInfoOrder = [
   "drug_name",

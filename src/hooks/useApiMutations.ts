@@ -33,7 +33,7 @@ export interface SaveArticlesPayload {
   aboutConfig?: { founderProfileKeys: string[] };
   generatorPrompt?: string;
   /**
-   * When true, skip updating articles.json in GitHub.
+   * When true, skip updating SubstanceIndex.json in GitHub.
    * Use when articles are managed via Convex instead.
    */
   skipArticles?: boolean;

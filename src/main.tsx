@@ -79,7 +79,6 @@ const EMPTY_LIBRARY: LibraryData = {
 function checkIfNeedsLibrary(path: string): boolean {
   return (
     path.startsWith("/dev") ||
-    path.startsWith("/about") ||
     path.startsWith("/mechanism") ||
     path.startsWith("/chemical") ||
     path.startsWith("/psychoactive") ||

@@ -276,7 +276,7 @@ function generatePrerenderedPage(article, indexHtmlTemplate) {
 }
 
 async function main() {
-  const articlesPath = path.resolve(__dirname, "../../src/data/articles.json");
+  const articlesPath = path.resolve(__dirname, "../../src/data/SubstanceIndex.json");
   const indexHtmlPath = path.resolve(__dirname, "../../dist/index.html");
   const outputDir = path.resolve(__dirname, "../../dist");
 
@@ -292,7 +292,7 @@ async function main() {
     const articlesContent = fs.readFileSync(articlesPath, "utf-8");
     articles = JSON.parse(articlesContent);
   } catch (error) {
-    console.warn("Warning: Could not read articles.json");
+    console.warn("Warning: Could not read SubstanceIndex.json");
     return;
   }
 

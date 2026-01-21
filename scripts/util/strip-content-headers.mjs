@@ -11,7 +11,7 @@ import { dirname, join } from "node:path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const articlesPath = join(__dirname, "../../src/data/articles.json");
+const articlesPath = join(__dirname, "../../src/data/SubstanceIndex.json");
 
 const raw = readFileSync(articlesPath, "utf8");
 const articles = JSON.parse(raw);

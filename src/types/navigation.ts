@@ -20,5 +20,4 @@ export type AppView =
   | { type: "dev"; tab: DevTab; slug?: string }
   | { type: "contributor"; profileKey: string }
   | { type: "reports" }
-  | { type: "report"; slug: string; fromSubstanceSlug?: string }
-  | { type: "data" };
+  | { type: "report"; slug: string; fromSubstanceSlug?: string };

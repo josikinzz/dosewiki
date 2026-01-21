@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../");
-const dataPath = path.resolve(root, "src/data/articles.json");
+const dataPath = path.resolve(root, "src/data/SubstanceIndex.json");
 
 const RAW_TARGET_PSYCHO_CLASS = "Dissociative, Hallucinogen";
 const RAW_MECHANISM = "NMDA receptor antagonist";

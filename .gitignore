@@ -26,14 +26,7 @@ notes\ and\ plans/
 archive/
 
 # Quote files (Convex-only, not bundled)
-intro-text-quotes/
-harmpotential-quotes/
-pharmacology-quotes/
-history-culture-quotes/
-dosage-duration-quotes/
-tolerance-quotes/
-subjective-effects-quotes/
-legality-quotes/
+quotes/
 
 # Prompt files (Convex-only, not bundled)
 src/data/config/sectionPrompts/*.md

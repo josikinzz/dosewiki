@@ -71,8 +71,6 @@ function getPageTitle(view: AppView, lookup: Map<string, { name: string }>): str
       return "Trip Reports";
     case "report":
       return `Trip Report`;
-    case "data":
-      return "Download";
     case "dev":
       return `Developer Tools - ${view.tab}`;
     default:

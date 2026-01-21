@@ -19,7 +19,7 @@ export { TripReportsSection } from "./TripReportsSection";
 
 // Harm potential subsections
 export { AddictionSubsection } from "./harm-potential/AddictionSubsection";
-export { HarmPotentialBadges } from "./harm-potential/HarmPotentialBadges";
+export * from "./harm-potential/HarmPotentialBadges";
 export * from "./harm-potential/HarmPotentialUtils";
 export { RisksSubsection } from "./harm-potential/RisksSubsection";
 export { ToxicitySubsection } from "./harm-potential/ToxicitySubsection";

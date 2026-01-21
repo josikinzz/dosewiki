@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Reorder fields in articles.json to match the canonical order defined in the Zod schema.
+ * Reorder fields in SubstanceIndex.json to match the canonical order defined in the Zod schema.
  *
  * This script reorders:
  * - Top-level article fields to match substanceArticleSchema
@@ -25,7 +25,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const articlesPath = path.resolve(__dirname, '../../src/data/articles.json');
+const articlesPath = path.resolve(__dirname, '../../src/data/SubstanceIndex.json');
 
 // Parse CLI arguments
 const args = process.argv.slice(2);
@@ -762,11 +762,11 @@ function contentHash(obj) {
 // ============================================================================
 
 function main() {
-  console.log('Reordering articles.json fields to canonical order...\n');
+  console.log('Reordering SubstanceIndex.json fields to canonical order...\n');
 
   // Read current file
   if (!fs.existsSync(articlesPath)) {
-    console.error(`Error: articles.json not found at ${articlesPath}`);
+    console.error(`Error: SubstanceIndex.json not found at ${articlesPath}`);
     process.exit(1);
   }
 
@@ -774,7 +774,7 @@ function main() {
   const articles = JSON.parse(raw);
 
   if (!Array.isArray(articles)) {
-    console.error('Error: articles.json must be an array');
+    console.error('Error: SubstanceIndex.json must be an array');
     process.exit(1);
   }
 

@@ -14,8 +14,6 @@ export function viewToPath(view: AppView): string {
     }
     case "about":
       return "/about";
-    case "data":
-      return "/data";
     case "category":
       return `/category/${view.categoryKey}`;
     case "effect":
@@ -96,9 +94,9 @@ export function parsePath(
         // Legacy route - redirect to substances
         return { type: "substances" };
       case "about":
-        return { type: "about" };
       case "data":
-        return { type: "data" };
+        // /data redirects to /about (download section is now on about page)
+        return { type: "about" };
       case "category":
         if (slug) {
           return { type: "category", categoryKey: slug };

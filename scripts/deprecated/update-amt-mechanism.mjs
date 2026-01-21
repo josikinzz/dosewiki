@@ -9,7 +9,7 @@ const TARGET_MECHANISM = "Serotonergic psychedelic, serotonin reuptake inhibitor
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../");
-const dataPath = path.resolve(root, "src/data/articles.json");
+const dataPath = path.resolve(root, "src/data/SubstanceIndex.json");
 
 const articles = JSON.parse(fs.readFileSync(dataPath, "utf8"));
 

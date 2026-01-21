@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const articlesPath = path.resolve(__dirname, '../../src/data/articles.json');
+const articlesPath = path.resolve(__dirname, '../../src/data/SubstanceIndex.json');
 
 const topLevelOrder = ['id', 'title', 'drug_info', 'index-category'];
 const drugInfoOrder = [

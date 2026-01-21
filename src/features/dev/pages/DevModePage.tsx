@@ -1512,7 +1512,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const _downloadDraft = () => {
     setNotice(null);
     const fileName = `articles-dev-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-    // Download as JSON for storage format (articles.json)
+    // Download as JSON for storage format (SubstanceIndex.json)
     const payload = JSON.stringify(articles, null, 2);
     const blob = new Blob([payload], { type: "application/json" });
     const url = URL.createObjectURL(blob);

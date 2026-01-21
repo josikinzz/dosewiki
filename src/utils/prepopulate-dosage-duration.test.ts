@@ -17,7 +17,7 @@ import { execSync } from 'child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
 
-const articlesPath = path.join(ROOT, 'src/data/articles.json');
+const articlesPath = path.join(ROOT, 'src/data/SubstanceIndex.json');
 const parsedPath = path.join(ROOT, 'src/data/parsed-sources.json');
 
 // Fields that must NOT be modified by prepopulation

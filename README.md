@@ -1,215 +1,188 @@
 # dose.wiki
 
-Front-end for the dose.wiki harm-reduction knowledge base. The application is a fully static, data-driven React + Tailwind interface that renders substance profiles, dosage guidance, and interaction references sourced from a single JSON dataset.
+Front-end for the dose.wiki harm-reduction knowledge base. A React + Tailwind application that renders substance profiles, dosage guidance, subjective effects, trip reports, and interaction references sourced from a Convex real-time database.
 
 ---
 
 ## Contents
 - [Platform Overview](#platform-overview)
-- [Runtime Architecture](#runtime-architecture)
+- [Data Architecture](#data-architecture)
 - [Project Layout](#project-layout)
-- [Data Flow](#data-flow)
-- [Key Components](#key-components)
-- [Dev Tools Workspace](#dev-tools-workspace)
-- [Search & Navigation](#search--navigation)
+- [Key Features](#key-features)
 - [Build, Run, and Deploy](#build-run-and-deploy)
 - [Development Workflow](#development-workflow)
-- [Quality Checklist](#quality-checklist)
-- [Supporting Scripts](#supporting-scripts)
-- [Reference Types](#reference-types)
+- [Scripts](#scripts)
 - [Further Reading](#further-reading)
 
 ---
 
 ## Platform Overview
-- **Type**: Client-side single page application delivered as static assets (no runtime backend).
-- **Primary dataset**: `src/data/articles.json` contains every substance record. Components never hard-code copy or dosage data.
-- **Routing**: Hash-based URLs (`#/substances`, `#/effect/<slug>`, etc.) to stay static-host friendly.
-- **Styling**: Tailwind CSS utilities layered on a dark cosmic theme with fuchsia accent gradients.
-- **Icons**: [`lucide-react`](https://lucide.dev/) provides all iconography for consistency.
-- **Inline bundle**: `npm run build:inline` outputs a single self-contained HTML file used for offline review and QA.
 
-## Runtime Architecture
-Entry point (`src/main.tsx`) wraps the application in a provider that hydrates an in-memory clone of the dataset for drafting.
+- **Type**: Client-side single page application with Convex backend
+- **Primary data source**: Convex database (679 substances, 164 trip reports, 233 subjective effects)
+- **Routing**: Path-based URLs (`/lsd`, `/effects`, `/reports/{slug}`, `/dev/articles`)
+- **Styling**: Tailwind CSS with dark cosmic theme and fuchsia accent gradients
+- **Icons**: [Lucide React](https://lucide.dev/) for consistency
+- **Offline**: `npm run build:inline` outputs a single self-contained HTML file
 
-```tsx
-// src/main.tsx
-import App from "./App";
-import { DevModeProvider } from "./components/dev/DevModeContext";
+## Data Architecture
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <DevModeProvider>
-      <App />
-    </DevModeProvider>
-  </React.StrictMode>,
-);
+**Convex is the source of truth.** All substance data, trip reports, subjective effects, and configuration live in Convex.
+
+```
+Convex Database
+  ├── substanceIndex     → 679 substance articles
+  ├── articleSources     → Scraped source content (~21MB)
+  ├── tripReports        → 164 trip reports with timelines
+  ├── subjectiveEffects  → 233 effect articles with VCode content
+  ├── replications       → Effect videos/images with file storage
+  ├── indexLayouts       → Category page arrangements
+  ├── siteConfig         → About page and global settings
+  ├── prompts            → AI generation prompts (12 sections)
+  ├── quotes             → Extracted source quotes per substance
+  └── changelog          → Article modification history
+
+Local files (scripts only):
+  ├── SubstanceIndex.json    → Backup/migration scripts
+  ├── parsed-sources.json    → Parser output for prepopulation
+  └── tripsit-combos.json    → Interaction data
 ```
 
-`App.tsx` owns navigation state, loads normalized data, and composes route-level shells:
-
-```tsx
-// src/App.tsx (excerpt)
-const DEFAULT_VIEW: AppView = { type: "substances" };
-const DEFAULT_SLUG = lsdMetadata.slug;
-
-export default function App() {
-  const [view, setView] = useState<AppView>(() => parseHash(undefined, DEFAULT_SLUG, DEFAULT_VIEW));
-
-  const navigate = useCallback((nextView: AppView) => {
-    const hash = viewToHash(nextView);
-    window.location.hash = hash;
-  }, []);
-
-  const selectSubstance = useCallback((slug: string) => navigate({ type: "substance", slug }), [navigate]);
-
-  // ...derive data from library helpers...
-
-  return (
-    <div className="min-h-screen bg-[#0f0a1f] text-white">
-      <Header currentView={view} onNavigate={navigate} /* ... */ />
-      {renderActiveView(view)}
-      <Footer onNavigate={navigate} />
-    </div>
-  );
-}
-```
+**Critical rule**: Never overwrite Convex with local JSON. Fetch from Convex first, modify in memory, sync back.
 
 ## Project Layout
+
 ```
 src/
-├── assets/            # Inline-able assets (logo SVG)
 ├── components/
-│   ├── common/        # Primitives (SectionCard, IconBadge, GlobalSearch, JsonEditor)
-│   ├── dev/           # Dev mode provider + drafting hooks
-│   ├── layout/        # Header, Footer, surrounding chrome
-│   ├── pages/         # Route shells (Substance Index, Effects, Mechanisms, Dev Tools, About)
-│   └── sections/      # Article + page sections (Hero, InteractionsSection, etc.)
+│   ├── common/        # Primitives (SectionCard, GlobalSearch, DiffPreview)
+│   ├── dev/           # DevMode system (forms, profile, tags, tools)
+│   ├── effects/       # Effect-specific (EffectHero, ReplicationGallery)
+│   ├── article/       # ArticleLayout orchestration
+│   ├── layout/        # Header, Footer, PageHeader
+│   ├── pages/         # Route shells (TripReportsPage, EffectsIndexPage)
+│   ├── reports/       # Trip report components
+│   ├── sections/      # Article sections (canonical, used everywhere)
+│   ├── vcode/         # VCodeRenderer for EffectIndex markup
+│   └── ui/            # Radix-based primitives
 ├── data/
-│   ├── articles.json  # Source of truth dataset
-│   ├── contentBuilder.ts # Normalizes raw JSON → SubstanceRecord
-│   ├── library.ts     # Aggregations, indexes, and lookup helpers
-│   ├── search.ts      # Search index + query helpers
-│   └── *.ts           # Supporting datasets (category icons, interaction vocab, etc.)
-├── hooks/             # Reusable hooks (drafting forms)
-├── types/             # Shared TypeScript models
-├── utils/             # Routing helpers, slugification, etc.
-├── styles.css         # Tailwind base imports + bespoke rules
-└── main.tsx / App.tsx # Entry + router
+│   ├── SubstanceIndex.json     # Local backup
+│   ├── builders/               # contentBuilder, libraryBuilder, search
+│   ├── config/                 # tagOptions, sectionPrompts/
+│   └── schema/                 # Generated schema utilities
+├── hooks/             # useArticleForm, useApiMutations, etc.
+├── schema/            # Zod schemas (substance.schema.ts)
+├── types/             # TypeScript models
+└── utils/             # routing, interactions, slug, seo
+
+convex/
+├── schema.ts              # Database schema
+├── substanceIndex.ts      # Substance CRUD
+├── tripReports.ts         # Trip report queries
+├── subjectiveEffects.ts   # Effect queries
+├── replications.ts        # Effect media with file storage
+├── articleSources.ts      # Source content (on-demand)
+└── prompts.ts             # AI generation prompts
+
+scripts/
+├── batch/             # Batch AI generation and quote extraction
+├── replications/      # Effect replication media management
+├── migrate/           # Data migrations (Convex, schema changes)
+├── prepopulate/       # Populate articles from parsed sources
+├── seed/              # Seed initial Convex data
+├── analyze/           # Data analysis and gap detection
+├── convex/            # Convex import/export/sync
+├── build/             # Build-time scripts (compress, sitemap)
+├── parsers/           # Source extraction parsers
+└── data/              # Data utilities
+
+api/                   # Vercel serverless endpoints
 ```
 
-`scripts/` hosts Node utilities for maintaining `articles.json` (category cleanup, effect extraction). Each script writes audit logs into `notes and plans/`.
+## Key Features
 
-## Data Flow
-1. **Raw dataset** (`articles.json`) ships fields like `drug_info.dosages.routes_of_administration` and `subjective_effects`.
-2. **Normalization** happens in `contentBuilder.ts`, producing typed `SubstanceRecord` objects.
+### Substance Articles
+- 679 indexed substances (252 high/normal priority visible, 325 low priority direct-URL only)
+- Structured sections: dosage, duration, effects, pharmacology, interactions, harm potential, legality, history
+- DevMode at `/dev/articles` for content creation with AI assistance
 
-   ```ts
-   // src/data/contentBuilder.ts (excerpt)
-   export const substanceRecords: SubstanceRecord[] = articles
-     .map((article) => buildSubstanceRecord(article))
-     .filter((record): record is SubstanceRecord => record !== null);
+### Trip Reports
+- 164 imported reports from EffectIndex
+- Timeline-based narratives with onset/peak/offset phases
+- Subject metadata (age, setting, medications)
 
-   function buildDoseEntries(ranges?: RawDoseRanges): RouteInfo["dosage"] {
-     if (!ranges) return [];
-     return Object.entries(ranges)
-       .filter(([label, value]) => isNonEmpty(label) && isNonEmpty(value))
-       .map(([label, value]) => ({ label, value: value!.trim() }));
-   }
-   ```
+### Subjective Effects
+- 233 effect articles with VCode markup
+- Replication gallery with videos/images
+- Category pages for cognitive, sensory, physical effects
 
-3. **Aggregations** in `library.ts` expose page-friendly groupings (psychoactive categories, mechanisms, effect summaries, interaction indexes).
-
-   ```ts
-   // src/data/library.ts (excerpt)
-   export const effectSummaries: EffectSummary[] = Array.from(effectMap.entries())
-     .map(([slug, entry]) => ({ name: entry.name, slug, total: entry.records.length }))
-     .sort((a, b) => a.name.localeCompare(b.name));
-
-   export function getMechanismDetail(slug: string): MechanismDetail | null {
-     const entry = mechanismMap.get(normalizeMechanismSlug(slug));
-     if (!entry) return null;
-     const qualifiers = Array.from(entry.qualifierMap.entries()).map(([key, value]) => ({
-       key,
-       label: value.qualifier ?? "general",
-       total: value.records.size,
-       groups: buildCategoryGroups(Array.from(value.records)),
-     }));
-     return { definition: { name: entry.name, slug, total: entry.records.size }, qualifiers, defaultQualifierKey: "unqualified" };
-   }
-   ```
-
-4. **Presentation**: Components consume only normalized helpers, keeping UI logic data-agnostic.
-
-## Key Components
-- **`PageHeader`** (sections/PageHeader.tsx): Shared title bar that optionally receives a Lucide icon and description.
-- **`CategoryGrid`**: Renders expandable psychoactive/chemical/mechanism buckets, clipboard exports, and router callbacks.
-- **`DosageDurationCard`**: Displays normalized route tables (`RouteInfo`) and duration timelines produced by `contentBuilder`.
-- **`InteractionsSection`**: Maps interaction severity to color tokens using keyword groups from `interactionClasses.ts`.
-- **`GlobalSearch`**: Uses the precomputed search index for instant suggestions and portals between hero/header slots depending on scroll position.
-
-Each section wraps content in `SectionCard` (`components/common/SectionCard.tsx`) for consistent background, border, animation, and hover states.
-
-## Dev Tools Workspace
-Accessible via the header/footer wrench icon (`#/dev/edit`). Built exclusively for trusted contributors to stage dataset edits without mutating the shipped JSON.
-
-- `DevModeProvider` clones `articles.json` into memory on load. Edits persist until refresh.
-- Tabs mirror the live article schema: form-first editing (`useArticleDraftForm`), JSON view (`JsonEditor`), changelog diffs, and dataset settings.
-- Actions include copying JSON, downloading individual articles or the entire dataset, and resetting to source values.
-- Psychoactive-class jump menu accelerates navigation across ~200 substances.
-- Saves never hit disk; exports produce timestamped files that can be re-imported manually.
-
-## Search & Navigation
-- Hash router ensures direct linking works on static hosting environments.
-- `GlobalSearch` renders suggestions with contextual badges derived from library metadata (psychoactive classes, mechanisms, ROAs).
-- Search results page (`#/search`) lists matches with type tokens (Substance, Category, Effect) and secondary descriptions.
+### DevMode
+Six tabs at `/dev`:
+1. **articles** - AI article generation with source integration
+2. **change-log** - Modification tracking
+3. **tag-editor** - Manage tags across articles
+4. **profile** - Contributor profiles
+5. **index-layout** - Category arrangement
+6. **about** - About page editor
 
 ## Build, Run, and Deploy
-| Command | Description |
-| --- | --- |
-| `npm install` | Install dependencies (Node 18+ recommended, Node 20 LTS tested). |
-| `npm run dev` | Start Vite dev server on http://localhost:5173 with HMR. |
-| `npm run build` | Produce production bundle in `dist/`. |
-| `npm run build:inline` | Emit single-file HTML at `dist-inline/index.html`. **Run after every change.** |
 
-Deployment is static: upload `dist/` or `dist-inline/index.html` (for offline reviews) to any static host (Vercel, Netlify, S3, etc.).
+| Command | Description |
+|---------|-------------|
+| `npm install` | Install dependencies (Node 20 LTS) |
+| `npm run dev` | Dev server at http://localhost:5173 |
+| `npm run build` | Production build to `dist/` |
+| `npm run build:inline` | Single-file HTML for offline |
+| `npm run test` | Run Vitest tests |
+| `npm run lint` | ESLint with a11y rules |
+
+**Environment**: Requires `VITE_CONVEX_URL` for database connection.
 
 ## Development Workflow
-1. Make changes sourcing data from `library.ts`/`contentBuilder.ts`; never hard-code values.
-2. Prefer Tailwind utilities (ordered layout → color → effects). Keep icons consistent with Lucide usage across existing pages.
-3. Update `notes and plans/` documentation when adding new datasets or workflows.
-4. Finish by running `npm run build:inline` (per repository rule) and manually inspecting `dist-inline/index.html` if needed.
 
-## Quality Checklist
-- ✅ Production build passes (`npm run build`).
-- ✅ Inline build updated (`npm run build:inline`).
-- ✅ Smoke test key routes: Substances, category detail, effects, mechanisms (with qualifiers), interactions, search, Dev Tools, About.
-- ✅ If LSD record missing, build will fail (see `src/data/lsd.ts`).
-- ✅ Document manual QA steps, affected articles, and before/after screenshots in PRs.
+1. **Read CLAUDE.md** - Contains operational constraints and patterns
+2. **Consult style guide** - `notes-and-plans/guides/dosewiki-visual-style-guide.md`
+3. **Source from Convex** - Never hard-code substance data
+4. **Run tests** - `npm run test`
+5. **Build inline** - `npm run build:inline` after changes
 
-## Supporting Scripts
-Located in `scripts/`. Most read `articles.json`, apply transformations, and emit logs into `notes and plans/` for traceability.
+## Scripts
 
-Examples:
-- `scripts/updateIndexCategory.mjs`: Normalizes `index-category` fields and reorders `drug_info` keys.
-- `scripts/extract-effects.js`: Collates effect data for analysis.
-- `scripts/preview-stimulant-card.cjs`: Local tooling for previewing stimulant-category updates.
+See [scripts/README.md](scripts/README.md) for full documentation.
 
-Always inspect output before committing dataset changes.
+### Batch Generation
+```bash
+export OPENROUTER_API_KEY="sk-or-..."
+export VITE_CONVEX_URL="https://..."
 
-## Reference Types
-Key models live under `src/types/`:
-- `content.ts`: `SubstanceContent`, `RouteInfo`, `InteractionGroup`, `ToleranceEntry`, etc.
-- `navigation.ts`: Hash-driven `AppView` shape powering routing logic.
-- `search.ts`: `SearchMatch` definitions used by `GlobalSearch` and search results.
+node scripts/batch/batch-generate-legality.mjs --dry-run
+node scripts/batch/batch-generate-history-culture.mjs --substance=lsd
+node scripts/batch/batch-generate-harm-potential.mjs --all --concurrency=5
+```
 
-Extend these when evolving the schema to keep TypeScript contracts accurate.
+### Source Parsing
+```bash
+npm run parse:sources                              # Extract to parsed-sources.json
+node scripts/prepopulate/prepopulate-*.mjs         # Populate articles from parsed data
+```
+
+### Migrations
+```bash
+node scripts/migrate/migrate-trip-reports.mjs      # Import trip reports
+node scripts/migrate/migrate-effects.mjs           # Import subjective effects
+node scripts/migrate/migrate-prompts-to-convex.mjs # Sync prompts
+```
 
 ## Further Reading
-- `notes and plans/dosewiki-visual-style-guide.md`: Canonical styling guidance.
-- `notes and plans/dosewiki-site-readme.md`: Deep-dive internal architecture doc.
-- `CLAUDE.md`: Comprehensive development guidelines for Claude Code and AI agents.
+
+| Document | Description |
+|----------|-------------|
+| [CLAUDE.md](CLAUDE.md) | Comprehensive development guidelines |
+| [notes-and-plans/index.md](notes-and-plans/index.md) | Documentation index |
+| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Deep architecture |
+| [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling |
+| [.claude/skills/batch/SKILL.md](.claude/skills/batch/SKILL.md) | Batch generation guide |
 
 ---
-Questions or improvements? Open an issue or update the `notes and plans/` docs to keep future contributors in the loop.
 
+Questions or improvements? Open an issue or update `notes-and-plans/` docs.

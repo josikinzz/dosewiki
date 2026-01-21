@@ -7,7 +7,7 @@ const __dirname = dirname(__filename);
 
 const ROOT = resolve(__dirname, "../..");
 const MANUAL_PATH = resolve(ROOT, "src/data/psychoactiveIndexManual.json");
-const ARTICLES_PATH = resolve(ROOT, "src/data/articles.json");
+const ARTICLES_PATH = resolve(ROOT, "src/data/SubstanceIndex.json");
 
 const COMMON_TAG = "common";
 

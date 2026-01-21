@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, type ReactNode } from "react";
+import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
@@ -9,7 +9,6 @@ import { Icon } from "../common/Icon";
 import { Button } from "@/components/ui/button";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { useLightweightData } from "../../data/LightweightDataProvider";
-import { useLibrary } from "../../data/SubstanceIndexProvider";
 import { applyPlaceholders } from "../../data/content/about";
 import { getProfileByKey } from "../../data/userProfiles";
 import { useQuery } from "convex/react";
@@ -148,7 +147,6 @@ const toInitials = (value: string) => {
 export const AboutPage = memo(function AboutPage() {
   // Use lightweight data for substance count
   const { substanceCount, layout } = useLightweightData();
-  const { articles } = useLibrary();
 
   // Get effect count from Convex
   const effects = useQuery(api.subjectiveEffects.getAll);
@@ -157,25 +155,37 @@ export const AboutPage = memo(function AboutPage() {
   // Get About content from Convex (no static fallback)
   const aboutConfig = useQuery(api.siteConfig.getAbout);
 
+  // State for shuffling random articles (seed triggers new Convex query)
+  const [shuffleSeed, setShuffleSeed] = useState(() => Date.now());
+
+  // Fetch 5 random articles directly from Convex (lightweight - only 5 articles, not 679)
+  const randomArticles = useQuery(api.substanceIndex.getRandomSample, {
+    count: 5,
+    seed: shuffleSeed,
+  });
+
   // Download handler for JSON export
   const handleDownload = useCallback(() => {
     const link = document.createElement("a");
-    link.href = "/articles.json";
-    link.download = "articles.json";
+    link.href = "/SubstanceIndex.json";
+    link.download = "SubstanceIndex.json";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }, []);
 
-  // Select 5 random articles for preview
+  // Handler to re-randomize articles
+  const handleShuffle = useCallback(() => {
+    setShuffleSeed(Date.now());
+  }, []);
+
+  // Process articles for preview (strip Convex metadata, reorder fields)
   const previewArticles = useMemo(() => {
-    const shuffled = [...articles].sort((a, b) => {
-      const hashA = (a.id ?? 0) * 31 + (a.title?.charCodeAt(0) ?? 0);
-      const hashB = (b.id ?? 0) * 31 + (b.title?.charCodeAt(0) ?? 0);
-      return ((hashA * 17) % 100) - ((hashB * 17) % 100);
-    });
-    return shuffled.slice(0, 5).map(reorderArticleFields);
-  }, [articles]);
+    if (!randomArticles) return [];
+    return randomArticles.map(({ _id, _creationTime, ...article }) =>
+      reorderArticleFields(article as SubstanceArticle)
+    );
+  }, [randomArticles]);
 
   const previewJson = useMemo(() => {
     return JSON.stringify(previewArticles, null, 2);
@@ -206,14 +216,6 @@ export const AboutPage = memo(function AboutPage() {
     return applyPlaceholders(rawMarkdown, placeholderValues);
   }, [aboutConfig?.aboutMarkdown, placeholderValues]);
 
-  const aboutSubtitle = useMemo(() => {
-    const rawSubtitle = aboutConfig?.aboutSubtitle ?? "";
-    const resolved = applyPlaceholders(rawSubtitle, placeholderValues);
-    return resolved.length > 0
-      ? resolved
-      : "Structured psychoactive data for quick reference and research workflows.";
-  }, [aboutConfig?.aboutSubtitle, placeholderValues]);
-
   const founders = useMemo(() => {
     const founderKeys = aboutConfig?.founderProfileKeys ?? [];
     const profiles = founderKeys.map((key) => getProfileByKey(key));
@@ -236,7 +238,6 @@ export const AboutPage = memo(function AboutPage() {
       <PageHeader
         title="About dose.wiki"
         icon="lucide:info"
-        description={aboutSubtitle}
       />
       <div className="space-y-6 md:space-y-8">
         <SectionCard className="space-y-2 md:space-y-3">
@@ -247,6 +248,59 @@ export const AboutPage = memo(function AboutPage() {
             >
               {aboutMarkdown}
             </ReactMarkdown>
+          </div>
+        </SectionCard>
+
+        {/* Download & Data Preview */}
+        <SectionCard className="space-y-5">
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-fuchsia-200">Download</h2>
+            <p className="text-sm text-white/70">
+              All data is public domain under{" "}
+              <a
+                href="https://creativecommons.org/publicdomain/zero/1.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-fuchsia-300 hover:text-fuchsia-200"
+              >
+                CC0 1.0
+              </a>
+              .
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={handleDownload} className="gap-2">
+                <Icon icon="lucide:download" size={16} />
+                SubstanceIndex.json
+              </Button>
+              <Button variant="secondary" asChild className="gap-2">
+                <a
+                  href="https://github.com/dose-wiki/dose.wiki"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Icon icon="lucide:github" size={16} />
+                  GitHub
+                </a>
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-white/80">Preview (5 random articles)</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShuffle}
+                className="gap-1.5 text-white/60 hover:text-white"
+              >
+                <Icon icon="lucide:dices" size={14} />
+                Shuffle
+              </Button>
+            </div>
+            <div className="max-h-[32rem] overflow-auto rounded-lg border border-white/10 bg-[#0a0612] p-4 font-mono">
+              <JsonSyntaxHighlight json={previewJson} />
+            </div>
           </div>
         </SectionCard>
 
@@ -300,48 +354,6 @@ export const AboutPage = memo(function AboutPage() {
             </p>
           </SectionCard>
         )}
-
-        {/* Download & Data Preview */}
-        <SectionCard className="space-y-5">
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-fuchsia-200">Download</h2>
-            <p className="text-sm text-white/70">
-              All data is public domain under{" "}
-              <a
-                href="https://creativecommons.org/publicdomain/zero/1.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-fuchsia-300 hover:text-fuchsia-200"
-              >
-                CC0 1.0
-              </a>
-              .
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={handleDownload} className="gap-2">
-                <Icon icon="lucide:download" size={16} />
-                articles.json
-              </Button>
-              <Button variant="secondary" asChild className="gap-2">
-                <a
-                  href="https://github.com/dose-wiki/dose.wiki"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon icon="lucide:github" size={16} />
-                  GitHub
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-white/80">Preview (5 random articles)</h3>
-            <div className="max-h-[32rem] overflow-auto rounded-lg border border-white/10 bg-[#0a0612] p-4 font-mono">
-              <JsonSyntaxHighlight json={previewJson} />
-            </div>
-          </div>
-        </SectionCard>
       </div>
     </div>
   );

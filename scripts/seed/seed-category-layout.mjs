@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+/**
+ * Seed the category layout to Convex.
+ *
+ * This script reads the existing psychoactiveIndexManual.json and uploads it
+ * to the Convex categoryLayout table. Run this once to initialize the data.
+ *
+ * Usage:
+ *   node scripts/seed-category-layout.mjs
+ *   node scripts/seed-category-layout.mjs --dry-run
+ */
+
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../../convex/_generated/api.js";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const CONVEX_URL = process.env.VITE_CONVEX_URL || process.env.CONVEX_URL;
+const DRY_RUN = process.argv.includes("--dry-run");
+
+if (!CONVEX_URL) {
+  console.error("Error: CONVEX_URL or VITE_CONVEX_URL environment variable is required");
+  console.error("Set it in your .env file or export it before running this script");
+  process.exit(1);
+}
+
+async function main() {
+  console.log("🌱 Seeding category layout to Convex...\n");
+
+  // Read the existing psychoactiveIndexManual.json
+  const indexPath = join(__dirname, "../src/data/indexes/psychoactiveIndexManual.json");
+  const indexData = JSON.parse(readFileSync(indexPath, "utf-8"));
+
+  console.log(`📄 Read ${indexData.categories.length} categories from psychoactiveIndexManual.json`);
+
+  // Log category summary
+  for (const category of indexData.categories) {
+    const sectionCount = category.sections?.length || 0;
+    const topLevelDrugCount = category.drugs?.length || 0;
+    const sectionDrugCount = (category.sections || []).reduce(
+      (sum, s) => sum + (s.drugs?.length || 0),
+      0
+    );
+    console.log(
+      `   - ${category.label}: ${sectionCount} sections, ${sectionDrugCount + topLevelDrugCount} drugs`
+    );
+  }
+
+  // Prepare the layout data
+  const layoutData = {
+    version: indexData.version || 1,
+    categories: indexData.categories.map((cat) => ({
+      key: cat.key,
+      label: cat.label,
+      iconKey: cat.iconKey,
+      sections: (cat.sections || []).map((sec) => ({
+        key: sec.key,
+        label: sec.label,
+        drugs: sec.drugs || [],
+      })),
+      drugs: cat.drugs || [],
+      columns: cat.columns,
+    })),
+  };
+
+  if (DRY_RUN) {
+    console.log("\n🔍 Dry run - would save the following layout:");
+    console.log(JSON.stringify(layoutData, null, 2).slice(0, 1000) + "...");
+    console.log(`\n   Total size: ${JSON.stringify(layoutData).length} bytes`);
+    return;
+  }
+
+  // Connect to Convex and save
+  const client = new ConvexHttpClient(CONVEX_URL);
+
+  try {
+    const result = await client.mutation(api.categoryLayout.save, layoutData);
+    console.log(`\n✅ Category layout ${result.updated ? "updated" : "created"} successfully!`);
+    console.log(`   Document ID: ${result.id}`);
+  } catch (error) {
+    console.error("\n❌ Failed to save category layout:", error.message);
+    process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});

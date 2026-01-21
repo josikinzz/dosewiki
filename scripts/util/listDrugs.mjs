@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 
-const articlesPath = resolve(process.cwd(), 'src/data/articles.json');
+const articlesPath = resolve(process.cwd(), 'src/data/SubstanceIndex.json');
 const outputPath = resolve(process.cwd(), 'notes and plans', 'drug-list.txt');
 
 async function main() {
@@ -9,7 +9,7 @@ async function main() {
   const articles = JSON.parse(raw);
 
   if (!Array.isArray(articles)) {
-    throw new Error('Expected articles.json to contain an array');
+    throw new Error('Expected SubstanceIndex.json to contain an array');
   }
 
   // SubstanceArticle schema: identification.common_name

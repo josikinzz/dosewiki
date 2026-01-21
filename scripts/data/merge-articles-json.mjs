@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '../..');
 
-const articlesPath = path.join(repoRoot, 'src/data/articles.json');
+const articlesPath = path.join(repoRoot, 'src/data/SubstanceIndex.json');
 const fragmentsDir = path.join(repoRoot, 'notes and plans/articles-json');
 
 async function loadArticles() {

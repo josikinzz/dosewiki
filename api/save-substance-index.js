@@ -183,7 +183,7 @@ export default async function handler(req, res) {
 
   const passwordKey = trimmedUsername;
 
-  // skipArticles flag - when true, don't update articles.json (managed via Convex instead)
+  // skipArticles flag - when true, don't update SubstanceIndex.json (managed via Convex instead)
   const skipArticles = body.skipArticles === true;
   
   if (!skipArticles && body.articlesData === undefined) {
@@ -259,7 +259,7 @@ export default async function handler(req, res) {
   const commitMessage =
     typeof body.commitMessage === "string" && body.commitMessage.trim().length > 0
       ? body.commitMessage.trim()
-      : `Update articles.json via dev editor - ${new Date().toISOString()}`;
+      : `Update SubstanceIndex.json via dev editor - ${new Date().toISOString()}`;
 
   try {
     const isoTimestamp = new Date().toISOString();

@@ -9,7 +9,7 @@ Total Substances: 679
 
 ## Articles Migration Summary (from old dose.wiki)
 
-**Source:** `/Users/josie/Documents/Utilities/dose.wiki old/src/data/articles.json`
+**Source:** `/Users/josie/Documents/Utilities/dose.wiki old/src/data/SubstanceIndex.json`
 
 | Metric | Count |
 |--------|-------|

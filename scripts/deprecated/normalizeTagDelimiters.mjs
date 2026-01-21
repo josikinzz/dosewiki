@@ -7,7 +7,7 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "../..");
-const ARTICLES_PATH = join(ROOT, "src/data/articles.json");
+const ARTICLES_PATH = join(ROOT, "src/data/SubstanceIndex.json");
 const NOTES_DIR = join(ROOT, "notes and plans");
 
 const FIELD_CONFIGS = [

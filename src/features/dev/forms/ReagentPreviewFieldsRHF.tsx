@@ -1,7 +1,7 @@
 /**
  * RHF-based Reagent Testing preview component.
  * Displays read-only reagent data from ProtestKit API.
- * This data is not editable - it's fetched from an external API and cached in articles.json.
+ * This data is not editable - it's fetched from an external API and cached in SubstanceIndex.json.
  */
 
 import { useFormContext } from "react-hook-form";

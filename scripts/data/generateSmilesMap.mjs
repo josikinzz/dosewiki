@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '../..');
-const ARTICLES_PATH = path.join(ROOT_DIR, 'src/data/articles.json');
+const ARTICLES_PATH = path.join(ROOT_DIR, 'src/data/SubstanceIndex.json');
 const OUTPUT_PATH = path.join(ROOT_DIR, 'src/data/iupacSmilesMap.json');
 const COMMENT_KEY = '//';
 const COMMENT_VALUE = 'Mapping of IUPAC names to SMILES strings resolved via OPSIN (https://www.ebi.ac.uk/opsin/). Null values indicate no SMILES was returned; mixture entries expose a components object keyed by compound name.';
@@ -30,7 +30,7 @@ async function loadArticles() {
   const raw = await readFile(ARTICLES_PATH, 'utf8');
   const data = JSON.parse(raw);
   if (!Array.isArray(data)) {
-    throw new Error('Expected articles.json to export an array');
+    throw new Error('Expected SubstanceIndex.json to export an array');
   }
   return data;
 }

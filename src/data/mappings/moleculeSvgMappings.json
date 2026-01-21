@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "Maps molecule SVG filenames to article entries from src/data/articles.json. One SVG per article.",
+    "description": "Maps molecule SVG filenames to article entries from src/data/SubstanceIndex.json. One SVG per article.",
     "generatedAt": "2025-10-23T08:21:42.859Z",
     "totalSvgFiles": 732,
     "matchedCount": 306,

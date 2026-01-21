@@ -78,6 +78,37 @@ function slugify(text: string): string {
 }
 
 /**
+ * Query to get N random articles for preview.
+ * Fetches all on server, randomly samples, returns only the sample to client.
+ * Much lighter than loading full library (~5 articles vs 679).
+ *
+ * @param count - Number of articles to return (default: 5)
+ * @param seed - Optional seed to force re-query (changing seed triggers new random sample)
+ */
+export const getRandomSample = query({
+  args: {
+    count: v.optional(v.number()),
+    seed: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // seed is only used to trigger re-query, not for actual randomization
+    void args.seed;
+
+    const count = args.count ?? 5;
+    const articles = await ctx.db.query("substanceIndex").collect();
+
+    // Fisher-Yates shuffle (partial - only need first `count` elements)
+    const shuffled = [...articles];
+    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+      const j = i + Math.floor(Math.random() * (shuffled.length - i));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled.slice(0, count);
+  },
+});
+
+/**
  * Mutation to save/update a single substance.
  * If a substance with the same ID exists, it updates it. Otherwise, it creates a new one.
  * Automatically computes slug from title if not provided.
