@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useQuery } from "convex/react";
 import App from "./App";
-import { DevModeProvider } from "./components/dev/DevModeContext";
+import { DevModeProvider } from "@/features/dev";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "./data/LightweightDataProvider";
 import { SubstanceIndexProvider, type LibraryData } from "./data/SubstanceIndexProvider";
 import { useLazyLibrary } from "./hooks/useLazyLibrary";
@@ -79,7 +79,7 @@ const EMPTY_LIBRARY: LibraryData = {
 function checkIfNeedsLibrary(path: string): boolean {
   return (
     path.startsWith("/dev") ||
-    path.startsWith("/data") ||
+    path.startsWith("/about") ||
     path.startsWith("/mechanism") ||
     path.startsWith("/chemical") ||
     path.startsWith("/psychoactive") ||
