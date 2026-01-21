@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { PageHeader } from "../layout/PageHeader";
-import { CategoryGrid } from "../sections/CategoryGrid";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { CategoryGrid } from "@/features/article/components/sections";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";

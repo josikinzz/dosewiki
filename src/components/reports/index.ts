@@ -1,8 +1,3 @@
-export { AuthorAvatar } from "./AuthorAvatar";
-export { AuthorLink } from "./AuthorLink";
-export { ReportCard } from "./ReportCard";
-export { ReportHeroSection } from "./ReportHeroSection";
-export { SubjectInfoCard } from "./SubjectInfoCard";
-export { SubstancesCard } from "./SubstancesCard";
-export { TimelineSection } from "./TimelineSection";
-export { TextSection } from "./TextSection";
+// Backward compatibility re-exports from features/reports/components
+// TODO: Update imports to use @/features/reports directly, then remove this file
+export * from "@/features/reports/components";

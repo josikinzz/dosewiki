@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from "react";
-import { Icon, type IconName } from "../common/Icon";
-import { PageHeader } from "../layout/PageHeader";
-import { CategoryGrid } from "../sections/CategoryGrid";
+import { Icon, type IconName } from "@/components/common/Icon";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { CategoryGrid } from "@/features/article/components/sections";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
 import { useLightweightData } from "../../data/LightweightDataProvider";

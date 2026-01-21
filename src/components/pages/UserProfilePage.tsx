@@ -2,15 +2,15 @@ import ReactMarkdown from "react-markdown";
 import { useState, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { Icon } from "../common/Icon";
+import { Icon } from "@/components/common/Icon";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
-import { SectionCard } from "../common/SectionCard";
-import { ReportCard } from "../reports/ReportCard";
-import type { NormalizedUserProfile } from "../../data/userProfiles";
-import type { ChangeLogEntry } from "../../data/changelog/changeLog";
-import type { TripReport } from "../../types/tripReport";
+import { SectionCard } from "@/components/common/SectionCard";
+import { ReportCard } from "@/features/reports/components";
+import type { NormalizedUserProfile } from "@/data/userProfiles";
+import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import type { TripReport } from "@/types/tripReport";
 
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;

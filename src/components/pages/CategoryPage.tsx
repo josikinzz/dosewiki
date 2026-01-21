@@ -1,10 +1,10 @@
 import { memo, useMemo } from "react";
-import { PageHeader } from "../layout/PageHeader";
-import { SectionCard } from "../common/SectionCard";
-import { IconBadge } from "../common/IconBadge";
-import { Icon } from "../common/Icon";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { SectionCard } from "@/components/common/SectionCard";
+import { IconBadge } from "@/components/common/IconBadge";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { VCodeRenderer } from "../vcode/VCodeRenderer";
+import { VCodeRenderer } from "@/features/effects/vcode";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
 import { useSubjectiveEffects, type SubjectiveEffect } from "@/hooks/useSubjectiveEffects";

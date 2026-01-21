@@ -13,19 +13,18 @@ import { slugify } from "./utils/slug";
 
 // Lazy load page components - only loaded when navigated to
 const CategoryPage = lazy(() => import("./components/pages/CategoryPage").then(mod => ({ default: mod.CategoryPage })));
-const EffectsIndexPage = lazy(() => import("./components/pages/EffectsIndexPage").then(mod => ({ default: mod.EffectsIndexPage })));
-const EffectArticlePage = lazy(() => import("./components/pages/EffectArticlePage").then(mod => ({ default: mod.EffectArticlePage })));
-const EffectCategoryPage = lazy(() => import("./components/pages/EffectCategoryPage").then(mod => ({ default: mod.EffectCategoryPage })));
+const EffectsIndexPage = lazy(() => import("./features/effects/pages/EffectsIndexPage").then(mod => ({ default: mod.EffectsIndexPage })));
+const EffectArticlePage = lazy(() => import("./features/effects/pages/EffectArticlePage").then(mod => ({ default: mod.EffectArticlePage })));
+const EffectCategoryPage = lazy(() => import("./features/effects/pages/EffectCategoryPage").then(mod => ({ default: mod.EffectCategoryPage })));
 const MechanismDetailPage = lazy(() => import("./components/pages/MechanismDetailPage").then(mod => ({ default: mod.MechanismDetailPage })));
 const ClassificationDetailPage = lazy(() => import("./components/pages/ClassificationDetailPage").then(mod => ({ default: mod.ClassificationDetailPage })));
 const SearchResultsPage = lazy(() => import("./components/pages/SearchResultsPage").then(mod => ({ default: mod.SearchResultsPage })));
 const AboutPage = lazy(() => import("./components/pages/AboutPage").then(mod => ({ default: mod.AboutPage })));
-const TripReportsPage = lazy(() => import("./components/pages/TripReportsPage").then(mod => ({ default: mod.TripReportsPage })));
-const TripReportDetailPage = lazy(() => import("./components/pages/TripReportDetailPage").then(mod => ({ default: mod.TripReportDetailPage })));
-const DataPage = lazy(() => import("./components/pages/DataPage").then(mod => ({ default: mod.DataPage })));
+const TripReportsPage = lazy(() => import("./features/reports/pages/TripReportsPage").then(mod => ({ default: mod.TripReportsPage })));
+const TripReportDetailPage = lazy(() => import("./features/reports/pages/TripReportDetailPage").then(mod => ({ default: mod.TripReportDetailPage })));
 const UserProfilePage = lazy(() => import("./components/pages/UserProfilePage").then(mod => ({ default: mod.UserProfilePage })));
-const SubstanceArticlePage = lazy(() => import("./components/pages/SubstanceArticlePage").then(mod => ({ default: mod.SubstanceArticlePage })));
-const DevModePage = lazy(() => import("./components/pages/DevModePage").then(mod => ({ default: mod.DevModePage })));
+const SubstanceArticlePage = lazy(() => import("./features/article/pages/SubstanceArticlePage").then(mod => ({ default: mod.SubstanceArticlePage })));
+const DevModePage = lazy(() => import("./features/dev/pages/DevModePage").then(mod => ({ default: mod.DevModePage })));
 
 /** Loading fallback for lazy-loaded pages */
 function PageLoadingFallback() {
@@ -427,10 +426,6 @@ export default function App() {
               <AboutPage />
             </Suspense>
           </main>
-        ) : view.type === "data" ? (
-          <Suspense fallback={<PageLoadingFallback />}>
-            <DataPage />
-          </Suspense>
         ) : view.type === "reports" ? (
           <Suspense fallback={<PageLoadingFallback />}>
             <TripReportsPage
