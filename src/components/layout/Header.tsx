@@ -15,14 +15,12 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
   const substancesView: AppView = { type: "substances" };
   const effectsView: AppView = { type: "effects" };
   const reportsView: AppView = { type: "reports" };
-  const dataView: AppView = { type: "data" };
   const devView: AppView = { type: "dev", tab: "articles" };
   const aboutView: AppView = { type: "about" };
   const navItems: Array<{ label: string; view: AppView; icon: IconName }> = [
     { label: "Substances", view: substancesView, icon: "lucide:flask-conical" },
     { label: "Effects", view: effectsView, icon: "lucide:sparkles" },
     { label: "Reports", view: reportsView, icon: "lucide:file-signature" },
-    { label: "Data", view: dataView, icon: "lucide:database" },
     { label: "Dev", view: devView, icon: "lucide:wrench" },
   ];
   const aboutPath = viewToPath(aboutView);
@@ -34,7 +32,8 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
         currentView.type === "substances" ||
         currentView.type === "category" ||
         currentView.type === "substance" ||
-        currentView.type === "mechanism"
+        currentView.type === "mechanism" ||
+        currentView.type === "classification"
       );
     }
 
@@ -48,10 +47,6 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
 
     if (itemView.type === "reports") {
       return currentView.type === "reports" || currentView.type === "report";
-    }
-
-    if (itemView.type === "data") {
-      return currentView.type === "data";
     }
 
     if (itemView.type === "dev") {
@@ -111,11 +106,12 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
   const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   return (
-    <header className="app-header border-b border-white/10 bg-[#0f0a1f]/80 backdrop-blur backdrop-safe">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
+    <header className="app-header border-b border-white/5 bg-[#0b0818]/80 backdrop-blur-md backdrop-safe supports-[backdrop-filter]:bg-[#0b0818]/60">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
         <Button
           variant="brand"
           onClick={() => handleNavigate(substancesView)}
+          className="pl-0 hover:bg-transparent"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <img
@@ -125,12 +121,12 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
               draggable={false}
             />
           </span>
-          <span className="inline-flex items-center text-2xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
+          <span className="ml-3 inline-flex items-center text-2xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
             dose.wiki
           </span>
         </Button>
 
-        <div className="flex min-h-[44px] min-w-0 flex-1 items-center">
+        <div className="flex min-h-[44px] min-w-0 flex-1 items-center max-w-md ml-4">
           <GlobalSearch
             currentView={currentView}
             onNavigate={onNavigate}
@@ -139,8 +135,8 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
           />
         </div>
 
-        <div className="ml-2 hidden flex-shrink-0 items-center gap-6 md:flex gap-fallback-row-6">
-          <nav className="flex items-center gap-6 text-sm text-white/80 gap-fallback-row-6">
+        <div className="ml-auto hidden flex-shrink-0 items-center gap-2 md:flex">
+          <nav className="flex items-center gap-1">
             {navItems.map(({ label, view, icon }) => {
               const itemPath = viewToPath(view);
               const active = isActive(view);
@@ -153,31 +149,31 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                     event.preventDefault();
                     handleNavigate(view);
                   }}
-                  className={`relative flex items-center gap-2 font-medium transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
-                    active ? "text-white" : "text-white/70"
+                  className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    active
+                      ? "bg-white/10 text-white shadow-sm ring-1 ring-white/10"
+                      : "text-white/60 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <Icon icon={icon} size={16} />
-                  <span className="relative inline-flex">
-                    {label}
-                    {active && (
-                      <span className="pointer-events-none absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-fuchsia-400" />
-                    )}
-                  </span>
+                  <Icon icon={icon} size={16} className={active ? "text-fuchsia-300" : "opacity-70"} />
+                  <span>{label}</span>
                 </a>
               );
             })}
           </nav>
+          
+          <div className="mx-2 h-6 w-px bg-white/10" />
+
           <a
             href={aboutPath}
             onClick={(event) => {
               event.preventDefault();
               handleNavigate(aboutView);
             }}
-            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-white/90 ring-1 transition ${
+            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
               isAboutActive
-                ? "bg-fuchsia-500/25 text-white ring-fuchsia-400/60 shadow-[0_8px_24px_rgba(232,121,249,0.25)] hover:bg-fuchsia-500/30"
-                : "bg-white/10 ring-white/15 hover:bg-white/15"
+                ? "bg-fuchsia-500/20 text-fuchsia-200 ring-1 ring-fuchsia-500/30 shadow-[0_0_15px_rgba(232,121,249,0.15)]"
+                : "text-white/60 hover:bg-white/5 hover:text-white"
             }`}
           >
             <Icon icon="lucide:info" size={16} />
@@ -185,13 +181,13 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
           </a>
         </div>
 
-        <div className="relative flex-shrink-0 md:hidden">
+        <div className="relative flex-shrink-0 md:hidden ml-auto">
           <Button
             ref={menuButtonRef}
-            variant="secondary"
+            variant="ghost"
             size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="h-9 w-9"
+            className="h-10 w-10 rounded-full text-white/70 hover:bg-white/10 hover:text-white"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
@@ -204,9 +200,9 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="absolute right-0 top-[calc(100%+0.75rem)] w-56 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50"
+              className="absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border border-white/10 bg-[#120d27]/95 p-2 shadow-xl shadow-black/50 backdrop-blur-xl ring-1 ring-black/5"
             >
-              <nav className="flex flex-col gap-2 text-sm gap-fallback-col-2">
+              <nav className="flex flex-col gap-1">
                 {navItems.map(({ label, view, icon }) => {
                   const itemPath = viewToPath(view);
                   const active = isActive(view);
@@ -218,33 +214,36 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                         event.preventDefault();
                         handleNavigate(view);
                       }}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2 transition ${
-                        active ? "bg-white/15 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                        active 
+                          ? "bg-white/10 text-white" 
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
                       }`}
                     >
-                      <span className="flex items-center gap-2">
-                        <Icon icon={icon} size={16} />
-                        <span>{label}</span>
-                      </span>
-                      {active && <span className="h-2 w-2 rounded-full bg-fuchsia-400" />}
+                      <Icon icon={icon} size={18} className={active ? "text-fuchsia-300" : "opacity-70"} />
+                      <span>{label}</span>
+                      {active && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-fuchsia-400" />}
                     </a>
                   );
                 })}
               </nav>
+              
+              <div className="my-2 h-px bg-white/10" />
+              
               <a
                 href={aboutPath}
                 onClick={(event) => {
                   event.preventDefault();
                   handleNavigate(aboutView);
                 }}
-                className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-white/90 ring-1 transition ${
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   isAboutActive
-                    ? "bg-fuchsia-500/25 text-white ring-fuchsia-400/60 shadow-[0_8px_24px_rgba(232,121,249,0.25)] hover:bg-fuchsia-500/30"
-                    : "bg-white/10 ring-white/15 hover:bg-white/15"
+                    ? "bg-fuchsia-500/20 text-fuchsia-200"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <Icon icon="lucide:info" size={16} />
-                <span>About</span>
+                <Icon icon="lucide:info" size={18} />
+                <span>About dose.wiki</span>
               </a>
             </div>
           )}

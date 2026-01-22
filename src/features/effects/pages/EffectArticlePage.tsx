@@ -125,7 +125,7 @@ export function EffectArticlePage({
                 transition={{ ...cardAnimation.transition, delay: 0.1 }}
                 className="prose prose-invert prose-fuchsia max-w-none"
               >
-                <div className="text-[1.125rem] leading-[1.75] text-white/90 selection:bg-fuchsia-500/30 overflow-hidden">
+                <div className="text-[1.0625rem] leading-7 text-white/80 selection:bg-fuchsia-500/30 overflow-hidden">
                   <VCodeRenderer
                     content={descriptionContent}
                     onNavigate={onNavigate}

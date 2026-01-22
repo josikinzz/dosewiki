@@ -29,11 +29,12 @@ export const ReportCard = memo(function ReportCard({ report, onClick }: ReportCa
       )}
 
       {/* Author avatar */}
-      <div className="hidden sm:block shrink-0">
+      <div className="hidden sm:block shrink-0 overflow-hidden rounded-full">
         <AuthorAvatar
           authorName={subject.name}
           avatarUrl={subject.avatar_url}
           size={40}
+          className="transition-transform duration-500 group-hover:scale-110"
         />
       </div>
 

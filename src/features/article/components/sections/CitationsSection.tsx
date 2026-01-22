@@ -1,9 +1,11 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import type { SubstanceArticle, Citation } from "@/schema";
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
+
+const COLLAPSED_LIMIT = 3;
 
 interface CitationsSectionProps {
   article: SubstanceArticle;
@@ -62,6 +64,7 @@ function CitationList({
 export const CitationsSection = memo(function CitationsSection({
   article,
 }: CitationsSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const sourceCitations = article.source_citations ?? [];
   const { citations } = article;
 
@@ -73,6 +76,9 @@ export const CitationsSection = memo(function CitationsSection({
   }
 
   const totalCitations = sourceCitations.length + citations.length;
+  const hasMoreCitations = citations.length > COLLAPSED_LIMIT;
+  const visibleCitations = isExpanded ? citations : citations.slice(0, COLLAPSED_LIMIT);
+  const hiddenCount = citations.length - COLLAPSED_LIMIT;
 
   return (
     <SectionCard delay={0}>
@@ -93,9 +99,21 @@ export const CitationsSection = memo(function CitationsSection({
             Further Reading
           </h2>
           <CitationList
-            citations={citations}
+            citations={visibleCitations}
             startIndex={sourceCitations.length}
           />
+          {hasMoreCitations && (
+            <div className="mt-3 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+              >
+                <span className="font-medium">+{hiddenCount}</span>
+                <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 

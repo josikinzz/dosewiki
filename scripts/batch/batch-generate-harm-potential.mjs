@@ -14,6 +14,7 @@
  *   --dry-run              Preview without API calls or saving
  *   --verbose              Show detailed progress output
  *   --substance=lsd        Process single substance
+ *   --slugs=lsd,mdma,dmt   Process multiple substances by comma-separated slugs
  *   --concurrency=3        Parallel requests (default: 3)
  *   --limit=5              Process only N articles
  *   --skip-backup          Don't create backup file
@@ -93,6 +94,7 @@ function parseArgs() {
     dryRun: false,
     verbose: false,
     substance: null,
+    slugs: null,
     limit: null,
     skipBackup: false,
     all: false,
@@ -107,6 +109,8 @@ function parseArgs() {
       options.verbose = true;
     } else if (arg.startsWith("--substance=")) {
       options.substance = arg.split("=")[1];
+    } else if (arg.startsWith("--slugs=")) {
+      options.slugs = arg.split("=")[1].split(",").map(s => s.trim());
     } else if (arg.startsWith("--limit=")) {
       options.limit = parseInt(arg.split("=")[1], 10);
     } else if (arg === "--skip-backup") {
@@ -137,6 +141,7 @@ Options:
   --dry-run              Preview without API calls or saving
   --verbose              Show detailed progress output
   --substance=<slug>     Process single substance only
+  --slugs=<slug1,slug2>  Process multiple substances by comma-separated slugs
   --concurrency=<n>      Number of parallel API requests (default: 3)
   --limit=<n>            Process at most N items then stop
   --skip-backup          Don't create backup file
@@ -145,6 +150,7 @@ Options:
 
 Examples:
   node scripts/batch-generate-harm-potential.mjs --substance=ketamine --dry-run
+  node scripts/batch-generate-harm-potential.mjs --slugs=lsd,mdma,dmt --concurrency=3
   node scripts/batch-generate-harm-potential.mjs --limit=5
   node scripts/batch-generate-harm-potential.mjs --concurrency=5 --verbose
   node scripts/batch-generate-harm-potential.mjs --all  # Process all 505 with quotes
@@ -658,6 +664,22 @@ async function main() {
       process.exit(1);
     }
     console.log(`Filtered to substance: ${options.substance}`);
+  } else if (options.slugs) {
+    // Filter by multiple slugs
+    articles = articles.filter(a =>
+      options.slugs.includes(titleToSlug(a.title))
+    );
+    if (articles.length === 0) {
+      console.error(`Error: No articles found for slugs: ${options.slugs.join(", ")}`);
+      process.exit(1);
+    }
+    const notFound = options.slugs.filter(slug =>
+      !articles.some(a => titleToSlug(a.title) === slug)
+    );
+    if (notFound.length > 0) {
+      console.warn(`Warning: Slugs not found: ${notFound.join(", ")}`);
+    }
+    console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
   } else if (!options.all) {
     // Default: only articles with existing harm_potential content
     const beforeCount = articles.length;

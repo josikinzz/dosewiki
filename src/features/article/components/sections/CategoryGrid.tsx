@@ -208,68 +208,91 @@ export function CategoryGrid({
     return (
       <section
         key={group.key}
-        className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur backdrop-safe transition hover:border-fuchsia-400/30 hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)]"
+        className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5"
       >
         {/* Header - matching effects index structure */}
-        <header className="flex items-start gap-3 pb-3">
+        <header className="flex items-start gap-4 pb-2">
           <button
             type="button"
             onClick={() => void handleCopyGroup(group)}
             aria-label={`Copy ${group.name} list to clipboard`}
-            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 transition hover:bg-white/15 hover:ring-white/25"
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105`}
           >
             <Icon
               icon={copiedKey === group.key ? "lucide:check" : group.icon}
-              size={18}
-              className={copiedKey === group.key ? "text-emerald-300" : "text-fuchsia-200"}
+              size={20}
+              className={copiedKey === group.key ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
             />
           </button>
-          <div className="flex-1 min-w-0">
+
+          <div className="flex-1 min-w-0 pt-1">
             {isCategorySelectable ? (
               <Button
                 variant="categoryHeader"
                 size="auto"
                 onClick={() => handleSelectCategory(group.key)}
+                className="h-auto p-0 hover:no-underline"
               >
-                <h2 className="text-lg font-semibold text-fuchsia-300">
+                <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300 text-left">
                   {group.name}
-                  <span className="ml-2 text-sm font-normal text-white/40">({group.total})</span>
+                  <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
                 </h2>
               </Button>
             ) : (
-              <h2 className="text-lg font-semibold text-fuchsia-300">
+              <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300">
                 {group.name}
-                <span className="ml-2 text-sm font-normal text-white/40">({group.total})</span>
+                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
               </h2>
             )}
           </div>
+
           <button
             type="button"
             onClick={() => handleToggle(group.key)}
             aria-expanded={isExpanded}
             aria-controls={listId}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/50 transition hover:bg-white/10 hover:text-white"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
           >
             <Icon icon={chevronIcon} size={16} />
           </button>
         </header>
 
         {/* Content */}
-        {!isExpanded ? null : group.total === 0 ? (
-          <p id={listId} className="mt-3 text-sm text-white/70">
-            No missing substances right now.
-          </p>
-        ) : hasSections ? (
-          <div id={listId} className="mt-3 space-y-6">
-            {visibleSections.map((section, index) => (
-              <IndexCardSection
-                key={section.name ?? `section-${index}`}
-                title={section.name}
-                count={section.drugs.length}
-                showDivider={index > 0}
-              >
+        <div
+          id={listId}
+          className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"
+            }`}
+        >
+          <div className="overflow-hidden">
+            {group.total === 0 ? (
+              <p className="py-2 text-sm text-white/40 italic pl-1">
+                No missing substances right now.
+              </p>
+            ) : hasSections ? (
+              <div className="space-y-6 pt-1">
+                {visibleSections.map((section, index) => (
+                  <IndexCardSection
+                    key={section.name ?? `section-${index}`}
+                    title={section.name}
+                    count={section.drugs.length}
+                    showDivider={index > 0}
+                  >
+                    <IndexCardList>
+                      {section.drugs.map((drug) => (
+                        <IndexCardListItem
+                          key={drug.slug}
+                          label={formatDrugLabel(drug)}
+                          onClick={() => onSelectDrug(drug.slug)}
+                        />
+                      ))}
+                    </IndexCardList>
+                  </IndexCardSection>
+                ))}
+              </div>
+            ) : (
+              <div className="pt-1">
                 <IndexCardList>
-                  {section.drugs.map((drug) => (
+                  {group.drugs.map((drug) => (
                     <IndexCardListItem
                       key={drug.slug}
                       label={formatDrugLabel(drug)}
@@ -277,22 +300,10 @@ export function CategoryGrid({
                     />
                   ))}
                 </IndexCardList>
-              </IndexCardSection>
-            ))}
+              </div>
+            )}
           </div>
-        ) : (
-          <div id={listId} className="mt-3">
-            <IndexCardList>
-              {group.drugs.map((drug) => (
-                <IndexCardListItem
-                  key={drug.slug}
-                  label={formatDrugLabel(drug)}
-                  onClick={() => onSelectDrug(drug.slug)}
-                />
-              ))}
-            </IndexCardList>
-          </div>
-        )}
+        </div>
       </section>
     );
   };

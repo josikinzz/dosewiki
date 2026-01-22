@@ -1,4 +1,5 @@
 import { memo, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CategoryGrid } from "@/features/article/components/sections";
@@ -7,6 +8,30 @@ import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/lib
 import { useLightweightData } from "../../data/LightweightDataProvider";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
 import { useLazyLibrary } from "../../hooks/useLazyLibrary";
+import { cn } from "@/lib/utils";
+
+const containerAnimation = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemAnimation = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 20
+    }
+  }
+};
 
 type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 
@@ -161,64 +186,85 @@ export const DosagesPage = memo(function DosagesPage({
 
   return (
     <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
-      <div className="mx-auto max-w-3xl md:max-w-4xl">
-        <PageHeader
-          title="Substance Index"
-          icon="lucide:flask-conical"
-          description={
-            <>
-              Browse
-              {" "}
-              <span className="font-semibold text-fuchsia-200">
-                {formatLabel(substanceCount, "compound", "compounds")}
-              </span>
-              {" "}
-              and organize them across
-              {" "}
-              <span className="font-semibold text-fuchsia-200">
-                {formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}
-              </span>
-              {chemicalClassCount > 0 && (
-                <>
-                  ,
-                  {" "}
-                  <span className="font-semibold text-fuchsia-200">
-                    {formatLabel(chemicalClassCount, "chemical class", "chemical classes")}
-                  </span>
-                </>
-              )}
-              {mechanismCount > 0 && (
-                <>
-                  , and
-                  {" "}
-                  <span className="font-semibold text-fuchsia-200">
-                    {formatLabel(mechanismCount, "mechanism of action", "mechanisms of action")}
-                  </span>
-                </>
-              )}
-              .
-              {" "}
-              Open any entry to explore detailed dosage tables, durational timelines, psychopharmacological data, and general harm reduction information.
-            </>
-          }
-        />
+      <motion.div
+        className="mx-auto max-w-3xl md:max-w-4xl"
+        initial="hidden"
+        animate="visible"
+        variants={containerAnimation}
+      >
+        <motion.div variants={itemAnimation}>
+          <PageHeader
+            title="Substance Index"
+            icon="lucide:flask-conical"
+            description={
+              <>
+                Browse {" "}
+                <span className="font-bold text-fuchsia-200">
+                  {formatLabel(substanceCount, "compound", "compounds")}
+                </span>
+                {" "} and organize them across {" "}
+                <span className="font-bold text-fuchsia-200">
+                  {formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}
+                </span>
+                {chemicalClassCount > 0 && (
+                  <>
+                    ,{" "}
+                    <span className="font-bold text-fuchsia-200">
+                      {formatLabel(chemicalClassCount, "chemical class", "chemical classes")}
+                    </span>
+                  </>
+                )}
+                {mechanismCount > 0 && (
+                  <>
+                    , and{" "}
+                    <span className="font-bold text-fuchsia-200">
+                      {formatLabel(mechanismCount, "mechanism of action", "mechanisms of action")}
+                    </span>
+                  </>
+                )}
+                .{" "}
+                Open any entry to explore detailed dosage tables, durational timelines, psychopharmacological data, and general harm reduction information.
+              </>
+            }
+          />
+        </motion.div>
+
         {/* Sort Tabs */}
-        <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as IndexSortKey)} className="mt-8 mb-8 flex justify-center">
-          <TabsList className="flex-wrap">
-            {SORT_OPTIONS.map((option) => (
-              <TabsTrigger key={option.key} value={option.key} disabled={option.disabled} className="gap-2">
-                <Icon icon={option.icon} size={16} />
-                {option.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-      <CategoryGrid
-        groups={resolvedGroups}
-        onSelectDrug={onSelectDrug}
-        onSelectCategory={sortKey === "psychoactive" ? onSelectCategory : undefined}
-      />
+        <motion.div variants={itemAnimation}>
+          <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as IndexSortKey)} className="mt-2 mb-4 flex justify-center">
+            <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+              {SORT_OPTIONS.map((option) => (
+                <TabsTrigger
+                  key={option.key}
+                  value={option.key}
+                  disabled={option.disabled}
+                  className={cn(
+                    "gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30",
+                    "text-[0.9375rem] font-medium text-white/60"
+                  )}
+                >
+                  <Icon icon={option.icon} size={18} />
+                  {option.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <CategoryGrid
+          groups={resolvedGroups}
+          onSelectDrug={onSelectDrug}
+          onSelectCategory={sortKey === "psychoactive" ? onSelectCategory : undefined}
+        />
+      </motion.div>
     </div>
   );
 });
