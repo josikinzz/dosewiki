@@ -443,16 +443,16 @@ export const AboutPage = memo(function AboutPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white/90">Download the Database</h3>
                   <p className="text-sm text-white/60 leading-relaxed">
-                    All data is public domain under{" "}
+                    All content is licensed under{" "}
                     <a
-                      href="https://creativecommons.org/publicdomain/zero/1.0/"
+                      href="https://creativecommons.org/licenses/by-sa/4.0/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-fuchsia-300 hover:text-fuchsia-200 underline decoration-fuchsia-300/30 underline-offset-2"
                     >
-                      CC0 1.0
+                      CC BY-SA 4.0
                     </a>
-                    . You are free to use, modify, and distribute it without restriction.
+                    . You are free to share and adapt with attribution.
                   </p>
                   <div className="flex flex-col gap-3 pt-2">
                     <Button onClick={handleDownload} className="w-full justify-start gap-3 h-12 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/5">

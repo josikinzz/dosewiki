@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { NormalizedHarmPotential } from "./HarmPotentialUtils";
-import { CarcinogenicityLevelBadge, EvidenceLevelIndicator, EVIDENCE_LEVEL_CONFIG, CARCINOGENICITY_LEVEL_CONFIG, CarcinogenicityLevel } from "./HarmPotentialBadges";
+import type { CarcinogenicityLevel } from "@/schema";
+import { CarcinogenicityLevelBadge, EvidenceLevelIndicator, EVIDENCE_LEVEL_CONFIG, CARCINOGENICITY_LEVEL_CONFIG } from "./HarmPotentialBadges";
 
 interface ToxicitySubsectionProps {
   toxicity: NormalizedHarmPotential['toxicity'];
@@ -10,6 +11,7 @@ interface ToxicitySubsectionProps {
 
 // Mapping of organ system names to their icons
 const ORGAN_SYSTEM_ICONS: Record<string, string> = {
+  // Primary terms
   "Urinary System": "healthicons:bladder-outline",
   "Hepatic": "healthicons:liver-alt-outline",
   "Central Nervous System": "healthicons:nerve",
@@ -22,49 +24,92 @@ const ORGAN_SYSTEM_ICONS: Record<string, string> = {
   "Endocrine": "tabler:adjustments",
   "Immunological": "tabler:virus",
   "Musculoskeletal": "healthicons:skeleton",
+  // Synonyms mapped to existing icons
+  "Urinary": "healthicons:bladder-outline",
+  "Endocrine System": "tabler:adjustments",
+  "Gastrointestinal": "covid:symptoms-nausea",
+  "Immune System": "tabler:virus",
+  "Pulmonary": "tabler:lungs",
+  "Skeletal": "healthicons:skeleton",
+  "Skin (Levamisole-Related)": "material-symbols-light:dermatology-outline-rounded",
+  // Additional terms
+  "Auditory": "lucide:ear",
+  "Nasal": "hugeicons:nose",
+  "Nasal Cavity": "hugeicons:nose",
+  "Nasal/Upper Respiratory": "healthicons:ear-nose-throat-outline",
+  "Oral/Dental": "tabler:dental",
+  "Pulmonary/Vascular": "healthicons:blood-vessel-outline",
+  "Reproductive": "healthicons:fetus-outline",
+  "Thermoregulation": "streamline-ultimate:temperature-thermometer-medium-bold",
+  "Thermoregulatory": "streamline-ultimate:temperature-thermometer-medium-bold",
+  // Missing icons - need to be added
+  // "Developmental": "",
+  // "Vascular": "",
 };
 
-function LD50Display({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
-  const { ld50, ld50String } = toxicity;
-  const hasLD50 = ld50.length > 0 || ld50String.trim().length > 0;
+function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
+  const { lethal_dosage, ld50String } = toxicity;
+  const { ld50, notes } = lethal_dosage;
 
-  if (!hasLD50) return null;
+  const hasNotes = notes.trim().length > 0;
+  const hasLegacyString = ld50String.trim().length > 0 && !hasNotes;
+  const hasLD50Table = ld50.length > 0;
+  const hasContent = hasNotes || hasLegacyString || hasLD50Table;
+
+  if (!hasContent) return null;
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
       <div className="flex items-center gap-2">
         <Icon icon="tabler:grave" size={18} className="text-fuchsia-300" />
-        <h4 className="font-semibold text-white">LD50</h4>
+        <h4 className="font-semibold text-white">Lethal Dosage</h4>
       </div>
 
-      {ld50String ? (
+      {/* Notes section (freeform text) - displayed above LD50 table */}
+      {hasNotes && (
+        <p className="text-sm text-white/80">{notes}</p>
+      )}
+
+      {/* Legacy string display (for backward compatibility) */}
+      {hasLegacyString && (
         <p className="text-sm text-white/80">{ld50String}</p>
-      ) : ld50.length === 1 && !ld50[0].species ? (
-        <p className="text-sm text-white/80">
-          {ld50[0].unit || `${ld50[0].value} ${ld50[0].unit}`}
-        </p>
-      ) : (
-        <div className="overflow-hidden rounded-lg border border-white/10">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-white/10 text-xs uppercase tracking-wider text-white/70">
-                <th className="px-4 py-2 text-left font-medium">Species</th>
-                <th className="px-4 py-2 text-left font-medium">Route</th>
-                <th className="px-4 py-2 text-right font-medium">Value</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5 bg-white/5">
-              {ld50.map((entry, idx) => (
-                <tr key={idx} className="transition hover:bg-white/10">
-                  <td className="px-4 py-2 font-medium text-white/90">{entry.species || "—"}</td>
-                  <td className="px-4 py-2 text-white/70">{entry.route || "—"}</td>
-                  <td className="px-4 py-2 text-right font-mono text-white/90">
-                    {entry.value != null ? `${entry.value} ${entry.unit}` : entry.unit || "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      )}
+
+      {/* LD50 Table section */}
+      {hasLD50Table && (
+        <div className="flex flex-col gap-2">
+          {/* Show subheading if we also have notes */}
+          {hasNotes && (
+            <h5 className="text-xs font-medium uppercase tracking-wider text-white/50">LD50 Data</h5>
+          )}
+          {ld50.length === 1 && !ld50[0].species ? (
+            <p className="text-sm text-white/80">
+              {ld50[0].unit || `${ld50[0].value} ${ld50[0].unit}`}
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-white/10">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-white/10 text-xs uppercase tracking-wider text-white/70">
+                    <th className="px-4 py-2 text-left font-medium">Species</th>
+                    <th className="px-4 py-2 text-left font-medium">Route</th>
+                    <th className="px-4 py-2 text-right font-medium">Value</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 bg-white/5">
+                  {ld50.map((entry, idx) => (
+                    <tr key={idx} className="transition hover:bg-white/10">
+                      <td className="px-4 py-2 font-medium text-white/90">{entry.species || "—"}</td>
+                      <td className="px-4 py-2 text-white/70">{entry.route || "—"}</td>
+                      <td className="px-4 py-2 text-right font-mono text-white/90">
+                        {entry.value != null ? `${entry.value} ${entry.unit}` : entry.unit || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -129,41 +174,13 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
   );
 }
 
-function OrganToxicityGrid({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
-  const { organ_toxicity, organToxicityString } = toxicity;
-  const hasOrganToxicity = organ_toxicity.length > 0 || organToxicityString.trim().length > 0;
-
-  if (!hasOrganToxicity) return null;
-
-  if (organToxicityString) {
-    return (
-      <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-        <div className="flex items-center gap-2">
-          <Icon icon="healthicons:pain-outline" size={20} className="text-fuchsia-300" />
-          <h4 className="font-semibold text-white">Organ Toxicity</h4>
-        </div>
-        <p className="text-sm text-white/80">{organToxicityString}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Icon icon="healthicons:pain-outline" size={20} className="text-fuchsia-300" />
-        <h4 className="font-semibold text-white">Organ Toxicity</h4>
-      </div>
-      <div className="columns-1 gap-4 space-y-4 md:columns-2">
-        {organ_toxicity.map((entry, idx) => (
-          <OrganToxicityCard key={idx} entry={entry} />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
   const { carcinogenicity } = toxicity;
+
+  // Hide if level is unknown or no_evidence
+  if (carcinogenicity.level === 'unknown' || carcinogenicity.level === 'no_evidence') return null;
+
   const hasCarcinogenicity =
     (carcinogenicity.description || "").trim().length > 0 || carcinogenicity.level != null;
 
@@ -241,6 +258,10 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
 
 function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
   const { antibiotic_function } = toxicity;
+
+  // Hide if level is unknown or no_evidence
+  if (antibiotic_function.level === 'unknown' || antibiotic_function.level === 'no_evidence') return null;
+
   const hasAntibioticFunction =
     (antibiotic_function.description || "").trim().length > 0 || antibiotic_function.level != null;
 
@@ -271,17 +292,24 @@ function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotentia
 }
 
 export function ToxicitySubsection({ toxicity }: ToxicitySubsectionProps) {
-  const { ld50, ld50String, organ_toxicity, organToxicityString, carcinogenicity, antibiotic_function } = toxicity;
-  
-  const hasContent = 
-    ld50.length > 0 || 
-    ld50String.trim().length > 0 || 
-    organ_toxicity.length > 0 || 
-    organToxicityString.trim().length > 0 ||
-    (carcinogenicity.description || "").trim().length > 0 || 
-    carcinogenicity.level != null ||
-    (antibiotic_function.description || "").trim().length > 0 || 
-    antibiotic_function.level != null;
+  const { lethal_dosage, ld50, ld50String, organ_toxicity, organToxicityString, carcinogenicity, antibiotic_function } = toxicity;
+
+  // Check if carcinogenicity/antibiotic cards would actually render (not unknown/no_evidence)
+  const hasCarcinogenicity =
+    carcinogenicity.level !== 'unknown' && carcinogenicity.level !== 'no_evidence' &&
+    ((carcinogenicity.description || "").trim().length > 0 || carcinogenicity.level != null);
+  const hasAntibioticFunction =
+    antibiotic_function.level !== 'unknown' && antibiotic_function.level !== 'no_evidence' &&
+    ((antibiotic_function.description || "").trim().length > 0 || antibiotic_function.level != null);
+
+  // Check for lethal dosage content (new format notes OR legacy ld50 data)
+  const hasLD50 = lethal_dosage.ld50.length > 0 || lethal_dosage.notes.trim().length > 0 || ld50.length > 0 || ld50String.trim().length > 0;
+  const hasOrganToxicity = organ_toxicity.length > 0 || organToxicityString.trim().length > 0;
+
+  // Check if we have any masonry grid content
+  const hasMasonryContent = hasOrganToxicity || hasCarcinogenicity || hasAntibioticFunction;
+
+  const hasContent = hasLD50 || hasMasonryContent;
 
   if (!hasContent) return null;
 
@@ -296,13 +324,24 @@ export function ToxicitySubsection({ toxicity }: ToxicitySubsectionProps) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="columns-1 gap-4 space-y-4 md:columns-2">
-          <LD50Display toxicity={toxicity} />
-          <CarcinogenicityCard toxicity={toxicity} />
-          <AntibioticFunctionCard toxicity={toxicity} />
-        </div>
-        
-        <OrganToxicityGrid toxicity={toxicity} />
+        {/* Lethal Dosage card at full width */}
+        {hasLD50 && <LethalDosageCard toxicity={toxicity} />}
+
+        {/* Combined masonry grid with organ toxicity, carcinogenicity, and antibiotic function */}
+        {hasMasonryContent && (
+          <div className="columns-1 gap-4 space-y-4 md:columns-2">
+            {organ_toxicity.map((entry, idx) => (
+              <OrganToxicityCard key={idx} entry={entry} />
+            ))}
+            {organToxicityString && (
+              <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 break-inside-avoid">
+                <p className="text-sm text-white/80">{organToxicityString}</p>
+              </div>
+            )}
+            <CarcinogenicityCard toxicity={toxicity} />
+            <AntibioticFunctionCard toxicity={toxicity} />
+          </div>
+        )}
       </div>
     </div>
   );

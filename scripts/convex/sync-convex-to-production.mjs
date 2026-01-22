@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 /**
- * Sync all Convex data from development to production.
+ * Sync Convex data from development to production.
  *
  * Usage:
- *   node scripts/sync-convex-to-production.mjs
+ *   node scripts/sync-convex-to-production.mjs                    # Sync all tables
+ *   node scripts/sync-convex-to-production.mjs --tables=prompts   # Sync only prompts
+ *   node scripts/sync-convex-to-production.mjs --tables=prompts,quotes  # Sync multiple tables
  *
  * Environment:
  *   SOURCE_CONVEX_URL - Dev deployment (defaults to .env.local VITE_CONVEX_URL)
  *   TARGET_CONVEX_URL - Prod deployment (required)
  *
- * Tables synced:
+ * Available tables:
  *   - substanceIndex
  *   - categoryLayout
  *   - siteConfig (About page content)
@@ -21,6 +23,16 @@
  *   - quotes
  *   - replications (metadata only - file storage IDs are deployment-specific)
  */
+
+// Parse --tables flag
+const tablesArg = process.argv.find(arg => arg.startsWith('--tables='));
+const selectedTables = tablesArg
+  ? tablesArg.replace('--tables=', '').split(',').map(t => t.trim())
+  : null; // null means sync all
+
+function shouldSync(tableName) {
+  return selectedTables === null || selectedTables.includes(tableName);
+}
 
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
@@ -152,132 +164,157 @@ async function main() {
   console.log("🚚 Syncing Convex data from development to production\n");
   console.log(`Source: ${sourceUrl}`);
   console.log(`Target: ${targetUrl}`);
+  if (selectedTables) {
+    console.log(`Tables: ${selectedTables.join(', ')}`);
+  }
 
   const results = [];
 
   // Sync substanceIndex (substance articles with batch-generated content)
-  console.log("\n📦 Syncing substanceIndex...");
-  try {
-    const articles = await sourceClient.query(api.substanceIndex.getAll, {});
-    const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
-    console.log(`   Found ${sanitizedArticles.length} articles in source`);
+  if (shouldSync("substanceIndex")) {
+    console.log("\n📦 Syncing substanceIndex...");
+    try {
+      const articles = await sourceClient.query(api.substanceIndex.getAll, {});
+      const sanitizedArticles = articles.map(({ _id, _creationTime, ...doc }) => doc);
+      console.log(`   Found ${sanitizedArticles.length} articles in source`);
 
-    if (sanitizedArticles.length > 0) {
-      // Use replaceAllSubstances for full sync
-      const result = await targetClient.mutation(api.substanceIndex.replaceAllSubstances, { articles: sanitizedArticles });
-      console.log(`   ✓ Replaced all substances (deleted: ${result.deleted}, inserted: ${result.inserted})`);
-      results.push({ table: "substanceIndex", created: result.inserted, updated: 0, errors: [] });
-    } else {
-      console.log("   ⏭️  Skipping (no data)");
-      results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
+      if (sanitizedArticles.length > 0) {
+        // Use replaceAllSubstances for full sync
+        const result = await targetClient.mutation(api.substanceIndex.replaceAllSubstances, { articles: sanitizedArticles });
+        console.log(`   ✓ Replaced all substances (deleted: ${result.deleted}, inserted: ${result.inserted})`);
+        results.push({ table: "substanceIndex", created: result.inserted, updated: 0, errors: [] });
+      } else {
+        console.log("   ⏭️  Skipping (no data)");
+        results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.log(`   ❌ Failed: ${msg}`);
+      results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [msg] });
     }
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.log(`   ❌ Failed: ${msg}`);
-    results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [msg] });
   }
 
   // Sync categoryLayout (single document for home page)
-  console.log("\n📦 Syncing categoryLayout...");
-  try {
-    const layout = await sourceClient.query(api.categoryLayout.get, {});
-    if (layout) {
-      const { _id, _creationTime, ...data } = layout;
-      await targetClient.mutation(api.categoryLayout.save, data);
-      console.log("   ✓ Synced categoryLayout");
-      results.push({ table: "categoryLayout", created: 1, updated: 0, errors: [] });
-    } else {
-      console.log("   ⏭️  Skipping (no data)");
-      results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [] });
+  if (shouldSync("categoryLayout")) {
+    console.log("\n📦 Syncing categoryLayout...");
+    try {
+      const layout = await sourceClient.query(api.categoryLayout.get, {});
+      if (layout) {
+        const { _id, _creationTime, ...data } = layout;
+        await targetClient.mutation(api.categoryLayout.save, data);
+        console.log("   ✓ Synced categoryLayout");
+        results.push({ table: "categoryLayout", created: 1, updated: 0, errors: [] });
+      } else {
+        console.log("   ⏭️  Skipping (no data)");
+        results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [] });
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.log(`   ❌ Failed: ${msg}`);
+      results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [msg] });
     }
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.log(`   ❌ Failed: ${msg}`);
-    results.push({ table: "categoryLayout", created: 0, updated: 0, errors: [msg] });
   }
 
   // Sync siteConfig (About page content)
-  console.log("\n📦 Syncing siteConfig...");
-  try {
-    const config = await sourceClient.query(api.siteConfig.getAbout, {});
-    if (config) {
-      const { _id, _creationTime, key, updatedAt, ...data } = config;
-      await targetClient.mutation(api.siteConfig.saveAbout, {
-        ...data,
-        updatedBy: "sync-script",
-      });
-      console.log("   ✓ Synced siteConfig (About page)");
-      results.push({ table: "siteConfig", created: 1, updated: 0, errors: [] });
-    } else {
-      console.log("   ⏭️  Skipping (no data)");
-      results.push({ table: "siteConfig", created: 0, updated: 0, errors: [] });
+  if (shouldSync("siteConfig")) {
+    console.log("\n📦 Syncing siteConfig...");
+    try {
+      const config = await sourceClient.query(api.siteConfig.getAbout, {});
+      if (config) {
+        const { _id, _creationTime, key, updatedAt, ...data } = config;
+        await targetClient.mutation(api.siteConfig.saveAbout, {
+          ...data,
+          updatedBy: "sync-script",
+        });
+        console.log("   ✓ Synced siteConfig (About page)");
+        results.push({ table: "siteConfig", created: 1, updated: 0, errors: [] });
+      } else {
+        console.log("   ⏭️  Skipping (no data)");
+        results.push({ table: "siteConfig", created: 0, updated: 0, errors: [] });
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.log(`   ❌ Failed: ${msg}`);
+      results.push({ table: "siteConfig", created: 0, updated: 0, errors: [msg] });
     }
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.log(`   ❌ Failed: ${msg}`);
-    results.push({ table: "siteConfig", created: 0, updated: 0, errors: [msg] });
   }
 
   // Sync indexLayouts (psychoactive, chemical, mechanism)
-  results.push(await syncTable(
-    "indexLayouts",
-    api.indexLayouts.getAll,
-    api.indexLayouts.bulkImport,
-    { argName: "layouts" }
-  ));
+  if (shouldSync("indexLayouts")) {
+    results.push(await syncTable(
+      "indexLayouts",
+      api.indexLayouts.getAll,
+      api.indexLayouts.bulkImport,
+      { argName: "layouts" }
+    ));
+  }
 
   // Sync tripReports
-  results.push(await syncTable(
-    "tripReports",
-    api.tripReports.getAll,
-    api.tripReports.bulkImport,
-    { argName: "reports" }
-  ));
+  if (shouldSync("tripReports")) {
+    results.push(await syncTable(
+      "tripReports",
+      api.tripReports.getAll,
+      api.tripReports.bulkImport,
+      { argName: "reports" }
+    ));
+  }
 
   // Sync subjectiveEffects
-  results.push(await syncTable(
-    "subjectiveEffects",
-    api.subjectiveEffects.getAll,
-    api.subjectiveEffects.bulkImport,
-    { argName: "effects" }
-  ));
+  if (shouldSync("subjectiveEffects")) {
+    results.push(await syncTable(
+      "subjectiveEffects",
+      api.subjectiveEffects.getAll,
+      api.subjectiveEffects.bulkImport,
+      { argName: "effects" }
+    ));
+  }
 
   // Sync effectIndexArticles
-  results.push(await syncTable(
-    "effectIndexArticles",
-    api.effectIndexArticles.getAll,
-    api.effectIndexArticles.bulkImport,
-    { argName: "articles" }
-  ));
+  if (shouldSync("effectIndexArticles")) {
+    results.push(await syncTable(
+      "effectIndexArticles",
+      api.effectIndexArticles.getAll,
+      api.effectIndexArticles.bulkImport,
+      { argName: "articles" }
+    ));
+  }
 
   // Sync prompts
-  results.push(await syncTable(
-    "prompts",
-    api.prompts.getAll,
-    api.prompts.bulkImport,
-    { argName: "prompts" }
-  ));
+  if (shouldSync("prompts")) {
+    results.push(await syncTable(
+      "prompts",
+      api.prompts.getAll,
+      api.prompts.bulkImport,
+      { argName: "prompts" }
+    ));
+  }
 
   // Sync quotes
-  results.push(await syncTable(
-    "quotes",
-    api.quotes.getAll,
-    api.quotes.bulkImport,
-    { argName: "quotes" }
-  ));
+  if (shouldSync("quotes")) {
+    results.push(await syncTable(
+      "quotes",
+      api.quotes.getAll,
+      api.quotes.bulkImport,
+      { argName: "quotes" }
+    ));
+  }
 
   // Skip articleSources - too large (hits 16MB Convex limit)
   // Use scripts/migrate-sources-to-convex.mjs for direct migration
-  console.log("\n📦 Syncing articleSources...");
-  console.log("   ⏭️  Skipping (too large - use migrate-sources-to-convex.mjs)");
+  if (shouldSync("articleSources")) {
+    console.log("\n📦 Syncing articleSources...");
+    console.log("   ⏭️  Skipping (too large - use migrate-sources-to-convex.mjs)");
+  }
 
   // Sync replications (metadata only - storage IDs won't resolve in prod)
-  results.push(await syncTable(
-    "replications",
-    api.replications.getAll,
-    api.replications.bulkImport,
-    { argName: "replications" }
-  ));
+  if (shouldSync("replications")) {
+    results.push(await syncTable(
+      "replications",
+      api.replications.getAll,
+      api.replications.bulkImport,
+      { argName: "replications" }
+    ));
+  }
 
   // Summary
   console.log("\n" + "=".repeat(60));

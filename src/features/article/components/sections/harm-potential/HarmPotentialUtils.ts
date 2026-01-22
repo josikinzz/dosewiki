@@ -32,18 +32,23 @@ export interface NormalizedHarmPotential {
     physical_dependence: { level: RiskLevel | null; description: string };
   };
   toxicity: {
+    lethal_dosage: {
+      ld50: Array<{ species?: string; route?: string; value?: number | null; unit?: string }>;
+      notes: string;
+    };
+    // Legacy fields kept for backward compatibility with existing code that reads these directly
     ld50: Array<{ species?: string; route?: string; value?: number | null; unit?: string }>;
     ld50String: string;
     organ_toxicity: Array<{ system?: string; findings?: string; mechanism?: string; notes?: string }>;
     organToxicityString: string;
-    carcinogenicity: { 
-      level: CarcinogenicityLevel | null; 
-      evidence?: any; 
-      description: string 
+    carcinogenicity: {
+      level: CarcinogenicityLevel | null;
+      evidence?: any;
+      description: string
     };
-    antibiotic_function: { 
+    antibiotic_function: {
       level: CarcinogenicityLevel | null; // reusing this type as per original usage or it might need casting
-      description: string 
+      description: string
     };
   };
   risks: {
@@ -84,9 +89,30 @@ export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHar
     physical_dependence: addiction.physical_dependence || { level: null, description: "" }
   };
 
-  // Normalize ld50
-  const ld50Array = Array.isArray(hp.toxicity?.ld50) ? hp.toxicity.ld50 : [];
-  const ld50String = typeof hp.toxicity?.ld50 === "string" ? hp.toxicity.ld50 : "";
+  // Normalize ld50 - check new lethal_dosage format first, fall back to legacy ld50
+  let ld50Array: Array<{ species?: string; route?: string; value?: number | null; unit?: string }> = [];
+  let ld50String = "";
+  let lethalDosageNotes = "";
+
+  // Check for new format: toxicity.lethal_dosage.ld50 / toxicity.lethal_dosage.notes
+  if (hp.toxicity?.lethal_dosage) {
+    if (Array.isArray(hp.toxicity.lethal_dosage.ld50)) {
+      ld50Array = hp.toxicity.lethal_dosage.ld50;
+    }
+    if (typeof hp.toxicity.lethal_dosage.notes === "string") {
+      lethalDosageNotes = hp.toxicity.lethal_dosage.notes;
+    }
+  }
+  // Fall back to legacy format: toxicity.ld50 (array or string)
+  if (ld50Array.length === 0 && !lethalDosageNotes) {
+    if (Array.isArray(hp.toxicity?.ld50)) {
+      ld50Array = hp.toxicity.ld50;
+    } else if (typeof hp.toxicity?.ld50 === "string") {
+      // Legacy string format - normalize into notes field
+      ld50String = hp.toxicity.ld50;
+      lethalDosageNotes = hp.toxicity.ld50;
+    }
+  }
 
   // Normalize organ_toxicity
   const organToxicityArray = Array.isArray(hp.toxicity?.organ_toxicity) ? hp.toxicity.organ_toxicity : [];
@@ -128,12 +154,16 @@ export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHar
     (normalizedAddiction.psychological.description || "").trim().length > 0 ||
     (normalizedAddiction.physical_dependence.description || "").trim().length > 0;
 
-  const hasLD50 = ld50Array.length > 0 || ld50String.trim().length > 0;
+  const hasLD50 = ld50Array.length > 0 || ld50String.trim().length > 0 || lethalDosageNotes.trim().length > 0;
   const hasOrganToxicity = organToxicityArray.length > 0 || organToxicityString.trim().length > 0;
+  // Only count carcinogenicity as having content if level is not unknown/no_evidence
   const hasCarcinogenicity =
-    (carcinogenicity.description || "").trim().length > 0 || carcinogenicity.level != null;
+    carcinogenicity.level !== 'unknown' && carcinogenicity.level !== 'no_evidence' &&
+    ((carcinogenicity.description || "").trim().length > 0 || carcinogenicity.level != null);
+  // Only count antibiotic_function as having content if level is not unknown/no_evidence
   const hasAntibioticFunction =
-    (antibioticFunction.description || "").trim().length > 0 || antibioticFunction.level != null;
+    antibioticFunction.level !== 'unknown' && antibioticFunction.level !== 'no_evidence' &&
+    ((antibioticFunction.description || "").trim().length > 0 || antibioticFunction.level != null);
 
   const hasToxicity = hasLD50 || hasOrganToxicity || hasCarcinogenicity || hasAntibioticFunction;
 
@@ -148,6 +178,11 @@ export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHar
   return {
     addiction: normalizedAddiction,
     toxicity: {
+      lethal_dosage: {
+        ld50: ld50Array,
+        notes: lethalDosageNotes
+      },
+      // Legacy fields kept for backward compatibility
       ld50: ld50Array,
       ld50String,
       organ_toxicity: organToxicityArray,

@@ -30,13 +30,13 @@ export function Footer() {
           <div className="hidden h-4 w-px bg-white/10 md:block" />
           
           <p className="text-sm text-white/50">
-            <a 
-              href="https://creativecommons.org/publicdomain/zero/1.0/" 
-              target="_blank" 
+            <a
+              href="https://creativecommons.org/licenses/by-sa/4.0/"
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:text-white/80 transition-colors"
             >
-              CC0 1.0 Universal
+              CC BY-SA 4.0
             </a>
           </p>
         </div>

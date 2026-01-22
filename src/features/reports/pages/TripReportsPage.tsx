@@ -137,15 +137,15 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
 
       {/* View mode selector */}
       <Tabs value={viewMode} className="mt-6 mb-8 flex justify-center">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
           {VIEW_MODES.map(({ key, label, icon }) => (
-            <TabsTrigger 
-              key={key} 
-              value={key} 
+            <TabsTrigger
+              key={key}
+              value={key}
               onClick={() => handleViewModeClick(key)}
-              className="gap-2"
+              className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
             >
-              <Icon icon={icon} size={16} />
+              <Icon icon={icon} size={18} />
               {label}
               {viewMode === key && (
                 <span className="text-xs opacity-70">

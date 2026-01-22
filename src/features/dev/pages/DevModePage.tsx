@@ -56,6 +56,7 @@ const fromYaml = (value: string): unknown => {
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -2686,89 +2687,76 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         </div>
 
         <div className="mt-8 flex w-full flex-col items-center gap-4">
-        <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-          <Button
-            variant="tabPrimary"
-            size="tabPrimary"
-            onClick={() => handlePrimaryTabChange("tools")}
-            data-active={activePrimaryTab === "tools"}
-            aria-pressed={activePrimaryTab === "tools"}
+          <Tabs
+            value={activePrimaryTab}
+            onValueChange={(v) => handlePrimaryTabChange(v as DevModePrimaryTab)}
+            className="flex justify-center"
           >
-            <Icon icon="lucide:wrench" size={16} />
-            <span>TOOLS</span>
-          </Button>
-          <Button
-            variant="tabPrimary"
-            size="tabPrimary"
-            onClick={() => handlePrimaryTabChange("change-log")}
-            data-active={activePrimaryTab === "change-log"}
-            aria-pressed={activePrimaryTab === "change-log"}
-          >
-            <Icon icon="lucide:scroll-text" size={16} />
-            <span>CHANGE LOG</span>
-          </Button>
-          <Button
-            variant={hasStoredCredentials ? "tabPrimary" : "tabPrimaryDisabled"}
-            size="tabPrimary"
-            onClick={() => {
-              if (hasStoredCredentials) {
-                handlePrimaryTabChange("profile");
-              }
-            }}
-            data-active={activePrimaryTab === "profile"}
-            aria-pressed={activePrimaryTab === "profile"}
-            disabled={!hasStoredCredentials}
-          >
-            <Icon icon="lucide:user-round" size={16} />
-            <span>PROFILE</span>
-          </Button>
-        </div>
+            <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+              <TabsTrigger
+                value="tools"
+                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+              >
+                <Icon icon="lucide:wrench" size={18} />
+                Tools
+              </TabsTrigger>
+              <TabsTrigger
+                value="change-log"
+                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+              >
+                <Icon icon="lucide:scroll-text" size={18} />
+                Change log
+              </TabsTrigger>
+              <TabsTrigger
+                value="profile"
+                disabled={!hasStoredCredentials}
+                className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30 text-[0.9375rem] font-medium text-white/60"
+              >
+                <Icon icon="lucide:user-round" size={18} />
+                Profile
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        {activePrimaryTab === "tools" && (
-          <div className="flex w-full flex-wrap justify-center gap-2 rounded-3xl border border-white/10 bg-white/5 p-1 shadow-inner shadow-black/20 sm:w-auto sm:flex-nowrap sm:gap-0">
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("articles")}
-              data-active={activeTab === "articles"}
-              aria-pressed={activeTab === "articles"}
+          {activePrimaryTab === "tools" && (
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => handleTabChange(v as DevModeTab)}
+              className="flex justify-center"
             >
-              <Icon icon="lucide:sparkles" size={16} />
-              <span>Substance Articles</span>
-            </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("tag-editor")}
-              data-active={activeTab === "tag-editor"}
-              aria-pressed={activeTab === "tag-editor"}
-            >
-              <Icon icon="lucide:tags" size={16} />
-              <span>Tags</span>
-            </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("about")}
-              data-active={activeTab === "about"}
-              aria-pressed={activeTab === "about"}
-            >
-              <Icon icon="lucide:file-text" size={16} />
-              <span>About</span>
-            </Button>
-            <Button
-              variant="tabSecondary"
-              size="tabSecondary"
-              onClick={() => handleTabChange("index-layout")}
-              data-active={activeTab === "index-layout"}
-              aria-pressed={activeTab === "index-layout"}
-            >
-              <Icon icon="lucide:layout-dashboard" size={16} />
-              <span>Index layout</span>
-            </Button>
-          </div>
-        )}
-      </div>
+              <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+                <TabsTrigger
+                  value="articles"
+                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+                >
+                  <Icon icon="lucide:sparkles" size={18} />
+                  Substance Articles
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tag-editor"
+                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+                >
+                  <Icon icon="lucide:tags" size={18} />
+                  Tags
+                </TabsTrigger>
+                <TabsTrigger
+                  value="about"
+                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+                >
+                  <Icon icon="lucide:file-text" size={18} />
+                  About
+                </TabsTrigger>
+                <TabsTrigger
+                  value="index-layout"
+                  className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+                >
+                  <Icon icon="lucide:layout-dashboard" size={18} />
+                  Index layout
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+        </div>
       </div>
 
       <div className={contentWrapperClass}>

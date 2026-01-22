@@ -58,11 +58,13 @@ harm_potential:
       level: "extremely_low" | "low" | "moderate" | "high" | "extremely_high" | null
       description: string
   toxicity:
-    ld50:
-      - species: string
-        route: string
-        value: number | null
-        unit: string
+    lethal_dosage:
+      notes: string  # Freeform text for approximate lethal doses, case reports, informal estimates
+      ld50:  # Formal LD50 data from human or animal studies (optional, only if structured data available)
+        - species: string
+          route: string
+          value: number | null
+          unit: string
     organ_toxicity:
       - system: string
         findings: string
@@ -176,7 +178,8 @@ harm_potential:
 | `addiction.psychological.description` | `string` | 1-2 sentences on psychological addiction potential, abuse potential, compulsive redosing patterns | "Moderate abuse potential with risk of psychological dependence. Compulsive redosing is commonly reported, particularly with insufflation." |
 | `addiction.physical_dependence.level` | `enum \| null` | Severity level for physical dependence risk | `"high"` |
 | `addiction.physical_dependence.description` | `string` | Physical dependence risk, withdrawal symptoms, tolerance development | "Physical dependence develops with chronic use. Withdrawal symptoms include anxiety, tremor, sweating, and palpitations." |
-| `toxicity.ld50` | `array` | Array of LD50 entries with species, route, value, and unit | See example below |
+| `toxicity.lethal_dosage.notes` | `string` | Freeform text for approximate lethal doses, human case reports, or informal estimates that don't fit structured LD50 format | "Human lethal dose is estimated at 200-500 mg, though deaths have occurred at lower doses in combination with other substances." |
+| `toxicity.lethal_dosage.ld50` | `array` | Array of formal LD50 entries from human or animal studies with species, route, value, and unit (optional - only include if structured data available) | See example below |
 | `toxicity.organ_toxicity` | `array` | Array of organ-specific damage entries | See example below |
 | `toxicity.carcinogenicity.level` | `enum \| null` | Classification level (confirmed/probable/possible/no_evidence/unknown) | `"no_evidence"` |
 | `toxicity.carcinogenicity.evidence` | `object \| null` | Detailed evidence breakdown (optional - include if data available) | See example below |
@@ -188,14 +191,25 @@ harm_potential:
 | `seizure.level` | `enum \| null` | Severity level for seizure risk | `"low"` |
 | `seizure.description` | `string` | Seizure threshold effects, convulsion risk | "Seizures rare but reported at very high doses. May lower seizure threshold." |
 
-### toxicity.ld50
-Array of lethal dose data. Each entry:
-- **species**: Animal species (e.g., "rat", "mouse")
+### toxicity.lethal_dosage
+Container for all lethal dosage information, with two fields:
+
+**lethal_dosage.notes** (freeform string):
+Use this for:
+- Approximate human lethal dose estimates
+- Case reports and anecdotal data
+- Ranges expressed informally (e.g., "deaths reported above 500mg")
+- Information that doesn't fit the structured LD50 table format
+- Context about lethal dose variability (route, tolerance, combinations)
+
+**lethal_dosage.ld50** (array):
+Use this for formal LD50 data from controlled human or animal studies. Each entry:
+- **species**: Species (e.g., "human", "rat", "mouse")
 - **route**: Administration route (e.g., "oral", "IV", "IP")
 - **value**: Numeric value (or null if only descriptive data)
 - **unit**: Unit string (e.g., "mg/kg")
 
-Avoid estimates. Do not imply human applicability.
+If sources only provide informal estimates, put them in `notes` and leave `ld50` empty. Do not fabricate formal LD50 values from informal data.
 
 ### toxicity.organ_toxicity
 Array of organ-specific damage. Each entry has 4 fields with STRICT definitions:
@@ -203,9 +217,54 @@ Array of organ-specific damage. Each entry has 4 fields with STRICT definitions:
 | Field | Purpose | Content Type |
 |-------|---------|--------------|
 | `system` | Which organ/body system | Anatomical system name |
-| `findings` | WHAT damage occurs | Observable symptoms, clinical findings, diagnoses |
+| `findings` | Self-contained summary of damage | A complete sentence describing what damage can occur AND under what conditions (see below) |
 | `mechanism` | HOW/WHY it causes damage at molecular level | Biochemical pathways, cellular processes, receptor interactions |
-| `notes` | EVERYTHING ELSE | Prevalence, reversibility, risk factors, case counts, dosing patterns |
+| `notes` | EVERYTHING ELSE | Prevalence statistics, reversibility, case counts, additional context |
+
+#### Findings Field - CRITICAL GUIDANCE
+
+The `findings` field is displayed prominently in collapsed organ toxicity cards. It must be:
+
+1. **A complete sentence** (not a comma-separated list of terms)
+2. **Self-contained** - readable and informative without expanding for more details
+3. **Contextualized** - ALWAYS specify under what conditions the damage occurs:
+   - "with chronic heavy use"
+   - "at doses significantly exceeding typical recreational ranges"
+   - "with prolonged daily use over months/years"
+   - "primarily in cases of addiction/compulsive use"
+   - "at extreme/overdose-level doses"
+
+4. **Proportionate** - Do NOT over-exaggerate. If damage only occurs with extreme abuse patterns, say so clearly. Users should understand these are not risks from occasional responsible use.
+
+**BAD findings (comma list, no context, alarming):**
+```
+findings: "Cognitive deficits, memory loss, brain atrophy"
+```
+
+**GOOD findings (complete sentence, contextualized, proportionate):**
+```
+findings: "Chronic heavy use over months to years may cause cognitive deficits in memory and learning, with some studies suggesting white matter changes in frequent daily users."
+```
+
+**BAD findings:**
+```
+findings: "Elevated blood pressure, tachycardia, cardiac strain"
+```
+
+**GOOD findings:**
+```
+findings: "Acute cardiovascular effects including elevated blood pressure and increased heart rate occur during intoxication; serious cardiac events are rare and typically associated with pre-existing conditions or extreme doses."
+```
+
+**BAD findings:**
+```
+findings: "Bladder damage, cystitis, urinary problems"
+```
+
+**GOOD findings:**
+```
+findings: "Bladder toxicity including interstitial cystitis and reduced bladder capacity is associated with frequent heavy use; occasional users at typical doses face minimal risk."
+```
 
 #### Mechanism Field - STRICT Definition
 
@@ -236,52 +295,52 @@ The `notes` field is for ALL contextual information:
 
 #### CORRECT vs INCORRECT Examples
 
-**WRONG - Non-mechanism in mechanism field:**
+**WRONG - Non-mechanism in mechanism field + comma-list findings:**
 ```yaml
 - system: "Hepatic"
-  findings: "Elevated liver enzymes, hepatotoxicity"
+  findings: "Elevated liver enzymes, hepatotoxicity"  # Just a list, no context!
   mechanism: "Associated with higher doses and repeated administration"  # NOT a mechanism!
   notes: ""
 ```
 
-**CORRECT - Proper separation:**
+**CORRECT - Proper separation with self-contained findings:**
 ```yaml
 - system: "Hepatic"
-  findings: "Elevated liver enzymes, hepatotoxicity"
+  findings: "Elevated liver enzymes and hepatotoxicity have been reported with higher doses and repeated administration; occasional use at typical doses carries minimal hepatic risk."
   mechanism: ""  # Empty because biochemical pathway unknown
-  notes: "Associated with higher doses and repeated administration. Reversibility depends on severity."
+  notes: "Reversibility depends on severity and duration of use."
 ```
 
-**WRONG:**
+**WRONG - Statistics in mechanism, comma-list findings:**
 ```yaml
 - system: "Urinary System"
-  findings: "Cystitis, bladder damage"
+  findings: "Cystitis, bladder damage"  # Just symptoms, no context!
   mechanism: "Affects 20-30% of frequent users. Over 110 documented cases."  # These are statistics!
   notes: ""
 ```
 
-**CORRECT:**
+**CORRECT - Contextualized findings:**
 ```yaml
 - system: "Urinary System"
-  findings: "Cystitis, hydronephrosis, decreased bladder capacity, painful haematuria"
+  findings: "Frequent heavy use can cause interstitial cystitis, reduced bladder capacity, and painful haematuria; these effects are associated with chronic abuse patterns and are uncommon in occasional users."
   mechanism: "Direct cytotoxic effects on urothelium; metabolites damage epithelial cells and increase barrier permeability"
   notes: "Affects 20-30% of frequent users. Over 110 documented cases. May be reversible with cessation in less severe cases."
 ```
 
-**WRONG:**
+**WRONG - Study info in mechanism, alarming comma-list:**
 ```yaml
 - system: "Central Nervous System"
-  findings: "Cognitive deficits, brain atrophy"
+  findings: "Cognitive deficits, brain atrophy"  # Alarming without context!
   mechanism: "Daily use causes indicators of cell death. Primate studies showed damage after 6 months."  # Study info, not mechanism!
   notes: ""
 ```
 
-**CORRECT:**
+**CORRECT - Proportionate, contextualized findings:**
 ```yaml
 - system: "Central Nervous System"
-  findings: "Reduction in white and grey matter, brain atrophy, cognitive deficits in memory and learning"
+  findings: "Daily heavy use over extended periods may cause cognitive deficits in memory and learning; some imaging studies suggest white and grey matter changes in chronic users, though effects may be partially reversible with abstinence."
   mechanism: "NMDA receptor blockade leads to increased apoptosis, particularly in developing brain tissue"
-  notes: "Daily use causes prefrontal cortex cell death. Primate studies showed damage after 6 months at 1 mg/kg IV. Deficits may be reversible with infrequent use."
+  notes: "Primate studies showed prefrontal cortex cell death after 6 months at 1 mg/kg IV daily. Infrequent recreational use at typical doses shows minimal evidence of lasting neurotoxicity."
 ```
 
 Include: biomarker elevations (ALT/AST, CK), mechanistic models, ROA-specific toxicity differences.
@@ -309,7 +368,9 @@ harm_potential:
       level: null
       description: ""
   toxicity:
-    ld50: []
+    lethal_dosage:
+      notes: ""
+      ld50: []
     organ_toxicity: []
     carcinogenicity:
       level: null
@@ -330,30 +391,50 @@ harm_potential:
 
 ## Examples
 
-### LD50 Entry
+### Lethal Dosage (notes only - informal data)
 ```yaml
-ld50:
-  - species: "rat"
-    route: "oral"
-    value: 1700
-    unit: "mg/kg"
-  - species: "mouse"
-    route: "IV"
-    value: 400
-    unit: "mg/kg"
+lethal_dosage:
+  notes: "Human lethal dose is estimated at 200-500mg orally in non-tolerant individuals. Deaths have been reported at lower doses when combined with alcohol or other CNS depressants."
+  ld50: []
+```
+
+### Lethal Dosage (formal LD50 data from animal studies)
+```yaml
+lethal_dosage:
+  notes: ""
+  ld50:
+    - species: "rat"
+      route: "oral"
+      value: 1700
+      unit: "mg/kg"
+    - species: "mouse"
+      route: "IV"
+      value: 400
+      unit: "mg/kg"
+```
+
+### Lethal Dosage (both notes and LD50 data)
+```yaml
+lethal_dosage:
+  notes: "Human lethal dose is highly variable due to tolerance. Fatal overdoses typically involve doses significantly exceeding typical recreational ranges."
+  ld50:
+    - species: "rat"
+      route: "oral"
+      value: 1700
+      unit: "mg/kg"
 ```
 
 ### Organ Toxicity Entry
 ```yaml
 organ_toxicity:
   - system: "Cardiovascular"
-    findings: "Increased risk of valvulopathy"
-    mechanism: "5-HT2B agonism causing fibroblast proliferation"
-    notes: "Associated with chronic high-dose use"
+    findings: "Chronic high-dose use has been associated with valvular heart disease due to cardiac fibrosis; this risk is primarily documented in patients using therapeutic doses daily for extended periods."
+    mechanism: "5-HT2B agonism causing fibroblast proliferation in heart valve tissue"
+    notes: "Risk increases with cumulative lifetime exposure. Echocardiographic screening recommended for long-term users."
   - system: "Hepatic"
-    findings: "Elevated ALT/AST, hepatotoxicity"
+    findings: "Elevated liver enzymes and rare cases of hepatotoxicity have been reported, typically with repeated high-dose use or in individuals with pre-existing liver conditions."
     mechanism: "CYP450-mediated reactive metabolite formation"
-    notes: "Generally reversible with cessation"
+    notes: "Generally reversible with cessation. Routine monitoring not required for occasional use."
 ```
 
 ### Carcinogenicity with Evidence
@@ -393,10 +474,17 @@ carcinogenicity:
 - Note severity of withdrawal (can it be fatal? hospitalization needed?)
 - Assign level based on likelihood and severity of physical dependence
 
-### For toxicity.ld50:
-- Extract exact values with species and route
-- Parse into structured entries: species, route, value (number), unit (string)
-- If only a text description is available, put it in the unit field with value: null
+### For toxicity.lethal_dosage:
+**Notes field:**
+- Use for human lethal dose estimates, case reports, informal data
+- Include context about variability (route, tolerance, combinations)
+- Example: "Human lethal dose is highly variable, estimated at 200-500mg orally in non-tolerant individuals. Deaths have occurred at lower doses when combined with other CNS depressants."
+
+**LD50 array:**
+- Use for formal human or animal study data with specific species, route, and dose
+- Extract exact values: species, route, value (number), unit (string)
+- If sources only give informal estimates, put them in `notes` instead
+- Do not fabricate formal LD50 values from informal data
 
 ### For toxicity.organ_toxicity:
 - Look for: liver damage, kidney damage, bladder damage, cardiotoxicity, neurotoxicity
@@ -443,7 +531,9 @@ carcinogenicity:
 Before returning output:
 - [ ] All fields present (even if empty/null)
 - [ ] YAML is valid (proper indentation, no tabs)
-- [ ] `toxicity.ld50` is an array of objects
+- [ ] `toxicity.lethal_dosage.ld50` is an array of objects (can be empty)
+- [ ] `toxicity.lethal_dosage.notes` is a string (can be empty)
+- [ ] Informal lethal dose estimates go in `notes`, formal LD50 data goes in `ld50` array
 - [ ] `toxicity.organ_toxicity` is an array of objects
 - [ ] Severity levels are valid enum values or null
 - [ ] No markdown code fences in output

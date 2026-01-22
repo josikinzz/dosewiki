@@ -458,8 +458,11 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       setValue("harm_potential.addiction.physical_dependence.level", hp.addiction?.physical_dependence?.level ?? null);
       setValue("harm_potential.addiction.physical_dependence.description", hp.addiction?.physical_dependence?.description ?? "");
 
-      // Toxicity
-      setValue("harm_potential.toxicity.ld50", hp.toxicity?.ld50 ?? []);
+      // Toxicity - lethal_dosage (new nested structure)
+      setValue("harm_potential.toxicity.lethal_dosage.notes", hp.toxicity?.lethal_dosage?.notes ?? "");
+      // Check new format first, fall back to legacy ld50 field
+      const ld50Data = hp.toxicity?.lethal_dosage?.ld50 ?? hp.toxicity?.ld50 ?? [];
+      setValue("harm_potential.toxicity.lethal_dosage.ld50", Array.isArray(ld50Data) ? ld50Data : []);
       setValue("harm_potential.toxicity.organ_toxicity", hp.toxicity?.organ_toxicity ?? []);
       setValue("harm_potential.toxicity.carcinogenicity.level", hp.toxicity?.carcinogenicity?.level ?? null);
       setValue("harm_potential.toxicity.carcinogenicity.evidence", hp.toxicity?.carcinogenicity?.evidence ?? null);
@@ -549,15 +552,28 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       {/* Toxicity */}
       <CollapsibleSubsection title="Toxicity" icon={<Icon icon="healthicons:poison-24px" className="h-5 w-5" size={20} />}>
         <div className="space-y-4">
+          {/* Lethal Dosage Notes */}
+          <div className="space-y-1">
+            <Label htmlFor={`${idPrefix}-lethal-dosage-notes`}>Lethal Dosage Notes</Label>
+            <Textarea
+              id={`${idPrefix}-lethal-dosage-notes`}
+              className="min-h-[60px]"
+              {...register("harm_potential.toxicity.lethal_dosage.notes")}
+              placeholder="Approximate lethal dose estimates, human case reports, or informal data that doesn't fit the LD50 table format."
+            />
+          </div>
+
           {/* LD50 Data */}
           <LD50ArrayEditor
             entries={(() => {
-              const val = watch("harm_potential.toxicity.ld50");
-              // Handle both array format and legacy string format
-              if (Array.isArray(val)) return val as LD50Entry[];
+              // Check new format first, then fall back to legacy
+              const newVal = watch("harm_potential.toxicity.lethal_dosage.ld50");
+              if (Array.isArray(newVal)) return newVal as LD50Entry[];
+              const legacyVal = watch("harm_potential.toxicity.ld50");
+              if (Array.isArray(legacyVal)) return legacyVal as LD50Entry[];
               return [];
             })()}
-            onChange={(entries) => setValue("harm_potential.toxicity.ld50", entries)}
+            onChange={(entries) => setValue("harm_potential.toxicity.lethal_dosage.ld50", entries)}
           />
 
           {/* Organ Toxicity */}

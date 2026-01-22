@@ -5,7 +5,7 @@ import type { SubstanceArticle } from "@/schema";
 import { normalizeHarmPotential } from "./harm-potential/HarmPotentialUtils";
 import { AddictionSubsection } from "./harm-potential/AddictionSubsection";
 import { ToxicitySubsection } from "./harm-potential/ToxicitySubsection";
-import { RisksSubsection } from "./harm-potential/RisksSubsection";
+import { PsychosisRiskSubsection, SeizureRiskSubsection } from "./harm-potential/RisksSubsection";
 
 interface HarmPotentialSectionProps {
   article: SubstanceArticle;
@@ -18,7 +18,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
 
   if (!normalizedHP) return null;
 
-  const { addiction, toxicity, risks, hasContent } = normalizedHP;
+  const { addiction, toxicity, risks } = normalizedHP;
 
   return (
     <SectionCard delay={0}>
@@ -28,18 +28,10 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
       </h2>
 
       <div className="flex flex-col gap-8">
-        {(hasContent.addiction || hasContent.toxicity) && (
-          <div className="flex flex-col gap-8">
-            <AddictionSubsection addiction={addiction} />
-            <ToxicitySubsection toxicity={toxicity} />
-          </div>
-        )}
-
-        {hasContent.risks && (
-          <div className="mt-2">
-            <RisksSubsection risks={risks} />
-          </div>
-        )}
+        <AddictionSubsection addiction={addiction} />
+        <ToxicitySubsection toxicity={toxicity} />
+        <PsychosisRiskSubsection risks={risks} />
+        <SeizureRiskSubsection risks={risks} />
       </div>
     </SectionCard>
   );

@@ -288,6 +288,12 @@ export const ld50EntrySchema = z.object({
   unit: z.string(),
 });
 
+/** Lethal dosage container with LD50 data and freeform notes */
+export const lethalDosageSchema = z.object({
+  ld50: z.array(ld50EntrySchema).optional(),
+  notes: z.string().optional(),
+});
+
 /** Structured organ toxicity entry */
 export const organToxicityEntrySchema = z.object({
   system: z.string(),
@@ -340,6 +346,9 @@ export const antibioticFunctionSchema = z.object({
 
 /** Toxicity subsection with structured data - accepts both new objects and legacy strings */
 export const toxicitySchema = z.object({
+  // New nested structure for lethal dosage
+  lethal_dosage: lethalDosageSchema.optional(),
+  // Legacy ld50 field - kept for backward compatibility
   ld50: z.union([z.array(ld50EntrySchema), z.string()]).optional(),
   organ_toxicity: z.union([z.array(organToxicityEntrySchema), z.string()]).optional(),
   carcinogenicity: z.union([carcinogenicitySchema, z.string()]).optional(),
@@ -476,6 +485,7 @@ export type AntibioticFunctionLevel = z.infer<typeof antibioticFunctionLevelSche
 export type RiskField = z.infer<typeof riskFieldSchema>;
 export type Addiction = z.infer<typeof addictionSchema>;
 export type LD50Entry = z.infer<typeof ld50EntrySchema>;
+export type LethalDosage = z.infer<typeof lethalDosageSchema>;
 export type OrganToxicityEntry = z.infer<typeof organToxicityEntrySchema>;
 export type CarcinogenicityEvidence = z.infer<typeof carcinogenicityEvidenceSchema>;
 export type Carcinogenicity = z.infer<typeof carcinogenicitySchema>;
