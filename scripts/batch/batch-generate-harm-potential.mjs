@@ -382,6 +382,21 @@ function parseGeneratedYaml(response) {
 
 // Normalize harm_potential to ensure all required fields exist with correct types
 function normalizeHarmPotential(hp) {
+  // Handle lethal_dosage - can be nested under toxicity.lethal_dosage or legacy toxicity.ld50
+  const lethalDosage = hp.toxicity?.lethal_dosage;
+  const legacyLd50 = hp.toxicity?.ld50;
+
+  // Extract ld50 array: prefer lethal_dosage.ld50 > legacy ld50 > empty array
+  let ld50Array = [];
+  if (lethalDosage?.ld50 && Array.isArray(lethalDosage.ld50)) {
+    ld50Array = lethalDosage.ld50;
+  } else if (Array.isArray(legacyLd50)) {
+    ld50Array = legacyLd50;
+  }
+
+  // Extract notes from lethal_dosage
+  const lethalDosageNotes = lethalDosage?.notes ?? "";
+
   const normalized = {
     addiction: {
       psychological: {
@@ -394,7 +409,11 @@ function normalizeHarmPotential(hp) {
       },
     },
     toxicity: {
-      ld50: Array.isArray(hp.toxicity?.ld50) ? hp.toxicity.ld50 : [],
+      // New structure: lethal_dosage with notes and ld50
+      lethal_dosage: {
+        notes: lethalDosageNotes,
+        ld50: ld50Array,
+      },
       organ_toxicity: Array.isArray(hp.toxicity?.organ_toxicity) ? hp.toxicity.organ_toxicity : [],
       carcinogenicity: {
         level: hp.toxicity?.carcinogenicity?.level ?? null,
@@ -474,7 +493,8 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
     console.log(`  Generated harm_potential for ${slug}:`);
     console.log(`    psychological addiction: ${newHarmPotential.addiction?.psychological?.description ? "yes" : "no"} (level: ${newHarmPotential.addiction?.psychological?.level || "null"})`);
     console.log(`    physical dependence: ${newHarmPotential.addiction?.physical_dependence?.description ? "yes" : "no"} (level: ${newHarmPotential.addiction?.physical_dependence?.level || "null"})`);
-    console.log(`    ld50 entries: ${newHarmPotential.toxicity?.ld50?.length || 0}`);
+    console.log(`    lethal_dosage.notes: ${newHarmPotential.toxicity?.lethal_dosage?.notes ? "yes" : "no"} (${(newHarmPotential.toxicity?.lethal_dosage?.notes?.length || 0)} chars)`);
+    console.log(`    lethal_dosage.ld50 entries: ${newHarmPotential.toxicity?.lethal_dosage?.ld50?.length || 0}`);
     console.log(`    organ toxicity entries: ${newHarmPotential.toxicity?.organ_toxicity?.length || 0}`);
     console.log(`    carcinogenicity: ${newHarmPotential.toxicity?.carcinogenicity?.description ? "yes" : "no"} (level: ${newHarmPotential.toxicity?.carcinogenicity?.level || "null"})`);
     console.log(`    psychosis: ${newHarmPotential.psychosis?.description ? "yes" : "no"} (level: ${newHarmPotential.psychosis?.level || "null"})`);
