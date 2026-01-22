@@ -42,6 +42,12 @@ This rule applies to ALL fields in the entire harm_potential section: addiction 
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
 
+**Source Exclusion - Lethal Dosage:**
+- For the `lethal_dosage` field ONLY (both `notes` and `ld50`), **IGNORE all content from the "Disregard Everything I Say" source**
+- This source contains speculative LD50 extrapolations that are not reliable for harm reduction documentation
+- Use only formal medical/toxicological sources (PsychonautWiki, Wikipedia, Erowid, academic sources, etc.) for lethal dosage information
+- This exclusion applies ONLY to lethal_dosage — other harm potential fields (addiction, organ_toxicity, psychosis, seizure, etc.) may still use "Disregard Everything I Say" content
+
 ---
 
 ## harm_potential Schema
