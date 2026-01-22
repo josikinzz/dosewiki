@@ -1,7 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import type { SubstanceArticle } from "@/schema";
 
@@ -57,11 +56,17 @@ export const PharmacologySection = memo(function PharmacologySection({
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="mingcute:settings-6-line" label="Pharmacology" />
-        Pharmacology
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="mingcute:settings-6-line" />
+            <span className="drop-shadow-sm">Pharmacology</span>
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
@@ -70,7 +75,7 @@ export const PharmacologySection = memo(function PharmacologySection({
       >
         {/* Mechanism of Action (with expandable Receptor Binding) */}
         {hasMoA && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
               Mechanism of Action
@@ -141,7 +146,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
         {/* Standalone Mechanism of Action from receptor binding (only when no MoA exists) */}
         {!hasMoA && hasReceptorBinding && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
               Mechanism of Action
@@ -159,7 +164,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
         {/* Metabolism & Metabolites */}
         {(hasMetabolism || hasMetabolites) && (
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="material-symbols:metabolism-rounded" size={20} className="text-fuchsia-200" />
               Metabolism
@@ -185,6 +190,6 @@ export const PharmacologySection = memo(function PharmacologySection({
           </div>
         )}
       </Masonry>
-    </SectionCard>
+    </div>
   );
 });

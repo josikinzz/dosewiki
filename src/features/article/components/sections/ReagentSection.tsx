@@ -234,9 +234,8 @@ function ReagentRow({
           <span className="ml-1.5 font-normal text-white/50">({shortCode})</span>
         </span>
         <span
-          className={`relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${
-            isNoReaction ? "text-white/50" : "text-white/70"
-          }`}
+          className={`relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${isNoReaction ? "text-white/50" : "text-white/70"
+            }`}
         >
           {description}
         </span>
@@ -288,7 +287,7 @@ function convertApiToEntries(reagents: ReagentResult[]): [string, string][] {
       const name = REAGENT_KEY_TO_NAME[result.reagent] || result.reagent.replace(/_desc$/, "");
       // Build description from colors
       const colorNames = result.colors.map((c) => c.name).join(" → ");
-      const description = result.isReacting 
+      const description = result.isReacting
         ? (colorNames || result.hint || "Reaction")
         : "No reaction";
       return [name, description] as [string, string];
@@ -334,16 +333,22 @@ export const ReagentSection = memo(function ReagentSection({
   // Show loading state only when fetching API data
   if (!hasStaticData && isLoading) {
     return (
-      <SectionCard delay={0}>
-        <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-          <IconBadge icon="lucide:pipette" label="Reagent Testing" />
-          Reagent Testing
-        </h2>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+            <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
+              <IconBadge icon="lucide:pipette" />
+              Reagent Testing
+            </h2>
+          </div>
+          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+        </div>
         <div className="flex items-center justify-center py-8 text-white/50">
           <Icon icon="lucide:loader-2" size={20} className="mr-2 animate-spin" />
           Loading reagent data...
         </div>
-      </SectionCard>
+      </div>
     );
   }
 
@@ -380,12 +385,19 @@ export const ReagentSection = memo(function ReagentSection({
   const hiddenCount = sortedEntries.length - COLLAPSED_LIMIT;
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:pipette" label="Reagent Testing" />
-        Reagent Testing
-      </h2>
-      <p className="mb-4 text-sm text-white/60">
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:pipette" />
+            Reagent Testing
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
+
+      <p className="text-sm text-white/60">
         Expected colorimetric results for common reagent tests. Colors show reaction
         change over 1–2 minutes.
       </p>
@@ -427,6 +439,6 @@ export const ReagentSection = memo(function ReagentSection({
           <Icon icon="lucide:external-link" size={12} className="text-white/30 group-hover:text-white/50 transition -ml-1" />
         </a>
       </div>
-    </SectionCard>
+    </div>
   );
 });

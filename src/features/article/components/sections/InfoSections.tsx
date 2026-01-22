@@ -250,17 +250,21 @@ export function InfoSections({
   }
 
   return (
-    <SectionCard delay={0.08}>
-      <div className="flex flex-col gap-6">
-        <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-          {headingIcon ? (
-            <IconBadge icon={headingIcon} label="Chemistry and pharmacology" />
-          ) : null}
-          Chemistry & Pharmacology
-        </h2>
-        {content}
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
+            {headingIcon ? (
+              <IconBadge icon={headingIcon} />
+            ) : null}
+            Chemistry & Pharmacology
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
       </div>
-    </SectionCard>
+      {content}
+    </div>
   );
 }
 

@@ -19,34 +19,34 @@ const INTERACTION_CATEGORIES: Array<{
   iconClass: string;
   definition: string;
 }> = [
-  {
-    key: "dangerous",
-    label: "Dangerous",
-    icon: "lucide:skull",
-    borderClass: "ring-1 ring-rose-500/30",
-    bgClass: "bg-rose-500/10",
-    iconClass: "text-rose-300",
-    definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
-  },
-  {
-    key: "unsafe",
-    label: "Unsafe",
-    icon: "lucide:hospital",
-    borderClass: "ring-1 ring-orange-500/30",
-    bgClass: "bg-orange-500/10",
-    iconClass: "text-orange-300",
-    definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
-  },
-  {
-    key: "caution",
-    label: "Caution",
-    icon: "lucide:triangle-alert",
-    borderClass: "ring-1 ring-amber-500/30",
-    bgClass: "bg-amber-500/10",
-    iconClass: "text-amber-300",
-    definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
-  },
-];
+    {
+      key: "dangerous",
+      label: "Dangerous",
+      icon: "lucide:skull",
+      borderClass: "ring-1 ring-rose-500/30",
+      bgClass: "bg-rose-500/10",
+      iconClass: "text-rose-300",
+      definition: "These combinations are considered extremely harmful and should always be avoided. Reactions to these drugs taken in combination are highly unpredictable and have a potential to cause death.",
+    },
+    {
+      key: "unsafe",
+      label: "Unsafe",
+      icon: "lucide:hospital",
+      borderClass: "ring-1 ring-orange-500/30",
+      bgClass: "bg-orange-500/10",
+      iconClass: "text-orange-300",
+      definition: "There is considerable risk of physical harm when taking these combinations, they should be avoided where possible.",
+    },
+    {
+      key: "caution",
+      label: "Caution",
+      icon: "lucide:triangle-alert",
+      borderClass: "ring-1 ring-amber-500/30",
+      bgClass: "bg-amber-500/10",
+      iconClass: "text-amber-300",
+      definition: "These combinations are not usually physically harmful, but may produce undesirable effects, such as physical discomfort or overstimulation. Extreme use may cause physical health issues. Synergistic effects may be unpredictable. Care should be taken when choosing to use this combination.",
+    },
+  ];
 
 export const InteractionsSection = memo(function InteractionsSection({
   article,
@@ -77,11 +77,17 @@ export const InteractionsSection = memo(function InteractionsSection({
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:blend" label="Interactions" />
-        Interactions
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:blend" />
+            Interactions
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       {/* Single column layout */}
       <div className="flex flex-col gap-4">
@@ -195,6 +201,6 @@ export const InteractionsSection = memo(function InteractionsSection({
           <Icon icon="lucide:external-link" size={12} className="text-white/30 group-hover:text-white/50 transition -ml-1" />
         </a>
       </div>
-    </SectionCard>
+    </div>
   );
 });

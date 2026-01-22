@@ -142,8 +142,8 @@ function EffectBadge({
       onClick={handleClick}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition",
-          "bg-white/[0.03] text-white/85 ring-1 ring-white/10",
-          "hover:bg-white/10 hover:text-fuchsia-200",
+        "bg-white/[0.03] text-white/85 ring-1 ring-white/10",
+        "hover:bg-white/10 hover:text-fuchsia-200",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       )}
     >
@@ -316,13 +316,20 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:sparkles" label="Subjective Effects" />
-        Subjective Effects
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:sparkles" />
+            Subjective Effects
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
+
       {/* Overview note as intro paragraph, or fallback to generic text */}
-      <p className="mb-4 text-sm text-white/70 leading-relaxed">
+      <p className="text-sm text-white/70 leading-relaxed">
         {hasOverviewNote
           ? subjective_effects.notes.overview
           : "Effects vary widely by individual, dose, and context."}
@@ -513,6 +520,6 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           </div>
         );
       })()}
-    </SectionCard>
+    </div>
   );
 });

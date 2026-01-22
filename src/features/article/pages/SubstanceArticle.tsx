@@ -17,10 +17,15 @@ import { InfoSections, InfoSectionItemCard } from "../sections/InfoSections";
 import { SubjectiveEffectsSection } from "../sections/SubjectiveEffectsSection";
 import { InteractionsSection } from "../sections/InteractionsSection";
 import { ToleranceSection } from "../sections/ToleranceSection";
-import { AddictionCard } from "../sections/AddictionCard";
 import { NotesSection } from "../sections/NotesSection";
 import { CitationsSection } from "../sections/CitationsSection";
 import { ReagentSection } from "../sections/ReagentSection";
+import { PharmacologySection } from "../sections/PharmacologySection";
+import { HistoryCultureSection } from "../sections/HistoryCultureSection";
+import { LegalitySection } from "../sections/LegalitySection";
+import { LegalitySection } from "../sections/LegalitySection";
+import { HarmPotentialSection } from "../sections/HarmPotentialSection";
+import { TripReportsSection } from "../sections/TripReportsSection";
 import {
   extractInfoSectionBuckets,
   buildHeroVariantLines,
@@ -265,13 +270,7 @@ export function SubstanceArticle({
         <main className="mx-auto max-w-3xl px-4 pb-20 md:max-w-4xl">
           <div className="space-y-10 md:space-y-12">
             {resolvedRouteKey ? (
-              <DosageDurationCard
-                route={resolvedRouteKey}
-                onRouteChange={onRouteChange}
-                routes={content.routes}
-                routeOrder={content.routeOrder}
-                note={content.dosageUnitsNote}
-              />
+              <DosageDurationSection article={content} />
             ) : null}
 
             {content.infoSections && content.infoSections.length > 0 ? (
@@ -282,11 +281,15 @@ export function SubstanceArticle({
               />
             ) : null}
 
-            <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
+            <PharmacologySection article={content} onSelectMechanism={onSelectMechanism} />
+            <ReagentSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
             <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
-            <AddictionCard summary={content.addictionSummary} />
-            <InteractionsSection interactions={content.interactions} />
+            <HarmPotentialSection article={content} />
+            <InteractionsSection article={content} />
             <ToleranceSection tolerance={content.tolerance} />
+            <HistoryCultureSection article={content} />
+            <LegalitySection article={content} />
+            <TripReportsSection article={content} />
             <NotesSection notes={content.notes} />
             <CitationsSection sourceCitations={content.sourceCitations} citations={content.citations} />
           </div>
@@ -340,44 +343,48 @@ export function SubstanceArticle({
                     >
                       {resolvedRouteKey ? (
                         <div className="space-y-8">
-                          <DosageDurationCard
-                            route={resolvedRouteKey}
-                            onRouteChange={onRouteChange}
-                            routes={content.routes}
-                            routeOrder={content.routeOrder}
-                            note={content.dosageUnitsNote}
-                          />
-                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                          <DosageDurationSection article={content} />
                         </div>
                       ) : null}
 
                       <div className="space-y-16">
                         <section className="space-y-8">
-                          <ReagentTestingSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
-                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                          <PharmacologySection article={content} onSelectMechanism={onSelectMechanism} />
+                        </section>
+
+                        <section className="space-y-8">
+                          <ReagentSection substanceName={content.name} aliases={content.aliases} reagentTesting={content.reagentTesting} />
                         </section>
 
                         <section className="space-y-8">
                           <SubjectiveEffectsSection effects={content.subjectiveEffects} onEffectSelect={onSelectEffect} />
-                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+                        </section>
+
+                        <section className="space-y-8">
+                          <HarmPotentialSection article={content} />
                         </section>
 
                         <section className="space-y-8">
                           <InteractionsSection interactions={content.interactions} layoutVariant="stacked" />
-                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
                         </section>
 
                         <section className="space-y-8">
                           <ToleranceSection tolerance={content.tolerance} />
-                          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
                         </section>
 
                         <section className="space-y-8">
-                          <AddictionCard summary={content.addictionSummary} />
+                          <HistoryCultureSection article={content} />
                         </section>
 
                         <section className="space-y-8">
-                          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                          <LegalitySection article={content} />
+                        </section>
+
+                        <section className="space-y-8">
+                          <TripReportsSection article={content} />
+                        </section>
+
+                        <section className="space-y-8">
                           <NotesSection notes={content.notes} />
                         </section>
 

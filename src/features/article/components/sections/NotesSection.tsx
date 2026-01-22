@@ -20,11 +20,17 @@ export function NotesSection({ notes }: NotesSectionProps) {
   }
 
   return (
-    <SectionCard delay={0.3}>
-      <h2 className="flex items-center gap-3 text-xl font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:notebook-text" label="Notes" />
-        Notes
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:notebook-text" />
+            Notes
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkBreaks]}
         components={{
@@ -58,12 +64,12 @@ export function NotesSection({ notes }: NotesSectionProps) {
             // we'll detect it by checking if the list is ordered
             // ReactMarkdown passes ordered property through context, but we can check node structure
             const isInOrderedList = node?.parent?.type === "list" && node?.parent?.ordered === true;
-            
+
             if (isInOrderedList) {
               // Keep default styling for ordered lists
               return <li {...props}>{children}</li>;
             }
-            
+
             // For unordered lists, use custom bullet with flex layout
             return (
               <li className="flex items-center gap-2" {...props}>
@@ -92,6 +98,6 @@ export function NotesSection({ notes }: NotesSectionProps) {
       >
         {normalizedNotes}
       </ReactMarkdown>
-    </SectionCard>
+    </div>
   );
 }

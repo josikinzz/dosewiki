@@ -35,11 +35,17 @@ export const ToleranceSection = memo(function ToleranceSection({
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:trending-up" label="Tolerance" />
-        Tolerance
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:trending-up" />
+            Tolerance
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       <Masonry
         breakpointCols={MASONRY_BREAKPOINTS}
@@ -77,6 +83,6 @@ export const ToleranceSection = memo(function ToleranceSection({
           </div>
         )}
       </Masonry>
-    </SectionCard>
+    </div>
   );
 });

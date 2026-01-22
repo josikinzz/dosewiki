@@ -81,23 +81,35 @@ export const CitationsSection = memo(function CitationsSection({
   const hiddenCount = citations.length - COLLAPSED_LIMIT;
 
   return (
-    <SectionCard delay={0}>
+    <div className="space-y-8 pt-12">
       {hasSourceCitations && (
-        <div>
-          <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-            <IconBadge icon="lucide:library" label="Sources" />
-            Sources
-          </h2>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+              <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                <IconBadge icon="lucide:library" />
+                Sources
+              </h2>
+            </div>
+            <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+          </div>
           <CitationList citations={sourceCitations} startIndex={0} />
         </div>
       )}
 
       {hasCitations && (
-        <div className={hasSourceCitations ? "mt-6" : ""}>
-          <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-            <IconBadge icon="lucide:book-open" label="Further Reading" />
-            Further Reading
-          </h2>
+        <div className={hasSourceCitations ? "pt-12 space-y-6" : "space-y-6"}>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+              <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                <IconBadge icon="lucide:book-open" />
+                Further Reading
+              </h2>
+            </div>
+            <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+          </div>
           <CitationList
             citations={visibleCitations}
             startIndex={sourceCitations.length}
@@ -120,6 +132,6 @@ export const CitationsSection = memo(function CitationsSection({
       <p className="mt-4 text-xs text-white/50">
         {totalCitations} source{totalCitations !== 1 ? "s" : ""} cited
       </p>
-    </SectionCard>
+    </div>
   );
 });

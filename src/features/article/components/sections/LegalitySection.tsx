@@ -2,7 +2,6 @@ import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { getCountryCode } from "@/utils/data/countryCodes";
 import type { SubstanceArticle } from "@/schema";
@@ -157,11 +156,17 @@ export const LegalitySection = memo(function LegalitySection({
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:scale" label="Legality" />
-        Legality
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:scale" />
+            <span className="drop-shadow-sm">Legality</span>
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       {/* International */}
       {hasInternational && (
@@ -182,7 +187,7 @@ export const LegalitySection = memo(function LegalitySection({
 
       {/* Countries */}
       {hasCountries && (
-        <div>
+        <div className="mt-4">
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <Icon icon="lucide:map-pin" size={20} className="text-fuchsia-200" />
             By Country
@@ -212,7 +217,7 @@ export const LegalitySection = memo(function LegalitySection({
               return (
                 <div
                   key={countryName}
-                  className="relative rounded-xl border border-white/10 bg-white/5 p-3"
+                  className="relative rounded-xl border border-white/10 bg-white/5 p-3 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20"
                 >
                   {countryCode && (
                     <img
@@ -253,6 +258,6 @@ export const LegalitySection = memo(function LegalitySection({
           </Masonry>
         </div>
       )}
-    </SectionCard>
+    </div>
   );
 });

@@ -2,7 +2,6 @@ import { memo, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { AuthorAvatar, AuthorLink } from "@/features/reports/components";
 import type { SubstanceArticle } from "@/schema";
@@ -29,17 +28,17 @@ export const TripReportsSection = memo(function TripReportsSection({
   // Collect all candidate names to search for
   const searchNames = useMemo(() => {
     const names = new Set<string>();
-    
+
     // Add article title
     if (article.title?.trim()) {
       names.add(article.title.trim().toLowerCase());
     }
-    
+
     // Add common name if different from title
     if (article.identification?.common_name?.trim()) {
       names.add(article.identification.common_name.trim().toLowerCase());
     }
-    
+
     // Add all alternative names
     const altNames = article.identification?.alternative_names ?? [];
     for (const altName of altNames) {
@@ -47,7 +46,7 @@ export const TripReportsSection = memo(function TripReportsSection({
         names.add(altName.trim().toLowerCase());
       }
     }
-    
+
     return Array.from(names);
   }, [article.title, article.identification?.common_name, article.identification?.alternative_names]);
 
@@ -61,13 +60,13 @@ export const TripReportsSection = memo(function TripReportsSection({
 
   // Also query for alternative names if they exist and differ from primary
   const altNames = searchNames.filter(n => n !== primaryName.toLowerCase());
-  
+
   // Query for first alternative name if exists
   const altReports1 = useQuery(
     api.tripReports.getBySubstance,
     altNames[0] ? { substanceName: altNames[0] } : "skip"
   ) as TripReport[] | undefined;
-  
+
   // Query for second alternative name if exists
   const altReports2 = useQuery(
     api.tripReports.getBySubstance,
@@ -78,7 +77,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   const allReports = useMemo(() => {
     const seen = new Set<string>();
     const combined: TripReport[] = [];
-    
+
     const addReports = (reportList: TripReport[] | undefined) => {
       if (!reportList) return;
       for (const report of reportList) {
@@ -88,11 +87,11 @@ export const TripReportsSection = memo(function TripReportsSection({
         }
       }
     };
-    
+
     addReports(reports);
     addReports(altReports1);
     addReports(altReports2);
-    
+
     // Sort by featured first, then by title
     return combined.sort((a, b) => {
       if (a.featured && !b.featured) return -1;
@@ -105,7 +104,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   const { singleSubstanceReports, combinationReports } = useMemo(() => {
     const single: TripReport[] = [];
     const combinations: TripReport[] = [];
-    
+
     for (const report of allReports) {
       if (report.substances.length === 1) {
         single.push(report);
@@ -113,7 +112,7 @@ export const TripReportsSection = memo(function TripReportsSection({
         combinations.push(report);
       }
     }
-    
+
     // Maintain existing sort order (featured first, then by title) for each group
     const sortReports = (reports: TripReport[]) => {
       return reports.sort((a, b) => {
@@ -122,7 +121,7 @@ export const TripReportsSection = memo(function TripReportsSection({
         return a.title.localeCompare(b.title);
       });
     };
-    
+
     return {
       singleSubstanceReports: sortReports(single),
       combinationReports: sortReports(combinations),
@@ -152,18 +151,24 @@ export const TripReportsSection = memo(function TripReportsSection({
     // Single-substance reports get priority
     const singleCount = Math.min(singleSubstanceReports.length, COLLAPSED_LIMIT);
     singleSubstanceVisible = singleSubstanceReports.slice(0, singleCount);
-    
+
     // Fill remaining slots with combinations
     const remainingSlots = COLLAPSED_LIMIT - singleCount;
     combinationVisible = combinationReports.slice(0, remainingSlots);
   }
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:file-signature" label="Trip Reports" />
-        Trip Reports
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:file-signature" />
+            <span className="drop-shadow-sm">Trip Reports</span>
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       <div className="space-y-3">
         {/* Single-substance reports */}
@@ -208,7 +213,7 @@ export const TripReportsSection = memo(function TripReportsSection({
           </button>
         )}
       </div>
-    </SectionCard>
+    </div>
   );
 });
 

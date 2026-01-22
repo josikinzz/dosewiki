@@ -40,7 +40,7 @@ async function seedIndexLayouts() {
   const layouts = [];
 
   for (const { type, file } of INDEX_FILES) {
-    const filePath = path.join(__dirname, "../src/data/indexes", file);
+    const filePath = path.join(__dirname, "../../src/data/indexes", file);
 
     if (!fs.existsSync(filePath)) {
       console.error(`  ✗ ${file} not found`);

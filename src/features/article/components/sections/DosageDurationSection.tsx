@@ -132,19 +132,19 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
         {PLATEAU_TIERS.map(({ key, label, gradientFrom, isSigma }) => {
           const plateau = plateauDosing[key as keyof typeof plateauDosing];
           if (!plateau || typeof plateau === "string") return null;
-          
+
           const hasDoseRange = plateau.min !== null || plateau.max !== null;
           if (!isSigma && !hasDoseRange) return null;
-          
+
           const doseText = hasDoseRange
             ? plateau.max !== null
               ? `${plateau.min}-${plateau.max} ${plateau.unit}`
               : `${plateau.min}+ ${plateau.unit}`
             : "via redosing";
-          
+
           const hasEffects = !!plateau.effects?.trim();
           const isExpanded = expandedPlateau === key;
-          
+
           return (
             <div
               key={key}
@@ -253,7 +253,7 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
           </span>
         )}
       </div>
-      
+
       {hasPlateauDosing ? (
         <Tabs defaultValue="traditional" className="w-full">
           <TabsList className="mb-3 h-auto p-1">
@@ -274,7 +274,7 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
       ) : (
         <DoseTiersTable route={route} />
       )}
-      
+
       {hasBioavailabilityNotes && (
         <p className="mt-3 text-xs text-white/50 italic">
           {route.bioavailability_notes}
@@ -287,7 +287,7 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
 function DurationPanel({ route }: { route: DurationRoute }) {
   const hasHalfLife = !!route.half_life?.trim();
   const hasHalfLifeNotes = !!route.half_life_notes?.trim();
-  
+
   return (
     <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -346,11 +346,17 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   const defaultRoute = allRoutes[0] || "oral";
 
   return (
-    <SectionCard delay={0}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:chart-no-axes-combined" label="Dosage & Duration" />
-        Dosage & Duration
-      </h2>
+    <div className="space-y-6 pt-12">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+            <IconBadge icon="lucide:chart-no-axes-combined" />
+            Dosage & Duration
+          </h2>
+        </div>
+        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
+      </div>
 
       <Tabs defaultValue={defaultRoute} className="w-full">
         <TabsList className="mb-4 flex-wrap">
@@ -379,6 +385,6 @@ export const DosageDurationSection = memo(function DosageDurationSection({
           );
         })}
       </Tabs>
-    </SectionCard>
+    </div>
   );
 });
