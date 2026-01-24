@@ -69,6 +69,7 @@ type DevModeContextValue = {
   replaceGeneratorPrompt: (nextPrompt: string) => void;
   resetGeneratorPrompt: () => void;
   getOriginalGeneratorPrompt: () => string;
+  markChangesSaved: () => void;
 };
 
 const DevModeContext = createContext<DevModeContextValue | undefined>(undefined);
@@ -119,9 +120,16 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     return deepClone(articlesSource);
   });
 
+  // Track if user has unsaved local edits (prevents sync from overwriting user changes)
+  const hasLocalEditsRef = useRef(false);
+
   // Sync articles when source data changes (e.g., when library loads or hot reload)
-  // Always update state to match source - the loading UI will handle the empty case
+  // Skip sync if user has unsaved local edits to prevent data loss
   useEffect(() => {
+    if (hasLocalEditsRef.current) {
+      console.log("[DevModeProvider] Skipping sync - user has local edits");
+      return;
+    }
     console.log("[DevModeProvider] Sync effect triggered - articlesSource changed to:", articlesSource.length);
     originalArticlesRef.current = deepClone(articlesSource);
     setArticles(deepClone(articlesSource));
@@ -263,6 +271,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   }, [isDevPath]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
+    hasLocalEditsRef.current = true; // Mark that user has unsaved edits
     setArticles((previous) => {
       if (index < 0 || index >= previous.length) {
         return previous;
@@ -432,6 +441,14 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
 
   const getOriginalGeneratorPrompt = useCallback(() => originalGeneratorPromptRef.current, []);
 
+  // Reset the local edits flag after successful save to Convex
+  // Also updates originalArticlesRef so subsequent comparisons work correctly
+  const markChangesSaved = useCallback(() => {
+    hasLocalEditsRef.current = false;
+    originalArticlesRef.current = deepClone(articles);
+    console.log("[DevModeProvider] Changes saved - reset local edits flag");
+  }, [articles]);
+
   const value = useMemo<DevModeContextValue>(() => ({
     articles,
     psychoactiveIndexManual,
@@ -474,6 +491,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     replaceGeneratorPrompt,
     resetGeneratorPrompt,
     getOriginalGeneratorPrompt,
+    markChangesSaved,
   }), [
     aboutFounderKeys,
     aboutMarkdown,
@@ -516,6 +534,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     replaceGeneratorPrompt,
     resetGeneratorPrompt,
     getOriginalGeneratorPrompt,
+    markChangesSaved,
   ]);
 
   return <DevModeContext.Provider value={value}>{children}</DevModeContext.Provider>;

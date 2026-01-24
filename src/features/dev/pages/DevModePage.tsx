@@ -243,6 +243,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     replaceGeneratorPrompt,
     resetGeneratorPrompt,
     getOriginalGeneratorPrompt,
+    markChangesSaved,
   } = useDevMode();
 
   console.log("[DevModePage] useDevMode() returned articles:", articles.length);
@@ -1828,6 +1829,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         type: "success",
         message: `Saved ${savedItems.join(" and ")} to Convex as ${credentials.key}.`,
       });
+
+      // Reset local edits flag so future Convex syncs don't skip
+      markChangesSaved();
 
       // Clear notice after a delay
       setTimeout(() => setConvexNotice(null), 5000);
