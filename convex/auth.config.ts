@@ -8,8 +8,8 @@
  * replacing localStorage password storage with secure JWT-based sessions.
  */
 
-// Hardcoded for now until WorkOS User Management is properly configured
-const clientId = "client_01KFN9WYTR7P8QR67E1BBGQPHA";
+// WorkOS Production Client ID
+const clientId = "client_01KFN9WZ4WPC6JAK603XRA3QCW";
 
 const authConfig = {
   providers: [
