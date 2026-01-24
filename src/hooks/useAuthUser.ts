@@ -61,11 +61,6 @@ export function useAuthUser(): AuthState {
   const workosAuth = useAuth();
   const convexAuth = useConvexAuth();
 
-  // Debug logging
-  console.log("[useAuthUser] authEnabled:", authEnabled);
-  console.log("[useAuthUser] workosAuth.user:", workosAuth.user);
-  console.log("[useAuthUser] convexAuth:", convexAuth);
-
   return useMemo(() => {
     // When auth is not enabled, return a development-friendly disabled state
     if (!authEnabled) {
