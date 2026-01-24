@@ -460,23 +460,26 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   }, [articleLabel, comparisonTarget, isDraftValid, originalArticle]);
 
   const changelogMarkdown = changelogResult.markdown;
+  // Include articles.length as dependency to force recompute when articles first load
+  // (getOriginalArticles is stable, but originalArticlesRef.current changes after sync effect)
   const originalArticles = useMemo(() => {
     const originals = getOriginalArticles();
-    console.log("[DevModePage] 📊 originalArticles memo computed -", originals.length, "articles");
+    console.log("[DevModePage] 📊 originalArticles memo computed -", originals.length, "articles (triggered by articles.length:", articles.length, ")");
     return originals;
-  }, [getOriginalArticles]);
+  }, [getOriginalArticles, articles.length]);
 
+  // Include current values as dependencies to force recompute when data loads from Convex
   const originalAboutMarkdown = useMemo(
     () => getOriginalAboutMarkdown(),
-    [getOriginalAboutMarkdown],
+    [getOriginalAboutMarkdown, aboutMarkdown],
   );
   const originalAboutSubtitle = useMemo(
     () => getOriginalAboutSubtitle(),
-    [getOriginalAboutSubtitle],
+    [getOriginalAboutSubtitle, aboutSubtitle],
   );
   const originalAboutFounderKeys = useMemo(
     () => getOriginalAboutFounderKeys(),
-    [getOriginalAboutFounderKeys],
+    [getOriginalAboutFounderKeys, aboutFounderKeys],
   );
   const originalGeneratorPrompt = useMemo(
     () => getOriginalGeneratorPrompt(),
