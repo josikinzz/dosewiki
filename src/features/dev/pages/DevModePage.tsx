@@ -246,8 +246,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     markChangesSaved,
   } = useDevMode();
 
-  console.log("[DevModePage] useDevMode() returned articles:", articles.length);
-
   const {
     chemicalClassIndexGroups,
     dosageCategoryGroups,
@@ -462,11 +460,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const changelogMarkdown = changelogResult.markdown;
   // Include articles.length as dependency to force recompute when articles first load
   // (getOriginalArticles is stable, but originalArticlesRef.current changes after sync effect)
-  const originalArticles = useMemo(() => {
-    const originals = getOriginalArticles();
-    console.log("[DevModePage] 📊 originalArticles memo computed -", originals.length, "articles (triggered by articles.length:", articles.length, ")");
-    return originals;
-  }, [getOriginalArticles, articles.length]);
+  const originalArticles = useMemo(
+    () => getOriginalArticles(),
+    [getOriginalArticles, articles.length],
+  );
 
   // Include current values as dependencies to force recompute when data loads from Convex
   const originalAboutMarkdown = useMemo(
@@ -1763,7 +1760,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
       // Get fresh original articles from ref (not the stale memoized value which may have been computed before articles loaded)
       const freshOriginalArticles = getOriginalArticles();
-      console.log("[DevModePage] 🔍 handleSaveToConvex - articles count:", articles.length, "freshOriginalArticles count:", freshOriginalArticles.length);
 
       // Save About content if changed
       if (hasAboutChanges) {
@@ -1777,33 +1773,15 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       }
 
       // Get changed articles by comparing with originals
-      console.log("[DevModePage] 🔍 Comparing articles to find changes...");
       const changedArticles = articles.filter((article, index) => {
         const original = freshOriginalArticles[index];
-        if (!original) {
-          console.log("[DevModePage] 📝 Article at index", index, "(", article.title, ") - NEW (no original)");
-          return true;
-        }
-        const articleJson = JSON.stringify(article);
-        const originalJson = JSON.stringify(original);
-        const isChanged = articleJson !== originalJson;
-        if (isChanged) {
-          console.log("[DevModePage] 📝 Article at index", index, "(", article.title, ") - CHANGED");
-          // Log first difference for debugging
-          if (articleJson.length !== originalJson.length) {
-            console.log("  Length diff:", articleJson.length, "vs", originalJson.length);
-          }
-        }
-        return isChanged;
+        if (!original) return true; // New article
+        return JSON.stringify(article) !== JSON.stringify(original);
       });
-
-      console.log("[DevModePage] 🔍 Found", changedArticles.length, "changed articles:", changedArticles.map(a => a.title));
 
       // Save articles if there are changes and convexSave is available
       if (changedArticles.length > 0 && convexSave) {
-        console.log("[DevModePage] 🚀 Calling convexSave.mutate with", changedArticles.length, "articles");
         const result = await convexSave.mutate({ articles: changedArticles });
-        console.log("[DevModePage] ✅ Mutation result:", result);
         savedItems.push(`${result.created + result.updated} article(s)`);
 
         // Generate and save changelog entry
@@ -1860,7 +1838,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       });
 
       // Reset local edits flag so future Convex syncs don't skip
-      console.log("[DevModePage] 💾 Calling markChangesSaved()");
       markChangesSaved();
 
       // Clear notice after a delay
@@ -2607,9 +2584,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   );
 
   // Show loading state while articles are loading
-  console.log("[DevModePage] Render - articles.length:", articles.length);
   if (articles.length === 0) {
-    console.log("[DevModePage] Showing loading state (articles.length === 0)");
     return (
       <main className={mainClassName}>
         <div className="mx-auto w-full max-w-6xl">

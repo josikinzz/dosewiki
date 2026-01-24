@@ -106,19 +106,9 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     return { version: mechanismLayout.version, categories: mechanismLayout.categories };
   }, [mechanismLayout]);
 
-  console.log("[DevModeProvider] useLibrary() returned articles:", articlesSource.length);
-  console.log("[DevModeProvider] Index layouts from Convex:", {
-    psychoactive: psychoactiveLayout ? psychoactiveLayout.categories.length : "loading",
-    chemical: chemicalLayout ? chemicalLayout.categories.length : "loading",
-    mechanism: mechanismLayout ? mechanismLayout.categories.length : "loading",
-  });
-
   // Store original articles in ref (initialized once when provider mounts)
   const originalArticlesRef = useRef<ArticleRecord[]>(deepClone(articlesSource));
-  const [articles, setArticles] = useState<ArticleRecord[]>(() => {
-    console.log("[DevModeProvider] Initial state - articlesSource:", articlesSource.length);
-    return deepClone(articlesSource);
-  });
+  const [articles, setArticles] = useState<ArticleRecord[]>(() => deepClone(articlesSource));
 
   // Track if user has unsaved local edits (prevents sync from overwriting user changes)
   const hasLocalEditsRef = useRef(false);
@@ -126,12 +116,9 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   // Sync articles when source data changes (e.g., when library loads or hot reload)
   // Skip sync if user has unsaved local edits to prevent data loss
   useEffect(() => {
-    console.log("[DevModeProvider] Sync effect CHECK - hasLocalEdits:", hasLocalEditsRef.current, "articlesSource:", articlesSource.length);
     if (hasLocalEditsRef.current) {
-      console.log("[DevModeProvider] ⚠️ SKIPPING sync - user has local edits");
       return;
     }
-    console.log("[DevModeProvider] ✅ Syncing - updating originalArticlesRef and articles state");
     originalArticlesRef.current = deepClone(articlesSource);
     setArticles(deepClone(articlesSource));
   }, [articlesSource]);
@@ -272,7 +259,6 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   }, [isDevPath]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
-    console.log("[DevModeProvider] 📝 updateArticleAt called - index:", index, "title:", nextArticle.title, "setting hasLocalEdits=true");
     hasLocalEditsRef.current = true; // Mark that user has unsaved edits
     setArticles((previous) => {
       if (index < 0 || index >= previous.length) {
@@ -446,7 +432,6 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   // Reset the local edits flag after successful save to Convex
   // Also updates originalArticlesRef so subsequent comparisons work correctly
   const markChangesSaved = useCallback(() => {
-    console.log("[DevModeProvider] 💾 markChangesSaved called - resetting hasLocalEdits to false, updating originalArticlesRef with", articles.length, "articles");
     hasLocalEditsRef.current = false;
     originalArticlesRef.current = deepClone(articles);
   }, [articles]);
