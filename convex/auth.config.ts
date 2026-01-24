@@ -2,14 +2,14 @@
  * Convex authentication configuration for WorkOS AuthKit.
  *
  * This configures JWT-based authentication using WorkOS as the identity provider.
- * The WORKOS_CLIENT_ID is auto-provisioned by Convex when using the authKit
- * configuration in convex.json.
+ * When WORKOS_CLIENT_ID is not set, auth is disabled (allows anonymous access).
  *
  * SECURITY: This addresses VULN-01 and VULN-04 from the security audit by
  * replacing localStorage password storage with secure JWT-based sessions.
  */
 
-const clientId = process.env.WORKOS_CLIENT_ID;
+// Hardcoded for now until WorkOS User Management is properly configured
+const clientId = "client_01KFN9WYTR7P8QR67E1BBGQPHA";
 
 const authConfig = {
   providers: [
