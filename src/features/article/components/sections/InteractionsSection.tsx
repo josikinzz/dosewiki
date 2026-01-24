@@ -1,7 +1,6 @@
-import { memo, useState } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { IconBadge } from "@/components/common/IconBadge";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 
 interface InteractionsSectionProps {
@@ -48,6 +47,82 @@ const INTERACTION_CATEGORIES: Array<{
     },
   ];
 
+/** Memoized interaction badge component */
+const InteractionBadge = memo(function InteractionBadge({
+  item,
+  isExpanded,
+  onToggleExpand,
+  onSelectInteraction,
+}: {
+  item: { raw: string; substance: string; rationale: string | null };
+  isExpanded: boolean;
+  onToggleExpand: (key: string) => void;
+  onSelectInteraction?: (substance: string) => void;
+}) {
+  const hasRationale = !!item.rationale;
+
+  const handleToggle = useCallback(() => {
+    onToggleExpand(item.raw);
+  }, [onToggleExpand, item.raw]);
+
+  const handleSelect = useCallback(() => {
+    onSelectInteraction?.(item.substance);
+  }, [onSelectInteraction, item.substance]);
+
+  // Expanded state - full-width inline card
+  if (isExpanded && hasRationale) {
+    return (
+      <div
+        className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-black/20 ring-1 ring-white/10 px-4 py-3 my-1"
+      >
+        <button
+          onClick={handleToggle}
+          className="absolute top-3 right-3 flex items-center gap-0.5 rounded p-1 transition hover:bg-white/10"
+          aria-label={`Collapse ${item.substance}`}
+        >
+          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
+          <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180" />
+        </button>
+        <span className="text-sm font-semibold text-white pr-8">
+          {item.substance}
+        </span>
+        <p className="text-sm text-white/60 leading-relaxed">
+          {item.rationale}
+        </p>
+      </div>
+    );
+  }
+
+  // Collapsed state - compact badge
+  return (
+    <span
+      className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
+    >
+      {onSelectInteraction ? (
+        <button
+          type="button"
+          className="hover:text-fuchsia-300 transition-colors"
+          onClick={handleSelect}
+        >
+          {item.substance}
+        </button>
+      ) : (
+        <span>{item.substance}</span>
+      )}
+      {hasRationale && (
+        <button
+          onClick={handleToggle}
+          className="flex items-center gap-0.5 rounded p-0.5 transition hover:bg-white/10"
+          aria-label={`Expand ${item.substance}`}
+        >
+          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
+          <Icon icon="lucide:chevron-down" size={12} className="text-white/85" />
+        </button>
+      )}
+    </span>
+  );
+});
+
 export const InteractionsSection = memo(function InteractionsSection({
   article,
   onSelectInteraction,
@@ -56,7 +131,7 @@ export const InteractionsSection = memo(function InteractionsSection({
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  const toggleExpand = (key: string) => {
+  const toggleExpand = useCallback((key: string) => {
     setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
@@ -66,11 +141,30 @@ export const InteractionsSection = memo(function InteractionsSection({
       }
       return next;
     });
-  };
+  }, []);
 
   const hasDangerous = interactions.dangerous.length > 0;
   const hasUnsafe = interactions.unsafe.length > 0;
   const hasCaution = interactions.caution.length > 0;
+
+  // Pre-parse all interactions with useMemo to avoid regex parsing on every render
+  const parsedInteractions = useMemo(() => {
+    const parseItems = (items: string[]) =>
+      items.map((item) => {
+        const match = item.match(/^(.+?)\s*\((.+)\)$/);
+        return {
+          raw: item,
+          substance: match ? match[1].trim() : item,
+          rationale: match ? match[2].trim() : null,
+        };
+      });
+
+    return {
+      dangerous: parseItems(interactions.dangerous),
+      unsafe: parseItems(interactions.unsafe),
+      caution: parseItems(interactions.caution),
+    };
+  }, [interactions.dangerous, interactions.unsafe, interactions.caution]);
 
   if (!hasDangerous && !hasUnsafe && !hasCaution) {
     return null;
@@ -78,21 +172,12 @@ export const InteractionsSection = memo(function InteractionsSection({
 
   return (
     <div className="space-y-6 pt-12">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
-            <IconBadge icon="lucide:blend" />
-            Interactions
-          </h2>
-        </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-      </div>
+      <SectionHeader icon="lucide:blend" title="Interactions" />
 
       {/* Single column layout */}
       <div className="flex flex-col gap-4">
         {INTERACTION_CATEGORIES.map(({ key, label, icon, borderClass, bgClass, iconClass, definition }) => {
-          const items = interactions[key as keyof typeof interactions];
+          const items = parsedInteractions[key as keyof typeof parsedInteractions];
           if (items.length === 0) return null;
 
           return (
@@ -105,81 +190,17 @@ export const InteractionsSection = memo(function InteractionsSection({
                 {label}
               </h3>
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>
-              {(() => {
-                // Parse all items to extract substance and rationale
-                const parsed = items.map((item) => {
-                  const match = item.match(/^(.+?)\s*\((.+)\)$/);
-                  return {
-                    raw: item,
-                    substance: match ? match[1].trim() : item,
-                    rationale: match ? match[2].trim() : null,
-                  };
-                });
-
-                return (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {parsed.map((item) => {
-                      const isExpanded = expandedItems.has(item.raw);
-                      const hasRationale = !!item.rationale;
-
-                      // Expanded state - full-width inline card
-                      if (isExpanded && hasRationale) {
-                        return (
-                          <div
-                            key={item.raw}
-                            className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-black/20 ring-1 ring-white/10 px-4 py-3 my-1"
-                          >
-                            <button
-                              onClick={() => toggleExpand(item.raw)}
-                              className="absolute top-3 right-3 flex items-center gap-0.5 rounded p-1 transition hover:bg-white/10"
-                              aria-label={`Collapse ${item.substance}`}
-                            >
-                              <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
-                              <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180" />
-                            </button>
-                            <span className="text-sm font-semibold text-white pr-8">
-                              {item.substance}
-                            </span>
-                            <p className="text-sm text-white/60 leading-relaxed">
-                              {item.rationale}
-                            </p>
-                          </div>
-                        );
-                      }
-
-                      // Collapsed state - compact badge
-                      return (
-                        <span
-                          key={item.raw}
-                          className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
-                        >
-                          {onSelectInteraction ? (
-                            <button
-                              type="button"
-                              className="hover:text-fuchsia-300 transition-colors"
-                              onClick={() => onSelectInteraction(item.substance)}
-                            >
-                              {item.substance}
-                            </button>
-                          ) : (
-                            <span>{item.substance}</span>
-                          )}
-                          {hasRationale && (
-                            <button
-                              onClick={() => toggleExpand(item.raw)}
-                              className="flex items-center gap-0.5 rounded p-0.5 transition hover:bg-white/10"
-                              aria-label={`Expand ${item.substance}`}
-                            >
-                              <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
-                              <Icon icon="lucide:chevron-down" size={12} className="text-white/85" />
-                            </button>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {items.map((item) => (
+                  <InteractionBadge
+                    key={item.raw}
+                    item={item}
+                    isExpanded={expandedItems.has(item.raw)}
+                    onToggleExpand={toggleExpand}
+                    onSelectInteraction={onSelectInteraction}
+                  />
+                ))}
+              </div>
             </div>
           );
         })}

@@ -33,7 +33,8 @@ export function EffectCategoryCard({
           <IndexCardListItem
             key={effect.slug}
             label={effect.name}
-            onClick={() => onSelectEffect(effect.slug)}
+            slug={effect.slug}
+            onSelect={onSelectEffect}
           />
         ))}
       </IndexCardList>

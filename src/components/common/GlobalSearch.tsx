@@ -2,24 +2,15 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { Icon } from "./Icon";
 import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
 import { useLazyLibrary } from "../../hooks/useLazyLibrary";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useListboxPositioning } from "../../hooks/useListboxPositioning";
+import { useKeyboardNavigation } from "../../hooks/useKeyboardNavigation";
 import type { AppView } from "../../types/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const MAX_SUGGESTIONS = 8;
 const DEBOUNCE_MS = 200;
-
-/** Debounce a value by the specified delay */
-function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
 
 interface GlobalSearchProps {
   currentView: AppView;
@@ -37,12 +28,9 @@ export function GlobalSearch({
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [listboxPosition, setListboxPosition] = useState<{ top: number; left: number } | null>(null);
   const [libraryEnabled, setLibraryEnabled] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const positionRafRef = useRef<number | null>(null);
   const listboxId = useId();
 
   // Lazy-load library when search is activated
@@ -70,8 +58,23 @@ export function GlobalSearch({
 
   const hasQuery = query.trim().length > 0;
   const clearButtonVisible = hasQuery;
-  const showSuggestions = isActiveSearch && hasQuery && suggestions.length > 0;
-  const showLoadingIndicator = libraryEnabled && libraryLoading && hasQuery;
+
+  // Memoize derived values to prevent unnecessary re-renders
+  const showSuggestions = useMemo(
+    () => isActiveSearch && hasQuery && suggestions.length > 0,
+    [isActiveSearch, hasQuery, suggestions.length]
+  );
+  const showLoadingIndicator = useMemo(
+    () => libraryEnabled && libraryLoading && hasQuery,
+    [libraryEnabled, libraryLoading, hasQuery]
+  );
+
+  // Use extracted positioning hook for mobile viewport
+  const { position: listboxPosition, isMobile: isMobileViewport } = useListboxPositioning({
+    containerRef,
+    enabled: showSuggestions,
+    gap: 8,
+  });
 
   useEffect(() => {
     if (activeIndex >= suggestions.length) {
@@ -84,120 +87,7 @@ export function GlobalSearch({
     setActiveIndex(-1);
   }, []);
 
-  useEffect(() => {
-    const updateViewportFlag = () => {
-      if (typeof window === "undefined") {
-        return;
-      }
-      setIsMobileViewport(window.matchMedia("(max-width: 639px)").matches);
-    };
-
-    updateViewportFlag();
-
-    window.addEventListener("resize", updateViewportFlag);
-    return () => {
-      window.removeEventListener("resize", updateViewportFlag);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isMobileViewport || !showSuggestions) {
-      setListboxPosition(null);
-      return;
-    }
-
-    const GAP_PX = 8; // matches mt-2 spacing between input and results
-
-    const getScrollContainer = () => {
-      if (typeof document === "undefined") {
-        return null;
-      }
-
-      const scoped = containerRef.current?.closest(".app-container")?.querySelector(".app-content");
-      if (scoped instanceof HTMLElement) {
-        return scoped;
-      }
-
-      const fallback = document.querySelector(".app-content");
-      return fallback instanceof HTMLElement ? fallback : null;
-    };
-
-    const schedulePositionUpdate = () => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      if (positionRafRef.current !== null) {
-        return;
-      }
-
-      positionRafRef.current = window.requestAnimationFrame(() => {
-        positionRafRef.current = null;
-
-        if (!containerRef.current || typeof window === "undefined") {
-          return;
-        }
-
-        const rect = containerRef.current.getBoundingClientRect();
-        const viewport = window.visualViewport;
-        const offsetTop = viewport?.offsetTop ?? 0;
-        const offsetLeft = viewport?.offsetLeft ?? 0;
-        const viewportWidth = viewport?.width ?? window.innerWidth;
-
-        setListboxPosition({
-          top: rect.bottom + GAP_PX + offsetTop,
-          left: offsetLeft + viewportWidth / 2,
-        });
-      });
-    };
-
-    const scrollContainer = getScrollContainer();
-    const visualViewport = typeof window !== "undefined" ? window.visualViewport : null;
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined" && containerRef.current
-        ? new ResizeObserver(() => schedulePositionUpdate())
-        : null;
-
-    schedulePositionUpdate();
-
-    window.addEventListener("resize", schedulePositionUpdate);
-    window.addEventListener("orientationchange", schedulePositionUpdate);
-    scrollContainer?.addEventListener("scroll", schedulePositionUpdate, { passive: true });
-
-    const cleanupViewport: Array<["resize" | "scroll", (event: Event) => void]> = [];
-    if (visualViewport) {
-      const handleViewportChange = () => schedulePositionUpdate();
-      visualViewport.addEventListener("resize", handleViewportChange);
-      visualViewport.addEventListener("scroll", handleViewportChange);
-      cleanupViewport.push(["resize", handleViewportChange], ["scroll", handleViewportChange]);
-    }
-
-    if (resizeObserver && containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      if (positionRafRef.current !== null && typeof window !== "undefined") {
-        window.cancelAnimationFrame(positionRafRef.current);
-        positionRafRef.current = null;
-      }
-
-      window.removeEventListener("resize", schedulePositionUpdate);
-      window.removeEventListener("orientationchange", schedulePositionUpdate);
-      scrollContainer?.removeEventListener("scroll", schedulePositionUpdate);
-
-      if (visualViewport) {
-        cleanupViewport.forEach(([type, handler]) => {
-          visualViewport.removeEventListener(type, handler);
-        });
-      }
-
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
-  }, [isMobileViewport, showSuggestions]);
-
+  // Android keyboard scroll fix
   useEffect(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
       return;
@@ -302,60 +192,28 @@ export function GlobalSearch({
     inputRef.current?.focus();
   }, []);
 
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        if (!showSuggestions && suggestions.length > 0) {
-          setIsActiveSearch(true);
-          setActiveIndex(0);
-          return;
-        }
-        setActiveIndex((prev) => {
-          if (suggestions.length === 0) {
-            return -1;
-          }
-          const next = prev + 1;
-          return next >= suggestions.length ? 0 : next;
-        });
-        return;
-      }
+  // Static callback to prevent default mousedown behavior
+  const preventDefaultMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
 
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        if (!showSuggestions && suggestions.length > 0) {
-          setIsActiveSearch(true);
-          setActiveIndex(suggestions.length - 1);
-          return;
-        }
-        setActiveIndex((prev) => {
-          if (suggestions.length === 0) {
-            return -1;
-          }
-          const next = prev - 1;
-          return next < 0 ? suggestions.length - 1 : next;
-        });
-        return;
-      }
+  // Handle escape key to blur input
+  const handleClose = useCallback(() => {
+    closeSuggestions();
+    inputRef.current?.blur();
+  }, [closeSuggestions]);
 
-      if (event.key === "Enter") {
-        if (showSuggestions && activeIndex >= 0 && suggestions[activeIndex]) {
-          event.preventDefault();
-          handleSelectMatch(suggestions[activeIndex]);
-          return;
-        }
-        event.preventDefault();
-        handleSubmit();
-        return;
-      }
-
-      if (event.key === "Escape") {
-        closeSuggestions();
-        inputRef.current?.blur();
-      }
-    },
-    [activeIndex, closeSuggestions, handleSelectMatch, handleSubmit, showSuggestions, suggestions],
-  );
+  // Use extracted keyboard navigation hook
+  const { handleKeyDown } = useKeyboardNavigation({
+    items: suggestions,
+    activeIndex,
+    setActiveIndex,
+    onSelect: handleSelectMatch,
+    onSubmit: handleSubmit,
+    onClose: handleClose,
+    enabled: suggestions.length > 0,
+    isShowingPanel: showSuggestions,
+  });
 
   const renderSuggestionType = (match: SearchMatch) => {
     switch (match.type) {
@@ -413,7 +271,7 @@ export function GlobalSearch({
             <Button
               variant="default"
               size="icon"
-              onMouseDown={(event) => event.preventDefault()}
+              onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
               className="rounded-full"
               aria-label="Clear search"
@@ -461,7 +319,7 @@ export function GlobalSearch({
                     role="option"
                     aria-selected={isHighlighted}
                     data-highlighted={isHighlighted}
-                    onMouseDown={(event) => event.preventDefault()}
+                    onMouseDown={preventDefaultMouseDown}
                     onClick={() => handleSelectMatch(match)}
                     onMouseEnter={() => setActiveIndex(index)}
                   >

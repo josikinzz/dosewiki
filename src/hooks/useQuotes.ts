@@ -180,57 +180,44 @@ export function useSubjectiveEffectsQuote(slug: string | null): UseQuoteResult {
 /**
  * Hook to get all available quote sections for a substance.
  * Returns which sections have content available.
+ * Uses a single Convex query instead of 8 separate queries.
  */
 export function useQuoteAvailability(slug: string | null) {
-  const harmPotential = useQuote(slug, "harm_potential");
-  const pharmacology = useQuote(slug, "pharmacology");
-  const historyCulture = useQuote(slug, "history_culture");
-  const summary = useQuote(slug, "summary");
-  const dosageDuration = useQuote(slug, "dosage_duration");
-  const tolerance = useQuote(slug, "tolerance");
-  const legality = useQuote(slug, "legality");
-  const subjectiveEffects = useQuote(slug, "subjective_effects");
+  const enabled = isConvexEnabled();
 
-  return {
-    harm_potential: {
-      available: harmPotential.content !== null,
-      isLoading: harmPotential.isLoading,
-      isFromConvex: harmPotential.isFromConvex,
-    },
-    pharmacology: {
-      available: pharmacology.content !== null,
-      isLoading: pharmacology.isLoading,
-      isFromConvex: pharmacology.isFromConvex,
-    },
-    history_culture: {
-      available: historyCulture.content !== null,
-      isLoading: historyCulture.isLoading,
-      isFromConvex: historyCulture.isFromConvex,
-    },
-    summary: {
-      available: summary.content !== null,
-      isLoading: summary.isLoading,
-      isFromConvex: summary.isFromConvex,
-    },
-    dosage_duration: {
-      available: dosageDuration.content !== null,
-      isLoading: dosageDuration.isLoading,
-      isFromConvex: dosageDuration.isFromConvex,
-    },
-    tolerance: {
-      available: tolerance.content !== null,
-      isLoading: tolerance.isLoading,
-      isFromConvex: tolerance.isFromConvex,
-    },
-    legality: {
-      available: legality.content !== null,
-      isLoading: legality.isLoading,
-      isFromConvex: legality.isFromConvex,
-    },
-    subjective_effects: {
-      available: subjectiveEffects.content !== null,
-      isLoading: subjectiveEffects.isLoading,
-      isFromConvex: subjectiveEffects.isFromConvex,
-    },
-  };
+  // Single query for all section availability
+  const availability = useQuery(
+    api.quotes.getAvailabilityBySlug,
+    enabled && slug ? { slug } : SKIP
+  );
+
+  const isLoading = enabled && availability === undefined;
+  const isFromConvex = enabled && availability !== undefined;
+
+  // Return consistent shape whether loading or loaded
+  const sections = [
+    "harm_potential",
+    "pharmacology",
+    "history_culture",
+    "summary",
+    "dosage_duration",
+    "tolerance",
+    "legality",
+    "subjective_effects",
+  ] as const;
+
+  // Build result object with same interface as before
+  return Object.fromEntries(
+    sections.map((section) => [
+      section,
+      {
+        available: availability?.[section]?.available ?? false,
+        isLoading,
+        isFromConvex,
+      },
+    ])
+  ) as Record<
+    (typeof sections)[number],
+    { available: boolean; isLoading: boolean; isFromConvex: boolean }
+  >;
 }

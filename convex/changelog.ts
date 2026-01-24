@@ -4,43 +4,32 @@ import { query, mutation } from "./_generated/server";
 /**
  * Query to get all changelog entries.
  * Returns entries sorted by createdAt descending (newest first).
+ * Uses index for efficient ordering.
  */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
-    const entries = await ctx.db.query("changelog").collect();
-    // Sort by createdAt descending (newest first)
-    return entries.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      if (dateB !== dateA) {
-        return dateB - dateA;
-      }
-      // Secondary sort by entryId for stability
-      return b.entryId.localeCompare(a.entryId);
-    });
+    return await ctx.db
+      .query("changelog")
+      .withIndex("by_created_at")
+      .order("desc")
+      .collect();
   },
 });
 
 /**
  * Query to get recent changelog entries (limited).
+ * Uses index for efficient ordering with take().
  */
 export const getRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = args.limit ?? 50;
-    const entries = await ctx.db.query("changelog").collect();
-    // Sort by createdAt descending and take limit
-    return entries
-      .sort((a, b) => {
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        if (dateB !== dateA) {
-          return dateB - dateA;
-        }
-        return b.entryId.localeCompare(a.entryId);
-      })
-      .slice(0, limit);
+    return await ctx.db
+      .query("changelog")
+      .withIndex("by_created_at")
+      .order("desc")
+      .take(limit);
   },
 });
 

@@ -1,0 +1,15 @@
+{
+  "name": "eslint-plugin-vercel-guardrails",
+  "version": "1.0.0",
+  "description": "ESLint plugin for Vercel best practices and security guardrails",
+  "main": "index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "vercel",
+    "security"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  }
+}

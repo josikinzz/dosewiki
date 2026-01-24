@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Replication functions for video and image replications of effects.
@@ -150,19 +151,27 @@ export const getByArtist = query({
 /**
  * Generate an upload URL for file storage.
  * Used by migration scripts to upload media files.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    apiKey: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
     return await ctx.storage.generateUploadUrl();
   },
 });
 
 /**
  * Insert a single replication.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const insertReplication = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     title: v.string(),
     artist: v.string(),
@@ -180,8 +189,11 @@ export const insertReplication = mutation({
     duration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
+    const { apiKey, ...replicationData } = args;
     const replicationId = await ctx.db.insert("replications", {
-      ...args,
+      ...replicationData,
       created_at: new Date().toISOString(),
     });
     return replicationId;
@@ -189,9 +201,10 @@ export const insertReplication = mutation({
 });
 
 /**
- * Bulk import replications (for migration).
+ * Internal mutation: Bulk import replications (for migration).
+ * Not exposed to clients.
  */
-export const bulkImport = mutation({
+export const bulkImport = internalMutation({
   args: {
     replications: v.array(
       v.object({
@@ -257,13 +270,18 @@ export const bulkImport = mutation({
 /**
  * Update gallery order for an effect.
  * Takes an array of replication slugs in the desired order.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const updateGalleryOrder = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     effect_slug: v.string(),
     replication_slugs: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     // Update the effect's gallery_order in subjectiveEffects
     const effect = await ctx.db
       .query("subjectiveEffects")
@@ -284,10 +302,17 @@ export const updateGalleryOrder = mutation({
 
 /**
  * Delete a replication by slug.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const deleteBySlug = mutation({
-  args: { slug: v.string() },
+  args: {
+    apiKey: v.optional(v.string()),
+    slug: v.string(),
+  },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const replication = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -318,13 +343,18 @@ export const deleteBySlug = mutation({
 
 /**
  * Update the effect_slug for a replication by its slug.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const updateEffectSlug = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     effect_slug: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const rep = await ctx.db
       .query("replications")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -342,14 +372,19 @@ export const updateEffectSlug = mutation({
 /**
  * Update the URL for a replication by its _id.
  * Used by migration scripts to set direct URLs for external storage.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const updateUrl = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     id: v.id("replications"),
     url: v.string(),
     thumbnail_url: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const updates: { url: string; thumbnail_url?: string } = { url: args.url };
     if (args.thumbnail_url) {
       updates.thumbnail_url = args.thumbnail_url;
@@ -362,14 +397,19 @@ export const updateUrl = mutation({
 /**
  * Update storage IDs for a replication by its _id.
  * Used by migration scripts to point to locally uploaded media.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const updateStorageIds = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     id: v.id("replications"),
     storage_id: v.string(),
     thumbnail_storage_id: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const updates: { storage_id: string; thumbnail_storage_id?: string } = {
       storage_id: args.storage_id,
     };
@@ -382,9 +422,10 @@ export const updateStorageIds = mutation({
 });
 
 /**
- * Delete all replications (for re-migration).
+ * Internal mutation: Delete all replications (for re-migration).
+ * Not exposed to clients.
  */
-export const deleteAll = mutation({
+export const deleteAll = internalMutation({
   args: {},
   handler: async (ctx) => {
     const allReplications = await ctx.db.query("replications").collect();

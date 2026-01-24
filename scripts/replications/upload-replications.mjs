@@ -7,12 +7,49 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import os from 'os';
 
-const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Execute a command safely using spawn (no shell injection).
+ * @param {string} command - The command to execute
+ * @param {string[]} args - Array of arguments
+ * @param {object} options - spawn options
+ * @returns {Promise<{stdout: string, stderr: string}>}
+ */
+function execSafe(command, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args, {
+      ...options,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command failed with code ${code}: ${stderr || stdout}`));
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+
+    proc.on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
 // Paths
 const REPLICATIONS_SOURCE_DIR = '/Users/josie/Documents/Utilities/unified osmanthus app/replications';
@@ -42,10 +79,10 @@ async function getUploadUrl() {
   console.log('  🔗 Requesting new upload URL...');
 
   try {
-    const { stdout } = await execAsync(
-      `cd "${PROJECT_DIR}" && npx convex run "replications:generateUploadUrl" '{}' 2>&1`,
-      { maxBuffer: 10 * 1024 * 1024 }
-    );
+    // Use execSafe with cwd option instead of cd command (prevents shell injection)
+    const { stdout } = await execSafe('npx', [
+      'convex', 'run', 'replications:generateUploadUrl', '{}'
+    ], { cwd: PROJECT_DIR, maxBuffer: 10 * 1024 * 1024 });
 
     // Extract the URL from output (npx convex run returns JSON-encoded string)
     const lines = stdout.split('\n');
@@ -118,24 +155,18 @@ async function updateReplication(rep, storageId) {
   if (rep.fileSize) args.file_size = rep.fileSize;
   if (rep.type === 'video' && rep.duration) args.duration = rep.duration;
 
-  const tempFile = path.join(os.tmpdir(), `convex-args-${Date.now()}.json`);
   try {
-    // Write args to temp file to avoid shell injection
-    fs.writeFileSync(tempFile, JSON.stringify(args), 'utf-8');
-
-    const cmd = `cd "${PROJECT_DIR}" && npx convex run "replications:insertReplication" "$(cat ${tempFile})" 2>&1`;
-    const { stdout, stderr } = await execAsync(cmd, { maxBuffer: 10 * 1024 * 1024 });
+    // Pass args as JSON string directly to convex run (safe: spawn with array args)
+    const argsJson = JSON.stringify(args);
+    const { stdout } = await execSafe('npx', [
+      'convex', 'run', 'replications:insertReplication', argsJson
+    ], { cwd: PROJECT_DIR, maxBuffer: 10 * 1024 * 1024 });
 
     if (stdout.includes('Error') || stdout.includes('error')) {
       throw new Error(`Convex error: ${stdout}`);
     }
   } catch (err) {
     throw new Error(`Failed to update record: ${err.message}`);
-  } finally {
-    // Clean up temp file
-    if (fs.existsSync(tempFile)) {
-      fs.unlinkSync(tempFile);
-    }
   }
 }
 

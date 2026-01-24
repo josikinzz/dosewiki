@@ -57,20 +57,28 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   effects,
   onSelectEffect,
 }: ParentCategoryCardProps) {
+  // Pre-compute lowercase tags for each effect (cached to avoid repeated toLowerCase calls)
+  const effectsWithLowerTags = useMemo(() => {
+    return effects.map(effect => ({
+      ...effect,
+      lowerTags: new Set(effect.tags.map(t => t.toLowerCase())),
+    }));
+  }, [effects]);
+
   // Group effects by subcategory
   const subcategoryData = useMemo(() => {
     return subcategories.map(sub => {
-      const matchingEffects = effects.filter(effect => {
-        const effectTags = effect.tags.map(t => t.toLowerCase());
-        return sub.tags.every(tag => effectTags.includes(tag.toLowerCase()));
-      });
-      
+      const lowerSubTags = sub.tags.map(tag => tag.toLowerCase());
+      const matchingEffects = effectsWithLowerTags.filter(effect =>
+        lowerSubTags.every(tag => effect.lowerTags.has(tag))
+      );
+
       return {
         ...sub,
         effects: matchingEffects.sort((a, b) => a.name.localeCompare(b.name)),
       };
     }).filter(sub => sub.effects.length > 0);
-  }, [subcategories, effects]);
+  }, [subcategories, effectsWithLowerTags]);
 
   // Calculate total effect count
   const totalEffects = useMemo(() => {
@@ -102,7 +110,8 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
                 <IndexCardListItem
                   key={effect.slug}
                   label={effect.name}
-                  onClick={() => onSelectEffect(effect.slug)}
+                  slug={effect.slug}
+                  onSelect={onSelectEffect}
                 />
               ))}
             </IndexCardList>

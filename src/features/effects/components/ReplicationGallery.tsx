@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { memo, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import LightGallery from 'lightgallery';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
@@ -10,6 +10,18 @@ import { type ReplicationWithUrl } from '@/types/replications';
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-thumbnail.css';
 import 'lightgallery/css/lg-video.css';
+
+/** MIME type mapping for video formats */
+const VIDEO_MIME_TYPES: Record<string, string> = {
+  'mp4': 'video/mp4',
+  'webm': 'video/webm',
+  'mov': 'video/quicktime',
+  'm4v': 'video/x-m4v',
+  'ogv': 'video/ogg',
+};
+
+const getMimeType = (format: string) =>
+  VIDEO_MIME_TYPES[format?.toLowerCase()] || `video/${format}`;
 
 interface ReplicationGalleryProps {
   effectSlug: string;
@@ -26,7 +38,7 @@ interface ReplicationGalleryProps {
  * - Responsive thumbnails with lazy loading
  * - Keyboard navigation and accessibility
  */
-export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGalleryProps) {
+export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGalleryProps) {
   const lightGalleryRef = useRef<HTMLDivElement>(null);
   const lgInstanceRef = useRef<any>(null);
 
@@ -34,19 +46,6 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
   const replications = useQuery(api.replications.getReplicationsByEffect, {
     effect_slug: effectSlug,
   });
-
-  // Debug logging
-  console.log('[ReplicationGallery] effectSlug:', effectSlug);
-  console.log('[ReplicationGallery] replications:', replications);
-  console.log('[ReplicationGallery] replications count:', replications?.length ?? 'loading');
-  if (replications && replications.length > 0) {
-    console.log('[ReplicationGallery] First replication:', {
-      slug: replications[0].slug,
-      url: replications[0].url,
-      thumbnail_url: replications[0].thumbnail_url,
-      type: replications[0].type,
-    });
-  }
 
   // Sort replications according to gallery_order if provided
   const sortedReplications = useMemo(() => {
@@ -63,8 +62,6 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
 
     return replications;
   }, [replications, galleryOrder]);
-
-  console.log('[ReplicationGallery] sortedReplications count:', sortedReplications.length);
 
   // Initialize Lightgallery
   useEffect(() => {
@@ -141,28 +138,10 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
           const caption = `<h4 class="text-sm font-medium">${rep.title}</h4><p class="text-xs text-gray-400">by ${rep.artist}</p>`;
           const thumbnailUrl = rep.type === 'video' ? rep.thumbnail_url : rep.url;
 
-          // Map file extensions to proper MIME types
-          const getMimeType = (format: string) => {
-            const mimeMap: Record<string, string> = {
-              'mp4': 'video/mp4',
-              'webm': 'video/webm',
-              'mov': 'video/quicktime',
-              'm4v': 'video/x-m4v',
-              'ogv': 'video/ogg',
-            };
-            return mimeMap[format?.toLowerCase()] || `video/${format}`;
-          };
-
-          // Debug: log video info
-          if (rep.type === 'video') {
-            console.log('[ReplicationGallery] Video:', rep.slug, 'URL:', rep.url?.substring(0, 50), 'format:', rep.format);
-          }
-
           // For videos, use LightGallery video plugin
           if (rep.type === 'video') {
             // Skip videos without URLs
             if (!rep.url) {
-              console.warn('[ReplicationGallery] Skipping video without URL:', rep.slug);
               return null;
             }
 
@@ -314,4 +293,4 @@ export function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGall
       `}</style>
     </div>
   );
-}
+});

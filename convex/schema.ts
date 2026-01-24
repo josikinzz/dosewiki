@@ -227,7 +227,8 @@ export default defineSchema({
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
     .index("by_article_id", ["id"])
-    .index("by_slug", ["slug"]),
+    .index("by_slug", ["slug"])
+    .index("by_priority", ["priority"]),
 
   // Changelog table - tracks all article changes
   changelog: defineTable(changelogEntry)

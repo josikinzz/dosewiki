@@ -1,0 +1,175 @@
+name: Vercel Policy Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  security-scan:
+    name: Security & Policy Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run ESLint with Vercel guardrails
+        run: |
+          echo "🔒 Running ESLint security checks..."
+          bun run lint
+          bun run eslint api/ --max-warnings 0 || true
+
+      - name: Check for secrets in codebase
+        run: |
+          echo "🔍 Scanning for secrets..."
+
+          # Common secret patterns
+          PATTERNS=(
+            'sk[-_](live|test|or)[-_][a-zA-Z0-9]{20,}'
+            'ghp_[a-zA-Z0-9]{36,}'
+            'AKIA[A-Z0-9]{16}'
+            '-----BEGIN.*PRIVATE KEY-----'
+          )
+
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            if grep -rE "$pattern" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" \
+               --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=coverage . 2>/dev/null; then
+              echo "⚠️ Potential secret found matching: $pattern"
+              FOUND=1
+            fi
+          done
+
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ Secrets detected in codebase!"
+            exit 1
+          fi
+
+          echo "✅ No secrets detected"
+
+      - name: Validate vercel.json
+        run: |
+          echo "📋 Validating Vercel configuration..."
+
+          if [ -f vercel.json ]; then
+            # Check JSON validity
+            node -e "JSON.parse(require('fs').readFileSync('vercel.json'))" || {
+              echo "❌ Invalid JSON in vercel.json"
+              exit 1
+            }
+
+            # Check for excessive resources
+            MEMORY=$(node -e "const c = require('./vercel.json'); console.log(c.functions?.['api/**/*.js']?.memory || 0)")
+            DURATION=$(node -e "const c = require('./vercel.json'); console.log(c.functions?.['api/**/*.js']?.maxDuration || 0)")
+
+            if [ "$MEMORY" -gt 3008 ]; then
+              echo "❌ Function memory exceeds pro plan limit"
+              exit 1
+            fi
+
+            if [ "$DURATION" -gt 300 ]; then
+              echo "❌ Function duration exceeds pro plan limit"
+              exit 1
+            fi
+
+            echo "✅ vercel.json configuration valid"
+          fi
+
+      - name: Check .env files not committed
+        run: |
+          echo "🔐 Checking for committed .env files..."
+
+          # Check for .env files in the repo (excluding .env.example)
+          ENV_FILES=$(find . -name ".env*" -not -name ".env.example" -not -path "./node_modules/*" -type f 2>/dev/null)
+
+          if [ -n "$ENV_FILES" ]; then
+            echo "❌ Found .env files that should not be committed:"
+            echo "$ENV_FILES"
+            exit 1
+          fi
+
+          echo "✅ No .env files committed"
+
+      - name: Check for dangerous patterns in API routes
+        run: |
+          echo "🛡️ Checking API routes for dangerous patterns..."
+
+          DANGEROUS_FOUND=0
+
+          # Check for eval usage
+          if grep -rE '\beval\s*\(' api/ 2>/dev/null; then
+            echo "⚠️ eval() usage detected in API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          # Check for Function constructor
+          if grep -rE '\bnew\s+Function\s*\(' api/ 2>/dev/null; then
+            echo "⚠️ Function constructor detected in API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          # Check for shell commands with user input
+          if grep -rE "(exec|spawn|execSync|spawnSync)\s*\([^)]*\$\{" api/ 2>/dev/null; then
+            echo "⚠️ Potential command injection in API routes"
+            DANGEROUS_FOUND=1
+          fi
+
+          if [ $DANGEROUS_FOUND -eq 1 ]; then
+            echo "❌ Dangerous patterns found in API routes"
+            exit 1
+          fi
+
+          echo "✅ API routes look safe"
+
+  type-check:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run TypeScript compiler
+        run: bunx tsc --noEmit
+
+  build-check:
+    name: Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build project
+        run: bun run build
+        env:
+          # Use placeholder values for build-time env vars
+          VITE_CONVEX_URL: https://placeholder.convex.cloud

@@ -35,6 +35,10 @@ const vendorChunkGroups = [
     name: 'vendor-utils',
     packages: ['zod', 'yaml', 'diff', 'tokenx'],
   },
+  {
+    name: 'vendor-d3',
+    packages: ['d3', 'd3-array', 'd3-scale', 'd3-selection', 'd3-shape', 'd3-zoom', 'd3-force'],
+  },
 ];
 
 const resolveVendorChunk = (id: string): string | undefined => {
@@ -122,7 +126,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_INLINE_BUILD': JSON.stringify(inline ? 'true' : 'false'),
     },
     esbuild: {
-      target: 'es2017',
+      target: ['es2017', 'chrome80'],
     },
     resolve: {
       alias: {
@@ -146,15 +150,30 @@ export default defineConfig(({ mode }) => {
       },
     },
     publicDir: 'public',
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        '@tanstack/react-query',
+        'framer-motion',
+        '@iconify/react',
+        'zod',
+        'convex/react',
+      ],
+    },
   };
 
   config.build = {
     target: ['es2017', 'chrome80'],
     cssTarget: 'chrome80',
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 750,
+    sourcemap: 'hidden',
     ...(config.build ?? {}),
     rollupOptions: {
       output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: (id) => resolveAppChunk(id) ?? resolveVendorChunk(id),
       },
     },

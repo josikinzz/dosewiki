@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Subjective effect functions.
@@ -132,9 +133,10 @@ export const getAllTags = query({
 });
 
 /**
- * Bulk import subjective effects (for migration).
+ * Internal mutation: Bulk import subjective effects (for migration).
+ * Not exposed to clients.
  */
-export const bulkImport = mutation({
+export const bulkImport = internalMutation({
   args: {
     effects: v.array(v.object({
       slug: v.string(),
@@ -211,26 +213,30 @@ export const bulkImport = mutation({
 });
 
 /**
- * Delete all subjective effects (for re-migration).
+ * Internal mutation: Delete all subjective effects (for re-migration).
+ * Not exposed to clients.
  */
-export const deleteAll = mutation({
+export const deleteAll = internalMutation({
   args: {},
   handler: async (ctx) => {
     const allEffects = await ctx.db.query("subjectiveEffects").collect();
-    
+
     for (const effect of allEffects) {
       await ctx.db.delete(effect._id);
     }
-    
+
     return { deleted: allEffects.length };
   },
 });
 
 /**
  * Update a single subjective effect.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const update = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     updates: v.object({
       name: v.optional(v.string()),
@@ -275,6 +281,8 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("subjectiveEffects")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))

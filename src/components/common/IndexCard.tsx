@@ -1,4 +1,4 @@
-import { useState, memo, type ReactNode } from "react";
+import { useState, memo, useCallback, type ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
 
 interface IndexCardProps {
@@ -166,22 +166,40 @@ export const IndexCardList = memo(function IndexCardList({ children }: IndexCard
 interface IndexCardListItemProps {
   /** Item label */
   label: string;
-  /** Click handler */
-  onClick: () => void;
+  /** Click handler - use this OR (slug + onSelect) */
+  onClick?: () => void;
+  /** Item slug - use with onSelect for stable callbacks */
+  slug?: string;
+  /** Select handler - receives slug, use with slug prop for stable callbacks */
+  onSelect?: (slug: string) => void;
 }
 
 /**
  * List item for IndexCard with bullet point styling.
+ *
+ * For optimal memoization, prefer using slug+onSelect pattern over inline onClick:
+ * - Good: <IndexCardListItem label="..." slug={item.slug} onSelect={handleSelect} />
+ * - Avoid: <IndexCardListItem label="..." onClick={() => handleSelect(item.slug)} />
  */
 export const IndexCardListItem = memo(function IndexCardListItem({
   label,
   onClick,
+  slug,
+  onSelect,
 }: IndexCardListItemProps) {
+  const handleClick = useCallback(() => {
+    if (onClick) {
+      onClick();
+    } else if (slug && onSelect) {
+      onSelect(slug);
+    }
+  }, [onClick, slug, onSelect]);
+
   return (
     <li>
       <button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
         className="group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] text-white/70 transition-all duration-200 hover:bg-white/[0.06] hover:text-white hover:pl-4"
       >
         <span className="mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/20 transition-colors group-hover/item:bg-fuchsia-400" />

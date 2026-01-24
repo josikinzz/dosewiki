@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Index layouts - stores category/classification index definitions.
@@ -69,33 +70,46 @@ export const getAll = query({
 
 /**
  * Save/update an index layout.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const save = mutation({
-  args: indexLayoutValidator,
+  args: {
+    apiKey: v.optional(v.string()),
+    ...indexLayoutValidator.fields,
+  },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
+    const { apiKey, ...layoutData } = args;
     const existing = await ctx.db
       .query("indexLayouts")
-      .withIndex("by_type", (q) => q.eq("type", args.type))
+      .withIndex("by_type", (q) => q.eq("type", layoutData.type))
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, layoutData);
       return { updated: true, id: existing._id };
     }
 
-    const id = await ctx.db.insert("indexLayouts", args);
+    const id = await ctx.db.insert("indexLayouts", layoutData);
     return { updated: false, id };
   },
 });
 
 /**
  * Bulk import all index layouts.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const bulkImport = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     layouts: v.array(indexLayoutValidator),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const results = {
       created: 0,
       updated: 0,
@@ -127,10 +141,17 @@ export const bulkImport = mutation({
 
 /**
  * Delete an index layout by type.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const deleteByType = mutation({
-  args: { type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")) },
+  args: {
+    apiKey: v.optional(v.string()),
+    type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
+  },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("indexLayouts")
       .withIndex("by_type", (q) => q.eq("type", args.type))

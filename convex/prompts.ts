@@ -1,9 +1,10 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Prompt functions.
- * 
+ *
  * These functions provide CRUD operations for system and section prompts.
  * Prompts are editable via the dev tools UI.
  */
@@ -33,14 +34,19 @@ export const getAll = query({
 
 /**
  * Save (create or update) a prompt.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const save = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     key: v.string(),
     content: v.string(),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const { key, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
 
@@ -71,10 +77,17 @@ export const save = mutation({
 
 /**
  * Delete a prompt by key.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const deleteByKey = mutation({
-  args: { key: v.string() },
+  args: {
+    apiKey: v.optional(v.string()),
+    key: v.string(),
+  },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("prompts")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -91,9 +104,12 @@ export const deleteByKey = mutation({
 
 /**
  * Bulk import prompts (for migration).
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const bulkImport = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     prompts: v.array(v.object({
       key: v.string(),
       content: v.string(),
@@ -101,6 +117,8 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const updatedAt = new Date().toISOString();
     const results = {
       created: 0,

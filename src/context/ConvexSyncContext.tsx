@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -169,12 +170,12 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value: ConvexSyncContextValue = {
+  const value = useMemo<ConvexSyncContextValue>(() => ({
     state,
     syncArticles,
     syncNow,
     isEnabled: true,
-  };
+  }), [state, syncArticles, syncNow]);
 
   return (
     <ConvexSyncContext.Provider value={value}>

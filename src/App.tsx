@@ -25,6 +25,7 @@ const TripReportDetailPage = lazy(() => import("./features/reports/pages/TripRep
 const UserProfilePage = lazy(() => import("./components/pages/UserProfilePage").then(mod => ({ default: mod.UserProfilePage })));
 const SubstanceArticlePage = lazy(() => import("./features/article/pages/SubstanceArticlePage").then(mod => ({ default: mod.SubstanceArticlePage })));
 const DevModePage = lazy(() => import("./features/dev/pages/DevModePage").then(mod => ({ default: mod.DevModePage })));
+const CallbackPage = lazy(() => import("./components/pages/CallbackPage").then(mod => ({ default: mod.CallbackPage })));
 
 /** Loading fallback for lazy-loaded pages */
 function PageLoadingFallback() {
@@ -43,6 +44,8 @@ function PageLoadingFallback() {
  */
 function getPageTitle(view: AppView, lookup: Map<string, { name: string }>): string {
   switch (view.type) {
+    case "callback":
+      return "Signing in...";
     case "substances":
       return "Substance Index";
     case "substance": {
@@ -233,7 +236,11 @@ export default function App() {
       <Header currentView={view} onNavigate={navigate} />
 
       <div ref={contentScrollRef} className="app-content relative">
-        {view.type === "dev" ? (
+        {view.type === "callback" ? (
+          <Suspense fallback={<PageLoadingFallback />}>
+            <CallbackPage />
+          </Suspense>
+        ) : view.type === "dev" ? (
           <Suspense fallback={
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="flex flex-col items-center gap-3">

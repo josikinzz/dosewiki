@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Trip report functions.
@@ -52,9 +53,26 @@ export const getBySubstance = query({
   handler: async (ctx, args) => {
     const allReports = await ctx.db.query("tripReports").collect();
     const lowerName = args.substanceName.toLowerCase();
-    
+
     return allReports.filter((report) =>
       report.substances.some((s) => s.name.toLowerCase() === lowerName)
+    );
+  },
+});
+
+/**
+ * Get trip reports by multiple substance names (batch query).
+ * Filters reports where any substance matches any of the given names (case-insensitive).
+ * This consolidates multiple getBySubstance calls into a single query.
+ */
+export const getBySubstanceNames = query({
+  args: { substanceNames: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    if (args.substanceNames.length === 0) return [];
+    const allReports = await ctx.db.query("tripReports").collect();
+    const lowerNames = new Set(args.substanceNames.map(n => n.toLowerCase()));
+    return allReports.filter((report) =>
+      report.substances.some((s) => lowerNames.has(s.name.toLowerCase()))
     );
   },
 });
@@ -112,9 +130,10 @@ export const getAuthorNames = query({
 });
 
 /**
- * Bulk import trip reports (for migration).
+ * Internal mutation: Bulk import trip reports (for migration).
+ * Not exposed to clients.
  */
-export const bulkImport = mutation({
+export const bulkImport = internalMutation({
   args: {
     reports: v.array(v.object({
       slug: v.string(),
@@ -176,35 +195,41 @@ export const bulkImport = mutation({
 });
 
 /**
- * Delete all trip reports (for re-migration).
+ * Internal mutation: Delete all trip reports (for re-migration).
+ * Not exposed to clients.
  */
-export const deleteAll = mutation({
+export const deleteAll = internalMutation({
   args: {},
   handler: async (ctx) => {
     const allReports = await ctx.db.query("tripReports").collect();
-    
+
     for (const report of allReports) {
       await ctx.db.delete(report._id);
     }
-    
+
     return { deleted: allReports.length };
   },
 });
 
 /**
  * Rename an author across all their trip reports.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const renameAuthor = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     oldName: v.string(),
     newName: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const allReports = await ctx.db.query("tripReports").collect();
     const lowerOldName = args.oldName.toLowerCase();
-    
+
     let updated = 0;
-    
+
     for (const report of allReports) {
       if (report.subject.name.toLowerCase() === lowerOldName) {
         await ctx.db.patch(report._id, {
@@ -216,7 +241,7 @@ export const renameAuthor = mutation({
         updated++;
       }
     }
-    
+
     return { updated };
   },
 });

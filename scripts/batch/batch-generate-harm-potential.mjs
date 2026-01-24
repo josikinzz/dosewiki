@@ -86,7 +86,13 @@ const PRICING = {
   },
 };
 
-// Parse command line arguments
+// Security bounds for input validation (VULN-05 remediation)
+const INPUT_BOUNDS = {
+  concurrency: { min: 1, max: 50 },
+  limit: { min: 1, max: 10000 },
+};
+
+// Parse command line arguments with bounds validation
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
@@ -102,7 +108,12 @@ function parseArgs() {
 
   for (const arg of args) {
     if (arg.startsWith("--concurrency=")) {
-      options.concurrency = parseInt(arg.split("=")[1], 10);
+      const value = parseInt(arg.split("=")[1], 10);
+      // Bounds validation to prevent resource exhaustion
+      options.concurrency = Math.min(
+        Math.max(isNaN(value) ? CONFIG.maxConcurrency : value, INPUT_BOUNDS.concurrency.min),
+        INPUT_BOUNDS.concurrency.max
+      );
     } else if (arg === "--dry-run") {
       options.dryRun = true;
     } else if (arg === "--verbose") {
@@ -112,7 +123,12 @@ function parseArgs() {
     } else if (arg.startsWith("--slugs=")) {
       options.slugs = arg.split("=")[1].split(",").map(s => s.trim());
     } else if (arg.startsWith("--limit=")) {
-      options.limit = parseInt(arg.split("=")[1], 10);
+      const value = parseInt(arg.split("=")[1], 10);
+      // Bounds validation to prevent excessive processing
+      options.limit = Math.min(
+        Math.max(isNaN(value) ? null : value, INPUT_BOUNDS.limit.min),
+        INPUT_BOUNDS.limit.max
+      );
     } else if (arg === "--skip-backup") {
       options.skipBackup = true;
     } else if (arg === "--all") {

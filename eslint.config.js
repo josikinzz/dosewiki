@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
+import vercelGuardrails from './eslint-plugins/vercel-guardrails/index.js';
 
 export default tseslint.config(
   {
@@ -15,6 +16,7 @@ export default tseslint.config(
       'node_modules/**',
       '*.config.js',
       '*.config.ts',
+      'eslint-plugins/**',
     ],
   },
   js.configs.recommended,
@@ -23,6 +25,7 @@ export default tseslint.config(
     files: ['**/*.{ts,tsx}'],
     plugins: {
       'jsx-a11y': jsxA11y,
+      'vercel-guardrails': vercelGuardrails,
     },
     languageOptions: {
       globals: {
@@ -64,6 +67,30 @@ export default tseslint.config(
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/no-noninteractive-element-interactions': 'warn',
+
+      // Vercel security guardrails
+      'vercel-guardrails/no-hardcoded-secrets': 'error',
+      'vercel-guardrails/enforce-env-prefix': 'warn',
+      'vercel-guardrails/no-unsafe-api-patterns': 'error',
+    },
+  },
+  // API routes configuration (JavaScript files in /api)
+  {
+    files: ['api/**/*.js'],
+    plugins: {
+      'vercel-guardrails': vercelGuardrails,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2020,
+      },
+    },
+    rules: {
+      'vercel-guardrails/no-hardcoded-secrets': 'error',
+      'vercel-guardrails/no-unsafe-api-patterns': 'error',
+      'vercel-guardrails/require-rate-limit': 'warn',
+      'vercel-guardrails/validate-function-config': 'warn',
     },
   },
 );

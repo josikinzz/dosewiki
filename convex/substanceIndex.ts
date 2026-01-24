@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
+import { substanceArticleLightValidator, isValidArticle } from "./lib/validators";
 
 /**
  * Query to get all substances from the index.
@@ -79,8 +81,7 @@ function slugify(text: string): string {
 
 /**
  * Query to get N random articles for preview.
- * Fetches all on server, randomly samples, returns only the sample to client.
- * Much lighter than loading full library (~5 articles vs 679).
+ * Only loads high-priority articles (~252 vs 679 total) then shuffles.
  *
  * @param count - Number of articles to return (default: 5)
  * @param seed - Optional seed to force re-query (changing seed triggers new random sample)
@@ -95,7 +96,12 @@ export const getRandomSample = query({
     void args.seed;
 
     const count = args.count ?? 5;
-    const articles = await ctx.db.query("substanceIndex").collect();
+
+    // Only load high-priority articles to reduce working set
+    const articles = await ctx.db
+      .query("substanceIndex")
+      .withIndex("by_priority", (q) => q.eq("priority", "high"))
+      .collect();
 
     // Fisher-Yates shuffle (partial - only need first `count` elements)
     const shuffled = [...articles];
@@ -112,11 +118,25 @@ export const getRandomSample = query({
  * Mutation to save/update a single substance.
  * If a substance with the same ID exists, it updates it. Otherwise, it creates a new one.
  * Automatically computes slug from title if not provided.
+ *
+ * @param apiKey - Required API key for authentication (set CONVEX_ADMIN_KEY env var)
+ * @param article - The substance article to save
  */
 export const saveSubstance = mutation({
-  args: { article: v.any() },
+  args: {
+    apiKey: v.optional(v.string()),
+    article: substanceArticleLightValidator,
+  },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    requireAuth(ctx, args.apiKey);
+
     const { article } = args;
+
+    // Runtime validation for additional safety
+    if (!isValidArticle(article)) {
+      throw new Error("Invalid article structure: missing required fields");
+    }
 
     // Ensure slug is set
     const articleWithSlug = {
@@ -148,10 +168,19 @@ export const saveSubstance = mutation({
  * Mutation to save multiple substances at once.
  * Updates existing substances (by article ID) and creates new ones as needed.
  * Automatically computes slug from title if not provided.
+ *
+ * @param apiKey - Required API key for authentication (set CONVEX_ADMIN_KEY env var)
+ * @param articles - Array of substance articles to save
  */
 export const saveSubstances = mutation({
-  args: { articles: v.array(v.any()) },
+  args: {
+    apiKey: v.optional(v.string()),
+    articles: v.array(substanceArticleLightValidator),
+  },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    requireAuth(ctx, args.apiKey);
+
     const results = {
       created: 0,
       updated: 0,
@@ -160,6 +189,12 @@ export const saveSubstances = mutation({
 
     for (const article of args.articles) {
       try {
+        // Runtime validation for additional safety
+        if (!isValidArticle(article)) {
+          results.errors.push(`Article ${article.title}: Invalid structure`);
+          continue;
+        }
+
         // Ensure slug is set
         const articleWithSlug = {
           ...article,
@@ -193,13 +228,15 @@ export const saveSubstances = mutation({
 });
 
 /**
- * Mutation to replace ALL substances (bulk import/sync).
+ * Internal mutation to replace ALL substances (bulk import/sync).
  * Deletes all existing substances and inserts the new set.
  * Automatically computes slug from title if not provided.
- * Use with caution!
+ *
+ * NOTE: This is an internal mutation - not exposed to clients.
+ * Call via Convex admin CLI or from an action.
  */
-export const replaceAllSubstances = mutation({
-  args: { articles: v.array(v.any()) },
+export const replaceAllSubstances = internalMutation({
+  args: { articles: v.array(substanceArticleLightValidator) },
   handler: async (ctx, args) => {
     // Delete all existing substances
     const existing = await ctx.db.query("substanceIndex").collect();
@@ -207,28 +244,43 @@ export const replaceAllSubstances = mutation({
       await ctx.db.delete(article._id);
     }
 
-    // Insert all new substances with slugs
+    // Insert all new substances with slugs (skip invalid ones)
+    let inserted = 0;
     for (const article of args.articles) {
+      if (!isValidArticle(article)) {
+        console.warn(`Skipping invalid article: ${article.title}`);
+        continue;
+      }
       const articleWithSlug = {
         ...article,
         slug: article.slug ?? slugify(article.title),
       };
       await ctx.db.insert("substanceIndex", articleWithSlug);
+      inserted++;
     }
 
     return {
       deleted: existing.length,
-      inserted: args.articles.length,
+      inserted,
     };
   },
 });
 
 /**
  * Mutation to delete a single substance by its article ID.
+ *
+ * @param apiKey - Required API key for authentication (set CONVEX_ADMIN_KEY env var)
+ * @param id - The article ID of the substance to delete
  */
 export const deleteSubstance = mutation({
-  args: { id: v.number() },
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.number(),
+  },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("substanceIndex")
       .withIndex("by_article_id", (q) => q.eq("id", args.id))

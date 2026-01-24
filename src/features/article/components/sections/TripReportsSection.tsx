@@ -1,8 +1,8 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Icon } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import { AuthorAvatar, AuthorLink } from "@/features/reports/components";
 import type { SubstanceArticle } from "@/schema";
 import type { TripReport } from "@/types/tripReport";
@@ -31,74 +31,40 @@ export const TripReportsSection = memo(function TripReportsSection({
 
     // Add article title
     if (article.title?.trim()) {
-      names.add(article.title.trim().toLowerCase());
+      names.add(article.title.trim());
     }
 
     // Add common name if different from title
     if (article.identification?.common_name?.trim()) {
-      names.add(article.identification.common_name.trim().toLowerCase());
+      names.add(article.identification.common_name.trim());
     }
 
     // Add all alternative names
     const altNames = article.identification?.alternative_names ?? [];
     for (const altName of altNames) {
       if (altName?.trim()) {
-        names.add(altName.trim().toLowerCase());
+        names.add(altName.trim());
       }
     }
 
     return Array.from(names);
   }, [article.title, article.identification?.common_name, article.identification?.alternative_names]);
 
-  // Query for reports using the primary name (title)
-  // The getBySubstance query does case-insensitive matching
-  const primaryName = article.title?.trim() ?? "";
+  // Single consolidated query for all substance names
   const reports = useQuery(
-    api.tripReports.getBySubstance,
-    primaryName ? { substanceName: primaryName } : "skip"
+    api.tripReports.getBySubstanceNames,
+    searchNames.length > 0 ? { substanceNames: searchNames } : "skip"
   ) as TripReport[] | undefined;
 
-  // Also query for alternative names if they exist and differ from primary
-  const altNames = searchNames.filter(n => n !== primaryName.toLowerCase());
-
-  // Query for first alternative name if exists
-  const altReports1 = useQuery(
-    api.tripReports.getBySubstance,
-    altNames[0] ? { substanceName: altNames[0] } : "skip"
-  ) as TripReport[] | undefined;
-
-  // Query for second alternative name if exists
-  const altReports2 = useQuery(
-    api.tripReports.getBySubstance,
-    altNames[1] ? { substanceName: altNames[1] } : "skip"
-  ) as TripReport[] | undefined;
-
-  // Combine and deduplicate reports
+  // Sort reports by featured first, then by title
   const allReports = useMemo(() => {
-    const seen = new Set<string>();
-    const combined: TripReport[] = [];
-
-    const addReports = (reportList: TripReport[] | undefined) => {
-      if (!reportList) return;
-      for (const report of reportList) {
-        if (!seen.has(report.slug)) {
-          seen.add(report.slug);
-          combined.push(report);
-        }
-      }
-    };
-
-    addReports(reports);
-    addReports(altReports1);
-    addReports(altReports2);
-
-    // Sort by featured first, then by title
-    return combined.sort((a, b) => {
+    if (!reports) return [];
+    return [...reports].sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
       return a.title.localeCompare(b.title);
     });
-  }, [reports, altReports1, altReports2]);
+  }, [reports]);
 
   // Classify reports into single-substance and combination groups
   const { singleSubstanceReports, combinationReports } = useMemo(() => {
@@ -159,16 +125,7 @@ export const TripReportsSection = memo(function TripReportsSection({
 
   return (
     <div className="space-y-6 pt-12">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
-            <IconBadge icon="lucide:file-signature" />
-            <span className="drop-shadow-sm">Trip Reports</span>
-          </h2>
-        </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-      </div>
+      <SectionHeader icon="lucide:file-signature" title="Trip Reports" />
 
       <div className="space-y-3">
         {/* Single-substance reports */}
@@ -176,7 +133,7 @@ export const TripReportsSection = memo(function TripReportsSection({
           <CompactReportCard
             key={report.slug}
             report={report}
-            onClick={onSelectReport ? () => onSelectReport(report.slug) : undefined}
+            onSelectReport={onSelectReport}
           />
         ))}
 
@@ -197,7 +154,7 @@ export const TripReportsSection = memo(function TripReportsSection({
           <CompactReportCard
             key={report.slug}
             report={report}
-            onClick={onSelectReport ? () => onSelectReport(report.slug) : undefined}
+            onSelectReport={onSelectReport}
           />
         ))}
 
@@ -220,20 +177,24 @@ export const TripReportsSection = memo(function TripReportsSection({
 /**
  * Compact report card for display within the substance article.
  */
-function CompactReportCard({
+const CompactReportCard = memo(function CompactReportCard({
   report,
-  onClick,
+  onSelectReport,
 }: {
   report: TripReport;
-  onClick?: () => void;
+  onSelectReport?: (slug: string) => void;
 }) {
-  const { title, subject, featured } = report;
+  const { title, subject, featured, slug } = report;
+
+  const handleClick = useCallback(() => {
+    onSelectReport?.(slug);
+  }, [onSelectReport, slug]);
 
   return (
     <button
       type="button"
-      onClick={onClick}
-      disabled={!onClick}
+      onClick={onSelectReport ? handleClick : undefined}
+      disabled={!onSelectReport}
       className="group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:border-fuchsia-400/30 hover:bg-white/[0.08] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-white/5"
     >
       {/* Author avatar */}
@@ -272,4 +233,4 @@ function CompactReportCard({
       )}
     </button>
   );
-}
+});

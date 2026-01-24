@@ -1,9 +1,10 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Quote document functions.
- * 
+ *
  * These functions provide CRUD operations for extracted quotes per substance per section.
  * Quotes are editable via the dev tools UI.
  */
@@ -36,6 +37,41 @@ export const getBySlug = query({
       .query("quotes")
       .withIndex("by_slug_section", (q) => q.eq("slug", args.slug))
       .collect();
+  },
+});
+
+/**
+ * Get quote availability for all sections of a substance.
+ * Returns a map of section -> { available: boolean } in a single query.
+ * This replaces 8 separate useQuery calls with 1.
+ */
+export const getAvailabilityBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const quotes = await ctx.db
+      .query("quotes")
+      .withIndex("by_slug_section", (q) => q.eq("slug", args.slug))
+      .collect();
+
+    const sections = [
+      "harm_potential",
+      "pharmacology",
+      "history_culture",
+      "summary",
+      "dosage_duration",
+      "tolerance",
+      "legality",
+      "subjective_effects",
+    ] as const;
+
+    const existingSections = new Set(quotes.map((q) => q.section));
+
+    return Object.fromEntries(
+      sections.map((section) => [
+        section,
+        { available: existingSections.has(section) },
+      ])
+    ) as Record<typeof sections[number], { available: boolean }>;
   },
 });
 
@@ -81,15 +117,20 @@ export const getAll = query({
 
 /**
  * Save (create or update) a quote document.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const save = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     section: v.string(),
     content: v.string(),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const { slug, section, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
 
@@ -123,13 +164,18 @@ export const save = mutation({
 
 /**
  * Delete a quote document.
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const deleteBySlugAndSection = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     section: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("quotes")
       .withIndex("by_slug_section", (q) =>
@@ -148,9 +194,12 @@ export const deleteBySlugAndSection = mutation({
 
 /**
  * Bulk import quotes (for migration).
+ *
+ * @param apiKey - Required API key for authentication
  */
 export const bulkImport = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     quotes: v.array(v.object({
       slug: v.string(),
       section: v.string(),
@@ -159,6 +208,8 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+
     const updatedAt = new Date().toISOString();
     const results = {
       created: 0,

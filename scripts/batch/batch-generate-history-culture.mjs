@@ -97,9 +97,13 @@ function parseArgs() {
     newOnly: false,
   };
 
+  // Security bounds for input validation (VULN-05 remediation)
+  const BOUNDS = { concurrency: { min: 1, max: 50 }, limit: { min: 1, max: 10000 } };
+
   for (const arg of args) {
     if (arg.startsWith("--concurrency=")) {
-      options.concurrency = parseInt(arg.split("=")[1], 10);
+      const value = parseInt(arg.split("=")[1], 10);
+      options.concurrency = Math.min(Math.max(isNaN(value) ? CONFIG.maxConcurrency : value, BOUNDS.concurrency.min), BOUNDS.concurrency.max);
     } else if (arg === "--dry-run") {
       options.dryRun = true;
     } else if (arg === "--verbose") {
@@ -107,7 +111,8 @@ function parseArgs() {
     } else if (arg.startsWith("--substance=")) {
       options.substance = arg.split("=")[1];
     } else if (arg.startsWith("--limit=")) {
-      options.limit = parseInt(arg.split("=")[1], 10);
+      const value = parseInt(arg.split("=")[1], 10);
+      options.limit = Math.min(Math.max(isNaN(value) ? null : value, BOUNDS.limit.min), BOUNDS.limit.max);
     } else if (arg === "--skip-backup") {
       options.skipBackup = true;
     } else if (arg === "--all") {

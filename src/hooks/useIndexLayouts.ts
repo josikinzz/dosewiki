@@ -8,14 +8,12 @@
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import {
-  parseManualConfig,
-  type NormalizedManualIndexConfig,
-} from "../data/builders/manualIndexLoader";
+import { parseManualConfig } from "../data/builders/manualIndexLoader";
 import type { IndexConfigs } from "../data/builders/libraryBuilder";
 
 /**
  * Hook to load all index layouts from Convex.
+ * Uses a single query instead of 3 separate queries.
  *
  * @param enabled - Whether to load the layouts. When false, returns undefined.
  * @returns The parsed index configs, or undefined if loading/disabled.
@@ -24,19 +22,8 @@ export function useIndexLayouts(enabled: boolean): {
   configs: IndexConfigs | undefined;
   isLoading: boolean;
 } {
-  // Load all three index layouts from Convex
-  const psychoactive = useQuery(
-    api.indexLayouts.getByType,
-    enabled ? { type: "psychoactive" as const } : "skip"
-  );
-  const chemical = useQuery(
-    api.indexLayouts.getByType,
-    enabled ? { type: "chemical" as const } : "skip"
-  );
-  const mechanism = useQuery(
-    api.indexLayouts.getByType,
-    enabled ? { type: "mechanism" as const } : "skip"
-  );
+  // Single query for all layouts
+  const allLayouts = useQuery(api.indexLayouts.getAll, enabled ? {} : "skip");
 
   // Parse and normalize the configs
   const configs = useMemo<IndexConfigs | undefined>(() => {
@@ -44,13 +31,24 @@ export function useIndexLayouts(enabled: boolean): {
     if (!enabled) return undefined;
 
     // Still loading (undefined means query in progress)
-    if (psychoactive === undefined || chemical === undefined || mechanism === undefined) {
+    if (allLayouts === undefined) {
       return undefined;
     }
 
+    // Build lookup by type
+    const byType = Object.fromEntries(
+      allLayouts.map((layout) => [layout.type, layout])
+    ) as Record<string, (typeof allLayouts)[number]>;
+
+    const psychoactive = byType["psychoactive"];
+    const chemical = byType["chemical"];
+    const mechanism = byType["mechanism"];
+
     // Any layout missing - fall back to bundled configs
     if (!psychoactive || !chemical || !mechanism) {
-      console.warn("[useIndexLayouts] Some layouts missing from Convex, falling back to bundled");
+      console.warn(
+        "[useIndexLayouts] Some layouts missing from Convex, falling back to bundled"
+      );
       return undefined;
     }
 
@@ -78,11 +76,9 @@ export function useIndexLayouts(enabled: boolean): {
       console.error("[useIndexLayouts] Failed to parse configs:", error);
       return undefined;
     }
-  }, [enabled, psychoactive, chemical, mechanism]);
+  }, [enabled, allLayouts]);
 
-  const isLoading =
-    enabled &&
-    (psychoactive === undefined || chemical === undefined || mechanism === undefined);
+  const isLoading = enabled && allLayouts === undefined;
 
   return { configs, isLoading };
 }

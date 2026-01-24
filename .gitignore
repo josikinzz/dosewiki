@@ -14,8 +14,21 @@ npm-debug.log*
 npm-dev.log
 npm-dev.err.log
 .DS_Store
+
+# npm lockfile (using bun)
+package-lock.json
+
+# Environment files (NEVER commit secrets)
+.env
 .env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
 .env*.local
+!.env.example
 
 # Editor directories
 .idea/

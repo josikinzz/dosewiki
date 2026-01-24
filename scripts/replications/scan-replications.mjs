@@ -17,7 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -89,6 +89,7 @@ function generateSlug(title, artist) {
 
 /**
  * Get file info using ffprobe or identify.
+ * Uses spawnSync with array arguments to prevent command injection.
  */
 function getFileInfo(filePath, isVideo) {
   try {
@@ -98,40 +99,52 @@ function getFileInfo(filePath, isVideo) {
     if (isVideo) {
       try {
         // Try to get video metadata using ffprobe
-        const output = execSync(
-          `ffprobe -v error -select_streams v:0 -show_entries stream=width,height,duration -show_entries format=duration -of csv=p=0 "${filePath}"`,
-          { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
-        );
-        const lines = output.trim().split('\n');
-        if (lines.length >= 1) {
-          const [width, height, duration] = lines[0].split(',').map(v => {
-            const parsed = parseFloat(v);
-            return isNaN(parsed) ? undefined : parsed;
-          });
+        // Using spawnSync with array args prevents shell injection
+        const result = spawnSync('ffprobe', [
+          '-v', 'error',
+          '-select_streams', 'v:0',
+          '-show_entries', 'stream=width,height,duration',
+          '-show_entries', 'format=duration',
+          '-of', 'csv=p=0',
+          filePath  // Safe: passed as separate argument, not interpolated into shell
+        ], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
 
-          return {
-            width: width ? Math.round(width) : undefined,
-            height: height ? Math.round(height) : undefined,
-            duration: duration ? parseFloat(duration) : undefined,
-            fileSize,
-          };
+        if (result.status === 0 && result.stdout) {
+          const lines = result.stdout.trim().split('\n');
+          if (lines.length >= 1) {
+            const [width, height, duration] = lines[0].split(',').map(v => {
+              const parsed = parseFloat(v);
+              return isNaN(parsed) ? undefined : parsed;
+            });
+
+            return {
+              width: width ? Math.round(width) : undefined,
+              height: height ? Math.round(height) : undefined,
+              duration: duration ? parseFloat(duration) : undefined,
+              fileSize,
+            };
+          }
         }
       } catch (error) {
         console.warn(`Warning: Could not get video metadata for ${path.basename(filePath)}`);
       }
     } else {
-      // For images, try to get dimensions
+      // For images, try to get dimensions using ImageMagick identify
       try {
-        const output = execSync(
-          `identify -format "%wx%h" "${filePath}"`,
-          { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
-        );
-        const [width, height] = output.trim().split('x').map(v => parseInt(v));
-        return {
-          width: isNaN(width) ? undefined : width,
-          height: isNaN(height) ? undefined : height,
-          fileSize,
-        };
+        // Using spawnSync with array args prevents shell injection
+        const result = spawnSync('identify', [
+          '-format', '%wx%h',
+          filePath  // Safe: passed as separate argument
+        ], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+
+        if (result.status === 0 && result.stdout) {
+          const [width, height] = result.stdout.trim().split('x').map(v => parseInt(v));
+          return {
+            width: isNaN(width) ? undefined : width,
+            height: isNaN(height) ? undefined : height,
+            fileSize,
+          };
+        }
       } catch (error) {
         console.warn(`Warning: Could not get image dimensions for ${path.basename(filePath)}`);
         return { fileSize };

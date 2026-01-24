@@ -1,5 +1,15 @@
 import { useEffect, useRef, useCallback } from "react";
-import * as d3 from "d3";
+import {
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  forceX,
+  forceY,
+  type Simulation,
+  type ForceLink,
+} from "d3-force";
 import type { GraphNode, GraphLink, GraphData } from "./graphTypes";
 import { getNodeSize } from "./graphColors";
 
@@ -14,7 +24,7 @@ export function useGraphSimulation(
   options: UseGraphSimulationOptions
 ) {
   const { width, height, onTick } = options;
-  const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
+  const simulationRef = useRef<Simulation<GraphNode, GraphLink> | null>(null);
 
   // Initialize or update simulation when graph data changes
   useEffect(() => {
@@ -30,12 +40,10 @@ export function useGraphSimulation(
     }
 
     // Create new simulation
-    const simulation = d3
-      .forceSimulation<GraphNode, GraphLink>(nodes)
+    const simulation = forceSimulation<GraphNode, GraphLink>(nodes)
       .force(
         "link",
-        d3
-          .forceLink<GraphNode, GraphLink>(links)
+        forceLink<GraphNode, GraphLink>(links)
           .id((d) => d.id)
           .distance((d) => {
             // Shorter links for root connections
@@ -47,14 +55,14 @@ export function useGraphSimulation(
           })
           .strength(0.5)
       )
-      .force("charge", d3.forceManyBody().strength(-200).distanceMax(400))
-      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("charge", forceManyBody().strength(-200).distanceMax(400))
+      .force("center", forceCenter(width / 2, height / 2))
       .force(
         "collision",
-        d3.forceCollide<GraphNode>().radius((d) => getNodeSize(d.type) + 5)
+        forceCollide<GraphNode>().radius((d) => getNodeSize(d.type) + 5)
       )
-      .force("x", d3.forceX(width / 2).strength(0.05))
-      .force("y", d3.forceY(height / 2).strength(0.05))
+      .force("x", forceX(width / 2).strength(0.05))
+      .force("y", forceY(height / 2).strength(0.05))
       .alphaDecay(0.02)
       .velocityDecay(0.3)
       .on("tick", onTick);
@@ -69,9 +77,9 @@ export function useGraphSimulation(
   // Update center force when dimensions change
   useEffect(() => {
     if (simulationRef.current && width > 0 && height > 0) {
-      simulationRef.current.force("center", d3.forceCenter(width / 2, height / 2));
-      simulationRef.current.force("x", d3.forceX(width / 2).strength(0.05));
-      simulationRef.current.force("y", d3.forceY(height / 2).strength(0.05));
+      simulationRef.current.force("center", forceCenter(width / 2, height / 2));
+      simulationRef.current.force("x", forceX(width / 2).strength(0.05));
+      simulationRef.current.force("y", forceY(height / 2).strength(0.05));
       simulationRef.current.alpha(0.3).restart();
     }
   }, [width, height]);
@@ -82,7 +90,7 @@ export function useGraphSimulation(
 
   const getLinks = useCallback(() => {
     const linkForce = simulationRef.current?.force("link") as
-      | d3.ForceLink<GraphNode, GraphLink>
+      | ForceLink<GraphNode, GraphLink>
       | undefined;
     return linkForce?.links() ?? [];
   }, []);

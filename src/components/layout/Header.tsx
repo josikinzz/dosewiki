@@ -6,24 +6,26 @@ import { viewToPath } from "../../utils/routing";
 import { GlobalSearch } from "../common/GlobalSearch";
 import { Button } from "@/components/ui/button";
 
+// Static view objects and nav items (moved to module scope to prevent recreation every render)
+const SUBSTANCES_VIEW: AppView = { type: "substances" };
+const EFFECTS_VIEW: AppView = { type: "effects" };
+const REPORTS_VIEW: AppView = { type: "reports" };
+const DEV_VIEW: AppView = { type: "dev", tab: "articles" };
+const ABOUT_VIEW: AppView = { type: "about" };
+const NAV_ITEMS: Array<{ label: string; view: AppView; icon: IconName }> = [
+  { label: "Substances", view: SUBSTANCES_VIEW, icon: "lucide:flask-conical" },
+  { label: "Effects", view: EFFECTS_VIEW, icon: "lucide:sparkles" },
+  { label: "Reports", view: REPORTS_VIEW, icon: "lucide:file-signature" },
+  { label: "Dev", view: DEV_VIEW, icon: "lucide:wrench" },
+];
+const ABOUT_PATH = viewToPath(ABOUT_VIEW);
+
 interface HeaderProps {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
 }
 
 export function Header({ currentView, onNavigate }: HeaderProps) {
-  const substancesView: AppView = { type: "substances" };
-  const effectsView: AppView = { type: "effects" };
-  const reportsView: AppView = { type: "reports" };
-  const devView: AppView = { type: "dev", tab: "articles" };
-  const aboutView: AppView = { type: "about" };
-  const navItems: Array<{ label: string; view: AppView; icon: IconName }> = [
-    { label: "Substances", view: substancesView, icon: "lucide:flask-conical" },
-    { label: "Effects", view: effectsView, icon: "lucide:sparkles" },
-    { label: "Reports", view: reportsView, icon: "lucide:file-signature" },
-    { label: "Dev", view: devView, icon: "lucide:wrench" },
-  ];
-  const aboutPath = viewToPath(aboutView);
   const isAboutActive = currentView.type === "about";
 
   const isActive = (itemView: AppView) => {
@@ -110,7 +112,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
         <Button
           variant="brand"
-          onClick={() => handleNavigate(substancesView)}
+          onClick={() => handleNavigate(SUBSTANCES_VIEW)}
           className="pl-0 hover:bg-transparent"
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
@@ -137,7 +139,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
 
         <div className="ml-auto hidden flex-shrink-0 items-center gap-2 md:flex">
           <nav className="flex items-center gap-1">
-            {navItems.map(({ label, view, icon }) => {
+            {NAV_ITEMS.map(({ label, view, icon }) => {
               const itemPath = viewToPath(view);
               const active = isActive(view);
 
@@ -165,10 +167,10 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
           <div className="mx-2 h-6 w-px bg-white/10" />
 
           <a
-            href={aboutPath}
+            href={ABOUT_PATH}
             onClick={(event) => {
               event.preventDefault();
-              handleNavigate(aboutView);
+              handleNavigate(ABOUT_VIEW);
             }}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
               isAboutActive
@@ -203,7 +205,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
               className="absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border border-white/10 bg-[#120d27]/95 p-2 shadow-xl shadow-black/50 backdrop-blur-xl ring-1 ring-black/5"
             >
               <nav className="flex flex-col gap-1">
-                {navItems.map(({ label, view, icon }) => {
+                {NAV_ITEMS.map(({ label, view, icon }) => {
                   const itemPath = viewToPath(view);
                   const active = isActive(view);
                   return (
@@ -231,10 +233,10 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
               <div className="my-2 h-px bg-white/10" />
               
               <a
-                href={aboutPath}
+                href={ABOUT_PATH}
                 onClick={(event) => {
                   event.preventDefault();
-                  handleNavigate(aboutView);
+                  handleNavigate(ABOUT_VIEW);
                 }}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   isAboutActive

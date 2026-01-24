@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,138 @@ import { IndexCardSection, IndexCardList, IndexCardListItem } from "@/components
 // - Selectable category titles (onSelectCategory)
 // - External expand/collapse state management
 // Content rendering uses shared IndexCard components for consistency.
+
+// Memoized card component to prevent unnecessary re-renders
+interface CategoryGroupCardProps {
+  group: DosageCategoryGroup;
+  isExpanded: boolean;
+  isCopied: boolean;
+  isCategorySelectable: boolean;
+  onToggle: (key: string) => void;
+  onCopy: (group: DosageCategoryGroup) => void;
+  onSelectCategory: (key: string) => void;
+  onSelectDrug: (slug: string) => void;
+  formatLabel: (drug: DosageCategoryGroup["drugs"][number]) => string;
+}
+
+const CategoryGroupCard = memo(function CategoryGroupCard({
+  group,
+  isExpanded,
+  isCopied,
+  isCategorySelectable,
+  onToggle,
+  onCopy,
+  onSelectCategory,
+  onSelectDrug,
+  formatLabel,
+}: CategoryGroupCardProps) {
+  const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
+  const listId = `${group.key}-list`;
+  const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
+  const hasSections = visibleSections.length > 0;
+
+  return (
+    <section
+      className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5"
+    >
+      {/* Header */}
+      <header className="flex items-start gap-4 pb-2">
+        <button
+          type="button"
+          onClick={() => void onCopy(group)}
+          aria-label={`Copy ${group.name} list to clipboard`}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105"
+        >
+          <Icon
+            icon={isCopied ? "lucide:check" : group.icon}
+            size={20}
+            className={isCopied ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+          />
+        </button>
+
+        <div className="flex-1 min-w-0 pt-1">
+          {isCategorySelectable ? (
+            <Button
+              variant="categoryHeader"
+              size="auto"
+              onClick={() => onSelectCategory(group.key)}
+              className="h-auto p-0 hover:no-underline"
+            >
+              <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300 text-left">
+                {group.name}
+                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+              </h2>
+            </Button>
+          ) : (
+            <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300">
+              {group.name}
+              <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+            </h2>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onToggle(group.key)}
+          aria-expanded={isExpanded}
+          aria-controls={listId}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
+        >
+          <Icon icon={chevronIcon} size={16} />
+        </button>
+      </header>
+
+      {/* Content */}
+      <div
+        id={listId}
+        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"}`}
+      >
+        <div className="overflow-hidden">
+          {group.total === 0 ? (
+            <p className="py-2 text-sm text-white/40 italic pl-1">
+              No missing substances right now.
+            </p>
+          ) : hasSections ? (
+            <div className="space-y-6 pt-1">
+              {visibleSections.map((section, index) => (
+                <IndexCardSection
+                  key={section.name ?? `section-${index}`}
+                  title={section.name}
+                  count={section.drugs.length}
+                  showDivider={index > 0}
+                >
+                  <IndexCardList>
+                    {section.drugs.map((drug) => (
+                      <IndexCardListItem
+                        key={drug.slug}
+                        label={formatLabel(drug)}
+                        slug={drug.slug}
+                        onSelect={onSelectDrug}
+                      />
+                    ))}
+                  </IndexCardList>
+                </IndexCardSection>
+              ))}
+            </div>
+          ) : (
+            <div className="pt-1">
+              <IndexCardList>
+                {group.drugs.map((drug) => (
+                  <IndexCardListItem
+                    key={drug.slug}
+                    label={formatLabel(drug)}
+                    slug={drug.slug}
+                    onSelect={onSelectDrug}
+                  />
+                ))}
+              </IndexCardList>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+});
 
 interface CategoryGridProps {
   groups: DosageCategoryGroup[];
@@ -29,9 +161,6 @@ export function CategoryGrid({
   limitColumns = false,
 }: CategoryGridProps) {
   const columnCount = useResponsiveColumnCount({ limitColumns });
-
-  const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) =>
-    drug.name;
 
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {
@@ -171,7 +300,7 @@ export function CategoryGrid({
     return successful;
   };
 
-  const handleCopyGroup = async (group: DosageCategoryGroup) => {
+  const handleCopyGroup = useCallback(async (group: DosageCategoryGroup) => {
     try {
       const markdown = buildMarkdownForGroup(group);
       const copied = await writeToClipboard(markdown);
@@ -181,132 +310,26 @@ export function CategoryGrid({
     } catch {
       console.error("Failed to copy category list");
     }
-  };
+  }, []);
 
-  const handleToggle = (key: string) => {
+  const handleToggle = useCallback((key: string) => {
     setExpanded((previous) => ({
       ...previous,
       [key]: !(previous[key] ?? defaultExpanded),
     }));
-  };
+  }, [defaultExpanded]);
 
-  const handleSelectCategory = (key: string) => {
-    if (onSelectCategory) {
-      onSelectCategory(key);
-    }
-  };
+  const handleSelectCategory = useCallback((key: string) => {
+    onSelectCategory?.(key);
+  }, [onSelectCategory]);
 
-  const renderCard = (group: DosageCategoryGroup) => {
-    const isExpanded = expanded[group.key] ?? defaultExpanded;
-    const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
-    const listId = `${group.key}-list`;
-    const visibleSections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
-    const hasSections = visibleSections.length > 0;
+  // Stable reference for format function
+  const memoizedFormatDrugLabel = useCallback(
+    (drug: DosageCategoryGroup["drugs"][number]) => drug.name,
+    []
+  );
 
-    const isCategorySelectable = Boolean(onSelectCategory);
-
-    return (
-      <section
-        key={group.key}
-        className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5"
-      >
-        {/* Header - matching effects index structure */}
-        <header className="flex items-start gap-4 pb-2">
-          <button
-            type="button"
-            onClick={() => void handleCopyGroup(group)}
-            aria-label={`Copy ${group.name} list to clipboard`}
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400 transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105`}
-          >
-            <Icon
-              icon={copiedKey === group.key ? "lucide:check" : group.icon}
-              size={20}
-              className={copiedKey === group.key ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
-            />
-          </button>
-
-          <div className="flex-1 min-w-0 pt-1">
-            {isCategorySelectable ? (
-              <Button
-                variant="categoryHeader"
-                size="auto"
-                onClick={() => handleSelectCategory(group.key)}
-                className="h-auto p-0 hover:no-underline"
-              >
-                <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300 text-left">
-                  {group.name}
-                  <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
-                </h2>
-              </Button>
-            ) : (
-              <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300">
-                {group.name}
-                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
-              </h2>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => handleToggle(group.key)}
-            aria-expanded={isExpanded}
-            aria-controls={listId}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
-          >
-            <Icon icon={chevronIcon} size={16} />
-          </button>
-        </header>
-
-        {/* Content */}
-        <div
-          id={listId}
-          className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"
-            }`}
-        >
-          <div className="overflow-hidden">
-            {group.total === 0 ? (
-              <p className="py-2 text-sm text-white/40 italic pl-1">
-                No missing substances right now.
-              </p>
-            ) : hasSections ? (
-              <div className="space-y-6 pt-1">
-                {visibleSections.map((section, index) => (
-                  <IndexCardSection
-                    key={section.name ?? `section-${index}`}
-                    title={section.name}
-                    count={section.drugs.length}
-                    showDivider={index > 0}
-                  >
-                    <IndexCardList>
-                      {section.drugs.map((drug) => (
-                        <IndexCardListItem
-                          key={drug.slug}
-                          label={formatDrugLabel(drug)}
-                          onClick={() => onSelectDrug(drug.slug)}
-                        />
-                      ))}
-                    </IndexCardList>
-                  </IndexCardSection>
-                ))}
-              </div>
-            ) : (
-              <div className="pt-1">
-                <IndexCardList>
-                  {group.drugs.map((drug) => (
-                    <IndexCardListItem
-                      key={drug.slug}
-                      label={formatDrugLabel(drug)}
-                      onClick={() => onSelectDrug(drug.slug)}
-                    />
-                  ))}
-                </IndexCardList>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  };
+  const isCategorySelectable = Boolean(onSelectCategory);
 
   // Filter to only columns that have content
   const nonEmptyColumns = Array.from({ length: columnCount })
@@ -322,7 +345,20 @@ export function CategoryGrid({
     >
       {nonEmptyColumns.map((col) => (
         <div key={col.index} className="flex flex-col gap-4">
-          {col.groups.map((group) => renderCard(group))}
+          {col.groups.map((group) => (
+            <CategoryGroupCard
+              key={group.key}
+              group={group}
+              isExpanded={expanded[group.key] ?? defaultExpanded}
+              isCopied={copiedKey === group.key}
+              isCategorySelectable={isCategorySelectable}
+              onToggle={handleToggle}
+              onCopy={handleCopyGroup}
+              onSelectCategory={handleSelectCategory}
+              onSelectDrug={onSelectDrug}
+              formatLabel={memoizedFormatDrugLabel}
+            />
+          ))}
         </div>
       ))}
     </div>

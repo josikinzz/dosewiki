@@ -13,6 +13,8 @@ import type * as categoryLayout from "../categoryLayout.js";
 import type * as changelog from "../changelog.js";
 import type * as effectIndexArticles from "../effectIndexArticles.js";
 import type * as indexLayouts from "../indexLayouts.js";
+import type * as lib_auth from "../lib/auth.js";
+import type * as lib_validators from "../lib/validators.js";
 import type * as prompts from "../prompts.js";
 import type * as quotes from "../quotes.js";
 import type * as replications from "../replications.js";
@@ -33,6 +35,8 @@ declare const fullApi: ApiFromModules<{
   changelog: typeof changelog;
   effectIndexArticles: typeof effectIndexArticles;
   indexLayouts: typeof indexLayouts;
+  "lib/auth": typeof lib_auth;
+  "lib/validators": typeof lib_validators;
   prompts: typeof prompts;
   quotes: typeof quotes;
   replications: typeof replications;

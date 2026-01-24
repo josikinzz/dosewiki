@@ -28,38 +28,26 @@ export function useLazyLibrary(enabled: boolean) {
   // Load index layouts from Convex
   const { configs: indexConfigs, isLoading: isLoadingConfigs } = useIndexLayouts(enabled);
 
-  // Debug logging
-  console.log("[useLazyLibrary] enabled:", enabled);
-  console.log("[useLazyLibrary] convexArticles:", convexArticles === undefined ? "undefined (loading)" : `array(${convexArticles?.length ?? 0})`);
-  console.log("[useLazyLibrary] indexConfigs:", indexConfigs ? "loaded" : "loading/fallback");
-
   const library = useMemo<LibraryData | null>(() => {
     // Not enabled - return null
     if (!enabled) {
-      console.log("[useLazyLibrary] Not enabled, returning null");
       return null;
     }
 
     // Still loading from Convex (undefined means query in progress)
     if (convexArticles === undefined) {
-      console.log("[useLazyLibrary] Convex query in progress (undefined), returning null");
       return null;
     }
 
     // Loaded but empty - still return null (no point building empty library)
     if (convexArticles.length === 0) {
-      console.log("[useLazyLibrary] Convex returned empty array, returning null");
       return null;
     }
 
     // Wait for index configs to load
     if (!indexConfigs) {
-      console.log("[useLazyLibrary] Waiting for index configs to load from Convex");
       return null;
     }
-
-    console.log("[useLazyLibrary] Building library from", convexArticles.length, "articles");
-    console.log("[useLazyLibrary] Using index configs from Convex");
 
     // Strip Convex metadata fields
     const articles = convexArticles.map(
@@ -67,12 +55,10 @@ export function useLazyLibrary(enabled: boolean) {
     ) as SubstanceArticle[];
 
     // Build library with configs from Convex
-    const built = buildLibrary(articles, indexConfigs);
-    console.log("[useLazyLibrary] Library built successfully, articles:", built.articles.length);
-    return built;
+    return buildLibrary(articles, indexConfigs);
   }, [enabled, convexArticles, indexConfigs]);
 
-  const result = {
+  return {
     library,
     // isLoading: enabled and either articles or configs still loading
     isLoading: enabled && (convexArticles === undefined || isLoadingConfigs),
@@ -81,8 +67,4 @@ export function useLazyLibrary(enabled: boolean) {
     // isEmpty: query completed but returned no data
     isEmpty: enabled && convexArticles !== undefined && convexArticles.length === 0,
   };
-
-  console.log("[useLazyLibrary] Returning:", { isLoading: result.isLoading, isReady: result.isReady, isEmpty: result.isEmpty });
-
-  return result;
 }
