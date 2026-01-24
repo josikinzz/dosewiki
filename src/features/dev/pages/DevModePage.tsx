@@ -2606,169 +2606,58 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
         <div className="mt-10 flex justify-center">
           <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
-            {/* WorkOS Authentication - shown when WorkOS is configured */}
-            {workosAuthEnabled ? (
-              <>
-                {workosAuth.isLoading ? (
-                  <div className="flex items-center justify-center gap-3 py-4">
-                    <Icon icon="lucide:loader-2" size={20} className="animate-spin text-fuchsia-400" />
-                    <span className="text-white/70">Loading authentication...</span>
-                  </div>
-                ) : workosAuth.isAuthenticated ? (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
-                      <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-200">
-                        {workosAuth.user?.avatarUrl && (
-                          <img
-                            src={workosAuth.user.avatarUrl}
-                            alt=""
-                            className="h-5 w-5 rounded-full"
-                          />
-                        )}
-                        <Icon icon="lucide:badge-check" size={16} />
-                        <span>Signed in as {workosAuth.user?.name ?? workosAuth.user?.email}</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        className="self-start rounded-full"
-                        onClick={() => workosAuth.signOut()}
-                      >
-                        <Icon icon="lucide:log-out" size={16} />
-                        Sign out
-                      </Button>
-                    </div>
-                    <p className="text-xs text-white/45">
-                      Authenticated via WorkOS. You have permission to edit articles.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-4 py-2">
-                    <p className="text-center text-sm text-white/70">
-                      Sign in to access developer tools and edit articles.
-                    </p>
-                    <Button
-                      variant="default"
-                      size="pill"
-                      className="rounded-full px-6"
-                      onClick={() => {
-                        storeReturnUrl(window.location.pathname);
-                        workosAuth.signIn();
-                      }}
-                    >
-                      <Icon icon="lucide:log-in" size={16} />
-                      Sign in with WorkOS
-                    </Button>
-                  </div>
-                )}
-              </>
-            ) : (
-              /* Legacy password authentication - shown when WorkOS is not configured */
-              <>
-                <form className="flex flex-col gap-3 md:flex-row md:items-end md:gap-4" onSubmit={handleCredentialsSave}>
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <label
-                        className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
-                        htmlFor="dev-mode-saved-username"
-                      >
-                        Username (ENV key)
-                      </label>
-                      <Input
-                        id="dev-mode-saved-username"
-                        type="text"
-                        placeholder="Enter your username"
-                        autoComplete="username"
-                        value={usernameDraft}
-                        onChange={(event) => setUsernameDraft(event.target.value)}
-                        onKeyDown={handleCredentialInputKeyDown}
+            {/* WorkOS Authentication */}
+            {workosAuth.isLoading ? (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <Icon icon="lucide:loader-2" size={20} className="animate-spin text-fuchsia-400" />
+                <span className="text-white/70">Loading authentication...</span>
+              </div>
+            ) : workosAuth.isAuthenticated ? (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-200">
+                    {workosAuth.user?.avatarUrl && (
+                      <img
+                        src={workosAuth.user.avatarUrl}
+                        alt=""
+                        className="h-5 w-5 rounded-full"
                       />
-                    </div>
-                    <div>
-                      <label
-                        className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/45"
-                        htmlFor="dev-mode-saved-password"
-                      >
-                        User password
-                      </label>
-                      <div className="relative">
-                        <Input
-                          id="dev-mode-saved-password"
-                          type={isPasswordVisible ? "text" : "password"}
-                          className="pr-12"
-                          placeholder="Paste your user password"
-                          autoComplete="current-password"
-                          value={passwordDraft}
-                          onChange={(event) => setPasswordDraft(event.target.value)}
-                          onKeyDown={handleCredentialInputKeyDown}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute inset-y-0 right-3 my-auto h-8 w-8"
-                          onClick={() => setIsPasswordVisible((prev) => !prev)}
-                          aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-                        >
-                          {isPasswordVisible ? <Icon icon="lucide:eye-off" size={16} /> : <Icon icon="lucide:eye" size={16} />}
-                        </Button>
-                      </div>
-                    </div>
+                    )}
+                    <Icon icon="lucide:badge-check" size={16} />
+                    <span>Signed in as {workosAuth.user?.name ?? workosAuth.user?.email}</span>
                   </div>
                   <Button
-                    type="submit"
-                    variant="default"
-                    size="pill"
-                    className="rounded-full"
-                    disabled={isVerifyingCredentials}
+                    variant="outline"
+                    size="xs"
+                    className="self-start rounded-full"
+                    onClick={() => workosAuth.signOut()}
                   >
-                    {isVerifyingCredentials ? (
-                      <Icon icon="lucide:loader-2" size={16} className="animate-spin" />
-                    ) : (
-                      <Icon icon="lucide:save" size={16} />
-                    )}
-                    {isVerifyingCredentials ? "Verifying…" : "Save"}
+                    <Icon icon="lucide:log-out" size={16} />
+                    Sign out
                   </Button>
-                </form>
-                <div className="mt-2 min-h-[1.25rem] text-xs">
-                  {passwordNotice ? (
-                    <p className={passwordNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-                      {passwordNotice.message}
-                    </p>
-                  ) : (
-                    <p className="text-white/45">
-                      Save to verify your ENV credentials. Leave both fields blank and press Save to log out.
-                    </p>
-                  )}
                 </div>
-                <div className="mt-4 flex flex-col gap-3 text-xs text-white/65 md:flex-row md:items-center md:justify-between">
-                  {passwordKey ? (
-                    <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1 font-semibold text-emerald-200">
-                      <Icon icon="lucide:badge-check" size={16} />
-                      <span>Logged in as {passwordKey}</span>
-                      <span className="text-emerald-200/75">• Verified {verifiedBadgeText ?? "just now"}</span>
-                    </div>
-                  ) : hasStoredCredentials ? (
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 font-medium text-white/70">
-                      <Icon icon="lucide:refresh-cw" size={16} />
-                      <span>Credentials stored. Save to verify.</span>
-                    </div>
-                  ) : (
-                    <div className="text-white/45">Not logged in.</div>
-                  )}
-                  {hasStoredCredentials && (
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      className="self-start rounded-full"
-                      onClick={handleLogout}
-                      disabled={isVerifyingCredentials}
-                    >
-                      <Icon icon="lucide:log-out" size={16} />
-                      Log out
-                    </Button>
-                  )}
-                </div>
-              </>
+                <p className="text-xs text-white/45">
+                  Authenticated via WorkOS. You have permission to edit articles.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4 py-2">
+                <p className="text-center text-sm text-white/70">
+                  Sign in to access developer tools and edit articles.
+                </p>
+                <Button
+                  variant="default"
+                  size="pill"
+                  className="rounded-full px-6"
+                  onClick={() => {
+                    storeReturnUrl(window.location.pathname);
+                    workosAuth.signIn();
+                  }}
+                >
+                  <Icon icon="lucide:log-in" size={16} />
+                  Sign in with WorkOS
+                </Button>
+              </div>
             )}
           </div>
         </div>
