@@ -126,11 +126,12 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   // Sync articles when source data changes (e.g., when library loads or hot reload)
   // Skip sync if user has unsaved local edits to prevent data loss
   useEffect(() => {
+    console.log("[DevModeProvider] Sync effect CHECK - hasLocalEdits:", hasLocalEditsRef.current, "articlesSource:", articlesSource.length);
     if (hasLocalEditsRef.current) {
-      console.log("[DevModeProvider] Skipping sync - user has local edits");
+      console.log("[DevModeProvider] ⚠️ SKIPPING sync - user has local edits");
       return;
     }
-    console.log("[DevModeProvider] Sync effect triggered - articlesSource changed to:", articlesSource.length);
+    console.log("[DevModeProvider] ✅ Syncing - updating originalArticlesRef and articles state");
     originalArticlesRef.current = deepClone(articlesSource);
     setArticles(deepClone(articlesSource));
   }, [articlesSource]);
@@ -271,6 +272,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   }, [isDevPath]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
+    console.log("[DevModeProvider] 📝 updateArticleAt called - index:", index, "title:", nextArticle.title, "setting hasLocalEdits=true");
     hasLocalEditsRef.current = true; // Mark that user has unsaved edits
     setArticles((previous) => {
       if (index < 0 || index >= previous.length) {
@@ -444,9 +446,9 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   // Reset the local edits flag after successful save to Convex
   // Also updates originalArticlesRef so subsequent comparisons work correctly
   const markChangesSaved = useCallback(() => {
+    console.log("[DevModeProvider] 💾 markChangesSaved called - resetting hasLocalEdits to false, updating originalArticlesRef with", articles.length, "articles");
     hasLocalEditsRef.current = false;
     originalArticlesRef.current = deepClone(articles);
-    console.log("[DevModeProvider] Changes saved - reset local edits flag");
   }, [articles]);
 
   const value = useMemo<DevModeContextValue>(() => ({
