@@ -109,7 +109,8 @@ function ConvexWithWorkOS({ children }: { children: ReactNode }) {
  *
  * - If Convex is not configured, renders children without provider
  * - If auth is enabled, wraps with AuthKitProvider and ConvexProviderWithAuth
- * - If auth is disabled, uses basic ConvexProvider (no auth)
+ * - If auth is disabled, uses basic ConvexProvider with a dummy AuthKitProvider
+ *   (so useAuth hook doesn't throw)
  */
 export function ConvexProvider({ children }: { children: ReactNode }) {
   if (!convex) {
@@ -129,10 +130,16 @@ export function ConvexProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  // Auth not configured - use basic Convex provider
+  // Auth not configured - use basic Convex provider with dummy AuthKitProvider
+  // The dummy provider prevents useAuth() from throwing
   return (
-    <BaseConvexProvider client={convex}>
-      {children}
-    </BaseConvexProvider>
+    <AuthKitProvider
+      clientId="disabled"
+      redirectUri="http://localhost:5173/callback"
+    >
+      <BaseConvexProvider client={convex}>
+        {children}
+      </BaseConvexProvider>
+    </AuthKitProvider>
   );
 }
