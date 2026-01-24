@@ -1758,7 +1758,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
       const savedItems: string[] = [];
 
-      console.log("[DevModePage] 🔍 handleSaveToConvex - articles count:", articles.length, "originalArticles count:", originalArticles.length);
+      // Get fresh original articles from ref (not the stale memoized value which may have been computed before articles loaded)
+      const freshOriginalArticles = getOriginalArticles();
+      console.log("[DevModePage] 🔍 handleSaveToConvex - articles count:", articles.length, "freshOriginalArticles count:", freshOriginalArticles.length);
 
       // Save About content if changed
       if (hasAboutChanges) {
@@ -1774,7 +1776,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       // Get changed articles by comparing with originals
       console.log("[DevModePage] 🔍 Comparing articles to find changes...");
       const changedArticles = articles.filter((article, index) => {
-        const original = originalArticles[index];
+        const original = freshOriginalArticles[index];
         if (!original) {
           console.log("[DevModePage] 📝 Article at index", index, "(", article.title, ") - NEW (no original)");
           return true;
