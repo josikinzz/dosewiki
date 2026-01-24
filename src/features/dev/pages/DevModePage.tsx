@@ -1782,11 +1782,18 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
           const entryId = `${now.toISOString().slice(0, 10).replace(/-/g, "")}-${now.toTimeString().slice(0, 8).replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
           const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 
+          // Truncate markdown if too large (Convex has 1 MiB document limit)
+          const MAX_MARKDOWN_SIZE = 500_000; // ~500KB to leave room for other fields
+          let markdown = datasetChangelog.markdown;
+          if (markdown.length > MAX_MARKDOWN_SIZE) {
+            markdown = markdown.slice(0, MAX_MARKDOWN_SIZE) + "\n\n... [Diff truncated - too large to store]";
+          }
+
           await convexChangelogSave.mutate({
             entryId,
             createdAt: now.toISOString(),
             message,
-            markdown: datasetChangelog.markdown,
+            markdown,
             submittedBy: credentials.key,
             articles: datasetChangelog.articles.map((a) => ({
               id: a.id,
