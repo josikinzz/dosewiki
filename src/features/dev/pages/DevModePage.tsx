@@ -1736,8 +1736,15 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     setConvexNotice({ type: "success", message: "Verifying credentials…" });
 
     try {
-      // Verify credentials first (same as GitHub flow)
-      const credentials = await verifyDevCredentials();
+      // Use WorkOS auth if available, otherwise fall back to legacy password auth
+      let credentials: { key: string };
+      if (workosAuthEnabled && workosAuth.isAuthenticated && workosAuth.user) {
+        // Use WorkOS user info
+        credentials = { key: workosAuth.user.name || workosAuth.user.email };
+      } else {
+        // Fall back to legacy password verification
+        credentials = await verifyDevCredentials();
+      }
 
       setConvexNotice({
         type: "success",
@@ -1839,6 +1846,8 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     aboutFounderKeys,
     originalArticles,
     verifyDevCredentials,
+    workosAuthEnabled,
+    workosAuth,
   ]);
 
   const handleSaveToGitHub = useCallback(async () => {
