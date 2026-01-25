@@ -56,7 +56,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="pharmacology" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="mingcute:settings-6-line" title="Pharmacology" />
 
       <Masonry

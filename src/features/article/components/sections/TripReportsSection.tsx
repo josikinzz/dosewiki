@@ -124,7 +124,7 @@ export const TripReportsSection = memo(function TripReportsSection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="trip-reports" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:file-signature" title="Trip Reports" />
 
       <div className="space-y-3">

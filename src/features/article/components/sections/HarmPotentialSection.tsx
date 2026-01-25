@@ -20,7 +20,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
   const { addiction, toxicity, risks } = normalizedHP;
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="harm-potential" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:ambulance" title="Harm Potential" />
 
       <div className="flex flex-col gap-8">

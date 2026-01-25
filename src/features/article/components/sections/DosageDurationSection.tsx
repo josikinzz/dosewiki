@@ -345,7 +345,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   const defaultRoute = allRoutes[0] || "oral";
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="dosage-duration" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:chart-no-axes-combined" title="Dosage & Duration" />
 
       <Tabs defaultValue={defaultRoute} className="w-full">

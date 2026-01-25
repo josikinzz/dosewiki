@@ -626,7 +626,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
   };
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="history-culture" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:book-open" title="History & Culture" />
 
       {/* Freeform content (no subsections) */}

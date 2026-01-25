@@ -14,6 +14,7 @@ export { NotesSection } from "./NotesSection";
 export { PharmacologySection } from "./PharmacologySection";
 export { ReagentSection } from "./ReagentSection";
 export { SubjectiveEffectsSection } from "./SubjectiveEffectsSection";
+export { TableOfContentsSection } from "./TableOfContentsSection";
 export { ToleranceSection } from "./ToleranceSection";
 export { TripReportsSection } from "./TripReportsSection";
 

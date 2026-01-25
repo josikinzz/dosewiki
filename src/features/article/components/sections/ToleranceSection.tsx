@@ -34,7 +34,7 @@ export const ToleranceSection = memo(function ToleranceSection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="tolerance" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:trending-up" title="Tolerance" />
 
       <Masonry

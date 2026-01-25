@@ -1,7 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { IconBadge } from "@/components/common/IconBadge";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { useReagentData } from "@/hooks/useReagentData";
 import type { ReagentResult } from "@/types/reagent";
@@ -333,17 +332,8 @@ export const ReagentSection = memo(function ReagentSection({
   // Show loading state only when fetching API data
   if (!hasStaticData && isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-            <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
-              <IconBadge icon="lucide:pipette" />
-              Reagent Testing
-            </h2>
-          </div>
-          <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-        </div>
+      <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
+        <SectionHeader icon="lucide:pipette" title="Reagent Testing" />
         <div className="flex items-center justify-center py-8 text-white/50">
           <Icon icon="lucide:loader-2" size={20} className="mr-2 animate-spin" />
           Loading reagent data...
@@ -385,17 +375,8 @@ export const ReagentSection = memo(function ReagentSection({
   const hiddenCount = sortedEntries.length - COLLAPSED_LIMIT;
 
   return (
-    <div className="space-y-6 pt-12">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
-            <IconBadge icon="lucide:pipette" />
-            Reagent Testing
-          </h2>
-        </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-      </div>
+    <div id="reagent-testing" className="space-y-6 pt-12 scroll-mt-6">
+      <SectionHeader icon="lucide:pipette" title="Reagent Testing" />
 
       <p className="text-sm text-white/60">
         Expected colorimetric results for common reagent tests. Colors show reaction

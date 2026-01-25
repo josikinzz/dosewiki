@@ -1,7 +1,6 @@
 import { memo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import { SectionCard } from "@/components/common/SectionCard";
-import { IconBadge } from "@/components/common/IconBadge";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle, Citation } from "@/schema";
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
 
@@ -81,35 +80,17 @@ export const CitationsSection = memo(function CitationsSection({
   const hiddenCount = citations.length - COLLAPSED_LIMIT;
 
   return (
-    <div className="space-y-8 pt-12">
+    <div id="sources" className="space-y-8 pt-12 scroll-mt-6">
       {hasSourceCitations && (
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-              <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
-                <IconBadge icon="lucide:library" />
-                Sources
-              </h2>
-            </div>
-            <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-          </div>
+          <SectionHeader icon="lucide:library" title="Sources" />
           <CitationList citations={sourceCitations} startIndex={0} />
         </div>
       )}
 
       {hasCitations && (
         <div className={hasSourceCitations ? "pt-12 space-y-6" : "space-y-6"}>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
-              <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
-                <IconBadge icon="lucide:book-open" />
-                Further Reading
-              </h2>
-            </div>
-            <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-          </div>
+          <SectionHeader icon="lucide:book-open" title="Further Reading" />
           <CitationList
             citations={visibleCitations}
             startIndex={sourceCitations.length}

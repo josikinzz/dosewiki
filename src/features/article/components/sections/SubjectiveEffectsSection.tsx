@@ -315,7 +315,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="subjective-effects" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:sparkles" title="Subjective Effects" />
 
       {/* Overview note as intro paragraph, or fallback to generic text */}

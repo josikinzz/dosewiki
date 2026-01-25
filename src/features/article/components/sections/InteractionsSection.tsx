@@ -171,7 +171,7 @@ export const InteractionsSection = memo(function InteractionsSection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="interactions" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:blend" title="Interactions" />
 
       {/* Single column layout */}

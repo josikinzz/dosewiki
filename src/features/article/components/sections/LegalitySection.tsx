@@ -156,7 +156,7 @@ export const LegalitySection = memo(function LegalitySection({
   }
 
   return (
-    <div className="space-y-6 pt-12">
+    <div id="legality" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:scale" title="Legality" />
 
       {/* International */}
@@ -191,7 +191,7 @@ export const LegalitySection = memo(function LegalitySection({
             {countries.map(([countryName, info]) => {
               const countryCode = getCountryCode(countryName);
               const isExpanded = expandedCards.has(countryName);
-              const hasNotes = info.notes?.trim().length > 0;
+              const _hasNotes = info.notes?.trim().length > 0;
 
               // Always show status as badge when present
               const showStatusAsBadge = Boolean(info.status?.trim());

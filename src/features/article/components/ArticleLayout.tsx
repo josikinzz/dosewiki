@@ -13,6 +13,7 @@ import {
   LegalitySection,
   CitationsSection,
   TripReportsSection,
+  TableOfContentsSection,
 } from "./sections";
 
 export interface ArticleLayoutProps {
@@ -55,6 +56,7 @@ export const ArticleLayout = memo(function ArticleLayout({
         onSelectClassification={onSelectClassification}
         showPreviewBadge={false}
       />
+      <TableOfContentsSection article={article} />
       <DosageDurationSection article={article} />
       <SubjectiveEffectsSection
         article={article}
