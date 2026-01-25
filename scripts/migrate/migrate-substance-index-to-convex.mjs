@@ -208,7 +208,13 @@ async function main() {
       process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} articles)... `);
       
       try {
+        const adminKey = process.env.CONVEX_ADMIN_KEY;
+        if (!adminKey) {
+          console.error("Error: CONVEX_ADMIN_KEY environment variable is required.");
+          process.exit(1);
+        }
         const result = await client.mutation(api.substanceIndex.saveSubstances, {
+          apiKey: adminKey,
           articles: batch,
         });
         

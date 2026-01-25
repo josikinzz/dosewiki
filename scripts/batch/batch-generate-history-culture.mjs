@@ -719,8 +719,13 @@ async function main() {
       // Sanitize field names (Greek letters → ASCII) for Convex compatibility
       const sanitizedArticles = updatedArticles.map(sanitizeObjectKeys);
 
-      // Use batch saveArticles instead of per-article saveArticle
-      const result = await convexClient.mutation(api.articles.saveArticles, {
+      // Use batch saveSubstances instead of per-article saveSubstance
+      const adminKey = process.env.CONVEX_ADMIN_KEY;
+      if (!adminKey) {
+        throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+      }
+      const result = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+        apiKey: adminKey,
         articles: sanitizedArticles,
       });
       console.log(`Convex sync complete (${result.created} created, ${result.updated} updated).`);

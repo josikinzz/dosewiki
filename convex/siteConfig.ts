@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Site configuration storage - About page content and other global settings.
@@ -22,12 +23,16 @@ export const getAbout = query({
 // Save the About page configuration
 export const saveAbout = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     aboutMarkdown: v.optional(v.string()),
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("siteConfig")
       .withIndex("by_key", (q) => q.eq("key", "about"))

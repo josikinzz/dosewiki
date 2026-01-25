@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Get all EffectIndex articles.
@@ -40,6 +41,7 @@ export const getByTag = query({
  */
 export const bulkImport = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     articles: v.array(
       v.object({
         slug: v.string(),
@@ -63,6 +65,9 @@ export const bulkImport = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     const results = {
       created: 0,
       updated: 0,

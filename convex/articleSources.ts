@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Article source functions.
@@ -33,7 +34,7 @@ export const getSubstanceList = query({
   handler: async (ctx, args) => {
     const limit = args.limit ?? 100;
 
-    let query = ctx.db.query("articleSources");
+    const query = ctx.db.query("articleSources");
 
     const results = await query
       .paginate({ numItems: limit, cursor: args.cursor ?? null });
@@ -66,6 +67,7 @@ export const getAll = query({
  */
 export const bulkImport = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     sources: v.array(v.object({
       slug: v.string(),
       substanceName: v.string(),
@@ -80,6 +82,9 @@ export const bulkImport = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     const results = {
       created: 0,
       updated: 0,
@@ -115,6 +120,7 @@ export const bulkImport = mutation({
  */
 export const importOne = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     slug: v.string(),
     substanceName: v.string(),
     sources: v.array(v.object({
@@ -127,6 +133,9 @@ export const importOne = mutation({
     contents: v.any(),
   },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     // Check if source with this slug already exists
     const existing = await ctx.db
       .query("articleSources")

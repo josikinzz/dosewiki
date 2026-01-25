@@ -81,22 +81,8 @@ export async function requireAuth(
   const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    // Check if admin key is configured - if not, allow unauthenticated access
-    // in development mode (when no auth is configured)
-    const adminKey = process.env[ADMIN_KEY_ENV_VAR];
-    if (!adminKey) {
-      console.warn(
-        `[AUTH WARNING] ${ADMIN_KEY_ENV_VAR} not set and no JWT identity. ` +
-          "Allowing unauthenticated access in development mode."
-      );
-      return {
-        userId: "dev-anonymous",
-        email: "dev@dosewiki.internal",
-        name: "Development User",
-      };
-    }
-
-    throw new AuthError("Authentication required: Please sign in");
+    // SECURITY: Always require authentication - no dev mode bypass
+    throw new AuthError("Authentication required: Please sign in or provide an API key");
   }
 
   return {
@@ -151,9 +137,9 @@ function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {
     // Still do the comparison to maintain constant time
     // but we know it will fail
-    let result = 1;
+    let _result = 1;
     for (let i = 0; i < a.length; i++) {
-      result |= a.charCodeAt(i) ^ (b.charCodeAt(i % b.length) || 0);
+      _result |= a.charCodeAt(i) ^ (b.charCodeAt(i % b.length) || 0);
     }
     return false;
   }

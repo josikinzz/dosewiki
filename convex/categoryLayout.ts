@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Category layout queries and mutations.
@@ -43,16 +44,25 @@ export const get = query({
  * Used by DevTools and the seed script.
  */
 export const save = mutation({
-  args: categoryLayoutValidator,
+  args: {
+    apiKey: v.optional(v.string()),
+    ...categoryLayoutValidator.fields,
+  },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
+    // Extract layout data without apiKey
+    const { apiKey: _apiKey, ...layoutData } = args;
+
     const existing = await ctx.db.query("categoryLayout").first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, layoutData);
       return { updated: true, id: existing._id };
     }
 
-    const id = await ctx.db.insert("categoryLayout", args);
+    const id = await ctx.db.insert("categoryLayout", layoutData);
     return { updated: false, id };
   },
 });
@@ -62,8 +72,13 @@ export const save = mutation({
  * Used for testing/reset purposes.
  */
 export const clear = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    apiKey: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db.query("categoryLayout").first();
     if (existing) {
       await ctx.db.delete(existing._id);

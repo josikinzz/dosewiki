@@ -792,7 +792,12 @@ async function main() {
       const sanitizedArticles = updatedArticles.map(sanitizeObjectKeys);
 
       // Use substanceIndex.saveSubstances for batch updates
+      const adminKey = process.env.CONVEX_ADMIN_KEY;
+      if (!adminKey) {
+        throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+      }
       const result = await convexClient.mutation(api.substanceIndex.saveSubstances, {
+        apiKey: adminKey,
         articles: sanitizedArticles,
       });
       console.log(`Convex sync complete (${result.created} created, ${result.updated} updated).`);

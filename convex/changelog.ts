@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Query to get all changelog entries.
@@ -38,6 +39,7 @@ export const getRecent = query({
  */
 export const addEntry = mutation({
   args: {
+    apiKey: v.optional(v.string()),
     entryId: v.string(),
     createdAt: v.string(),
     message: v.string(),
@@ -50,6 +52,9 @@ export const addEntry = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     // Check if entry with this ID already exists (prevent duplicates)
     const existing = await ctx.db
       .query("changelog")
@@ -86,8 +91,14 @@ export const addEntry = mutation({
  * Mutation to delete a changelog entry by its entryId.
  */
 export const deleteEntry = mutation({
-  args: { entryId: v.string() },
+  args: {
+    apiKey: v.optional(v.string()),
+    entryId: v.string(),
+  },
   handler: async (ctx, args) => {
+    // Authenticate the request
+    await requireAuth(ctx, args.apiKey);
+
     const existing = await ctx.db
       .query("changelog")
       .withIndex("by_entry_id", (q) => q.eq("entryId", args.entryId))
