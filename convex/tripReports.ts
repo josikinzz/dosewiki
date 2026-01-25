@@ -212,6 +212,23 @@ export const deleteAll = internalMutation({
 });
 
 /**
+ * Delete a trip report by ID.
+ *
+ * @param apiKey - Required API key for authentication
+ */
+export const deleteById = mutation({
+  args: {
+    apiKey: v.optional(v.string()),
+    id: v.id("tripReports"),
+  },
+  handler: async (ctx, args) => {
+    requireAuth(ctx, args.apiKey);
+    await ctx.db.delete(args.id);
+    return { deleted: true };
+  },
+});
+
+/**
  * Rename an author across all their trip reports.
  *
  * @param apiKey - Required API key for authentication
