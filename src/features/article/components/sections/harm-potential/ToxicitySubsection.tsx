@@ -132,41 +132,41 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
     <div className="break-inside-avoid flex flex-col rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10">
       {entry.system && (
         <div className="mb-3 flex items-center gap-2 border-b border-white/5 pb-2">
-           <Icon icon={systemIcon} size={24} className="text-fuchsia-300" />
-           <div className="font-semibold text-fuchsia-100">{entry.system}</div>
+          <Icon icon={systemIcon} size={24} className="text-fuchsia-300" />
+          <div className="font-semibold text-fuchsia-100">{entry.system}</div>
         </div>
       )}
-      
+
       {entry.findings && (
         <p className="text-sm leading-relaxed text-white/80">{entry.findings}</p>
       )}
-      
+
       {hasDetails && (
         <>
           {expanded && (
             <div className="mt-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
-               <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-               {entry.mechanism && (
-                  <div className="text-sm">
-                    <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Mechanism</span>
-                    <p className="text-white/70 leading-relaxed">{entry.mechanism}</p>
-                  </div>
-                )}
-                {entry.notes && (
-                  <div className="text-sm">
-                     <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Notes</span>
-                     <p className="italic text-white/60 leading-relaxed">{entry.notes}</p>
-                  </div>
-                )}
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              {entry.mechanism && (
+                <div className="text-sm">
+                  <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Mechanism</span>
+                  <p className="text-white/70 leading-relaxed">{entry.mechanism}</p>
+                </div>
+              )}
+              {entry.notes && (
+                <div className="text-sm">
+                  <span className="block mb-1 font-semibold uppercase tracking-wider text-white/40 text-[10px]">Notes</span>
+                  <p className="italic text-white/60 leading-relaxed">{entry.notes}</p>
+                </div>
+              )}
             </div>
           )}
-          
+
           <div className="mt-3 flex justify-start">
-             <ExpandButton 
-               isExpanded={expanded} 
-               onToggle={() => setExpanded(!expanded)} 
-               className="bg-white/5 hover:bg-white/10"
-             />
+            <ExpandButton
+              isExpanded={expanded}
+              onToggle={() => setExpanded(!expanded)}
+              className="bg-white/5 hover:bg-white/10"
+            />
           </div>
         </>
       )}
@@ -208,7 +208,7 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
               level={carcinogenicity.evidence.human_epidemiological}
               label="Human Epidemiological"
             />
-            
+
             {carcinogenicity.evidence.animal_models && (
               <div className="flex items-center justify-between">
                 <span className="text-white/60">Animal Models</span>
@@ -240,14 +240,14 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
             )}
 
             {carcinogenicity.evidence.mechanistic && (
-               <div className="flex items-center justify-between">
-               <span className="text-white/60">Mechanistic</span>
-               <span className={EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level || "none"]?.color || "text-white/60"}>
-                 {carcinogenicity.evidence.mechanistic.level
-                   ? EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level]?.label || "None"
-                   : "None"}
-               </span>
-             </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/60">Mechanistic</span>
+                <span className={EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level || "none"]?.color || "text-white/60"}>
+                  {carcinogenicity.evidence.mechanistic.level
+                    ? EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level]?.label || "None"
+                    : "None"}
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -275,13 +275,12 @@ function AntibioticFunctionCard({ toxicity }: { toxicity: NormalizedHarmPotentia
           <h4 className="font-semibold text-white">Antibiotic Function</h4>
         </div>
         {antibiotic_function.level && (
-           <span
-           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-             CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.color || "text-white/60"
-           } ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.bgColor || "bg-white/10"}`}
-         >
-           {CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level}
-         </span>
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.color || "text-white/60"
+              } ${CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.bgColor || "bg-white/10"}`}
+          >
+            {CARCINOGENICITY_LEVEL_CONFIG[antibiotic_function.level as CarcinogenicityLevel]?.label || antibiotic_function.level}
+          </span>
         )}
       </div>
       {antibiotic_function.description && (

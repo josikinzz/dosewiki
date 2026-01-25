@@ -21,7 +21,7 @@ export function AddictionSubsection({ addiction }: AddictionSubsectionProps) {
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
-      
+
       <div className="columns-1 gap-4 space-y-4 md:columns-2">
         {hasPsychological && (
           <div className="break-inside-avoid flex flex-col rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20">
