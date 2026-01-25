@@ -311,6 +311,17 @@
   }
 }
 
+/* Fix mobile hover bug: Disable hover transitions on touch devices
+   Mobile browsers emulate hover by persisting it on the last-touched element,
+   causing visual artifacts (buttons highlighting) during scroll. */
+@media (hover: none) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Accessibility: Focus visible styles for keyboard navigation */
 @layer utilities {
   /* Enhanced focus ring for accessibility */
