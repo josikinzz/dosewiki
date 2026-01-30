@@ -214,6 +214,12 @@ export const pharmacologySchema = z.object({
   metabolites: z.array(z.string()),
   protein_binding: z.string().nullable().optional(),
   volume_of_distribution: z.string().nullable().optional(),
+  // Route-specific pharmacokinetic data (keyed by canonical route names)
+  route_bioavailability: z.record(z.string(), z.string()).optional(),
+  route_half_life: z.record(z.string(), z.string()).optional(),
+  route_half_life_notes: z.record(z.string(), z.string()).optional(),
+  route_bioavailability_notes: z.record(z.string(), z.string()).optional(),
+  // Legacy fields (deprecated, use route-specific versions)
   bioavailability_notes: z.string().optional(),
   half_life: z.string().optional(),
 });

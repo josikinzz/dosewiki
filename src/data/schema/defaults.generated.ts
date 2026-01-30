@@ -86,6 +86,10 @@ export function createEmptyArticle(): SubstanceArticle {
     metabolites: [],
     protein_binding: null,
     volume_of_distribution: null,
+    route_bioavailability: null,
+    route_half_life: null,
+    route_half_life_notes: null,
+    route_bioavailability_notes: null,
     bioavailability_notes: null,
     half_life: null
   },
