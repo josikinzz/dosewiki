@@ -201,9 +201,9 @@ function hasExistingPharmacology(article) {
   if (!p) return false;
 
   return !!(
-    p.mechanism_of_action?.length > 0 ||
-    Object.keys(p.receptor_binding || {}).length > 0 ||
-    p.metabolism?.trim() ||
+    p.receptor_profile?.length > 0 ||
+    p.summary?.trim() ||
+    p.pharmacokinetics?.trim() ||
     p.metabolites?.length > 0 ||
     Object.keys(p.route_bioavailability || {}).length > 0 ||
     Object.keys(p.route_half_life || {}).length > 0
@@ -336,9 +336,9 @@ function parseGeneratedYaml(response) {
     let p = parsed.pharmacology || parsed;
 
     if (
-      p.mechanism_of_action !== undefined ||
-      p.receptor_binding !== undefined ||
-      p.metabolism !== undefined ||
+      p.receptor_profile !== undefined ||
+      p.summary !== undefined ||
+      p.pharmacokinetics !== undefined ||
       p.metabolites !== undefined
     ) {
       return normalizePharmacology(p);
@@ -352,12 +352,31 @@ function parseGeneratedYaml(response) {
 
 // Normalize pharmacology to ensure all required fields exist
 function normalizePharmacology(p) {
+  // Handle legacy format: convert mechanism_of_action + receptor_binding → receptor_profile
+  let receptorProfile;
+  if (Array.isArray(p.receptor_profile)) {
+    receptorProfile = p.receptor_profile.map(entry => ({
+      receptor: typeof entry.receptor === 'string' ? entry.receptor : "",
+      ...(entry.tag ? { tag: String(entry.tag) } : {}),
+      ...(entry.affinity ? { affinity: String(entry.affinity) } : {}),
+      ...(entry.efficacy ? { efficacy: String(entry.efficacy) } : {}),
+    }));
+  } else if (Array.isArray(p.mechanism_of_action)) {
+    // Legacy fallback: derive from old fields
+    receptorProfile = p.mechanism_of_action.map(tag => ({
+      receptor: tag.split(" receptor")[0] || tag,
+      tag,
+    }));
+  } else {
+    receptorProfile = [];
+  }
+
   return {
-    // Core pharmacology fields (stay in pharmacology section)
-    mechanism_of_action: Array.isArray(p.mechanism_of_action) ? p.mechanism_of_action : [],
-    receptor_binding: typeof p.receptor_binding === 'object' && p.receptor_binding !== null
-      ? p.receptor_binding : {},
-    metabolism: typeof p.metabolism === 'string' ? p.metabolism : "",
+    // Core pharmacology fields
+    summary: typeof p.summary === 'string' ? p.summary : "",
+    receptor_profile: receptorProfile,
+    pharmacokinetics: typeof p.pharmacokinetics === 'string' ? p.pharmacokinetics
+      : (typeof p.metabolism === 'string' ? p.metabolism : ""),
     metabolites: Array.isArray(p.metabolites) ? p.metabolites : [],
     // Route-specific data (will be merged into dosage/duration)
     route_bioavailability: typeof p.route_bioavailability === 'object' && p.route_bioavailability !== null
@@ -444,9 +463,9 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   if (verbose) {
     console.log(`  Generated pharmacology for ${slug}:`);
-    console.log(`    mechanism_of_action: ${newPharmacology.mechanism_of_action.length} tags`);
-    console.log(`    receptor_binding: ${Object.keys(newPharmacology.receptor_binding).length} entries`);
-    console.log(`    metabolism: ${newPharmacology.metabolism ? "yes" : "no"} (${newPharmacology.metabolism.length} chars)`);
+    console.log(`    summary: ${newPharmacology.summary ? "yes" : "no"} (${newPharmacology.summary.length} chars)`);
+    console.log(`    receptor_profile: ${newPharmacology.receptor_profile.length} entries`);
+    console.log(`    pharmacokinetics: ${newPharmacology.pharmacokinetics ? "yes" : "no"} (${newPharmacology.pharmacokinetics.length} chars)`);
     console.log(`    metabolites: ${newPharmacology.metabolites.length} entries`);
     console.log(`    → dosage bioavailability: ${Object.keys(newPharmacology.route_bioavailability).length} routes`);
     console.log(`    → duration half_life: ${Object.keys(newPharmacology.route_half_life).length} routes`);
@@ -667,11 +686,11 @@ async function main() {
     for (const update of results.successfulUpdates) {
       const article = articlesMap.get(update.title);
       if (article) {
-        // Update core pharmacology fields (mechanism_of_action, receptor_binding, metabolism, metabolites)
+        // Update core pharmacology fields
         const corePharmacology = {
-          mechanism_of_action: update.pharmacology.mechanism_of_action,
-          receptor_binding: update.pharmacology.receptor_binding,
-          metabolism: update.pharmacology.metabolism,
+          summary: update.pharmacology.summary,
+          receptor_profile: update.pharmacology.receptor_profile,
+          pharmacokinetics: update.pharmacology.pharmacokinetics,
           metabolites: update.pharmacology.metabolites,
         };
         article.pharmacology = { ...article.pharmacology, ...corePharmacology };

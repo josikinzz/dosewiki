@@ -77,7 +77,9 @@ export const fullArticleWithDosage: SubstanceArticle = {
   },
   pharmacology: {
     ...createEmptyArticle().pharmacology,
-    mechanism_of_action: ['5-HT2A receptor agonist'],
+    receptor_profile: [
+      { receptor: "5-HT2A", tag: "5-HT2A receptor agonist" },
+    ],
   },
   subjective_effects: {
     ...createEmptyArticle().subjective_effects,

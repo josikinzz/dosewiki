@@ -80,9 +80,9 @@ export function createEmptyArticle(): SubstanceArticle {
   },
   comparisons: [],
   pharmacology: {
-    mechanism_of_action: [],
-    receptor_binding: {},
-    metabolism: "",
+    summary: "",
+    receptor_profile: [],
+    pharmacokinetics: "",
     metabolites: [],
     protein_binding: null,
     volume_of_distribution: null,

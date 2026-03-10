@@ -49,9 +49,9 @@ const TOC_ITEMS: TocItem[] = [
       const p = a.pharmacology;
       if (!p) return false;
       return (
-        p.mechanism_of_action?.length > 0 ||
-        (p.receptor_binding && Object.keys(p.receptor_binding).length > 0) ||
-        p.metabolism?.trim().length > 0 ||
+        p.summary?.trim().length > 0 ||
+        p.receptor_profile?.length > 0 ||
+        p.pharmacokinetics?.trim().length > 0 ||
         p.metabolites?.length > 0
       );
     },

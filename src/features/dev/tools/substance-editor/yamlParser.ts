@@ -425,18 +425,23 @@ function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_
 
 function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {
   const obj = getObject(raw);
-  const receptorBinding = getObject(obj.receptor_binding);
 
-  // Convert receptor binding to Record<string, string>
-  const binding: Record<string, string> = {};
-  for (const [key, value] of Object.entries(receptorBinding)) {
-    binding[key] = getString(value);
-  }
+  // Normalize receptor_profile array of objects
+  const rawProfile = Array.isArray(obj.receptor_profile) ? obj.receptor_profile : [];
+  const receptor_profile = rawProfile.map((entry: unknown) => {
+    const e = getObject(entry);
+    return {
+      receptor: getString(e.receptor),
+      ...(e.tag ? { tag: getString(e.tag) } : {}),
+      ...(e.affinity ? { affinity: getString(e.affinity) } : {}),
+      ...(e.efficacy ? { efficacy: getString(e.efficacy) } : {}),
+    };
+  });
 
   return {
-    mechanism_of_action: getStringArray(obj.mechanism_of_action),
-    receptor_binding: binding,
-    metabolism: getString(obj.metabolism),
+    summary: getString(obj.summary),
+    receptor_profile,
+    pharmacokinetics: getString(obj.pharmacokinetics),
     metabolites: getStringArray(obj.metabolites),
     protein_binding: obj.protein_binding ? getString(obj.protein_binding) : undefined,
     volume_of_distribution: obj.volume_of_distribution ? getString(obj.volume_of_distribution) : undefined,

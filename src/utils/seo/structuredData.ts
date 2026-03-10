@@ -108,7 +108,10 @@ export function buildSubstanceSchema(
     alternateName: alternateNames && alternateNames.length > 0 ? alternateNames : undefined,
     description: article.summary || undefined,
     drugClass: article.classification?.psychoactive_class,
-    mechanismOfAction: article.pharmacology?.mechanism_of_action?.join("; "),
+    mechanismOfAction: (article.pharmacology?.receptor_profile || [])
+      .map(e => e.tag)
+      .filter((t): t is string => !!t)
+      .join("; ") || undefined,
   };
 
   return {

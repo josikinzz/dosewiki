@@ -28,6 +28,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Standard technical terminology (receptor names, pharmacological terms) can remain as-is
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
+- Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 
@@ -106,9 +107,13 @@ comparisons:                       # Comparisons to other drugs
     comparison: string
 
 pharmacology:                      # ← YOU ARE GENERATING THIS SECTION
-  mechanism_of_action: string[]    # Canonical tags from approved list
-  receptor_binding: {}             # Ki/affinity values keyed by receptor
-  metabolism: string               # How the drug is metabolized
+  summary: string                  # Plain-language 2-3 paragraph overview
+  receptor_profile:                # Combined mechanism + binding data
+    - receptor: string             # Receptor/target name (e.g., "5-HT2A")
+      tag: string (optional)       # Canonical MoA tag (e.g., "5-HT2A receptor agonist (partial)")
+      affinity: string (optional)  # Ki/EC50/binding value (e.g., "2.9 nM")
+      efficacy: string (optional)  # Functional efficacy (e.g., "Emax 101%")
+  pharmacokinetics: string         # How the drug is metabolized
   metabolites: string[]            # Active/inactive metabolites
 
 interactions:                      # Drug combinations - DO NOT include interaction info here
@@ -199,9 +204,9 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 
 ```yaml
 pharmacology:
-  mechanism_of_action: []
-  receptor_binding: {}
-  metabolism: ""
+  summary: ""
+  receptor_profile: []
+  pharmacokinetics: ""
   metabolites: []
   route_bioavailability: {}
   route_half_life: {}
@@ -215,9 +220,9 @@ pharmacology:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `mechanism_of_action` | `array` | Canonical tags from MoA list describing primary pharmacological actions | `["5-HT2A receptor agonist (partial)", "Dopamine releasing agent"]` |
-| `receptor_binding` | `object` | Receptor names as keys, affinity values as strings | `{"5-HT2A": "2.9 nM", "5-HT2C": "23 nM", "D2": "4300 nM"}` |
-| `metabolism` | `string` | Metabolic pathway description including enzymes | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
+| `summary` | `string` | Plain-language 2-3 paragraph overview of the substance's pharmacology, written for a general audience. Covers what the drug does in the brain/body, its primary mechanisms, and notable pharmacokinetic properties. | "LSD primarily acts by binding to serotonin receptors in the brain..." |
+| `receptor_profile` | `array` | Combined mechanism of action and receptor binding data. Each entry is an object with `receptor` (required), `tag` (optional canonical MoA tag), `affinity` (optional Ki/EC50 value), and `efficacy` (optional Emax or functional data). | See example output below |
+| `pharmacokinetics` | `string` | Metabolic pathway description including enzymes | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
 | `metabolites` | `array` | Active or notable metabolites | `["Norketamine (active)", "Hydroxynorketamine"]` |
 | `route_bioavailability` | `object` | Route-specific bioavailability percentages using canonical route names as keys | `{"Oral": "67%", "Insufflated": "79%", "Intravenous": "100%"}` |
 | `route_half_life` | `object` | Route-specific elimination half-life using canonical route names as keys | `{"Oral": "3-6 hours", "Intravenous": "2-3 hours"}` |
@@ -323,20 +328,25 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 
 ## Extraction Rules
 
-### For mechanism_of_action:
-- Look for: receptor binding descriptions, "acts as", "functions as", "agonist", "antagonist", "inhibitor", "releasing agent"
-- Match to canonical tags exactly as written above
-- Include ALL relevant mechanisms mentioned, not just the primary one
+### For summary:
+- Write 2-3 paragraphs in plain, accessible English summarizing the substance's pharmacology
+- Cover: what the drug does in the brain/body, its primary receptor targets, how it produces its effects, and notable pharmacokinetic properties
+- Use language a non-scientist can understand — explain concepts like "agonist" or "reuptake inhibitor" through their functional effects
+- Do not simply list receptor names; weave them into a narrative explanation
+- This is a prose summary, NOT a list of bullet points
+- Keep it information-dense but readable
+
+### For receptor_profile:
+- Create one entry per receptor/target interaction mentioned in sources
+- `receptor`: the receptor/target name (e.g., "5-HT2A", "D2", "NMDA", "DAT")
+- `tag`: match to a canonical tag from the approved list exactly as written. Only include if the interaction qualifies as a mechanism of action. Omit for receptors that are bound but not considered primary mechanisms.
+- `affinity`: extract Ki, EC50, IC50, or Kd values when available, with units (e.g., "2.9 nM", "1.2 μM"). If only qualitative data exists (e.g., "high affinity"), include that.
+- `efficacy`: include Emax, intrinsic activity, or functional efficacy data if available (e.g., "Emax 101%", "partial agonist")
+- Include ALL relevant receptor interactions, not just primary ones
 - If a source says "partial agonist" vs "full agonist", use the appropriate tag
+- Order entries by pharmacological importance (primary mechanisms first)
 
-### For receptor_binding:
-- Extract Ki, EC50, IC50, or Kd values when available
-- Use receptor name as key: "5-HT2A", "D2", "μ-opioid", "NMDA"
-- Include units with values: "2.9 nM", "1.2 μM", "340 nM"
-- If only qualitative data exists (e.g., "high affinity"), include it: "high affinity"
-- Format: `"receptor_name": "affinity_value"`
-
-### For metabolism:
+### For pharmacokinetics:
 - Look for CYP enzymes mentioned (CYP2D6, CYP3A4, CYP1A2, etc.)
 - Note if hepatic, renal, or other metabolic routes
 - Include phase I (oxidation, reduction) and phase II (conjugation) if described
@@ -356,10 +366,14 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Note: half-life often doesn't vary significantly by route, so this may be the same value for all routes or only specified for some
 
 ### For route_half_life_notes:
-- Extract route-specific half-life context and notes
+- Format as **separate lines using `\n` line breaks only** - do NOT include bullet symbols (•, -, *) as the UI will add those
+- Each line = one fact (e.g., "Fact one\nFact two\nFact three")
+- Use **plain language** - avoid unexplained jargon
+- Explain technical concepts simply (e.g., "genetic differences affect how fast your body processes this" instead of "CYP2D6 polymorphisms")
+- **THIS IS FOR TIMING/DURATION INFO** - Include: time to peak blood levels, factors that speed up/slow down elimination, how long it stays in your system, differences between people
+- **DO NOT include absorption efficiency info** (that belongs in bioavailability_notes)
+- Keep each line to one clear fact
 - Use **canonical route names** as keys (same as route_bioavailability)
-- Include: dose-dependence, CYP polymorphism effects, metabolite half-life differences, pH-dependence
-- Keep concise - one or two sentences per route maximum
 - Only include if there's meaningful additional context beyond the half-life value itself
 
 ### For route_bioavailability:
@@ -380,12 +394,14 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - `Rectal` - rectal/plugging
 
 ### For route_bioavailability_notes:
-- Extract route-specific absorption details and notes
+- Format as **separate lines using `\n` line breaks only** - do NOT include bullet symbols (•, -, *) as the UI will add those
+- Each line = one fact (e.g., "Fact one\nFact two\nFact three")
+- Use **plain language** accessible to someone without a chemistry background
+- Explain technical concepts simply (e.g., "processed by the liver before reaching the bloodstream" instead of "first-pass metabolism")
+- **THIS IS FOR ABSORPTION EFFICIENCY INFO** - Include: why some is lost before reaching bloodstream, how food affects absorption amount, why this route delivers more/less to the body
+- **DO NOT include timing info** (peak blood levels, time to feel effects, etc. belong in half_life_notes)
+- Keep each line to one clear fact
 - Use **canonical route names** as keys (same as route_bioavailability)
-- Include first-pass metabolism effects specific to that route
-- Include Tmax (time to peak concentration) if route-specific
-- Include food interactions if they're route-specific
-- Keep concise - one or two sentences per route maximum
 
 ---
 
@@ -393,17 +409,21 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 
 ```yaml
 pharmacology:
-  mechanism_of_action:
-    - "5-HT2A receptor agonist (partial)"
-    - "5-HT2C receptor agonist (partial)"
-    - "5-HT1A receptor agonist (partial)"
-    - "Dopamine D2 receptor agonist (partial)"
-  receptor_binding:
-    "5-HT2A": "2.9 nM"
-    "5-HT2C": "23 nM"
-    "5-HT1A": "190 nM"
-    "D2": "4300 nM"
-  metabolism: "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4. Undergoes N-demethylation and hydroxylation."
+  summary: "This substance primarily acts by binding to serotonin receptors in the brain, particularly the 5-HT2A receptor where it functions as a partial agonist. This interaction is believed to be the primary driver of its psychedelic effects. It also shows significant affinity for 5-HT2C and 5-HT1A receptors, contributing to its complex subjective profile.\n\nThe compound is metabolized primarily in the liver through CYP2D6 enzymes, producing an active nor-compound metabolite that extends its duration of action. Oral bioavailability is approximately 70% due to first-pass metabolism, with intravenous administration providing complete bioavailability."
+  receptor_profile:
+    - receptor: "5-HT2A"
+      tag: "5-HT2A receptor agonist (partial)"
+      affinity: "2.9 nM"
+    - receptor: "5-HT2C"
+      tag: "5-HT2C receptor agonist (partial)"
+      affinity: "23 nM"
+    - receptor: "5-HT1A"
+      tag: "5-HT1A receptor agonist (partial)"
+      affinity: "190 nM"
+    - receptor: "D2"
+      tag: "Dopamine D2 receptor agonist (partial)"
+      affinity: "4300 nM"
+  pharmacokinetics: "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4. Undergoes N-demethylation and hydroxylation."
   metabolites:
     - "Nor-compound (active)"
     - "Hydroxy-compound (inactive)"
@@ -427,7 +447,7 @@ pharmacology:
 ## Formatting Rules
 
 1. **Arrays**: Use proper YAML array syntax with `- ` prefix for each item
-2. **Objects**: Use proper key-value pairs with quoted keys for receptor_binding
+2. **Objects**: Use proper key-value pairs with quoted keys for route_* objects
 3. **Empty values**: Use `""` for empty strings, `[]` for empty arrays, `{}` for empty objects
 4. **No speculation**: If sources don't mention it, leave the field empty.
 5. **Consistent tone**: Clinical, factual, precise
@@ -443,12 +463,13 @@ pharmacology:
 Before returning output:
 - [ ] All fields present (even if empty)
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
-- [ ] `mechanism_of_action` uses canonical tags from the approved list exactly
-- [ ] `receptor_binding` keys are receptor names, values include units where known
+- [ ] `summary` is 2-3 paragraphs of plain-language prose (not a list)
+- [ ] `receptor_profile` entries each have a `receptor` field; `tag` uses canonical tags exactly when present
+- [ ] `receptor_profile` entries are ordered by pharmacological importance
 - [ ] `metabolites` is an array of strings, not a single string
 - [ ] `route_bioavailability`, `route_half_life`, `route_half_life_notes`, and `route_bioavailability_notes` use canonical route names exactly (Oral, Insufflated, Sublingual, Smoked, Vaporized, Intravenous, Intramuscular, Rectal)
 - [ ] No markdown code fences in output
 - [ ] No commentary or explanation, just YAML
 - [ ] Content derived only from provided sources
-- [ ] Empty string `""` used for missing data, `{}` for empty objects, not `null` or omitted
+- [ ] Empty string `""` used for missing data, `[]` for empty arrays, `{}` for empty objects, not `null` or omitted
 - [ ] No information duplicated from other sections (harm_potential, tolerance, etc.)

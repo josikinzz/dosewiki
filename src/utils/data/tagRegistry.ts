@@ -183,12 +183,34 @@ const fieldConfigs: Record<TagField, FieldConfig> = {
     },
   },
   mechanism_of_action: {
-    getter: (article) => ensureNormalizedTagList(article.pharmacology?.mechanism_of_action || []),
+    getter: (article) => ensureNormalizedTagList(
+      (article.pharmacology?.receptor_profile || [])
+        .map(e => e.tag)
+        .filter((t): t is string => !!t)
+    ),
     setter: (article, values) => {
       const next = cloneArticle(article);
+      const existing = next.pharmacology?.receptor_profile || [];
+      const normalizedValues = ensureNormalizedTagList(values);
+      // Update tags on existing entries, add new entries for new tags
+      const existingTags = new Set(existing.map(e => e.tag).filter(Boolean));
+      const updated = existing.map(e => {
+        if (e.tag && !normalizedValues.includes(e.tag)) {
+          // Tag removed — drop the tag but keep entry if it has other data
+          const { tag: _, ...rest } = e;
+          return Object.values(rest).some(v => v) ? rest as typeof e : null;
+        }
+        return e;
+      }).filter((e): e is NonNullable<typeof e> => e !== null);
+      // Add new tags not already present
+      for (const tag of normalizedValues) {
+        if (!existingTags.has(tag)) {
+          updated.push({ receptor: tag.split(" receptor")[0] || tag, tag });
+        }
+      }
       next.pharmacology = {
         ...next.pharmacology,
-        mechanism_of_action: ensureNormalizedTagList(values),
+        receptor_profile: updated,
       };
       return next;
     },

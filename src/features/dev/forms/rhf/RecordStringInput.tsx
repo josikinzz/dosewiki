@@ -11,7 +11,6 @@ import { recordTransformer } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
 
 type RecordFieldPath = FieldPath<SubstanceArticle> & (
-  | "pharmacology.receptor_binding"
   | "reagent_testing"
 );
 

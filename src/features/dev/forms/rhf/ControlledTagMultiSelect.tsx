@@ -15,7 +15,6 @@ type ArrayFieldPath = FieldPath<SubstanceArticle> & (
   | "identification.alternative_names"
   | "classification.psychoactive_class"
   | "classification.chemical_class"
-  | "pharmacology.mechanism_of_action"
   | "pharmacology.metabolites"
   | "interactions.dangerous"
   | "interactions.unsafe"

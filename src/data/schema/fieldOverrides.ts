@@ -391,23 +391,22 @@ export const FIELD_OVERRIDES: Record<string, FieldOverride> = {
   // ==========================================
   // PHARMACOLOGY
   // ==========================================
-  "pharmacology.mechanism_of_action": {
-    label: "Mechanism of Action",
-    type: "tagArray",
+  "pharmacology.summary": {
+    label: "Pharmacology Summary",
+    type: "textarea",
     required: false,
     section: "pharmacology",
-    transformer: arrayTransformer,
+    description: "Plain-language 2-3 paragraph overview",
   },
-  "pharmacology.receptor_binding": {
-    label: "Receptor Binding",
+  "pharmacology.receptor_profile": {
+    label: "Receptor Profile",
     type: "object",
     required: false,
     section: "pharmacology",
-    transformer: recordTransformer,
-    description: "One per line: receptor: affinity",
+    description: "Combined mechanism of action and receptor binding data",
   },
-  "pharmacology.metabolism": {
-    label: "Metabolism",
+  "pharmacology.pharmacokinetics": {
+    label: "Pharmacokinetics",
     type: "textarea",
     required: false,
     section: "pharmacology",

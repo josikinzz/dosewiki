@@ -494,8 +494,10 @@ function buildInfoSections(
     items.push({ label: "Chemical class", value: chemicalClass, icon: "lucide:hexagon" as IconName });
   }
 
-  // Mechanism of action from pharmacology (now an array)
-  const mechanismArray = pharmacology?.mechanism_of_action;
+  // Mechanism of action derived from receptor_profile tags
+  const mechanismArray = (pharmacology?.receptor_profile || [])
+    .map(e => e.tag)
+    .filter((t): t is string => !!t);
   if (mechanismArray && mechanismArray.length > 0) {
     const mechanism = mechanismArray.join("; ");
     const seen = new Set<string>();

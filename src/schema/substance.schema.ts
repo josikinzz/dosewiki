@@ -206,11 +206,19 @@ export const drugComparisonSchema = z.object({
   comparison: z.string(),
 });
 
+/** Single receptor/target interaction entry */
+export const receptorProfileEntrySchema = z.object({
+  receptor: z.string(),
+  tag: z.string().optional(),
+  affinity: z.string().optional(),
+  efficacy: z.string().optional(),
+});
+
 /** Pharmacology section */
 export const pharmacologySchema = z.object({
-  mechanism_of_action: z.array(z.string()),
-  receptor_binding: z.record(z.string(), z.string()),
-  metabolism: z.string(),
+  summary: z.string(),
+  receptor_profile: z.array(receptorProfileEntrySchema),
+  pharmacokinetics: z.string(),
   metabolites: z.array(z.string()),
   protein_binding: z.string().nullable().optional(),
   volume_of_distribution: z.string().nullable().optional(),
@@ -480,6 +488,7 @@ export type SubjectiveEffectsAttribution = z.infer<typeof subjectiveEffectsAttri
 export type SubjectiveEffects = z.infer<typeof subjectiveEffectsSchema>;
 
 export type DrugComparison = z.infer<typeof drugComparisonSchema>;
+export type ReceptorProfileEntry = z.infer<typeof receptorProfileEntrySchema>;
 export type Pharmacology = z.infer<typeof pharmacologySchema>;
 
 export type Interactions = z.infer<typeof interactionsSchema>;

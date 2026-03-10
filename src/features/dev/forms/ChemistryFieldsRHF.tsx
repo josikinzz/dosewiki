@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 import { CollapsibleSubsection } from "./FormHelpers";
-import { ControlledTagMultiSelect, RecordStringInput } from "./rhf";
+import { ControlledTagMultiSelect } from "./rhf";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
@@ -116,7 +116,7 @@ export type ChemistryFieldsRHFProps = {
 
 export function ChemistryFieldsRHF({
   idPrefix,
-  mechanismOptions,
+  mechanismOptions: _mechanismOptions,
 }: ChemistryFieldsRHFProps) {
   const { register, setValue, getValues } = useFormContext<SubstanceArticle>();
 
@@ -150,9 +150,9 @@ export function ChemistryFieldsRHF({
       } = parsed.pharmacology ?? parsed;
       
       // Apply pharmacology fields (always overwrite with empty defaults for missing)
-      setValue("pharmacology.mechanism_of_action", pharmacology.mechanism_of_action ?? []);
-      setValue("pharmacology.receptor_binding", pharmacology.receptor_binding ?? {});
-      setValue("pharmacology.metabolism", pharmacology.metabolism ?? "");
+      setValue("pharmacology.summary", pharmacology.summary ?? "");
+      setValue("pharmacology.receptor_profile", pharmacology.receptor_profile ?? []);
+      setValue("pharmacology.pharmacokinetics", pharmacology.pharmacokinetics ?? "");
       setValue("pharmacology.metabolites", pharmacology.metabolites ?? []);
       
       // Normalize all route-specific maps
@@ -267,45 +267,41 @@ export function ChemistryFieldsRHF({
         />
       )}
       
-      {/* Mechanism of Action - Primary card in public section */}
+      {/* Pharmacology Summary */}
       <div className="space-y-1">
-        <ControlledTagMultiSelect
-          name="pharmacology.mechanism_of_action"
-          label="Mechanism of Action"
-          icon={<Icon icon="fluent:brain-circuit-28-filled" className="h-4 w-4 text-white/60" size={16} />}
-          placeholder="Add mechanism"
-          options={mechanismOptions}
-          addButtonLabel="Add mechanism"
-          openStrategy="button"
-        />
-      </div>
-      
-      {/* Receptor Binding - Expandable within MoA card */}
-      <div className="space-y-1">
-        <Label htmlFor={`${idPrefix}-receptor-binding`}>
-          Receptor Binding Profile
+        <Label htmlFor={`${idPrefix}-pharmacology-summary`}>
+          Pharmacology Summary
         </Label>
-        <RecordStringInput
-          name="pharmacology.receptor_binding"
+        <Textarea
+          id={`${idPrefix}-pharmacology-summary`}
           className="min-h-[80px]"
-          placeholder="receptor: affinity (one per line, e.g., 5-HT2A: Ki = 0.3 nM)"
+          {...register("pharmacology.summary")}
+          placeholder="Plain-language 2-3 paragraph overview of pharmacology"
         />
       </div>
-      
-      {/* Metabolism & Metabolites - Second card in public section */}
+
+      {/* Receptor Profile (combined MoA + binding) — edited via YAML paste */}
+      <div className="space-y-1">
+        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
+          <Icon icon="fluent:brain-circuit-28-filled" className="h-4 w-4 text-white/60" size={16} />
+          Receptor Profile (edit via YAML paste)
+        </p>
+      </div>
+
+      {/* Pharmacokinetics & Metabolites */}
       <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-white/50">
         <Icon icon="material-symbols:metabolism-rounded" className="h-3.5 w-3.5" size={14} />
-        Metabolism
+        Pharmacokinetics
       </p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-1">
-          <Label htmlFor={`${idPrefix}-metabolism`}>
-            Metabolism Pathway
+          <Label htmlFor={`${idPrefix}-pharmacokinetics`}>
+            Pharmacokinetics
           </Label>
           <Textarea
-            id={`${idPrefix}-metabolism`}
+            id={`${idPrefix}-pharmacokinetics`}
             className="min-h-[80px]"
-            {...register("pharmacology.metabolism")}
+            {...register("pharmacology.pharmacokinetics")}
             placeholder="Describe metabolic pathway (e.g., CYP2D6, CYP3A4 hepatic metabolism)"
           />
         </div>
