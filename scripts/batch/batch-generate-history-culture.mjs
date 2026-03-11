@@ -70,17 +70,8 @@ const CONFIG = {
   reasoningEffort: "high",
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "quotes/history-culture-quotes"),
-  costsFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-history-culture-costs.json"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
   progressFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-history-culture-progress.json"),
-};
-
-// Pricing for cost estimation (per 1M tokens)
-const PRICING = {
-  "anthropic/claude-opus-4.5": {
-    input: 15.00,
-    output: 75.00,
-  },
 };
 
 // Parse command line arguments
@@ -395,30 +386,6 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
   };
 }
 
-// Load costs file
-function loadCosts() {
-  if (!existsSync(CONFIG.costsFile)) {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-  try {
-    return JSON.parse(readFileSync(CONFIG.costsFile, "utf-8"));
-  } catch {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-}
-
-// Save costs file
-function saveCosts(costs) {
-  writeFileSync(CONFIG.costsFile, JSON.stringify(costs, null, 2), "utf-8");
-}
-
-// Calculate estimated cost
-function calculateCost(promptTokens, completionTokens) {
-  const pricing = PRICING[CONFIG.model];
-  return (promptTokens / 1_000_000) * pricing.input +
-         (completionTokens / 1_000_000) * pricing.output;
-}
-
 // Write progress to file for cross-terminal monitoring
 function writeProgress(state) {
   writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
@@ -452,7 +419,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
     startTime,
     inputTokens: 0,
     outputTokens: 0,
-    estimatedCost: 0,
   });
 
   // Process in batches
@@ -472,7 +438,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
     });
 
     const promises = batch.map(async (article) => {
@@ -547,7 +512,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
     });
   }
 
@@ -565,7 +529,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
     startTime,
     inputTokens: totalPromptTokens,
     outputTokens: totalCompletionTokens,
-    estimatedCost: calculateCost(totalPromptTokens, totalCompletionTokens),
   });
 
   return {
@@ -735,8 +698,6 @@ async function main() {
     }
   }
 
-  const estimatedCost = calculateCost(results.totalPromptTokens, results.totalCompletionTokens);
-
   // Summary
   console.log("\n" + "=".repeat(50));
   console.log("Complete!");
@@ -751,33 +712,6 @@ async function main() {
   console.log(`\nTokens:`);
   console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
   console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-  console.log(`  Estimated Cost: $${estimatedCost.toFixed(2)}`);
-  console.log(`  Avg Cost/Article: $${(estimatedCost / Math.max(results.completed, 1)).toFixed(4)}`);
-
-  // Log costs
-  const costs = loadCosts();
-  const runCost = estimatedCost;
-  costs.runs.push({
-    timestamp: new Date().toISOString(),
-    articlesProcessed: results.completed,
-    inputTokens: results.totalPromptTokens,
-    outputTokens: results.totalCompletionTokens,
-    estimatedCost: `$${runCost.toFixed(4)}`,
-    avgCostPerArticle: `$${(runCost / Math.max(results.completed, 1)).toFixed(4)}`,
-    model: CONFIG.model,
-    durationSeconds: duration,
-  });
-
-  // Update totals
-  const totalCost = costs.runs.reduce((sum, r) => {
-    const cost = parseFloat(r.estimatedCost.replace("$", ""));
-    return sum + (isNaN(cost) ? 0 : cost);
-  }, 0);
-  costs.totalCost = `$${totalCost.toFixed(2)}`;
-  costs.totalArticles = costs.runs.reduce((sum, r) => sum + r.articlesProcessed, 0);
-
-  saveCosts(costs);
-  console.log(`\nCost log saved to: ${CONFIG.costsFile}`);
 
   if (results.failed > 0) {
     console.log(`\nFailed articles:`);

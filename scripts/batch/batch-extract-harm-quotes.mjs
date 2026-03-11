@@ -32,12 +32,6 @@ const CONFIG = {
   retryDelayMs: 2000,
 };
 
-// Pricing for cost estimation (per 1M tokens)
-const PRICING = {
-  "google/gemini-3-flash-preview": { input: 0.15, output: 0.60 },
-  "anthropic/claude-opus-4.5": { input: 15.00, output: 75.00 },
-};
-
 // Extraction prompt - matches updated schema
 const EXTRACTION_PROMPT = `You are extracting verbatim harm-related text from source articles about a substance.
 
@@ -271,13 +265,6 @@ async function processSubstance(apiKey, articleSource, verbose) {
   };
 }
 
-// Calculate cost
-function calculateCost(promptTokens, completionTokens) {
-  const pricing = PRICING[CONFIG.model] || { input: 0, output: 0 };
-  return (promptTokens / 1_000_000) * pricing.input +
-         (completionTokens / 1_000_000) * pricing.output;
-}
-
 // Main function
 async function main() {
   const options = parseArgs();
@@ -468,7 +455,6 @@ async function main() {
   console.log();
 
   const duration = (Date.now() - startTime) / 1000;
-  const estimatedCost = calculateCost(totalPromptTokens, totalCompletionTokens);
 
   console.log("\n" + "=".repeat(50));
   console.log("Complete!");
@@ -483,8 +469,6 @@ async function main() {
   console.log(`\nTokens:`);
   console.log(`  Input: ${totalPromptTokens.toLocaleString()}`);
   console.log(`  Output: ${totalCompletionTokens.toLocaleString()}`);
-  console.log(`  Estimated Cost: $${estimatedCost.toFixed(4)}`);
-  console.log(`  Avg Cost/Substance: $${(estimatedCost / Math.max(completed, 1)).toFixed(4)}`);
 
   if (failed > 0) {
     console.log(`\nFailed substances:`);

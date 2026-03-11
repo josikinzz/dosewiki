@@ -74,7 +74,7 @@ function render() {
 
   const elapsed = formatElapsed(data.startTime);
   const eta = data.status === "running" ? ` | ETA: ${formatETA(data.startTime, data.current, data.total)}` : "";
-  console.log(`\n  Est. cost: $${data.estimatedCost?.toFixed(2) || "0.00"} | Elapsed: ${elapsed}${eta}\n`);
+  console.log(`\n  Elapsed: ${elapsed}${eta}\n`);
 
   if (data.inputTokens > 0) {
     console.log(`  Tokens: ${data.inputTokens.toLocaleString()} in / ${data.outputTokens.toLocaleString()} out\n`);

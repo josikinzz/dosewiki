@@ -95,6 +95,7 @@ function DoseTiersTable({ route }: { route: DosageRoute }) {
           );
         })}
       </div>
+      <BioavailabilityRow route={route} />
       {hasNotes && (
         <div className="mt-3 pt-3">
           <div className="mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -234,23 +235,78 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
   );
 }
 
-function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"] }) {
+function BioavailabilityRow({ route }: { route: DosageRoute }) {
+  const [expanded, setExpanded] = useState(false);
   const hasBioavailability = !!route.bioavailability?.trim();
-  const hasBioavailabilityNotes = !!route.bioavailability_notes?.trim();
+  const hasNotes = !!route.bioavailability_notes?.trim();
+
+  if (!hasBioavailability) return null;
+
+  return (
+    <div className="mt-3">
+      <div
+        className={cn(
+          "rounded-lg overflow-hidden",
+          expanded && "ring-1 ring-fuchsia-500/20"
+        )}
+      >
+        <div
+          className={cn(
+            "relative flex items-center justify-between px-3 py-1.5 text-sm bg-fuchsia-500/10",
+            !expanded && "rounded-lg"
+          )}
+        >
+          <span className="font-medium text-fuchsia-200">Bioavailability</span>
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-xs text-fuchsia-200/80">
+              {route.bioavailability}
+            </span>
+            {hasNotes && (
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-0.5 rounded px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 text-fuchsia-200/70"
+                aria-label={expanded ? "Collapse notes" : "Expand notes"}
+                aria-expanded={expanded}
+              >
+                <Icon icon="lucide:ellipsis" size={12} />
+                <Icon
+                  icon="lucide:chevron-down"
+                  size={12}
+                  className={cn("transition-transform", expanded && "rotate-180")}
+                />
+              </button>
+            )}
+          </div>
+        </div>
+        {expanded && hasNotes && (
+          <div className="px-3 py-2 bg-fuchsia-500/5">
+            <div className="mb-2 -mt-2 -mx-3 h-px bg-gradient-to-r from-transparent via-fuchsia-500/20 to-transparent" />
+            <ul className="space-y-1">
+              {route.bioavailability_notes!.split('\n').filter(line => line.trim()).map((line, i) => (
+                <li key={i} className="flex gap-2 text-xs leading-relaxed text-fuchsia-200/70">
+                  <span className="text-fuchsia-400/60 select-none">•</span>
+                  <span>{line.replace(/^[•\-*]\s*/, '').trim()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosing?: SubstanceArticle["dosage"]["plateau_dosing"] }) {
   const hasPlateauDosing = !!plateauDosing;
 
   return (
     <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-column-increasing" size={16} className="text-fuchsia-200" />
           Dosage
         </h4>
-        {hasBioavailability && (
-          <span className="text-xs text-white/50">
-            Bio: {route.bioavailability}
-          </span>
-        )}
       </div>
 
       {hasPlateauDosing ? (
@@ -273,32 +329,80 @@ function DosagePanel({ route, plateauDosing }: { route: DosageRoute; plateauDosi
       ) : (
         <DoseTiersTable route={route} />
       )}
+    </div>
+  );
+}
 
-      {hasBioavailabilityNotes && (
-        <p className="mt-3 text-xs text-white/50 italic">
-          {route.bioavailability_notes}
-        </p>
-      )}
+function HalfLifeRow({ route }: { route: DurationRoute }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasHalfLife = !!route.half_life?.trim();
+  const hasNotes = !!route.half_life_notes?.trim();
+
+  if (!hasHalfLife) return null;
+
+  return (
+    <div className="mt-3">
+      <div
+        className={cn(
+          "rounded-lg overflow-hidden",
+          expanded && "ring-1 ring-fuchsia-500/20"
+        )}
+      >
+        <div
+          className={cn(
+            "relative flex items-center justify-between px-3 py-1.5 text-sm bg-fuchsia-500/10",
+            !expanded && "rounded-lg"
+          )}
+        >
+          <span className="font-medium text-fuchsia-200">Half-life</span>
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-xs text-fuchsia-200/80">
+              {route.half_life}
+            </span>
+            {hasNotes && (
+              <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className="flex items-center gap-0.5 rounded px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 text-fuchsia-200/70"
+                aria-label={expanded ? "Collapse notes" : "Expand notes"}
+                aria-expanded={expanded}
+              >
+                <Icon icon="lucide:ellipsis" size={12} />
+                <Icon
+                  icon="lucide:chevron-down"
+                  size={12}
+                  className={cn("transition-transform", expanded && "rotate-180")}
+                />
+              </button>
+            )}
+          </div>
+        </div>
+        {expanded && hasNotes && (
+          <div className="px-3 py-2 bg-fuchsia-500/5">
+            <div className="mb-2 -mt-2 -mx-3 h-px bg-gradient-to-r from-transparent via-fuchsia-500/20 to-transparent" />
+            <ul className="space-y-1">
+              {route.half_life_notes!.split('\n').filter(line => line.trim()).map((line, i) => (
+                <li key={i} className="flex gap-2 text-xs leading-relaxed text-fuchsia-200/70">
+                  <span className="text-fuchsia-400/60 select-none">•</span>
+                  <span>{line.replace(/^[•\-*]\s*/, '').trim()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 function DurationPanel({ route }: { route: DurationRoute }) {
-  const hasHalfLife = !!route.half_life?.trim();
-  const hasHalfLifeNotes = !!route.half_life_notes?.trim();
-
   return (
     <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
           <Icon icon="lucide:chart-line" size={20} className="text-fuchsia-200" />
           Duration
         </h4>
-        {hasHalfLife && (
-          <span className="text-xs text-white/50">
-            t½: {route.half_life}
-          </span>
-        )}
       </div>
       <div className="space-y-1.5">
         {DURATION_STAGES.map(({ key, label }) => {
@@ -313,11 +417,7 @@ function DurationPanel({ route }: { route: DurationRoute }) {
           );
         })}
       </div>
-      {hasHalfLifeNotes && (
-        <p className="mt-3 text-xs text-white/50 italic">
-          {route.half_life_notes}
-        </p>
-      )}
+      <HalfLifeRow route={route} />
     </div>
   );
 }

@@ -42,6 +42,23 @@ This rule applies to ALL fields in the entire harm_potential section: addiction 
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
 
+**NEVER COMMENT ON SOURCES - CRITICAL**
+
+NEVER write meta-commentary about sources or data availability. If information is unavailable, leave the field EMPTY.
+
+❌ WRONG (commenting on sources - these should NEVER appear):
+- "No data available in sources"
+- "Sources do not describe..."
+- "Not characterized in available sources"
+- "Not documented in sources"
+- "Limited documentation in sources"
+- "No specific data provided in sources"
+- "Not well characterized in available sources"
+
+✅ CORRECT:
+- Leave the field as "" (empty string) or null
+- Only write content that describes the substance itself, never the sources or their limitations
+
 **Source Exclusion - Lethal Dosage:**
 - For the `lethal_dosage` field ONLY (both `notes` and `ld50`), **IGNORE all content from the "Disregard Everything I Say" source**
 - This source contains speculative LD50 extrapolations that are not reliable for harm reduction documentation

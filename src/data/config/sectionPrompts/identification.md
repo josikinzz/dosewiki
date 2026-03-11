@@ -28,6 +28,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Standard chemical nomenclature (IUPAC names, SMILES, CAS numbers) can remain as-is
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
+- Do not reference or comment on sources; present information directly without meta-commentary
 
 ---
 

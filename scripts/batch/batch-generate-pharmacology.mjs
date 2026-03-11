@@ -60,7 +60,7 @@ function sanitizeObjectKeys(obj) {
 
 // Configuration
 const CONFIG = {
-  model: process.env.OPENROUTER_MODEL || "anthropic/claude-opus-4.5",
+  model: process.env.OPENROUTER_MODEL || "anthropic/claude-opus-4-6",
   maxTokens: 16384,
   temperature: 0.3,
   maxConcurrency: 3,

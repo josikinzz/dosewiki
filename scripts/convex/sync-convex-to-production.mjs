@@ -79,6 +79,9 @@ if (!targetUrl) {
 const sourceClient = new ConvexHttpClient(sourceUrl);
 const targetClient = new ConvexHttpClient(targetUrl);
 
+// Admin key for authenticated mutations (prompts, quotes)
+const adminKey = process.env.CONVEX_ADMIN_KEY;
+
 const BATCH_SIZE = 20;
 
 /**
@@ -138,7 +141,13 @@ async function syncTable(name, getAllQuery, bulkImportMutation, options = {}) {
       process.stdout.write(`   Batch ${batchNum}/${totalBatches}: ${batch.length} docs... `);
 
       try {
-        const result = await targetClient.mutation(bulkImportMutation, { [options.argName || name]: batch });
+        const mutationArgs = { [options.argName || name]: batch };
+        // Add auth for tables that require it
+        if (options.requiresAuth && adminKey) {
+          mutationArgs.apiKey = adminKey;
+          mutationArgs.updatedBy = "sync-script";
+        }
+        const result = await targetClient.mutation(bulkImportMutation, mutationArgs);
         totalCreated += result.created;
         totalUpdated += result.updated;
         if (result.errors) {
@@ -179,10 +188,38 @@ async function main() {
       console.log(`   Found ${sanitizedArticles.length} articles in source`);
 
       if (sanitizedArticles.length > 0) {
-        // Use replaceAllSubstances for full sync
-        const result = await targetClient.mutation(api.substanceIndex.replaceAllSubstances, { articles: sanitizedArticles });
-        console.log(`   ✓ Replaced all substances (deleted: ${result.deleted}, inserted: ${result.inserted})`);
-        results.push({ table: "substanceIndex", created: result.inserted, updated: 0, errors: [] });
+        // Use saveSubstances in batches (public mutation with auth)
+        let totalCreated = 0;
+        let totalUpdated = 0;
+        const allErrors = [];
+
+        for (let i = 0; i < sanitizedArticles.length; i += BATCH_SIZE) {
+          const batch = sanitizedArticles.slice(i, i + BATCH_SIZE);
+          const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+          const totalBatches = Math.ceil(sanitizedArticles.length / BATCH_SIZE);
+
+          process.stdout.write(`   Batch ${batchNum}/${totalBatches}: ${batch.length} articles... `);
+
+          try {
+            const result = await targetClient.mutation(api.substanceIndex.saveSubstances, {
+              apiKey: adminKey,
+              articles: batch
+            });
+            totalCreated += result.created;
+            totalUpdated += result.updated;
+            if (result.errors?.length) {
+              allErrors.push(...result.errors);
+            }
+            console.log(`✓ (created: ${result.created}, updated: ${result.updated})`);
+          } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            console.log(`✗ Error: ${msg}`);
+            allErrors.push(`Batch ${batchNum}: ${msg}`);
+          }
+        }
+
+        console.log(`   ✓ Sync complete (created: ${totalCreated}, updated: ${totalUpdated})`);
+        results.push({ table: "substanceIndex", created: totalCreated, updated: totalUpdated, errors: allErrors });
       } else {
         console.log("   ⏭️  Skipping (no data)");
         results.push({ table: "substanceIndex", created: 0, updated: 0, errors: [] });
@@ -279,24 +316,36 @@ async function main() {
     ));
   }
 
-  // Sync prompts
+  // Sync prompts (requires auth)
   if (shouldSync("prompts")) {
-    results.push(await syncTable(
-      "prompts",
-      api.prompts.getAll,
-      api.prompts.bulkImport,
-      { argName: "prompts" }
-    ));
+    if (!adminKey) {
+      console.log("\n📦 Syncing prompts...");
+      console.log("   ❌ Skipping - CONVEX_ADMIN_KEY required for prompts sync");
+      results.push({ table: "prompts", created: 0, updated: 0, errors: ["Missing CONVEX_ADMIN_KEY"] });
+    } else {
+      results.push(await syncTable(
+        "prompts",
+        api.prompts.getAll,
+        api.prompts.bulkImport,
+        { argName: "prompts", requiresAuth: true }
+      ));
+    }
   }
 
-  // Sync quotes
+  // Sync quotes (requires auth)
   if (shouldSync("quotes")) {
-    results.push(await syncTable(
-      "quotes",
-      api.quotes.getAll,
-      api.quotes.bulkImport,
-      { argName: "quotes" }
-    ));
+    if (!adminKey) {
+      console.log("\n📦 Syncing quotes...");
+      console.log("   ❌ Skipping - CONVEX_ADMIN_KEY required for quotes sync");
+      results.push({ table: "quotes", created: 0, updated: 0, errors: ["Missing CONVEX_ADMIN_KEY"] });
+    } else {
+      results.push(await syncTable(
+        "quotes",
+        api.quotes.getAll,
+        api.quotes.bulkImport,
+        { argName: "quotes", requiresAuth: true }
+      ));
+    }
   }
 
   // Skip articleSources - too large (hits 16MB Convex limit)

@@ -77,13 +77,9 @@ const CONFIG = {
   reasoningEffort: "medium",
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "quotes/dosage-duration-quotes"),
-  costsFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-dosage-duration-costs.json"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
   progressFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-dosage-duration-progress.json"),
 };
-
-// Pricing disabled - user will check OpenRouter dashboard
-const PRICING = {};
 
 // Articles to skip (manually curated, don't overwrite)
 const SKIP_ARTICLES = [
@@ -532,28 +528,6 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
   };
 }
 
-// Load costs file
-function loadCosts() {
-  if (!existsSync(CONFIG.costsFile)) {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-  try {
-    return JSON.parse(readFileSync(CONFIG.costsFile, "utf-8"));
-  } catch {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-}
-
-// Save costs file
-function saveCosts(costs) {
-  writeFileSync(CONFIG.costsFile, JSON.stringify(costs, null, 2), "utf-8");
-}
-
-// Calculate estimated cost
-function calculateCost(promptTokens, completionTokens) {
-  return 0; // Pricing disabled - check OpenRouter dashboard
-}
-
 // Write progress to file for cross-terminal monitoring
 function writeProgress(state) {
   writeFileSync(CONFIG.progressFile, JSON.stringify(state, null, 2), "utf-8");
@@ -590,7 +564,6 @@ async function processAll(apiKey, articles, systemPrompt, options, allArticles) 
     startTime,
     inputTokens: 0,
     outputTokens: 0,
-    estimatedCost: 0,
   });
 
   // Process in batches
@@ -610,7 +583,6 @@ async function processAll(apiKey, articles, systemPrompt, options, allArticles) 
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: 0,
     });
 
     const promises = batch.map(async (article) => {
@@ -686,7 +658,6 @@ async function processAll(apiKey, articles, systemPrompt, options, allArticles) 
       startTime,
       inputTokens: totalPromptTokens,
       outputTokens: totalCompletionTokens,
-      estimatedCost: 0,
     });
 
     // INCREMENTAL SAVE: Apply updates from this batch and save immediately
@@ -717,7 +688,6 @@ async function processAll(apiKey, articles, systemPrompt, options, allArticles) 
     startTime,
     inputTokens: totalPromptTokens,
     outputTokens: totalCompletionTokens,
-    estimatedCost: 0,
   });
 
   return {
@@ -878,8 +848,6 @@ async function main() {
     }
   }
 
-  const estimatedCost = calculateCost(results.totalPromptTokens, results.totalCompletionTokens);
-
   // Summary
   console.log("\n" + "=".repeat(55));
   console.log("Complete!");
@@ -894,33 +862,6 @@ async function main() {
   console.log(`\nTokens:`);
   console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
   console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-  console.log(`  Estimated Cost: $${estimatedCost.toFixed(2)}`);
-  console.log(`  Avg Cost/Article: $${(estimatedCost / Math.max(results.completed, 1)).toFixed(4)}`);
-
-  // Log costs
-  const costs = loadCosts();
-  const runCost = estimatedCost;
-  costs.runs.push({
-    timestamp: new Date().toISOString(),
-    articlesProcessed: results.completed,
-    inputTokens: results.totalPromptTokens,
-    outputTokens: results.totalCompletionTokens,
-    estimatedCost: `$${runCost.toFixed(4)}`,
-    avgCostPerArticle: `$${(runCost / Math.max(results.completed, 1)).toFixed(4)}`,
-    model: CONFIG.model,
-    durationSeconds: duration,
-  });
-
-  // Update totals
-  const totalCost = costs.runs.reduce((sum, r) => {
-    const cost = parseFloat(r.estimatedCost.replace("$", ""));
-    return sum + (isNaN(cost) ? 0 : cost);
-  }, 0);
-  costs.totalCost = `$${totalCost.toFixed(2)}`;
-  costs.totalArticles = costs.runs.reduce((sum, r) => sum + r.articlesProcessed, 0);
-
-  saveCosts(costs);
-  console.log(`\nCost log saved to: ${CONFIG.costsFile}`);
 
   if (results.failed > 0) {
     console.log(`\nFailed articles:`);

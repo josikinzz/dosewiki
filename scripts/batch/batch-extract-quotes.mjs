@@ -36,7 +36,6 @@ const CONFIG = {
   retryAttempts: 3,
   retryDelayMs: 2000,
   largeFileThreshold: 100000, // 100KB - files larger than this get special handling
-  costsFile: join(PROJECT_ROOT, "notes-and-plans", "exports", "batch", "batch-extraction-costs.json"),
   sourcesDir: join(PROJECT_ROOT, "src/data/article-sources"),
   promptsDir: join(PROJECT_ROOT, "scripts/prompts"),
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
@@ -71,14 +70,6 @@ const CATEGORIES = {
     outputSuffix: "-intro-text.md",
     title: "Intro Text Quotes",
     excludedSources: [],
-  },
-};
-
-// Pricing for cost estimation (per 1M tokens)
-const PRICING = {
-  "google/gemini-3-flash-preview": {
-    input: 0.15,
-    output: 0.60,
   },
 };
 
@@ -392,30 +383,6 @@ function outputExists(slug, category) {
   return existsSync(join(outputDir, `${slug}${config.outputSuffix}`));
 }
 
-// Load costs file
-function loadCosts() {
-  if (!existsSync(CONFIG.costsFile)) {
-    return { batches: [] };
-  }
-  try {
-    return JSON.parse(readFileSync(CONFIG.costsFile, "utf-8"));
-  } catch {
-    return { batches: [] };
-  }
-}
-
-// Save costs file
-function saveCosts(costs) {
-  writeFileSync(CONFIG.costsFile, JSON.stringify(costs, null, 2), "utf-8");
-}
-
-// Calculate estimated cost
-function calculateCost(usage) {
-  const pricing = PRICING[CONFIG.model];
-  return (usage.promptTokens / 1_000_000) * pricing.input +
-         (usage.completionTokens / 1_000_000) * pricing.output;
-}
-
 // Process a single substance - returns only status info, clears data after save
 async function processSubstance(apiKey, slug, category, systemPrompt, verbose) {
   // Load source file
@@ -619,11 +586,6 @@ async function main() {
   const endTime = Date.now();
   const duration = (endTime - startTime) / 1000;
 
-  const estimatedCost = calculateCost({
-    promptTokens: results.totalPromptTokens,
-    completionTokens: results.totalCompletionTokens,
-  });
-
   // Summary
   console.log("\n" + "=".repeat(50));
   console.log("Complete!");
@@ -638,25 +600,6 @@ async function main() {
   console.log(`\nTokens:`);
   console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
   console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-  console.log(`  Cost: $${estimatedCost.toFixed(4)}`);
-
-  // Log costs
-  const costs = loadCosts();
-  costs.batches.push({
-    category,
-    startedAt: new Date(startTime).toISOString(),
-    completedAt: new Date(endTime).toISOString(),
-    itemsProcessed: results.completed,
-    itemsFailed: results.failed,
-    itemsSkipped: results.skipped,
-    tokensUsed: {
-      input: results.totalPromptTokens,
-      output: results.totalCompletionTokens,
-    },
-    estimatedCost: `$${estimatedCost.toFixed(4)}`,
-    durationSeconds: duration,
-  });
-  saveCosts(costs);
 
   if (results.failed > 0) {
     console.log(`\nFailed:`);
@@ -673,7 +616,6 @@ async function main() {
     failed: results.failed,
     skipped: results.skipped,
     tokens: { input: results.totalPromptTokens, output: results.totalCompletionTokens },
-    cost: estimatedCost,
     duration: duration,
     failedItems: results.failedItems,
   }, null, 2));

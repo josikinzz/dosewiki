@@ -70,20 +70,7 @@ const CONFIG = {
   reasoningEffort: "high", // For Anthropic models with extended thinking
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "quotes/harmpotential-quotes"),
-  costsFile: join(PROJECT_ROOT, "notes-and-plans/exports/batch/batch-harm-potential-costs.json"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
-};
-
-// Pricing for cost estimation (per 1M tokens)
-const PRICING = {
-  "anthropic/claude-opus-4.5": {
-    input: 15.00,
-    output: 75.00,
-  },
-  "google/gemini-3-flash-preview": {
-    input: 0.15,
-    output: 0.60,
-  },
 };
 
 // Security bounds for input validation (VULN-05 remediation)
@@ -104,6 +91,7 @@ function parseArgs() {
     limit: null,
     skipBackup: false,
     all: false,
+    newOnly: false,
   };
 
   for (const arg of args) {
@@ -133,6 +121,8 @@ function parseArgs() {
       options.skipBackup = true;
     } else if (arg === "--all") {
       options.all = true;
+    } else if (arg === "--new-only") {
+      options.newOnly = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -162,6 +152,7 @@ Options:
   --limit=<n>            Process at most N items then stop
   --skip-backup          Don't create backup file
   --all                  Process all articles with quotes (not just those with existing content)
+  --new-only             Process only articles with quotes that haven't been regenerated with new schema
   --help, -h             Show this help message
 
 Examples:
@@ -247,6 +238,23 @@ function hasExistingHarmPotential(article) {
   );
 
   return hasNewFormat || hasOldFormat;
+}
+
+// Check if article has been regenerated with the NEW schema specifically
+// (distinguishes from old schema that had risks.psychosis wrapper)
+function hasNewSchemaHarmPotential(article) {
+  const hp = article.harm_potential;
+  if (!hp) return false;
+
+  // New schema indicators:
+  // - psychosis is at top level with level/description (not under risks)
+  // - addiction has psychological.level/description structure
+  return !!(
+    hp.psychosis?.level ||
+    hp.psychosis?.description?.trim() ||
+    hp.addiction?.psychological?.level ||
+    hp.addiction?.psychological?.description?.trim()
+  );
 }
 
 // Convex client (initialized in main)
@@ -527,30 +535,6 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
   };
 }
 
-// Load costs file
-function loadCosts() {
-  if (!existsSync(CONFIG.costsFile)) {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-  try {
-    return JSON.parse(readFileSync(CONFIG.costsFile, "utf-8"));
-  } catch {
-    return { runs: [], totalCost: "$0.00", totalArticles: 0 };
-  }
-}
-
-// Save costs file
-function saveCosts(costs) {
-  writeFileSync(CONFIG.costsFile, JSON.stringify(costs, null, 2), "utf-8");
-}
-
-// Calculate estimated cost
-function calculateCost(promptTokens, completionTokens) {
-  const pricing = PRICING[CONFIG.model] || { input: 0, output: 0 };
-  return (promptTokens / 1_000_000) * pricing.input +
-         (completionTokens / 1_000_000) * pricing.output;
-}
-
 // Process articles with controlled concurrency
 async function processAll(apiKey, articles, systemPrompt, options) {
   const { concurrency, verbose, dryRun } = options;
@@ -665,7 +649,7 @@ async function main() {
   console.log(`Model: ${CONFIG.model}`);
   console.log(`Reasoning Effort: ${CONFIG.reasoningEffort}`);
   console.log(`Concurrency: ${options.concurrency}`);
-  console.log(`Mode: ${options.all ? "All articles with quotes" : "Only articles with existing content"}`);
+  console.log(`Mode: ${options.newOnly ? "Articles with quotes but no new schema" : options.all ? "All articles with quotes" : "Only articles with existing content"}`);
 
   // Initialize Convex client
   initConvexClient(convexUrl);
@@ -716,6 +700,21 @@ async function main() {
       console.warn(`Warning: Slugs not found: ${notFound.join(", ")}`);
     }
     console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
+  } else if (options.newOnly) {
+    // Process only articles with quotes that haven't been regenerated with new schema
+    const beforeCount = articles.length;
+    // First, get all articles that have quotes in Convex (async check)
+    const articlesWithQuoteStatus = await Promise.all(
+      articles.map(async (a) => {
+        const slug = titleToSlug(a.title);
+        const quotes = await loadHarmPotentialQuotes(slug);
+        return { article: a, hasQuotes: !!quotes };
+      })
+    );
+    articles = articlesWithQuoteStatus
+      .filter(({ article, hasQuotes }) => hasQuotes && !hasNewSchemaHarmPotential(article))
+      .map(({ article }) => article);
+    console.log(`Filtered to articles with quotes but no new schema: ${articles.length} (of ${beforeCount})`);
   } else if (!options.all) {
     // Default: only articles with existing harm_potential content
     const beforeCount = articles.length;
@@ -807,8 +806,6 @@ async function main() {
     }
   }
 
-  const estimatedCost = calculateCost(results.totalPromptTokens, results.totalCompletionTokens);
-
   // Summary
   console.log("\n" + "=".repeat(50));
   console.log("Complete!");
@@ -823,33 +820,6 @@ async function main() {
   console.log(`\nTokens:`);
   console.log(`  Input: ${results.totalPromptTokens.toLocaleString()}`);
   console.log(`  Output: ${results.totalCompletionTokens.toLocaleString()}`);
-  console.log(`  Estimated Cost: $${estimatedCost.toFixed(2)}`);
-  console.log(`  Avg Cost/Article: $${(estimatedCost / Math.max(results.completed, 1)).toFixed(4)}`);
-
-  // Log costs
-  const costs = loadCosts();
-  const runCost = estimatedCost;
-  costs.runs.push({
-    timestamp: new Date().toISOString(),
-    articlesProcessed: results.completed,
-    inputTokens: results.totalPromptTokens,
-    outputTokens: results.totalCompletionTokens,
-    estimatedCost: `$${runCost.toFixed(4)}`,
-    avgCostPerArticle: `$${(runCost / Math.max(results.completed, 1)).toFixed(4)}`,
-    model: CONFIG.model,
-    durationSeconds: duration,
-  });
-
-  // Update totals
-  const totalCost = costs.runs.reduce((sum, r) => {
-    const cost = parseFloat(r.estimatedCost.replace("$", ""));
-    return sum + (isNaN(cost) ? 0 : cost);
-  }, 0);
-  costs.totalCost = `$${totalCost.toFixed(2)}`;
-  costs.totalArticles = costs.runs.reduce((sum, r) => sum + r.articlesProcessed, 0);
-
-  saveCosts(costs);
-  console.log(`\nCost log saved to: ${CONFIG.costsFile}`);
 
   if (results.failed > 0) {
     console.log(`\nFailed articles:`);

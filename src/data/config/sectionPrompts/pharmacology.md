@@ -29,6 +29,8 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Restructure and reframe information in your own voice
 - Include ONLY information present in the provided excerpts
 - Do not reference or comment on sources; present information directly without meta-commentary
+- **Never infer receptor affinities** — only include binding values (Ki, EC50, etc.) that are explicitly stated as numerical values in the sources. Do not estimate, extrapolate, or derive affinity values from qualitative descriptions.
+- **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
 
 ---
 
