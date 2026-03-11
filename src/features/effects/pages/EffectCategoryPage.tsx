@@ -209,7 +209,7 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f]">
+    <main className="theme-page-shell min-h-screen">
       <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
         {/* Back button */}
         <Button

@@ -212,7 +212,7 @@ function ReagentRow({
     >
       {/* Left label section - darkened gradient */}
       <div
-        className="relative z-10 flex h-full flex-shrink-0 flex-col justify-center px-4"
+        className="reagent-label-panel relative z-10 flex h-full flex-shrink-0 flex-col justify-center px-4"
         style={{
           background: darkenedGradient,
           boxShadow: "inset -1px 0 0 rgba(255,255,255,0.1), 2px 0 4px rgba(0,0,0,0.3)",
@@ -228,12 +228,12 @@ function ReagentRow({
             borderBottom: "1px solid rgba(0,0,0,0.3)",
           }}
         />
-        <span className="relative text-sm font-semibold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
+        <span className="reagent-label-title relative text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,1)]">
           {capitalizeReagent(reagent)}
-          <span className="ml-1.5 font-normal text-white/50">({shortCode})</span>
+          <span className="reagent-label-code ml-1.5 font-normal">({shortCode})</span>
         </span>
         <span
-          className={`relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${isNoReaction ? "text-white/50" : "text-white/70"
+          className={`reagent-label-description relative text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${isNoReaction ? "reagent-label-description-muted" : "reagent-label-description-strong"
             }`}
         >
           {description}

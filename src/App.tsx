@@ -33,7 +33,7 @@ function PageLoadingFallback() {
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-        <p className="text-sm text-white/60">Loading...</p>
+        <p className="theme-text-muted text-sm">Loading...</p>
       </div>
     </div>
   );
@@ -216,11 +216,11 @@ export default function App() {
   const showLibraryLoading = needsFullLibrary && libraryLoading;
 
   return (
-    <div className="app-container relative bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] text-white selection:bg-fuchsia-500/30">
+    <div className="app-container theme-page-shell relative selection:bg-fuchsia-500/30">
       {/* Skip link for keyboard navigation */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-fuchsia-600 focus:px-4 focus:py-2 focus:text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2 focus:ring-offset-[#0f0a1f]"
+        className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
       >
         Skip to main content
       </a>
@@ -245,7 +245,7 @@ export default function App() {
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-                <p className="text-sm text-white/60">Loading Developer Tools...</p>
+                <p className="theme-text-muted text-sm">Loading Developer Tools...</p>
               </div>
             </div>
           }>

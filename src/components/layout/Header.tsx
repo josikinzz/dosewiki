@@ -108,7 +108,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
   const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   return (
-    <header className="app-header border-b border-white/5 bg-[#0b0818]/80 backdrop-blur-md backdrop-safe supports-[backdrop-filter]:bg-[#0b0818]/60">
+    <header className="app-header theme-header-surface border-b backdrop-blur-md backdrop-safe">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
         <Button
           variant="brand"
@@ -164,7 +164,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             })}
           </nav>
           
-          <div className="mx-2 h-6 w-px bg-white/10" />
+          <div className="theme-divider mx-2 h-6 w-px" />
 
           <a
             href={ABOUT_PATH}
@@ -189,7 +189,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="h-10 w-10 rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+            className="theme-icon-button h-10 w-10 rounded-full"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
@@ -202,7 +202,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border border-white/10 bg-[#120d27]/95 p-2 shadow-xl shadow-black/50 backdrop-blur-xl ring-1 ring-black/5"
+              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl backdrop-blur-xl"
             >
               <nav className="flex flex-col gap-1">
                 {NAV_ITEMS.map(({ label, view, icon }) => {
@@ -230,7 +230,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
                 })}
               </nav>
               
-              <div className="my-2 h-px bg-white/10" />
+              <div className="theme-divider my-2 h-px" />
               
               <a
                 href={ABOUT_PATH}

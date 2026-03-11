@@ -94,7 +94,7 @@ export const SubstanceArticlePage = memo(function SubstanceArticlePage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f]">
+    <main className="theme-page-shell min-h-screen">
       <ArticleLayout
         article={article}
         onSelectCategory={onSelectCategory}

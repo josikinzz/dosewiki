@@ -2,9 +2,10 @@ import { memo, useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { select } from "d3-selection";
 import { zoom, zoomIdentity, zoomTransform, type ZoomBehavior } from "d3-zoom";
 import type { GraphNode, GraphLink, TooltipData } from "./graphTypes";
-import { GRAPH_COLORS, getNodeColor, getNodeSize, getNodeFontSize } from "./graphColors";
+import { getGraphColors, getNodeColor, getNodeSize, getNodeFontSize } from "./graphColors";
 import { useGraphSimulation } from "./useGraphSimulation";
 import { GraphTooltip } from "./GraphTooltip";
+import type { ThemeName } from "@/context/ThemeContext";
 
 interface SubstanceGraphCanvasProps {
   nodes: GraphNode[];
@@ -16,6 +17,7 @@ interface SubstanceGraphCanvasProps {
   hoveredNodeId: string | null;
   onNodeHover: (node: GraphNode | null, event?: React.MouseEvent) => void;
   zoomRef: React.MutableRefObject<ZoomBehavior<SVGSVGElement, unknown> | null>;
+  theme: ThemeName;
 }
 
 export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
@@ -28,6 +30,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
   hoveredNodeId,
   onNodeHover,
   zoomRef,
+  theme,
 }: SubstanceGraphCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,6 +64,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
 
   const simulationNodes = getNodes();
   const simulationLinks = getLinks();
+  const graphColors = useMemo(() => getGraphColors(theme), [theme]);
 
   // Bind D3 data to DOM elements after React renders them
   // This enables D3 to update positions directly without React re-renders
@@ -183,7 +187,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
         width={width}
         height={height}
         className="cursor-grab active:cursor-grabbing"
-        style={{ background: GRAPH_COLORS.background }}
+        style={{ background: graphColors.background }}
       >
         <g ref={gRef}>
           {/* Links - D3 updates positions directly via linksRef */}
@@ -207,8 +211,8 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
                   y2={target.y ?? 0}
                   stroke={
                     isHighlighted
-                      ? GRAPH_COLORS.links.highlighted
-                      : GRAPH_COLORS.links.default
+                      ? graphColors.links.highlighted
+                      : graphColors.links.default
                   }
                   strokeWidth={isHighlighted ? 2 : 1}
                   strokeOpacity={hoveredNodeId && !isHighlighted ? 0.3 : 1}
@@ -220,7 +224,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
           {/* Nodes - D3 updates positions directly via nodesRef */}
           <g ref={nodesRef}>
             {simulationNodes.map((node) => {
-              const colors = getNodeColor(node.type);
+              const colors = getNodeColor(theme, node.type);
               const size = getNodeSize(node.type);
               const fontSize = getNodeFontSize(node.type);
               const isHovered = hoveredNodeId === node.id;
@@ -246,7 +250,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
                     <circle
                       r={size + 8}
                       fill="none"
-                      stroke={GRAPH_COLORS.hover.glow}
+                      stroke={graphColors.hover.glow}
                       strokeWidth={4}
                       filter="url(#glow)"
                     />
@@ -256,7 +260,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
                   <circle
                     r={size}
                     fill={colors.fill}
-                    stroke={isHovered ? GRAPH_COLORS.hover.stroke : colors.stroke}
+                    stroke={isHovered ? graphColors.hover.stroke : colors.stroke}
                     strokeWidth={isHovered ? 2.5 : 1.5}
                   />
 
@@ -307,7 +311,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
         </defs>
       </svg>
 
-      <GraphTooltip data={tooltipData} containerRef={containerRef} />
+      <GraphTooltip data={tooltipData} containerRef={containerRef} theme={theme} />
     </div>
   );
 });

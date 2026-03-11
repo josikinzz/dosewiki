@@ -265,7 +265,7 @@ export function GlobalSearch({
               : undefined
           }
         />
-        <Icon icon="lucide:search" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/70" size={16} />
+        <Icon icon="lucide:search" className="theme-text-secondary pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
         {clearButtonVisible && (
           <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
             <Button
@@ -282,10 +282,10 @@ export function GlobalSearch({
         )}
         {/* Loading indicator while library loads */}
         {showLoadingIndicator && (
-          <div className="absolute left-0 right-0 top-full mt-2 rounded-2xl border border-white/10 bg-[#120d27] p-4 shadow-xl shadow-black/50">
+          <div className="theme-overlay-surface absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-              <span className="text-sm text-white/60">Loading search...</span>
+              <span className="theme-text-muted text-sm">Loading search...</span>
             </div>
           </div>
         )}
@@ -293,7 +293,7 @@ export function GlobalSearch({
           <ul
             id={listboxId}
             role="listbox"
-            className={`z-50 max-h-72 overflow-y-scroll rounded-2xl border border-white/10 bg-[#120d27] shadow-xl shadow-black/50 [scrollbar-gutter:stable] ${
+            className={`theme-overlay-surface z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl [scrollbar-gutter:stable] ${
               isMobileViewport
                 ? "fixed left-1/2 max-w-[calc(100vw-1.5rem)] w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
                 : "absolute left-0 right-0 top-full mt-2"
@@ -310,7 +310,7 @@ export function GlobalSearch({
               return (
                 <li key={match.id} role="presentation">
                   {index > 0 ? (
-                    <div className="mx-4 my-2 h-px w-auto bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.12)_20%,rgba(255,255,255,0.12)_80%,rgba(255,255,255,0)_100%)]" />
+                    <div className="theme-gradient-divider mx-4 my-2 h-px w-auto" />
                   ) : null}
                   <Button
                     variant="searchOption"
@@ -323,13 +323,13 @@ export function GlobalSearch({
                     onClick={() => handleSelectMatch(match)}
                     onMouseEnter={() => setActiveIndex(index)}
                   >
-                    <span className="text-[10px] uppercase tracking-[0.32em] text-white/55">
+                    <span className="theme-text-faint text-[10px] uppercase tracking-[0.32em]">
                       {renderSuggestionType(match)}
                     </span>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-base font-semibold text-fuchsia-200">{match.label}</span>
                       {match.secondary && (
-                        <span className="line-clamp-2 text-xs leading-relaxed text-white/50">{match.secondary}</span>
+                        <span className="theme-text-faint line-clamp-2 text-xs leading-relaxed">{match.secondary}</span>
                       )}
                     </div>
                   </Button>

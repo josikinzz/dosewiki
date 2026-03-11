@@ -27,7 +27,7 @@ export function SectionCard({ children, delay = 0, className = "" }: PropsWithCh
     <motion.section
       {...animationProps}
       transition={transition}
-      className={`rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 ring-1 ring-white/5 backdrop-blur backdrop-safe transition hover:border-fuchsia-400/30 hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)] ${className}`.trim()}
+      className={`theme-card-surface rounded-2xl border p-6 shadow-2xl ring-1 backdrop-blur backdrop-safe transition hover:border-fuchsia-400/30 hover:shadow-[0_18px_50px_-12px_var(--theme-shadow-strong)] ${className}`.trim()}
     >
       {children}
     </motion.section>

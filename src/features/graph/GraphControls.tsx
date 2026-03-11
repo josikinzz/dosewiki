@@ -53,7 +53,7 @@ export const GraphControls = memo(function GraphControls({
           <Icon
             icon="lucide:search"
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40"
+            className="theme-text-faint absolute left-3 top-1/2 -translate-y-1/2"
           />
           <input
             type="text"
@@ -74,18 +74,18 @@ export const GraphControls = memo(function GraphControls({
         </div>
 
         {showResults && searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-xl border border-white/10 bg-[#1a1333]/95 py-1 shadow-xl backdrop-blur">
+          <div className="theme-overlay-surface absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-xl border py-1 shadow-xl backdrop-blur">
             {searchResults.slice(0, 10).map((slug) => (
               <button
                 key={slug}
                 onClick={() => handleSelectResult(slug)}
-                className="w-full px-3 py-1.5 text-left text-sm text-white/80 transition hover:bg-fuchsia-500/20 hover:text-white"
+                className="theme-text-secondary w-full px-3 py-1.5 text-left text-sm transition hover:bg-fuchsia-500/20 hover:text-white"
               >
                 {slug}
               </button>
             ))}
             {searchResults.length > 10 && (
-              <div className="px-3 py-1.5 text-xs text-white/40">
+              <div className="theme-text-faint px-3 py-1.5 text-xs">
                 +{searchResults.length - 10} more results
               </div>
             )}

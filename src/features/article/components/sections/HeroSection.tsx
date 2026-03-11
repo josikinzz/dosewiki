@@ -84,7 +84,7 @@ export const HeroSection = memo(function HeroSection({
   }
 
   return (
-    <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-fuchsia-950/40 via-purple-950/30 to-slate-950/50 p-6 shadow-2xl shadow-black/40 ring-1 ring-white/5 overflow-hidden">
+    <div className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-300">

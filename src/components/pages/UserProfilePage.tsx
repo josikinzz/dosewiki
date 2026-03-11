@@ -131,7 +131,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f]">
+    <main className="theme-page-shell min-h-screen">
       <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <motion.div 
           className="flex flex-col items-center gap-8 text-center"

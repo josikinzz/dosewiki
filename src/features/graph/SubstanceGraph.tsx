@@ -5,6 +5,7 @@ import { SubstanceGraphCanvas } from "./SubstanceGraphCanvas";
 import { GraphControls } from "./GraphControls";
 import { GraphLegend } from "./GraphLegend";
 import type { GraphNode } from "./graphTypes";
+import { useTheme } from "@/context/ThemeContext";
 
 interface SubstanceGraphProps {
   onNavigateToSubstance: (slug: string) => void;
@@ -13,6 +14,7 @@ interface SubstanceGraphProps {
 export const SubstanceGraph = memo(function SubstanceGraph({
   onNavigateToSubstance,
 }: SubstanceGraphProps) {
+  const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -155,6 +157,7 @@ export const SubstanceGraph = memo(function SubstanceGraph({
             hoveredNodeId={hoveredNodeId}
             onNodeHover={handleNodeHover}
             zoomRef={zoomRef}
+            theme={theme}
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -163,7 +166,7 @@ export const SubstanceGraph = memo(function SubstanceGraph({
         )}
       </div>
 
-      <GraphLegend stats={stats} />
+      <GraphLegend stats={stats} theme={theme} />
 
       <p className="text-center text-xs text-white/50">
         Click nodes to expand/collapse. Double-click substances to view article.

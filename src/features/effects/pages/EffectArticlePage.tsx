@@ -105,7 +105,7 @@ export function EffectArticlePage({
   const personalCommentaryContent = effect.personal_commentary_ast || effect.personal_commentary_raw;
 
   return (
-    <main className="min-h-screen bg-[#0b0818]">
+    <main className="theme-page-shell min-h-screen">
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <div className="space-y-12">
           <motion.div {...cardAnimation}>

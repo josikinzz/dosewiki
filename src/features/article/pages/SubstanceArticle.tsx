@@ -408,9 +408,9 @@ export function SubstanceArticle({
                 <motion.div
                   {...cardAnimation}
                   transition={{ ...cardAnimation.transition, delay: 0.2 }}
-                  className="w-full max-w-[22rem] rounded-2xl border border-fuchsia-500/20 bg-gradient-to-br from-fuchsia-500/[0.05] via-transparent to-violet-500/[0.05] p-6 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-md"
+                  className="theme-molecule-shell w-full max-w-[22rem] rounded-2xl border p-6 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-md"
                 >
-                  <div className="relative rounded-2xl border border-white/5 bg-[#0f0a1f]/80 p-5 shadow-inner">
+                  <div className="theme-molecule-panel relative rounded-2xl border p-5 shadow-inner">
                     <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-500/5 to-transparent rounded-2xl pointer-events-none" />
                     {moleculeAsset ? (
                       <img
@@ -419,7 +419,7 @@ export function SubstanceArticle({
                         className="relative h-56 w-full object-contain drop-shadow-[0_0_15px_rgba(217,70,239,0.2)]"
                       />
                     ) : (
-                      <div className="flex h-56 w-full items-center justify-center rounded-xl border border-dashed border-white/15 bg-[#120d27] text-sm text-white/55">
+                      <div className="theme-molecule-fallback flex h-56 w-full items-center justify-center rounded-xl border border-dashed border-white/15 text-sm text-white/55">
                         {FALLBACK_MOLECULE_LABEL}
                       </div>
                     )}

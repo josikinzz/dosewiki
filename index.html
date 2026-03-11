@@ -3,7 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f0a1f" />
+    <meta id="theme-color-meta" name="theme-color" content="#0f0a1f" />
+    <script>
+      (() => {
+        const STORAGE_KEY = "dosewiki-theme";
+        const THEMES = { dark: "#0f0a1f", light: "#f6efff" };
+
+        try {
+          const storedTheme = window.localStorage.getItem(STORAGE_KEY);
+          const theme = storedTheme === "light" ? "light" : "dark";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+
+          const meta = document.getElementById("theme-color-meta");
+          if (meta) {
+            meta.setAttribute("content", THEMES[theme]);
+          }
+        } catch {
+          document.documentElement.dataset.theme = "dark";
+          document.documentElement.style.colorScheme = "dark";
+        }
+      })();
+    </script>
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="dose.wiki is a harm reduction database providing dosage, duration, effects, and safety information for psychoactive substances." />

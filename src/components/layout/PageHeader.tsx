@@ -19,7 +19,7 @@ export const PageHeader = memo(function PageHeader({ title, description, icon }:
         {icon ? <IconComponent icon={icon} size={40} className="text-fuchsia-300" /> : null}
         <span>{title}</span>
       </h1>
-      {description && <div className="mx-auto max-w-2xl text-lg font-medium text-white/70 leading-relaxed">{description}</div>}
+      {description && <div className="theme-text-secondary mx-auto max-w-2xl text-lg font-medium leading-relaxed">{description}</div>}
     </header>
   );
 });

@@ -1,6 +1,7 @@
 import { memo } from "react";
-import { GRAPH_COLORS, NODE_SIZES } from "./graphColors";
+import { getGraphColors, NODE_SIZES } from "./graphColors";
 import type { NodeType } from "./graphTypes";
+import type { ThemeName } from "@/context/ThemeContext";
 
 interface LegendItem {
   type: NodeType;
@@ -15,6 +16,7 @@ const LEGEND_ITEMS: LegendItem[] = [
 ];
 
 interface GraphLegendProps {
+  theme: ThemeName;
   stats: {
     psychoactiveClassCount: number;
     chemicalClassCount: number;
@@ -22,11 +24,13 @@ interface GraphLegendProps {
   };
 }
 
-export const GraphLegend = memo(function GraphLegend({ stats }: GraphLegendProps) {
+export const GraphLegend = memo(function GraphLegend({ stats, theme }: GraphLegendProps) {
+  const graphColors = getGraphColors(theme);
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/70">
       {LEGEND_ITEMS.map(({ type, label }) => {
-        const colors = GRAPH_COLORS.nodes[type];
+        const colors = graphColors.nodes[type];
         const size = Math.min(NODE_SIZES[type] / 2, 10);
         const count =
           type === "psychoactive"

@@ -10,6 +10,7 @@ import { useLazyLibrary } from "./hooks/useLazyLibrary";
 import { LoadingScreen } from "./components/common/LoadingScreen";
 import { ConvexProvider, isConvexEnabled } from "./lib/convex";
 import { ConvexSyncProvider } from "./context/ConvexSyncContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { api } from "../convex/_generated/api";
 import type { CategoryLayout } from "./hooks/useCategoryLayout";
 import "./styles.css";
@@ -242,12 +243,12 @@ function AppWithConvexData() {
  */
 function ErrorScreen({ error }: { error: Error }) {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-[#0b0818] via-[#130e2b] to-[#0f0a1f] p-8 text-center text-white">
+    <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="text-2xl font-bold text-red-400">Failed to load data</div>
-      <div className="text-sm text-white/60">{error.message}</div>
+      <div className="theme-text-muted text-sm">{error.message}</div>
       <button
         onClick={() => window.location.reload()}
-        className="mt-4 rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-medium text-white hover:bg-fuchsia-500"
+        className="mt-4 rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-fuchsia-500"
       >
         Retry
       </button>
@@ -272,10 +273,12 @@ function AppWithData() {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <ConvexProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppWithData />
-      </QueryClientProvider>
-    </ConvexProvider>
+    <ThemeProvider>
+      <ConvexProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppWithData />
+        </QueryClientProvider>
+      </ConvexProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );
