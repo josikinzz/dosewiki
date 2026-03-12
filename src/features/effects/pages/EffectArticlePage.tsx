@@ -145,7 +145,7 @@ export function EffectArticlePage({
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                    <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
                     <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
                       <Icon icon="lucide:microscope" className="h-5 w-5" />
                       Analysis
@@ -173,7 +173,7 @@ export function EffectArticlePage({
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                    <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
                     <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
                       <Icon icon="lucide:palette" className="h-5 w-5" />
                       Style Variations
@@ -201,7 +201,7 @@ export function EffectArticlePage({
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                    <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
                     <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
                       <Icon icon="lucide:image" className="h-5 w-5" />
                       Replications
@@ -227,7 +227,7 @@ export function EffectArticlePage({
               >
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+                    <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
                     <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300">
                       <Icon icon="lucide:volume-2" className="h-5 w-5" />
                       Audio Replications

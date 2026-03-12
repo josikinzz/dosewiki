@@ -1,4 +1,4 @@
-import { useState, memo, type ReactNode } from "react";
+import { useCallback, useState, memo, type ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
 
 interface IndexCardProps {
