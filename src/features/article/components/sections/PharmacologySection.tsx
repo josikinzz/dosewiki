@@ -42,6 +42,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   onSelectMechanism,
 }: PharmacologySectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
   const { pharmacology } = article;
 
   const hasSummary = pharmacology.summary?.trim().length > 0;
@@ -111,43 +112,46 @@ export const PharmacologySection = memo(function PharmacologySection({
                     const { base, qualifier } = tag
                       ? parseMechanismEntry(tag)
                       : { base: entry.receptor, qualifier: undefined };
-
-                    const affinityText = [entry.affinity, entry.efficacy]
-                      .filter(Boolean)
-                      .join(", ");
+                    const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
 
                     return (
-                      <li key={idx} className="flex items-center gap-2 text-sm text-white/80">
-                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
-                        {onSelectMechanism && tag ? (
-                          <button
-                            type="button"
-                            className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
-                            onClick={() => onSelectMechanism(mechanismToSlug(tag))}
-                          >
-                            {base}
-                            {qualifier && (
-                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                {qualifier}
-                              </span>
-                            )}
-                            {affinityText && (
-                              <span className="text-white/50"> — {affinityText}</span>
-                            )}
-                          </button>
-                        ) : (
-                          <span className="flex flex-wrap items-center gap-1.5">
-                            {base}
-                            {qualifier && (
-                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                {qualifier}
-                              </span>
-                            )}
-                            {affinityText && (
-                              <span className="text-white/50"> — {affinityText}</span>
-                            )}
-                          </span>
-                        )}
+                      <li key={idx} className="flex gap-2 text-sm text-white/80">
+                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                        <div className="min-w-0 flex-1">
+                          {onSelectMechanism && tag ? (
+                            <button
+                              type="button"
+                              className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
+                              onClick={() => onSelectMechanism(mechanismToSlug(tag))}
+                            >
+                              {base}
+                              {qualifier && (
+                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                  {qualifier}
+                                </span>
+                              )}
+                            </button>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {base}
+                              {qualifier && (
+                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                  {qualifier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {detailItems.length > 0 && (
+                            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-white/55 marker:text-white/35">
+                              {detailItems.map((detail, detailIdx) => (
+                                <li key={detailIdx} className="leading-relaxed">
+                                  {detail}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -163,21 +167,34 @@ export const PharmacologySection = memo(function PharmacologySection({
                   Pharmacokinetics
                 </h3>
                 {hasPharmacokinetics && (
-                  <p className="text-sm text-white/80">{pharmacology.pharmacokinetics}</p>
+                  <p className="text-sm leading-relaxed text-white/80">{pharmacology.pharmacokinetics}</p>
                 )}
                 {hasMetabolites && (
                   <div className="mt-3">
-                    <span className="text-xs font-medium text-white/60">Metabolites:</span>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {pharmacology.metabolites.map((met, idx) => (
-                        <span
-                          key={idx}
-                          className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70"
-                        >
-                          {met}
-                        </span>
-                      ))}
+                    <div className="flex justify-center">
+                      <ExpandButton
+                        isExpanded={isMetabolitesExpanded}
+                        onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
+                      />
                     </div>
+
+                    {isMetabolitesExpanded && (
+                      <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        <div className="mt-4">
+                          <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+                            Metabolites
+                          </span>
+                          <ul className="mt-3 list-disc space-y-2.5 pl-5 marker:text-fuchsia-300">
+                            {pharmacology.metabolites.map((met, idx) => (
+                              <li key={idx} className="text-sm leading-relaxed text-white/75">
+                                {met}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
