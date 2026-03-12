@@ -11,7 +11,6 @@ import { slugify } from "../../utils/slug";
 import { JsonEditor } from "../common/JsonEditor";
 import { SectionCard } from "../common/SectionCard";
 import { UiJsonToggle } from "../common/UiJsonToggle";
-import { HeroSection } from "../sections/HeroSection";
 import { DosageDurationSection } from "../sections/DosageDurationSection";
 import { InfoSections, InfoSectionItemCard } from "../sections/InfoSections";
 import { SubjectiveEffectsSection } from "../sections/SubjectiveEffectsSection";
@@ -70,7 +69,6 @@ const extractArticleId = (value: unknown): number | null => {
 export function SubstanceArticle({
   record,
   activeRouteKey,
-  onRouteChange,
   onSelectCategory,
   onSelectEffect,
   onSelectMechanism,
@@ -416,7 +414,7 @@ export function SubstanceArticle({
                       <img
                         src={moleculeAsset.url}
                         alt={`Molecule depiction for ${content.name}`}
-                        className="relative h-56 w-full object-contain drop-shadow-[0_0_15px_rgba(217,70,239,0.2)]"
+                        className="theme-molecule-image relative h-56 w-full object-contain drop-shadow-[0_0_15px_rgba(217,70,239,0.2)]"
                       />
                     ) : (
                       <div className="theme-molecule-fallback flex h-56 w-full items-center justify-center rounded-xl border border-dashed border-white/15 text-sm text-white/55">

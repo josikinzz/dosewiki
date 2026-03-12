@@ -355,6 +355,13 @@
     background-color: rgba(15, 10, 31, 0.8);
   }
 
+  .theme-molecule-image {
+    --tw-brightness: brightness(1);
+    --tw-saturate: saturate(1);
+    --tw-contrast: contrast(1);
+    transition: filter 180ms ease;
+  }
+
   .theme-molecule-fallback {
     background-color: rgba(18, 13, 39, 0.96);
   }
@@ -701,6 +708,12 @@ html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
   border-color: rgba(93, 56, 123, 0.12);
   background-color: rgba(255, 255, 255, 0.94);
+}
+
+html[data-theme="light"] .theme-molecule-image {
+  --tw-brightness: brightness(0.46);
+  --tw-saturate: saturate(0.84);
+  --tw-contrast: contrast(1.18);
 }
 
 html[data-theme="light"] .prose-invert :where(h1, h2, h3, h4, strong, b),

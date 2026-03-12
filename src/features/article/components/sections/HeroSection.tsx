@@ -98,7 +98,7 @@ export const HeroSection = memo(function HeroSection({
         <img
           src={moleculeUrl}
           alt={`${title} molecule structure`}
-          className="hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
+          className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
         />
       )}
 
@@ -113,7 +113,7 @@ export const HeroSection = memo(function HeroSection({
           <img
             src={moleculeUrl}
             alt={`${title} molecule structure`}
-            className="h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
+            className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
           />
         </div>
       )}
