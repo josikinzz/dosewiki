@@ -73,7 +73,7 @@ const InteractionBadge = memo(function InteractionBadge({
   if (isExpanded && hasRationale) {
     return (
       <div
-        className="relative flex w-full flex-col items-start gap-2 rounded-lg bg-black/20 ring-1 ring-white/10 px-4 py-3 my-1"
+        className="theme-inline-expanded-card relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3"
       >
         <button
           onClick={handleToggle}
@@ -172,7 +172,7 @@ export const InteractionsSection = memo(function InteractionsSection({
 
   return (
     <div id="interactions" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:blend" title="Interactions" />
+      <SectionHeader icon="lucide:blend" title="Interactions" className="theme-accent-icon-scope" />
 
       {/* Single column layout */}
       <div className="flex flex-col gap-4">
@@ -186,7 +186,7 @@ export const InteractionsSection = memo(function InteractionsSection({
               className={`rounded-xl p-4 ${borderClass} ${bgClass}`}
             >
               <h3 className="flex items-center gap-2 font-semibold text-white">
-                <Icon icon={icon} size={20} className={iconClass} />
+                <Icon icon={icon} size={20} className={`theme-accent-icon ${iconClass}`} />
                 {label}
               </h3>
               <p className="mt-2 text-xs text-white/50 leading-relaxed">{definition}</p>

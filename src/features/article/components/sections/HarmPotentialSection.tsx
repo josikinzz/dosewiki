@@ -21,7 +21,7 @@ export const HarmPotentialSection = memo(function HarmPotentialSection({
 
   return (
     <div id="harm-potential" className="space-y-6 pt-12 scroll-mt-6">
-      <SectionHeader icon="lucide:ambulance" title="Harm Potential" />
+      <SectionHeader icon="lucide:ambulance" title="Harm Potential" className="theme-accent-icon-scope" />
 
       <div className="flex flex-col gap-8">
         <AddictionSubsection addiction={addiction} />

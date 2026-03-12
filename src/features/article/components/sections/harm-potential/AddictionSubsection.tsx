@@ -16,7 +16,7 @@ export function AddictionSubsection({ addiction }: AddictionSubsectionProps) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <Icon icon="jam:repeat" size={20} className="text-rose-300" />
+          <Icon icon="jam:repeat" size={20} className="theme-accent-icon text-rose-300" />
           <h3 className="font-semibold text-white">Addiction & Dependence</h3>
         </div>
         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />

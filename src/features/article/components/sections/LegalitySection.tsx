@@ -12,12 +12,12 @@ import type { SubstanceArticle } from "@/schema";
 
 type StatusColor = 'red' | 'yellow' | 'blue' | 'green' | 'gray';
 
-const COLOR_CLASSES: Record<StatusColor, string> = {
-  red: 'bg-red-500/20 text-red-300',
-  yellow: 'bg-yellow-500/20 text-yellow-300',
-  blue: 'bg-blue-500/20 text-blue-300',
-  green: 'bg-emerald-500/20 text-emerald-300',
-  gray: 'bg-white/10 text-white/70',
+const COLOR_CLASSES: Record<StatusColor, { className: string; tone: StatusColor }> = {
+  red: { className: 'bg-red-500/20 text-red-300', tone: 'red' },
+  yellow: { className: 'bg-yellow-500/20 text-yellow-300', tone: 'yellow' },
+  blue: { className: 'bg-blue-500/20 text-blue-300', tone: 'blue' },
+  green: { className: 'bg-emerald-500/20 text-emerald-300', tone: 'green' },
+  gray: { className: 'bg-white/10 text-white/70', tone: 'gray' },
 };
 
 // Exact matches for common statuses (case-sensitive)
@@ -102,7 +102,7 @@ const STATUS_PATTERNS: [RegExp, StatusColor][] = [
   [/\bverzeichnis\b|\bnpsg\b|\bbtmg\b/i, 'yellow'],
 ];
 
-function getStatusColor(status: string): string {
+function getStatusColor(status: string): { className: string; tone: StatusColor } {
   // Try exact match first
   const exactMatch = STATUS_COLOR_MAP[status];
   if (exactMatch) {
@@ -220,7 +220,10 @@ export const LegalitySection = memo(function LegalitySection({
                   <div className={`flex items-center gap-2 ${countryCode ? "pr-8" : ""}`}>
                     <span className="font-medium text-white">{countryName}</span>
                     {showStatusAsBadge && info.status && (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor}`}>
+                      <span
+                        className={`theme-status-badge rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor.className}`}
+                        data-badge-tone={statusColor.tone}
+                      >
                         {info.status}
                       </span>
                     )}

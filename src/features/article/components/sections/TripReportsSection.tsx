@@ -139,10 +139,10 @@ export const TripReportsSection = memo(function TripReportsSection({
 
         {/* Combinations section header - show if there are visible combination reports */}
         {combinationVisible.length > 0 && (
-          <div className="mt-5 mb-3 flex items-center gap-3">
+          <div className="theme-accent-icon-scope mt-5 mb-3 flex items-center gap-3">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
-              <Icon icon="lucide:blend" size={14} className="text-fuchsia-300/60" />
+              <Icon icon="lucide:blend" size={14} className="theme-accent-icon text-fuchsia-300/60" />
               Combinations
             </h3>
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />

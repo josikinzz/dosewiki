@@ -104,7 +104,7 @@ function EffectBadge({
       <div
         className={cn(
           "relative flex flex-col items-start gap-3 rounded-lg px-4 py-4 text-left transition",
-          "bg-black/20 ring-1 ring-white/10",
+          "theme-inline-expanded-card",
           "w-full my-2"
         )}
       >

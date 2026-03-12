@@ -17,7 +17,7 @@ export function PsychosisRiskSubsection({ risks }: RisksSubsectionProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon icon="tabler:mood-crazy-happy" size={20} className="text-rose-300" />
+            <Icon icon="tabler:mood-crazy-happy" size={20} className="theme-accent-icon text-rose-300" />
             <h3 className="font-semibold text-white">Psychosis Risk</h3>
           </div>
           <RiskLevelBadge level={psychosis.level} />
@@ -43,7 +43,7 @@ export function SeizureRiskSubsection({ risks }: RisksSubsectionProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Icon icon="mage:zap" size={20} className="text-rose-300" />
+            <Icon icon="mage:zap" size={20} className="theme-accent-icon text-rose-300" />
             <h3 className="font-semibold text-white">Seizure Risk</h3>
           </div>
           <RiskLevelBadge level={seizure.level} />
