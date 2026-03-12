@@ -1,4 +1,4 @@
-import { useState, memo, useCallback, type ReactNode } from "react";
+import { useState, memo, type ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
 
 interface IndexCardProps {
@@ -42,18 +42,23 @@ export const IndexCard = memo(function IndexCard({
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
-  const iconElement = (
-    <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 ${onIconClick ? "cursor-pointer transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105" : ""}`}
-      onClick={onIconClick}
-      role={onIconClick ? "button" : undefined}
-      tabIndex={onIconClick ? 0 : undefined}
-    >
-      <Icon
-        icon={iconActiveState ? "lucide:check" : icon}
-        size={20}
-        className={iconActiveState ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
-      />
+  const iconClassName = `flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 ${onIconClick ? "cursor-pointer transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105" : ""}`;
+
+  const iconContent = (
+    <Icon
+      icon={iconActiveState ? "lucide:check" : icon}
+      size={20}
+      className={iconActiveState ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+    />
+  );
+
+  const iconElement = onIconClick ? (
+    <button type="button" className={iconClassName} onClick={onIconClick}>
+      {iconContent}
+    </button>
+  ) : (
+    <div className={iconClassName}>
+      {iconContent}
     </div>
   );
 
@@ -202,7 +207,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
         onClick={handleClick}
         className="group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] text-white/70 transition-all duration-200 hover:bg-white/[0.06] hover:text-white hover:pl-4"
       >
-        <span className="mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/20 transition-colors group-hover/item:bg-fuchsia-400" />
+        <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/20 transition-colors group-hover/item:bg-fuchsia-400" />
         {label}
       </button>
     </li>

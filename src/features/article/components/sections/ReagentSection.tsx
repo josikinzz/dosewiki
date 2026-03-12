@@ -417,7 +417,7 @@ export const ReagentSection = memo(function ReagentSection({
           <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
             PROtestkit.eu
           </span>
-          <Icon icon="lucide:external-link" size={12} className="text-white/30 group-hover:text-white/50 transition -ml-1" />
+          <Icon icon="lucide:external-link" size={12} className="theme-external-link-badge-icon text-white/30 group-hover:text-white/50 transition -ml-1" />
         </a>
       </div>
     </div>

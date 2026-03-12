@@ -350,6 +350,11 @@
       linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
   }
 
+  .theme-section-header-glow {
+    background-color: rgba(217, 70, 239, 0.2);
+    transition: background-color 180ms ease;
+  }
+
   .theme-molecule-panel {
     border-color: rgba(255, 255, 255, 0.06);
     background-color: rgba(15, 10, 31, 0.8);
@@ -381,6 +386,27 @@
   }
 
   .theme-status-badge {
+    transition: color 180ms ease;
+  }
+
+  .theme-toc-icon {
+    transition: color 180ms ease;
+  }
+
+  .theme-index-card-bullet {
+    transition: background-color 180ms ease;
+  }
+
+  .theme-about-json-preview,
+  .theme-about-json-preview-header,
+  .theme-about-json-preview-body {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease;
+  }
+
+  .theme-external-link-badge-icon {
     transition: color 180ms ease;
   }
 
@@ -727,6 +753,10 @@ html[data-theme="light"] .theme-molecule-shell {
     rgba(255, 255, 255, 0.8);
 }
 
+html[data-theme="light"] .theme-section-header-glow {
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
 html[data-theme="light"] .theme-molecule-panel,
 html[data-theme="light"] .theme-molecule-fallback {
   border-color: rgba(93, 56, 123, 0.12);
@@ -778,6 +808,61 @@ html[data-theme="light"] .theme-status-badge[data-badge-tone="blue"] {
 html[data-theme="light"] .theme-status-badge[data-badge-tone="gray"],
 html[data-theme="light"] .theme-status-badge[data-badge-tone="white"] {
   color: var(--theme-text-secondary) !important;
+}
+
+html[data-theme="light"] .theme-toc-icon {
+  color: rgba(93, 56, 123, 0.42) !important;
+}
+
+html[data-theme="light"] .theme-index-card-bullet {
+  background-color: rgba(93, 56, 123, 0.26) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #0a0612 !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview-header {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview-body {
+  background-color: #06020c !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .text-white\/20 {
+  color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .text-white\/40 {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .text-white\/55 {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .text-fuchsia-300 {
+  color: #f0abfc !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .hover\:bg-white\/5:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="light"] .theme-about-json-preview .hover\:text-white:hover {
+  color: rgba(255, 255, 255, 1) !important;
+}
+
+html[data-theme="light"] .theme-external-link-badge-icon {
+  color: rgba(93, 56, 123, 0.42) !important;
+}
+
+html[data-theme="light"] .group:hover .theme-external-link-badge-icon,
+html[data-theme="light"] .theme-external-link-badge-icon:hover {
+  color: rgba(93, 56, 123, 0.62) !important;
 }
 
 html[data-theme="light"] .prose-invert :where(h1, h2, h3, h4, strong, b),

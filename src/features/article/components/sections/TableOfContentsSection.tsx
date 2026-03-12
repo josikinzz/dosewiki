@@ -162,7 +162,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
                   onClick={() => handleClick(item.id)}
                   className="group flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-fuchsia-300"
                 >
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-white/30 group-hover:text-fuchsia-400/60">
+                  <span className="theme-toc-icon flex h-5 w-5 shrink-0 items-center justify-center text-white/30 group-hover:text-fuchsia-400/60">
                     <Icon icon={item.icon} size={14} />
                   </span>
                   <span className="flex-1">{item.label}</span>

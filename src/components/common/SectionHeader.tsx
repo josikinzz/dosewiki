@@ -20,7 +20,7 @@ export const SectionHeader = memo(function SectionHeader({
   return (
     <div className={cn("flex items-center gap-4", className)}>
       <div className="relative shrink-0">
-        <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full" />
+        <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
         <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
           <Icon icon={icon} className="h-8 w-8" />
           {title}

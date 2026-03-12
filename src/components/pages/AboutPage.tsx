@@ -4,7 +4,6 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { motion } from "framer-motion";
 
-import { SectionCard } from "../common/SectionCard";
 import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
 import { Button } from "@/components/ui/button";
@@ -42,9 +41,15 @@ const markdownComponents = {
     <ol className="mt-4 list-decimal space-y-2 pl-6 text-[1.0625rem] text-white/80 marker:text-fuchsia-400/50" {...props} />
   ),
   li: ({ node: _node, ...props }: { node?: unknown }) => <li className="pl-1" {...props} />,
-  h1: ({ node: _node, ...props }: { node?: unknown }) => <h1 className="mt-8 mb-4 text-2xl font-bold text-white" {...props} />,
-  h2: ({ node: _node, ...props }: { node?: unknown }) => <h2 className="mt-8 mb-4 text-xl font-bold text-white" {...props} />,
-  h3: ({ node: _node, ...props }: { node?: unknown }) => <h3 className="mt-6 mb-3 text-lg font-bold text-white" {...props} />,
+  h1: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+    <h1 className="mt-8 mb-4 text-2xl font-bold text-white" {...props}>{children}</h1>
+  ),
+  h2: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+    <h2 className="mt-8 mb-4 text-xl font-bold text-white" {...props}>{children}</h2>
+  ),
+  h3: ({ node: _node, children, ...props }: { node?: unknown; children?: ReactNode }) => (
+    <h3 className="mt-6 mb-3 text-lg font-bold text-white" {...props}>{children}</h3>
+  ),
   blockquote: ({ node: _node, ...props }: { node?: unknown }) => (
     <blockquote className="mt-6 border-l-4 border-fuchsia-500/30 pl-4 italic text-white/70" {...props} />
   ),
@@ -98,7 +103,7 @@ function JsonSyntaxHighlight({ json }: { json: string }) {
         const cls = isKey ? "text-fuchsia-300" : "text-emerald-400";
         tokens.push(`<span class="${cls}">${str}</span>`);
         i = end;
-      } else if (/[-\d]/.test(escaped[i]) && (i === 0 || /[\s,\[:{]/.test(escaped[i - 1]))) {
+      } else if (/[-\d]/.test(escaped[i]) && (i === 0 || /[\s,:[{]/.test(escaped[i - 1]))) {
         let end = i;
         if (escaped[end] === '-') end++;
         while (end < escaped.length && /[\d.]/.test(escaped[end])) end++;
@@ -479,8 +484,8 @@ export const AboutPage = memo(function AboutPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0612] shadow-xl shadow-black/20">
-                <div className="flex items-center justify-between border-b border-white/5 px-6 py-4 bg-white/[0.02]">
+              <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0612] shadow-xl shadow-black/20">
+                <div className="theme-about-json-preview-header flex items-center justify-between border-b border-white/5 px-6 py-4 bg-white/[0.02]">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5">
                       <div className="h-2.5 w-2.5 rounded-full bg-rose-500/20 border border-rose-500/50" />
@@ -510,7 +515,7 @@ export const AboutPage = memo(function AboutPage() {
                     </Button>
                   </div>
                 </div>
-                <div className="relative flex-1 min-h-[16rem] overflow-hidden bg-[#06020c]">
+                <div className="theme-about-json-preview-body relative flex-1 min-h-[16rem] overflow-hidden bg-[#06020c]">
                   {/* Subtle \"hacker terminal\" texture */}
                   <div
                     aria-hidden="true"

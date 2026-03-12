@@ -505,7 +505,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 </a>
                 {afterAuthor}
               </span>
-              <Icon icon="lucide:external-link" size={14} className="relative z-10 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
+              <Icon icon="lucide:external-link" size={14} className="theme-external-link-badge-icon relative z-10 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
             </div>
           </div>
         );
