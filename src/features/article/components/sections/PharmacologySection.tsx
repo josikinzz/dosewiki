@@ -171,13 +171,6 @@ export const PharmacologySection = memo(function PharmacologySection({
                 )}
                 {hasMetabolites && (
                   <div className="mt-3">
-                    <div className="flex justify-center">
-                      <ExpandButton
-                        isExpanded={isMetabolitesExpanded}
-                        onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
-                      />
-                    </div>
-
                     {isMetabolitesExpanded && (
                       <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-200">
                         <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -195,6 +188,13 @@ export const PharmacologySection = memo(function PharmacologySection({
                         </div>
                       </div>
                     )}
+
+                    <div className={`flex justify-center ${isMetabolitesExpanded ? "mt-4" : ""}`}>
+                      <ExpandButton
+                        isExpanded={isMetabolitesExpanded}
+                        onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
