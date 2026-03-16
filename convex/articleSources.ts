@@ -136,6 +136,8 @@ export const importOne = mutation({
     // Authenticate the request
     await requireAuth(ctx, args.apiKey);
 
+    const { apiKey: _apiKey, ...sourceData } = args;
+
     // Check if source with this slug already exists
     const existing = await ctx.db
       .query("articleSources")
@@ -143,11 +145,11 @@ export const importOne = mutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, sourceData);
       return { updated: true, id: existing._id };
     }
 
-    const id = await ctx.db.insert("articleSources", args);
+    const id = await ctx.db.insert("articleSources", sourceData);
     return { updated: false, id };
   },
 });

@@ -22,9 +22,9 @@ const MIN_LOG_LEVEL = process.env.NODE_ENV === "production"
 
 // Patterns to redact from logs
 const SENSITIVE_PATTERNS = [
-  /Bearer\s+[A-Za-z0-9\-_.~+/]+=*/gi,
+  /Bearer\s+[A-Za-z0-9_.~+/-]+=*/gi,
   /ghp_[A-Za-z0-9]{36,}/gi,
-  /sk-or-[A-Za-z0-9\-]+/gi,
+  /sk-or-[A-Za-z0-9-]+/gi,
   /password["']?\s*[:=]\s*["']?[^"'\s,}]+/gi,
 ];
 

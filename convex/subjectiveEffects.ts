@@ -104,7 +104,8 @@ export const getByCategory = query({
     
     const tagsToMatch = categoryTags[args.category];
     if (!tagsToMatch) {
-      return allEffects;
+      console.warn(`Unknown subjective effect category requested: ${args.category}`);
+      return [];
     }
     
     return allEffects.filter((effect) =>
@@ -281,7 +282,7 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const existing = await ctx.db
       .query("subjectiveEffects")

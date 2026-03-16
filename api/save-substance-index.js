@@ -143,14 +143,14 @@ export default async function handler(req, res) {
     return;
   }
 
-  const payloadSize = getPayloadByteLength(req.body);
-  if (payloadSize > MAX_ARTICLES_PAYLOAD_BYTES) {
-    return res.status(413).json({ error: "Payload too large." });
-  }
-
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed." });
+  }
+
+  const payloadSize = getPayloadByteLength(req.body);
+  if (payloadSize > MAX_ARTICLES_PAYLOAD_BYTES) {
+    return res.status(413).json({ error: "Payload too large." });
   }
 
   const githubToken = process.env.GITHUB_TOKEN;

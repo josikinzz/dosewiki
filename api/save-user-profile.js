@@ -125,7 +125,7 @@ const sanitizeAvatarUrl = (value, { strict } = { strict: false }) => {
       throw new ValidationError("Avatar URL must use https://");
     }
     return url.toString();
-  } catch (error) {
+  } catch {
     if (strict) {
       throw new ValidationError("Avatar URL must be a valid https:// link.");
     }
@@ -371,7 +371,7 @@ const sanitizeAvatarUpload = (payload) => {
 
 const buildAvatarAsset = (canonicalKey, extension, cacheBuster) => {
   const folder = canonicalKey.toLowerCase();
-  const normalizedCacheBuster = cacheBuster.replace(/[^a-z0-9\-]/gi, "-");
+  const normalizedCacheBuster = cacheBuster.replace(/[^a-z0-9-]/gi, "-");
   const fileName = `avatar.${extension}`;
   const repoPath = `${AVATAR_DIRECTORY}/${folder}/${fileName}`;
   const publicUrl = `${AVATAR_PUBLIC_BASE_PATH}/${folder}/${fileName}?v=${normalizedCacheBuster}`;
@@ -487,10 +487,10 @@ export default async function handler(req, res) {
       createdAt: isoTimestamp,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unexpected error occurred.";
     if (error instanceof ValidationError) {
-      return res.status(400).json({ error: message });
+      return res.status(400).json({ error: error.message });
     }
-    return res.status(500).json({ error: message });
+    console.error("Failed to save user profile:", error);
+    return res.status(500).json({ error: "Unable to save articles right now." });
   }
 }

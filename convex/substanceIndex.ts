@@ -97,11 +97,23 @@ export const getRandomSample = query({
 
     const count = args.count ?? 5;
 
-    // Only load high-priority articles to reduce working set
-    const articles = await ctx.db
+    // Prefer high-priority articles, then fall back to normal priority,
+    // then to any available articles.
+    let articles = await ctx.db
       .query("substanceIndex")
       .withIndex("by_priority", (q) => q.eq("priority", "high"))
       .collect();
+
+    if (articles.length === 0) {
+      articles = await ctx.db
+        .query("substanceIndex")
+        .withIndex("by_priority", (q) => q.eq("priority", "normal"))
+        .collect();
+    }
+
+    if (articles.length === 0) {
+      articles = await ctx.db.query("substanceIndex").collect();
+    }
 
     // Fisher-Yates shuffle (partial - only need first `count` elements)
     const shuffled = [...articles];
@@ -129,7 +141,7 @@ export const saveSubstance = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const { article } = args;
 
@@ -156,6 +168,16 @@ export const saveSubstance = mutation({
         await ctx.db.patch(existing._id, articleWithSlug);
         return { updated: true, id: existing._id };
       }
+    } else {
+      const existingBySlug = await ctx.db
+        .query("substanceIndex")
+        .withIndex("by_slug", (q) => q.eq("slug", articleWithSlug.slug))
+        .first();
+
+      if (existingBySlug) {
+        await ctx.db.patch(existingBySlug._id, articleWithSlug);
+        return { updated: true, id: existingBySlug._id };
+      }
     }
 
     // Create new substance
@@ -179,7 +201,7 @@ export const saveSubstances = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const results = {
       created: 0,
@@ -279,7 +301,7 @@ export const deleteSubstance = mutation({
   },
   handler: async (ctx, args) => {
     // Authenticate the request
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const existing = await ctx.db
       .query("substanceIndex")

@@ -9,15 +9,15 @@ import { timingSafeEqual } from "node:crypto";
 const safeCompare = (a, b) => {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
-  
-  // If lengths differ, still do a comparison to maintain constant time,
-  // but compare bufA against itself to avoid timing leaks
-  if (bufA.length !== bufB.length) {
-    timingSafeEqual(bufA, bufA);
-    return false;
-  }
-  
-  return timingSafeEqual(bufA, bufB);
+
+  const maxLength = Math.max(bufA.length, bufB.length);
+  const paddedA = Buffer.alloc(maxLength);
+  const paddedB = Buffer.alloc(maxLength);
+
+  bufA.copy(paddedA);
+  bufB.copy(paddedB);
+
+  return bufA.length === bufB.length && timingSafeEqual(paddedA, paddedB);
 };
 
 const DEFAULT_PASSWORD_KEYS = [
@@ -60,11 +60,18 @@ export const verifyCredentials = (username, password) => {
   }
 
   const validUsernames = getValidUsernames();
-  if (!validUsernames.includes(trimmedUsername)) {
+  let matchedUsername = null;
+  for (const candidate of validUsernames) {
+    if (safeCompare(candidate, trimmedUsername)) {
+      matchedUsername = candidate;
+    }
+  }
+
+  if (!matchedUsername) {
     return false;
   }
 
-  const expectedPassword = process.env[trimmedUsername];
+  const expectedPassword = process.env[matchedUsername];
 
   if (typeof expectedPassword !== "string") {
     return false;

@@ -134,19 +134,14 @@ export async function isAuthenticated(
  * Returns true if strings are equal, false otherwise.
  */
 function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    // Still do the comparison to maintain constant time
-    // but we know it will fail
-    let _result = 1;
-    for (let i = 0; i < a.length; i++) {
-      _result |= a.charCodeAt(i) ^ (b.charCodeAt(i % b.length) || 0);
-    }
-    return false;
+  const maxLength = Math.max(a.length, b.length);
+  const paddedA = a.padEnd(maxLength, "\0");
+  const paddedB = b.padEnd(maxLength, "\0");
+
+  let result = a.length ^ b.length;
+  for (let i = 0; i < maxLength; i++) {
+    result |= paddedA.charCodeAt(i) ^ paddedB.charCodeAt(i);
   }
 
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
   return result === 0;
 }

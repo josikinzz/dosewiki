@@ -222,7 +222,13 @@ export const deleteById = mutation({
     id: v.id("tripReports"),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
+
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      return { deleted: false, reason: "not_found" as const };
+    }
+
     await ctx.db.delete(args.id);
     return { deleted: true };
   },
@@ -240,7 +246,7 @@ export const renameAuthor = mutation({
     newName: v.string(),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const allReports = await ctx.db.query("tripReports").collect();
     const lowerOldName = args.oldName.toLowerCase();

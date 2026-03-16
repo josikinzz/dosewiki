@@ -79,9 +79,9 @@ export const save = mutation({
     ...indexLayoutValidator.fields,
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
-    const { apiKey, ...layoutData } = args;
+    const { apiKey: _apiKey, ...layoutData } = args;
     const existing = await ctx.db
       .query("indexLayouts")
       .withIndex("by_type", (q) => q.eq("type", layoutData.type))
@@ -108,7 +108,7 @@ export const bulkImport = mutation({
     layouts: v.array(indexLayoutValidator),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const results = {
       created: 0,
@@ -150,7 +150,7 @@ export const deleteByType = mutation({
     type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const existing = await ctx.db
       .query("indexLayouts")

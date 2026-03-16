@@ -260,8 +260,7 @@ export default defineSchema({
 
   // EffectIndex articles - intensity scales, substance analyses, methodology
   effectIndexArticles: defineTable(effectIndexArticle)
-    .index("by_slug", ["slug"])
-    .index("by_tag", ["tags"]),
+    .index("by_slug", ["slug"]),
 
   // Video and image replications of effects
   replications: defineTable(replication)

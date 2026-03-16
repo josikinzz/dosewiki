@@ -25,7 +25,7 @@ export const getAll = query({
 export const getRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const limit = args.limit ?? 50;
+    const limit = Math.min(args.limit ?? 50, 500);
     return await ctx.db
       .query("changelog")
       .withIndex("by_created_at")

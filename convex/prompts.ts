@@ -45,7 +45,7 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const { key, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
@@ -86,7 +86,7 @@ export const deleteByKey = mutation({
     key: v.string(),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const existing = await ctx.db
       .query("prompts")
@@ -117,7 +117,7 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const updatedAt = new Date().toISOString();
     const results = {

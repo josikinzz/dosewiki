@@ -58,7 +58,7 @@ const getRateLimiter = (windowMs, max) => {
   }
   const limiter = new Ratelimit({
     redis: redisClient,
-    limiter: Ratelimit.slidingWindow(max, `${windowMs} ms`),
+    limiter: Ratelimit.slidingWindow(max, `${Math.ceil(windowMs / 1000)} s`),
     analytics: true,
   });
   rateLimiters.set(key, limiter);

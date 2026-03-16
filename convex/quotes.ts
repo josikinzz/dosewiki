@@ -129,7 +129,7 @@ export const save = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const { slug, section, content, updatedBy } = args;
     const updatedAt = new Date().toISOString();
@@ -174,7 +174,7 @@ export const deleteBySlugAndSection = mutation({
     section: v.string(),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const existing = await ctx.db
       .query("quotes")
@@ -208,7 +208,7 @@ export const bulkImport = mutation({
     updatedBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    requireAuth(ctx, args.apiKey);
+    await requireAuth(ctx, args.apiKey);
 
     const updatedAt = new Date().toISOString();
     const results = {
