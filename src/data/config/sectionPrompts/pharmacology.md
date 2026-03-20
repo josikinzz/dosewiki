@@ -31,6 +31,7 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not reference or comment on sources; present information directly without meta-commentary
 - **Never infer receptor affinities** — only include binding values (Ki, EC50, etc.) that are explicitly stated as numerical values in the sources. Do not estimate, extrapolate, or derive affinity values from qualitative descriptions.
 - **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
+- **Do not infer causes of discrepancies** — when sources report differing or evolving findings, describe the disagreement neutrally at the same level of certainty as the sources. Do not infer that the difference is due to assay type, methodology, species, dose, route, or any other factor unless the source explicitly says so.
 - The article-facing prose should read as two clear conceptual subsections: pharmacodynamics first, pharmacokinetics second.
 - Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
 - Keep the `pharmacodynamics` field strictly limited to pharmacodynamics. Do not place metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, metabolite names, or route-specific absorption/elimination details in `pharmacodynamics`.
@@ -457,6 +458,7 @@ Pharmacokinetics
 8. **No reciting facts from memory**: If sources don't mention it, leave the field empty.
 9. **Conciseness** - Keep writings concise while still conveying all of the necessary information.
 10. **Article-facing hierarchy** - Keep the prose fields feeling like two human-written subsections: pharmacodynamics first, pharmacokinetics second.
+11. **Neutral disagreement framing** - If studies disagree, report the disagreement without inventing an explanation for why they differ.
 
 ---
 
@@ -466,6 +468,7 @@ Before returning output:
 - [ ] All fields present (even if empty)
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
 - [ ] `pharmacodynamics` is concise plain-language prose focused only on mechanism/action (not PK)
+- [ ] Any disagreement between studies is described neutrally without inferring the cause unless the source explicitly names it
 - [ ] `receptor_profile` entries each have a `receptor` field; `tag` uses canonical tags exactly when present
 - [ ] `receptor_profile` entries are ordered by pharmacological importance
 - [ ] `metabolites` is an array of strings, not a single string
