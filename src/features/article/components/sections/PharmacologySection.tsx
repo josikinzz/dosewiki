@@ -35,6 +35,7 @@ export const PharmacologySection = memo(function PharmacologySection({
   article,
   onSelectMechanism,
 }: PharmacologySectionProps) {
+  const [isReceptorProfileExpanded, setIsReceptorProfileExpanded] = useState(false);
   const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
   const { pharmacology } = article;
 
@@ -82,62 +83,74 @@ export const PharmacologySection = memo(function PharmacologySection({
             </div>
           )}
 
+          {hasReceptorProfile && isReceptorProfileExpanded && (
+            <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+                <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                  <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
+                  Receptor Profile
+                </h4>
+                <ul className="space-y-2">
+                  {pharmacology.receptor_profile.map((entry, idx) => {
+                    const tag = entry.tag;
+                    const { base, qualifier } = tag
+                      ? parseMechanismEntry(tag)
+                      : { base: entry.receptor, qualifier: undefined };
+                    const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
+
+                    return (
+                      <li key={idx} className="flex gap-2 text-sm text-white/80">
+                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                        <div className="min-w-0 flex-1">
+                          {onSelectMechanism && tag ? (
+                            <button
+                              type="button"
+                              className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
+                              onClick={() => onSelectMechanism(mechanismToSlug(tag))}
+                            >
+                              {base}
+                              {qualifier && (
+                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                  {qualifier}
+                                </span>
+                              )}
+                            </button>
+                          ) : (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {base}
+                              {qualifier && (
+                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                  {qualifier}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {detailItems.length > 0 && (
+                            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-white/55 marker:text-white/35">
+                              {detailItems.map((detail, detailIdx) => (
+                                <li key={detailIdx} className="leading-relaxed">
+                                  {detail}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {hasReceptorProfile && (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
-              <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
-                Receptor Profile
-              </h4>
-              <ul className="space-y-2">
-                {pharmacology.receptor_profile.map((entry, idx) => {
-                  const tag = entry.tag;
-                  const { base, qualifier } = tag
-                    ? parseMechanismEntry(tag)
-                    : { base: entry.receptor, qualifier: undefined };
-                  const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
-
-                  return (
-                    <li key={idx} className="flex gap-2 text-sm text-white/80">
-                      <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
-                      <div className="min-w-0 flex-1">
-                        {onSelectMechanism && tag ? (
-                          <button
-                            type="button"
-                            className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
-                            onClick={() => onSelectMechanism(mechanismToSlug(tag))}
-                          >
-                            {base}
-                            {qualifier && (
-                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                {qualifier}
-                              </span>
-                            )}
-                          </button>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {base}
-                            {qualifier && (
-                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                {qualifier}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {detailItems.length > 0 && (
-                          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-white/55 marker:text-white/35">
-                            {detailItems.map((detail, detailIdx) => (
-                              <li key={detailIdx} className="leading-relaxed">
-                                {detail}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+            <div className="flex justify-center pt-1.5">
+              <ExpandButton
+                isExpanded={isReceptorProfileExpanded}
+                onToggle={() => setIsReceptorProfileExpanded((expanded) => !expanded)}
+                label={isReceptorProfileExpanded ? "Hide details" : "See more"}
+              />
             </div>
           )}
         </section>
@@ -158,31 +171,32 @@ export const PharmacologySection = memo(function PharmacologySection({
             </div>
           )}
 
-          {hasMetabolites && (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
-              <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                <Icon icon="lucide:flask-conical" size={20} className="text-fuchsia-200" />
-                Metabolites
-              </h4>
+          {hasMetabolites && isMetabolitesExpanded && (
+            <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+                <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                  <Icon icon="lucide:flask-conical" size={20} className="text-fuchsia-200" />
+                  Metabolites
+                </h4>
 
-              {isMetabolitesExpanded && (
-                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                  <ul className="list-disc space-y-2.5 pl-5 marker:text-fuchsia-300">
-                    {pharmacology.metabolites.map((met, idx) => (
-                      <li key={idx} className="text-sm leading-relaxed text-white/75">
-                        {met}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className={`flex justify-center ${isMetabolitesExpanded ? "mt-4" : ""}`}>
-                <ExpandButton
-                  isExpanded={isMetabolitesExpanded}
-                  onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
-                />
+                <ul className="list-disc space-y-2.5 pl-5 marker:text-fuchsia-300">
+                  {pharmacology.metabolites.map((met, idx) => (
+                    <li key={idx} className="text-sm leading-relaxed text-white/75">
+                      {met}
+                    </li>
+                  ))}
+                </ul>
               </div>
+            </div>
+          )}
+
+          {hasMetabolites && (
+            <div className="flex justify-center pt-1.5">
+              <ExpandButton
+                isExpanded={isMetabolitesExpanded}
+                onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
+                label={isMetabolitesExpanded ? "Hide details" : "See more"}
+              />
             </div>
           )}
         </section>
