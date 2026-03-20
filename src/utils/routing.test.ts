@@ -19,11 +19,10 @@ describe('routing', () => {
         .toBe('/mechanism/5-ht2a-agonist/partial');
     });
 
-    it('handles interactions with optional slugs', () => {
-      expect(viewToPath({ type: 'interactions' })).toBe('/interactions');
-      expect(viewToPath({ type: 'interactions', primarySlug: 'lsd' })).toBe('/interactions/lsd');
-      expect(viewToPath({ type: 'interactions', primarySlug: 'lsd', secondarySlug: 'mdma' }))
-        .toBe('/interactions/lsd/mdma');
+    it('treats interactions as a legacy redirect to substances', () => {
+      expect(parsePath('/interactions', null)).toEqual({ type: 'substances' });
+      expect(parsePath('/interactions/lsd', null)).toEqual({ type: 'substances' });
+      expect(parsePath('/interactions/lsd/mdma', null)).toEqual({ type: 'substances' });
     });
 
     it('encodes search queries', () => {
@@ -89,9 +88,6 @@ describe('routing', () => {
       { type: 'mechanism', mechanismSlug: 'gaba-modulator', qualifierSlug: 'positive' },
       { type: 'classification', classification: 'chemical', slug: 'tryptamine' },
       { type: 'classification', classification: 'psychoactive', slug: 'psychedelic' },
-      { type: 'interactions' },
-      { type: 'interactions', primarySlug: 'lsd' },
-      { type: 'interactions', primarySlug: 'lsd', secondarySlug: 'mdma' },
       { type: 'about' },
       { type: 'search', query: 'test' },
       { type: 'dev', tab: 'tag-editor' },

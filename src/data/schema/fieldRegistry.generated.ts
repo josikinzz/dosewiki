@@ -30,7 +30,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "priority": {
     path: "priority",
     type: "text",
-    default: null,
+    default: "normal",
     isNullable: false,
   },
   "index_categories": {
@@ -102,7 +102,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "identification.botanical_name": {
     path: "identification.botanical_name",
     type: "text",
-    default: null,
+    default: "",
     isNullable: false,
   },
   "classification.psychoactive_class": {
@@ -138,7 +138,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "dosage.routes[].bioavailability_notes": {
     path: "dosage.routes[].bioavailability_notes",
     type: "text",
-    default: null,
+    default: "",
     isNullable: false,
   },
   "dosage.routes[].dose_ranges.threshold": {
@@ -192,13 +192,13 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "duration.routes[].half_life": {
     path: "duration.routes[].half_life",
     type: "text",
-    default: null,
+    default: "",
     isNullable: false,
   },
   "duration.routes[].half_life_notes": {
     path: "duration.routes[].half_life_notes",
     type: "text",
-    default: null,
+    default: "",
     isNullable: false,
   },
   "duration.routes[].stages.onset": {
@@ -348,13 +348,13 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "subjective_effects.progressive_stages": {
     path: "subjective_effects.progressive_stages",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "subjective_effects.attribution": {
     path: "subjective_effects.attribution",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "comparisons": {
@@ -390,49 +390,49 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "pharmacology.protein_binding": {
     path: "pharmacology.protein_binding",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.volume_of_distribution": {
     path: "pharmacology.volume_of_distribution",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.route_bioavailability": {
     path: "pharmacology.route_bioavailability",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.route_half_life": {
     path: "pharmacology.route_half_life",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.route_half_life_notes": {
     path: "pharmacology.route_half_life_notes",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.route_bioavailability_notes": {
     path: "pharmacology.route_bioavailability_notes",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.bioavailability_notes": {
     path: "pharmacology.bioavailability_notes",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "pharmacology.half_life": {
     path: "pharmacology.half_life",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "interactions.dangerous": {
@@ -486,13 +486,13 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "harm_potential": {
     path: "harm_potential",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "history_culture": {
     path: "history_culture",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "legality.international": {
@@ -510,7 +510,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "source_citations": {
     path: "source_citations",
     type: "text",
-    default: null,
+    default: undefined,
     isNullable: false,
   },
   "citations": {

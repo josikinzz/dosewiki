@@ -1,11 +1,9 @@
 import { useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { Icon, type IconName } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";

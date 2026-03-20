@@ -5,6 +5,7 @@ import { IconBadge } from "@/components/common/IconBadge";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { VCodeRenderer } from "@/features/effects/vcode";
+import type { VCodeContent } from "@/features/effects/vcode/types";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
 import { useSubjectiveEffects, type SubjectiveEffect } from "@/hooks/useSubjectiveEffects";
@@ -59,7 +60,7 @@ const EffectLongSummary = memo(function EffectLongSummary({
   onSelectEffect?: (slug: string) => void;
 }) {
   // Only use long_summary for VCode content - never show full description on category pages
-  const longSummaryContent = effect.long_summary_ast || effect.long_summary_raw;
+  const longSummaryContent = (effect.long_summary_ast || effect.long_summary_raw) as VCodeContent | undefined;
 
   const handleClick = () => {
     if (onSelectEffect) {

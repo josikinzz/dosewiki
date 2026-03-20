@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Icon } from "../../../../common/Icon";
+import { Icon } from "@/components/common/Icon";
 import type { FieldMeta, Citation } from "@/data/schema";
 
 interface CitationFieldProps {

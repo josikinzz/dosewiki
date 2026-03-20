@@ -1,5 +1,5 @@
 import { createPatch } from "diff";
-import type { ChangeLogArticleSummary } from "../data/changelog/changeLog";
+import type { ChangeLogArticleSummary } from "../../data/changelog/changeLog";
 
 export type DiffEntry = {
   path: string;
@@ -223,12 +223,20 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
       return null;
     });
 
-  const toKey = (article: Article | undefined, index: number, source: "original" | "updated") => {
+  const toKey = (article: Article | undefined, index: number) => {
     const key = getArticleKey(article, index);
     if (key !== null && key !== undefined) {
       return `id:${String(key)}`;
     }
-    return `${source}:${index}`;
+
+    if (article && typeof article === "object") {
+      const candidate = (article as { slug?: unknown }).slug;
+      if (typeof candidate === "string" && candidate.trim().length > 0) {
+        return `slug:${candidate.trim()}`;
+      }
+    }
+
+    return `index:${index}`;
   };
 
   const originalMap = new Map<
@@ -240,7 +248,7 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
   >();
 
   options.originalArticles.forEach((article, index) => {
-    const key = toKey(article, index, "original");
+    const key = toKey(article, index);
     originalMap.set(key, { article, index });
   });
 
@@ -253,7 +261,7 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
   >();
 
   options.articles.forEach((article, index) => {
-    const key = toKey(article, index, "updated");
+    const key = toKey(article, index);
     updatedMap.set(key, { article, index });
   });
 
@@ -261,7 +269,7 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
   const seenKeys = new Set<string>();
 
   options.articles.forEach((article, index) => {
-    const key = toKey(article, index, "updated");
+    const key = toKey(article, index);
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       orderedKeys.push(key);
@@ -269,7 +277,7 @@ export const buildDatasetChangelog = <Article,>(options: BuildDatasetChangelogOp
   });
 
   options.originalArticles.forEach((article, index) => {
-    const key = toKey(article, index, "original");
+    const key = toKey(article, index);
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       orderedKeys.push(key);

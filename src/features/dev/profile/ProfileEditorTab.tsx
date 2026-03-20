@@ -214,7 +214,7 @@ export function ProfileEditorTab({
     setNotice(null);
 
     if (!hasStoredCredentials) {
-      setNotice({ type: "error", message: "Save your credentials above before editing your profile." });
+      setNotice({ type: "error", message: "Sign in before editing your profile." });
       return;
     }
 

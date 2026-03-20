@@ -17,7 +17,6 @@ export const SubstanceGraph = memo(function SubstanceGraph({
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");

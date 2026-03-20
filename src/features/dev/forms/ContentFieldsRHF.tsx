@@ -462,13 +462,17 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
       setValue("harm_potential.toxicity.lethal_dosage.notes", hp.toxicity?.lethal_dosage?.notes ?? "");
       // Check new format first, fall back to legacy ld50 field
       const ld50Data = hp.toxicity?.lethal_dosage?.ld50 ?? hp.toxicity?.ld50 ?? [];
+      const carcinogenicity = hp.toxicity?.carcinogenicity;
+      const carcinogenicityValue = carcinogenicity && typeof carcinogenicity === "object" ? carcinogenicity : null;
+      const antibioticFunction = hp.toxicity?.antibiotic_function;
+      const antibioticFunctionValue = antibioticFunction && typeof antibioticFunction === "object" ? antibioticFunction : null;
       setValue("harm_potential.toxicity.lethal_dosage.ld50", Array.isArray(ld50Data) ? ld50Data : []);
       setValue("harm_potential.toxicity.organ_toxicity", hp.toxicity?.organ_toxicity ?? []);
-      setValue("harm_potential.toxicity.carcinogenicity.level", hp.toxicity?.carcinogenicity?.level ?? null);
-      setValue("harm_potential.toxicity.carcinogenicity.evidence", hp.toxicity?.carcinogenicity?.evidence ?? null);
-      setValue("harm_potential.toxicity.carcinogenicity.description", hp.toxicity?.carcinogenicity?.description ?? "");
-      setValue("harm_potential.toxicity.antibiotic_function.level", hp.toxicity?.antibiotic_function?.level ?? null);
-      setValue("harm_potential.toxicity.antibiotic_function.description", hp.toxicity?.antibiotic_function?.description ?? "");
+      setValue("harm_potential.toxicity.carcinogenicity.level", carcinogenicityValue?.level ?? null);
+      setValue("harm_potential.toxicity.carcinogenicity.evidence", carcinogenicityValue?.evidence ?? null);
+      setValue("harm_potential.toxicity.carcinogenicity.description", carcinogenicityValue?.description ?? "");
+      setValue("harm_potential.toxicity.antibiotic_function.level", antibioticFunctionValue?.level ?? null);
+      setValue("harm_potential.toxicity.antibiotic_function.description", antibioticFunctionValue?.description ?? "");
       setValue("harm_potential.toxicity.other", hp.toxicity?.other ?? "");
 
       // Psychosis and Seizure risks (direct on harm_potential in new schema)

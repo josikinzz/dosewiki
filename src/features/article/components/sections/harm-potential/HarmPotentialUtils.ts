@@ -2,10 +2,6 @@ import type {
   SubstanceArticle,
   RiskLevel,
   CarcinogenicityLevel,
-  EvidenceLevel,
-  HarmPotential,
-  Addiction,
-  Toxicity
 } from "@/schema";
 
 // Type for old schema format (for backward compatibility)
@@ -43,7 +39,7 @@ export interface NormalizedHarmPotential {
     organToxicityString: string;
     carcinogenicity: {
       level: CarcinogenicityLevel | null;
-      evidence?: any;
+      evidence?: unknown;
       description: string
     };
     antibiotic_function: {
@@ -63,9 +59,36 @@ export interface NormalizedHarmPotential {
   };
 }
 
+type CarcinogenicityObject = {
+  level?: CarcinogenicityLevel | null;
+  evidence?: unknown;
+  description?: string;
+};
+
+type ToxicityDescriptor = {
+  level: CarcinogenicityLevel | null;
+  description: string;
+};
+
+const normalizeToxicityDescriptor = (
+  value: string | { level?: CarcinogenicityLevel | null; description?: string } | null | undefined,
+): ToxicityDescriptor => {
+  if (typeof value === "string") {
+    return { level: null, description: value };
+  }
+
+  if (value && typeof value === "object") {
+    return {
+      level: value.level ?? null,
+      description: value.description ?? "",
+    };
+  }
+
+  return { level: null, description: "" };
+};
+
 export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHarmPotential | null {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const hp = article.harm_potential as any;
+  const hp = article.harm_potential as (SubstanceArticle["harm_potential"] & OldHarmPotential) | null | undefined;
   if (!hp) return null;
 
   // Detect old schema (has addiction_liability at top level, toxicity.ld50 is string, or risks wrapper)
@@ -78,15 +101,21 @@ export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHar
   // Normalize addiction
   const addiction = isOldSchema
     ? {
-        psychological: { level: null as RiskLevel | null, description: (hp as OldHarmPotential).addiction_liability || "" },
-        physical_dependence: { level: null as RiskLevel | null, description: (hp as OldHarmPotential).dependence_liability || "" },
+        psychological: { level: null as RiskLevel | null, description: hp.addiction_liability || "" },
+        physical_dependence: { level: null as RiskLevel | null, description: hp.dependence_liability || "" },
       }
     : hp.addiction || { psychological: { level: null, description: "" }, physical_dependence: { level: null, description: "" } };
 
   // Ensure structure even if fields are missing in new schema
-  const normalizedAddiction = {
-    psychological: addiction.psychological || { level: null, description: "" },
-    physical_dependence: addiction.physical_dependence || { level: null, description: "" }
+  const normalizedAddiction: NormalizedHarmPotential["addiction"] = {
+    psychological: {
+      level: addiction.psychological?.level ?? null,
+      description: addiction.psychological?.description ?? "",
+    },
+    physical_dependence: {
+      level: addiction.physical_dependence?.level ?? null,
+      description: addiction.physical_dependence?.description ?? "",
+    },
   };
 
   // Normalize ld50 - check new lethal_dosage format first, fall back to legacy ld50
@@ -119,13 +148,20 @@ export function normalizeHarmPotential(article: SubstanceArticle): NormalizedHar
   const organToxicityString = typeof hp.toxicity?.organ_toxicity === "string" ? hp.toxicity.organ_toxicity : "";
 
   // Normalize carcinogenicity
+  const rawCarcinogenicity = hp.toxicity?.carcinogenicity;
   const carcinogenicity =
-    typeof hp.toxicity?.carcinogenicity === "string"
-      ? { level: null as CarcinogenicityLevel | null, evidence: null, description: hp.toxicity.carcinogenicity }
-      : hp.toxicity?.carcinogenicity || { level: null, evidence: null, description: "" };
+    typeof rawCarcinogenicity === "string"
+      ? { level: null as CarcinogenicityLevel | null, evidence: null, description: rawCarcinogenicity }
+      : rawCarcinogenicity && typeof rawCarcinogenicity === "object"
+        ? {
+            level: (rawCarcinogenicity as CarcinogenicityObject).level ?? null,
+            evidence: (rawCarcinogenicity as CarcinogenicityObject).evidence ?? null,
+            description: (rawCarcinogenicity as CarcinogenicityObject).description ?? "",
+          }
+        : { level: null as CarcinogenicityLevel | null, evidence: null, description: "" };
 
   // Normalize antibiotic_function (new schema only)
-  const antibioticFunction = hp.toxicity?.antibiotic_function || { level: null, description: "" };
+  const antibioticFunction = normalizeToxicityDescriptor(hp.toxicity?.antibiotic_function);
 
   // Normalize psychosis and seizure - handle both old (under risks) and new (top-level) schema
   const normalizeRiskField = (

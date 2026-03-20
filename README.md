@@ -18,12 +18,12 @@ Front-end for the dose.wiki harm-reduction knowledge base. A React + Tailwind ap
 
 ## Platform Overview
 
-- **Type**: Client-side single page application with Convex backend
+- **Type**: Next.js App Router application
 - **Primary data source**: Convex database (679 substances, 164 trip reports, 233 subjective effects)
 - **Routing**: Path-based URLs (`/lsd`, `/effects`, `/reports/{slug}`, `/dev/articles`)
 - **Styling**: Tailwind CSS with dark cosmic theme and fuchsia accent gradients
 - **Icons**: [Lucide React](https://lucide.dev/) for consistency
-- **Offline**: `npm run build:inline` outputs a single self-contained HTML file
+- **Offline**: No separate offline single-file build is maintained
 
 ## Data Architecture
 
@@ -36,6 +36,7 @@ Convex Database
   ├── tripReports        → 164 trip reports with timelines
   ├── subjectiveEffects  → 233 effect articles with VCode content
   ├── replications       → Effect videos/images with file storage
+  ├── memberships        → Auth.js-backed editor/admin roles
   ├── indexLayouts       → Category page arrangements
   ├── siteConfig         → About page and global settings
   ├── prompts            → AI generation prompts (12 sections)
@@ -130,25 +131,60 @@ Six tabs at `/dev`:
 | Command | Description |
 |---------|-------------|
 | `npm install` | Install dependencies (Node 20 LTS) |
-| `npm run dev` | Dev server at http://localhost:5173 |
-| `npm run build` | Production build to `dist/` |
-| `npm run build:inline` | Single-file HTML for offline |
+| `npm run dev` | Next.js dev server at http://localhost:3000 |
+| `npm run next:dev` | Alias for the Next.js dev server |
+| `npm run build` | Canonical production build |
+| `npm run next:build` | Alias for the Next.js production build |
+| `npm run start` | Start the built Next.js app |
 | `npm run test` | Run Vitest tests |
 | `npm run lint` | ESLint with a11y rules |
+| `npm run typecheck` | Run TypeScript without emitting |
 
-**Environment**: Requires `VITE_CONVEX_URL` for database connection.
+**Environment**: The Next.js auth path uses `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_ADMIN_EMAILS`, and `NEXTAUTH_URL`. The Next `/dev` shell can use `NEXT_PUBLIC_CONVEX_URL` explicitly, or it falls back to `VITE_CONVEX_URL`. On Vercel previews and production, `AUTH_SECRET` must be present or any route that reads the Auth.js session will fail at runtime; if `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are missing, `/sign-in` renders a disabled GitHub sign-in state and `/dev` remains protected.
+
+**Migration note**: `src/app/` is now the primary shell. The legacy Vite shell and offline inline build path have been retired.
+
+### Auth.js Editor Access
+
+- Active Next auth config lives in `auth.ts`.
+- `src/app/sign-in` and `src/app/dev` are the new Auth.js-backed editor entry points.
+- Convex `memberships` stores role assignments (`admin`, `editor`, `viewer`).
+- `AUTH_ADMIN_EMAILS` bootstraps first admin accounts on sign-in without needing a manual seed script.
+- Protected Next API routes now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-user-profile/route.ts`, and `src/app/api/test-env/route.ts`.
+- Those protected routes require an Auth.js session plus a Convex-backed `admin` or `editor` role.
+- `src/app/api/reagent-proxy/route.ts` replaces the public reagent proxy in the Next shell.
+- The Next editor now mounts at `src/app/dev/[[...segments]]/page.tsx` and preserves deep links like `/dev/articles/lsd`.
+- If GitHub OAuth is not configured locally, the sign-in screen can expose a development-only Auth.js credentials fallback backed by the legacy password env vars.
+- Shared GitHub commit helpers now live in `lib/server/github/` and are used by the Next route handlers directly.
 
 ## Development Workflow
 
 1. **Read CLAUDE.md** - Contains operational constraints and patterns
 2. **Consult style guide** - `notes-and-plans/guides/dosewiki-visual-style-guide.md`
-3. **Source from Convex** - Never hard-code substance data
-4. **Run tests** - `npm run test`
-5. **Build inline** - `npm run build:inline` after changes
+3. **Read contributor guide** - `docs/next-auth-convex-contributor-guide.md`
+4. **Source from Convex** - Never hard-code substance data
+5. **Run tests** - `npm run test`
+6. **Build** - `npm run build` after changes
+
+### Next.js Data Fetching Rules
+
+- Public Next routes should use `lib/convex/serverClient.ts` and `lib/convex/publicData.ts` for server-side Convex reads.
+- Reuse `lib/next/metadata.ts` and `lib/next/sitemap.ts` when adding metadata or future sitemap routes.
+- Keep client-side Convex hooks for live or interaction-heavy surfaces such as editor tooling, search interactions, and similar islands.
+- Do not reintroduce `SubstanceIndex.json` as the primary source for public Next rendering.
+
+### Next.js SEO Rules
+
+- Public metadata should be generated with `buildPageMetadata` in `lib/next/metadata.ts`.
+- `src/app/sitemap.ts` and `src/app/robots.ts` are the canonical SEO routes for the active app shell.
 
 ## Scripts
 
 See [scripts/README.md](scripts/README.md) for full documentation.
+
+## Contributor Guide
+
+- `docs/next-auth-convex-contributor-guide.md` summarizes the route, auth, and data ownership rules for the current architecture.
 
 ### Batch Generation
 ```bash

@@ -92,12 +92,14 @@ export const fullArticleWithDosage: SubstanceArticle = {
     cross_tolerance: ['Psilocybin', 'Mescaline'],
   },
   harm_potential: {
-    ...createEmptyArticle().harm_potential,
     addiction: {
-      ...createEmptyArticle().harm_potential.addiction,
       psychological: {
         level: 'extremely_low',
         description: 'Low addiction potential.',
+      },
+      physical_dependence: {
+        level: null,
+        description: '',
       },
     },
   },

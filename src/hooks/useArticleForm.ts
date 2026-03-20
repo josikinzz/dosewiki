@@ -14,6 +14,7 @@ import { createEmptyArticle } from "../data/schema";
 const createEmptyDosageRoute = () => ({
   route: "",
   bioavailability: "",
+  bioavailability_notes: "",
   dose_ranges: {
     threshold: { min: null, max: null, unit: "" },
     light: { min: null, max: null, unit: "" },
@@ -26,6 +27,8 @@ const createEmptyDosageRoute = () => ({
 
 const createEmptyDurationRoute = () => ({
   route: "",
+  half_life: "",
+  half_life_notes: "",
   stages: {
     onset: { min: null, max: null, unit: "" },
     come_up: { min: null, max: null, unit: "" },
@@ -104,7 +107,7 @@ export function useArticleForm({
   }, []);
 
   const methods = useForm<SubstanceArticle>({
-    resolver: zodResolver(substanceArticleSchema),
+    resolver: zodResolver(substanceArticleSchema) as never,
     defaultValues: getDefaultValues(article),
     mode: "onBlur",
   });
@@ -166,6 +169,8 @@ export function useArticleForm({
     if (needsSync) {
       const synced = watchedDosageRoutes.map((dosageRoute, index) => ({
         route: dosageRoute.route,
+        half_life: currentDurationRoutes[index]?.half_life ?? "",
+        half_life_notes: currentDurationRoutes[index]?.half_life_notes ?? "",
         stages: currentDurationRoutes[index]?.stages ?? createEmptyDurationRoute().stages,
       }));
       durationRoutes.replace(synced);
@@ -269,7 +274,7 @@ export function useArticleForm({
   );
 
   return {
-    methods,
+    methods: methods as ArticleFormMethods,
     dosageRoutes,
     durationRoutes,
     sourceCitations,

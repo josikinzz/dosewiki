@@ -44,3 +44,4 @@ quotes/
 # Prompt files (Convex-only, not bundled)
 src/data/config/sectionPrompts/*.md
 src/data/config/generatorPrompt.md
+.vercel

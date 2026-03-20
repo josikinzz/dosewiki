@@ -108,13 +108,13 @@ function DoseTiersTable({ route }: { route: DosageRoute }) {
   );
 }
 
-const PLATEAU_TIERS = [
+const PLATEAU_TIERS: Array<{ key: string; label: string; gradientFrom: string; isSigma?: boolean }> = [
   { key: "first_plateau", label: "Plateau 1", gradientFrom: "from-emerald-400/50" },
   { key: "second_plateau", label: "Plateau 2", gradientFrom: "from-sky-400/50" },
   { key: "third_plateau", label: "Plateau 3", gradientFrom: "from-amber-400/50" },
   { key: "fourth_plateau", label: "Plateau 4", gradientFrom: "from-orange-400/50" },
   { key: "fifth_plateau", label: "Plateau Sigma", gradientFrom: "from-rose-500/60", isSigma: true },
-] as const;
+];
 
 /** Plateau dosing table (DXM-specific) */
 function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<SubstanceArticle["dosage"]["plateau_dosing"]> }) {

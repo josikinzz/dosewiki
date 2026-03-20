@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from "react";
-import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
+import { useFormContext, useFieldArray } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 import yaml from "yaml";
 

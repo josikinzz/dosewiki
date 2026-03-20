@@ -797,7 +797,7 @@ function createManualIndexGroups(
         columns: category.columns,
       } satisfies DosageCategoryGroup;
     })
-    .filter((group): group is DosageCategoryGroup => group !== null);
+    .filter((group) => group !== null) as DosageCategoryGroup[];
 }
 
 function buildClassificationLookups(substanceRecords: SubstanceRecord[]) {

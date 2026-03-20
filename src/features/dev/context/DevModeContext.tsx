@@ -79,7 +79,15 @@ const deepClone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 // Default empty index config for initial state
 const EMPTY_INDEX_CONFIG: ManualIndexConfig = { version: 1, categories: [] };
 
-export function DevModeProvider({ children }: { children: ReactNode }) {
+export function DevModeProvider({
+  children,
+  navigate,
+  getCurrentPath,
+}: {
+  children: ReactNode;
+  navigate?: (path: string) => void;
+  getCurrentPath?: () => string;
+}) {
   // Get library from SubstanceIndexProvider (already in tree via LazySubstanceIndexProvider)
   // LazySubstanceIndexProvider handles the lazy loading based on route detection
   const library = useLibrary();
@@ -199,6 +207,32 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   const [generatorPrompt, setGeneratorPrompt] = useState<string>(() => generatorPromptSource);
   const lastVisitedPathRef = useRef<string | null>(null);
 
+  const readCurrentPath = useCallback(() => {
+    if (getCurrentPath) {
+      return getCurrentPath();
+    }
+
+    if (typeof window !== "undefined") {
+      return window.location.pathname || "/substances";
+    }
+
+    return "/substances";
+  }, [getCurrentPath]);
+
+  const navigateToPath = useCallback((path: string) => {
+    if (navigate) {
+      navigate(path);
+      return;
+    }
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.history.pushState(null, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [navigate]);
+
   const isDevPath = useCallback((value: string | null | undefined) => {
     if (typeof value !== "string") {
       return false;
@@ -207,11 +241,11 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const open = useCallback((options?: DevModeOpenOptions) => {
-    if (typeof window === "undefined") {
+    const currentPath = readCurrentPath();
+    if (!currentPath) {
       return;
     }
 
-    const currentPath = window.location.pathname || "/substances";
     if (!isDevPath(currentPath)) {
       lastVisitedPathRef.current = currentPath;
     }
@@ -220,33 +254,33 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
     const slug = options?.slug?.trim();
     const nextPath = slug && slug.length > 0 ? `/dev/${requestedTab}/${slug}` : `/dev/${requestedTab}`;
 
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState(null, "", nextPath);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+    if (currentPath !== nextPath) {
+      navigateToPath(nextPath);
       return;
     }
 
-    if (!isDevPath(window.location.pathname)) {
-      window.history.pushState(null, "", nextPath);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+    if (!isDevPath(currentPath)) {
+      navigateToPath(nextPath);
       return;
     }
-
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  }, [isDevPath]);
+  }, [isDevPath, navigateToPath, readCurrentPath]);
 
   const close = useCallback(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
+    const currentPath = readCurrentPath();
     const fallback = lastVisitedPathRef.current && !isDevPath(lastVisitedPathRef.current)
       ? lastVisitedPathRef.current
       : "/substances";
 
-    if (window.location.pathname !== fallback) {
-      window.history.pushState(null, "", fallback);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+    if (currentPath !== fallback) {
+      navigateToPath(fallback);
+      return;
+    }
+
+    if (navigate) {
+      return;
+    }
+
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -256,7 +290,7 @@ export function DevModeProvider({ children }: { children: ReactNode }) {
       window.history.pushState(null, "", "/substances");
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
-  }, [isDevPath]);
+  }, [isDevPath, navigate, navigateToPath, readCurrentPath]);
 
   const updateArticleAt = useCallback((index: number, nextArticle: ArticleRecord) => {
     hasLocalEditsRef.current = true; // Mark that user has unsaved edits

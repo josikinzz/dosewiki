@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import { Icon } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
 import { VCodeRenderer } from "../vcode";
 import {
@@ -12,7 +10,7 @@ import {
   ReplicationGallery,
 } from "../components";
 import { useSubjectiveEffect } from "@/hooks/useSubjectiveEffects";
-import type { DosageCategoryGroup, EffectDetail } from "@/data/builders/library";
+import type { EffectDetail } from "@/data/builders/library";
 import { cardAnimation } from "@/constants/motion";
 
 /**
@@ -252,6 +250,7 @@ export function EffectArticlePage({
                         preload="metadata"
                       >
                         <source src={audio.resource} />
+                        <track kind="captions" />
                       </audio>
                     </div>
                   ))}

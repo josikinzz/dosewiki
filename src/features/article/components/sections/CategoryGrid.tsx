@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
 import { IndexCardSection, IndexCardList, IndexCardListItem } from "@/components/common/IndexCard";
 
+const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
+
 // Note: CategoryGrid maintains its own header implementation due to unique requirements:
 // - Copy-to-clipboard on icon click
 // - Selectable category titles (onSelectCategory)
@@ -325,7 +327,7 @@ export function CategoryGrid({
 
   // Stable reference for format function
   const memoizedFormatDrugLabel = useCallback(
-    (drug: DosageCategoryGroup["drugs"][number]) => drug.name,
+    (drug: DosageCategoryGroup["drugs"][number]) => formatDrugLabel(drug),
     []
   );
 

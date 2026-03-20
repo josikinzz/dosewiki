@@ -177,6 +177,14 @@ function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
 
 function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
   const { carcinogenicity } = toxicity;
+  const evidence = carcinogenicity.evidence && typeof carcinogenicity.evidence === 'object'
+    ? carcinogenicity.evidence as {
+        human_epidemiological?: 'none' | 'negative' | 'limited' | 'positive';
+        animal_models?: { species?: string[]; level?: 'none' | 'negative' | 'limited' | 'positive' };
+        in_vitro?: { type?: string; assay_type?: string };
+        mechanistic?: { basis?: string; level?: 'none' | 'negative' | 'limited' | 'positive' };
+      }
+    : null;
 
   // Hide if level is unknown or no_evidence
   if (carcinogenicity.level === 'unknown' || carcinogenicity.level === 'no_evidence') return null;
@@ -200,51 +208,51 @@ function CarcinogenicityCard({ toxicity }: { toxicity: NormalizedHarmPotential['
         <p className="text-sm text-white/80">{carcinogenicity.description}</p>
       )}
 
-      {carcinogenicity.evidence && (
+      {evidence && (
         <div className="mt-2 rounded-lg bg-black/20 p-3 text-sm">
           <div className="mb-2 text-xs font-bold uppercase tracking-wider text-white/50">Evidence Basis</div>
           <div className="grid gap-y-2">
             <EvidenceLevelIndicator
-              level={carcinogenicity.evidence.human_epidemiological}
+              level={evidence.human_epidemiological}
               label="Human Epidemiological"
             />
 
-            {carcinogenicity.evidence.animal_models && (
+            {evidence.animal_models && (
               <div className="flex items-center justify-between">
                 <span className="text-white/60">Animal Models</span>
                 <div className="text-right">
-                  <span className={EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.animal_models.level || "none"]?.color || "text-white/60"}>
-                    {carcinogenicity.evidence.animal_models.level
-                      ? EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.animal_models.level]?.label || "None"
+                  <span className={EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level || "none"]?.color || "text-white/60"}>
+                    {evidence.animal_models.level
+                      ? EVIDENCE_LEVEL_CONFIG[evidence.animal_models.level]?.label || "None"
                       : "None"}
                   </span>
-                  {carcinogenicity.evidence.animal_models.species?.length > 0 && (
+                  {evidence.animal_models.species?.length > 0 && (
                     <div className="text-xs text-white/40">
-                      ({carcinogenicity.evidence.animal_models.species.join(", ")})
+                      ({evidence.animal_models.species.join(", ")})
                     </div>
                   )}
                 </div>
               </div>
             )}
 
-            {carcinogenicity.evidence.in_vitro && (
+            {evidence.in_vitro && (
               <div className="flex items-center justify-between">
                 <span className="text-white/60">In Vitro</span>
                 <div className="text-right text-white/80">
-                  {carcinogenicity.evidence.in_vitro.type}
-                  {carcinogenicity.evidence.in_vitro.assay_type && (
-                    <div className="text-xs text-white/40">{carcinogenicity.evidence.in_vitro.assay_type}</div>
+                  {evidence.in_vitro.type}
+                  {evidence.in_vitro.assay_type && (
+                    <div className="text-xs text-white/40">{evidence.in_vitro.assay_type}</div>
                   )}
                 </div>
               </div>
             )}
 
-            {carcinogenicity.evidence.mechanistic && (
+            {evidence.mechanistic && (
               <div className="flex items-center justify-between">
                 <span className="text-white/60">Mechanistic</span>
-                <span className={EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level || "none"]?.color || "text-white/60"}>
-                  {carcinogenicity.evidence.mechanistic.level
-                    ? EVIDENCE_LEVEL_CONFIG[carcinogenicity.evidence.mechanistic.level]?.label || "None"
+                <span className={EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level || "none"]?.color || "text-white/60"}>
+                  {evidence.mechanistic.level
+                    ? EVIDENCE_LEVEL_CONFIG[evidence.mechanistic.level]?.label || "None"
                     : "None"}
                 </span>
               </div>

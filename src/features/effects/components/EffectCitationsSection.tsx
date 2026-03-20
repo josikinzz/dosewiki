@@ -55,18 +55,6 @@ export function EffectCitationsSection({
     }
   };
 
-  // Combine all items into a single list with type markers
-  type CombinedItem = 
-    | { type: "seeAlso"; data: SeeAlso; index: number }
-    | { type: "externalLink"; data: ExternalLink; index: number }
-    | { type: "citation"; data: Citation; index: number };
-
-  const allItems: CombinedItem[] = [
-    ...seeAlso.map((item, index) => ({ type: "seeAlso" as const, data: item, index })),
-    ...externalLinks.map((item, index) => ({ type: "externalLink" as const, data: item, index })),
-    ...citations.map((item, index) => ({ type: "citation" as const, data: item, index })),
-  ];
-
   return (
     <SectionCard delay={0.3}>
       {/* Header with toggle */}

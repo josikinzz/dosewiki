@@ -1,5 +1,5 @@
 import { useState, useCallback, KeyboardEvent } from "react";
-import { Icon } from "../../../../common/Icon";
+import { Icon } from "@/components/common/Icon";
 import type { FieldMeta } from "@/data/schema";
 
 interface TagArrayFieldProps {

@@ -40,7 +40,6 @@ export function IntLink({
     // Handle EffectIndex-style paths
     if (path.startsWith("/effects/")) {
       // /effects/{slug} -> /effects/{slug} (keep as-is for new effect articles)
-      path = path;
     } else if (path.startsWith("/substances/")) {
       // /substances/{slug} -> /{slug}
       path = path.replace("/substances/", "/");

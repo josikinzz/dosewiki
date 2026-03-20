@@ -589,19 +589,18 @@ function buildCitations(citations: Citation[] | undefined): CitationEntry[] {
     return [];
   }
 
-  return citations
-    .map((citation) => {
+  return citations.reduce<CitationEntry[]>((entries, citation) => {
       const label = cleanString(citation.name);
       if (!label) {
-        return null;
+        return entries;
       }
       const href = cleanString(citation.url);
-      return {
+      entries.push({
         label,
         href,
-      };
-    })
-    .filter((entry): entry is CitationEntry => entry !== null);
+      });
+      return entries;
+    }, []);
 }
 
 function buildSourceCitations(sourceCitations: Citation[] | undefined): CitationEntry[] {
@@ -609,19 +608,18 @@ function buildSourceCitations(sourceCitations: Citation[] | undefined): Citation
     return [];
   }
 
-  return sourceCitations
-    .map((citation) => {
+  return sourceCitations.reduce<CitationEntry[]>((entries, citation) => {
       const label = cleanString(citation.name);
       if (!label) {
-        return null;
+        return entries;
       }
       const href = cleanString(citation.url);
-      return {
+      entries.push({
         label,
         href,
-      };
-    })
-    .filter((entry): entry is CitationEntry => entry !== null);
+      });
+      return entries;
+    }, []);
 }
 
 function buildPlaceholder(name: string): string {
@@ -804,7 +802,9 @@ export function buildSubstanceRecord(article: SubstanceArticle): SubstanceRecord
   );
 
   // Get addiction summary from harm_potential
-  const addictionSummary = cleanString(harmPotential?.addiction_liability) ?? "";
+  const addictionSummary = typeof (harmPotential as { addiction_liability?: unknown } | null | undefined)?.addiction_liability === "string"
+    ? cleanString((harmPotential as { addiction_liability?: string }).addiction_liability) ?? ""
+    : "";
 
   // Flatten subjective effects
   const subjectiveEffects = flattenSubjectiveEffects(article.subjective_effects);

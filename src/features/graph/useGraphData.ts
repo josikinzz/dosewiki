@@ -5,6 +5,19 @@ import type { GraphNode, GraphLink, GraphData, HierarchyData, SubstanceData } fr
 
 const ROOT_ID = "root";
 
+const countEffectGroups = (groups: Record<string, { effects?: Array<unknown> }>): number =>
+  Object.values(groups).reduce((total, group) => total + (group.effects?.length ?? 0), 0);
+
+const countSensoryEffects = (sensory: {
+  visual: { subcategories: Record<string, { effects?: Array<unknown> }> };
+  auditory: { subcategories: Record<string, { effects?: Array<unknown> }> };
+  tactile: { subcategories: Record<string, { effects?: Array<unknown> }> };
+  olfactory: { subcategories: Record<string, { effects?: Array<unknown> }> };
+  gustatory: { subcategories: Record<string, { effects?: Array<unknown> }> };
+  multisensory: { subcategories: Record<string, { effects?: Array<unknown> }> };
+}): number =>
+  Object.values(sensory).reduce((total, sense) => total + countEffectGroups(sense.subcategories), 0);
+
 export function useGraphData() {
   const { articles } = useLibrary();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set([ROOT_ID]));
@@ -23,9 +36,9 @@ export function useGraphData() {
       const pClasses = article.classification?.psychoactive_class ?? [];
       const cClasses = article.classification?.chemical_class ?? [];
       const effectCount =
-        (article.subjective_effects?.physical?.length ?? 0) +
-        (article.subjective_effects?.cognitive?.length ?? 0) +
-        (article.subjective_effects?.sensory?.length ?? 0);
+        countEffectGroups(article.subjective_effects?.physical ?? {}) +
+        countEffectGroups(article.subjective_effects?.cognitive ?? {}) +
+        countSensoryEffects(article.subjective_effects.sensory);
 
       // Store substance data
       substances.set(slug, {

@@ -89,7 +89,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   const { substanceRecords, allSubstanceRecords } = useLibrary();
 
   // Load substance source list from Convex
-  const { substances: allSourceSubstances, isLoading: isLoadingSources } = useSubstanceSourceList();
+  const { substances: allSourceSubstances } = useSubstanceSourceList();
 
   // Compute visible substances based on priority toggle
   const substances = useMemo(() => {
@@ -445,7 +445,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     }
   }, [streamedOutput, articles, applyArticlesTransform, outputViewMode, commitPanel]);
 
-  const apiKeyInputId = "articles-openrouter-key";
+  const openRouterCredentialInputId = "articles-openrouter-credential";
   const modelSelectId = "articles-model";
 
   // Helper to get all sources as array for section generators
@@ -520,12 +520,12 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={apiKeyInputId} className="mb-1.5 block text-sm font-medium text-white/70">
+            <label htmlFor={openRouterCredentialInputId} className="mb-1.5 block text-sm font-medium text-white/70">
               OpenRouter API Key
             </label>
             <div className="relative">
               <Input
-                id={apiKeyInputId}
+                id={openRouterCredentialInputId}
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}

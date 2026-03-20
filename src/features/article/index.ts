@@ -4,4 +4,3 @@ export * from "./components/sections";
 
 // Pages
 export { SubstanceArticlePage } from "./pages/SubstanceArticlePage";
-export { SubstanceArticle } from "./pages/SubstanceArticle";

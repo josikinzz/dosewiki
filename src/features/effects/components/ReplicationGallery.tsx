@@ -6,7 +6,6 @@ import LightGallery from 'lightgallery';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgVideo from 'lightgallery/plugins/video';
 import { api } from "../../../../convex/_generated/api";
-import { type ReplicationWithUrl } from '@/types/replications';
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-thumbnail.css';
 import 'lightgallery/css/lg-video.css';
@@ -40,7 +39,7 @@ interface ReplicationGalleryProps {
  */
 export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGalleryProps) {
   const lightGalleryRef = useRef<HTMLDivElement>(null);
-  const lgInstanceRef = useRef<any>(null);
+  const lgInstanceRef = useRef<ReturnType<typeof LightGallery> | null>(null);
 
   // Fetch replications for this effect
   const replications = useQuery(api.replications.getReplicationsByEffect, {
@@ -87,15 +86,14 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
       lgInstanceRef.current = LightGallery(galleryElement, {
         plugins: [lgThumbnail, lgVideo],
         speed: 500,
-        elementClassNames: 'replication-item',
-        loadYoutubeThumbnail: false,
+        loadYouTubeThumbnail: false,
         preload: 2,
         subHtmlFontSize: '14px',
         thumbWidth: 80,
-        thumbHeight: 80,
+        thumbHeight: '80px',
         thumbContmargin: 5,
         thumbMargin: 5,
-      });
+      } as unknown as Parameters<typeof LightGallery>[1]);
     } catch (error) {
       console.error('Error initializing Lightgallery:', error);
     }
@@ -154,7 +152,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
             return (
               <a
                 key={rep._id}
-                href="#"
+                href={rep.url}
                 className="replication-item group relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer aspect-square"
                 data-video={videoData}
                 data-poster={thumbnailUrl || ''}

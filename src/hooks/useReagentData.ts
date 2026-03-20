@@ -41,9 +41,19 @@ async function fetchReagentData(
       if (res.ok) {
         return res.json();
       }
-      // If 404, continue to next candidate
+
+      if (res.status === 404) {
+        continue;
+      }
+
+      if (res.status === 429) {
+        return null;
+      }
+
+      return null;
     } catch (err) {
       console.warn(`ProtestKit API error for ${name}:`, err);
+      return null;
     }
   }
 
@@ -70,6 +80,6 @@ export function useReagentData(
     enabled: Boolean(substanceName),
     staleTime: 10 * 60 * 1000,  // 10 minutes - reagent data rarely changes
     gcTime: 60 * 60 * 1000,     // 1 hour cache
-    retry: 2,
+    retry: false,
   });
 }

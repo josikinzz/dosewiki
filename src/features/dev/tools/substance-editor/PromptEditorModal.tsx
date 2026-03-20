@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useSectionPrompt, type UsePromptResult } from "@/hooks/usePrompts";
+import { useSectionPrompt } from "@/hooks/usePrompts";
 import { useQuote, type QuoteSection } from "@/hooks/useQuotes";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 

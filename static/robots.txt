@@ -1,0 +1,11 @@
+# dose.wiki Robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://dose.wiki/sitemap.xml
+
+Disallow: /dev
+Disallow: /dev/
+Disallow: /sign-in
+Disallow: /unauthorized
+Disallow: /share/

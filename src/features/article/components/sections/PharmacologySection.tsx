@@ -1,14 +1,8 @@
 import { memo, useState } from "react";
-import Masonry from "react-masonry-css";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
-
-const MASONRY_BREAKPOINTS = {
-  default: 2,
-  768: 1,
-};
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
@@ -41,7 +35,6 @@ export const PharmacologySection = memo(function PharmacologySection({
   article,
   onSelectMechanism,
 }: PharmacologySectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
   const { pharmacology } = article;
 
@@ -55,13 +48,8 @@ export const PharmacologySection = memo(function PharmacologySection({
       .map((paragraph) => paragraph.trim())
       .filter(Boolean)
     : [];
-  const hasAdditionalSummary = summaryParagraphs.length > 1;
-  const hasSupplementaryCards =
-    hasReceptorProfile || hasPharmacokinetics || hasMetabolites;
-  const canCollapse = hasSummary && (hasAdditionalSummary || hasSupplementaryCards);
-  const visibleSummaryParagraphs = canCollapse && !isExpanded
-    ? summaryParagraphs.slice(0, 1)
-    : summaryParagraphs;
+  const hasPharmacodynamics = hasSummary || hasReceptorProfile;
+  const hasPharmacokineticsBlock = hasPharmacokinetics || hasMetabolites;
 
   const hasAnyContent =
     hasSummary || hasReceptorProfile || hasPharmacokinetics || hasMetabolites;
@@ -74,142 +62,127 @@ export const PharmacologySection = memo(function PharmacologySection({
     <div id="pharmacology" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="mingcute:settings-6-line" title="Pharmacology" />
 
-      {/* Plain-language summary */}
-      {hasSummary && (
-        <div className="space-y-3 text-sm leading-relaxed text-white/80">
-          {visibleSummaryParagraphs.map((paragraph, idx) => (
-            <p key={idx}>{paragraph}</p>
-          ))}
+      {hasPharmacodynamics && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Icon icon="lucide:brain-circuit" size={18} className="text-fuchsia-200" />
+            <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+              Pharmacodynamics
+            </h3>
+          </div>
 
-          {canCollapse && !isExpanded && (
-            <div className="flex justify-center pt-1.5">
-              <ExpandButton
-                isExpanded={isExpanded}
-                onToggle={() => setIsExpanded(true)}
-              />
+          {hasSummary && (
+            <div className="space-y-3 text-sm leading-relaxed text-white/80">
+              {summaryParagraphs.map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
             </div>
           )}
-        </div>
-      )}
 
-      {(isExpanded || !canCollapse) && (
-        <>
-          <Masonry
-            breakpointCols={MASONRY_BREAKPOINTS}
-            className="flex w-full gap-4"
-            columnClassName="flex flex-col gap-4"
-          >
-            {/* Receptor Profile (merged MoA + binding) */}
-            {hasReceptorProfile && (
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
-                <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                  <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
-                  Receptor Profile
-                </h3>
-                <ul className="space-y-2">
-                  {pharmacology.receptor_profile.map((entry, idx) => {
-                    const tag = entry.tag;
-                    const { base, qualifier } = tag
-                      ? parseMechanismEntry(tag)
-                      : { base: entry.receptor, qualifier: undefined };
-                    const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
+          {hasReceptorProfile && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+              <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
+                Receptor Profile
+              </h4>
+              <ul className="space-y-2">
+                {pharmacology.receptor_profile.map((entry, idx) => {
+                  const tag = entry.tag;
+                  const { base, qualifier } = tag
+                    ? parseMechanismEntry(tag)
+                    : { base: entry.receptor, qualifier: undefined };
+                  const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
 
-                    return (
-                      <li key={idx} className="flex gap-2 text-sm text-white/80">
-                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
-                        <div className="min-w-0 flex-1">
-                          {onSelectMechanism && tag ? (
-                            <button
-                              type="button"
-                              className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
-                              onClick={() => onSelectMechanism(mechanismToSlug(tag))}
-                            >
-                              {base}
-                              {qualifier && (
-                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                  {qualifier}
-                                </span>
-                              )}
-                            </button>
-                          ) : (
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {base}
-                              {qualifier && (
-                                <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
-                                  {qualifier}
-                                </span>
-                              )}
-                            </div>
-                          )}
+                  return (
+                    <li key={idx} className="flex gap-2 text-sm text-white/80">
+                      <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
+                      <div className="min-w-0 flex-1">
+                        {onSelectMechanism && tag ? (
+                          <button
+                            type="button"
+                            className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
+                            onClick={() => onSelectMechanism(mechanismToSlug(tag))}
+                          >
+                            {base}
+                            {qualifier && (
+                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                {qualifier}
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {base}
+                            {qualifier && (
+                              <span className="rounded-full bg-fuchsia-500/20 px-1.5 py-0.5 text-[10px] font-medium text-fuchsia-300">
+                                {qualifier}
+                              </span>
+                            )}
+                          </div>
+                        )}
 
-                          {detailItems.length > 0 && (
-                            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-white/55 marker:text-white/35">
-                              {detailItems.map((detail, detailIdx) => (
-                                <li key={detailIdx} className="leading-relaxed">
-                                  {detail}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {/* Pharmacokinetics & Metabolites */}
-            {(hasPharmacokinetics || hasMetabolites) && (
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
-                <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
-                  <Icon icon="material-symbols:metabolism-rounded" size={20} className="text-fuchsia-200" />
-                  Pharmacokinetics
-                </h3>
-                {hasPharmacokinetics && (
-                  <p className="text-sm leading-relaxed text-white/80">{pharmacology.pharmacokinetics}</p>
-                )}
-                {hasMetabolites && (
-                  <div className="mt-3">
-                    {isMetabolitesExpanded && (
-                      <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                        <div className="mt-4">
-                          <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
-                            Metabolites
-                          </span>
-                          <ul className="mt-3 list-disc space-y-2.5 pl-5 marker:text-fuchsia-300">
-                            {pharmacology.metabolites.map((met, idx) => (
-                              <li key={idx} className="text-sm leading-relaxed text-white/75">
-                                {met}
+                        {detailItems.length > 0 && (
+                          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-white/55 marker:text-white/35">
+                            {detailItems.map((detail, detailIdx) => (
+                              <li key={detailIdx} className="leading-relaxed">
+                                {detail}
                               </li>
                             ))}
                           </ul>
-                        </div>
+                        )}
                       </div>
-                    )}
-
-                    <div className={`flex justify-center ${isMetabolitesExpanded ? "mt-4" : ""}`}>
-                      <ExpandButton
-                        isExpanded={isMetabolitesExpanded}
-                        onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </Masonry>
-
-          {canCollapse && (
-            <div className="flex justify-center pt-1.5">
-              <ExpandButton
-                isExpanded={isExpanded}
-                onToggle={() => setIsExpanded((expanded) => !expanded)}
-              />
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
-        </>
+        </section>
+      )}
+
+      {hasPharmacokineticsBlock && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Icon icon="material-symbols:metabolism-rounded" size={18} className="text-fuchsia-200" />
+            <h3 className="text-xs font-medium uppercase tracking-[0.18em] text-white/45">
+              Pharmacokinetics
+            </h3>
+          </div>
+
+          {hasPharmacokinetics && (
+            <div className="space-y-3 text-sm leading-relaxed text-white/80">
+              <p>{pharmacology.pharmacokinetics}</p>
+            </div>
+          )}
+
+          {hasMetabolites && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+              <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
+                <Icon icon="lucide:flask-conical" size={20} className="text-fuchsia-200" />
+                Metabolites
+              </h4>
+
+              {isMetabolitesExpanded && (
+                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+                  <ul className="list-disc space-y-2.5 pl-5 marker:text-fuchsia-300">
+                    {pharmacology.metabolites.map((met, idx) => (
+                      <li key={idx} className="text-sm leading-relaxed text-white/75">
+                        {met}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className={`flex justify-center ${isMetabolitesExpanded ? "mt-4" : ""}`}>
+                <ExpandButton
+                  isExpanded={isMetabolitesExpanded}
+                  onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
+                />
+              </div>
+            </div>
+          )}
+        </section>
       )}
     </div>
   );

@@ -13,7 +13,7 @@ export function createEmptyArticle(): SubstanceArticle {
   return {
   id: null,
   title: "",
-  priority: null,
+  priority: "normal",
   index_categories: [],
   identification: {
     common_name: "",
@@ -26,7 +26,7 @@ export function createEmptyArticle(): SubstanceArticle {
     molecular_formula: "",
     molecular_weight: "",
     skeletal_structure_image: "",
-    botanical_name: null
+    botanical_name: ""
   },
   classification: {
     psychoactive_class: [],
@@ -74,24 +74,14 @@ export function createEmptyArticle(): SubstanceArticle {
       }
     },
     cognitive: {},
-    physical: {},
-    progressive_stages: null,
-    attribution: null
+    physical: {}
   },
   comparisons: [],
   pharmacology: {
     summary: "",
     receptor_profile: [],
     pharmacokinetics: "",
-    metabolites: [],
-    protein_binding: null,
-    volume_of_distribution: null,
-    route_bioavailability: null,
-    route_half_life: null,
-    route_half_life_notes: null,
-    route_bioavailability_notes: null,
-    bioavailability_notes: null,
-    half_life: null
+    metabolites: []
   },
   interactions: {
     dangerous: [],
@@ -105,13 +95,10 @@ export function createEmptyArticle(): SubstanceArticle {
     baseline_tolerance: "",
     cross_tolerance: []
   },
-  harm_potential: null,
-  history_culture: null,
   legality: {
     international: [],
     countries: {}
   },
-  source_citations: null,
   citations: []
 };
 }

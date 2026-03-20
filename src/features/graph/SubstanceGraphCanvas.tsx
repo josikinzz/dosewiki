@@ -57,7 +57,7 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
       .attr("transform", (d) => `translate(${d.x ?? 0}, ${d.y ?? 0})`);
   }, []);
 
-  const { getNodes, getLinks, fixNode, unfixNode, reheat } = useGraphSimulation(
+  const { getNodes, getLinks, fixNode, reheat } = useGraphSimulation(
     { nodes, links },
     { width, height, onTick: handleTick }
   );
@@ -147,7 +147,6 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
       // Calculate tooltip position
       if (containerRef.current && svgRef.current) {
         const transform = zoomTransform(svgRef.current);
-        const containerRect = containerRef.current.getBoundingClientRect();
         const x = (node.x ?? 0) * transform.k + transform.x;
         const y = (node.y ?? 0) * transform.k + transform.y;
 

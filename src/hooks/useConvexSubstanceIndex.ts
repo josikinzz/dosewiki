@@ -98,12 +98,9 @@ export function useSaveConvexSubstances() {
  * Hook to replace all substances in Convex (bulk sync).
  */
 export function useReplaceAllConvexSubstances() {
-  const enabled = isConvexEnabled();
-  const mutation = useMutation(api.substanceIndex.replaceAllSubstances);
-
   return {
-    replaceAllSubstances: enabled ? mutation : null,
-    isEnabled: enabled,
+    replaceAllSubstances: null,
+    isEnabled: false,
   };
 }
 

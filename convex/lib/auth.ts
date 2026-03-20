@@ -2,7 +2,7 @@
  * Authentication utilities for Convex mutations.
  *
  * This module provides dual authentication:
- * 1. JWT authentication via WorkOS AuthKit for frontend users
+ * 1. Convex identity authentication for browser clients when available
  * 2. API key authentication for batch scripts and automated processes
  *
  * SECURITY: This implements VULN-01 (unauthenticated mutations) and VULN-04
@@ -42,7 +42,7 @@ export class AuthError extends Error {
  *
  * Authentication flow:
  * 1. If apiKey is provided, validate against CONVEX_ADMIN_KEY
- * 2. Otherwise, check for JWT identity via ctx.auth.getUserIdentity()
+ * 2. Otherwise, check for Convex identity via ctx.auth.getUserIdentity()
  * 3. Throw AuthError if neither authentication method succeeds
  *
  * @param ctx - Convex mutation context (provides access to auth and env vars)
@@ -77,7 +77,7 @@ export async function requireAuth(
     };
   }
 
-  // JWT authentication for frontend users
+  // Convex identity authentication for frontend users
   const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {

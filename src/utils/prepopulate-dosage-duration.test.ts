@@ -233,7 +233,7 @@ describe('Duration Priority Order', () => {
 
   it('selects highest priority source from real data', () => {
     // Find a substance with multiple duration sources
-    for (const [_slug, data] of Object.entries(parsed.substances)) {
+    for (const [_slug, data] of Object.entries(parsed.substances as Record<string, { duration?: Array<{ source: string }> }>)) {
       if (data.duration?.length > 1) {
         const sources = data.duration.map(d => d.source);
 
@@ -275,7 +275,7 @@ describe('Non-Weight Unit Fallback', () => {
 
 describe('Integration', () => {
   it('script runs without errors in dry-run mode', () => {
-    const scriptPath = path.join(ROOT, 'scripts/prepopulate-dosage-duration.mjs');
+    const scriptPath = path.join(ROOT, 'scripts/prepopulate/prepopulate-dosage-duration.mjs');
 
     // Run the script in dry-run mode
     try {
@@ -296,7 +296,7 @@ describe('Integration', () => {
   });
 
   it('script targets specific substance correctly', () => {
-    const scriptPath = path.join(ROOT, 'scripts/prepopulate-dosage-duration.mjs');
+    const scriptPath = path.join(ROOT, 'scripts/prepopulate/prepopulate-dosage-duration.mjs');
 
     try {
       const output = execSync(`node "${scriptPath}" --dry-run --substance=lsd`, {

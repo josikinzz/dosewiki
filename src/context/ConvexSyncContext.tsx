@@ -64,6 +64,7 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
   });
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingArticlesRef = useRef<SubstanceArticle[] | null>(null);
   const isSyncingRef = useRef(false);
   const isReadyRef = useRef(false);
@@ -92,7 +93,7 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
     }));
 
     try {
-      await saveArticlesMutation({ articles });
+      await saveArticlesMutation({ articles } as never);
       
       const now = new Date();
       setState({
@@ -103,10 +104,15 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
       });
 
       // Return to idle after cooldown
-      setTimeout(() => {
+      if (cooldownTimerRef.current) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+
+      cooldownTimerRef.current = setTimeout(() => {
         setState((prev) => 
           prev.status === "synced" ? { ...prev, status: "idle" } : prev
         );
+        cooldownTimerRef.current = null;
       }, SYNC_COOLDOWN_MS);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sync failed";
@@ -123,6 +129,11 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
   }, [saveArticlesMutation]);
 
   const syncArticles = useCallback((articles: SubstanceArticle[]) => {
+    if (cooldownTimerRef.current) {
+      clearTimeout(cooldownTimerRef.current);
+      cooldownTimerRef.current = null;
+    }
+
     // Store pending articles
     pendingArticlesRef.current = articles;
 
@@ -166,6 +177,9 @@ function ConvexSyncProviderEnabled({ children }: { children: ReactNode }) {
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+      }
+      if (cooldownTimerRef.current) {
+        clearTimeout(cooldownTimerRef.current);
       }
     };
   }, []);

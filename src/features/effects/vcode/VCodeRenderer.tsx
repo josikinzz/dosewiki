@@ -288,6 +288,7 @@ export function VCodeRenderer({
                 className="w-full mt-2"
                 src={node.properties.resource}
               >
+                <track kind="captions" />
                 Your browser does not support the audio element.
               </audio>
             )}
@@ -295,7 +296,7 @@ export function VCodeRenderer({
         );
 
       // Fallback for unknown tags - safely handle missing children
-      default:
+      default: {
         console.warn(`Unknown VCode tag: ${node.name}`);
         const children = renderChildren(node.children);
         // If there are no children, return null
@@ -305,6 +306,7 @@ export function VCodeRenderer({
             {children}
           </span>
         );
+      }
     }
   };
 

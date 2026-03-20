@@ -554,8 +554,17 @@ function normalizeHarmPotential(raw: unknown): SubstanceArticle["harm_potential"
   const normalizeRiskField = (field: unknown) => {
     if (!field || typeof field !== "object") return undefined;
     const f = getObject(field);
+    const normalizedLevel = typeof f.level === "string"
+      ? ({
+          "Very High": "extremely_high",
+          High: "high",
+          Moderate: "moderate",
+          Low: "low",
+          "Very Low": "extremely_low",
+        } as const)[f.level] ?? null
+      : null;
     return {
-      level: f.level as "Low" | "Moderate" | "High" | "Very High" | null ?? null,
+      level: normalizedLevel,
       description: getString(f.description),
     };
   };

@@ -7,13 +7,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
-  type FormEvent,
-  type KeyboardEvent,
-  type MouseEvent,
 } from "react";
-import { useAuthUser } from "@/hooks/useAuthUser";
-import { isAuthEnabled } from "@/lib/convex";
-import { storeReturnUrl } from "@/components/pages/CallbackPage";
 
 import {
   appendChangeLogEntry,
@@ -26,11 +20,13 @@ import {
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "@/utils/data/changelog";
 import { DiffPreview } from "@/components/common/DiffPreview";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
-import { useSaveArticlesMutation, useAuthMutation, useSaveArticlesToConvex, useSaveChangelogToConvex } from "@/hooks/useApiMutations";
+import { useSaveArticlesMutation, useSaveArticlesToConvex, useSaveChangelogToConvex } from "@/hooks/useApiMutations";
 import { isConvexEnabled } from "@/lib/convex";
 import { useQuery as useConvexQuery, useMutation as useConvexMutation } from "convex/react";
+import { signOut, useSession } from "next-auth/react";
 import { api } from "../../../../convex/_generated/api";
 import type { SubstanceArticle } from "@/schema";
+import { canAccessDev } from "@/lib/auth/roles";
 import { createEmptyArticle } from "@/data/schema";
 import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
 import { AboutEditorTab } from "../tools/about/AboutEditorTab";
@@ -117,7 +113,6 @@ type DevModePageProps = {
 };
 
 const MAX_ARTICLE_HISTORY_ENTRIES = 5;
-const PASSWORD_STORAGE_KEY = "dosewiki-dev-password";
 
 const classificationOptions = [
   { value: "psychoactive", label: "Psychoactive class" },
@@ -126,13 +121,6 @@ const classificationOptions = [
 ] as const;
 
 type ClassificationView = (typeof classificationOptions)[number]["value"];
-
-type StoredCredentialsRecord = {
-  username: string;
-  password: string;
-  key?: string;
-  lastVerifiedAt?: string;
-};
 
 const formatArticleLabel = (article: unknown, index: number) => {
   if (!article || typeof article !== "object") {
@@ -289,22 +277,11 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     newArticleFormRef.current?.resetForm();
     setNewArticleValues(createEmptyArticle());
   }, []);
-  // WorkOS authentication state
-  const workosAuth = useAuthUser();
-  const workosAuthEnabled = isAuthEnabled();
-
-  const [username, setUsername] = useState("");
-  const [usernameDraft, setUsernameDraft] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-  const [passwordDraft, setPasswordDraft] = useState("");
-  const [passwordNotice, setPasswordNotice] = useState<ChangeNotice | null>(null);
+  const [, setPasswordNotice] = useState<ChangeNotice | null>(null);
   const [passwordKey, setPasswordKey] = useState<string | null>(null);
-  const [lastVerifiedAt, setLastVerifiedAt] = useState<string | null>(null);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isVerifyingCredentials, setIsVerifyingCredentials] = useState(false);
+  const [, setLastVerifiedAt] = useState<string | null>(null);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const saveArticlesMutation = useSaveArticlesMutation();
-  const authMutation = useAuthMutation();
   const convexSave = useSaveArticlesToConvex();
   const convexChangelogSave = useSaveChangelogToConvex();
   const convexSaveAbout = useConvexMutation(api.siteConfig.saveAbout);
@@ -623,32 +600,28 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     generatorPromptChangelog.markdown,
   ]);
 
-  const trimmedUsername = username.trim();
-  const trimmedAdminPassword = adminPassword.trim();
+  const nextSession = useSession();
+  const nextSessionRole = nextSession.data?.user?.role;
+  const hasNextEditorSession = nextSession.status === "authenticated" && canAccessDev(nextSessionRole);
+  const nextSessionProfileKey = useMemo(() => {
+    const email = nextSession.data?.user?.email?.trim() ?? "";
+    if (email) {
+      const localPart = email.split("@")[0]?.trim() ?? "";
+      const normalized = localPart.replace(/[^a-z0-9-]/gi, "").toUpperCase();
+      if (normalized) {
+        return normalized;
+      }
+    }
+
+    const name = nextSession.data?.user?.name?.trim() ?? "";
+    return name ? name.replace(/[^a-z0-9-]/gi, "").toUpperCase() : "";
+  }, [nextSession.data?.user?.email, nextSession.data?.user?.name]);
   const canonicalProfileKey =
     typeof passwordKey === "string" && passwordKey.trim().length > 0
       ? passwordKey.trim().toUpperCase()
-      : trimmedUsername.length > 0
-        ? trimmedUsername.toUpperCase()
+      : nextSessionProfileKey.length > 0
+        ? nextSessionProfileKey
         : "";
-  const verifiedBadgeText = useMemo(() => {
-    if (!lastVerifiedAt) {
-      return null;
-    }
-
-    const parsed = new Date(lastVerifiedAt);
-    if (Number.isNaN(parsed.getTime())) {
-      return null;
-    }
-
-    return parsed.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }, [lastVerifiedAt]);
   const [profileData, setProfileData] = useState(() => getProfileByKey(canonicalProfileKey));
 
   useEffect(() => {
@@ -665,10 +638,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       .slice(0, 6);
   }, [canonicalProfileKey, changeLogEntries]);
 
-  // User is authenticated via WorkOS or has stored password credentials
-  const hasStoredCredentials =
-    (workosAuthEnabled && workosAuth.isAuthenticated) ||
-    (trimmedUsername.length > 0 && trimmedAdminPassword.length > 0);
+  const hasStoredCredentials = hasNextEditorSession;
   const isCommitDisabled = isSaving || !hasStoredCredentials || hasInvalidJsonDraft || !hasPendingChanges;
   // newArticleValues is already a SubstanceArticle, no conversion needed
   const newArticlePayload = newArticleValues;
@@ -770,86 +740,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
     return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
   }, [changeLogEntries]);
-
-  const localStorageRef = useRef<Storage | null | false>(null);
-
-  const getSafeLocalStorage = useCallback(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    if (localStorageRef.current !== null) {
-      return localStorageRef.current || null;
-    }
-
-    try {
-      const { localStorage } = window;
-      const probeKey = `${PASSWORD_STORAGE_KEY}-probe`;
-      localStorage.setItem(probeKey, "ok");
-      localStorage.removeItem(probeKey);
-      localStorageRef.current = localStorage;
-      return localStorage;
-    } catch {
-      localStorageRef.current = false;
-      return null;
-    }
-  }, []);
-
-  useEffect(() => {
-    const storage = getSafeLocalStorage();
-    if (!storage) {
-      return;
-    }
-
-    try {
-      const storedValue = storage.getItem(PASSWORD_STORAGE_KEY);
-      if (typeof storedValue === "string") {
-        let parsedUsername = "";
-        let parsedPassword = "";
-        let parsedKey: string | null = null;
-        let parsedVerifiedAt: string | null = null;
-
-        try {
-          const parsed = JSON.parse(storedValue);
-          if (parsed && typeof parsed === "object") {
-            const candidateUsername = typeof parsed.username === "string" ? parsed.username.trim() : "";
-            const candidatePassword = typeof parsed.password === "string" ? parsed.password.trim() : "";
-            parsedUsername = candidateUsername;
-            parsedPassword = candidatePassword;
-            if (typeof (parsed as StoredCredentialsRecord).key === "string") {
-              const candidateKey = ((parsed as StoredCredentialsRecord).key ?? "").trim();
-              if (candidateKey.length > 0) {
-                parsedKey = candidateKey;
-              }
-            }
-            if (typeof (parsed as StoredCredentialsRecord).lastVerifiedAt === "string") {
-              const candidateTimestamp = ((parsed as StoredCredentialsRecord).lastVerifiedAt ?? "").trim();
-              if (candidateTimestamp.length > 0 && !Number.isNaN(Date.parse(candidateTimestamp))) {
-                parsedVerifiedAt = candidateTimestamp;
-              }
-            }
-          }
-        } catch {
-          // Legacy password-only value; handle below.
-        }
-
-        if (!parsedPassword) {
-          const legacyPassword = storedValue.trim();
-          parsedPassword = legacyPassword;
-        }
-
-        setUsername(parsedUsername);
-        setUsernameDraft(parsedUsername);
-        setAdminPassword(parsedPassword);
-        setPasswordDraft(parsedPassword);
-        setPasswordKey(parsedKey);
-        setLastVerifiedAt(parsedVerifiedAt);
-        setIsPasswordVisible(false);
-      }
-    } catch {
-      // Ignore storage errors; manual entry still works.
-    }
-  }, [getSafeLocalStorage]);
 
   const normalizedRange = useMemo(() => {
     const start = changeLogFilters.startDate
@@ -981,113 +871,37 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     ? "w-full space-y-5 bg-white/[0.04] md:sticky md:top-24"
     : "w-full space-y-5 bg-white/[0.04]";
 
-  const showPasswordNotice = useCallback(
-    (next: ChangeNotice) => {
-      if (typeof window !== "undefined" && passwordNoticeTimeoutRef.current !== null) {
-        window.clearTimeout(passwordNoticeTimeoutRef.current);
-        passwordNoticeTimeoutRef.current = null;
-      }
-      setPasswordNotice(next);
-      if (typeof window !== "undefined") {
+  const verifyDevCredentials = useCallback(
+    async () => {
+      if (hasNextEditorSession) {
+        const matchedKey = nextSessionProfileKey || "EDITOR";
+        const verifiedAt = new Date().toISOString();
+        const authSessionCredential = "__AUTHJS_SESSION__";
+
+        setPasswordKey(matchedKey);
+        setLastVerifiedAt(verifiedAt);
+        setPasswordNotice({ type: "success", message: `Using Auth.js session for ${matchedKey}.` });
         passwordNoticeTimeoutRef.current = window.setTimeout(() => {
           setPasswordNotice(null);
           passwordNoticeTimeoutRef.current = null;
         }, 4000);
-      }
-    },
-    [],
-  );
-
-  const persistCredentialsToLocalStorage = useCallback(
-    (record: { username: string; password: string; key: string; lastVerifiedAt: string }) => {
-      const storage = getSafeLocalStorage();
-      if (!storage) {
-        return false;
-      }
-
-      try {
-        const payload: StoredCredentialsRecord = {
-          username: record.username,
-          password: record.password,
-          key: record.key,
-          lastVerifiedAt: record.lastVerifiedAt,
-        };
-        storage.setItem(PASSWORD_STORAGE_KEY, JSON.stringify(payload));
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [getSafeLocalStorage],
-  );
-
-  const verifyDevCredentials = useCallback(
-    async (options: {
-      username?: string;
-      password?: string;
-      persist?: boolean;
-      showStorageError?: boolean;
-      syncDraftInputs?: boolean;
-    } = {}) => {
-      const candidateUsername = (options.username ?? username).trim();
-      const candidatePassword = (options.password ?? adminPassword).trim();
-
-      if (!candidateUsername || !candidatePassword) {
-        const message = "Save your username and password above before continuing.";
-        showPasswordNotice({ type: "error", message });
-        throw new Error(message);
-      }
-
-      try {
-        const authResult = await authMutation.mutateAsync({
-          username: candidateUsername,
-          password: candidatePassword,
-        });
-
-        const matchedKey = authResult.key;
-        const verifiedAt = new Date().toISOString();
-
-        setPasswordKey(matchedKey);
-        setLastVerifiedAt(verifiedAt);
-        setUsername(candidateUsername);
-        setAdminPassword(candidatePassword);
-
-        if (options.username !== undefined || options.password !== undefined || options.syncDraftInputs) {
-          setUsernameDraft(candidateUsername);
-          setPasswordDraft(candidatePassword);
-        }
-
-        const shouldPersist = options.persist ?? true;
-        let noticeMessage = `Logged in as ${matchedKey}.`;
-        if (shouldPersist) {
-          const persisted = persistCredentialsToLocalStorage({
-            username: candidateUsername,
-            password: candidatePassword,
-            key: matchedKey,
-            lastVerifiedAt: verifiedAt,
-          });
-
-          if (!persisted) {
-            if (options.showStorageError) {
-              noticeMessage = "Verified for this session, but local storage is unavailable.";
-            }
-          }
-        }
-
-        showPasswordNotice({ type: "success", message: noticeMessage });
 
         return {
-          username: candidateUsername,
-          password: candidatePassword,
+          username: matchedKey,
+          password: authSessionCredential,
           key: matchedKey,
         };
-      } catch (error) {
-        const reason = error instanceof Error ? error.message : "Authentication failed.";
-        showPasswordNotice({ type: "error", message: reason });
-        throw new Error(reason);
       }
+
+      const message = "Sign in before continuing.";
+      setPasswordNotice({ type: "error", message });
+      passwordNoticeTimeoutRef.current = window.setTimeout(() => {
+        setPasswordNotice(null);
+        passwordNoticeTimeoutRef.current = null;
+      }, 4000);
+      throw new Error(message);
     },
-    [adminPassword, authMutation, persistCredentialsToLocalStorage, showPasswordNotice, username],
+    [hasNextEditorSession, nextSessionProfileKey],
   );
 
   useEffect(
@@ -1098,84 +912,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       }
     },
     [],
-  );
-
-  const handleLogout = useCallback(() => {
-    setUsername("");
-    setUsernameDraft("");
-    setAdminPassword("");
-    setPasswordDraft("");
-    setPasswordKey(null);
-    setLastVerifiedAt(null);
-    setIsPasswordVisible(false);
-    setIsVerifyingCredentials(false);
-    profileVerifyAttemptRef.current = false;
-
-    const storage = getSafeLocalStorage();
-    if (storage) {
-      try {
-        storage.removeItem(PASSWORD_STORAGE_KEY);
-        showPasswordNotice({ type: "success", message: "Logged out and cleared saved credentials." });
-        return;
-      } catch {
-        // Fall through to session-only notice below.
-      }
-    }
-
-    showPasswordNotice({
-      type: "success",
-      message: "Logged out for this session. Clear local storage manually to remove saved credentials.",
-    });
-  }, [showPasswordNotice]);
-
-  const handleCredentialsSave = useCallback(
-    async (event?: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>) => {
-      if (event && "preventDefault" in event) {
-        event.preventDefault();
-      }
-
-      const trimmedUsernameDraft = usernameDraft.trim();
-      const trimmedPasswordDraft = passwordDraft.trim();
-
-      setUsernameDraft(trimmedUsernameDraft);
-      setPasswordDraft(trimmedPasswordDraft);
-
-      if (trimmedUsernameDraft.length === 0 && trimmedPasswordDraft.length === 0) {
-        handleLogout();
-        return;
-      }
-
-      if (trimmedUsernameDraft.length === 0 || trimmedPasswordDraft.length === 0) {
-        showPasswordNotice({ type: "error", message: "Enter both username and password before saving." });
-        return;
-      }
-
-      setIsVerifyingCredentials(true);
-      try {
-        await verifyDevCredentials({
-          username: trimmedUsernameDraft,
-          password: trimmedPasswordDraft,
-          showStorageError: true,
-          syncDraftInputs: true,
-        });
-        setIsPasswordVisible(false);
-      } catch {
-        // Verification errors are handled through notices.
-      } finally {
-        setIsVerifyingCredentials(false);
-      }
-    },
-    [handleLogout, passwordDraft, showPasswordNotice, usernameDraft, verifyDevCredentials],
-  );
-
-  const handleCredentialInputKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        void handleCredentialsSave();
-      }
-    },
-    [handleCredentialsSave],
   );
 
   const pushChangeLogNotice = useCallback(
@@ -1451,7 +1187,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   );
 
   useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
+      const handleKeydown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
         close();
       }
@@ -1741,15 +1477,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     setConvexNotice({ type: "success", message: "Verifying credentials…" });
 
     try {
-      // Use WorkOS auth if available, otherwise fall back to legacy password auth
-      let credentials: { key: string };
-      if (workosAuthEnabled && workosAuth.isAuthenticated && workosAuth.user) {
-        // Use WorkOS user info
-        credentials = { key: workosAuth.user.name || workosAuth.user.email };
-      } else {
-        // Fall back to legacy password verification
-        credentials = await verifyDevCredentials();
-      }
+      const credentials = await verifyDevCredentials();
 
       setConvexNotice({
         type: "success",
@@ -1781,7 +1509,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
       // Save articles if there are changes and convexSave is available
       if (changedArticles.length > 0 && convexSave) {
-        const result = await convexSave.mutate({ articles: changedArticles });
+        const result = await convexSave.mutate({ articles: changedArticles } as never);
         savedItems.push(`${result.created + result.updated} article(s)`);
 
         // Generate and save changelog entry
@@ -1864,8 +1592,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     aboutFounderKeys,
     originalArticles,
     verifyDevCredentials,
-    workosAuthEnabled,
-    workosAuth,
   ]);
 
   const handleSaveToGitHub = useCallback(async () => {
@@ -1980,7 +1706,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       setGithubNotice({ type: "success", message: commitNotice });
 
       if (result.entry && typeof result.entry === "object") {
-        const entry = result.entry as ChangeLogEntry;
+        const entry = result.entry as unknown as ChangeLogEntry;
         const sanitizedEntry: ChangeLogEntry = {
           ...entry,
           commit: {
@@ -2104,7 +1830,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       });
 
       if (result.entry && typeof result.entry === "object") {
-        const entry = result.entry as ChangeLogEntry;
+        const entry = result.entry as unknown as ChangeLogEntry;
         const sanitizedEntry: ChangeLogEntry = {
           ...entry,
           commit: {
@@ -2529,7 +2255,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const commitPanel = (
     <DevCommitCard
       notice={githubNotice}
-      trimmedAdminPassword={trimmedAdminPassword}
+      hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
       hasInvalidJsonDraft={hasInvalidJsonDraft}
       isSaving={isSaving}
@@ -2543,7 +2269,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     (extraActionSlot?: React.ReactNode) => (
       <DevCommitCard
         notice={githubNotice}
-        trimmedAdminPassword={trimmedAdminPassword}
+        hasEditorSession={hasNextEditorSession}
         passwordKey={passwordKey}
         hasInvalidJsonDraft={hasInvalidJsonDraft}
         isSaving={isSaving}
@@ -2557,13 +2283,13 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         }
       />
     ),
-    [githubNotice, trimmedAdminPassword, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
+    [githubNotice, hasNextEditorSession, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
   );
 
   const _createCommitPanel = (
     <DevCommitCard
       notice={githubNotice}
-      trimmedAdminPassword={trimmedAdminPassword}
+      hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
       hasInvalidJsonDraft={hasInvalidJsonDraft}
       isSaving={isSaving}
@@ -2615,38 +2341,38 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
         <div className="mt-10 flex justify-center">
           <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-5 shadow-inner shadow-black/20">
-            {/* WorkOS Authentication */}
-            {workosAuth.isLoading ? (
+            {/* Auth.js session status */}
+            {nextSession.status === "loading" ? (
               <div className="flex items-center justify-center gap-3 py-4">
                 <Icon icon="lucide:loader-2" size={20} className="animate-spin text-fuchsia-400" />
                 <span className="text-white/70">Loading authentication...</span>
               </div>
-            ) : workosAuth.isAuthenticated ? (
+            ) : hasNextEditorSession ? (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
                   <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-200">
-                    {workosAuth.user?.avatarUrl && (
+                    {nextSession.data?.user?.image && (
                       <img
-                        src={workosAuth.user.avatarUrl}
+                        src={nextSession.data.user.image}
                         alt=""
                         className="h-5 w-5 rounded-full"
                       />
                     )}
                     <Icon icon="lucide:badge-check" size={16} />
-                    <span>Signed in as {workosAuth.user?.name ?? workosAuth.user?.email}</span>
+                    <span>Signed in as {nextSession.data?.user?.name ?? nextSession.data?.user?.email}</span>
                   </div>
                   <Button
                     variant="outline"
                     size="xs"
                     className="self-start rounded-full"
-                    onClick={() => workosAuth.signOut()}
+                    onClick={() => void signOut({ callbackUrl: "/sign-in" })}
                   >
                     <Icon icon="lucide:log-out" size={16} />
                     Sign out
                   </Button>
                 </div>
                 <p className="text-xs text-white/45">
-                  Authenticated via WorkOS. You have permission to edit articles.
+                  Authenticated via Auth.js. You have permission to edit articles.
                 </p>
               </div>
             ) : (
@@ -2659,12 +2385,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                   size="pill"
                   className="rounded-full px-6"
                   onClick={() => {
-                    storeReturnUrl(window.location.pathname);
-                    workosAuth.signIn();
+                    const callbackUrl = typeof window !== "undefined" ? window.location.pathname : "/dev";
+                    window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
                   }}
                 >
                   <Icon icon="lucide:log-in" size={16} />
-                  Sign in with WorkOS
+                  Sign in
                 </Button>
               </div>
             )}

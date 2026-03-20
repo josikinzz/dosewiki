@@ -62,7 +62,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
   // Loading state
   if (report === undefined) {
     return (
-      <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
         <BackButton 
           onClick={onBack} 
           fromSubstanceSlug={fromSubstanceSlug}
@@ -73,14 +73,14 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
           <p className="text-sm text-white/60">Loading report...</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   // Not found state
   if (report === null) {
     return (
-      <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
         <BackButton 
           onClick={onBack} 
           fromSubstanceSlug={fromSubstanceSlug}
@@ -94,12 +94,12 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
             The report you're looking for doesn't exist or has been removed.
           </p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       {/* Back button */}
       <BackButton 
         onClick={onBack} 
@@ -151,7 +151,7 @@ const TripReportDetailContent = memo(function TripReportDetailContent({
           />
         </div>
       )}
-    </main>
+    </div>
   );
 });
 
@@ -164,7 +164,7 @@ function TripReportUnavailable({
 }) {
   const library = useLibrary();
   return (
-    <main id="main-content" className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
       <BackButton
         onClick={onBack}
         fromSubstanceSlug={fromSubstanceSlug}
@@ -178,7 +178,7 @@ function TripReportUnavailable({
           Connect a Convex deployment to enable reports on this site.
         </p>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -221,7 +221,7 @@ function BackButton({
         }
         
         // Try name matching against all substances
-        for (const [substanceSlug, substanceRecord] of substanceBySlug.entries()) {
+        for (const [, substanceRecord] of substanceBySlug.entries()) {
           const title = substanceRecord.name.toLowerCase();
           if (title === substanceName) {
             return substanceRecord.name;

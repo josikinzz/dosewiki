@@ -131,7 +131,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
   };
 
   return (
-    <main className="theme-page-shell min-h-screen">
+    <div className="theme-page-shell min-h-screen">
       <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <motion.div 
           className="flex flex-col items-center gap-8 text-center"
@@ -343,6 +343,6 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "../common/Icon";
-import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppView } from "../../types/navigation";
 import { viewToPath } from "../../utils/routing";
 import { GlobalSearch } from "../common/GlobalSearch";
@@ -102,11 +101,6 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
     setIsMenuOpen(false);
   };
 
-  const isSafari =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("is-safari");
-  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
-
   return (
     <header className="app-header theme-header-surface border-b backdrop-blur-md backdrop-safe">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
@@ -117,7 +111,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
         >
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
             <img
-              src={logoSrc}
+              src="/dosewiki-logo.png"
               alt="dose.wiki logo"
               className="safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
               draggable={false}

@@ -6,7 +6,7 @@
  */
 
 import { useQuery } from "convex/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { getConvexClient, isConvexEnabled } from "../lib/convex";
 

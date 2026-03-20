@@ -58,7 +58,7 @@ export const CategoryEditor = memo(
     category,
     index,
     total,
-    maxColumns,
+    maxColumns: _maxColumns,
     columnCount,
     sortableId,
     onUpdateCategory,

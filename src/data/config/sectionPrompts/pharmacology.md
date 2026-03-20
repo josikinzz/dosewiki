@@ -31,6 +31,9 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Do not reference or comment on sources; present information directly without meta-commentary
 - **Never infer receptor affinities** — only include binding values (Ki, EC50, etc.) that are explicitly stated as numerical values in the sources. Do not estimate, extrapolate, or derive affinity values from qualitative descriptions.
 - **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
+- The article-facing prose should read as two clear conceptual subsections: pharmacodynamics first, pharmacokinetics second.
+- Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
+- Continue extracting route-specific bioavailability and half-life data fully into the structured `route_*` fields. Those fields feed other parts of the site even when they are not emphasized in the article prose.
 
 ---
 
@@ -222,9 +225,9 @@ pharmacology:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `summary` | `string` | Plain-language 2-3 paragraph overview of the substance's pharmacology, written for a general audience. Covers what the drug does in the brain/body, its primary mechanisms, and notable pharmacokinetic properties. | "LSD primarily acts by binding to serotonin receptors in the brain..." |
+| `summary` | `string` | Plain-language 1-2 paragraph article-facing overview focused primarily on pharmacodynamics. Emphasize the main mechanism first, then only the most relevant secondary targets or contextual findings. Do not duplicate detailed receptor inventories, route-specific values, or metabolite lists that belong in other fields. | "This substance primarily acts through serotonin receptors..." |
 | `receptor_profile` | `array` | Combined mechanism of action and receptor binding data. Each entry is an object with `receptor` (required), `tag` (optional canonical MoA tag), `affinity` (optional Ki/EC50 value), and `efficacy` (optional Emax or functional data). | See example output below |
-| `pharmacokinetics` | `string` | Metabolic pathway description including enzymes | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
+| `pharmacokinetics` | `string` | Concise article-facing pharmacokinetic overview. Summarize bioavailability, first-pass metabolism, major enzymes, and broad metabolic pathway in readable prose without turning this field into a metabolite dump. | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
 | `metabolites` | `array` | Active or notable metabolites | `["Norketamine (active)", "Hydroxynorketamine"]` |
 | `route_bioavailability` | `object` | Route-specific bioavailability percentages using canonical route names as keys | `{"Oral": "67%", "Insufflated": "79%", "Intravenous": "100%"}` |
 | `route_half_life` | `object` | Route-specific elimination half-life using canonical route names as keys | `{"Oral": "3-6 hours", "Intravenous": "2-3 hours"}` |
@@ -331,12 +334,17 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 ## Extraction Rules
 
 ### For summary:
-- Write 2-3 paragraphs in plain, accessible English summarizing the substance's pharmacology
-- Cover: what the drug does in the brain/body, its primary receptor targets, how it produces its effects, and notable pharmacokinetic properties
+- Write 1-2 compact paragraphs in plain, accessible English focused primarily on pharmacodynamics
+- Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets or contextual findings
 - Use language a non-scientist can understand — explain concepts like "agonist" or "reuptake inhibitor" through their functional effects
-- Do not simply list receptor names; weave them into a narrative explanation
+- Do not simply list receptor names; synthesize them into a selective, readable explanation
 - This is a prose summary, NOT a list of bullet points
 - Keep it information-dense but readable
+- Write with strong hierarchy: primary mechanisms get the most space, minor findings stay brief
+- Do not restate the full receptor inventory if that detail is already better handled in `receptor_profile`
+- Do not restate route-specific bioavailability, half-life values, or metabolite lists in the summary unless they are essential to the big-picture explanation
+- Avoid additive AI-style fact stacking such as repetitive "it also" / "beyond this" sentence chains when a tighter synthesis would read more naturally
+- The goal is a human-written, curated overview rather than an exhaustive source digest
 
 ### For receptor_profile:
 - Create one entry per receptor/target interaction mentioned in sources
@@ -349,10 +357,15 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Order entries by pharmacological importance (primary mechanisms first)
 
 ### For pharmacokinetics:
+- Write as a concise dedicated pharmacokinetics subsection for the article itself
+- Prefer one short paragraph unless the sources genuinely require more
+- Focus on first-pass metabolism, oral bioavailability context, major enzymes, and broad metabolic pathway
 - Look for CYP enzymes mentioned (CYP2D6, CYP3A4, CYP1A2, etc.)
 - Note if hepatic, renal, or other metabolic routes
 - Include phase I (oxidation, reduction) and phase II (conjugation) if described
 - Mention enzyme inhibition/induction effects if relevant to the drug itself
+- Do not turn this field into a long metabolite catalog; keep specific metabolite names in `metabolites`
+- Do not omit route-specific `route_*` fields just because the prose is more concise
 
 ### For metabolites:
 - Prioritize active metabolites - note if active in parentheses
@@ -407,41 +420,20 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 
 ---
 
-## Example Output
+## Verbatim Style Reference Example
 
-```yaml
-pharmacology:
-  summary: "This substance primarily acts by binding to serotonin receptors in the brain, particularly the 5-HT2A receptor where it functions as a partial agonist. This interaction is believed to be the primary driver of its psychedelic effects. It also shows significant affinity for 5-HT2C and 5-HT1A receptors, contributing to its complex subjective profile.\n\nThe compound is metabolized primarily in the liver through CYP2D6 enzymes, producing an active nor-compound metabolite that extends its duration of action. Oral bioavailability is approximately 70% due to first-pass metabolism, with intravenous administration providing complete bioavailability."
-  receptor_profile:
-    - receptor: "5-HT2A"
-      tag: "5-HT2A receptor agonist (partial)"
-      affinity: "2.9 nM"
-    - receptor: "5-HT2C"
-      tag: "5-HT2C receptor agonist (partial)"
-      affinity: "23 nM"
-    - receptor: "5-HT1A"
-      tag: "5-HT1A receptor agonist (partial)"
-      affinity: "190 nM"
-    - receptor: "D2"
-      tag: "Dopamine D2 receptor agonist (partial)"
-      affinity: "4300 nM"
-  pharmacokinetics: "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4. Undergoes N-demethylation and hydroxylation."
-  metabolites:
-    - "Nor-compound (active)"
-    - "Hydroxy-compound (inactive)"
-  route_bioavailability:
-    "Oral": "~70%"
-    "Insufflated": "~45%"
-    "Intravenous": "100%"
-  route_half_life:
-    "Oral": "3-6 hours"
-    "Insufflated": "3-6 hours"
-    "Intravenous": "2-3 hours"
-  route_half_life_notes:
-    "Oral": "Active metabolite has longer half-life of 12-18 hours. CYP2D6 polymorphisms may affect elimination."
-  route_bioavailability_notes:
-    "Oral": "Extensive first-pass metabolism. Peak plasma concentrations reached within 1-2 hours. Food does not significantly affect absorption."
-    "Insufflated": "Rapid absorption, bypasses hepatic first-pass metabolism."
+Use the following as a direct style and structure reference for the article-facing prose fields:
+
+```text
+Pharmacology
+Pharmacodynamics
+2C-B acts as a partial agonist of the serotonin 5-HT2 receptors, Including 5-HT2A, 5-HT2C and to a lesser extent 5HT2B receptors. Earlier ligand binding assay studies found 2C-B to be a low-efficacy 5-HT2A and 5-HT2C receptor partial agonist or antagonist. Subsequent studies have consistently shown higher efficacy at these receptors. 2C-B also shows modest affinity for other serotonin receptors like 5-HT1A and 5HT1B. Additionally, 2C-B has been reported to be a non-competitive serotonin transporter inhibitor with low potency and has been shown to raise dopamine levels in rat models.
+
+[receptor profile binding]
+Pharmacokinetics
+2C-B has relatively low oral bioavailability which appears to be due to substantial first-pass metabolism in the liver. 2C-B has been shown to be metabolized by liver hepatocytes. 2C-B undergoes deamination catalyzed by the MAO-A and MAO-B and demethylation.
+
+[metabolite list here]
 ```
 
 ---
@@ -457,6 +449,7 @@ pharmacology:
 7. **Cite severity/specificity**: Use specific values when available, ranges when appropriate
 8. **No reciting facts from memory**: If sources don't mention it, leave the field empty.
 9. **Conciseness** - Keep writings concise while still conveying all of the necessary information.
+10. **Article-facing hierarchy** - Keep the prose fields feeling like two human-written subsections: pharmacodynamics first, pharmacokinetics second.
 
 ---
 

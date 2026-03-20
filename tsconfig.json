@@ -12,12 +12,14 @@
     "noEmit": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vite/client", "vitest/globals", "node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@auth": ["./auth.ts"],
+      "@server/*": ["./lib/*"]
     }
   },
-  "include": ["src"],
+  "include": ["next-env.d.ts", "src", "auth.ts", "lib", ".next/types/**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

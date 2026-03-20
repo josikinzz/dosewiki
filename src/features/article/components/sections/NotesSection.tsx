@@ -1,8 +1,7 @@
-import { useMemo, type ReactNode } from "react";
-import ReactMarkdown from "react-markdown";
+import { useMemo } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { Bullet } from "@/components/common/Bullet";
 
@@ -19,6 +18,46 @@ export function NotesSection({ notes }: NotesSectionProps) {
     return null;
   }
 
+  const markdownComponents: Components = {
+    p: ({ node: _node, ...props }) => (
+      <p className="mt-3 text-[0.95rem] leading-7 text-white/85 first:mt-0" {...props} />
+    ),
+    ul: ({ node: _node, ...props }) => (
+      <ul className="notes-custom-bullets mt-4 list-none space-y-2 pl-0 text-[0.95rem] leading-7 text-white/85" {...props} />
+    ),
+    ol: ({ node: _node, ...props }) => (
+      <ol className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85" {...props} />
+    ),
+    li: ({ node, children, ...props }) => {
+      const parent = (node as { parent?: { type?: string; ordered?: boolean } } | undefined)?.parent;
+      const isInOrderedList = parent?.type === "list" && parent.ordered === true;
+      if (isInOrderedList) {
+        return <li {...props}>{children}</li>;
+      }
+
+      return (
+        <li className="flex items-center gap-2" {...props}>
+          <Bullet />
+          <span className="flex-1">{children}</span>
+        </li>
+      );
+    },
+    strong: ({ node: _node, ...props }) => <strong className="text-white" {...props} />,
+    a: ({ node: _node, ...props }) => {
+      const { children, ...rest } = props;
+      return (
+        <a
+          className="text-fuchsia-200 underline decoration-dotted underline-offset-4 transition hover:text-fuchsia-100"
+          target="_blank"
+          rel="noopener noreferrer"
+          {...rest}
+        >
+          {children}
+        </a>
+      );
+    },
+  };
+
   return (
     <div className="space-y-6 pt-12">
       <div className="flex items-center gap-4">
@@ -31,71 +70,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
         </div>
         <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
       </div>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkBreaks]}
-        components={{
-          p: ({ node: _node, ...props }: { node?: unknown }) => (
-            <p
-              className="mt-3 text-[0.95rem] leading-7 text-white/85 first:mt-0"
-              {...props}
-            />
-          ),
-          ul: ({ node: _node, ...props }: { node?: unknown }) => (
-            <ul
-              className="notes-custom-bullets mt-4 list-none space-y-2 pl-0 text-[0.95rem] leading-7 text-white/85"
-              {...props}
-            />
-          ),
-          ol: ({ node: _node, ...props }: { node?: unknown }) => (
-            <ol
-              className="mt-4 list-decimal space-y-2 pl-5 text-[0.95rem] leading-7 text-white/85"
-              {...props}
-            />
-          ),
-          li: ({
-            node,
-            children,
-            ...props
-          }: {
-            node?: { parent?: { type?: string; ordered?: boolean } };
-            children?: ReactNode;
-          }) => {
-            // Use a more reliable check: if we're rendering inside a ul (which has notes-custom-bullets class),
-            // we'll detect it by checking if the list is ordered
-            // ReactMarkdown passes ordered property through context, but we can check node structure
-            const isInOrderedList = node?.parent?.type === "list" && node?.parent?.ordered === true;
-
-            if (isInOrderedList) {
-              // Keep default styling for ordered lists
-              return <li {...props}>{children}</li>;
-            }
-
-            // For unordered lists, use custom bullet with flex layout
-            return (
-              <li className="flex items-center gap-2" {...props}>
-                <Bullet />
-                <span className="flex-1">{children}</span>
-              </li>
-            );
-          },
-          strong: ({ node: _node, ...props }: { node?: unknown }) => (
-            <strong className="text-white" {...props} />
-          ),
-          a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
-            const { children, ...rest } = props;
-            return (
-              <a
-                className="text-fuchsia-200 underline decoration-dotted underline-offset-4 transition hover:text-fuchsia-100"
-                target="_blank"
-                rel="noopener noreferrer"
-                {...rest}
-              >
-                {children}
-              </a>
-            );
-          },
-        }}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
         {normalizedNotes}
       </ReactMarkdown>
     </div>

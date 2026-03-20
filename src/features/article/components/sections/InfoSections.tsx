@@ -1,5 +1,5 @@
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
+import { Icon } from "@/components/common/Icon";
 import { Bullet } from "@/components/common/Bullet";
 import { Button } from "@/components/ui/button";
 import type { InfoSection, InfoSectionItem } from "@/types/content";
@@ -124,7 +124,7 @@ export function InfoSectionItemCard({
   return (
     <article className="flex w-full flex-col gap-3 rounded-2xl bg-white/[0.03] px-4 py-4 text-white/85 ring-1 ring-white/5 transition hover:bg-white/10 hover:ring-white/20">
       <h3 className={mergedHeadingClasses}>
-        {ItemIcon ? <ItemIcon className="h-5 w-5 text-fuchsia-300" aria-hidden="true" focusable="false" /> : null}
+        {ItemIcon ? <Icon icon={ItemIcon} size={20} className="text-fuchsia-300" /> : null}
         <span>{label}</span>
       </h3>
       <div>{valueNode}</div>
@@ -267,4 +267,3 @@ export function InfoSections({
     </div>
   );
 }
-

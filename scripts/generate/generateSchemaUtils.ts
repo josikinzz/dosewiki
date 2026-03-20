@@ -41,6 +41,9 @@ function unwrapType(schema: ZodType): ZodType {
   const typeName = getZodTypeName(schema);
   const def = (schema as { def?: { innerType?: ZodType } }).def;
 
+  if (typeName === "default" && def?.innerType) {
+    return unwrapType(def.innerType);
+  }
   if (typeName === "nullable" && def?.innerType) {
     return def.innerType;
   }
@@ -83,12 +86,17 @@ function getObjectShape(
  */
 function generateDefault(schema: ZodType): unknown {
   const typeName = getZodTypeName(schema);
+  const def = (schema as { def?: { innerType?: ZodType; defaultValue?: unknown } }).def;
 
   switch (typeName) {
+    case "default":
+      return def?.defaultValue;
     case "string":
       return "";
     case "number":
       return null; // Numbers default to null for this schema
+    case "optional":
+      return undefined;
     case "nullable": {
       const inner = unwrapType(schema);
       // For nullable numbers, return null; for nullable objects, generate defaults

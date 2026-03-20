@@ -235,6 +235,17 @@ export const saveSubstances = mutation({
             results.updated++;
             continue;
           }
+        } else {
+          const existingBySlug = await ctx.db
+            .query("substanceIndex")
+            .withIndex("by_slug", (q) => q.eq("slug", articleWithSlug.slug))
+            .first();
+
+          if (existingBySlug) {
+            await ctx.db.patch(existingBySlug._id, articleWithSlug);
+            results.updated++;
+            continue;
+          }
         }
 
         // Create new substance

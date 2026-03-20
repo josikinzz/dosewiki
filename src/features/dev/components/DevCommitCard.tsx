@@ -12,7 +12,7 @@ export type DevCommitNotice = {
 
 type DevCommitCardProps = {
   notice: DevCommitNotice | null;
-  trimmedAdminPassword: string;
+  hasEditorSession: boolean;
   passwordKey: string | null;
   hasInvalidJsonDraft: boolean;
   isSaving: boolean;
@@ -25,7 +25,7 @@ type DevCommitCardProps = {
 
 export function DevCommitCard({
   notice,
-  trimmedAdminPassword,
+  hasEditorSession,
   passwordKey,
   hasInvalidJsonDraft,
   isSaving,
@@ -47,11 +47,11 @@ export function DevCommitCard({
     if (hasInvalidJsonDraft) {
       return <p className="text-xs text-rose-300">Fix JSON syntax before committing.</p>;
     }
-    if (trimmedAdminPassword.length === 0) {
-      return <p className="text-xs text-rose-300">Save your username and password above before committing.</p>;
-    }
     if (passwordKey) {
       return <p className="text-xs text-white/55">Ready to commit as {passwordKey}.</p>;
+    }
+    if (!hasEditorSession) {
+      return <p className="text-xs text-rose-300">Sign in before committing changes.</p>;
     }
     return <p className="text-xs text-white/45">Commits trigger a fresh Vercel deployment.</p>;
   })();
@@ -98,7 +98,7 @@ export function DevCommitCard({
           <Icon icon="lucide:shield-check" size={20} className="text-fuchsia-200" />
           <h2 className="text-lg font-semibold text-fuchsia-200">Commit to GitHub</h2>
         </div>
-        <p className="text-sm text-white/65">Use your saved username and password to push the current dataset live.</p>
+        <p className="text-sm text-white/65">Use your editor session to push the current dataset live.</p>
         <p className="text-xs text-rose-300">After each commit, wait ~1 minute for the build, then refresh before committing again to keep the changelog stable.</p>
       </div>
       <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">

@@ -7,17 +7,6 @@ import { isConvexEnabled } from "../lib/convex";
 // Types
 // ============================================================================
 
-export interface AuthPayload {
-  username: string;
-  password: string;
-}
-
-export interface AuthResult {
-  authorized: boolean;
-  key: string;
-  error?: string;
-}
-
 export interface SaveArticlesPayload {
   username: string;
   password: string;
@@ -93,28 +82,6 @@ export interface SaveProfileResult {
 // API Functions
 // ============================================================================
 
-async function verifyAuth(payload: AuthPayload): Promise<AuthResult> {
-  const response = await fetch("/api/auth", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const result = await response.json().catch(() => ({}));
-
-  if (!response.ok || result.authorized !== true) {
-    const error = typeof result.error === "string" ? result.error : "Authentication failed.";
-    throw new Error(error);
-  }
-
-  return {
-    authorized: true,
-    key: typeof result.key === "string" && result.key.trim().length > 0
-      ? result.key.trim()
-      : payload.username,
-  };
-}
-
 async function saveArticles(payload: SaveArticlesPayload): Promise<SaveArticlesResult> {
   console.log("[saveArticles] Starting save request...");
   console.log("[saveArticles] Payload size:", JSON.stringify(payload).length, "bytes");
@@ -188,16 +155,6 @@ async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResu
 // ============================================================================
 
 /**
- * Mutation hook for verifying admin credentials.
- * Returns the verified credentials key on success.
- */
-export function useAuthMutation() {
-  return useMutation({
-    mutationFn: verifyAuth,
-  });
-}
-
-/**
  * Mutation hook for saving articles to GitHub.
  * Handles articles, changelog, indexes, and about content.
  */
@@ -244,16 +201,9 @@ export function useSaveArticlesToConvex() {
  * Use for bulk sync operations.
  */
 export function useReplaceAllArticlesInConvex() {
-  const enabled = isConvexEnabled();
-  const convexMutation = useConvexMutation(api.substanceIndex.replaceAllSubstances);
-
-  if (!enabled) {
-    return null;
-  }
-
   return {
-    mutate: convexMutation,
-    isEnabled: enabled,
+    mutate: null,
+    isEnabled: false,
   };
 }
 

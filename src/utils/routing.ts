@@ -2,8 +2,6 @@ import { AppView, DevTab } from "../types/navigation";
 
 export function viewToPath(view: AppView): string {
   switch (view.type) {
-    case "callback":
-      return "/callback";
     case "substances":
       return "/substances";
     case "effects":
@@ -85,8 +83,6 @@ export function parsePath(
     const [root, slug] = segments;
 
     switch (root) {
-      case "callback":
-        return { type: "callback" };
       case "substances":
         return { type: "substances" };
       case "reports":

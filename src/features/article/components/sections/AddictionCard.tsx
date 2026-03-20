@@ -1,4 +1,3 @@
-import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 
 interface AddictionCardProps {

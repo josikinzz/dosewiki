@@ -222,6 +222,18 @@ const replication = v.object({
   created_at: v.string(),              // ISO timestamp
 });
 
+const membership = v.object({
+  email: v.string(),
+  name: v.optional(v.string()),
+  image: v.optional(v.string()),
+  role: v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer")),
+  provider: v.optional(v.string()),
+  providerAccountId: v.optional(v.string()),
+  createdAt: v.string(),
+  updatedAt: v.string(),
+  lastSeenAt: v.optional(v.string()),
+});
+
 export default defineSchema({
   // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
@@ -267,6 +279,11 @@ export default defineSchema({
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
     .index("by_artist", ["artist"]),
+
+  memberships: defineTable(membership)
+    .index("by_email", ["email"])
+    .index("by_role", ["role"])
+    .index("by_provider_account", ["provider", "providerAccountId"]),
 
   // Category layout - stores the manually curated psychoactive index structure
   // This is a single document containing the full layout configuration

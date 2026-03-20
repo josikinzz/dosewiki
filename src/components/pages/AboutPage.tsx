@@ -15,6 +15,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { SubstanceArticle } from "../../schema";
 import { cardAnimation } from "../../constants/motion";
+import { isDevelopmentRuntime } from "@server/runtime/publicEnv";
 
 const markdownComponents = {
   p: ({ node: _node, ...props }: { node?: unknown }) => (
@@ -251,7 +252,7 @@ export const AboutPage = memo(function AboutPage() {
 
   // Debug logs for the JSON preview pipeline (dev only).
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!isDevelopmentRuntime) return;
     console.debug("[AboutPage] JSON preview eligibility:", {
       total: substances.length,
       eligibleNonLow: eligiblePreviewSubstances.length,
@@ -260,7 +261,7 @@ export const AboutPage = memo(function AboutPage() {
   }, [eligiblePreviewSubstances.length, previewSlug, substances.length]);
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!isDevelopmentRuntime) return;
     console.debug("[AboutPage] JSON preview doc:", {
       status: previewDoc === undefined ? "loading" : previewDoc === null ? "not_found" : "loaded",
       slug: previewSlug,
@@ -269,7 +270,7 @@ export const AboutPage = memo(function AboutPage() {
   }, [previewDoc, previewSlug]);
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
+    if (!isDevelopmentRuntime) return;
     console.debug("[AboutPage] JSON preview render:", {
       hasArticle: previewArticle !== null && previewArticle !== undefined,
       previewJsonLength: previewJson.length,
