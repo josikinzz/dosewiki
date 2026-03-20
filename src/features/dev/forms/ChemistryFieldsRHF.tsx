@@ -150,7 +150,7 @@ export function ChemistryFieldsRHF({
       } = parsed.pharmacology ?? parsed;
       
       // Apply pharmacology fields (always overwrite with empty defaults for missing)
-      setValue("pharmacology.summary", pharmacology.summary ?? "");
+      setValue("pharmacology.pharmacodynamics", pharmacology.pharmacodynamics ?? pharmacology.summary ?? "");
       setValue("pharmacology.receptor_profile", pharmacology.receptor_profile ?? []);
       setValue("pharmacology.pharmacokinetics", pharmacology.pharmacokinetics ?? "");
       setValue("pharmacology.metabolites", pharmacology.metabolites ?? []);
@@ -267,16 +267,16 @@ export function ChemistryFieldsRHF({
         />
       )}
       
-      {/* Pharmacology Summary */}
+      {/* Pharmacodynamics */}
       <div className="space-y-1">
-        <Label htmlFor={`${idPrefix}-pharmacology-summary`}>
-          Pharmacology Summary
+        <Label htmlFor={`${idPrefix}-pharmacology-pharmacodynamics`}>
+          Pharmacodynamics
         </Label>
         <Textarea
-          id={`${idPrefix}-pharmacology-summary`}
+          id={`${idPrefix}-pharmacology-pharmacodynamics`}
           className="min-h-[80px]"
-          {...register("pharmacology.summary")}
-          placeholder="Plain-language 2-3 paragraph overview of pharmacology"
+          {...register("pharmacology.pharmacodynamics")}
+          placeholder="Plain-language pharmacodynamics overview"
         />
       </div>
 

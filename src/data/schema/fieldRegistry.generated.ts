@@ -363,8 +363,8 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
     default: [],
     isNullable: false,
   },
-  "pharmacology.summary": {
-    path: "pharmacology.summary",
+  "pharmacology.pharmacodynamics": {
+    path: "pharmacology.pharmacodynamics",
     type: "text",
     default: "",
     isNullable: false,
@@ -583,7 +583,7 @@ export const FIELD_PATHS = [
   "subjective_effects.progressive_stages",
   "subjective_effects.attribution",
   "comparisons",
-  "pharmacology.summary",
+  "pharmacology.pharmacodynamics",
   "pharmacology.receptor_profile",
   "pharmacology.pharmacokinetics",
   "pharmacology.metabolites",

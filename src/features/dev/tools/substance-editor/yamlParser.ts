@@ -439,7 +439,7 @@ function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {
   });
 
   return {
-    summary: getString(obj.summary),
+    pharmacodynamics: getString(obj.pharmacodynamics) || getString(obj.summary),
     receptor_profile,
     pharmacokinetics: getString(obj.pharmacokinetics),
     metabolites: getStringArray(obj.metabolites),

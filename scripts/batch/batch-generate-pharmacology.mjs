@@ -202,6 +202,7 @@ function hasExistingPharmacology(article) {
 
   return !!(
     p.receptor_profile?.length > 0 ||
+    p.pharmacodynamics?.trim() ||
     p.summary?.trim() ||
     p.pharmacokinetics?.trim() ||
     p.metabolites?.length > 0 ||
@@ -337,6 +338,7 @@ function parseGeneratedYaml(response) {
 
     if (
       p.receptor_profile !== undefined ||
+      p.pharmacodynamics !== undefined ||
       p.summary !== undefined ||
       p.pharmacokinetics !== undefined ||
       p.metabolites !== undefined
@@ -373,7 +375,9 @@ function normalizePharmacology(p) {
 
   return {
     // Core pharmacology fields
-    summary: typeof p.summary === 'string' ? p.summary : "",
+    pharmacodynamics: typeof p.pharmacodynamics === 'string'
+      ? p.pharmacodynamics
+      : (typeof p.summary === 'string' ? p.summary : ""),
     receptor_profile: receptorProfile,
     pharmacokinetics: typeof p.pharmacokinetics === 'string' ? p.pharmacokinetics
       : (typeof p.metabolism === 'string' ? p.metabolism : ""),
@@ -463,7 +467,7 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
 
   if (verbose) {
     console.log(`  Generated pharmacology for ${slug}:`);
-    console.log(`    summary: ${newPharmacology.summary ? "yes" : "no"} (${newPharmacology.summary.length} chars)`);
+    console.log(`    pharmacodynamics: ${newPharmacology.pharmacodynamics ? "yes" : "no"} (${newPharmacology.pharmacodynamics.length} chars)`);
     console.log(`    receptor_profile: ${newPharmacology.receptor_profile.length} entries`);
     console.log(`    pharmacokinetics: ${newPharmacology.pharmacokinetics ? "yes" : "no"} (${newPharmacology.pharmacokinetics.length} chars)`);
     console.log(`    metabolites: ${newPharmacology.metabolites.length} entries`);
@@ -688,7 +692,7 @@ async function main() {
       if (article) {
         // Update core pharmacology fields
         const corePharmacology = {
-          summary: update.pharmacology.summary,
+          pharmacodynamics: update.pharmacology.pharmacodynamics,
           receptor_profile: update.pharmacology.receptor_profile,
           pharmacokinetics: update.pharmacology.pharmacokinetics,
           metabolites: update.pharmacology.metabolites,

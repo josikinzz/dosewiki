@@ -33,6 +33,8 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - **No historical narrative** — present only the current scientific understanding. Do not discuss how understanding has evolved over time, early theories, historical debates, or shifts in scientific consensus. State what is known now, not what was previously believed.
 - The article-facing prose should read as two clear conceptual subsections: pharmacodynamics first, pharmacokinetics second.
 - Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
+- Keep the `pharmacodynamics` field strictly limited to pharmacodynamics. Do not place metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, metabolite names, or route-specific absorption/elimination details in `pharmacodynamics`.
+- Place all metabolism, enzyme, bioavailability, half-life, elimination, and metabolite-production content in `pharmacokinetics` instead.
 - Continue extracting route-specific bioavailability and half-life data fully into the structured `route_*` fields. Those fields feed other parts of the site even when they are not emphasized in the article prose.
 
 ---
@@ -112,7 +114,7 @@ comparisons:                       # Comparisons to other drugs
     comparison: string
 
 pharmacology:                      # ← YOU ARE GENERATING THIS SECTION
-  summary: string                  # Plain-language 2-3 paragraph overview
+  pharmacodynamics: string         # Plain-language pharmacodynamics overview
   receptor_profile:                # Combined mechanism + binding data
     - receptor: string             # Receptor/target name (e.g., "5-HT2A")
       tag: string (optional)       # Canonical MoA tag (e.g., "5-HT2A receptor agonist (partial)")
@@ -209,7 +211,7 @@ Return ONLY valid YAML for this exact structure (no markdown code fences, no com
 
 ```yaml
 pharmacology:
-  summary: ""
+  pharmacodynamics: ""
   receptor_profile: []
   pharmacokinetics: ""
   metabolites: []
@@ -225,7 +227,7 @@ pharmacology:
 
 | Field | Type | Description | Example |
 |-------|------|-------------|---------|
-| `summary` | `string` | Plain-language 1-2 paragraph article-facing overview focused primarily on pharmacodynamics. Emphasize the main mechanism first, then only the most relevant secondary targets or contextual findings. Do not duplicate detailed receptor inventories, route-specific values, or metabolite lists that belong in other fields. | "This substance primarily acts through serotonin receptors..." |
+| `pharmacodynamics` | `string` | Plain-language article-facing pharmacodynamics overview only. Usually a single concise paragraph. Emphasize the main mechanism first, then only the most relevant secondary targets or contextual findings. Do not include metabolism, bioavailability, half-life, enzymes, metabolite names, or route-specific details. | "This substance primarily acts through serotonin receptors..." |
 | `receptor_profile` | `array` | Combined mechanism of action and receptor binding data. Each entry is an object with `receptor` (required), `tag` (optional canonical MoA tag), `affinity` (optional Ki/EC50 value), and `efficacy` (optional Emax or functional data). | See example output below |
 | `pharmacokinetics` | `string` | Concise article-facing pharmacokinetic overview. Summarize bioavailability, first-pass metabolism, major enzymes, and broad metabolic pathway in readable prose without turning this field into a metabolite dump. | "Primarily hepatic via CYP2D6 with minor contributions from CYP3A4" |
 | `metabolites` | `array` | Active or notable metabolites | `["Norketamine (active)", "Hydroxynorketamine"]` |
@@ -333,17 +335,21 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 
 ## Extraction Rules
 
-### For summary:
-- Write 1-2 compact paragraphs in plain, accessible English focused primarily on pharmacodynamics
+### For pharmacodynamics:
+- Write one concise paragraph in plain, accessible English focused only on pharmacodynamics
+- Use a second paragraph only if needed for pharmacodynamic nuance such as conflicting assay interpretations or an especially important secondary mechanism
 - Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets or contextual findings
 - Use language a non-scientist can understand — explain concepts like "agonist" or "reuptake inhibitor" through their functional effects
 - Do not simply list receptor names; synthesize them into a selective, readable explanation
 - This is a prose summary, NOT a list of bullet points
 - Keep it information-dense but readable
+- Target roughly 3-5 sentences unless the evidence genuinely requires more
 - Write with strong hierarchy: primary mechanisms get the most space, minor findings stay brief
 - Do not restate the full receptor inventory if that detail is already better handled in `receptor_profile`
-- Do not restate route-specific bioavailability, half-life values, or metabolite lists in the summary unless they are essential to the big-picture explanation
+- Do not include metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, elimination, metabolite names, or route-specific absorption/elimination details
+- If a sentence is about absorption, metabolism, distribution, elimination, enzymes, or metabolites, it belongs in `pharmacokinetics`, not `pharmacodynamics`
 - Avoid additive AI-style fact stacking such as repetitive "it also" / "beyond this" sentence chains when a tighter synthesis would read more naturally
+- Compress secondary targets into one sentence when possible instead of giving each one its own sentence
 - The goal is a human-written, curated overview rather than an exhaustive source digest
 
 ### For receptor_profile:
@@ -360,6 +366,7 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Write as a concise dedicated pharmacokinetics subsection for the article itself
 - Prefer one short paragraph unless the sources genuinely require more
 - Focus on first-pass metabolism, oral bioavailability context, major enzymes, and broad metabolic pathway
+- This field should absorb all content about metabolism, enzymes, first-pass metabolism, bioavailability, elimination, half-life context, and metabolite production
 - Look for CYP enzymes mentioned (CYP2D6, CYP3A4, CYP1A2, etc.)
 - Note if hepatic, renal, or other metabolic routes
 - Include phase I (oxidation, reduction) and phase II (conjugation) if described
@@ -422,7 +429,7 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 
 ## Verbatim Style Reference Example
 
-Use the following as a direct style and structure reference for the article-facing prose fields:
+Use the following as a direct style and structure reference for the article-facing prose fields. The key lesson is strict separation: receptor/transporter and functional mechanism content goes in `pharmacodynamics`, while metabolism/bioavailability content goes in `pharmacokinetics`.
 
 ```text
 Pharmacology
@@ -458,7 +465,7 @@ Pharmacokinetics
 Before returning output:
 - [ ] All fields present (even if empty)
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
-- [ ] `summary` is 2-3 paragraphs of plain-language prose (not a list)
+- [ ] `pharmacodynamics` is concise plain-language prose focused only on mechanism/action (not PK)
 - [ ] `receptor_profile` entries each have a `receptor` field; `tag` uses canonical tags exactly when present
 - [ ] `receptor_profile` entries are ordered by pharmacological importance
 - [ ] `metabolites` is an array of strings, not a single string

@@ -105,7 +105,7 @@ export const SECTION_REGISTRY: SectionMeta[] = [
     icon: "lucide:beaker",
     description: "Pharmacological properties and mechanisms",
     fields: [
-      "pharmacology.summary",
+      "pharmacology.pharmacodynamics",
       "pharmacology.receptor_profile",
       "pharmacology.pharmacokinetics",
       "pharmacology.metabolites",

@@ -216,7 +216,8 @@ export const receptorProfileEntrySchema = z.object({
 
 /** Pharmacology section */
 export const pharmacologySchema = z.object({
-  summary: z.string(),
+  pharmacodynamics: z.string().optional().default(""),
+  summary: z.string().optional(),
   receptor_profile: z.array(receptorProfileEntrySchema),
   pharmacokinetics: z.string(),
   metabolites: z.array(z.string()),

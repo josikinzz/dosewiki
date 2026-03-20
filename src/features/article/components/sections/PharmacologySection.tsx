@@ -38,12 +38,15 @@ export const PharmacologySection = memo(function PharmacologySection({
   const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
   const { pharmacology } = article;
 
-  const hasSummary = pharmacology.summary?.trim().length > 0;
+  const pharmacodynamicsText = pharmacology.pharmacodynamics?.trim().length > 0
+    ? pharmacology.pharmacodynamics
+    : pharmacology.summary ?? "";
+  const hasSummary = pharmacodynamicsText.trim().length > 0;
   const hasReceptorProfile = pharmacology.receptor_profile?.length > 0;
   const hasPharmacokinetics = pharmacology.pharmacokinetics?.trim().length > 0;
   const hasMetabolites = pharmacology.metabolites?.length > 0;
   const summaryParagraphs = hasSummary
-    ? pharmacology.summary
+    ? pharmacodynamicsText
       .split(/\n\s*\n/)
       .map((paragraph) => paragraph.trim())
       .filter(Boolean)

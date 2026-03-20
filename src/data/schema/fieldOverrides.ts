@@ -391,12 +391,12 @@ export const FIELD_OVERRIDES: Record<string, FieldOverride> = {
   // ==========================================
   // PHARMACOLOGY
   // ==========================================
-  "pharmacology.summary": {
-    label: "Pharmacology Summary",
+  "pharmacology.pharmacodynamics": {
+    label: "Pharmacodynamics",
     type: "textarea",
     required: false,
     section: "pharmacology",
-    description: "Plain-language 2-3 paragraph overview",
+    description: "Plain-language pharmacodynamics overview",
   },
   "pharmacology.receptor_profile": {
     label: "Receptor Profile",
