@@ -10,11 +10,11 @@ interface ListProps {
 export function List({ ordered = false, children }: PropsWithChildren<ListProps>) {
   const Component = ordered ? "ol" : "ul";
   const listClass = ordered
-    ? "list-decimal list-inside space-y-1 marker:text-fuchsia-300"
-    : "list-disc list-inside space-y-1 marker:text-fuchsia-300";
+    ? "list-decimal list-inside space-y-2 marker:text-fuchsia-300"
+    : "list-disc list-inside space-y-2 marker:text-fuchsia-300";
 
   return (
-    <Component className={`${listClass} text-sm text-white/80 my-3 pl-2`}>
+    <Component className={`${listClass} type-supporting-copy my-4 pl-2 text-white/80`}>
       {children}
     </Component>
   );
@@ -25,7 +25,7 @@ export function List({ ordered = false, children }: PropsWithChildren<ListProps>
  */
 export function ListItem({ children }: PropsWithChildren) {
   return (
-    <li className="leading-relaxed">
+    <li className="leading-[1.72]">
       {children}
     </li>
   );

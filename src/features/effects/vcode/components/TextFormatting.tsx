@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 
 export function Bold({ children }: PropsWithChildren) {
-  return <strong className="font-semibold text-fuchsia-200">{children}</strong>;
+  return <strong className="font-semibold text-white/95">{children}</strong>;
 }
 
 export function Italic({ children }: PropsWithChildren) {
@@ -9,7 +9,7 @@ export function Italic({ children }: PropsWithChildren) {
 }
 
 export function Underline({ children }: PropsWithChildren) {
-  return <span className="underline decoration-fuchsia-400/50">{children}</span>;
+  return <span className="underline decoration-fuchsia-400/50 underline-offset-[0.18em]">{children}</span>;
 }
 
 export function Strikethrough({ children }: PropsWithChildren) {

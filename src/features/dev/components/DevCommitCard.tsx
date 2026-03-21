@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { isConvexEnabled } from "@/lib/convex";
 
 export type DevCommitNotice = {
-  type: "success" | "error";
+  type: "success" | "error" | "pending";
   message: string;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 type DevCommitCardProps = {
@@ -35,13 +37,41 @@ export function DevCommitCard({
   actionSlot,
 }: DevCommitCardProps) {
   const convexEnabled = isConvexEnabled();
+
+  const noticeToneClass =
+    notice?.type === "error"
+      ? "text-rose-300"
+      : notice?.type === "pending"
+        ? "text-cyan-200"
+        : "text-emerald-300";
+
+  const noticeIcon =
+    notice?.type === "error"
+      ? "lucide:triangle-alert"
+      : notice?.type === "pending"
+        ? "lucide:loader-circle"
+        : "lucide:badge-check";
   
   const message = (() => {
     if (notice) {
       return (
-        <p className={notice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-          {notice.message}
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`inline-flex items-center gap-2 ${noticeToneClass}`}>
+            <Icon
+              icon={noticeIcon}
+              size={16}
+              className={notice?.type === "pending" ? "animate-spin" : undefined}
+            />
+            <span>{notice.message}</span>
+          </span>
+          {notice.actionHref ? (
+            <Button asChild variant="outline" size="sm" className="rounded-full">
+              <a href={notice.actionHref} target="_blank" rel="noreferrer">
+                {notice.actionLabel ?? "Open"}
+              </a>
+            </Button>
+          ) : null}
+        </div>
       );
     }
     if (hasInvalidJsonDraft) {
@@ -73,9 +103,7 @@ export function DevCommitCard({
         <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
           <div className="min-h-[1.25rem]">
             {notice ? (
-              <p className={notice.type === "error" ? "text-rose-300" : "text-emerald-300"}>
-                {notice.message}
-              </p>
+              message
             ) : (
               <p className="text-xs text-white/45">Changes are saved to Convex and appear live instantly.</p>
             )}

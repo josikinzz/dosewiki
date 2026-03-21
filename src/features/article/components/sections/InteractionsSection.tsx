@@ -1,8 +1,12 @@
+import Link from "next/link";
 import { memo, useState, useCallback, useMemo } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
+import { isPlainLeftClick } from "@/utils/navigation";
+import { slugify } from "@/utils/slug";
 
 interface InteractionsSectionProps {
   article: SubstanceArticle;
@@ -61,6 +65,7 @@ const InteractionBadge = memo(function InteractionBadge({
   onSelectInteraction?: (substance: string) => void;
 }) {
   const hasRationale = !!item.rationale;
+  const href = `/${slugify(item.substance)}`;
 
   const handleToggle = useCallback(() => {
     onToggleExpand(item.raw);
@@ -76,17 +81,31 @@ const InteractionBadge = memo(function InteractionBadge({
       <div
         className="theme-inline-expanded-card relative my-1 flex w-full flex-col items-start gap-2 rounded-lg px-4 py-3"
       >
-        <button
-          onClick={handleToggle}
-          className="absolute top-3 right-3 flex items-center gap-0.5 rounded p-1 transition hover:bg-white/10"
-          aria-label={`Collapse ${item.substance}`}
+        <ExpandButton
+          isExpanded={true}
+          onToggle={handleToggle}
+          variant="compact"
+          className="absolute top-3 right-3 text-white/85"
+          ariaLabel={`Collapse ${item.substance}`}
+        />
+        <Link
+          href={href}
+          onClick={
+            onSelectInteraction
+              ? (event) => {
+                  if (!isPlainLeftClick(event)) {
+                    return;
+                  }
+
+                  event.preventDefault();
+                  handleSelect();
+                }
+              : undefined
+          }
+          className="pr-8 text-sm font-semibold text-white transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
-          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
-          <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180" />
-        </button>
-        <span className="text-sm font-semibold text-white pr-8">
           {item.substance}
-        </span>
+        </Link>
         <p className="text-sm text-white/60 leading-relaxed">
           {item.rationale}
         </p>
@@ -99,26 +118,32 @@ const InteractionBadge = memo(function InteractionBadge({
     <span
       className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-sm font-medium text-white/85 ring-1 ring-white/10"
     >
-      {onSelectInteraction ? (
-        <button
-          type="button"
-          className="hover:text-fuchsia-300 transition-colors"
-          onClick={handleSelect}
-        >
-          {item.substance}
-        </button>
-      ) : (
-        <span>{item.substance}</span>
-      )}
+      <Link
+        href={href}
+        onClick={
+          onSelectInteraction
+            ? (event) => {
+                if (!isPlainLeftClick(event)) {
+                  return;
+                }
+
+                event.preventDefault();
+                handleSelect();
+              }
+            : undefined
+        }
+        className="transition-colors hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+      >
+        {item.substance}
+      </Link>
       {hasRationale && (
-        <button
-          onClick={handleToggle}
-          className="flex items-center gap-0.5 rounded p-0.5 transition hover:bg-white/10"
-          aria-label={`Expand ${item.substance}`}
-        >
-          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
-          <Icon icon="lucide:chevron-down" size={12} className="text-white/85" />
-        </button>
+        <ExpandButton
+          isExpanded={false}
+          onToggle={handleToggle}
+          variant="compact"
+          className="text-white/85"
+          ariaLabel={`Expand ${item.substance}`}
+        />
       )}
     </span>
   );

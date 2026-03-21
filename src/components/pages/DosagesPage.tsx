@@ -1,37 +1,10 @@
-import { memo, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { CategoryGrid } from "@/features/article/components/sections";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CategoryGrid } from "@/features/article/components/sections/CategoryGrid";
 import type { DosageCategoryGroup, DrugListEntry } from "../../data/builders/library";
-import { useLightweightData } from "../../data/LightweightDataProvider";
+import type { SubstanceLookupEntry } from "../../data/LightweightDataProvider";
 import { getCategoryIcon } from "../../data/config/categoryIcons";
-import { useLazyLibrary } from "../../hooks/useLazyLibrary";
-import { cn } from "@/lib/utils";
-
-const containerAnimation = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemAnimation = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 20
-    }
-  }
-};
+import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 
 type IndexSortKey = "psychoactive" | "chemical" | "mechanism";
 
@@ -63,8 +36,8 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 interface DosagesPageProps {
-  onSelectDrug: (slug: string) => void;
-  onSelectCategory?: (categoryKey: string) => void;
+  layout: CategoryLayout;
+  substances: SubstanceLookupEntry[];
 }
 
 /**
@@ -72,8 +45,8 @@ interface DosagesPageProps {
  * This avoids loading all 679 articles just to render the home page.
  */
 function buildGroupsFromLayout(
-  layout: ReturnType<typeof useLightweightData>["layout"],
-  lookup: ReturnType<typeof useLightweightData>["lookup"]
+  layout: CategoryLayout,
+  lookup: Map<string, SubstanceLookupEntry>
 ): DosageCategoryGroup[] {
   return layout.categories.map((category) => {
     const sections = category.sections.map((section) => {
@@ -118,108 +91,50 @@ function buildGroupsFromLayout(
   }).filter((g) => g.total > 0 || g.key === "miscellaneous");
 }
 
-export const DosagesPage = memo(function DosagesPage({
-  onSelectDrug,
-  onSelectCategory,
-}: DosagesPageProps) {
-  const [sortKey, setSortKey] = useState<IndexSortKey>("psychoactive");
-
-  // Lightweight data from context (always available)
-  const { layout, lookup, substanceCount } = useLightweightData();
-
-  // Lazy-load full library only when switching away from psychoactive
-  const needsFullLibrary = sortKey !== "psychoactive";
-  const { library, isLoading: libraryLoading } = useLazyLibrary(needsFullLibrary);
-
-  // Build psychoactive groups from lightweight data
-  const psychoactiveGroups = useMemo(
-    () => buildGroupsFromLayout(layout, lookup),
-    [layout, lookup]
+export function DosagesPage({ layout, substances }: DosagesPageProps) {
+  const sortKey: IndexSortKey = "psychoactive";
+  const lookup = new Map<string, SubstanceLookupEntry>(
+    substances.map((substance) => [substance.slug, substance]),
   );
+  const substanceCount = substances.filter((substance) => substance.priority !== "low").length;
 
-  // Get counts from lightweight data or library
+  const psychoactiveGroups = buildGroupsFromLayout(layout, lookup);
+
+  // Other tabs remain disabled until dedicated public datasets are wired in.
   const psychoactiveClassCount = psychoactiveGroups.length;
-  const chemicalClassCount = library?.chemicalClassIndexGroups.length ?? 0;
-  const mechanismCount = library?.mechanismIndexGroups.length ?? 0;
+  const chemicalClassCount = 0;
+  const mechanismCount = 0;
 
   const formatLabel = (count: number, singular: string, plural: string) =>
     `${count} ${count === 1 ? singular : plural}`;
 
   // Resolve which groups to show
-  const resolvedGroups = useMemo(() => {
-    if (sortKey === "psychoactive") {
-      return psychoactiveGroups;
-    }
-
-    // For other tabs, we need the full library
-    if (!library) {
-      return []; // Will show loading
-    }
-
-    if (sortKey === "chemical") {
-      return library.chemicalClassIndexGroups;
-    }
-    if (sortKey === "mechanism") {
-      return library.mechanismIndexGroups;
-    }
-
-    return psychoactiveGroups;
-  }, [sortKey, psychoactiveGroups, library]);
-
-  // Show loading state for chemical/mechanism tabs
-  if (needsFullLibrary && libraryLoading) {
-    return (
-      <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
-        <div className="mx-auto max-w-3xl md:max-w-4xl">
-          <PageHeader
-            title="Substance Index"
-            icon="lucide:flask-conical"
-            description="Loading..."
-          />
-          <div className="mt-12 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const resolvedGroups = psychoactiveGroups;
 
   return (
     <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
-      <motion.div
-        className="mx-auto max-w-3xl md:max-w-4xl"
-        initial="hidden"
-        animate="visible"
-        variants={containerAnimation}
-      >
-        <motion.div variants={itemAnimation}>
+      <div className="mx-auto max-w-3xl md:max-w-4xl">
+        <div>
           <PageHeader
             title="Substance Index"
             icon="lucide:flask-conical"
+            showSpotlight={false}
             description={
               <>
                 Browse {" "}
-                <span className="font-bold text-fuchsia-200">
-                  {formatLabel(substanceCount, "compound", "compounds")}
-                </span>
+                <strong>{formatLabel(substanceCount, "compound", "compounds")}</strong>
                 {" "} and organize them across {" "}
-                <span className="font-bold text-fuchsia-200">
-                  {formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}
-                </span>
+                <strong>{formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}</strong>
                 {chemicalClassCount > 0 && (
                   <>
                     ,{" "}
-                    <span className="font-bold text-fuchsia-200">
-                      {formatLabel(chemicalClassCount, "chemical class", "chemical classes")}
-                    </span>
+                    <strong>{formatLabel(chemicalClassCount, "chemical class", "chemical classes")}</strong>
                   </>
                 )}
                 {mechanismCount > 0 && (
                   <>
                     , and{" "}
-                    <span className="font-bold text-fuchsia-200">
-                      {formatLabel(mechanismCount, "mechanism of action", "mechanisms of action")}
-                    </span>
+                    <strong>{formatLabel(mechanismCount, "mechanism of action", "mechanisms of action")}</strong>
                   </>
                 )}
                 .{" "}
@@ -227,44 +142,40 @@ export const DosagesPage = memo(function DosagesPage({
               </>
             }
           />
-        </motion.div>
+        </div>
 
         {/* Sort Tabs */}
-        <motion.div variants={itemAnimation}>
-          <Tabs value={sortKey} onValueChange={(v) => setSortKey(v as IndexSortKey)} className="mt-2 mb-4 flex justify-center">
-            <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+        <div>
+          <div role="tablist" aria-label="Substance index views" className="mt-2 mb-4 flex justify-center">
+            <div className="flex h-auto flex-wrap gap-1 rounded-2xl bg-white/[0.035] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_36px_-28px_rgba(0,0,0,0.55)]">
               {SORT_OPTIONS.map((option) => (
-                <TabsTrigger
+                <div
                   key={option.key}
-                  value={option.key}
-                  disabled={option.disabled}
-                  className={cn(
-                    "gap-2.5 px-5 py-2.5 rounded-xl transition-[background-color,color,box-shadow] duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30",
-                    "text-[0.9375rem] font-medium text-white/60"
-                  )}
+                  role="tab"
+                  aria-selected={option.key === sortKey}
+                  aria-disabled={option.disabled}
+                  className={`inline-flex items-center gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium transition-[background-color,color,box-shadow,opacity] duration-300 ${
+                    option.key === sortKey
+                      ? "bg-[color:var(--theme-surface-muted)] text-white shadow-[inset_0_0_0_1px_rgba(244,114,182,0.18)]"
+                      : "text-white/68"
+                  } ${option.disabled ? "opacity-55" : "hover:bg-white/[0.05] hover:text-white"}`}
                 >
                   <Icon icon={option.icon} size={18} />
                   {option.label}
-                </TabsTrigger>
+                </div>
               ))}
-            </TabsList>
-          </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
 
-
-        </motion.div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
+      <div>
         <CategoryGrid
           groups={resolvedGroups}
-          onSelectDrug={onSelectDrug}
-          onSelectCategory={sortKey === "psychoactive" ? onSelectCategory : undefined}
+          drugHrefPrefix="/"
+          categoryHrefPrefix={sortKey === "psychoactive" ? "/category/" : undefined}
         />
-      </motion.div>
+      </div>
     </div>
   );
-});
+}

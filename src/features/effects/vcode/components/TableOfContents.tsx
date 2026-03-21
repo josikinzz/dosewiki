@@ -33,7 +33,7 @@ export function TableOfContents({
   };
 
   return (
-    <nav className="rounded-xl border border-white/10 bg-white/5 p-4 my-4">
+    <nav className="my-4 rounded-xl border border-[color:var(--theme-card-border)] bg-white/5 p-4">
       <h4 className="text-sm font-semibold text-fuchsia-300 mb-3">
         Contents
       </h4>

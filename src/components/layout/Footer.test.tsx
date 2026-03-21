@@ -77,4 +77,20 @@ describe("Footer theme toggle", () => {
       expect(document.documentElement.dataset.theme).toBe("light");
     });
   });
+
+  it("renders the updated footer copy and action buttons", () => {
+    renderFooter();
+
+    expect(screen.queryByText("Harm reduction reference")).not.toBeInTheDocument();
+    expect(screen.getByText(/Community harm-reduction information\./)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "CC BY-SA 4.0 license" })).toHaveAttribute(
+      "href",
+      "https://creativecommons.org/licenses/by-sa/4.0/",
+    );
+    expect(screen.getByRole("link", { name: /About/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "dose.wiki GitHub" })).toHaveAttribute(
+      "href",
+      "https://github.com/dose-wiki/dose.wiki",
+    );
+  });
 });

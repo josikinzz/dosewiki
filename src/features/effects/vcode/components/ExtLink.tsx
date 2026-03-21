@@ -23,7 +23,7 @@ export function ExtLink({
       href={to}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-fuchsia-200 hover:text-fuchsia-100 cursor-pointer transition-colors inline-flex items-center gap-1"
+      className="inline-flex cursor-pointer items-center gap-1 text-fuchsia-200 underline decoration-fuchsia-300/35 underline-offset-[0.18em] transition-colors hover:text-fuchsia-100 hover:decoration-fuchsia-200/55"
     >
       {children}
       <Icon icon="lucide:external-link" size={12} className="opacity-60" />

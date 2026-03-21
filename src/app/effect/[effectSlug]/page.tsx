@@ -1,4 +1,9 @@
 import { redirect } from "next/navigation";
+import { getStaticEffectParams } from "@server/next/staticParams";
+
+export async function generateStaticParams() {
+  return await getStaticEffectParams();
+}
 
 type LegacyEffectRedirectProps = {
   params: Promise<{

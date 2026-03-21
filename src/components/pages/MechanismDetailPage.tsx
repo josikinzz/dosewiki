@@ -1,7 +1,10 @@
+"use client";
+
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { CategoryGrid } from "@/features/article/components/sections";
-import { Badge } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";
@@ -9,9 +12,10 @@ import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/constants";
 
 interface MechanismDetailPageProps {
   detail: MechanismDetail;
-  onSelectDrug: (slug: string) => void;
+  drugHrefPrefix?: string;
+  categoryHrefPrefix?: string;
+  onSelectDrug?: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
-  onSelectMechanism?: (mechanismSlug: string, qualifierSlug?: string) => void;
   activeQualifierSlug?: string;
 }
 
@@ -21,9 +25,10 @@ function getSectionId(mechanismSlug: string, qualifierKey: string) {
 
 export function MechanismDetailPage({
   detail,
+  drugHrefPrefix,
+  categoryHrefPrefix,
   onSelectDrug,
   onSelectCategory,
-  onSelectMechanism,
   activeQualifierSlug,
 }: MechanismDetailPageProps) {
   const { definition, qualifiers, defaultQualifierKey } = detail;
@@ -48,14 +53,6 @@ export function MechanismDetailPage({
     }
   }, [definition.slug, targetQualifierKey]);
 
-  const handleQualifierSelect = (key: string) => {
-    if (!onSelectMechanism) {
-      return;
-    }
-    const qualifierSlug = key === defaultQualifierKey ? undefined : key;
-    onSelectMechanism(definition.slug, qualifierSlug);
-  };
-
   const qualifierNav = qualifiers.length > 1;
 
   return (
@@ -73,23 +70,24 @@ export function MechanismDetailPage({
             const qualifierSuffix = qualifier.label ?? "general";
             const displayLabel = `${definition.name} (${qualifierSuffix})`;
             const countLabel = `${qualifier.total}`;
+            const qualifierHref =
+              qualifier.key === defaultQualifierKey
+                ? `/mechanism/${definition.slug}`
+                : `/mechanism/${definition.slug}/${qualifier.key}`;
 
             return (
-              <Badge
+              <Link
                 key={qualifier.key}
-                variant="effectInteractive"
-                role="button"
-                tabIndex={0}
-                onClick={() => handleQualifierSelect(qualifier.key)}
-                onKeyDown={(e) => e.key === "Enter" && handleQualifierSelect(qualifier.key)}
+                href={qualifierHref}
                 className={cn(
+                  badgeVariants({ variant: "effectInteractive" }),
                   "gap-2 gap-fallback-row-2",
                   isActive && "bg-fuchsia-500/25 text-white ring-fuchsia-400/40 hover:bg-fuchsia-500/25 hover:text-white"
                 )}
               >
                 <span>{displayLabel}</span>
                 <span className="text-xs text-white/60">{countLabel}</span>
-              </Badge>
+              </Link>
             );
           })}
         </div>
@@ -109,7 +107,7 @@ export function MechanismDetailPage({
             <section
               key={qualifier.key}
               id={sectionId}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]"
+              className="rounded-2xl border border-[color:var(--theme-card-border)] bg-white/5 p-6 shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-4">
                 <div>
@@ -124,6 +122,8 @@ export function MechanismDetailPage({
                 {groups.length > 0 ? (
                   <CategoryGrid
                     groups={groups}
+                    drugHrefPrefix={drugHrefPrefix}
+                    categoryHrefPrefix={categoryHrefPrefix}
                     onSelectDrug={onSelectDrug}
                     onSelectCategory={onSelectCategory}
                     hideEmptyGroups

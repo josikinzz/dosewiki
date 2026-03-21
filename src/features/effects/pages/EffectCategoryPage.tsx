@@ -1,6 +1,10 @@
+"use client";
+
+import Link from "next/link";
 import { useMemo, memo } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { IconBadge } from "@/components/common/IconBadge";
+import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { Button } from "@/components/ui/button";
@@ -8,7 +12,6 @@ import {
   getEffectCategoryDefinition,
   CATEGORY_SLUG_TO_TAGS,
 } from "@/data/effectCategoryDefinitions";
-import { useSubjectiveEffects } from "@/hooks/useSubjectiveEffects";
 
 /**
  * Minimal effect type for category display.
@@ -22,8 +25,11 @@ interface EffectSummary {
 
 interface EffectCategoryPageProps {
   categorySlug: string;
-  onSelectEffect: (slug: string) => void;
-  onNavigateBack: () => void;
+  effects: EffectSummary[];
+  effectHrefPrefix?: string;
+  backHref?: string;
+  onSelectEffect?: (slug: string) => void;
+  onNavigateBack?: () => void;
 }
 
 /**
@@ -149,22 +155,12 @@ const CATEGORY_INFO_FALLBACK: Record<string, CategoryInfo> = {
  */
 export const EffectCategoryPage = memo(function EffectCategoryPage({
   categorySlug,
+  effects,
+  effectHrefPrefix,
+  backHref,
   onSelectEffect,
   onNavigateBack,
 }: EffectCategoryPageProps) {
-  // Fetch effects from Convex at route level
-  const { effects: convexEffects, isLoading } = useSubjectiveEffects();
-
-  // Map Convex effects to EffectSummary
-  const effects: EffectSummary[] = useMemo(() => {
-    return convexEffects.map(e => ({
-      slug: e.slug,
-      name: e.name,
-      tags: e.tags,
-      summary: e.summary,
-    }));
-  }, [convexEffects]);
-
   // Get category info - prefer canonical definitions, then fallback, then generate
   const canonicalDef = getEffectCategoryDefinition(categorySlug);
   const canonicalTags = CATEGORY_SLUG_TO_TAGS[categorySlug];
@@ -197,30 +193,28 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [effects, categoryInfo.tags]);
 
-  // Show loading state while fetching
-  if (isLoading && effects.length === 0) {
-    return (
-      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12 focus:outline-none">
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
         {/* Back button */}
-        <Button
-          variant="ghostPill"
-          size="pill"
-          onClick={onNavigateBack}
-          className="mb-6"
-        >
-          <Icon icon="lucide:arrow-left" size={16} />
-          Back to Effects Index
-        </Button>
+        {backHref ? (
+          <Button variant="ghostPill" size="pill" asChild className="mb-6">
+            <Link href={backHref}>
+              <Icon icon="lucide:arrow-left" size={16} />
+              Back to Effects Index
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="ghostPill"
+            size="pill"
+            onClick={onNavigateBack}
+            className="mb-6"
+          >
+            <Icon icon="lucide:arrow-left" size={16} />
+            Back to Effects Index
+          </Button>
+        )}
 
         <PageHeader
           title={categoryInfo.title}
@@ -240,24 +234,32 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
           {filteredEffects.length > 0 ? (
             <div className="flex flex-wrap gap-2.5">
               {filteredEffects.map((effect) => (
-                <Button
-                  key={effect.slug}
-                  variant="chip"
-                  size="chip"
-                  onClick={() => onSelectEffect(effect.slug)}
-                >
-                  {effect.name}
-                </Button>
+                effectHrefPrefix ? (
+                  <Button key={effect.slug} variant="chip" size="chip" asChild>
+                    <Link href={`${effectHrefPrefix}${effect.slug}`}>{effect.name}</Link>
+                  </Button>
+                ) : (
+                  <Button
+                    key={effect.slug}
+                    variant="chip"
+                    size="chip"
+                    onClick={() => onSelectEffect?.(effect.slug)}
+                  >
+                    {effect.name}
+                  </Button>
+                )
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <Icon icon="lucide:search-x" size={48} className="mx-auto mb-4 text-white/30" />
-              <h3 className="text-lg font-semibold text-white/70 mb-2">No effects found</h3>
-              <p className="text-sm text-white/50">
-                No effects match this category.
-              </p>
-            </div>
+            <StateCard
+              badge="No matches"
+              badgeVariant="secondary"
+              title="No effects match this category"
+              description="This category exists, but there are no imported effects mapped to it yet."
+              icon="lucide:search-x"
+              tone="neutral"
+              compact
+            />
           )}
         </SectionCard>
       </div>

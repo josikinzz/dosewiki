@@ -5,8 +5,11 @@ import type { DosageCategoryGroup } from "@/data/builders/library";
 interface RelatedSubstancesSectionProps {
   groups: DosageCategoryGroup[];
   total: number;
-  onSelectDrug: (slug: string) => void;
+  drugHrefPrefix?: string;
+  categoryHrefPrefix?: string;
+  onSelectDrug?: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
+  showHeading?: boolean;
 }
 
 /**
@@ -16,8 +19,11 @@ interface RelatedSubstancesSectionProps {
 export function RelatedSubstancesSection({ 
   groups,
   total,
+  drugHrefPrefix,
+  categoryHrefPrefix,
   onSelectDrug,
   onSelectCategory,
+  showHeading = true,
 }: RelatedSubstancesSectionProps) {
   if (groups.length === 0) {
     return null;
@@ -25,15 +31,23 @@ export function RelatedSubstancesSection({
 
   return (
     <div>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:flask-conical" label="Related Substances" />
-        Related Substances
-        <span className="ml-2 text-sm font-normal text-white/50">
-          ({total})
-        </span>
-      </h2>
+      {showHeading ? (
+        <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+          <IconBadge icon="lucide:flask-conical" label="Related Substances" />
+          Related Substances
+          <span className="ml-2 text-sm font-normal text-white/50">
+            ({total})
+          </span>
+        </h2>
+      ) : (
+        <p className="theme-text-secondary mb-4 text-sm">
+          {total} substance{total === 1 ? "" : "s"} currently linked to this effect.
+        </p>
+      )}
       <CategoryGrid
         groups={groups}
+        drugHrefPrefix={drugHrefPrefix}
+        categoryHrefPrefix={categoryHrefPrefix}
         onSelectDrug={onSelectDrug}
         onSelectCategory={onSelectCategory}
         hideEmptyGroups

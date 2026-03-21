@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SignInButtonProps = {
@@ -9,15 +11,24 @@ type SignInButtonProps = {
 };
 
 export function SignInButton({ callbackUrl = "/dev", disabled = false }: SignInButtonProps) {
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleClick = async () => {
+    setIsStarting(true);
+    await signIn("github", { callbackUrl });
+  };
+
   return (
     <Button
       type="button"
       variant="pill"
-      disabled={disabled}
-      onClick={() => void signIn("github", { callbackUrl })}
-      className="min-h-11"
+      disabled={disabled || isStarting}
+      onClick={() => void handleClick()}
+      className="min-h-11 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)]"
+      aria-busy={isStarting}
     >
-      Sign in
+      <Github className={`h-4 w-4 ${isStarting ? "animate-pulse" : ""}`} />
+      {isStarting ? "Opening GitHub…" : "Continue with GitHub"}
     </Button>
   );
 }

@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
-import { getPublicLibrary } from "@server/convex/publicLibrary";
-import { LegacyPublicRouteClient } from "../../_components/LegacyPublicRouteClient";
+import { getPublicMechanismDetail } from "@server/convex/publicLibrary";
+import { getStaticMechanismParams } from "@server/next/staticParams";
+import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticMechanismParams();
+}
 
 type MechanismPageProps = {
   params: Promise<{
@@ -13,8 +18,7 @@ type MechanismPageProps = {
 
 export async function generateMetadata({ params }: MechanismPageProps) {
   const { mechanismSlug } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getMechanismDetail(mechanismSlug);
+  const detail = await getPublicMechanismDetail(mechanismSlug);
 
   return buildPageMetadata({
     title: detail?.definition.name ?? "Mechanism",
@@ -25,12 +29,11 @@ export async function generateMetadata({ params }: MechanismPageProps) {
 
 export default async function MechanismPage({ params }: MechanismPageProps) {
   const { mechanismSlug } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getMechanismDetail(mechanismSlug);
+  const detail = await getPublicMechanismDetail(mechanismSlug);
 
   if (!detail) {
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "mechanism", mechanismSlug }} />;
+  return <MechanismDetailPage detail={detail} drugHrefPrefix="/" categoryHrefPrefix="/category/" />;
 }

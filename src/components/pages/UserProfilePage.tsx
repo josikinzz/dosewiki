@@ -1,24 +1,23 @@
-import ReactMarkdown from "react-markdown";
+"use client";
+
 import { useState, type ReactNode } from "react";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
-import { motion } from "framer-motion";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { StateCard } from "@/components/common/StateCard";
 
 import { SectionCard } from "@/components/common/SectionCard";
-import { ReportCard } from "@/features/reports/components";
+import { ReportCard } from "@/features/reports/components/ReportCard";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { TripReport } from "@/types/tripReport";
-import { cardAnimation } from "@/constants/motion";
 
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: ChangeLogEntry[];
+  tripReports?: TripReport[];
+  reportHrefPrefix?: string;
   onSelectReport?: (slug: string) => void;
+  bioContent?: ReactNode;
 }
 
 const dateFormat = new Intl.DateTimeFormat(undefined, {
@@ -65,42 +64,10 @@ const renderAvatar = (profile: NormalizedUserProfile) => {
   );
 };
 
-const bioComponents = {
-  p: ({ node: _node, ...props }: { node?: unknown }) => (
-    <p className="mt-4 text-[1.0625rem] leading-7 text-white/80 first:mt-0" {...props} />
-  ),
-  strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="font-semibold text-fuchsia-200" {...props} />,
-  a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode }) => {
-    const { children, ...rest } = props;
-    return (
-      <a
-        className="font-medium text-fuchsia-300 transition hover:text-fuchsia-200 hover:underline hover:decoration-fuchsia-300/30 hover:underline-offset-2"
-        target="_blank"
-        rel="noopener noreferrer"
-        {...rest}
-      >
-        {children}
-      </a>
-    );
-  },
-  ul: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ul className="mt-4 list-disc space-y-2 pl-6 text-[1.0625rem] text-white/80 marker:text-fuchsia-400/50" {...props} />
-  ),
-  ol: ({ node: _node, ...props }: { node?: unknown }) => (
-    <ol className="mt-4 list-decimal space-y-2 pl-6 text-[1.0625rem] text-white/80 marker:text-fuchsia-400/50" {...props} />
-  ),
-  li: ({ node: _node, ...props }: { node?: unknown }) => (
-    <li className="pl-1" {...props} />
-  ),
-  blockquote: ({ node: _node, ...props }: { node?: unknown }) => (
-    <blockquote className="mt-6 border-l-4 border-fuchsia-500/30 pl-4 italic text-white/70" {...props} />
-  ),
-};
-
 const contributionBadgeClass =
   "inline-flex items-center rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/70 ring-1 ring-inset ring-white/10";
 
-export function UserProfilePage({ profile, history, onSelectReport }: UserProfilePageProps) {
+export function UserProfilePage({ profile, history, tripReports = [], reportHrefPrefix, onSelectReport, bioContent }: UserProfilePageProps) {
   const [isContributionsExpanded, setIsContributionsExpanded] = useState(false);
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
   const reportsSectionId = `${profile.key}-reports`;
@@ -110,20 +77,14 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
   const hasBio = profile.hasCustomBio;
   const hasHistory = history.length > 0;
 
-  // Query trip reports by this author's display name
-  const tripReportsRaw = useQuery(
-    api.tripReports.getByAuthor,
-    { authorName: profile.displayName }
-  ) as TripReport[] | undefined;
-
   // Sort reports with featured first, then by title
-  const tripReports = tripReportsRaw?.slice().sort((a, b) => {
+  const sortedTripReports = tripReports.slice().sort((a, b) => {
     if (a.featured && !b.featured) return -1;
     if (!a.featured && b.featured) return 1;
     return a.title.localeCompare(b.title);
   });
 
-  const hasReports = tripReports && tripReports.length > 0;
+  const hasReports = sortedTripReports.length > 0;
 
   const handleReportClick = (slug: string) => {
     if (onSelectReport) {
@@ -136,10 +97,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
-        <motion.div 
-          className="flex flex-col items-center gap-8 text-center"
-          {...cardAnimation}
-        >
+        <div className="flex flex-col items-center gap-8 text-center">
           {renderAvatar(profile)}
           
           <div className="flex flex-col items-center gap-6">
@@ -170,15 +128,11 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         <div className="mt-16 space-y-12">
           {hasBio && (
-            <motion.section
-              {...cardAnimation}
-              transition={{ ...cardAnimation.transition, delay: 0.1 }}
-              className="space-y-6"
-            >
+            <section className="space-y-6">
               <div className="flex flex-wrap items-center gap-4">
                 <div className="relative shrink-0">
                   <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
@@ -190,17 +144,10 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                 <div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
               </div>
 
-              <div className="relative px-4 py-2">
-                <div className="prose prose-invert prose-fuchsia max-w-none">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkBreaks]}
-                    components={bioComponents}
-                  >
-                    {profile.bio}
-                  </ReactMarkdown>
-                </div>
+                <div className="relative px-4 py-2">
+                {bioContent}
               </div>
-            </motion.section>
+            </section>
           )}
 
           {/* Trip Reports Section */}
@@ -214,14 +161,15 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
 
             {hasReports ? (
               <div id={reportsSectionId} className="space-y-4">
-                {tripReports.slice(0, isReportsExpanded ? undefined : 3).map((report) => (
+                {sortedTripReports.slice(0, isReportsExpanded ? undefined : 3).map((report) => (
                   <ReportCard
                     key={report.slug}
                     report={report}
-                    onClick={() => handleReportClick(report.slug)}
+                    href={reportHrefPrefix ? `${reportHrefPrefix}${report.slug}` : undefined}
+                    onClick={reportHrefPrefix ? undefined : () => handleReportClick(report.slug)}
                   />
                 ))}
-                {tripReports.length > 3 && (
+                {sortedTripReports.length > 3 && (
                   <button
                     type="button"
                     onClick={() => setIsReportsExpanded(!isReportsExpanded)}
@@ -229,21 +177,21 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                     aria-controls={reportsSectionId}
                     className="mx-auto flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-sm text-white/70 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                   >
-                    <span className="font-medium">+{tripReports.length - 3}</span>
+                    <span className="font-medium">+{sortedTripReports.length - 3}</span>
                     <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isReportsExpanded ? "rotate-180" : ""}`} />
                   </button>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5">
-                  <Icon icon="lucide:file-signature" size={24} className="text-white/40" />
-                </div>
-                <p className="text-base font-semibold text-white/80">No trip reports yet</p>
-                <p className="mt-2 text-sm text-white/50">
-                  Trip reports by {profile.displayName} will appear here.
-                </p>
-              </div>
+              <StateCard
+                badge="Quiet for now"
+                badgeVariant="secondary"
+                title="No trip reports yet"
+                description={`Trip reports by ${profile.displayName} will appear here once they’re published.`}
+                icon="lucide:file-signature"
+                tone="neutral"
+                compact
+              />
             )}
           </SectionCard>
 
@@ -276,13 +224,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
               </button>
 
               {isContributionsExpanded && (
-                <motion.div 
-                  id={contributionsSectionId}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className="mt-6 space-y-4"
-                >
+                <div id={contributionsSectionId} className="mt-6 space-y-4">
                   {history.map((entry) => (
                     <div
                       key={entry.id}
@@ -345,7 +287,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                       )}
                     </div>
                   ))}
-                </motion.div>
+                </div>
               )}
             </SectionCard>
           )}

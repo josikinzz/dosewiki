@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 import { useEffect, useMemo, useState, memo, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
 import type { DosageCategoryGroup } from "@/data/builders/library";
@@ -19,10 +22,12 @@ interface CategoryGroupCardProps {
   isExpanded: boolean;
   isCopied: boolean;
   isCategorySelectable: boolean;
+  categoryHref?: string;
   onToggle: (key: string) => void;
   onCopy: (group: DosageCategoryGroup) => void;
   onSelectCategory: (key: string) => void;
-  onSelectDrug: (slug: string) => void;
+  onSelectDrug?: (slug: string) => void;
+  getDrugHref: (slug: string) => string | undefined;
   formatLabel: (drug: DosageCategoryGroup["drugs"][number]) => string;
 }
 
@@ -31,10 +36,12 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   isExpanded,
   isCopied,
   isCategorySelectable,
+  categoryHref,
   onToggle,
   onCopy,
   onSelectCategory,
   onSelectDrug,
+  getDrugHref,
   formatLabel,
 }: CategoryGroupCardProps) {
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
@@ -63,19 +70,30 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
 
         <div className="flex-1 min-w-0 pt-1">
           {isCategorySelectable ? (
-            <Button
-              variant="categoryHeader"
-              size="auto"
-              onClick={() => onSelectCategory(group.key)}
-              className="h-auto p-0 hover:no-underline"
-            >
-              <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300 text-left">
-                {group.name}
-                <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
-              </h2>
-            </Button>
+            categoryHref ? (
+              <Button variant="categoryHeader" size="auto" asChild className="h-auto p-0 hover:no-underline">
+                <Link href={categoryHref}>
+                  <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                    {group.name}
+                    <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                  </h2>
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                variant="categoryHeader"
+                size="auto"
+                onClick={() => onSelectCategory(group.key)}
+                className="h-auto p-0 hover:no-underline"
+              >
+                <h2 className="theme-accent-heading text-left text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
+                  {group.name}
+                  <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
+                </h2>
+              </Button>
+            )
           ) : (
-            <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300">
+            <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
               {group.name}
               <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({group.total})</span>
             </h2>
@@ -117,6 +135,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                       <IndexCardListItem
                         key={drug.slug}
                         label={formatLabel(drug)}
+                        href={getDrugHref(drug.slug)}
                         slug={drug.slug}
                         onSelect={onSelectDrug}
                       />
@@ -132,6 +151,7 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
                   <IndexCardListItem
                     key={drug.slug}
                     label={formatLabel(drug)}
+                    href={getDrugHref(drug.slug)}
                     slug={drug.slug}
                     onSelect={onSelectDrug}
                   />
@@ -147,8 +167,10 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
 
 interface CategoryGridProps {
   groups: DosageCategoryGroup[];
-  onSelectDrug: (slug: string) => void;
+  onSelectDrug?: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
+  drugHrefPrefix?: string;
+  categoryHrefPrefix?: string;
   defaultExpanded?: boolean;
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
@@ -158,6 +180,8 @@ export function CategoryGrid({
   groups,
   onSelectDrug,
   onSelectCategory,
+  drugHrefPrefix,
+  categoryHrefPrefix,
   defaultExpanded = true,
   hideEmptyGroups = false,
   limitColumns = false,
@@ -325,13 +349,23 @@ export function CategoryGrid({
     onSelectCategory?.(key);
   }, [onSelectCategory]);
 
+  const getDrugHref = useCallback(
+    (slug: string) => drugHrefPrefix ? `${drugHrefPrefix}${slug}` : undefined,
+    [drugHrefPrefix],
+  );
+
+  const getCategoryHref = useCallback(
+    (key: string) => categoryHrefPrefix ? `${categoryHrefPrefix}${key}` : undefined,
+    [categoryHrefPrefix],
+  );
+
   // Stable reference for format function
   const memoizedFormatDrugLabel = useCallback(
     (drug: DosageCategoryGroup["drugs"][number]) => formatDrugLabel(drug),
     []
   );
 
-  const isCategorySelectable = Boolean(onSelectCategory);
+  const isCategorySelectable = Boolean(onSelectCategory || categoryHrefPrefix);
 
   // Filter to only columns that have content
   const nonEmptyColumns = Array.from({ length: columnCount })
@@ -354,10 +388,12 @@ export function CategoryGrid({
               isExpanded={expanded[group.key] ?? defaultExpanded}
               isCopied={copiedKey === group.key}
               isCategorySelectable={isCategorySelectable}
+              categoryHref={getCategoryHref(group.key)}
               onToggle={handleToggle}
               onCopy={handleCopyGroup}
               onSelectCategory={handleSelectCategory}
               onSelectDrug={onSelectDrug}
+              getDrugHref={getDrugHref}
               formatLabel={memoizedFormatDrugLabel}
             />
           ))}

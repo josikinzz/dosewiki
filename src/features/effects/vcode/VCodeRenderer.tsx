@@ -33,6 +33,49 @@ export function VCodeRenderer({
   citations = [],
   subarticles = [],
 }: VCodeRendererProps) {
+  const renderMarkdownText = (text: string, index: number): ReactNode => {
+    const normalizedText = text.trim();
+
+    if (!normalizedText) {
+      return null;
+    }
+
+    const headingMatch = /^(#{1,6})\s+(.*)$/.exec(normalizedText);
+
+    if (!headingMatch) {
+      return <Paragraph key={index}>{normalizedText}</Paragraph>;
+    }
+
+    const [, headingHashes, headingText] = headingMatch;
+
+    switch (headingHashes.length) {
+      case 1:
+        return (
+          <h1 key={index} className="mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-fuchsia-200 text-balance">
+            {headingText}
+          </h1>
+        );
+      case 2:
+        return (
+          <h2 key={index} className="mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] tracking-[-0.025em] text-fuchsia-300 text-balance">
+            {headingText}
+          </h2>
+        );
+      case 3:
+        return (
+          <h3 key={index} className="mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance">
+            {headingText}
+          </h3>
+        );
+      default:
+        return (
+          <h4 key={index} className="mt-5 mb-2 text-base font-semibold leading-[1.35] text-fuchsia-300/70 text-balance">
+            {headingText}
+          </h4>
+        );
+    }
+  };
+
   const renderNode = (node: string | VCodeNode, index: number): ReactNode => {
     // Handle null/undefined nodes
     if (node == null) {
@@ -118,6 +161,21 @@ export function VCodeRenderer({
             {renderChildren(node.children)}
           </SeparatedTextbox>
         );
+
+      case "panel":
+        return (
+          <div key={index} className="my-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/5">
+            {node.properties.title ? (
+              <h3 className="mb-4 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance">
+                {node.properties.title}
+              </h3>
+            ) : null}
+            <div className="space-y-4">{renderChildren(node.children)}</div>
+          </div>
+        );
+
+      case "markdown":
+        return renderMarkdownText(node.properties.text ?? "", index);
 
       // Media
       case "captioned-image":
@@ -248,28 +306,28 @@ export function VCodeRenderer({
       // Headings - fuchsia accented to match substance articles
       case "h1":
         return (
-          <h1 key={index} className="text-2xl font-bold text-fuchsia-200 mt-8 mb-4">
+          <h1 key={index} className="mt-10 mb-5 font-display text-[clamp(2rem,1.84rem+0.95vw,2.7rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-fuchsia-200 text-balance">
             {renderChildren(node.children)}
           </h1>
         );
 
       case "h2":
         return (
-          <h2 key={index} className="text-xl font-semibold text-fuchsia-300 mt-6 mb-3">
+          <h2 key={index} className="mt-8 mb-3 font-display text-[clamp(1.45rem,1.32rem+0.55vw,1.85rem)] font-semibold leading-[1.08] tracking-[-0.025em] text-fuchsia-300 text-balance">
             {renderChildren(node.children)}
           </h2>
         );
 
       case "h3":
         return (
-          <h3 key={index} className="text-lg font-semibold text-fuchsia-300/80 mt-5 mb-2">
+          <h3 key={index} className="mt-6 mb-2 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance">
             {renderChildren(node.children)}
           </h3>
         );
 
       case "h4":
         return (
-          <h4 key={index} className="text-base font-semibold text-fuchsia-300/70 mt-4 mb-2">
+          <h4 key={index} className="mt-5 mb-2 text-base font-semibold leading-[1.35] text-fuchsia-300/70 text-balance">
             {renderChildren(node.children)}
           </h4>
         );
@@ -313,13 +371,13 @@ export function VCodeRenderer({
   // Handle different content types
   if (typeof content === "string") {
     // Raw string content - just render as text
-    return <div className="text-sm text-white/80 leading-relaxed">{content}</div>;
+    return <div className="type-reading-measure type-supporting-copy text-white/80">{content}</div>;
   }
 
   if (Array.isArray(content)) {
     // Parsed AST array
     return (
-      <div className="text-sm text-white/80 leading-relaxed space-y-4">
+      <div className="type-reading-measure space-y-5 text-white/80">
         {content.map((node, index) => renderNode(node, index))}
       </div>
     );
@@ -327,7 +385,7 @@ export function VCodeRenderer({
 
   // Single node
   return (
-    <div className="text-sm text-white/80 leading-relaxed">
+    <div className="type-reading-measure text-white/80">
       {renderNode(content, 0)}
     </div>
   );

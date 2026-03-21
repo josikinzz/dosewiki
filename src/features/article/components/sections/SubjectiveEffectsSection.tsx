@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { memo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle, EffectCategory, EffectEntry, SenseCategory } from "@/schema";
 import { getContributorPath } from "@/utils/contributors";
+import { isPlainLeftClick } from "@/utils/navigation";
+import { slugify } from "@/utils/slug";
 
 interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
@@ -34,6 +37,21 @@ const SUBCATEGORY_ICONS: Record<string, IconName> = {
   "3. The Other Side": "lucide:house",
   "4. Coming Down": "lucide:trending-down",
 };
+
+const OVERVIEW_COLLAPSE_LENGTH = 280;
+
+function getEffectHref(name: string) {
+  return `/effects/${slugify(name)}`;
+}
+
+function truncateOverviewText(text: string): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= OVERVIEW_COLLAPSE_LENGTH) return trimmed;
+
+  const truncated = trimmed.slice(0, OVERVIEW_COLLAPSE_LENGTH);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return (lastSpace > OVERVIEW_COLLAPSE_LENGTH * 0.7 ? truncated.slice(0, lastSpace) : truncated).trimEnd();
+}
 
 /** Check if an effect category has any effects or notes */
 function hasEffects(category: EffectCategory | undefined): boolean {
@@ -85,12 +103,13 @@ function EffectBadge({
   onSelectEffect?: (name: string) => void;
 }) {
   const hasDescription = effect.description?.trim().length > 0;
+  const href = getEffectHref(effect.name);
 
   const handleClick = () => {
     if (hasDescription) {
       onToggle();
     } else if (onSelectEffect) {
-      onSelectEffect(effect.name);
+      onSelectEffect(slugify(effect.name));
     }
   };
 
@@ -111,19 +130,32 @@ function EffectBadge({
           "w-full my-2"
         )}
       >
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute top-3 right-3 p-1 rounded hover:bg-white/10 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 flex items-center gap-0.5"
-          aria-label="Collapse"
-        >
-          <Icon icon="lucide:ellipsis" size={12} className="text-white/85" />
-          <Icon icon="lucide:chevron-down" size={12} className="text-white/85 rotate-180 transition-transform" />
-        </button>
+        <ExpandButton
+          isExpanded={true}
+          onToggle={onToggle}
+          variant="compact"
+          className="absolute top-3 right-3 text-white/85"
+          ariaLabel={`Collapse ${effect.name}`}
+        />
         <div className="flex flex-wrap items-center gap-2 pr-8">
-          <span className="text-xs font-semibold text-white/85">
+          <Link
+            href={href}
+            onClick={
+              onSelectEffect
+                ? (event) => {
+                    if (!isPlainLeftClick(event)) {
+                      return;
+                    }
+
+                    event.preventDefault();
+                    onSelectEffect(slugify(effect.name));
+                  }
+                : undefined
+            }
+            className="text-xs font-semibold text-white/85 transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          >
             {effect.name}
-          </span>
+          </Link>
           {subtitleBadge && (
             <span className="text-xs text-white/50 bg-white/10 px-2 py-0.5 rounded">
               {subtitleBadge}
@@ -138,25 +170,43 @@ function EffectBadge({
   }
 
   // Collapsed state - compact badge
+  if (!hasDescription) {
+    return (
+      <Link
+        href={href}
+        onClick={
+          onSelectEffect
+            ? (event) => {
+                if (!isPlainLeftClick(event)) {
+                  return;
+                }
+
+                event.preventDefault();
+                handleClick();
+              }
+            : undefined
+        }
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition",
+          "bg-white/[0.03] text-white/85 ring-1 ring-white/10",
+          "hover:bg-white/10 hover:text-fuchsia-200",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        )}
+      >
+        {effect.name}
+      </Link>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition",
-        "bg-white/[0.03] text-white/85 ring-1 ring-white/10",
-        "hover:bg-white/10 hover:text-fuchsia-200",
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-      )}
+    <ExpandButton
+      isExpanded={false}
+      onToggle={handleClick}
+      variant="badge"
+      ariaLabel={`Expand ${effect.name}`}
     >
       {effect.name}
-      {hasDescription && (
-        <>
-          <Icon icon="lucide:ellipsis" size={12} />
-          <Icon icon="lucide:chevron-down" size={12} className="transition-transform" />
-        </>
-      )}
-    </button>
+    </ExpandButton>
   );
 }
 
@@ -217,12 +267,9 @@ function CollapsibleStage({
           {hasIcon && <Icon icon={stageIcon} size={20} className="text-fuchsia-300" />}
           <span className="text-sm font-semibold text-white">{name}</span>
         </div>
-        <div className={cn(
-          "flex items-center gap-1 text-white/50",
-          isExpanded && "rounded p-1 -m-1 hover:bg-white/10 transition"
-        )}>
-          <Icon icon="lucide:ellipsis" size={16} />
-          <Icon icon="lucide:chevron-down" size={16} className={cn("transition-transform", isExpanded && "rotate-180")} />
+        <div className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-white/55">
+          <Icon icon="lucide:ellipsis" size={14} />
+          <Icon icon="lucide:chevron-down" size={14} className={cn("transition-transform", isExpanded && "rotate-180")} />
         </div>
       </button>
       {isExpanded && note && (
@@ -295,6 +342,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
   // Track which effect is currently expanded (only one at a time across all categories)
   const [expandedEffect, setExpandedEffect] = useState<string | null>(null);
+  const [isOverviewExpanded, setIsOverviewExpanded] = useState(false);
 
   const toggleEffect = (effectName: string) => {
     setExpandedEffect((prev) => (prev === effectName ? null : effectName));
@@ -313,6 +361,14 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
     ({ key }) => hasSenseEffects(subjective_effects.sensory[key as keyof typeof subjective_effects.sensory])
   );
 
+  const overviewText = hasOverviewNote
+    ? subjective_effects.notes.overview.trim()
+    : "Effects vary widely by individual, dose, and context.";
+  const canCollapseOverview = hasOverviewNote && overviewText.length > OVERVIEW_COLLAPSE_LENGTH;
+  const displayedOverviewText = canCollapseOverview && !isOverviewExpanded
+    ? truncateOverviewText(overviewText)
+    : overviewText;
+
   if (!hasAnySensory && !hasCognitive && !hasPhysical && !hasProgressiveStages && !hasComparisons && !hasOverviewNote) {
     return null;
   }
@@ -322,11 +378,21 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       <SectionHeader icon="lucide:sparkles" title="Subjective Effects" />
 
       {/* Overview note as intro paragraph, or fallback to generic text */}
-      <p className="text-sm text-white/70 leading-relaxed">
-        {hasOverviewNote
-          ? subjective_effects.notes.overview
-          : "Effects vary widely by individual, dose, and context."}
-      </p>
+      <div className="space-y-2">
+        <p className="text-sm text-white/70 leading-relaxed">
+          {displayedOverviewText}
+          {canCollapseOverview && !isOverviewExpanded && "…"}
+        </p>
+        {canCollapseOverview && (
+          <div className="flex justify-start">
+            <ExpandButton
+              isExpanded={isOverviewExpanded}
+              onToggle={() => setIsOverviewExpanded((expanded) => !expanded)}
+              ariaLabel={isOverviewExpanded ? "Collapse subjective effects overview" : "Expand subjective effects overview"}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
       <div className="space-y-4">

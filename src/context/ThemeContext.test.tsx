@@ -98,7 +98,7 @@ describe("ThemeProvider", () => {
     });
   });
 
-  it("starts in light mode when a saved light preference exists", async () => {
+  it("syncs to light mode when a saved light preference exists", async () => {
     window.localStorage.setItem(THEME_STORAGE_KEY, "light");
 
     render(

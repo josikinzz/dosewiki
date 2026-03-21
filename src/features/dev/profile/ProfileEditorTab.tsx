@@ -5,7 +5,7 @@ import { SectionCard } from "@/components/common/SectionCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { AvatarUpload } from "./AvatarUpload";
 import { LinkManager } from "./LinkManager";
@@ -234,9 +234,9 @@ export function ProfileEditorTab({
     }
 
     try {
-      setNotice({ type: "success", message: "Verifying credentials…" });
+      setNotice({ type: "pending", message: "Verifying credentials…" });
       const credentials = await verifyCredentials();
-      setNotice({ type: "success", message: "Preparing profile update…" });
+      setNotice({ type: "pending", message: "Preparing profile update…" });
 
       let avatarUploadPayload: { filename: string; mimeType: string; base64: string } | undefined;
       if (avatarFile) {
@@ -246,7 +246,7 @@ export function ProfileEditorTab({
           return;
         }
 
-        setNotice({ type: "success", message: "Preparing avatar upload…" });
+        setNotice({ type: "pending", message: "Preparing avatar upload…" });
         const base64 = await readFileAsBase64(avatarFile);
         avatarUploadPayload = {
           filename: avatarFile.name,
@@ -255,7 +255,7 @@ export function ProfileEditorTab({
         };
       }
 
-      setNotice({ type: "success", message: "Saving profile…" });
+      setNotice({ type: "pending", message: "Saving profile…" });
 
       const result = await saveProfileMutation.mutateAsync({
         username: credentials.username,
@@ -324,7 +324,15 @@ export function ProfileEditorTab({
         </div>
 
         {notice && (
-          <Alert variant={notice.type === "error" ? "destructive" : "success"}>
+          <Alert variant={notice.type === "error" ? "destructive" : notice.type === "pending" ? "default" : "success"}>
+            <Icon
+              icon={notice.type === "error" ? "lucide:triangle-alert" : notice.type === "pending" ? "lucide:loader-circle" : "lucide:badge-check"}
+              size={16}
+              className={notice.type === "pending" ? "animate-spin" : undefined}
+            />
+            <AlertTitle>
+              {notice.type === "error" ? "Profile update failed" : notice.type === "pending" ? "Working…" : "Profile status"}
+            </AlertTitle>
             <AlertDescription>{notice.message}</AlertDescription>
           </Alert>
         )}

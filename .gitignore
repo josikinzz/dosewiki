@@ -5,6 +5,8 @@ node_modules/
 dist/
 dist-inline/
 public/share/
+.next/
+.generated/
 
 # Test coverage
 coverage/
@@ -45,3 +47,4 @@ quotes/
 src/data/config/sectionPrompts/*.md
 src/data/config/generatorPrompt.md
 .vercel
+.impeccable.md

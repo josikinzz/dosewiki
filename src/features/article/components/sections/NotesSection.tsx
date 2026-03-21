@@ -42,7 +42,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
         </li>
       );
     },
-    strong: ({ node: _node, ...props }) => <strong className="text-white" {...props} />,
+    strong: ({ node: _node, ...props }) => <strong className="theme-accent-emphasis" {...props} />,
     a: ({ node: _node, ...props }) => {
       const { children, ...rest } = props;
       return (
@@ -63,7 +63,7 @@ export function NotesSection({ notes }: NotesSectionProps) {
       <div className="flex items-center gap-4">
         <div className="relative">
           <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
-          <h2 className="relative flex shrink-0 items-center gap-3 text-xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+          <h2 className="theme-accent-heading relative flex shrink-0 items-center gap-3 whitespace-nowrap text-xl font-bold tracking-tight">
             <IconBadge icon="lucide:notebook-text" />
             Notes
           </h2>

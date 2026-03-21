@@ -1,6 +1,6 @@
-import { getPublicDataOverview } from "@server/convex/publicData";
+import { getPublicDataOverview, getPublicReports } from "@server/convex/publicData";
 import { buildPageMetadata } from "@server/next/metadata";
-import { LegacyPublicRouteClient } from "../_components/LegacyPublicRouteClient";
+import { TripReportsPage } from "@/features/reports/pages/TripReportsPage";
 
 export const revalidate = 3600;
 
@@ -14,6 +14,25 @@ export async function generateMetadata() {
   });
 }
 
-export default function ReportsPage() {
-  return <LegacyPublicRouteClient view={{ type: "reports" }} />;
+export default async function ReportsPage() {
+  const reports = await getPublicReports();
+
+  return (
+    <TripReportsPage
+      reportHrefPrefix="/reports/"
+      reports={reports.map((report) => ({
+        slug: report.slug,
+        title: report.title,
+        featured: report.featured,
+        subject: { name: report.author, trip_date: report.tripDate },
+        substances: report.substanceNames.map((name) => ({ name })),
+        introduction: report.introduction,
+        onset: [],
+        peak: [],
+        offset: [],
+        conclusion: undefined,
+        tags: [],
+      }))}
+    />
+  );
 }

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,11 +17,13 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setStatusMessage("Verifying local development credentials…");
     setIsSubmitting(true);
 
     const result = await signIn("credentials", {
@@ -31,47 +36,74 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
     setIsSubmitting(false);
 
     if (!result || result.error) {
+      setStatusMessage(null);
       setError("Invalid credentials.");
       return;
     }
 
+    setStatusMessage("Signed in. Redirecting to the editor…");
     window.location.href = result.url ?? callbackUrl;
   };
 
   const errorId = error ? "credentials-sign-in-error" : undefined;
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-black/10 p-5">
-      <div className="space-y-1">
-        <Label htmlFor="username" className="text-sm font-medium text-white/80">Username</Label>
+    <form onSubmit={handleSubmit} className="theme-overlay-surface space-y-5 rounded-[1.5rem] border p-5 sm:p-6">
+      <div className="space-y-2">
+        <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Local fallback</p>
+        <p className="theme-text-secondary text-sm leading-6">
+          Use the temporary development credentials only when GitHub OAuth is not available.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="username">Username</Label>
         <Input
           id="username"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           autoComplete="username"
+          aria-invalid={Boolean(error)}
           aria-describedby={errorId}
+          variant={error ? "error" : "default"}
         />
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="password" className="text-sm font-medium text-white/80">Password</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
+          aria-invalid={Boolean(error)}
           aria-describedby={errorId}
+          variant={error ? "error" : "default"}
         />
       </div>
 
-      {error ? <p id={errorId} role="alert" className="text-sm text-rose-300">{error}</p> : null}
+      {error ? (
+        <Alert id={errorId} variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Sign-in failed</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!error && statusMessage ? (
+        <Alert variant="default">
+          <Icon icon="lucide:loader-circle" size={16} className={isSubmitting ? "animate-spin" : undefined} />
+          <AlertTitle>{isSubmitting ? "Signing in" : "Redirecting"}</AlertTitle>
+          <AlertDescription>{statusMessage}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <Button
         type="submit"
-        variant="pill"
+        variant="secondary"
         disabled={isSubmitting}
-        className="min-h-11"
+        className="min-h-11 w-full justify-center transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-18px_rgba(244,114,182,0.7)] sm:w-auto"
       >
         {isSubmitting ? "Signing in…" : "Sign in with credentials"}
       </Button>

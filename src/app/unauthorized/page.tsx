@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buildPageMetadata } from "@server/next/metadata";
 import { Button } from "@/components/ui/button";
+import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
 export const dynamic = "force-dynamic";
 export const metadata = buildPageMetadata({
@@ -19,29 +20,46 @@ type UnauthorizedPageProps = {
 export default async function UnauthorizedPage({ searchParams }: UnauthorizedPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const from = resolvedSearchParams?.from ?? "/dev";
+  const inlineCodeClassName =
+    "rounded-md border border-[color:var(--theme-border-subtle)] bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_78%,transparent)] px-1.5 py-0.5 text-[0.92em] text-[color:var(--theme-text-primary)]";
 
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-3xl items-center px-4 py-16 focus:outline-none">
-      <section className="w-full rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-fuchsia-950/20 backdrop-blur">
-        <div className="inline-flex rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--theme-danger-text)]">
-          Access denied
-        </div>
-        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-white">
-          You do not have editor access
-        </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-white/70">
-          Your account signed in successfully, but it does not currently have the right role for <code>{from}</code>.
-          Ask an admin to grant the <code>editor</code> or <code>admin</code> role in Convex memberships.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
+    <StatusPageShell
+      badge="Access denied"
+      badgeVariant="destructive"
+      title="You do not have editor access"
+      description={
+        <>
+          Your account signed in successfully, but it does not currently have the required role for{" "}
+          <code className={inlineCodeClassName}>{from}</code>. Ask an admin to grant the{" "}
+          <code className={inlineCodeClassName}>editor</code> or <code className={inlineCodeClassName}>admin</code>{" "}
+          role in Convex memberships.
+        </>
+      }
+      actions={
+        <>
           <Button asChild variant="secondary">
             <Link href="/substances">Return to public site</Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/sign-in">Use a different account</Link>
           </Button>
-        </div>
-      </section>
-    </main>
+        </>
+      }
+      complement={
+        <>
+          <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">Authorization</p>
+          <StatusFact label="Attempted route" value={<code className={inlineCodeClassName}>{from}</code>} />
+          <StatusFact
+            label="Required role"
+            value={
+              <>
+                <code className={inlineCodeClassName}>editor</code> or <code className={inlineCodeClassName}>admin</code>
+              </>
+            }
+          />
+        </>
+      }
+    />
   );
 }

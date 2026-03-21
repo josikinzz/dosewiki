@@ -1,19 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { StatusPageShell } from "./_components/StatusPageShell";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-[60vh] w-full max-w-3xl items-center px-4 py-16 focus:outline-none">
-      <section className="w-full rounded-[2rem] border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] p-8">
-        <h1 className="text-2xl font-semibold text-white">Something went wrong</h1>
-        <p className="mt-3 text-white/70">
-          dose.wiki hit an unexpected error while loading this page. Try again, or return to the public index if the issue persists.
-        </p>
-        <Button type="button" onClick={reset} variant="destructive" className="mt-6">
-          Retry
-        </Button>
-      </section>
-    </main>
+    <StatusPageShell
+      badge="Unexpected error"
+      badgeVariant="destructive"
+      statusIcon="lucide:triangle-alert"
+      statusTone="danger"
+      title="Something went wrong"
+      description="dose.wiki hit an unexpected issue while loading this page. Retry once, or head back to the public library if the problem persists."
+      actions={
+        <>
+          <Button type="button" onClick={reset} variant="destructive">
+            Retry
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/substances">Back to substances</Link>
+          </Button>
+        </>
+      }
+      minHeightClassName="min-h-[60vh]"
+    />
   );
 }

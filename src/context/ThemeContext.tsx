@@ -1,3 +1,5 @@
+"use client";
+
 import {
   createContext,
   useCallback,
@@ -45,6 +47,18 @@ function readStoredTheme(): ThemeName | null {
   }
 }
 
+export function persistTheme(theme: ThemeName) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Ignore storage failures and keep the in-memory theme active.
+  }
+}
+
 export function applyThemeToDocument(theme: ThemeName) {
   if (typeof document === "undefined") {
     return;
@@ -74,17 +88,27 @@ export function readInitialTheme(): ThemeName {
   return readStoredTheme() ?? DEFAULT_THEME;
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<ThemeName>(() => readInitialTheme());
+export function ThemeProvider({
+  children,
+  initialTheme = DEFAULT_THEME,
+}: {
+  children: ReactNode;
+  initialTheme?: ThemeName;
+}) {
+  const [theme, setTheme] = useState<ThemeName>(initialTheme);
+
+  useEffect(() => {
+    const resolvedTheme = readInitialTheme();
+
+    if (resolvedTheme !== initialTheme) {
+      setTheme(resolvedTheme);
+    }
+  }, [initialTheme]);
 
   useEffect(() => {
     applyThemeToDocument(theme);
 
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      // Ignore storage failures and keep the in-memory theme active.
-    }
+    persistTheme(theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

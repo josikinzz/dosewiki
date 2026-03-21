@@ -1,16 +1,17 @@
+"use client";
+
 import { memo, useMemo, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ReportCard } from "../components/ReportCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { TripReport, ReportViewMode } from "@/types/tripReport";
-import { getConvexUrl, isConvexEnabled } from "@/lib/convex";
-import { isDevelopmentRuntime, showConvexDebug } from "@server/runtime/publicEnv";
 
 interface TripReportsPageProps {
-  onSelectReport: (slug: string) => void;
+  reports: TripReport[];
+  reportHrefPrefix?: string;
+  onSelectReport?: (slug: string) => void;
 }
 
 const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
@@ -23,29 +24,22 @@ const VIEW_MODES: { key: ReportViewMode; label: string; icon: IconName }[] = [
  * Trip reports listing page with view mode selector.
  */
 export const TripReportsPage = memo(function TripReportsPage({
+  reports,
+  reportHrefPrefix,
   onSelectReport,
 }: TripReportsPageProps) {
-  const convexEnabled = isConvexEnabled();
-
-  if (!convexEnabled) {
-    return <TripReportsUnavailable />;
-  }
-
-  return <TripReportsPageContent onSelectReport={onSelectReport} />;
+  return <TripReportsPageContent reports={reports} reportHrefPrefix={reportHrefPrefix} onSelectReport={onSelectReport} />;
 });
 
 const TripReportsPageContent = memo(function TripReportsPageContent({
+  reports,
+  reportHrefPrefix,
   onSelectReport,
 }: TripReportsPageProps) {
   const [viewMode, setViewMode] = useState<ReportViewMode>("substance");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const shouldShowConvexDebug = isDevelopmentRuntime || showConvexDebug;
-  const convexUrl = getConvexUrl();
-
-  // Fetch reports from Convex
-  const reports = useQuery(api.tripReports.getAll);
-  const isLoading = reports === undefined;
-  const resolvedReports = reports ?? [];
+  const isLoading = false;
+  const resolvedReports = reports;
 
   // Group and sort reports based on view mode
   const groupedReports = useMemo(() => {
@@ -132,18 +126,19 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
       <PageHeader
         title="Trip Reports"
         icon="lucide:file-signature"
+        showSpotlight={false}
         description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
       />
 
       {/* View mode selector */}
       <Tabs value={viewMode} className="mt-6 mb-8 flex justify-center">
-        <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+        <TabsList className="flex-wrap h-auto rounded-2xl border border-white/12 bg-white/[0.04] p-1.5 shadow-[0_18px_36px_-28px_rgba(0,0,0,0.55)] gap-1">
           {VIEW_MODES.map(({ key, label, icon }) => (
             <TabsTrigger
               key={key}
               value={key}
               onClick={() => handleViewModeClick(key)}
-              className="gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 text-[0.9375rem] font-medium text-white/60"
+              className="gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium text-white/68 transition-[background-color,color,box-shadow] duration-300 hover:bg-white/[0.05] hover:text-white data-[state=active]:bg-[color:var(--theme-surface-muted)] data-[state=active]:text-white data-[state=active]:shadow-[inset_0_0_0_1px_rgba(244,114,182,0.18)]"
             >
               <Icon icon={icon} size={18} />
               {label}
@@ -159,9 +154,16 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
 
       {/* Loading state */}
       {isLoading && (
-        <div className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-          <p className="text-sm text-white/60">Loading trip reports...</p>
+        <div className="mt-12">
+          <StateCard
+            badge="Loading reports"
+            badgeVariant="secondary"
+            title="Gathering trip reports"
+            description="Loading report summaries, authors, and substance groupings for this catalog view."
+            icon="lucide:file-signature"
+            tone="accent"
+            loading
+          />
         </div>
       )}
 
@@ -178,7 +180,8 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
               <ReportCard
                 key={report.slug}
                 report={report}
-                onClick={() => onSelectReport(report.slug)}
+                href={reportHrefPrefix ? `${reportHrefPrefix}${report.slug}` : undefined}
+                onClick={onSelectReport ? () => onSelectReport(report.slug) : undefined}
               />
             ))}
           </div>
@@ -187,35 +190,20 @@ const TripReportsPageContent = memo(function TripReportsPageContent({
 
       {/* Empty state */}
       {!isLoading && resolvedReports.length === 0 && (
-        <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
-          <p className="text-white/60">No reports found.</p>
-          {shouldShowConvexDebug && (
-            <div className="mt-4 space-y-1 text-xs text-white/45">
-              <p>Convex enabled: yes</p>
-              <p>Convex URL: {convexUrl ?? "unset"}</p>
-              <p>Reports returned: 0</p>
-            </div>
-          )}
+        <div className="mt-12">
+          <StateCard
+            badge="No reports yet"
+            badgeVariant="secondary"
+            title="No trip reports found"
+            description="There aren’t any public reports in this deployment yet. Once reports are available, they’ll appear here grouped by substance, title, or author."
+            icon="lucide:file-search"
+            tone="neutral"
+            footer={
+              undefined
+            }
+          />
         </div>
       )}
     </div>
   );
 });
-
-function TripReportsUnavailable() {
-  return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10">
-      <PageHeader
-        title="Trip Reports"
-        icon="lucide:file-signature"
-        description="A collection of high-quality, consistently formatted trip reports documenting subjective experiences with various substances. These reports serve as anecdotal accounts supporting the documented effects in our Subjective Effect Index."
-      />
-      <div className="mt-12 rounded-2xl border border-dashed border-white/20 bg-white/5 p-12 text-center">
-        <p className="text-sm text-white/70">Trip reports are unavailable in this deployment.</p>
-        <p className="mt-2 text-xs text-white/50">
-          Connect a Convex deployment to enable reports.
-        </p>
-      </div>
-    </div>
-  );
-}

@@ -1,9 +1,16 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicSubstanceBySlug } from "@server/convex/publicData";
-import { LegacyPublicRouteClient } from "../_components/LegacyPublicRouteClient";
+import { getStaticSubstanceParams } from "@server/next/staticParams";
+import { SubstanceTripReportsSection, SubstanceTripReportsSectionFallback } from "../_components/public-routes/SubstanceTripReportsSection";
+import { SubstanceArticlePage } from "@/features/article/pages/SubstanceArticlePage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticSubstanceParams();
+}
 
 type SubstancePageProps = {
   params: Promise<{
@@ -34,5 +41,17 @@ export default async function SubstancePage({ params }: SubstancePageProps) {
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "substance", slug }} />;
+  const { slug: _resolvedSlug, ...article } = substance;
+
+  return (
+    <SubstanceArticlePage
+      article={article}
+      fromSubstanceSlug={slug}
+      tripReportsSection={
+        <Suspense fallback={<SubstanceTripReportsSectionFallback />}>
+          <SubstanceTripReportsSection article={article} slug={slug} />
+        </Suspense>
+      }
+    />
+  );
 }

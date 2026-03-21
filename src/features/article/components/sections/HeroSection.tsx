@@ -1,10 +1,14 @@
+import Link from "next/link";
 import { memo, useEffect, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-import { Badge } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { getMoleculeUrlByTitle } from "@/data/mappings/moleculeAssets";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
+import { cn } from "@/lib/utils";
 import type { SubstanceArticle } from "@/schema";
+import { isPlainLeftClick } from "@/utils/navigation";
 
 const MAX_VISIBLE_NAMES = 5;
 
@@ -17,6 +21,11 @@ function getIconKeyFromClass(className: string): string {
     .replace(/\s*\([^)]*\)\s*$/, "")
     .trim()
     .toLowerCase();
+}
+
+function getClassificationHref(type: "psychoactive" | "chemical", label: string) {
+  const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || label;
+  return `/${type}/${slug}`;
 }
 
 interface HeroSectionProps {
@@ -85,10 +94,10 @@ export const HeroSection = memo(function HeroSection({
   }
 
   return (
-    <div className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5">
+    <div className="theme-article-hero relative overflow-hidden rounded-2xl border p-6 shadow-2xl ring-1 ring-white/5 sm:p-8">
       {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
-        <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs text-fuchsia-300">
+        <div className="type-chip-label absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 text-fuchsia-300">
           <Icon icon="lucide:eye" size={12} />
           Preview
         </div>
@@ -107,7 +116,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Title */}
       {hasTitle && (
-        <h1 className="font-display text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">{title}</h1>
+        <h1 className="type-page-title theme-accent-heading max-w-[12ch]">{title}</h1>
       )}
 
       {/* Molecule SVG - centered below title on mobile only */}
@@ -125,7 +134,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Substitutive name */}
       {identification.substitutive_name && (
-        <div className="mt-3 flex items-start gap-3 text-base text-white/60">
+        <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon icon="lucide:book-open-text" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
           <span>{identification.substitutive_name}</span>
         </div>
@@ -138,7 +147,7 @@ export const HeroSection = memo(function HeroSection({
         const visibleNames = namesExpanded ? names : names.slice(0, MAX_VISIBLE_NAMES);
 
         return (
-          <div className="mt-3 flex items-start gap-3 text-base text-white/60">
+          <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
             <Icon icon="lucide:message-square-quote" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
             <span className="flex flex-wrap items-center gap-1">
               {visibleNames.map((name, index) => (
@@ -148,14 +157,14 @@ export const HeroSection = memo(function HeroSection({
                 </span>
               ))}
               {hasMore && (
-                <button
-                  type="button"
-                  onClick={() => setNamesExpanded(!namesExpanded)}
-                  className="ml-1 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-                >
-                  <Icon icon="lucide:ellipsis" size={12} />
-                  <Icon icon="lucide:chevron-down" size={12} className={`transition-transform ${namesExpanded ? "rotate-180" : ""}`} />
-                </button>
+                <ExpandButton
+                  isExpanded={namesExpanded}
+                  onToggle={() => setNamesExpanded(!namesExpanded)}
+                  variant="count"
+                  count={names.length - MAX_VISIBLE_NAMES}
+                  className="type-chip-label ml-2 text-white/70 hover:text-white"
+                  ariaLabel={namesExpanded ? "Collapse alternative names" : "Expand alternative names"}
+                />
               )}
             </span>
           </div>
@@ -164,7 +173,7 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Botanical name */}
       {identification.botanical_name && (
-        <div className="mt-3 flex items-start gap-3 text-base text-white/60">
+        <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon icon="lucide:leaf" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
           <span className="italic">{identification.botanical_name}</span>
         </div>
@@ -177,22 +186,36 @@ export const HeroSection = memo(function HeroSection({
             <div className="flex items-start gap-3">
               <Icon icon="lucide:brain-cog" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
               <div>
-                <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
+                <span className="type-meta-label mb-2 block text-white/58">
                   Psychoactive Class
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {classification.psychoactive_class.map((cls) => {
                     const iconName = getCategoryIcon(getIconKeyFromClass(cls));
                     return (
-                      <Badge
+                      <Link
                         key={cls}
-                        variant="ghostPill"
-                        className={`gap-1.5 ${onSelectClassification ? "cursor-pointer hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all" : ""}`}
-                        onClick={onSelectClassification ? () => onSelectClassification("psychoactive", cls) : undefined}
+                        href={getClassificationHref("psychoactive", cls)}
+                        onClick={
+                          onSelectClassification
+                            ? (event) => {
+                                if (!isPlainLeftClick(event)) {
+                                  return;
+                                }
+
+                                event.preventDefault();
+                                onSelectClassification("psychoactive", cls);
+                              }
+                            : undefined
+                        }
+                        className={cn(
+                          badgeVariants({ variant: "ghostPill" }),
+                          "gap-1.5 hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all",
+                        )}
                       >
                         <Icon icon={iconName} size={14} />
                         {cls}
-                      </Badge>
+                      </Link>
                     );
                   })}
                 </div>
@@ -203,29 +226,41 @@ export const HeroSection = memo(function HeroSection({
             <div className="flex items-start gap-3">
               <Icon icon="lucide:flask-conical" size={20} className="mt-0.5 flex-shrink-0 text-fuchsia-300" />
               <div>
-                <span className="mb-2 block text-sm font-medium uppercase tracking-wider text-white/50">
+                <span className="type-meta-label mb-2 block text-white/58">
                   Chemical Class
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   {classification.chemical_class.map((cls) => (
-                    <Badge
+                    <Link
                       key={cls}
-                      variant="ghostPill"
-                      className={`gap-1.5 ${onSelectClassification ? "cursor-pointer hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all" : ""}`}
-                      onClick={onSelectClassification ? () => onSelectClassification("chemical", cls) : undefined}
+                      href={getClassificationHref("chemical", cls)}
+                      onClick={
+                        onSelectClassification
+                          ? (event) => {
+                              if (!isPlainLeftClick(event)) {
+                                return;
+                              }
+
+                              event.preventDefault();
+                              onSelectClassification("chemical", cls);
+                            }
+                          : undefined
+                      }
+                      className={cn(
+                        badgeVariants({ variant: "ghostPill" }),
+                        "gap-1.5 hover:bg-fuchsia-500/10 hover:text-white hover:border-fuchsia-500/30 transition-all",
+                      )}
                     >
                       {cls}
-                    </Badge>
+                    </Link>
                   ))}
                   {hasExpandableDetails && (
-                    <button
-                      type="button"
-                      onClick={() => setIsExpanded(!isExpanded)}
-                      className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-                    >
-                      <Icon icon="lucide:ellipsis" size={12} />
-                      <Icon icon="lucide:chevron-down" size={12} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                    </button>
+                    <ExpandButton
+                      isExpanded={isExpanded}
+                      onToggle={() => setIsExpanded(!isExpanded)}
+                      className="type-chip-label text-white/70 hover:text-white"
+                      ariaLabel={isExpanded ? "Collapse chemistry details" : "Expand chemistry details"}
+                    />
                   )}
                 </div>
               </div>
@@ -237,7 +272,7 @@ export const HeroSection = memo(function HeroSection({
       {/* Identification details - always visible */}
       {identification.common_name && identification.common_name !== title && (
         <div className="mt-6 space-y-1">
-          <p className="text-sm text-white/60">
+          <p className="type-detail-copy text-white/60">
             <span className="font-semibold text-white/70">Common name:</span>{" "}
             {identification.common_name}
           </p>
@@ -246,33 +281,33 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
-        <div className="mt-3 space-y-1">
+        <div className="numeric-tabular mt-3 space-y-1">
           {identification.iupac_name && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">IUPAC:</span>{" "}
               <span className="break-all font-mono text-xs">{identification.iupac_name}</span>
             </p>
           )}
           {identification.cas_number && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">CAS:</span>{" "}
               {identification.cas_number}
             </p>
           )}
           {identification.molecular_formula && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">Formula:</span>{" "}
               {identification.molecular_formula}
             </p>
           )}
           {identification.molecular_weight && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">Molecular Weight:</span>{" "}
               {identification.molecular_weight.replace(/^Average:/, "").trim()}
             </p>
           )}
           {identification.smiles && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">SMILES:</span>{" "}
               <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
                 {identification.smiles}
@@ -280,7 +315,7 @@ export const HeroSection = memo(function HeroSection({
             </p>
           )}
           {identification.inchi_key && (
-            <p className="text-sm text-white/50">
+            <p className="type-detail-copy text-white/50">
               <span className="font-semibold text-white/60">InChI Key:</span>{" "}
               <code className="break-all rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-white/60">
                 {identification.inchi_key}
@@ -294,32 +329,33 @@ export const HeroSection = memo(function HeroSection({
       {hasCategories && (
         <div className="mt-5 flex flex-wrap gap-2">
           {index_categories.map((cat) => (
-            onSelectCategory ? (
-              <button
-                key={cat}
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
-                onClick={() => onSelectCategory(cat)}
-              >
-                <Icon icon="lucide:tag" size={12} />
-                {cat}
-              </button>
-            ) : (
-              <span
-                key={cat}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/50"
-              >
-                <Icon icon="lucide:tag" size={12} />
-                {cat}
-              </span>
-            )
+            <Link
+              key={cat}
+              href={`/category/${encodeURIComponent(cat)}`}
+              onClick={
+                onSelectCategory
+                  ? (event) => {
+                      if (!isPlainLeftClick(event)) {
+                        return;
+                      }
+
+                      event.preventDefault();
+                      onSelectCategory(cat);
+                    }
+                  : undefined
+              }
+              className="type-chip-label inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-white/50 transition-colors hover:bg-white/10 hover:text-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
+              <Icon icon="lucide:tag" size={12} />
+              {cat}
+            </Link>
           ))}
         </div>
       )}
 
       {/* Summary */}
       {hasSummary && (
-        <p className="mt-6 text-base leading-relaxed text-white/80">{summary}</p>
+        <p className="type-lead type-reading-measure mt-6 text-white/80">{summary}</p>
       )}
 
     </div>

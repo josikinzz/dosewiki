@@ -1,5 +1,9 @@
+"use client";
+
+import Link from "next/link";
 import { useCallback, useState, memo, type ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
+import { cn } from "@/lib/utils";
 
 interface IndexCardProps {
   /** Card title */
@@ -42,13 +46,18 @@ export const IndexCard = memo(function IndexCard({
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
-  const iconClassName = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 ${onIconClick ? "cursor-pointer transition-[background-color,border-color,box-shadow,transform] duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400" : ""}`;
+  const iconClassName = cn(
+    "theme-public-card-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-[background-color,border-color,box-shadow,transform,color] duration-300 group-hover:border-[color:var(--theme-card-border-strong)] group-hover:text-[color:var(--theme-accent-strong)]",
+    onIconClick
+      ? "theme-public-card-interactive cursor-pointer hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+      : undefined,
+  );
 
   const iconContent = (
     <Icon
       icon={iconActiveState ? "lucide:check" : icon}
       size={20}
-      className={iconActiveState ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
+      className={iconActiveState ? "text-emerald-500" : "transition-colors"}
     />
   );
 
@@ -63,14 +72,14 @@ export const IndexCard = memo(function IndexCard({
   );
 
   const titleElement = (
-    <h2 className="text-lg font-bold tracking-tight text-fuchsia-300 group-hover:text-fuchsia-200 transition-colors duration-300">
+    <h2 className="theme-accent-heading text-lg font-bold tracking-tight transition-colors duration-300 group-hover:text-[color:var(--theme-accent-soft)]">
       {title}
-      <span className="ml-2 text-[0.9em] font-medium text-white/40 group-hover:text-white/60 transition-colors">({count})</span>
+      <span className="theme-text-faint ml-2 text-[0.9em] font-medium transition-colors group-hover:text-[color:var(--theme-text-secondary)]">({count})</span>
     </h2>
   );
 
   return (
-    <section className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-sm backdrop-safe transition-[background-color,border-color,box-shadow] duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/15 hover:shadow-lg hover:shadow-fuchsia-500/5">
+    <section className="theme-public-card theme-public-card-interactive group w-full rounded-[20px] border p-5 backdrop-blur-sm backdrop-safe">
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}
@@ -93,7 +102,7 @@ export const IndexCard = memo(function IndexCard({
           aria-expanded={isExpanded}
           aria-controls={contentId}
           aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title}`}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white/40 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+          className="theme-text-faint flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-[background-color,color,transform] hover:-translate-y-px hover:bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_70%,transparent)] hover:text-[color:var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>
@@ -135,16 +144,16 @@ export const IndexCardSection = memo(function IndexCardSection({
     <div
       className={
         showDivider
-          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.1)_20%,rgba(255,255,255,0.1)_80%,rgba(255,255,255,0)_100%)] before:content-['']"
+          ? "relative pt-6 before:absolute before:left-0 before:right-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent_0%,var(--theme-divider)_20%,var(--theme-divider)_80%,transparent_100%)] before:content-['']"
           : ""
       }
     >
       {title && (
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-fuchsia-200">
-          {icon && <Icon icon={icon} size={16} className="text-fuchsia-300" />}
+        <p className="theme-text-secondary mb-3 flex items-center gap-2 text-[0.78rem] font-semibold uppercase tracking-[0.18em]">
+          {icon && <Icon icon={icon} size={16} className="text-[color:var(--theme-accent-soft)]" />}
           {title}
           {count !== undefined && (
-            <span className="text-xs font-normal normal-case text-white/40">({count})</span>
+            <span className="theme-text-faint text-xs font-normal normal-case">({count})</span>
           )}
         </p>
       )}
@@ -161,12 +170,14 @@ interface IndexCardListProps {
  * List container for IndexCard items with consistent spacing.
  */
 export const IndexCardList = memo(function IndexCardList({ children }: IndexCardListProps) {
-  return <ul className="space-y-1">{children}</ul>;
+  return <ul className="space-y-1.5">{children}</ul>;
 });
 
 interface IndexCardListItemProps {
   /** Item label */
   label: string;
+  /** Optional href for direct navigation */
+  href?: string;
   /** Click handler - use this OR (slug + onSelect) */
   onClick?: () => void;
   /** Item slug - use with onSelect for stable callbacks */
@@ -184,6 +195,7 @@ interface IndexCardListItemProps {
  */
 export const IndexCardListItem = memo(function IndexCardListItem({
   label,
+  href,
   onClick,
   slug,
   onSelect,
@@ -196,15 +208,33 @@ export const IndexCardListItem = memo(function IndexCardListItem({
     }
   }, [onClick, slug, onSelect]);
 
+  const className = "theme-text-secondary group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] transition-[background-color,color,transform] duration-200 hover:translate-x-0.5 hover:bg-[color:color-mix(in_srgb,var(--theme-surface-muted)_70%,transparent)] hover:text-[color:var(--theme-text-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]";
+
+  const content = (
+    <>
+      <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full transition-colors group-hover/item:bg-[color:var(--theme-accent-soft)]" />
+      {label}
+    </>
+  );
+
+  if (href) {
+    return (
+      <li>
+        <Link href={href} className={className}>
+          {content}
+        </Link>
+      </li>
+    );
+  }
+
   return (
     <li>
       <button
         type="button"
         onClick={handleClick}
-        className="group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] text-white/70 transition-[background-color,color,transform] duration-200 hover:bg-white/[0.06] hover:text-white hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+        className={className}
       >
-        <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/20 transition-colors group-hover/item:bg-fuchsia-400" />
-        {label}
+        {content}
       </button>
     </li>
   );

@@ -1,9 +1,15 @@
 import { notFound } from "next/navigation";
+import { getPublicEffectArticles } from "@server/convex/publicData";
 import { buildPageMetadata } from "@server/next/metadata";
-import { getPublicLibrary } from "@server/convex/publicLibrary";
-import { LegacyPublicRouteClient } from "../../_components/LegacyPublicRouteClient";
+import { getPublicCategoryDetail } from "@server/convex/publicLibrary";
+import { getStaticCategoryParams } from "@server/next/staticParams";
+import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticCategoryParams();
+}
 
 type CategoryPageProps = {
   params: Promise<{
@@ -13,8 +19,7 @@ type CategoryPageProps = {
 
 export async function generateMetadata({ params }: CategoryPageProps) {
   const { categoryKey } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getCategoryDetail(categoryKey);
+  const detail = await getPublicCategoryDetail(categoryKey);
 
   return buildPageMetadata({
     title: detail?.definition.name ?? "Category",
@@ -25,12 +30,11 @@ export async function generateMetadata({ params }: CategoryPageProps) {
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { categoryKey } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getCategoryDetail(categoryKey);
+  const [detail, effects] = await Promise.all([getPublicCategoryDetail(categoryKey), getPublicEffectArticles()]);
 
   if (!detail) {
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "category", categoryKey }} />;
+  return <CategoryDetailPage detail={detail} effects={effects} drugHrefPrefix="/" />;
 }

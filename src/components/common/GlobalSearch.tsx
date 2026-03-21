@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { Icon } from "./Icon";
-import { querySearchWithData, type SearchMatch } from "../../data/builders/search";
-import { useLazyLibrary } from "../../hooks/useLazyLibrary";
+import { Search, X } from "lucide-react";
+import { HighlightedText } from "./HighlightedText";
+import type { SearchMatch } from "../../data/builders/search";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useListboxPositioning } from "../../hooks/useListboxPositioning";
 import { useKeyboardNavigation } from "../../hooks/useKeyboardNavigation";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 
 const MAX_SUGGESTIONS = 8;
 const DEBOUNCE_MS = 200;
+const searchSuggestionsCache = new Map<string, SearchMatch[]>();
+const searchSuggestionsInflight = new Map<string, Promise<SearchMatch[]>>();
 
 interface GlobalSearchProps {
   currentView: AppView;
@@ -28,13 +30,11 @@ export function GlobalSearch({
   const [query, setQuery] = useState("");
   const [isActiveSearch, setIsActiveSearch] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [libraryEnabled, setLibraryEnabled] = useState(false);
+  const [suggestions, setSuggestions] = useState<SearchMatch[]>([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
-
-  // Lazy-load library when search is activated
-  const { library, isLoading: libraryLoading } = useLazyLibrary(libraryEnabled);
 
   useEffect(() => {
     if (currentView.type === "search") {
@@ -49,12 +49,72 @@ export function GlobalSearch({
   // Debounce search query to avoid expensive searches on every keystroke
   const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
 
-  const suggestions = useMemo(() => {
-    if (!library || !debouncedQuery.trim()) {
-      return [];
+  useEffect(() => {
+    const trimmed = debouncedQuery.trim();
+    const cacheKey = `${trimmed.toLowerCase()}::${MAX_SUGGESTIONS}`;
+
+    if (!trimmed || !isActiveSearch) {
+      setSuggestions([]);
+      setIsFetchingSuggestions(false);
+      return;
     }
-    return querySearchWithData(debouncedQuery, library, MAX_SUGGESTIONS);
-  }, [debouncedQuery, library]);
+
+    const cachedSuggestions = searchSuggestionsCache.get(cacheKey);
+
+    if (cachedSuggestions) {
+      setSuggestions(cachedSuggestions);
+      setIsFetchingSuggestions(false);
+      return;
+    }
+
+    let disposed = false;
+
+    const loadSuggestions = async () => {
+      try {
+        setIsFetchingSuggestions(true);
+        let request = searchSuggestionsInflight.get(cacheKey);
+
+        if (!request) {
+          request = fetch(`/api/search-suggestions?q=${encodeURIComponent(trimmed)}&limit=${MAX_SUGGESTIONS}`)
+            .then(async (response) => {
+              if (!response.ok) {
+                throw new Error(`Suggestion request failed: ${response.status}`);
+              }
+
+              const data = (await response.json()) as { results?: SearchMatch[] };
+              return data.results ?? [];
+            })
+            .finally(() => {
+              searchSuggestionsInflight.delete(cacheKey);
+            });
+
+          searchSuggestionsInflight.set(cacheKey, request);
+        }
+
+        const nextSuggestions = await request;
+
+        searchSuggestionsCache.set(cacheKey, nextSuggestions);
+
+        if (!disposed) {
+          setSuggestions(nextSuggestions);
+        }
+      } catch {
+        if (!disposed) {
+          setSuggestions([]);
+        }
+      } finally {
+        if (!disposed) {
+          setIsFetchingSuggestions(false);
+        }
+      }
+    };
+
+    void loadSuggestions();
+
+    return () => {
+      disposed = true;
+    };
+  }, [debouncedQuery, isActiveSearch]);
 
   const hasQuery = query.trim().length > 0;
   const clearButtonVisible = hasQuery;
@@ -65,8 +125,8 @@ export function GlobalSearch({
     [isActiveSearch, hasQuery, suggestions.length]
   );
   const showLoadingIndicator = useMemo(
-    () => libraryEnabled && libraryLoading && hasQuery,
-    [libraryEnabled, libraryLoading, hasQuery]
+    () => isFetchingSuggestions && hasQuery,
+    [isFetchingSuggestions, hasQuery]
   );
 
   // Use extracted positioning hook for mobile viewport
@@ -161,11 +221,7 @@ export function GlobalSearch({
 
   const handleFocus = useCallback(() => {
     setIsActiveSearch(true);
-    // Start loading library on first focus
-    if (!libraryEnabled) {
-      setLibraryEnabled(true);
-    }
-  }, [libraryEnabled]);
+  }, []);
 
   const handleBlur = useCallback(() => {
     requestAnimationFrame(() => {
@@ -179,14 +235,11 @@ export function GlobalSearch({
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
     setIsActiveSearch(true);
-    // Start loading library when user types
-    if (!libraryEnabled) {
-      setLibraryEnabled(true);
-    }
-  }, [libraryEnabled]);
+  }, []);
 
   const handleClear = useCallback(() => {
     setQuery("");
+    setSuggestions([]);
     setIsActiveSearch(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
@@ -233,6 +286,7 @@ export function GlobalSearch({
   return (
     <div className={wrapperClassName}>
       <div className="relative" ref={containerRef}>
+        <div className="pointer-events-none absolute inset-0 -z-10 rounded-[1.75rem] bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.12),transparent_58%)] opacity-0 blur-xl transition-opacity duration-300 focus-within:opacity-100" />
         <label htmlFor="global-search" className="sr-only">
           Search the library
         </label>
@@ -241,16 +295,16 @@ export function GlobalSearch({
           name="global-search-query"
           ref={inputRef}
           type="search"
-          placeholder="Search..."
+          placeholder={compact ? "" : "Search the library"}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
           data-form-type="other"
           data-lpignore="true"
-          className={`w-full rounded-2xl pl-10 ${
+          className={`w-full rounded-2xl pl-10 transition-[border-color,background-color,box-shadow,transform] duration-200 ${
             clearButtonVisible ? "pr-14" : "pr-10"
-          } ${compact ? "py-2" : "py-3"}`}
+          } ${compact ? "py-2" : "py-3"} border-white/10 bg-black/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-white/15 hover:bg-black/20 focus:border-fuchsia-400/30 focus:bg-black/20 focus:shadow-[0_0_0_1px_rgba(232,121,249,0.18),0_18px_45px_-28px_rgba(217,70,239,0.65)]`}
           value={query}
           onChange={handleChange}
           onFocus={handleFocus}
@@ -265,27 +319,35 @@ export function GlobalSearch({
               : undefined
           }
         />
-        <Icon icon="lucide:search" className="theme-text-secondary pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
+        <Search className="theme-text-secondary pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" size={16} />
         {clearButtonVisible && (
           <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center">
             <Button
-              variant="default"
+              variant="ghost"
               size="icon"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
-              className="h-11 w-11 rounded-full"
+              className="h-9 w-9 rounded-full bg-white/[0.04] text-white/70 transition-[background-color,color,transform] duration-200 hover:scale-105 hover:bg-white/[0.08] hover:text-white active:scale-95"
               aria-label="Clear search"
             >
-              <Icon icon="lucide:x" size={16} />
+              <X size={16} />
             </Button>
           </div>
         )}
-        {/* Loading indicator while library loads */}
         {showLoadingIndicator && (
-          <div className="theme-overlay-surface absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl">
+          <div className="theme-overlay-surface absolute left-0 right-0 top-full mt-2 rounded-2xl border p-4 shadow-xl ring-1 ring-white/5">
             <div className="flex items-center gap-3">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-              <span className="theme-text-muted text-sm">Loading search...</span>
+              <div className="theme-status-orb h-8 w-8 text-sm text-fuchsia-200" data-tone="accent" data-loading="true">
+                <span className="theme-status-orb-ring theme-status-orb-ring--outer" />
+                <span className="theme-status-orb-ring theme-status-orb-ring--inner" />
+                <span className="theme-status-orb-core">
+                  <Search size={14} className="theme-status-orb-icon" />
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="theme-text-secondary text-sm font-medium">Searching the library…</span>
+                <span className="theme-text-faint text-xs">Checking substances, effects, and related classifications.</span>
+              </div>
             </div>
           </div>
         )}
@@ -293,7 +355,7 @@ export function GlobalSearch({
           <ul
             id={listboxId}
             role="listbox"
-            className={`theme-overlay-surface z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl [scrollbar-gutter:stable] ${
+            className={`theme-overlay-surface z-50 max-h-72 overflow-y-scroll rounded-2xl border shadow-xl ring-1 ring-white/5 backdrop-blur-xl [scrollbar-gutter:stable] ${
               isMobileViewport
                 ? "fixed left-1/2 max-w-[calc(100vw-1.5rem)] w-[min(98vw,calc(100vw-1.5rem))] -translate-x-1/2"
                 : "absolute left-0 right-0 top-full mt-2"
@@ -314,7 +376,7 @@ export function GlobalSearch({
                   ) : null}
                   <Button
                     variant="searchOption"
-                    className="!h-auto"
+                    className="!h-auto transition-[background-color,border-color,transform] duration-200 hover:-translate-y-0.5"
                     id={optionId}
                     role="option"
                     aria-selected={isHighlighted}
@@ -323,13 +385,30 @@ export function GlobalSearch({
                     onClick={() => handleSelectMatch(match)}
                     onMouseEnter={() => setActiveIndex(index)}
                   >
-                    <span className="theme-text-muted text-[11px] uppercase tracking-[0.28em]">
-                      {renderSuggestionType(match)}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="theme-text-muted text-[11px] uppercase tracking-[0.28em]">
+                        {renderSuggestionType(match)}
+                      </span>
+                      {index === 0 && hasQuery ? (
+                        <span className="rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-fuchsia-100">
+                          Best match
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-base font-semibold text-fuchsia-200">{match.label}</span>
+                      <HighlightedText
+                        text={match.label}
+                        query={query}
+                        className="text-base font-semibold text-fuchsia-200"
+                        markClassName="bg-white/10 text-white"
+                      />
                       {match.secondary && (
-                        <span className="theme-text-muted line-clamp-2 text-sm leading-relaxed">{match.secondary}</span>
+                        <HighlightedText
+                          text={match.secondary}
+                          query={query}
+                          className="theme-text-muted line-clamp-2 text-sm leading-relaxed"
+                          markClassName="bg-white/10 text-white"
+                        />
                       )}
                     </div>
                   </Button>

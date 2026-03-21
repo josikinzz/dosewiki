@@ -1,16 +1,22 @@
-import { memo, useMemo, useState, useCallback } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
+"use client";
+
+import Link from "next/link";
+import { memo, useMemo, useState } from "react";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
-import { AuthorAvatar, AuthorLink } from "@/features/reports/components";
+import { AuthorAvatar } from "@/features/reports/components/AuthorAvatar";
+import { AuthorLink } from "@/features/reports/components/AuthorLink";
 import type { SubstanceArticle } from "@/schema";
 import type { TripReport } from "@/types/tripReport";
+import { isPlainLeftClick } from "@/utils/navigation";
 
 const COLLAPSED_LIMIT = 3;
 
 interface TripReportsSectionProps {
   article: SubstanceArticle;
+  reports?: TripReport[];
+  fromSubstanceSlug?: string;
   /** Called when a report is clicked */
   onSelectReport?: (slug: string) => void;
 }
@@ -21,6 +27,8 @@ interface TripReportsSectionProps {
  */
 export const TripReportsSection = memo(function TripReportsSection({
   article,
+  reports = [],
+  fromSubstanceSlug,
   onSelectReport,
 }: TripReportsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -50,21 +58,16 @@ export const TripReportsSection = memo(function TripReportsSection({
     return Array.from(names);
   }, [article.title, article.identification?.common_name, article.identification?.alternative_names]);
 
-  // Single consolidated query for all substance names
-  const reports = useQuery(
-    api.tripReports.getBySubstanceNames,
-    searchNames.length > 0 ? { substanceNames: searchNames } : "skip"
-  ) as TripReport[] | undefined;
-
   // Sort reports by featured first, then by title
   const allReports = useMemo(() => {
-    if (!reports) return [];
+    if (searchNames.length === 0) return [];
+
     return [...reports].sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
       return a.title.localeCompare(b.title);
     });
-  }, [reports]);
+  }, [reports, searchNames.length]);
 
   // Classify reports into single-substance and combination groups
   const { singleSubstanceReports, combinationReports } = useMemo(() => {
@@ -133,6 +136,7 @@ export const TripReportsSection = memo(function TripReportsSection({
           <CompactReportCard
             key={report.slug}
             report={report}
+            fromSubstanceSlug={fromSubstanceSlug}
             onSelectReport={onSelectReport}
           />
         ))}
@@ -154,20 +158,21 @@ export const TripReportsSection = memo(function TripReportsSection({
           <CompactReportCard
             key={report.slug}
             report={report}
+            fromSubstanceSlug={fromSubstanceSlug}
             onSelectReport={onSelectReport}
           />
         ))}
 
         {/* Expand/Collapse button */}
         {hasMore && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-          >
-            <span className="font-medium">+{totalHidden}</span>
-            <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-          </button>
+          <ExpandButton
+            isExpanded={isExpanded}
+            onToggle={() => setIsExpanded(!isExpanded)}
+            variant="count"
+            count={totalHidden}
+            className="mx-auto"
+            ariaLabel={isExpanded ? "Collapse trip reports" : "Expand trip reports"}
+          />
         )}
       </div>
     </div>
@@ -179,25 +184,24 @@ export const TripReportsSection = memo(function TripReportsSection({
  */
 const CompactReportCard = memo(function CompactReportCard({
   report,
+  fromSubstanceSlug,
   onSelectReport,
 }: {
   report: TripReport;
+  fromSubstanceSlug?: string;
   onSelectReport?: (slug: string) => void;
 }) {
   const { title, subject, featured, slug } = report;
+  const disableNestedLinks = true;
 
-  const handleClick = useCallback(() => {
-    onSelectReport?.(slug);
-  }, [onSelectReport, slug]);
+  const href = fromSubstanceSlug
+    ? `/reports/${slug}?from=${encodeURIComponent(fromSubstanceSlug)}`
+    : `/reports/${slug}`;
 
-  return (
-    <button
-      type="button"
-      onClick={onSelectReport ? handleClick : undefined}
-      disabled={!onSelectReport}
-      className="group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:border-fuchsia-400/30 hover:bg-white/[0.08] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-white/5"
-    >
-      {/* Author avatar */}
+  const className = "group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-left transition-all hover:border-fuchsia-400/30 hover:bg-white/[0.08] disabled:cursor-default disabled:hover:border-white/10 disabled:hover:bg-white/5";
+
+  const content = (
+    <>
       <div className="shrink-0 self-center">
         <AuthorAvatar
           authorName={subject.name}
@@ -207,16 +211,18 @@ const CompactReportCard = memo(function CompactReportCard({
       </div>
 
       <div className="flex-1 min-w-0">
-        {/* Title */}
         <h3 className="text-sm font-medium text-fuchsia-200 transition-colors group-hover:text-fuchsia-100">
           {title}
         </h3>
 
-        {/* Author and date */}
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50">
           <span className="flex items-center gap-1">
             <Icon icon="lucide:user" size={12} />
-            <AuthorLink authorName={subject.name} className="text-white/50 hover:text-fuchsia-200" />
+            <AuthorLink
+              authorName={subject.name}
+              className="text-white/50 hover:text-fuchsia-200"
+              disableLink={disableNestedLinks}
+            />
           </span>
           {subject.trip_date && (
             <span className="flex items-center gap-1">
@@ -227,10 +233,26 @@ const CompactReportCard = memo(function CompactReportCard({
         </div>
       </div>
 
-      {/* Featured star - right aligned, vertically centered */}
       {featured && (
         <Icon icon="lucide:star" size={20} className="flex-shrink-0 self-center fill-fuchsia-400/80 text-fuchsia-400" />
       )}
-    </button>
+    </>
+  );
+
+  return (
+    <Link
+      href={href}
+      className={className}
+      onClick={(event) => {
+        if (!onSelectReport || !isPlainLeftClick(event)) {
+          return;
+        }
+
+        event.preventDefault();
+        onSelectReport(slug);
+      }}
+    >
+      {content}
+    </Link>
   );
 });

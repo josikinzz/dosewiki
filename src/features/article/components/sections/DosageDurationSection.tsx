@@ -1,4 +1,6 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -34,6 +36,19 @@ function formatDuration(stage: DurationStage | null): string {
 
 function capitalizeRoute(route: string): string {
   return route.charAt(0).toUpperCase() + route.slice(1);
+}
+
+const ROUTE_LABELS: Record<string, string> = {
+  iv: "IV",
+  intravenous: "Intravenous",
+  im: "IM",
+  intramuscular: "Intramuscular",
+  "i.m.": "IM",
+  "iv/im": "IV/IM",
+};
+
+function formatRouteLabel(route: string): string {
+  return ROUTE_LABELS[route.toLowerCase()] ?? capitalizeRoute(route);
 }
 
 const DOSE_TIERS = [
@@ -182,23 +197,13 @@ function PlateauTiersTable({ plateauDosing }: { plateauDosing: NonNullable<Subst
                     {doseText}
                   </span>
                   {hasEffects && (
-                    <button
-                      type="button"
-                      onClick={() => togglePlateau(key)}
-                      className={cn(
-                        "flex items-center gap-0.5 rounded px-1.5 py-0.5 transition",
-                        "hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400",
-                        isSigma ? "text-rose-200/70" : "text-white/50"
-                      )}
-                      aria-label={isExpanded ? "Collapse effects" : "Expand effects"}
-                      aria-expanded={isExpanded}
-                    >
-                      <Icon icon="lucide:ellipsis" size={12} />
-                      <Icon icon="lucide:chevron-down" size={12} className={cn(
-                        "transition-transform",
-                        isExpanded && "rotate-180"
-                      )} />
-                    </button>
+                    <ExpandButton
+                      isExpanded={isExpanded}
+                      onToggle={() => togglePlateau(key)}
+                      variant="compact"
+                      className={isSigma ? "text-rose-200/70" : "text-white/50"}
+                      ariaLabel={isExpanded ? "Collapse effects" : "Expand effects"}
+                    />
                   )}
                 </div>
               </div>
@@ -262,20 +267,13 @@ function BioavailabilityRow({ route }: { route: DosageRoute }) {
               {route.bioavailability}
             </span>
             {hasNotes && (
-              <button
-                type="button"
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-0.5 rounded px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 text-fuchsia-200/70"
-                aria-label={expanded ? "Collapse notes" : "Expand notes"}
-                aria-expanded={expanded}
-              >
-                <Icon icon="lucide:ellipsis" size={12} />
-                <Icon
-                  icon="lucide:chevron-down"
-                  size={12}
-                  className={cn("transition-transform", expanded && "rotate-180")}
-                />
-              </button>
+              <ExpandButton
+                isExpanded={expanded}
+                onToggle={() => setExpanded(!expanded)}
+                variant="compact"
+                className="text-fuchsia-200/70"
+                ariaLabel={expanded ? "Collapse notes" : "Expand notes"}
+              />
             )}
           </div>
         </div>
@@ -360,20 +358,13 @@ function HalfLifeRow({ route }: { route: DurationRoute }) {
               {route.half_life}
             </span>
             {hasNotes && (
-              <button
-                type="button"
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-0.5 rounded px-1.5 py-0.5 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-fuchsia-400 text-fuchsia-200/70"
-                aria-label={expanded ? "Collapse notes" : "Expand notes"}
-                aria-expanded={expanded}
-              >
-                <Icon icon="lucide:ellipsis" size={12} />
-                <Icon
-                  icon="lucide:chevron-down"
-                  size={12}
-                  className={cn("transition-transform", expanded && "rotate-180")}
-                />
-              </button>
+              <ExpandButton
+                isExpanded={expanded}
+                onToggle={() => setExpanded(!expanded)}
+                variant="compact"
+                className="text-fuchsia-200/70"
+                ariaLabel={expanded ? "Collapse notes" : "Expand notes"}
+              />
             )}
           </div>
         </div>
@@ -426,6 +417,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   article,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
+  const prefersReducedMotion = useReducedMotion();
 
   // Collect unique routes from both dosage and duration
   const allRoutes = useMemo(() => {
@@ -438,42 +430,93 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   const hasDosage = dosage.routes.length > 0;
   const hasDuration = duration.routes.length > 0;
 
+  const defaultRoute = allRoutes[0] || "oral";
+  const [activeRoute, setActiveRoute] = useState(defaultRoute);
+
+  useEffect(() => {
+    if (!allRoutes.includes(activeRoute)) {
+      setActiveRoute(defaultRoute);
+    }
+  }, [activeRoute, allRoutes, defaultRoute]);
+
+  const dosageForActiveRoute = dosage.routes.find(r => r.route === activeRoute);
+  const durationForActiveRoute = duration.routes.find(r => r.route === activeRoute);
+  const hasBothPanels = !!dosageForActiveRoute && !!durationForActiveRoute;
+
   if (!hasDosage && !hasDuration) {
     return null;
   }
-
-  const defaultRoute = allRoutes[0] || "oral";
 
   return (
     <div id="dosage-duration" className="space-y-6 pt-12 scroll-mt-6">
       <SectionHeader icon="lucide:chart-no-axes-combined" title="Dosage & Duration" />
 
-      <Tabs defaultValue={defaultRoute} className="w-full">
-        <TabsList className="mb-4 flex-wrap">
+      <Tabs value={activeRoute} onValueChange={setActiveRoute} className="w-full">
+        <TabsList className="theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-none">
           {allRoutes.map(route => {
             const routeIcon = ROUTE_ICONS[route.toLowerCase()];
+            const isActive = route === activeRoute;
             return (
-              <TabsTrigger key={route} value={route} className="gap-1.5">
-                {routeIcon && <Icon icon={routeIcon} size={16} />}
-                {capitalizeRoute(route)}
+              <TabsTrigger
+                key={route}
+                value={route}
+                className={cn(
+                  "group relative isolate gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-300",
+                  "border-white/10 bg-white/[0.04] hover:-translate-y-px hover:border-white/15 hover:bg-white/[0.07] hover:text-white",
+                  "active:translate-y-0 active:scale-[0.985]",
+                  "data-[state=active]:border-fuchsia-400/20 data-[state=active]:bg-[linear-gradient(135deg,rgba(217,70,239,0.18),rgba(124,58,237,0.12))] data-[state=active]:text-white",
+                  "data-[state=active]:shadow-[0_12px_30px_-18px_rgba(217,70,239,0.7),inset_0_0_0_1px_rgba(255,255,255,0.04)]",
+                  !prefersReducedMotion && "will-change-transform"
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.18),transparent_65%)] opacity-0 transition-opacity duration-300",
+                    isActive && "opacity-100"
+                  )}
+                />
+                {routeIcon ? (
+                  <span
+                    className={cn(
+                      "relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                      isActive
+                        ? "bg-fuchsia-400/18 text-white ring-fuchsia-300/25 shadow-[0_0_20px_rgba(217,70,239,0.18)]"
+                        : "bg-white/[0.05] text-white/85 ring-white/10 group-hover:bg-white/[0.09] group-hover:text-white"
+                    )}
+                  >
+                    <Icon icon={routeIcon} size={16} />
+                  </span>
+                ) : null}
+                <span className="relative">{formatRouteLabel(route)}</span>
               </TabsTrigger>
             );
           })}
         </TabsList>
 
-        {allRoutes.map(route => {
-          const dosageForRoute = dosage.routes.find(r => r.route === route);
-          const durationForRoute = duration.routes.find(r => r.route === route);
-
-          return (
-            <TabsContent key={route} value={route}>
-              <div className="grid gap-4 md:grid-cols-2 items-start">
-                {dosageForRoute && <DosagePanel route={dosageForRoute} plateauDosing={dosage.plateau_dosing} />}
-                {durationForRoute && <DurationPanel route={durationForRoute} />}
+        <TabsContent value={activeRoute} forceMount className="mt-3">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeRoute}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="relative"
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-6 top-0 h-24 bg-gradient-to-r from-fuchsia-500/10 via-violet-400/10 to-sky-400/10 blur-3xl"
+              />
+              <div className={cn("relative grid gap-4 items-start", hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1")}>
+                {dosageForActiveRoute ? (
+                  <DosagePanel route={dosageForActiveRoute} plateauDosing={dosage.plateau_dosing} />
+                ) : null}
+                {durationForActiveRoute ? <DurationPanel route={durationForActiveRoute} /> : null}
               </div>
-            </TabsContent>
-          );
-        })}
+            </motion.div>
+          </AnimatePresence>
+        </TabsContent>
       </Tabs>
     </div>
   );

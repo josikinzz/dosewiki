@@ -1,5 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
@@ -395,13 +396,14 @@ export const ReagentSection = memo(function ReagentSection({
 
         {/* Expand/Collapse button */}
         {hasMore && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-          >
-            <span className="font-medium">+{hiddenCount}</span>
-            <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-          </button>
+          <ExpandButton
+            isExpanded={isExpanded}
+            onToggle={() => setIsExpanded(!isExpanded)}
+            variant="count"
+            count={hiddenCount}
+            className="mx-auto"
+            ariaLabel={isExpanded ? "Collapse reagent results" : "Expand reagent results"}
+          />
         )}
       </div>
 

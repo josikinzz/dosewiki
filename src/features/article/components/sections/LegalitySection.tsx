@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/common/SectionHeader";
@@ -209,7 +210,7 @@ export const LegalitySection = memo(function LegalitySection({
               return (
                 <div
                   key={countryName}
-                  className="relative rounded-xl border border-white/10 bg-white/5 p-3 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20"
+                  className="theme-public-card-hover-quiet relative rounded-xl border border-white/10 bg-white/5 p-3"
                 >
                   {countryCode && (
                     <AppImage
@@ -240,14 +241,12 @@ export const LegalitySection = memo(function LegalitySection({
                     </p>
                   )}
                   {isLongText && displayText && (
-                    <button
-                      onClick={() => toggleExpanded(countryName)}
-                      className="mt-1.5 flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-                      aria-label={isExpanded ? "Collapse" : "Expand"}
-                    >
-                      <Icon icon="lucide:ellipsis" size={14} />
-                      <Icon icon="lucide:chevron-down" size={14} className={cn("transition-transform", isExpanded && "rotate-180")} />
-                    </button>
+                    <ExpandButton
+                      isExpanded={isExpanded}
+                      onToggle={() => toggleExpanded(countryName)}
+                      className="mt-1.5"
+                      ariaLabel={isExpanded ? `Collapse ${countryName} legality notes` : `Expand ${countryName} legality notes`}
+                    />
                   )}
                 </div>
               );

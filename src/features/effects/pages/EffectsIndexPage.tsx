@@ -1,40 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { useState, useMemo, memo } from "react";
-import { motion } from "framer-motion";
 import { AppImage } from "@/components/common/AppImage";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { SectionCard } from "@/components/common/SectionCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EffectCategoryCard } from "../components/EffectCategoryCard";
 import { ParentCategoryCard } from "../components/ParentCategoryCard";
 import { SEIIntroSection } from "../components/SEIIntroSection";
 import { useResponsiveColumnCount } from "@/hooks/useResponsiveColumnCount";
-import { useSubjectiveEffects } from "@/hooks/useSubjectiveEffects";
 import { cn } from "@/lib/utils";
-
-const containerAnimation = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemAnimation = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 20
-    }
-  }
-};
 
 /**
  * Minimal effect type for index display.
@@ -46,7 +23,9 @@ interface EffectSummary {
 }
 
 interface EffectsIndexPageProps {
-  onSelectEffect: (slug: string) => void;
+  effects: EffectSummary[];
+  effectHrefPrefix?: string;
+  onSelectEffect?: (slug: string) => void;
 }
 
 type TabId = "all" | "sensory" | "cognitive" | "physical";
@@ -253,18 +232,12 @@ const FLAT_CATEGORIES: FlatCategoryConfig[] = [
  * Sensory/Cognitive/Physical tabs: Flat card layout with subcategories as individual cards.
  */
 export const EffectsIndexPage = memo(function EffectsIndexPage({
+  effects,
+  effectHrefPrefix,
   onSelectEffect,
 }: EffectsIndexPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>("all");
   const columnCount = useResponsiveColumnCount({ limitColumns: true });
-
-  // Fetch effects from Convex at route level
-  const { effects: convexEffects, isLoading } = useSubjectiveEffects();
-
-  // Map Convex effects to local type
-  const effects: EffectSummary[] = useMemo(() => {
-    return convexEffects.map(e => ({ slug: e.slug, name: e.name, tags: e.tags }));
-  }, [convexEffects]);
 
   const activeTabConfig = TABS.find(t => t.id === activeTab);
 
@@ -348,70 +321,56 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
     return columns;
   }, [flatCategoriesWithEffects, activeTab, columnCount]);
 
-  // Show loading state while fetching (AFTER all hooks)
-  if (isLoading && effects.length === 0) {
-    return (
-      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
-      <motion.div
-        className="mx-auto max-w-3xl md:max-w-4xl"
-        initial="hidden"
-        animate="visible"
-        variants={containerAnimation}
-      >
-        <motion.div variants={itemAnimation}>
+      <div className="mx-auto max-w-3xl md:max-w-4xl">
+        <div>
           <PageHeader
             title="Subjective Effect Index"
             icon="lucide:sparkles"
+            showSpotlight={false}
           />
 
           {/* Creator Attribution - Moved closer to title */}
           <div className="-mt-14 mb-12 flex justify-center relative z-10">
             <Link
               href="/contributors/josie"
-              className="group flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-2 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.08] transition-all cursor-pointer shadow-lg shadow-black/10 hover:shadow-fuchsia-500/10 backdrop-blur-md"
+              className="group flex cursor-pointer items-center gap-2.5 rounded-full bg-white/[0.025] py-1.5 pl-2 pr-4 ring-1 ring-white/10 transition-all hover:bg-white/[0.05] hover:ring-fuchsia-400/25 backdrop-blur-md"
             >
               <AppImage
                 src="/profile-avatars/josie/avatar.webp"
                 alt="Josie Kins"
                 width={24}
                 height={24}
-                className="h-6 w-6 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-fuchsia-400/50 transition"
+                className="h-6 w-6 rounded-full object-cover ring-2 ring-white/10 transition group-hover:ring-fuchsia-400/40"
               />
-              <span className="text-xs font-medium text-white/50 group-hover:text-white/80 transition">
-                created by <span className="font-bold text-fuchsia-200 group-hover:text-fuchsia-100">Josie Kins</span>, 2011
+              <span className="text-xs font-medium text-white/56 transition group-hover:text-white/74">
+                created by <span className="font-semibold text-fuchsia-200/90 group-hover:text-fuchsia-100">Josie Kins</span>, 2011
               </span>
             </Link>
           </div>
-        </motion.div>
+        </div>
 
         {/* Intro Section */}
-        <motion.div variants={itemAnimation}>
+        <div>
           <SEIIntroSection
             effectCount={effects.length}
             tabBlob={activeTab !== "all" ? activeTabConfig?.blob : undefined}
           />
-        </motion.div>
+        </div>
 
         {/* Tab Navigation */}
-        <motion.div variants={itemAnimation}>
+        <div>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)} className="mb-4 flex justify-center">
-            <TabsList className="flex-wrap h-auto bg-white/5 border border-white/10 p-1.5 rounded-2xl gap-1">
+            <TabsList className="flex-wrap h-auto rounded-2xl border border-white/12 bg-white/[0.04] p-1.5 shadow-[0_18px_36px_-28px_rgba(0,0,0,0.55)] gap-1">
               {TABS.map(tab => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
                   className={cn(
-                    "gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5",
-                    "text-[0.9375rem] font-medium text-white/60"
+                    "gap-2.5 rounded-xl px-5 py-2.5 text-[0.9375rem] font-medium transition-[background-color,color,box-shadow] duration-300",
+                    "text-white/68 hover:bg-white/[0.05] hover:text-white",
+                    "data-[state=active]:bg-[color:var(--theme-surface-muted)] data-[state=active]:text-white data-[state=active]:shadow-[inset_0_0_0_1px_rgba(244,114,182,0.18)]"
                   )}
                 >
                   <Icon icon={tab.icon} size={18} />
@@ -421,8 +380,8 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
             </TabsList>
           </Tabs>
 
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* ALL TAB: Responsive column layout */}
       {activeTab === "all" && (() => {
@@ -430,12 +389,9 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
           .map((_, i) => ({ index: i, cats: categoriesByColumn.get(i) ?? [] }))
           .filter(col => col.cats.length > 0);
         return (
-          <motion.div
+          <div
             className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
             style={{ gridTemplateColumns: `repeat(${nonEmptyCols.length}, minmax(0, 1fr))` }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
           >
             {nonEmptyCols.map((col) => (
               <div key={col.index} className="flex flex-col gap-4">
@@ -446,12 +402,13 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
                     icon={cat.icon}
                     subcategories={cat.subcategories}
                     effects={effects}
+                    effectHrefPrefix={effectHrefPrefix}
                     onSelectEffect={onSelectEffect}
                   />
                 ))}
               </div>
             ))}
-          </motion.div>
+          </div>
         );
       })()}
 
@@ -461,12 +418,9 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
           .map((_, i) => ({ index: i, cats: flatCategoriesByColumn.get(i) ?? [] }))
           .filter(col => col.cats.length > 0);
         return (
-          <motion.div
+          <div
             className="mx-auto grid w-full max-w-[1600px] gap-4 px-4"
             style={{ gridTemplateColumns: `repeat(${nonEmptyCols.length}, minmax(0, 1fr))` }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
           >
             {nonEmptyCols.map((col) => (
               <div key={col.index} className="flex flex-col gap-4">
@@ -476,26 +430,26 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
                     title={cat.title}
                     icon={cat.icon}
                     effects={cat.effects}
+                    effectHrefPrefix={effectHrefPrefix}
                     onSelectEffect={onSelectEffect}
                   />
                 ))}
               </div>
             ))}
-          </motion.div>
+          </div>
         );
       })()}
 
       {/* Empty State */}
       {filteredEffects.length === 0 && (
-        <SectionCard>
-          <div className="text-center py-8">
-            <Icon icon="lucide:search-x" size={48} className="mx-auto mb-4 text-white/30" />
-            <h3 className="text-lg font-semibold text-white/70 mb-2">No effects found</h3>
-            <p className="text-sm text-white/50">
-              No subjective effects have been imported yet. Run the migration script to populate this index.
-            </p>
-          </div>
-        </SectionCard>
+        <StateCard
+          badge="No effects"
+          badgeVariant="secondary"
+          title="No effects found"
+          description="No subjective effects have been imported yet. Run the migration flow to populate this index."
+          icon="lucide:search-x"
+          tone="neutral"
+        />
       )}
     </div>
   );

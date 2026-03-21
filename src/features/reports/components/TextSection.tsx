@@ -27,12 +27,12 @@ export const TextSection = memo(function TextSection({
 
   return (
     <SectionCard delay={delay}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
+      <h2 className="theme-text-primary mb-4 flex items-center gap-3 text-lg font-semibold">
         <IconBadge icon={resolvedIcon} label={title} />
         {title}
       </h2>
 
-      <p className="text-sm md:text-base leading-relaxed text-white/80 whitespace-pre-line">
+      <p className="theme-text-secondary whitespace-pre-line text-sm leading-relaxed md:text-base">
         {content}
       </p>
     </SectionCard>

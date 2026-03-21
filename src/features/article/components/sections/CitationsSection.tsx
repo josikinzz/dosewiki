@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle, Citation } from "@/schema";
@@ -99,14 +100,13 @@ export const CitationsSection = memo(function CitationsSection({
           />
           {hasMoreCitations && (
             <div className="mt-3 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
-              >
-                <span className="font-medium">+{hiddenCount}</span>
-                <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-              </button>
+              <ExpandButton
+                isExpanded={isExpanded}
+                onToggle={() => setIsExpanded(!isExpanded)}
+                variant="count"
+                count={hiddenCount}
+                ariaLabel={isExpanded ? "Collapse further reading" : "Expand further reading"}
+              />
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { getProfileByKey, type NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubstanceArticle } from "../../src/schema";
+import type { ReplicationWithUrl } from "../../src/types/replications";
 import { queryConvex } from "./serverClient";
 
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
@@ -13,6 +14,28 @@ type SubjectiveEffectRecord = {
   summary: string;
   tags: string[];
   featured?: boolean;
+};
+
+export type PublicCategoryLayout = {
+  version: number;
+  categories: Array<{
+    key: string;
+    label: string;
+    iconKey: string;
+    sections: Array<{
+      key: string;
+      label: string;
+      drugs: string[];
+    }>;
+    drugs: string[];
+    columns?: Record<string, number>;
+  }>;
+};
+
+export type PublicSubstanceLookupEntry = {
+  slug: string;
+  name: string;
+  priority: "high" | "normal" | "low";
 };
 
 type SubstanceRecord = SubstanceArticle & {
@@ -90,14 +113,30 @@ export type PublicAboutData = {
 
 type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
   description_raw: string;
+  description_ast?: unknown;
   long_summary_raw?: string;
+  long_summary_ast?: unknown;
   analysis_raw?: string;
+  analysis_ast?: unknown;
+  style_variations_raw?: string;
+  style_variations_ast?: unknown;
+  personal_commentary_raw?: string;
+  personal_commentary_ast?: unknown;
+  social_media_image?: string;
+  gallery_order?: string[];
+  audio_replications?: Array<{ title: string; artist: string; resource: string }>;
+  see_also?: Array<{ location: string; title: string }>;
+  external_links?: Array<{ url: string; title: string }>;
+  subarticles?: Array<{ id: string; title: string }>;
   contributors?: string[];
   citations?: Array<{
     url: string;
     text: string;
+    from?: string;
   }>;
 };
+
+export type PublicEffectArticle = SubjectiveEffectDetailRecord;
 
 type TripReportDetailRecord = TripReportRecord & {
   onset: Array<{ time?: string; description: string }>;
@@ -125,6 +164,14 @@ const trimExcerpt = (value: string | null | undefined, maxLength = 180) => {
 
 export const getRawSubstances = cache(async (): Promise<SubstanceRecord[]> => {
   return await queryConvex<SubstanceRecord[]>("substanceIndex:getAll", {});
+});
+
+export const getPublicCategoryLayout = cache(async (): Promise<PublicCategoryLayout | null> => {
+  return await queryConvex<PublicCategoryLayout | null>("categoryLayout:get", {});
+});
+
+export const getPublicSubstanceLookup = cache(async (): Promise<PublicSubstanceLookupEntry[]> => {
+  return await queryConvex<PublicSubstanceLookupEntry[]>("substanceIndex:getSlugNameMap", {});
 });
 
 export const getPublicSubstances = cache(async (): Promise<PublicSubstancePreview[]> => {
@@ -188,6 +235,10 @@ export const getPublicEffectBySlug = cache(async (slug: string): Promise<Subject
   });
 });
 
+export const getPublicEffectArticles = cache(async (): Promise<PublicEffectArticle[]> => {
+  return await queryConvex<PublicEffectArticle[]>("subjectiveEffects:getAll", {});
+});
+
 export const getEffectsByCategory = cache(async (category: string): Promise<PublicEffectPreview[]> => {
   const effects = await queryConvex<SubjectiveEffectRecord[], { category: string }>("subjectiveEffects:getByCategory", {
     category,
@@ -232,6 +283,12 @@ export const getPublicReportBySlug = cache(async (slug: string): Promise<TripRep
   return await queryConvex<TripReportDetailRecord | null, { slug: string }>("tripReports:getBySlug", { slug });
 });
 
+export const getPublicReplicationsByEffect = cache(async (effectSlug: string): Promise<ReplicationWithUrl[]> => {
+  return await queryConvex<ReplicationWithUrl[], { effect_slug: string }>("replications:getReplicationsByEffect", {
+    effect_slug: effectSlug,
+  });
+});
+
 export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
   const reports = await queryConvex<TripReportRecord[], { authorName: string }>("tripReports:getByAuthor", {
     authorName,
@@ -246,6 +303,16 @@ export const getReportsByAuthor = cache(async (authorName: string): Promise<Publ
     introduction: trimExcerpt(report.introduction, 170),
     tripDate: report.subject.trip_date,
   }));
+});
+
+export const getPublicReportsBySubstanceNames = cache(async (substanceNames: string[]) => {
+  if (substanceNames.length === 0) {
+    return [];
+  }
+
+  return await queryConvex<TripReportDetailRecord[], { substanceNames: string[] }>("tripReports:getBySubstanceNames", {
+    substanceNames,
+  });
 });
 
 export const getPublicAboutData = cache(async (): Promise<PublicAboutData> => {

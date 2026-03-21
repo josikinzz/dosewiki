@@ -1,7 +1,10 @@
-import { memo, useCallback } from "react";
-import { Icon, type IconName } from "@/components/common/Icon";
+import { memo } from "react";
+import type { IconName } from "@/components/common/Icon";
+import {
+  PublicTableOfContents,
+  type PublicTableOfContentsItem,
+} from "@/components/common/PublicTableOfContents";
 import type { SubstanceArticle } from "@/schema";
-import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
@@ -133,47 +136,23 @@ const TOC_ITEMS: TocItem[] = [
   },
 ];
 
+const SAFETY_CRITICAL_ITEM_IDS = new Set(["reagent-testing"]);
+
 export const TableOfContentsSection = memo(function TableOfContentsSection({
   article,
 }: TableOfContentsSectionProps) {
-  const presentItems = TOC_ITEMS.filter((item) => item.isPresent(article));
-
-  const handleClick = useCallback((id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      scrollIntoViewRespectingMotion(element);
-    }
-  }, []);
+  const presentItems: PublicTableOfContentsItem[] = TOC_ITEMS.filter((item) => item.isPresent(article)).map(
+    (item) => ({
+      id: item.id,
+      label: item.label,
+      icon: item.icon,
+      tone: SAFETY_CRITICAL_ITEM_IDS.has(item.id) ? "warning" : "default",
+    }),
+  );
 
   if (presentItems.length === 0) {
     return null;
   }
 
-  return (
-    <div className="w-full max-w-xs">
-      <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/40">
-          Contents
-        </h2>
-        <nav>
-          <ol className="space-y-1">
-            {presentItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  onClick={() => handleClick(item.id)}
-                  className="group flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-fuchsia-300"
-                >
-                  <span className="theme-toc-icon flex h-5 w-5 shrink-0 items-center justify-center text-white/30 group-hover:text-fuchsia-400/60">
-                    <Icon icon={item.icon} size={14} />
-                  </span>
-                  <span className="flex-1">{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      </div>
-    </div>
-  );
+  return <PublicTableOfContents items={presentItems} />;
 });

@@ -1,20 +1,21 @@
-import { memo } from "react";
+"use client";
+
+import { memo, type ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
-import {
-  HeroSection,
-  DosageDurationSection,
-  SubjectiveEffectsSection,
-  PharmacologySection,
-  InteractionsSection,
-  ToleranceSection,
-  HistoryCultureSection,
-  HarmPotentialSection,
-  ReagentSection,
-  LegalitySection,
-  CitationsSection,
-  TripReportsSection,
-  TableOfContentsSection,
-} from "./sections";
+import type { TripReport } from "@/types/tripReport";
+import { HeroSection } from "./sections/HeroSection";
+import { DosageDurationSection } from "./sections/DosageDurationSection";
+import { SubjectiveEffectsSection } from "./sections/SubjectiveEffectsSection";
+import { PharmacologySection } from "./sections/PharmacologySection";
+import { InteractionsSection } from "./sections/InteractionsSection";
+import { ToleranceSection } from "./sections/ToleranceSection";
+import { HistoryCultureSection } from "./sections/HistoryCultureSection";
+import { HarmPotentialSection } from "./sections/HarmPotentialSection";
+import { ReagentSection } from "./sections/ReagentSection";
+import { LegalitySection } from "./sections/LegalitySection";
+import { CitationsSection } from "./sections/CitationsSection";
+import { TripReportsSection } from "./sections/TripReportsSection";
+import { TableOfContentsSection } from "./sections/TableOfContentsSection";
 
 export interface ArticleLayoutProps {
   article: SubstanceArticle;
@@ -30,6 +31,9 @@ export interface ArticleLayoutProps {
   onSelectInteraction?: (substance: string) => void;
   /** Called when a trip report is clicked */
   onSelectReport?: (slug: string) => void;
+  fromSubstanceSlug?: string;
+  relatedTripReports?: TripReport[];
+  tripReportsSection?: ReactNode;
 }
 
 /**
@@ -47,6 +51,9 @@ export const ArticleLayout = memo(function ArticleLayout({
   onSelectClassification,
   onSelectInteraction,
   onSelectReport,
+  fromSubstanceSlug,
+  relatedTripReports,
+  tripReportsSection,
 }: ArticleLayoutProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 pb-16 pt-8">
@@ -62,21 +69,46 @@ export const ArticleLayout = memo(function ArticleLayout({
         article={article}
         onSelectEffect={onSelectEffect}
       />
-      <ReagentSection article={article} />
-      <PharmacologySection
-        article={article}
-        onSelectMechanism={onSelectMechanism}
-      />
-      <InteractionsSection
-        article={article}
-        onSelectInteraction={onSelectInteraction}
-      />
-      <ToleranceSection article={article} />
-      <HarmPotentialSection article={article} />
-      <HistoryCultureSection article={article} />
-      <TripReportsSection article={article} onSelectReport={onSelectReport} />
-      <LegalitySection article={article} />
-      <CitationsSection article={article} />
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+        <ReagentSection article={article} />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+        <PharmacologySection
+          article={article}
+          onSelectMechanism={onSelectMechanism}
+        />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}>
+        <InteractionsSection
+          article={article}
+          onSelectInteraction={onSelectInteraction}
+        />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+        <ToleranceSection article={article} />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}>
+        <HarmPotentialSection article={article} />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+        <HistoryCultureSection article={article} />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+        {tripReportsSection ?? (
+          <TripReportsSection
+            article={article}
+            reports={relatedTripReports}
+            fromSubstanceSlug={fromSubstanceSlug}
+            onSelectReport={onSelectReport}
+          />
+        )}
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+        <LegalitySection article={article} />
+      </div>
+      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+        <CitationsSection article={article} />
+      </div>
     </div>
   );
 });

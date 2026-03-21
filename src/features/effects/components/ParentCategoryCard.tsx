@@ -41,7 +41,8 @@ interface ParentCategoryCardProps {
   icon: IconName;
   subcategories: SubcategoryConfig[];
   effects: EffectLink[];
-  onSelectEffect: (slug: string) => void;
+  effectHrefPrefix?: string;
+  onSelectEffect?: (slug: string) => void;
 }
 
 /**
@@ -55,6 +56,7 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   icon,
   subcategories,
   effects,
+  effectHrefPrefix,
   onSelectEffect,
 }: ParentCategoryCardProps) {
   // Pre-compute lowercase tags for each effect (cached to avoid repeated toLowerCase calls)
@@ -110,6 +112,7 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
                 <IndexCardListItem
                   key={effect.slug}
                   label={effect.name}
+                  href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : undefined}
                   slug={effect.slug}
                   onSelect={onSelectEffect}
                 />

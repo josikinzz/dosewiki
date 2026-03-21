@@ -1,10 +1,17 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicEffectBySlug } from "@server/convex/publicData";
-import { getPublicLibrary } from "@server/convex/publicLibrary";
-import { LegacyPublicRouteClient } from "../../_components/LegacyPublicRouteClient";
+import { getPublicEffectDetail } from "@server/convex/publicLibrary";
+import { getStaticEffectParams } from "@server/next/staticParams";
+import { EffectReplicationsSection, EffectReplicationsSectionFallback } from "../../_components/public-routes/EffectReplicationsSection";
+import { EffectArticlePage } from "@/features/effects/pages/EffectArticlePage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticEffectParams();
+}
 
 type EffectPageProps = {
   params: Promise<{
@@ -25,12 +32,25 @@ export async function generateMetadata({ params }: EffectPageProps) {
 
 export default async function EffectPage({ params }: EffectPageProps) {
   const { effectSlug } = await params;
-  const [effect, library] = await Promise.all([getPublicEffectBySlug(effectSlug), getPublicLibrary()]);
-  const detail = library.getEffectDetail(effectSlug);
+  const [effect, detail] = await Promise.all([getPublicEffectBySlug(effectSlug), getPublicEffectDetail(effectSlug)]);
 
   if (!effect || !detail) {
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "effect", effectSlug }} />;
+  return (
+    <EffectArticlePage
+      effect={effect}
+      effectDetail={detail ?? undefined}
+      drugHrefPrefix="/"
+      categoryHrefPrefix="/category/"
+      replicationsSection={
+        effect.gallery_order?.length ? (
+          <Suspense fallback={<EffectReplicationsSectionFallback />}>
+            <EffectReplicationsSection effectSlug={effectSlug} galleryOrder={effect.gallery_order} />
+          </Suspense>
+        ) : undefined
+      }
+    />
+  );
 }

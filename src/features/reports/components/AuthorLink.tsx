@@ -8,6 +8,8 @@ interface AuthorLinkProps {
   authorName: string;
   /** Additional CSS classes */
   className?: string;
+  /** Render as plain text even if a profile exists */
+  disableLink?: boolean;
   /** Called when navigating to the profile (for SPA navigation) */
   onNavigate?: (profileKey: string) => void;
 }
@@ -19,11 +21,12 @@ interface AuthorLinkProps {
 export const AuthorLink = memo(function AuthorLink({
   authorName,
   className = "",
+  disableLink = false,
   onNavigate,
 }: AuthorLinkProps) {
   const profile = findProfileByAuthorName(authorName);
 
-  if (!profile) {
+  if (!profile || disableLink) {
     // No profile found - render as plain text
     return <span className={className}>{authorName}</span>;
   }

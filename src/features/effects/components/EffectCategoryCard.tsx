@@ -10,7 +10,8 @@ interface EffectCategoryCardProps {
   title: string;
   icon: IconName;
   effects: EffectLink[];
-  onSelectEffect: (slug: string) => void;
+  effectHrefPrefix?: string;
+  onSelectEffect?: (slug: string) => void;
 }
 
 /**
@@ -20,6 +21,7 @@ export function EffectCategoryCard({
   title,
   icon,
   effects,
+  effectHrefPrefix,
   onSelectEffect,
 }: EffectCategoryCardProps) {
   if (effects.length === 0) {
@@ -30,12 +32,13 @@ export function EffectCategoryCard({
     <IndexCard title={title} icon={icon} count={effects.length}>
       <IndexCardList>
         {effects.map((effect) => (
-          <IndexCardListItem
-            key={effect.slug}
-            label={effect.name}
-            slug={effect.slug}
-            onSelect={onSelectEffect}
-          />
+                <IndexCardListItem
+                  key={effect.slug}
+                  label={effect.name}
+                  href={effectHrefPrefix ? `${effectHrefPrefix}${effect.slug}` : undefined}
+                  slug={effect.slug}
+                  onSelect={onSelectEffect}
+                />
         ))}
       </IndexCardList>
     </IndexCard>

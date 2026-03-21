@@ -1,15 +1,14 @@
-import { memo, useCallback } from "react";
+import Link from "next/link";
 import { PageHeader } from "../layout/PageHeader";
 import type { SearchMatch } from "../../data/builders/search";
+import { HighlightedText } from "@/components/common/HighlightedText";
+import { StateCard } from "@/components/common/StateCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface SearchResultsPageProps {
   query: string;
   results: SearchMatch[];
-  onSelectSubstance: (slug: string) => void;
-  onSelectCategory: (categoryKey: string) => void;
-  onSelectEffect: (effectSlug: string) => void;
 }
 
 const META_TOKEN_SPLIT = /[·,/]/;
@@ -44,32 +43,20 @@ const typeLabel = (match: SearchMatch) => {
   }
 };
 
-export const SearchResultsPage = memo(function SearchResultsPage({
-  query,
-  results,
-  onSelectSubstance,
-  onSelectCategory,
-  onSelectEffect,
-}: SearchResultsPageProps) {
-  const handleSelect = useCallback(
-    (match: SearchMatch) => {
-      switch (match.type) {
-        case "substance":
-          onSelectSubstance(match.slug);
-          break;
-        case "category":
-          onSelectCategory(match.slug);
-          break;
-        case "effect":
-          onSelectEffect(match.slug);
-          break;
-        default:
-          break;
-      }
-    },
-    [onSelectCategory, onSelectEffect, onSelectSubstance],
-  );
+const getMatchHref = (match: SearchMatch) => {
+  switch (match.type) {
+    case "substance":
+      return `/${match.slug}`;
+    case "category":
+      return `/category/${match.slug}`;
+    case "effect":
+      return `/effects/${match.slug}`;
+    default:
+      return "/search";
+  }
+};
 
+export function SearchResultsPage({ query, results }: SearchResultsPageProps) {
   const trimmed = query.trim();
 
   return (
@@ -79,64 +66,103 @@ export const SearchResultsPage = memo(function SearchResultsPage({
         icon="lucide:search"
         description={
           trimmed
-            ? `Showing matches for "${trimmed}".`
+            ? `${results.length} ${results.length === 1 ? "match" : "matches"} for “${trimmed}”.`
             : "Start typing in the search bar at the top of the page to look up substances, categories, or effects."
         }
       />
 
       {results.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
-          <p className="text-lg font-semibold text-white">No matches found.</p>
-          {trimmed ? (
-            <p className="mt-2 text-sm text-white/70">
-              Try a different spelling, search for a chemical class, or browse the Substances index instead.
-            </p>
-          ) : (
-            <p className="mt-2 text-sm text-white/70">
-              Use the search bar at the top of the page to quickly jump around the library.
-            </p>
-          )}
-        </div>
+        <StateCard
+          badge={trimmed ? "No direct matches" : "Search ready"}
+          badgeVariant="secondary"
+          title={trimmed ? "No matches found" : "Start with a substance, class, or effect"}
+          description={
+            trimmed ? (
+              <>
+                Nothing matched <span className="font-medium text-white">“{trimmed}”</span>. Try another spelling,
+                search for a broader class, or jump into the public indexes instead.
+              </>
+            ) : (
+              "Use the search bar at the top of the page to jump quickly to substances, categories, and effect entries."
+            )
+          }
+          icon={trimmed ? "lucide:search-x" : "lucide:search"}
+          tone="neutral"
+          actions={
+            <>
+              <Button variant="pill" size="pill" asChild>
+                <Link href="/lsd">Browse a known substance</Link>
+              </Button>
+              <Button variant="outline" size="pill" asChild>
+                <Link href="/effects/visuals">Explore effects</Link>
+              </Button>
+            </>
+          }
+          footer={trimmed ? "Search terms are matched across labels, aliases, and related metadata." : undefined}
+        />
       ) : (
         <ul className="space-y-3">
-          {results.map((match) => (
+          {results.map((match, index) => (
             <li key={match.id}>
               <Button
                 variant="card"
                 size="card"
-                onClick={() => handleSelect(match)}
+                asChild
+                className="group overflow-hidden rounded-[1.75rem] border-white/10 bg-white/[0.045] transition-[transform,border-color,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_45px_-28px_rgba(217,70,239,0.6)]"
               >
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs uppercase tracking-[0.28em] text-white/70">
-                    {typeLabel(match)}
-                  </span>
-                  <span className="text-xl font-semibold text-fuchsia-200">{match.label}</span>
-                  {match.secondary && (
-                    <span className="text-sm text-white/70">{match.secondary}</span>
-                  )}
-                  {(() => {
-                    const tokens = extractMetaTokens(match.meta);
-                    if (tokens.length === 0) {
-                      return null;
-                    }
-                    return (
-                      <span className="mt-1.5 flex flex-wrap gap-1.5">
-                        {tokens.map((token) => (
-                          <Badge
-                            key={`${match.id}-badge-${token}`}
-                            variant="default"
-                            className="text-[11px]"
-                          >
-                            {token}
-                          </Badge>
-                        ))}
+                <Link href={getMatchHref(match)}>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs uppercase tracking-[0.28em] text-white/70">
+                        {typeLabel(match)}
                       </span>
-                    );
-                  })()}
-                </div>
-                <span className="mt-1 hidden shrink-0 text-sm font-semibold uppercase tracking-wide text-white/70 sm:inline-flex">
-                  View
-                </span>
+                      {index === 0 && trimmed ? (
+                        <Badge variant="secondary" className="text-[10px] text-fuchsia-100">
+                          Best match
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <HighlightedText
+                      text={match.label}
+                      query={trimmed}
+                      className="text-xl font-semibold text-fuchsia-200"
+                    />
+                    {match.secondary && (
+                      <HighlightedText
+                        text={match.secondary}
+                        query={trimmed}
+                        className="text-sm leading-6 text-white/70"
+                        markClassName="bg-white/10 text-white"
+                      />
+                    )}
+                    {(() => {
+                      const tokens = extractMetaTokens(match.meta);
+                      if (tokens.length === 0) {
+                        return null;
+                      }
+                      return (
+                        <span className="mt-1.5 flex flex-wrap gap-1.5">
+                          {tokens.map((token) => (
+                            <Badge
+                              key={`${match.id}-badge-${token}`}
+                              variant="default"
+                              className="text-[11px] transition-colors group-hover:border-fuchsia-400/30 group-hover:text-fuchsia-100"
+                            >
+                              <HighlightedText
+                                text={token}
+                                query={trimmed}
+                                markClassName="bg-white/10 text-white"
+                              />
+                            </Badge>
+                          ))}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <span className="mt-1 hidden shrink-0 text-sm font-semibold uppercase tracking-wide text-white/70 transition-transform duration-200 group-hover:translate-x-0.5 sm:inline-flex">
+                    View
+                  </span>
+                </Link>
               </Button>
             </li>
           ))}
@@ -144,4 +170,4 @@ export const SearchResultsPage = memo(function SearchResultsPage({
       )}
     </div>
   );
-});
+}

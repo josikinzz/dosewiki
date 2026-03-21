@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { AppProviders } from "./providers";
-import { NextHeader } from "./_components/NextHeader";
-import { NextFooter } from "./_components/NextFooter";
+import Script from "next/script";
+import { blinker } from "./fonts";
+import { Footer } from "@/components/layout/Footer";
+import { RouteChrome } from "./_components/RouteChrome";
 import "../styles.css";
 
 const themeBootstrap = `(() => {
@@ -73,29 +74,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={blinker.variable}>
       <head>
         <meta id="theme-color-meta" name="theme-color" content="#0f0a1f" />
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
       <body className="app-container theme-page-shell relative selection:bg-fuchsia-500/30">
-        <AppProviders>
-          <a
-            href="#main-content"
-            className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
-          >
-            Skip to main content
-          </a>
-          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-            <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-fuchsia-600/10 blur-2xl" />
-            <div className="absolute top-40 -right-20 h-80 w-80 rounded-full bg-violet-600/10 blur-2xl" />
-          </div>
-          <NextHeader />
-          <div className="app-content relative">
-            {children}
-            <NextFooter />
-          </div>
-        </AppProviders>
+        <Script id="theme-bootstrap" strategy="beforeInteractive">
+          {themeBootstrap}
+        </Script>
+        <a
+          href="#main-content"
+          className="theme-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 focus:ring-offset-2"
+        >
+          Skip to main content
+        </a>
+        <RouteChrome />
+        <div className="app-content relative">
+          {children}
+          <Footer />
+        </div>
       </body>
     </html>
   );

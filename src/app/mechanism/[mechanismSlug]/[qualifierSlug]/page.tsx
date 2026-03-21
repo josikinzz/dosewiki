@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
-import { getPublicLibrary } from "@server/convex/publicLibrary";
-import { LegacyPublicRouteClient } from "../../../_components/LegacyPublicRouteClient";
+import { getPublicMechanismDetail } from "@server/convex/publicLibrary";
+import { getStaticMechanismQualifierParams } from "@server/next/staticParams";
+import { MechanismDetailPage } from "@/components/pages/MechanismDetailPage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticMechanismQualifierParams();
+}
 
 type MechanismQualifierPageProps = {
   params: Promise<{
@@ -14,8 +19,7 @@ type MechanismQualifierPageProps = {
 
 export async function generateMetadata({ params }: MechanismQualifierPageProps) {
   const { mechanismSlug, qualifierSlug } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getMechanismDetail(mechanismSlug);
+  const detail = await getPublicMechanismDetail(mechanismSlug);
   const qualifier = detail?.qualifiers.find((entry) => entry.key === qualifierSlug);
 
   return buildPageMetadata({
@@ -27,13 +31,19 @@ export async function generateMetadata({ params }: MechanismQualifierPageProps) 
 
 export default async function MechanismQualifierPage({ params }: MechanismQualifierPageProps) {
   const { mechanismSlug, qualifierSlug } = await params;
-  const library = await getPublicLibrary();
-  const detail = library.getMechanismDetail(mechanismSlug);
+  const detail = await getPublicMechanismDetail(mechanismSlug);
   const qualifier = detail?.qualifiers.find((entry) => entry.key === qualifierSlug);
 
   if (!detail || !qualifier) {
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "mechanism", mechanismSlug, qualifierSlug }} />;
+  return (
+    <MechanismDetailPage
+      detail={detail}
+      activeQualifierSlug={qualifierSlug}
+      drugHrefPrefix="/"
+      categoryHrefPrefix="/category/"
+    />
+  );
 }

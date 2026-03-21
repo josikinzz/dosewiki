@@ -1,61 +1,41 @@
 'use client';
 
-import { memo, useEffect, useRef, useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import LightGallery from 'lightgallery';
-import lgThumbnail from 'lightgallery/plugins/thumbnail';
-import lgVideo from 'lightgallery/plugins/video';
+import { memo, useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { AppImage } from '@/components/common/AppImage';
-import { api } from "../../../../convex/_generated/api";
-import 'lightgallery/css/lightgallery.css';
-import 'lightgallery/css/lg-thumbnail.css';
-import 'lightgallery/css/lg-video.css';
+import type { ReplicationWithUrl } from '@/types/replications';
 
-/** MIME type mapping for video formats */
 const VIDEO_MIME_TYPES: Record<string, string> = {
-  'mp4': 'video/mp4',
-  'webm': 'video/webm',
-  'mov': 'video/quicktime',
-  'm4v': 'video/x-m4v',
-  'ogv': 'video/ogg',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  m4v: 'video/x-m4v',
+  ogv: 'video/ogg',
 };
 
-const getMimeType = (format: string) =>
-  VIDEO_MIME_TYPES[format?.toLowerCase()] || `video/${format}`;
+const getMimeType = (format: string) => VIDEO_MIME_TYPES[format?.toLowerCase()] || `video/${format}`;
 
 interface ReplicationGalleryProps {
-  effectSlug: string;
   galleryOrder?: string[];
+  replications: ReplicationWithUrl[];
 }
 
-/**
- * ReplicationGallery component for displaying videos and images of effects.
- *
- * Features:
- * - Lightgallery integration with video/image support
- * - Artist attribution in captions
- * - Custom gallery ordering via gallery_order field
- * - Responsive thumbnails with lazy loading
- * - Keyboard navigation and accessibility
- */
-export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug, galleryOrder }: ReplicationGalleryProps) {
-  const lightGalleryRef = useRef<HTMLDivElement>(null);
-  const lgInstanceRef = useRef<ReturnType<typeof LightGallery> | null>(null);
+export const ReplicationGallery = memo(function ReplicationGallery({
+  galleryOrder,
+  replications,
+}: ReplicationGalleryProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  // Fetch replications for this effect
-  const replications = useQuery(api.replications.getReplicationsByEffect, {
-    effect_slug: effectSlug,
-  });
-
-  // Sort replications according to gallery_order if provided
   const sortedReplications = useMemo(() => {
-    if (!replications) return [];
+    if (!replications) {
+      return [];
+    }
 
     if (galleryOrder && galleryOrder.length > 0) {
       const orderMap = new Map(galleryOrder.map((slug, index) => [slug, index]));
       return [...replications].sort((a, b) => {
-        const aIndex = orderMap.get(a.slug) ?? Infinity;
-        const bIndex = orderMap.get(b.slug) ?? Infinity;
+        const aIndex = orderMap.get(a.slug) ?? Number.POSITIVE_INFINITY;
+        const bIndex = orderMap.get(b.slug) ?? Number.POSITIVE_INFINITY;
         return aIndex - bIndex;
       });
     }
@@ -63,235 +43,234 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
     return replications;
   }, [replications, galleryOrder]);
 
-  // Initialize Lightgallery
+  const activeReplication = activeIndex === null ? null : sortedReplications[activeIndex] ?? null;
+
   useEffect(() => {
-    if (!lightGalleryRef.current || !sortedReplications || sortedReplications.length === 0) {
+    if (activeIndex !== null && activeIndex >= sortedReplications.length) {
+      setActiveIndex(sortedReplications.length > 0 ? sortedReplications.length - 1 : null);
+    }
+  }, [activeIndex, sortedReplications.length]);
+
+  useEffect(() => {
+    if (activeReplication === null) {
       return;
     }
 
-    // Capture ref value for cleanup
-    const galleryElement = lightGalleryRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
-    // Destroy previous instance if it exists
-    if (lgInstanceRef.current) {
-      try {
-        lgInstanceRef.current.destroy();
-      } catch {
-        // Ignore errors during cleanup of previous instance
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveIndex(null);
+        return;
       }
-      lgInstanceRef.current = null;
-    }
 
-    // Initialize new instance
-    try {
-      lgInstanceRef.current = LightGallery(galleryElement, {
-        plugins: [lgThumbnail, lgVideo],
-        speed: 500,
-        loadYouTubeThumbnail: false,
-        preload: 2,
-        subHtmlFontSize: '14px',
-        thumbWidth: 80,
-        thumbHeight: '80px',
-        thumbContmargin: 5,
-        thumbMargin: 5,
-      } as unknown as Parameters<typeof LightGallery>[1]);
-    } catch (error) {
-      console.error('Error initializing Lightgallery:', error);
-    }
+      if (sortedReplications.length < 2) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        setActiveIndex((current) => {
+          if (current === null) {
+            return current;
+          }
+
+          return (current - 1 + sortedReplications.length) % sortedReplications.length;
+        });
+      }
+
+      if (event.key === 'ArrowRight') {
+        setActiveIndex((current) => {
+          if (current === null) {
+            return current;
+          }
+
+          return (current + 1) % sortedReplications.length;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      // Only destroy if the gallery element is still in the DOM
-      if (lgInstanceRef.current && galleryElement && document.body.contains(galleryElement)) {
-        try {
-          lgInstanceRef.current.destroy();
-        } catch {
-          // Ignore errors - element may already be removed
-        }
-      }
-      lgInstanceRef.current = null;
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [sortedReplications]);
-
-  if (!replications) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white/40"></div>
-          <p className="mt-2 text-sm text-white/50">Loading replications...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [activeReplication, sortedReplications.length]);
 
   if (sortedReplications.length === 0) {
     return null;
   }
 
+  const openReplication = (index: number) => {
+    setActiveIndex(index);
+  };
+
+  const closeLightbox = () => {
+    setActiveIndex(null);
+  };
+
+  const showPrevious = () => {
+    setActiveIndex((current) => {
+      if (current === null) {
+        return current;
+      }
+
+      return (current - 1 + sortedReplications.length) % sortedReplications.length;
+    });
+  };
+
+  const showNext = () => {
+    setActiveIndex((current) => {
+      if (current === null) {
+        return current;
+      }
+
+      return (current + 1) % sortedReplications.length;
+    });
+  };
+
   return (
-    <div className="w-full">
-      <div
-        ref={lightGalleryRef}
-        className="replication-gallery grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4"
-      >
-        {sortedReplications.map((rep) => {
-          const caption = `<h4 class="text-sm font-medium">${rep.title}</h4><p class="text-xs text-gray-400">by ${rep.artist}</p>`;
-          const thumbnailUrl = rep.type === 'video' ? rep.thumbnail_url : rep.url;
+    <div className="w-full space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
+        {sortedReplications.map((replication, index) => {
+          const thumbnailUrl = replication.type === 'video' ? replication.thumbnail_url : replication.url;
 
-          // For videos, use LightGallery video plugin
-          if (rep.type === 'video') {
-            // Skip videos without URLs
-            if (!rep.url) {
-              return null;
-            }
-
-            // LightGallery video plugin expects this JSON format
-            const videoData = JSON.stringify({
-              source: [{ src: rep.url, type: getMimeType(rep.format) }],
-              attributes: { preload: 'none', controls: true, playsinline: true },
-            });
-
-            return (
-              <a
-                key={rep._id}
-                href={rep.url}
-                className="replication-item group relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer aspect-square"
-                data-video={videoData}
-                data-poster={thumbnailUrl || ''}
-                data-sub-html={caption}
-              >
-                {thumbnailUrl && (
-                  <AppImage
-                    src={thumbnailUrl}
-                    alt={rep.title}
-                    width={rep.width ?? 800}
-                    height={rep.height ?? 800}
-                    className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-                  />
-                )}
-                {!thumbnailUrl && (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-fuchsia-900/20 to-violet-900/20">
-                    <div className="text-center px-2">
-                      <svg
-                        className="w-10 h-10 mx-auto mb-2 text-fuchsia-400/60"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p className="text-xs text-white/70 font-medium truncate max-w-[90%] mx-auto">{rep.title}</p>
-                      <p className="text-[10px] text-white/40 mt-0.5">by {rep.artist}</p>
-                    </div>
-                  </div>
-                )}
-              </a>
-            );
-          }
-
-          // For images
           return (
-            <a
-              key={rep._id}
-              href={rep.url}
-              className="replication-item group relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer aspect-square"
-              data-src={rep.url}
-              data-sub-html={caption}
-              data-lg-size={rep.width && rep.height ? `${rep.width}-${rep.height}` : undefined}
+            <button
+              key={replication._id}
+              type="button"
+              onClick={() => openReplication(index)}
+              className="group relative aspect-square overflow-hidden rounded-xl border border-white/10 bg-white/5 text-left transition hover:border-white/20 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              aria-label={`Open replication: ${replication.title}`}
             >
-              <AppImage
-                src={rep.url}
-                alt={rep.title}
-                width={rep.width ?? 800}
-                height={rep.height ?? 800}
-                className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-              />
-            </a>
+              {thumbnailUrl ? (
+                <AppImage
+                  src={thumbnailUrl}
+                  alt={replication.title}
+                  width={replication.width ?? 800}
+                  height={replication.height ?? 800}
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02] group-hover:opacity-80"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-fuchsia-900/20 via-violet-900/20 to-sky-900/20 px-3 text-center">
+                  <div>
+                    <Play className="mx-auto mb-2 h-10 w-10 text-fuchsia-300/70" />
+                    <p className="line-clamp-2 text-sm font-medium text-white/85">{replication.title}</p>
+                    <p className="mt-1 text-xs text-white/50">by {replication.artist}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-white">{replication.title}</p>
+                    <p className="truncate text-xs text-white/60">by {replication.artist}</p>
+                  </div>
+                  {replication.type === 'video' ? (
+                    <span className="rounded-full bg-black/45 p-2 text-white/85">
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </button>
           );
         })}
       </div>
 
-      <style>{`
-        .lg-outer.replication-gallery {
-          --lg-backdrop-color: color-mix(in srgb, var(--theme-page-end) 86%, black 14%);
-        }
+      {activeReplication ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeReplication.title}
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+        >
+          <button
+            type="button"
+            aria-label="Close replication viewer"
+            className="absolute inset-0 cursor-default"
+            onClick={closeLightbox}
+          />
+          <div
+            className="relative w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-[color:var(--theme-page-end)] shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              aria-label="Close replication viewer"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-        .lg-backdrop.replication-gallery {
-          background-color: color-mix(in srgb, var(--theme-page-end) 86%, black 14%);
-          backdrop-filter: blur(4px);
-        }
+            {sortedReplications.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={showPrevious}
+                  className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  aria-label="Previous replication"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={showNext}
+                  className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                  aria-label="Next replication"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            ) : null}
 
-        .lg-sub-html {
-          background: color-mix(in srgb, var(--theme-page-end) 72%, transparent);
-          color: var(--theme-text-primary);
-          padding: 12px 16px;
-        }
+            <div className="flex max-h-[85vh] min-h-[24rem] items-center justify-center bg-black/30 px-4 py-16 sm:px-8">
+              {activeReplication.type === 'video' ? (
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  autoPlay
+                  className="max-h-[70vh] w-full rounded-2xl bg-black"
+                >
+                  <source src={activeReplication.url} type={getMimeType(activeReplication.format)} />
+                  <track kind="captions" />
+                </video>
+              ) : (
+                <AppImage
+                  src={activeReplication.url}
+                  alt={activeReplication.title}
+                  width={activeReplication.width ?? 1400}
+                  height={activeReplication.height ?? 1400}
+                  className="max-h-[70vh] w-auto rounded-2xl object-contain"
+                />
+              )}
+            </div>
 
-        .lg-sub-html h4 {
-          margin: 0;
-          font-weight: 500;
-          line-height: 1.4;
-        }
-
-        .lg-sub-html p {
-          margin: 4px 0 0 0;
-          line-height: 1.4;
-        }
-
-        .lg-img-wrap {
-          background: var(--theme-page-end);
-        }
-
-        .lg-video-wrap {
-          background: var(--theme-page-end);
-        }
-
-        .lg-video-cont {
-          padding: 20px;
-        }
-
-        .lg-video-cont video {
-          max-width: 90vw;
-          max-height: 90vh;
-        }
-
-        .lg-thumb-item {
-          border: 2px solid transparent;
-          transition: border-color 0.2s;
-        }
-
-        .lg-thumb-item.active {
-          border-color: var(--theme-text-primary);
-        }
-
-        .lg-thumb-item:hover {
-          border-color: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
-        }
-
-        /* Mobile-specific styles */
-        @media (max-width: 640px) {
-          .lg-toolbar {
-            top: auto;
-            bottom: 0;
-            background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--theme-page-end) 80%, black 20%) 100%);
-          }
-
-          .lg-sub-html {
-            padding: 10px 12px;
-            font-size: 12px;
-          }
-        }
-      `}</style>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/20 px-5 py-4">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-white">{activeReplication.title}</p>
+                <p className="truncate text-sm text-white/60">by {activeReplication.artist}</p>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-white/55">
+                <span>
+                  {activeIndex !== null ? activeIndex + 1 : 1} / {sortedReplications.length}
+                </span>
+                <a
+                  href={activeReplication.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-white/10 px-3 py-1.5 text-white/75 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
+                >
+                  Open original
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 });

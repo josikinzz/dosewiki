@@ -74,7 +74,7 @@ export function IntLink({
     <Link
       href={href}
       onClick={handleClick}
-      className="text-fuchsia-200 hover:text-fuchsia-100 cursor-pointer transition-colors"
+      className="cursor-pointer text-fuchsia-200 underline decoration-fuchsia-300/35 underline-offset-[0.18em] transition-colors hover:text-fuchsia-100 hover:decoration-fuchsia-200/55"
     >
       {children}
     </Link>

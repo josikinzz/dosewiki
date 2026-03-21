@@ -1,18 +1,35 @@
+"use client";
+
+import Link from "next/link";
 import { memo, useMemo } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
 import { IconBadge } from "@/components/common/IconBadge";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { VCodeRenderer } from "@/features/effects/vcode";
+import { VCodeRenderer } from "@/features/effects/vcode/VCodeRenderer";
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import type { CategoryDetail } from "../../data/builders/library";
 import { getDrugClassContent, type DrugClassSection } from "@/data/drugClassContent";
-import { useSubjectiveEffects, type SubjectiveEffect } from "@/hooks/useSubjectiveEffects";
+import { isPlainLeftClick } from "@/utils/navigation";
+
+type SubjectiveEffect = {
+  _id?: string;
+  slug: string;
+  name: string;
+  tags: string[];
+  summary: string;
+  long_summary_raw?: string;
+  long_summary_ast?: unknown;
+  citations?: Array<{ url: string; text: string; from?: string }>;
+  subarticles?: Array<{ id: string; title: string }>;
+};
 
 interface CategoryPageProps {
   detail: CategoryDetail;
-  onSelectDrug: (slug: string) => void;
+  effects?: SubjectiveEffect[];
+  drugHrefPrefix?: string;
+  onSelectDrug?: (slug: string) => void;
   onNavigate?: (path: string) => void;
   onSelectEffect?: (slug: string) => void;
 }
@@ -83,13 +100,24 @@ const EffectLongSummary = memo(function EffectLongSummary({
       {/* Full article link */}
       <p className="text-sm italic text-white/50 mb-4">
         Full article:{" "}
-        <button
-          type="button"
-          onClick={handleClick}
+        <Link
+          href={`/effects/${effect.slug}`}
+          onClick={(event) => {
+            if (!isPlainLeftClick(event)) {
+              return;
+            }
+
+            if (!onSelectEffect && !onNavigate) {
+              return;
+            }
+
+            event.preventDefault();
+            handleClick();
+          }}
           className="cursor-pointer text-fuchsia-300 underline underline-offset-2 transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
           {effect.name}
-        </button>
+        </Link>
       </p>
       
       {/* Long summary content OR plain summary fallback */}
@@ -229,16 +257,15 @@ const DrugClassArticleSection = memo(function DrugClassArticleSection({
 
 export const CategoryPage = memo(function CategoryPage({
   detail,
+  effects = [],
+  drugHrefPrefix,
   onSelectDrug,
   onNavigate,
   onSelectEffect,
 }: CategoryPageProps) {
   // Check if this category has drug class content
   const hasDrugClassContent = getDrugClassContent(detail.definition.key) !== undefined;
-
-  // Fetch effects from Convex only if this category has drug class content
-  const { effects: fetchedEffects } = useSubjectiveEffects();
-  const effects = hasDrugClassContent ? fetchedEffects : [];
+  const resolvedEffects = hasDrugClassContent ? effects : [];
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
@@ -252,7 +279,7 @@ export const CategoryPage = memo(function CategoryPage({
         {hasDrugClassContent && (
           <DrugClassArticleSection
             categoryKey={detail.definition.key}
-            effects={effects}
+            effects={resolvedEffects}
             onNavigate={onNavigate}
             onSelectEffect={onSelectEffect}
           />
@@ -268,13 +295,19 @@ export const CategoryPage = memo(function CategoryPage({
             <ul className="mt-4 space-y-2 text-sm text-white/85">
               {group.drugs.map((drug) => (
                 <li key={drug.slug}>
-                  <Button
-                    variant="listItem"
-                    size="listItem"
-                    onClick={() => onSelectDrug(drug.slug)}
-                  >
-                    {drug.name}
-                  </Button>
+                  {drugHrefPrefix ? (
+                    <Button variant="listItem" size="listItem" asChild>
+                      <Link href={`${drugHrefPrefix}${drug.slug}`}>{drug.name}</Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="listItem"
+                      size="listItem"
+                      onClick={() => onSelectDrug?.(drug.slug)}
+                    >
+                      {drug.name}
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>

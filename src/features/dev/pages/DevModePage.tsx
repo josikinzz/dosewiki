@@ -68,8 +68,10 @@ import { getProfileByKey, updateProfileCache, userProfiles } from "@/data/userPr
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 
 type ChangeNotice = {
-  type: "success" | "error";
+  type: "success" | "error" | "pending";
   message: string;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 type ArticleRecord = SubstanceArticle;
@@ -1475,13 +1477,13 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     const hasAboutChanges = hasAboutMarkdownChanges || hasAboutSubtitleChanges || hasAboutFounderChanges;
 
     setIsConvexSaving(true);
-    setConvexNotice({ type: "success", message: "Verifying credentials…" });
+    setConvexNotice({ type: "pending", message: "Verifying credentials…" });
 
     try {
       const credentials = await verifyDevCredentials();
 
       setConvexNotice({
-        type: "success",
+        type: "pending",
         message: `Credentials verified for ${credentials.key}. Saving to Convex…`,
       });
 
@@ -1670,12 +1672,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     const commitMessage = `Dev editor update - ${new Date().toLocaleString()}`;
 
     try {
-      setGithubNotice({ type: "success", message: "Verifying credentials…" });
+      setGithubNotice({ type: "pending", message: "Verifying credentials…" });
 
       const credentials = await verifyDevCredentials();
 
       setGithubNotice({
-        type: "success",
+        type: "pending",
         message: `Credentials verified for ${credentials.key}. Saving to GitHub…`,
       });
 
@@ -1703,8 +1705,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       const resolvedKey = result.submittedBy?.trim() || credentials.key;
       setPasswordKey(resolvedKey);
 
-      const commitNotice = result.commitUrl ? `Saved to GitHub. Commit → ${result.commitUrl}` : "Saved to GitHub.";
-      setGithubNotice({ type: "success", message: commitNotice });
+      setGithubNotice({
+        type: "success",
+        message: result.commitUrl ? "Saved to GitHub." : "Saved to GitHub.",
+        actionHref: result.commitUrl,
+        actionLabel: result.commitUrl ? "Open commit" : undefined,
+      });
 
       if (result.entry && typeof result.entry === "object") {
         const entry = result.entry as unknown as ChangeLogEntry;
@@ -2236,7 +2242,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const convexSaveButton = isConvexEnabled() ? (
     <div className="flex items-center gap-2">
       {convexNotice && (
-        <span className={`text-xs ${convexNotice.type === "error" ? "text-rose-300" : "text-emerald-300"}`}>
+        <span className={`text-xs ${convexNotice.type === "error" ? "text-rose-300" : convexNotice.type === "pending" ? "text-cyan-200" : "text-emerald-300"}`}>
           {convexNotice.message}
         </span>
       )}
@@ -2253,9 +2259,11 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     </div>
   ) : null;
 
+  const primaryCommitNotice = isConvexEnabled() ? convexNotice : githubNotice;
+
   const commitPanel = (
     <DevCommitCard
-      notice={githubNotice}
+      notice={primaryCommitNotice}
       hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
       hasInvalidJsonDraft={hasInvalidJsonDraft}
@@ -2269,7 +2277,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const renderCommitPanel = useCallback(
     (extraActionSlot?: React.ReactNode) => (
       <DevCommitCard
-        notice={githubNotice}
+        notice={primaryCommitNotice}
         hasEditorSession={hasNextEditorSession}
         passwordKey={passwordKey}
         hasInvalidJsonDraft={hasInvalidJsonDraft}
@@ -2284,12 +2292,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         }
       />
     ),
-    [githubNotice, hasNextEditorSession, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
+    [primaryCommitNotice, hasNextEditorSession, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
   );
 
   const _createCommitPanel = (
     <DevCommitCard
-      notice={githubNotice}
+      notice={primaryCommitNotice}
       hasEditorSession={hasNextEditorSession}
       passwordKey={passwordKey}
       hasInvalidJsonDraft={hasInvalidJsonDraft}

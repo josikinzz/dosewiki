@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { memo, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
+import { isPlainLeftClick } from "@/utils/navigation";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
@@ -23,6 +25,17 @@ function parseMechanismEntry(entry: string): { base: string; qualifier?: string 
     }
   }
   return { base: entry.trim() };
+}
+
+function getMechanismPath(base: string, qualifier?: string) {
+  const baseSlug = mechanismToSlug(base);
+  const qualifierSlug = qualifier ? mechanismToSlug(qualifier) : undefined;
+
+  return {
+    baseSlug,
+    qualifierSlug,
+    href: qualifierSlug ? `/mechanism/${baseSlug}/${qualifierSlug}` : `/mechanism/${baseSlug}`,
+  };
 }
 
 interface PharmacologySectionProps {
@@ -85,7 +98,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {hasReceptorProfile && isReceptorProfileExpanded && (
             <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+              <div className="theme-public-card-hover-quiet rounded-xl border border-white/10 bg-white/5 p-4">
                 <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
                   <Icon icon="lucide:cog" size={20} className="text-fuchsia-200" />
                   Receptor Profile
@@ -96,17 +109,25 @@ export const PharmacologySection = memo(function PharmacologySection({
                     const { base, qualifier } = tag
                       ? parseMechanismEntry(tag)
                       : { base: entry.receptor, qualifier: undefined };
+                    const mechanismLink = tag ? getMechanismPath(base, qualifier) : undefined;
                     const detailItems = [entry.affinity, entry.efficacy].filter(Boolean);
 
                     return (
                       <li key={idx} className="flex gap-2 text-sm text-white/80">
                         <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-fuchsia-400" />
                         <div className="min-w-0 flex-1">
-                          {onSelectMechanism && tag ? (
-                            <button
-                              type="button"
+                          {mechanismLink ? (
+                            <Link
+                              href={mechanismLink.href}
                               className="flex flex-wrap items-center gap-1.5 text-left transition-colors hover:text-fuchsia-300"
-                              onClick={() => onSelectMechanism(mechanismToSlug(tag))}
+                              onClick={(event) => {
+                                if (!onSelectMechanism || !isPlainLeftClick(event)) {
+                                  return;
+                                }
+
+                                event.preventDefault();
+                                onSelectMechanism(mechanismLink.baseSlug, mechanismLink.qualifierSlug);
+                              }}
                             >
                               {base}
                               {qualifier && (
@@ -114,7 +135,7 @@ export const PharmacologySection = memo(function PharmacologySection({
                                   {qualifier}
                                 </span>
                               )}
-                            </button>
+                            </Link>
                           ) : (
                             <div className="flex flex-wrap items-center gap-1.5">
                               {base}
@@ -149,7 +170,7 @@ export const PharmacologySection = memo(function PharmacologySection({
               <ExpandButton
                 isExpanded={isReceptorProfileExpanded}
                 onToggle={() => setIsReceptorProfileExpanded((expanded) => !expanded)}
-                label={isReceptorProfileExpanded ? "Hide details" : "See more"}
+                ariaLabel={isReceptorProfileExpanded ? "Collapse receptor profile" : "Expand receptor profile"}
               />
             </div>
           )}
@@ -173,7 +194,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 
           {hasMetabolites && isMetabolitesExpanded && (
             <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20">
+              <div className="theme-public-card-hover-quiet rounded-xl border border-white/10 bg-white/5 p-4">
                 <h4 className="mb-3 flex items-center gap-2 font-semibold text-white">
                   <Icon icon="lucide:flask-conical" size={20} className="text-fuchsia-200" />
                   Metabolites
@@ -195,7 +216,7 @@ export const PharmacologySection = memo(function PharmacologySection({
               <ExpandButton
                 isExpanded={isMetabolitesExpanded}
                 onToggle={() => setIsMetabolitesExpanded((expanded) => !expanded)}
-                label={isMetabolitesExpanded ? "Hide details" : "See more"}
+                ariaLabel={isMetabolitesExpanded ? "Collapse metabolites" : "Expand metabolites"}
               />
             </div>
           )}

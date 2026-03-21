@@ -7,7 +7,7 @@ export const MAX_AVATAR_BYTES = 1024 * 1024 * 2; // 2 MiB
 export const ALLOWED_AVATAR_MIME_TYPES = new Set(["image/png", "image/jpeg"]);
 
 export type ChangeNotice = {
-  type: "success" | "error";
+  type: "success" | "error" | "pending";
   message: string;
 };
 

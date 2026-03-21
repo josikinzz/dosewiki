@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { IconName } from "../common/Icon";
 import { PageHeader } from "../layout/PageHeader";
 import { SectionCard } from "../common/SectionCard";
@@ -23,10 +24,11 @@ const CLASSIFICATION_META: Record<ClassificationDetail["type"], ClassificationMe
 
 interface ClassificationDetailPageProps {
   detail: ClassificationDetail;
-  onSelectDrug: (slug: string) => void;
+  drugHrefPrefix?: string;
+  onSelectDrug?: (slug: string) => void;
 }
 
-export function ClassificationDetailPage({ detail, onSelectDrug }: ClassificationDetailPageProps) {
+export function ClassificationDetailPage({ detail, drugHrefPrefix, onSelectDrug }: ClassificationDetailPageProps) {
   const meta = CLASSIFICATION_META[detail.type];
   const description = `${detail.total.toLocaleString()} substance${detail.total === 1 ? "" : "s"} share this ${meta.label.toLowerCase()} tag.`;
 
@@ -42,13 +44,19 @@ export function ClassificationDetailPage({ detail, onSelectDrug }: Classificatio
           <ul className="mt-4 space-y-2 text-sm text-white/85">
             {detail.drugs.map((drug) => (
               <li key={drug.slug}>
-                <Button
-                  variant="listItem"
-                  size="listItem"
-                  onClick={() => onSelectDrug(drug.slug)}
-                >
-                  {drug.name}
-                </Button>
+                {drugHrefPrefix ? (
+                  <Button variant="listItem" size="listItem" asChild>
+                    <Link href={`${drugHrefPrefix}${drug.slug}`}>{drug.name}</Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="listItem"
+                    size="listItem"
+                    onClick={() => onSelectDrug?.(drug.slug)}
+                  >
+                    {drug.name}
+                  </Button>
+                )}
               </li>
             ))}
           </ul>

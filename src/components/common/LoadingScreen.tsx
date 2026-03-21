@@ -4,14 +4,10 @@
  * Matches the app's dark gradient background with animated spinner.
  */
 
-import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { AppImage } from "./AppImage";
 
 export function LoadingScreen() {
-  const isSafari =
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("is-safari");
-  const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
+  const logoSrc = "/dosewiki-logo.png";
 
   return (
     <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center">
@@ -43,7 +39,8 @@ export function LoadingScreen() {
           <span className="text-2xl font-display font-bold tracking-tight text-fuchsia-300">
             dose.wiki
           </span>
-          <span className="theme-text-muted text-sm">Loading substance data...</span>
+          <span className="theme-text-muted text-sm">Indexing dosage, effects, and safety references…</span>
+          <span className="theme-text-faint text-xs uppercase tracking-[0.24em]">Preparing the public library</span>
         </div>
 
         {/* Loading bar */}

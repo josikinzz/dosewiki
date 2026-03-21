@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
 import { buildPageMetadata } from "@server/next/metadata";
 import { getEffectsByCategory } from "@server/convex/publicData";
-import { LegacyPublicRouteClient } from "../../../_components/LegacyPublicRouteClient";
+import { getStaticEffectCategoryParams } from "@server/next/staticParams";
+import { EffectCategoryPage as EffectCategoryDetailPage } from "@/features/effects/pages/EffectCategoryPage";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return await getStaticEffectCategoryParams();
+}
 
 type EffectCategoryPageProps = {
   params: Promise<{
@@ -30,5 +35,5 @@ export default async function EffectCategoryPage({ params }: EffectCategoryPageP
     notFound();
   }
 
-  return <LegacyPublicRouteClient view={{ type: "effect-category", categorySlug }} />;
+  return <EffectCategoryDetailPage categorySlug={categorySlug} effects={effects} effectHrefPrefix="/effects/" backHref="/effects" />;
 }

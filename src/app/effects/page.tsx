@@ -1,6 +1,6 @@
-import { getPublicDataOverview } from "@server/convex/publicData";
+import { getPublicDataOverview, getPublicEffects } from "@server/convex/publicData";
 import { buildPageMetadata } from "@server/next/metadata";
-import { LegacyPublicRouteClient } from "../_components/LegacyPublicRouteClient";
+import { EffectsIndexPage } from "@/features/effects/pages/EffectsIndexPage";
 
 export const revalidate = 3600;
 
@@ -14,6 +14,8 @@ export async function generateMetadata() {
   });
 }
 
-export default function EffectsPage() {
-  return <LegacyPublicRouteClient view={{ type: "effects" }} />;
+export default async function EffectsPage() {
+  const effects = await getPublicEffects();
+
+  return <EffectsIndexPage effectHrefPrefix="/effects/" effects={effects.map((effect) => ({ slug: effect.slug, name: effect.name, tags: effect.tags }))} />;
 }

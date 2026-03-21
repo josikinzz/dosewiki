@@ -3,7 +3,6 @@
 import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { ConvexProvider } from "@/lib/convex";
 
 const queryClientOptions = {
@@ -23,9 +22,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <ConvexProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </ConvexProvider>
+        <ConvexProvider>{children}</ConvexProvider>
       </SessionProvider>
     </QueryClientProvider>
   );
