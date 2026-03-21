@@ -1035,7 +1035,7 @@
     flex-direction: column;
     min-height: 100vh;
     height: 100%;
-    overflow: hidden;
+    overflow: visible;
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
@@ -1060,11 +1060,15 @@
 
   .app-content {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
     -webkit-overflow-scrolling: touch;
     padding-bottom: env(safe-area-inset-bottom, 0);
     scroll-padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .theme-article-section-bleed {
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
   }
 
   .backdrop-safe {

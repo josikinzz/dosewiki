@@ -36,6 +36,16 @@ export interface ArticleLayoutProps {
   tripReportsSection?: ReactNode;
 }
 
+interface DeferredSectionProps {
+  children: ReactNode;
+}
+
+const DeferredSection = memo(function DeferredSection({
+  children,
+}: DeferredSectionProps) {
+  return <div className="theme-article-section-bleed">{children}</div>;
+});
+
 /**
  * Unified article layout component that renders a substance article
  * using section components from /sections/.
@@ -69,31 +79,31 @@ export const ArticleLayout = memo(function ArticleLayout({
         article={article}
         onSelectEffect={onSelectEffect}
       />
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+      <DeferredSection>
         <ReagentSection article={article} />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <PharmacologySection
           article={article}
           onSelectMechanism={onSelectMechanism}
         />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <InteractionsSection
           article={article}
           onSelectInteraction={onSelectInteraction}
         />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <ToleranceSection article={article} />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1000px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <HarmPotentialSection article={article} />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <HistoryCultureSection article={article} />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+      </DeferredSection>
+      <DeferredSection>
         {tripReportsSection ?? (
           <TripReportsSection
             article={article}
@@ -102,13 +112,13 @@ export const ArticleLayout = memo(function ArticleLayout({
             onSelectReport={onSelectReport}
           />
         )}
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "900px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <LegalitySection article={article} />
-      </div>
-      <div style={{ contentVisibility: "auto", containIntrinsicSize: "1200px" }}>
+      </DeferredSection>
+      <DeferredSection>
         <CitationsSection article={article} />
-      </div>
+      </DeferredSection>
     </div>
   );
 });

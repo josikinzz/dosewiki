@@ -135,7 +135,7 @@ export function UserProfilePage({ profile, history, tripReports = [], reportHref
             <section className="space-y-6">
               <div className="flex flex-wrap items-center gap-4">
                 <div className="relative shrink-0">
-                  <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
+                  <div className="theme-section-header-glow pointer-events-none absolute -inset-x-4 -inset-y-3 rounded-full blur-xl" />
                   <h2 className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight text-fuchsia-300">
                     <Icon icon="lucide:user" className="h-8 w-8" />
                     About
