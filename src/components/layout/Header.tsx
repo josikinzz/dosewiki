@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "../common/Icon";
+import { AppImage } from "../common/AppImage";
 import { AppView } from "../../types/navigation";
 import { viewToPath } from "../../utils/routing";
 import { GlobalSearch } from "../common/GlobalSearch";
@@ -96,30 +98,26 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
     };
   }, [isMenuOpen]);
 
-  const handleNavigate = (view: AppView) => {
-    onNavigate(view);
-    setIsMenuOpen(false);
-  };
-
   return (
-    <header className="app-header theme-header-surface border-b backdrop-blur-md backdrop-safe">
+    <header className="app-header theme-header-surface border-b backdrop-blur-sm backdrop-safe">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 gap-fallback-row-4">
-        <Button
-          variant="brand"
-          onClick={() => handleNavigate(SUBSTANCES_VIEW)}
-          className="pl-0 hover:bg-transparent"
-        >
+        <Button asChild variant="brand" className="pl-0 hover:bg-transparent">
+          <Link href={viewToPath(SUBSTANCES_VIEW)}>
           <span className="inline-flex items-center justify-center transition-transform duration-200 group-hover/brand:scale-105 group-focus-visible/brand:scale-105">
-            <img
+            <AppImage
               src="/dosewiki-logo.png"
               alt="dose.wiki logo"
-              className="safari-svg-gpu h-9 w-9 animate-[spin_120s_linear_infinite] md:h-10 md:w-10"
+              width={40}
+              height={40}
+              priority
+              className="safari-svg-gpu h-9 w-9 md:h-10 md:w-10"
               draggable={false}
             />
           </span>
           <span className="ml-3 inline-flex items-center text-2xl font-display font-bold tracking-tight text-fuchsia-300 transition-transform duration-200 group-hover/brand:scale-[1.04] group-focus-visible/brand:scale-[1.04]">
             dose.wiki
           </span>
+          </Link>
         </Button>
 
         <div className="flex min-h-[44px] min-w-0 flex-1 items-center max-w-md ml-4">
@@ -138,43 +136,37 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
               const active = isActive(view);
 
               return (
-                <a
+                <Link
                   key={label}
                   href={itemPath}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    handleNavigate(view);
-                  }}
-                  className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  className={`relative flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                     active
                       ? "bg-white/10 text-white shadow-sm ring-1 ring-white/10"
                       : "text-white/60 hover:bg-white/5 hover:text-white"
                   }`}
+                  aria-current={active ? "page" : undefined}
                 >
                   <Icon icon={icon} size={16} className={active ? "text-fuchsia-300" : "opacity-70"} />
                   <span>{label}</span>
-                </a>
+                </Link>
               );
             })}
           </nav>
           
           <div className="theme-divider mx-2 h-6 w-px" />
 
-          <a
+          <Link
             href={ABOUT_PATH}
-            onClick={(event) => {
-              event.preventDefault();
-              handleNavigate(ABOUT_VIEW);
-            }}
-            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+            className={`flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-[background-color,color,box-shadow] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
               isAboutActive
                 ? "bg-fuchsia-500/20 text-fuchsia-200 ring-1 ring-fuchsia-500/30 shadow-[0_0_15px_rgba(232,121,249,0.15)]"
                 : "text-white/60 hover:bg-white/5 hover:text-white"
             }`}
+            aria-current={isAboutActive ? "page" : undefined}
           >
             <Icon icon="lucide:info" size={16} />
             <span>About</span>
-          </a>
+          </Link>
         </div>
 
         <div className="relative flex-shrink-0 md:hidden ml-auto">
@@ -183,7 +175,7 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="theme-icon-button h-10 w-10 rounded-full"
+            className="theme-icon-button h-11 w-11 rounded-full"
             aria-haspopup="true"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-nav"
@@ -196,51 +188,47 @@ export function Header({ currentView, onNavigate }: HeaderProps) {
             <div
               ref={menuPanelRef}
               id="mobile-nav"
-              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl backdrop-blur-xl"
+              className="theme-overlay-surface absolute right-0 top-[calc(100%+0.5rem)] w-64 origin-top-right rounded-2xl border p-2 shadow-xl backdrop-blur-sm"
             >
               <nav className="flex flex-col gap-1">
                 {NAV_ITEMS.map(({ label, view, icon }) => {
                   const itemPath = viewToPath(view);
                   const active = isActive(view);
                   return (
-                    <a
+                    <Link
                       key={label}
                       href={itemPath}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        handleNavigate(view);
-                      }}
-                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                         active 
                           ? "bg-white/10 text-white" 
                           : "text-white/60 hover:bg-white/5 hover:text-white"
                       }`}
+                      aria-current={active ? "page" : undefined}
                     >
                       <Icon icon={icon} size={18} className={active ? "text-fuchsia-300" : "opacity-70"} />
                       <span>{label}</span>
                       {active && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-fuchsia-400" />}
-                    </a>
+                    </Link>
                   );
                 })}
               </nav>
               
               <div className="theme-divider my-2 h-px" />
               
-              <a
+              <Link
                 href={ABOUT_PATH}
-                onClick={(event) => {
-                  event.preventDefault();
-                  handleNavigate(ABOUT_VIEW);
-                }}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
                   isAboutActive
                     ? "bg-fuchsia-500/20 text-fuchsia-200"
                     : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`}
+                aria-current={isAboutActive ? "page" : undefined}
               >
                 <Icon icon="lucide:info" size={18} />
                 <span>About dose.wiki</span>
-              </a>
+              </Link>
             </div>
           )}
         </div>

@@ -5,6 +5,7 @@
  */
 
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
+import { AppImage } from "./AppImage";
 
 export function LoadingScreen() {
   const isSafari =
@@ -16,17 +17,19 @@ export function LoadingScreen() {
     <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center">
       {/* Background blur effects */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-fuchsia-600/20 blur-3xl" />
-        <div className="absolute top-40 -right-24 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
+        <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-fuchsia-600/14 blur-2xl" />
+        <div className="absolute top-40 -right-20 h-80 w-80 rounded-full bg-violet-600/14 blur-2xl" />
       </div>
 
       {/* Content */}
       <div className="flex flex-col items-center gap-6">
         {/* Spinning logo */}
         <div className="relative">
-          <img
+          <AppImage
             src={logoSrc}
             alt="dose.wiki logo"
+            width={80}
+            height={80}
             className="h-20 w-20 animate-spin"
             style={{ animationDuration: "3s" }}
             draggable={false}

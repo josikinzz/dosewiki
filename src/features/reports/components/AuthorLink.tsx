@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { memo } from "react";
 import { findProfileByAuthorName } from "@/data/userProfiles";
+import { isPlainLeftClick } from "@/utils/navigation";
 
 interface AuthorLinkProps {
   /** The author's name to display and link */
@@ -29,24 +31,20 @@ export const AuthorLink = memo(function AuthorLink({
   const profileUrl = `/contributors/${profile.key.toLowerCase()}`;
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onNavigate) {
+    if (onNavigate && isPlainLeftClick(e as React.MouseEvent<HTMLAnchorElement>)) {
+      e.preventDefault();
+      e.stopPropagation();
       onNavigate(profile.key);
-    } else {
-      // Fallback to standard navigation
-      window.history.pushState({}, "", profileUrl);
-      window.dispatchEvent(new PopStateEvent("popstate"));
     }
   };
 
   return (
-    <a
+    <Link
       href={profileUrl}
       onClick={handleClick}
       className={`text-fuchsia-200 transition-colors hover:text-fuchsia-100 hover:underline ${className}`}
     >
       {authorName}
-    </a>
+    </Link>
   );
 });

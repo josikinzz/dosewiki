@@ -200,16 +200,16 @@ export const EffectCategoryPage = memo(function EffectCategoryPage({
   // Show loading state while fetching
   if (isLoading && effects.length === 0) {
     return (
-      <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12 focus:outline-none">
         <div className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500 border-t-transparent" />
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <main className="theme-page-shell min-h-screen">
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
         {/* Back button */}
         <Button

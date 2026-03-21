@@ -42,7 +42,7 @@ export function MotionCard({
       {...animationProps}
       transition={transition}
       className={cn(
-        "rounded-2xl border p-6 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.35)] transition hover:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)]",
+        "rounded-2xl border p-6 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.28)] transition hover:shadow-[0_16px_36px_-18px_rgba(0,0,0,0.36)]",
         variantStyles[variant],
         className
       )}

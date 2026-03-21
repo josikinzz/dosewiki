@@ -1,3 +1,5 @@
+import { AppImage } from "@/components/common/AppImage";
+
 interface CaptionedImageProps {
   src?: string;
   width?: string;
@@ -81,11 +83,12 @@ export function CaptionedImage({
           ${border ? "border border-fuchsia-400/30 p-1 bg-gradient-to-br from-fuchsia-500/10 to-violet-500/10" : ""}
         `}
       >
-        <img
+        <AppImage
           src={imageSrc}
           alt={title || caption || "Effect replication"}
+          width={1200}
+          height={900}
           className="w-full h-auto rounded-lg"
-          loading="lazy"
         />
       </div>
       {(caption || artist) && (

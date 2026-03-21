@@ -1,4 +1,4 @@
-import { memo, useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { memo, useRef, useState, useCallback, useEffect, useMemo, useId } from "react";
 import * as d3 from "d3";
 import { useGraphData } from "./useGraphData";
 import { SubstanceGraphCanvas } from "./SubstanceGraphCanvas";
@@ -20,6 +20,7 @@ export const SubstanceGraph = memo(function SubstanceGraph({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const instructionsId = useId();
 
   const { graphData, stats, toggleNode, collapseAll, expandToSubstance, hierarchyData } =
     useGraphData();
@@ -144,6 +145,9 @@ export const SubstanceGraph = memo(function SubstanceGraph({
         ref={containerRef}
         className="relative min-h-[500px] w-full overflow-hidden rounded-xl border border-white/10"
         style={{ height: "60vh", maxHeight: "700px" }}
+        role="region"
+        aria-label="Substance relationship graph"
+        aria-describedby={instructionsId}
       >
         {dimensions.width > 0 && dimensions.height > 0 ? (
           <SubstanceGraphCanvas
@@ -167,9 +171,9 @@ export const SubstanceGraph = memo(function SubstanceGraph({
 
       <GraphLegend stats={stats} theme={theme} />
 
-      <p className="text-center text-xs text-white/50">
-        Click nodes to expand/collapse. Double-click substances to view article.
-        Drag to move nodes. Scroll to zoom. Drag background to pan.
+      <p id={instructionsId} className="text-center text-xs text-white/50">
+        Click or press Enter on class nodes to expand or collapse them. Press Enter on substance nodes to view the article.
+        Drag nodes to move them. Scroll to zoom. Drag the background to pan.
       </p>
     </div>
   );

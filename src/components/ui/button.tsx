@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -16,9 +16,9 @@ const buttonVariants = cva(
         ghost:
           "rounded-xl text-white/60 hover:text-white hover:bg-white/10",
         destructive:
-          "rounded-xl border border-red-400/40 bg-red-500/20 text-red-200 hover:border-red-300/60 hover:bg-red-500/30",
+          "rounded-xl border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
         success:
-          "rounded-xl border border-emerald-400/50 bg-emerald-500/10 text-emerald-200 hover:border-emerald-300 hover:bg-emerald-500/20 hover:text-white",
+          "rounded-xl border border-[color:var(--theme-success-border)] bg-[color:var(--theme-success-bg)] text-[color:var(--theme-success-text)] hover:border-[color:var(--theme-success-border-strong)] hover:bg-[color:var(--theme-success-bg-strong)] hover:text-[color:var(--theme-success-text-strong)]",
         outline:
           "rounded-xl border border-white/10 bg-transparent text-white/80 hover:bg-white/5",
         link:
@@ -32,7 +32,7 @@ const buttonVariants = cva(
         ghostPill:
           "rounded-full border border-white/15 bg-white/10 text-white/70 hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white",
         destructivePill:
-          "rounded-full border border-rose-500/50 bg-rose-500/10 text-rose-200 hover:border-rose-400 hover:bg-rose-500/20 hover:text-white",
+          "rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         toggleActive:
           "rounded-full bg-gradient-to-tr from-fuchsia-500/25 via-fuchsia-500/10 to-white/10 text-white shadow-[0_18px_40px_-24px_rgba(155,65,255,0.6)] ring-1 ring-fuchsia-300/60",
         toggleInactive:
@@ -66,7 +66,7 @@ const buttonVariants = cva(
         inlineLink:
           "text-left text-fuchsia-200 underline-offset-4 transition hover:text-fuchsia-100 hover:underline",
         dismissDanger:
-          "absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-400/40 bg-red-500/20 text-red-200 transition hover:border-red-300/60 hover:bg-red-500/30 hover:text-red-50",
+          "absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] transition hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)] hover:text-[color:var(--theme-danger-text-strong)]",
         sortIcon:
           "rounded-lg p-2 transition text-white/50 hover:bg-white/10 hover:text-white data-[active=true]:bg-fuchsia-500/20 data-[active=true]:text-fuchsia-300",
         substanceListItem:
@@ -76,7 +76,7 @@ const buttonVariants = cva(
         generatePrimary:
           "inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-medium transition bg-gradient-to-r from-fuchsia-500 to-violet-500 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-white/10 disabled:from-white/10 disabled:to-white/10 disabled:text-white/40 disabled:shadow-none",
         generateCancel:
-          "inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-medium transition bg-red-500/20 text-red-200 hover:bg-red-500/30",
+          "inline-flex items-center gap-2 rounded-full px-6 py-2.5 font-medium transition border border-[color:var(--theme-danger-border)] bg-[color:var(--theme-danger-bg)] text-[color:var(--theme-danger-text)] hover:border-[color:var(--theme-danger-border-strong)] hover:bg-[color:var(--theme-danger-bg-strong)]",
         iconSmall:
           "shrink-0 rounded p-1 text-white/40 transition hover:bg-white/10 hover:text-white",
         iconAction:
@@ -84,7 +84,7 @@ const buttonVariants = cva(
         iconClose:
           "rounded-lg p-2 text-white/60 transition hover:bg-fuchsia-500/20 hover:text-white",
         iconWarning:
-          "rounded-lg bg-amber-500/20 p-2 text-amber-200 transition hover:bg-amber-500/30",
+          "rounded-lg bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] transition hover:bg-[color:var(--theme-warning-bg-strong)]",
         substanceLink:
           "text-sm font-semibold text-white transition hover:text-fuchsia-200 disabled:cursor-default disabled:text-white/80 disabled:opacity-100",
         pickerListItem:
@@ -98,9 +98,9 @@ const buttonVariants = cva(
         default: "h-10 px-4 py-2",
         sm: "h-8 px-3 text-sm",
         lg: "h-11 px-6",
-        icon: "h-8 w-8",
+        icon: "h-11 w-11",
         pill: "px-3.5 py-1.5 text-sm",
-        xs: "h-7 px-2.5 text-xs",
+        xs: "h-10 px-3 text-xs",
         chip: "px-3.5 py-1.5 text-xs",
         chipXs: "px-3 py-1 text-xs font-medium uppercase tracking-[0.35em]",
         listItem: "px-3 py-2 text-sm",

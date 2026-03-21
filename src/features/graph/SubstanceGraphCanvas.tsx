@@ -165,6 +165,48 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
     setTooltipData(null);
   }, [onNodeHover]);
 
+  const setTooltipForNode = useCallback(
+    (node: GraphNode) => {
+      onNodeHover(node);
+
+      if (!svgRef.current) {
+        return;
+      }
+
+      const transform = zoomTransform(svgRef.current);
+      const x = (node.x ?? 0) * transform.k + transform.x;
+      const y = (node.y ?? 0) * transform.k + transform.y;
+
+      setTooltipData({ node, x, y });
+    },
+    [onNodeHover]
+  );
+
+  const handleNodeFocus = useCallback(
+    (node: GraphNode) => {
+      setTooltipForNode(node);
+    },
+    [setTooltipForNode]
+  );
+
+  const handleNodeKeyDown = useCallback(
+    (event: React.KeyboardEvent<SVGGElement>, node: GraphNode) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (node.type === "substance") {
+        onNodeDoubleClick(node);
+        return;
+      }
+
+      onNodeClick(node);
+    },
+    [onNodeClick, onNodeDoubleClick]
+  );
+
   // Build set of connected node IDs for highlighting (memoized to prevent recreation every render)
   const connectedNodeIds = useMemo(() => {
     const ids = new Set<string>();
@@ -187,6 +229,8 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
         height={height}
         className="cursor-grab active:cursor-grabbing"
         style={{ background: graphColors.background }}
+        role="img"
+        aria-label="Interactive substance relationship graph"
       >
         <g ref={gRef}>
           {/* Links - D3 updates positions directly via linksRef */}
@@ -234,6 +278,13 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
                 <g
                   key={node.id}
                   transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={
+                    node.type === "substance"
+                      ? `${node.label}. Press Enter to open the substance article.`
+                      : `${node.label}. ${node.expanded ? "Expanded" : "Collapsed"}. Press Enter to ${node.expanded ? "collapse" : "expand"}.`
+                  }
                   style={{
                     cursor: node.type === "substance" ? "pointer" : "pointer",
                     opacity: isDimmed ? 0.3 : 1,
@@ -241,6 +292,9 @@ export const SubstanceGraphCanvas = memo(function SubstanceGraphCanvas({
                   onMouseDown={(e) => handleDragStart(e, node)}
                   onMouseEnter={(e) => handleNodeMouseEnter(node, e)}
                   onMouseLeave={handleNodeMouseLeave}
+                  onFocus={() => handleNodeFocus(node)}
+                  onBlur={handleNodeMouseLeave}
+                  onKeyDown={(event) => handleNodeKeyDown(event, node)}
                   onClick={() => onNodeClick(node)}
                   onDoubleClick={() => onNodeDoubleClick(node)}
                 >

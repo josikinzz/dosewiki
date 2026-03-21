@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import type { SubstanceArticle } from "@/schema";
+import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
@@ -140,7 +141,7 @@ export const TableOfContentsSection = memo(function TableOfContentsSection({
   const handleClick = useCallback((id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollIntoViewRespectingMotion(element);
     }
   }, []);
 

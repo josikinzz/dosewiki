@@ -36,7 +36,14 @@ Write in the style of Josie Kins' psychedelic harm reduction documentation:
 - Keep the article-facing prose concise and human-curated rather than exhaustive. Prioritize editorial judgment and hierarchy over trying to restate every extracted fact in prose.
 - Keep the `pharmacodynamics` field strictly limited to pharmacodynamics. Do not place metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, metabolite names, or route-specific absorption/elimination details in `pharmacodynamics`.
 - Place all metabolism, enzyme, bioavailability, half-life, elimination, and metabolite-production content in `pharmacokinetics` instead.
+- Metabolism and metabolites are never article-facing pharmacodynamics content. They belong in `pharmacokinetics` and `metabolites`, not in `pharmacodynamics`.
 - Continue extracting route-specific bioavailability and half-life data fully into the structured `route_*` fields. Those fields feed other parts of the site even when they are not emphasized in the article prose.
+- Keep the focus on the substance itself. Do not spend article-facing prose explaining how receptors or neurotransmitter systems work in general unless a very brief explanation is necessary to clarify the substance's action.
+- Prefer positive description over contrastive framing. Describe what the substance does, not what it is not, unless the contrast is essential and explicitly supported by the provided excerpts.
+- Do not introduce irrelevant comparisons to other chemical classes, drug families, or broad groups of compounds. If another class or group is mentioned, it must be directly necessary to clarify the substance itself and directly supported by the provided excerpts.
+- Do not drift into subjective-effect description. Keep the prose focused on pharmacology rather than detailed discussion of visuals, euphoria, stimulation, sedation, dissociation, or other experiential effects.
+- Avoid deep emphasis on standalone enantiomers when those enantiomers are commonly used, prescribed, or documented as distinct substances likely to warrant their own article. Mention them only when necessary to clarify the parent substance's pharmacology. Enantiomer detail is more acceptable when the substance is typically used as a mixture and the isolated enantiomers are not usually treated as separate substances in practice.
+- If enantiomers are mentioned, keep them subordinate to the parent substance rather than turning the section into a comparison between standalone enantiomer articles.
 
 ---
 
@@ -340,7 +347,7 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Write one concise paragraph in plain, accessible English focused only on pharmacodynamics
 - Use a second paragraph only if needed for pharmacodynamic nuance such as conflicting assay interpretations or an especially important secondary mechanism
 - Lead with the main mechanism of action, then briefly cover only the most relevant secondary targets or contextual findings
-- Use language a non-scientist can understand — explain concepts like "agonist" or "reuptake inhibitor" through their functional effects
+- Use language a non-scientist can understand, but keep explanations centered on the drug's action rather than teaching receptor biology in general
 - Do not simply list receptor names; synthesize them into a selective, readable explanation
 - This is a prose summary, NOT a list of bullet points
 - Keep it information-dense but readable
@@ -349,9 +356,17 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Do not restate the full receptor inventory if that detail is already better handled in `receptor_profile`
 - Do not include metabolism, first-pass metabolism, oral bioavailability, enzyme names, half-life, elimination, metabolite names, or route-specific absorption/elimination details
 - If a sentence is about absorption, metabolism, distribution, elimination, enzymes, or metabolites, it belongs in `pharmacokinetics`, not `pharmacodynamics`
+- If a sentence mentions metabolism, metabolites, hepatic processing, CYP enzymes, first-pass metabolism, elimination, or metabolite production, remove it from `pharmacodynamics` and place that content in `pharmacokinetics` or `metabolites` instead
 - Avoid additive AI-style fact stacking such as repetitive "it also" / "beyond this" sentence chains when a tighter synthesis would read more naturally
 - Compress secondary targets into one sentence when possible instead of giving each one its own sentence
 - The goal is a human-written, curated overview rather than an exhaustive source digest
+- Avoid spending prose space on standalone enantiomers that are commonly encountered as their own distinct substances; only mention enantiomer differences when they materially clarify the parent substance's pharmacology
+- Avoid contrastive framing about what receptor systems or drug classes the substance does not act like unless that comparison is essential and directly supported by the excerpts
+- Avoid mentioning other chemical groups or drug families unless they are directly relevant to the substance itself and materially clarify its pharmacology
+- Focus on the pharmacodynamics of the substance itself, not on extended explanations of how the receptor, transporter, or neurotransmitter system normally functions
+- Avoid sentences whose main purpose is to explain receptor or transporter biology in the abstract; keep the subject of the prose centered on the drug and its actions
+- Keep subjective effects subordinate to mechanism. If experiential consequences are mentioned at all, keep them brief and mechanistic rather than descriptive or phenomenological
+- Every sentence in `pharmacodynamics` should primarily answer: what is this drug doing pharmacologically?
 
 ### For receptor_profile:
 - Create one entry per receptor/target interaction mentioned in sources
@@ -362,6 +377,17 @@ Use these exact tags. Do not abbreviate or modify them. Only use a new tag if th
 - Include ALL relevant receptor interactions, not just primary ones
 - If a source says "partial agonist" vs "full agonist", use the appropriate tag
 - Order entries by pharmacological importance (primary mechanisms first)
+- Keep receptor naming and phrasing internally consistent across the full list. Do not alternate unnecessarily between family-level labels, subtype labels, abbreviations, and expanded names when a consistent style is possible.
+- Within the same receptor family, use parallel formatting across sibling entries whenever the underlying interaction type is known. Do not mix bare subtype names with action-labeled subtype entries if the same kind of information is available for both.
+- Keep the `receptor` field itself as the short canonical target identifier when possible (for example `5-HT2A`, `5-HT2B`, `D1`, `D2`, `D5`) rather than alternating between shorthand and expanded receptor names within the same list.
+- If multiple subtypes in the same family are all described as agonists, antagonists, binders, or inhibitors, use the corresponding `tag` consistently across those sibling entries rather than tagging only some of them.
+- Do not group distinct receptors or targets into a single entry when the provided excerpts treat them separately. If sources distinguish receptors individually, represent them as separate entries.
+- Only use grouped family-level entries when the provided excerpts themselves report the interaction only at the family level and do not distinguish subtypes.
+- Do not mix subtype-level entries with a family-level catch-all entry in the same cluster unless the excerpts genuinely force that distinction. If subtype-level data exists for a family, prefer subtype-level entries throughout that family.
+- Keep `affinity` and `efficacy` wording concise and parallel across entries. Prefer a consistent style within the list rather than mirroring inconsistent source phrasing.
+- Do not combine distinct receptors into slash-separated or comma-separated labels in a single `receptor` field unless the sources only report them jointly at that grouped level.
+- For comparable entries, use parallel activity wording where possible (for example, do not mix several different phrasings for the same kind of interaction unless the source distinction is materially important).
+- If confidence or specificity differs between closely related receptors, keep the entry format parallel and express the uncertainty in `affinity` or `efficacy` rather than dropping the `tag` entirely for some sibling entries.
 
 ### For pharmacokinetics:
 - Write as a concise dedicated pharmacokinetics subsection for the article itself
@@ -459,6 +485,7 @@ Pharmacokinetics
 9. **Conciseness** - Keep writings concise while still conveying all of the necessary information.
 10. **Article-facing hierarchy** - Keep the prose fields feeling like two human-written subsections: pharmacodynamics first, pharmacokinetics second.
 11. **Neutral disagreement framing** - If studies disagree, report the disagreement without inventing an explanation for why they differ.
+12. **No em dashes** - Do not use em dashes in article-facing prose. Use commas, parentheses, or short separate sentences instead.
 
 ---
 
@@ -469,10 +496,25 @@ Before returning output:
 - [ ] YAML is valid (proper indentation, no tabs, 2-space indents)
 - [ ] `pharmacodynamics` is concise plain-language prose focused only on mechanism/action (not PK)
 - [ ] Any disagreement between studies is described neutrally without inferring the cause unless the source explicitly names it
+- [ ] `pharmacodynamics` stays focused on the substance rather than explaining receptor or neurotransmitter system biology in general
+- [ ] `pharmacodynamics` does not drift into receptor/transporter tutorial language where the drug itself is no longer the main subject
+- [ ] `pharmacodynamics` contains no metabolism or metabolite content; that material appears only in `pharmacokinetics` or `metabolites`
+- [ ] `pharmacodynamics` does not spend unnecessary space on standalone enantiomers likely to warrant their own article
+- [ ] `pharmacodynamics` describes what the substance does rather than what it does not do compared with unrelated drug classes or compounds
+- [ ] `pharmacodynamics` does not drift into detailed subjective-effect description
+- [ ] `pharmacodynamics` does not introduce irrelevant mentions of other chemical classes or drug families
 - [ ] `receptor_profile` entries each have a `receptor` field; `tag` uses canonical tags exactly when present
 - [ ] `receptor_profile` entries are ordered by pharmacological importance
+- [ ] `receptor_profile` naming and phrasing are internally consistent across entries
+- [ ] receptor families use parallel formatting across sibling entries when the interaction type is known
+- [ ] `receptor_profile` does not mix bare receptor names with action-labeled sibling entries when comparable source detail exists
+- [ ] `receptor_profile` does not alternate between shorthand and expanded receptor naming styles within the same family
+- [ ] `receptor_profile` does not group distinct receptors together when the excerpts describe them separately
+- [ ] `receptor_profile` does not use slash-joined or comma-joined receptor labels unless the excerpts only report the interaction jointly at that grouped level
+- [ ] `receptor_profile` does not mix subtype-level entries with a family-level catch-all unless the excerpts require that distinction
 - [ ] `metabolites` is an array of strings, not a single string
 - [ ] `route_bioavailability`, `route_half_life`, `route_half_life_notes`, and `route_bioavailability_notes` use canonical route names exactly (Oral, Insufflated, Sublingual, Smoked, Vaporized, Intravenous, Intramuscular, Rectal)
+- [ ] Article-facing prose uses no em dashes
 - [ ] No markdown code fences in output
 - [ ] No commentary or explanation, just YAML
 - [ ] Content derived only from provided sources

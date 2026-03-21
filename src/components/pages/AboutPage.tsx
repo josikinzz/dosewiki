@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 import { Icon } from "../common/Icon";
 import { IconBadge } from "../common/IconBadge";
+import { AppImage } from "../common/AppImage";
 import { Button } from "@/components/ui/button";
 import logoDataUri from "../../assets/dosewiki-logo.svg?inline";
 import { useLightweightData } from "../../data/LightweightDataProvider";
@@ -341,7 +342,7 @@ export const AboutPage = memo(function AboutPage() {
   const logoSrc = isSafari ? "/dosewiki-logo.png" : logoDataUri;
 
   return (
-    <main className="theme-page-shell min-h-screen">
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <div className="space-y-12">
           
@@ -356,15 +357,17 @@ export const AboutPage = memo(function AboutPage() {
               
               <div className="flex flex-col gap-6">
                 {/* Title with icon */}
-                <div className="flex items-center gap-6">
-                  <img
+                <div className="flex flex-wrap items-center gap-6">
+                  <AppImage
                     src={logoSrc}
                     alt="dose.wiki logo"
-                    className="h-24 w-24 animate-[spin_30s_linear_infinite]"
+                    width={96}
+                    height={96}
+                    className="h-24 w-24"
                     draggable={false}
                   />
                   <div>
-                    <h1 className="font-display text-[2.5rem] font-bold tracking-tight text-fuchsia-300 sm:text-[3.2rem] leading-none">
+                    <h1 className="font-display break-words text-[2.5rem] font-bold leading-tight tracking-tight text-fuchsia-300 sm:text-[3.2rem]">
                       About dose.wiki
                     </h1>
                     <p className="mt-2 text-lg text-white/60 font-medium">
@@ -382,10 +385,10 @@ export const AboutPage = memo(function AboutPage() {
             transition={{ ...cardAnimation.transition, delay: 0.1 }}
             className="space-y-6"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative shrink-0">
                 <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
-                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                <h2 className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight text-fuchsia-300">
                   <Icon icon="lucide:book-open" className="h-8 w-8" />
                   Project Mission
                 </h2>
@@ -433,10 +436,10 @@ export const AboutPage = memo(function AboutPage() {
             transition={{ ...cardAnimation.transition, delay: 0.2 }}
             className="space-y-6"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative shrink-0">
                 <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
-                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                <h2 className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight text-fuchsia-300">
                   <Icon icon="lucide:database" className="h-8 w-8" />
                   Open Data & Tools
                 </h2>
@@ -485,7 +488,7 @@ export const AboutPage = memo(function AboutPage() {
                 </div>
               </div>
 
-              <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#0a0612] shadow-xl shadow-black/20">
+              <div className="theme-about-json-preview flex flex-col overflow-hidden rounded-[32px] border shadow-xl shadow-black/20">
                 <div className="theme-about-json-preview-header flex items-center justify-between border-b border-white/5 px-6 py-4 bg-white/[0.02]">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5">
@@ -493,14 +496,14 @@ export const AboutPage = memo(function AboutPage() {
                       <div className="h-2.5 w-2.5 rounded-full bg-amber-500/20 border border-amber-500/50" />
                       <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/50" />
                     </div>
-                    <span className="ml-2 text-xs font-medium text-white/40">SubstanceIndex.json</span>
+                    <span className="ml-2 text-xs font-medium text-white/60">SubstanceIndex.json</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleCopyPreview}
-                      className="h-7 gap-1.5 rounded-lg px-2 text-xs text-white/40 hover:bg-white/5 hover:text-white"
+                      className="min-h-11 gap-1.5 rounded-lg px-3 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                     >
                       <Icon icon={hasCopied ? "lucide:check" : "lucide:copy"} size={12} />
                       {hasCopied ? "Copied" : "Copy"}
@@ -509,14 +512,14 @@ export const AboutPage = memo(function AboutPage() {
                       variant="ghost"
                       size="sm"
                       onClick={handleShuffle}
-                      className="h-7 gap-1.5 rounded-lg px-2 text-xs text-white/40 hover:bg-white/5 hover:text-white"
+                      className="min-h-11 gap-1.5 rounded-lg px-3 text-sm text-white/60 hover:bg-white/5 hover:text-white"
                     >
                       <Icon icon="lucide:dices" size={12} />
                       Shuffle
                     </Button>
                   </div>
                 </div>
-                <div className="theme-about-json-preview-body relative flex-1 min-h-[16rem] overflow-hidden bg-[#06020c]">
+                <div className="theme-about-json-preview-body relative flex-1 min-h-[16rem] overflow-hidden">
                   {/* Subtle \"hacker terminal\" texture */}
                   <div
                     aria-hidden="true"
@@ -551,10 +554,10 @@ export const AboutPage = memo(function AboutPage() {
             transition={{ ...cardAnimation.transition, delay: 0.3 }}
             className="space-y-6"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative shrink-0">
                 <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
-                <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                <h2 className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight text-fuchsia-300">
                   <Icon icon="lucide:users" className="h-8 w-8" />
                   Founders & Contributors
                 </h2>
@@ -572,17 +575,18 @@ export const AboutPage = memo(function AboutPage() {
                     <li key={profile.key} className="group">
                       <a
                         href={contributorHref}
-                        className="relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.05] hover:border-fuchsia-500/20 hover:shadow-lg hover:shadow-fuchsia-500/5"
+                        className="relative flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-4 transition-[background-color,border-color,box-shadow] hover:bg-white/[0.05] hover:border-fuchsia-500/15 hover:shadow-lg hover:shadow-fuchsia-500/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                       >
-                        <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-fuchsia-500/5 blur-xl group-hover:bg-fuchsia-500/10 transition" />
+                        <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-fuchsia-500/5 blur-lg group-hover:bg-fuchsia-500/10 transition-colors" />
                         
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/5 text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20 ring-1 ring-white/5 group-hover:ring-fuchsia-500/30 transition">
                           {profile.avatarUrl ? (
-                            <img
+                            <AppImage
                               src={profile.avatarUrl}
                               alt={`${profile.displayName} avatar`}
+                              width={56}
+                              height={56}
                               className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                              loading="lazy"
                             />
                           ) : (
                             <span className="flex h-full w-full items-center justify-center text-lg">{initials}</span>
@@ -592,11 +596,11 @@ export const AboutPage = memo(function AboutPage() {
                           <p className="truncate text-base font-semibold text-white/90 group-hover:text-white transition">
                             {profile.displayName}
                           </p>
-                          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.15em] text-fuchsia-300/50 group-hover:text-fuchsia-300/80 transition">
+                          <p className="mt-0.5 text-xs font-bold uppercase tracking-[0.15em] text-fuchsia-300/60 group-hover:text-fuchsia-300/80 transition-colors">
                             @{profile.key.toLowerCase()}
                           </p>
                         </div>
-                        <Icon icon="lucide:arrow-right" className="h-5 w-5 text-white/20 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                        <Icon icon="lucide:arrow-right" className="h-5 w-5 text-white/30 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform,color] duration-300" />
                       </a>
                     </li>
                   );

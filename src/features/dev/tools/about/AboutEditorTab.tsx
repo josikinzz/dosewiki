@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, type ChangeEvent, type ReactNode } fr
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 
 import logoDataUri from "../../../../assets/dosewiki-logo.svg?inline";
@@ -362,9 +363,11 @@ export const AboutEditorTab = memo(function AboutEditorTab({
         <h2 className="text-lg font-semibold text-fuchsia-200">Live preview</h2>
         <div className="space-y-8 rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="flex flex-col items-center text-center">
-            <img
+            <AppImage
               src={logoSrc}
               alt="dose.wiki logo"
+              width={96}
+              height={96}
               className="h-20 w-20 animate-[spin_30s_linear_infinite] md:h-24 md:w-24"
               draggable={false}
             />
@@ -379,7 +382,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#120d27]/40 p-6">
+          <div className="theme-editor-pane rounded-2xl border p-6">
             <div className="prose prose-invert max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -390,7 +393,7 @@ export const AboutEditorTab = memo(function AboutEditorTab({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#120d27]/40 p-6">
+          <div className="theme-editor-pane rounded-2xl border p-6">
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-fuchsia-200">Founders</h3>
             </div>
@@ -403,11 +406,12 @@ export const AboutEditorTab = memo(function AboutEditorTab({
                       <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm shadow-black/30 transition group-hover:border-fuchsia-400/60 group-hover:bg-fuchsia-500/10">
                         <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-white/10 text-center text-base font-semibold text-white/80 shadow-inner shadow-black/20">
                           {profile.avatarUrl ? (
-                            <img
+                            <AppImage
                               src={profile.avatarUrl}
                               alt=""
+                              width={56}
+                              height={56}
                               className="h-full w-full object-cover"
-                              loading="lazy"
                             />
                           ) : (
                             <span className="flex h-full w-full items-center justify-center text-lg">{initials}</span>
@@ -468,11 +472,12 @@ export const AboutEditorTab = memo(function AboutEditorTab({
                 />
                 <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-white/80">
                   {profile.avatarUrl ? (
-                    <img
+                    <AppImage
                       src={profile.avatarUrl}
                       alt=""
+                      width={48}
+                      height={48}
                       className="h-full w-full object-cover"
-                      loading="lazy"
                     />
                   ) : (
                     <span>{initials}</span>

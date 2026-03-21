@@ -1,7 +1,13 @@
-import { createPortal } from "react-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useSectionPrompt } from "@/hooks/usePrompts";
 import { useQuote, type QuoteSection } from "@/hooks/useQuotes";
@@ -138,37 +144,28 @@ export function PromptEditorModal({
   const totalChars = editedPrompt.length + userMessage.length + editedQuote.length;
   const showQuoteEditor = substanceSlug && quoteSection && quoteResult.content !== null;
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          onClose();
-        }
-      }}
-    >
-      <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-b from-[#1a1030] via-[#130e2b] to-[#0f0a1f] shadow-2xl shadow-fuchsia-500/10">
-        {/* Window Title Bar */}
-        <div className="flex shrink-0 items-center justify-between border-b border-fuchsia-500/20 bg-fuchsia-950/40 px-4 py-3">
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        showClose={false}
+        className="theme-editor-window z-[9999] flex h-[min(90vh,960px)] w-[min(100%,88rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border p-0"
+      >
+        <DialogHeader className="theme-editor-titlebar flex shrink-0 flex-row items-center justify-between border-b px-4 py-3 text-left">
           <div className="flex items-center gap-3">
-            {/* Window controls (decorative) */}
             <div className="flex gap-2">
-              <div className="h-3 w-3 rounded-full bg-fuchsia-500/60" />
-              <div className="h-3 w-3 rounded-full bg-violet-500/60" />
-              <div className="h-3 w-3 rounded-full bg-purple-500/60" />
+              <div className="theme-editor-window-chrome h-3 w-3 rounded-full" />
+              <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-80" />
+              <div className="theme-editor-window-chrome h-3 w-3 rounded-full opacity-65" />
             </div>
-            <span className="font-medium text-white">
+            <div>
+              <DialogTitle className="font-medium text-white">
               <Icon icon="lucide:file-code" className="mr-2 inline-block h-4 w-4" size={16} />
               {sectionLabel} - Prompt Editor
-            </span>
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Edit the system prompt, optional extracted quotes, and review the generated user message.
+              </DialogDescription>
+            </div>
             {(promptHasChanges || quoteHasChanges) && (
               <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-300">
                 Unsaved changes
@@ -192,9 +189,8 @@ export function PromptEditorModal({
               <Icon icon="lucide:x" className="h-5 w-5" size={20} />
             </Button>
           </div>
-        </div>
+        </DialogHeader>
 
-        {/* Error Banner */}
         {saveError && (
           <div className="shrink-0 flex items-center gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300">
             <Icon icon="lucide:alert-circle" className="h-4 w-4" size={16} />
@@ -209,9 +205,7 @@ export function PromptEditorModal({
           </div>
         )}
 
-        {/* Window Content */}
-        <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* System Prompt Section */}
+        <div className="flex-1 space-y-6 overflow-auto p-6">
           <div>
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -262,13 +256,12 @@ export function PromptEditorModal({
                 placeholder="Loading prompt..."
               />
             ) : (
-              <pre className="whitespace-pre-wrap rounded-lg border border-fuchsia-500/20 bg-fuchsia-950/20 p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[300px] overflow-auto">
+              <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[300px] overflow-auto">
                 {editedPrompt}
               </pre>
             )}
           </div>
 
-          {/* Quote Editor Section (only if substance is selected) */}
           {showQuoteEditor && (
             <div>
               <div className="mb-2 flex items-center justify-between">
@@ -320,14 +313,13 @@ export function PromptEditorModal({
                   placeholder="Loading quotes..."
                 />
               ) : (
-                <pre className="whitespace-pre-wrap rounded-lg border border-emerald-500/20 bg-emerald-950/20 p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
+                <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
                   {editedQuote}
                 </pre>
               )}
             </div>
           )}
 
-          {/* User Message Section (read-only) */}
           <div>
             <div className="mb-2 flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-violet-300">
@@ -340,21 +332,19 @@ export function PromptEditorModal({
                 (dynamically built, read-only)
               </span>
             </div>
-            <pre className="whitespace-pre-wrap rounded-lg border border-violet-500/20 bg-violet-950/20 p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
+            <pre className="theme-editor-pane whitespace-pre-wrap rounded-lg border p-4 font-mono text-sm leading-relaxed text-white/80 max-h-[250px] overflow-auto">
               {userMessage}
             </pre>
           </div>
         </div>
 
-        {/* Window Status Bar */}
-        <div className="shrink-0 border-t border-fuchsia-500/20 bg-fuchsia-950/30 px-4 py-2 flex items-center justify-between text-xs text-white/40">
+        <div className="theme-editor-statusbar flex shrink-0 items-center justify-between border-t px-4 py-2 text-xs">
           <span>Total: {totalChars.toLocaleString()} characters</span>
           <span>
             {promptResult.isLoading ? "Loading from Convex..." : promptResult.exists ? "Loaded from Convex" : "Prompt not found in Convex"}
           </span>
         </div>
-      </div>
-    </div>,
-    document.body
+      </DialogContent>
+    </Dialog>
   );
 }

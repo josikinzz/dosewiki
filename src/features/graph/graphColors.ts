@@ -3,85 +3,85 @@ import type { ThemeName } from "@/context/ThemeContext";
 
 export const GRAPH_COLORS = {
   dark: {
-    background: "#0f0a1f",
+    background: "var(--theme-page-end)",
     nodes: {
       root: {
-        fill: "#d946ef",
-        stroke: "#f0abfc",
-        text: "#ffffff",
+        fill: "var(--theme-accent)",
+        stroke: "var(--theme-accent-strong)",
+        text: "var(--theme-text-primary)",
       },
       psychoactive: {
-        fill: "rgba(168, 85, 247, 0.8)",
-        stroke: "#c4b5fd",
-        text: "#ffffff",
+        fill: "color-mix(in srgb, var(--theme-accent) 72%, transparent)",
+        stroke: "color-mix(in srgb, var(--theme-accent-strong) 84%, white 16%)",
+        text: "var(--theme-text-primary)",
       },
       chemical: {
-        fill: "rgba(217, 70, 239, 0.6)",
-        stroke: "#f0abfc",
-        text: "#ffffff",
+        fill: "color-mix(in srgb, var(--theme-accent) 54%, transparent)",
+        stroke: "var(--theme-accent-strong)",
+        text: "var(--theme-text-primary)",
       },
       substance: {
-        fill: "rgba(255, 255, 255, 0.1)",
-        stroke: "rgba(255, 255, 255, 0.3)",
-        text: "#ffffff",
+        fill: "color-mix(in srgb, var(--theme-surface-soft) 92%, transparent)",
+        stroke: "color-mix(in srgb, var(--theme-text-muted) 44%, transparent)",
+        text: "var(--theme-text-primary)",
       },
     },
     links: {
-      default: "rgba(255, 255, 255, 0.08)",
-      highlighted: "rgba(217, 70, 239, 0.4)",
+      default: "color-mix(in srgb, var(--theme-text-faint) 18%, transparent)",
+      highlighted: "color-mix(in srgb, var(--theme-accent) 42%, transparent)",
     },
     hover: {
-      stroke: "#f0abfc",
-      glow: "rgba(217, 70, 239, 0.5)",
+      stroke: "var(--theme-accent-strong)",
+      glow: "color-mix(in srgb, var(--theme-accent) 48%, transparent)",
     },
   },
   light: {
-    background: "#f8f1ff",
+    background: "var(--theme-page-mid)",
     nodes: {
       root: {
-        fill: "#c026d3",
-        stroke: "#86198f",
-        text: "#ffffff",
+        fill: "var(--theme-accent)",
+        stroke: "var(--theme-accent-strong)",
+        text: "white",
       },
       psychoactive: {
-        fill: "rgba(139, 92, 246, 0.72)",
-        stroke: "#7c3aed",
-        text: "#ffffff",
+        fill: "color-mix(in srgb, var(--theme-accent) 72%, transparent)",
+        stroke: "color-mix(in srgb, var(--theme-accent-strong) 88%, transparent)",
+        text: "white",
       },
       chemical: {
-        fill: "rgba(217, 70, 239, 0.42)",
-        stroke: "#c026d3",
-        text: "#ffffff",
+        fill: "color-mix(in srgb, var(--theme-accent) 48%, transparent)",
+        stroke: "var(--theme-accent)",
+        text: "white",
       },
       substance: {
-        fill: "rgba(255, 255, 255, 0.88)",
-        stroke: "rgba(93, 56, 123, 0.28)",
-        text: "#261534",
+        fill: "color-mix(in srgb, var(--theme-surface-strong) 96%, white 4%)",
+        stroke: "color-mix(in srgb, var(--theme-text-faint) 50%, transparent)",
+        text: "var(--theme-text-primary)",
       },
     },
     links: {
-      default: "rgba(93, 56, 123, 0.12)",
-      highlighted: "rgba(192, 38, 211, 0.32)",
+      default: "color-mix(in srgb, var(--theme-text-faint) 24%, transparent)",
+      highlighted: "color-mix(in srgb, var(--theme-accent) 34%, transparent)",
     },
     hover: {
-      stroke: "#c026d3",
-      glow: "rgba(192, 38, 211, 0.32)",
+      stroke: "var(--theme-accent)",
+      glow: "color-mix(in srgb, var(--theme-accent) 38%, transparent)",
     },
   },
 } as const;
 
 export const NODE_SIZES: Record<NodeType, number> = {
-  root: 40,
-  psychoactive: 24,
-  chemical: 16,
-  substance: 10,
+  root: 42,
+  psychoactive: 28,
+  chemical: 20,
+  substance: 14,
 };
 
 export const NODE_FONT_SIZES: Record<NodeType, number> = {
-  root: 14,
-  psychoactive: 11,
-  chemical: 9,
-  substance: 8,
+  root: 15,
+  psychoactive: 12,
+  chemical: 10,
+  substance: 9,
 };
 
 export function getGraphColors(theme: ThemeName) {

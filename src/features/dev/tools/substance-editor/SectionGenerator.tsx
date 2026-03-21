@@ -9,6 +9,7 @@
 
 import { memo, useCallback, useId, useMemo, useRef, useState } from "react";
 import yaml from "yaml";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -291,10 +292,12 @@ export const SectionGenerator = memo(function SectionGenerator({
                     .filter(s => s.favicon)
                     .slice(0, 6)
                     .map((source, i) => (
-                      <img
+                      <AppImage
                         key={i}
                         src={source.favicon!}
                         alt={source.name}
+                        width={20}
+                        height={20}
                         title={source.name}
                         className="h-5 w-5 rounded-full border border-slate-800 bg-slate-900"
                       />

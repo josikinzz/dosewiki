@@ -5,6 +5,7 @@ import { useQuery } from 'convex/react';
 import LightGallery from 'lightgallery';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgVideo from 'lightgallery/plugins/video';
+import { AppImage } from '@/components/common/AppImage';
 import { api } from "../../../../convex/_generated/api";
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-thumbnail.css';
@@ -159,11 +160,12 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
                 data-sub-html={caption}
               >
                 {thumbnailUrl && (
-                  <img
+                  <AppImage
                     src={thumbnailUrl}
                     alt={rep.title}
+                    width={rep.width ?? 800}
+                    height={rep.height ?? 800}
                     className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-                    loading="lazy"
                   />
                 )}
                 {!thumbnailUrl && (
@@ -207,11 +209,12 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
               data-sub-html={caption}
               data-lg-size={rep.width && rep.height ? `${rep.width}-${rep.height}` : undefined}
             >
-              <img
+              <AppImage
                 src={rep.url}
                 alt={rep.title}
+                width={rep.width ?? 800}
+                height={rep.height ?? 800}
                 className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-                loading="lazy"
               />
             </a>
           );
@@ -220,17 +223,17 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
 
       <style>{`
         .lg-outer.replication-gallery {
-          --lg-backdrop-color: rgba(0, 0, 0, 0.85);
+          --lg-backdrop-color: color-mix(in srgb, var(--theme-page-end) 86%, black 14%);
         }
 
         .lg-backdrop.replication-gallery {
-          background-color: rgba(0, 0, 0, 0.85);
+          background-color: color-mix(in srgb, var(--theme-page-end) 86%, black 14%);
           backdrop-filter: blur(4px);
         }
 
         .lg-sub-html {
-          background: rgba(0, 0, 0, 0.6);
-          color: white;
+          background: color-mix(in srgb, var(--theme-page-end) 72%, transparent);
+          color: var(--theme-text-primary);
           padding: 12px 16px;
         }
 
@@ -246,11 +249,11 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
         }
 
         .lg-img-wrap {
-          background: #000;
+          background: var(--theme-page-end);
         }
 
         .lg-video-wrap {
-          background: #000;
+          background: var(--theme-page-end);
         }
 
         .lg-video-cont {
@@ -268,11 +271,11 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
         }
 
         .lg-thumb-item.active {
-          border-color: #fff;
+          border-color: var(--theme-text-primary);
         }
 
         .lg-thumb-item:hover {
-          border-color: rgba(255, 255, 255, 0.5);
+          border-color: color-mix(in srgb, var(--theme-text-primary) 45%, transparent);
         }
 
         /* Mobile-specific styles */
@@ -280,7 +283,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({ effectSlug,
           .lg-toolbar {
             top: auto;
             bottom: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+            background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--theme-page-end) 80%, black 20%) 100%);
           }
 
           .lg-sub-html {

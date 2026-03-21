@@ -1,6 +1,6 @@
 export function RouteLoading({ label }: { label: string }) {
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-5xl items-center px-4 py-16">
+    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-5xl items-center px-4 py-16 focus:outline-none">
       <section className="w-full rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <div className="inline-flex rounded-full border border-fuchsia-400/30 bg-fuchsia-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-200">
           Loading

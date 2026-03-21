@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { useState, useMemo, memo } from "react";
 import { motion } from "framer-motion";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionCard } from "@/components/common/SectionCard";
@@ -373,24 +375,21 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
 
           {/* Creator Attribution - Moved closer to title */}
           <div className="-mt-14 mb-12 flex justify-center relative z-10">
-            <button
-              type="button"
-              onClick={() => {
-                const path = "/contributors/josie";
-                window.history.pushState({}, "", path);
-                window.dispatchEvent(new PopStateEvent("popstate"));
-              }}
+            <Link
+              href="/contributors/josie"
               className="group flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-2 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.08] transition-all cursor-pointer shadow-lg shadow-black/10 hover:shadow-fuchsia-500/10 backdrop-blur-md"
             >
-              <img
+              <AppImage
                 src="/profile-avatars/josie/avatar.webp"
                 alt="Josie Kins"
+                width={24}
+                height={24}
                 className="h-6 w-6 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-fuchsia-400/50 transition"
               />
               <span className="text-xs font-medium text-white/50 group-hover:text-white/80 transition">
                 created by <span className="font-bold text-fuchsia-200 group-hover:text-fuchsia-100">Josie Kins</span>, 2011
               </span>
-            </button>
+            </Link>
           </div>
         </motion.div>
 

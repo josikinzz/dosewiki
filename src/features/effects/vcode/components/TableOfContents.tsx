@@ -1,3 +1,5 @@
+import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+
 interface TableOfContentsProps {
   subarticles?: Array<{ id: string; title: string }>;
 }
@@ -21,12 +23,13 @@ export function TableOfContents({
     // Scroll to anchor
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      scrollIntoViewRespectingMotion(element);
     }
     
-    // Update URL hash without triggering route navigation
-    // This is same-page navigation, so we just update the hash directly
-    window.history.pushState({}, "", `#${id}`);
+    const hash = `#${id}`;
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
+    }
   };
 
   return (

@@ -1,9 +1,33 @@
+import Link from "next/link";
 import { PropsWithChildren, useCallback } from "react";
 import type { NavigateHandler } from "../types";
+import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
 interface IntLinkProps {
   to?: string;
   onNavigate?: NavigateHandler;
+}
+
+function normalizeInternalPath(to?: string) {
+  if (!to) {
+    return "#";
+  }
+
+  if (to.startsWith("#")) {
+    return to;
+  }
+
+  let path = to;
+
+  if (path.startsWith("/substances/")) {
+    path = path.replace("/substances/", "/");
+  } else if (path.startsWith("/summaries/")) {
+    path = path.replace("/summaries/", "/psychoactive/");
+  } else if (!path.startsWith("/")) {
+    path = `/${path}`;
+  }
+
+  return path.replace(/\/$/, "");
 }
 
 /**
@@ -17,60 +41,42 @@ export function IntLink({
   onNavigate,
   children,
 }: PropsWithChildren<IntLinkProps>) {
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    
+  const href = normalizeInternalPath(to);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!to) return;
 
     // Handle anchor links (same-page navigation)
-    if (to.startsWith("#")) {
-      const anchorId = to.slice(1);
+    if (href.startsWith("#")) {
+      if (!isPlainLeftClick(e)) {
+        return;
+      }
+
+      e.preventDefault();
+      const anchorId = href.slice(1);
       const element = document.getElementById(anchorId);
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
+        scrollIntoViewRespectingMotion(element);
       }
-      // Update URL hash without triggering navigation
-      window.history.pushState({}, "", to);
+      if (window.location.hash !== href) {
+        window.location.hash = href;
+      }
       return;
     }
 
-    // Normalize the path
-    let path = to;
-    
-    // Handle EffectIndex-style paths
-    if (path.startsWith("/effects/")) {
-      // /effects/{slug} -> /effects/{slug} (keep as-is for new effect articles)
-    } else if (path.startsWith("/substances/")) {
-      // /substances/{slug} -> /{slug}
-      path = path.replace("/substances/", "/");
-    } else if (path.startsWith("/summaries/")) {
-      // /summaries/{class} -> /psychoactive/{class}
-      path = path.replace("/summaries/", "/psychoactive/");
-    } else if (!path.startsWith("/")) {
-      // Handle relative paths - treat as substance slugs
-      // This handles cases like "lsd" -> "/lsd"
-      path = `/${path}`;
+    if (onNavigate && isPlainLeftClick(e)) {
+      e.preventDefault();
+      onNavigate(href);
     }
-    
-    // Remove trailing slashes
-    path = path.replace(/\/$/, "");
-
-    if (onNavigate) {
-      onNavigate(path);
-    } else {
-      // Fallback to browser navigation
-      window.history.pushState({}, "", path);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-  }, [to, onNavigate]);
+  }, [href, onNavigate, to]);
 
   return (
-    <a
-      href={to || "#"}
+    <Link
+      href={href}
       onClick={handleClick}
       className="text-fuchsia-200 hover:text-fuchsia-100 cursor-pointer transition-colors"
     >
       {children}
-    </a>
+    </Link>
   );
 }

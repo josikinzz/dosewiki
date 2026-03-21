@@ -239,7 +239,7 @@ export const DosagesPage = memo(function DosagesPage({
                   value={option.key}
                   disabled={option.disabled}
                   className={cn(
-                    "gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30",
+                    "gap-2.5 px-5 py-2.5 rounded-xl transition-[background-color,color,box-shadow] duration-300 data-[state=active]:bg-fuchsia-500/20 data-[state=active]:text-fuchsia-200 data-[state=active]:shadow-none hover:bg-white/5 disabled:opacity-30",
                     "text-[0.9375rem] font-medium text-white/60"
                   )}
                 >

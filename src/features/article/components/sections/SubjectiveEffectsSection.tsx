@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { memo, useState } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { cn } from "@/lib/utils";
 import type { SubstanceArticle, EffectCategory, EffectEntry, SenseCategory } from "@/schema";
+import { getContributorPath } from "@/utils/contributors";
 
 interface SubjectiveEffectsSectionProps {
   article: SubstanceArticle;
@@ -466,46 +469,47 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       {/* Attribution Banner */}
       {subjective_effects.attribution && (() => {
         const { author, text, url } = subjective_effects.attribution;
-        // Split text around author name to render author as bold link
         const authorIndex = text.indexOf(author);
         const beforeAuthor = authorIndex > 0 ? text.slice(0, authorIndex) : "";
         const afterAuthor = authorIndex >= 0 ? text.slice(authorIndex + author.length) : text;
-        const profileKey = author === "Josie Kins" ? "JOSIE" : author.toUpperCase().replace(/\s+/g, "_");
+        const contributorPath = getContributorPath(author);
 
         return (
           <div className="mt-4 flex justify-end">
-            <div className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition">
-              {/* Stretched link covering the whole banner */}
+            <div className="flex flex-wrap items-center justify-end gap-2.5 rounded-2xl bg-white/[0.04] px-3 py-2 ring-1 ring-white/10 transition hover:bg-white/[0.06] hover:ring-fuchsia-400/30">
+              {author === "Josie Kins" && (
+                <Link
+                  href={contributorPath}
+                  className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  <AppImage
+                    src="/profile-avatars/josie/avatar.webp"
+                    alt="Josie Kins"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 hover:ring-fuchsia-400/50 transition"
+                  />
+                </Link>
+              )}
+              <span className="text-xs text-white/50">
+                {beforeAuthor}
+                <Link
+                  href={contributorPath}
+                  className="font-semibold text-white/70 transition hover:text-fuchsia-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+                >
+                  {author}
+                </Link>
+                {afterAuthor}
+              </span>
               <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute inset-0 z-0"
-                aria-label="View original article"
-              />
-              {author === "Josie Kins" && (
-                <a
-                  href={`#/contributors/${profileKey}`}
-                  className="relative z-10 pointer-events-auto"
-                >
-                  <img
-                    src="/profile-avatars/josie/avatar.webp"
-                    alt="Josie Kins"
-                    className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 hover:ring-fuchsia-400/50 transition"
-                  />
-                </a>
-              )}
-              <span className="relative z-10 text-xs text-white/50 group-hover:text-white/60 transition pointer-events-none">
-                {beforeAuthor}
-                <a
-                  href={`#/contributors/${profileKey}`}
-                  className="font-semibold text-white/70 hover:text-fuchsia-300 transition pointer-events-auto"
-                >
-                  {author}
-                </a>
-                {afterAuthor}
-              </span>
-              <Icon icon="lucide:external-link" size={14} className="theme-external-link-badge-icon relative z-10 -ml-1 text-white/30 group-hover:text-white/50 transition pointer-events-none" />
+                className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-fuchsia-300 transition hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+              >
+                <Icon icon="lucide:external-link" size={14} className="theme-external-link-badge-icon text-white/40" />
+                <span>Original article</span>
+              </a>
             </div>
           </div>
         );

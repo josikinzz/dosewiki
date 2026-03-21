@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle, Citation } from "@/schema";
@@ -28,11 +29,12 @@ function CitationList({
             className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
           >
             {favicon ? (
-              <img
+              <AppImage
                 src={favicon}
                 alt=""
+                width={20}
+                height={20}
                 className="mt-0.5 h-5 w-5 shrink-0 rounded"
-                loading="lazy"
               />
             ) : (
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">

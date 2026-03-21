@@ -1,4 +1,5 @@
 import { Icon } from "@/components/common/Icon";
+import { AppImage } from "@/components/common/AppImage";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ export function AvatarUpload({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-gradient-to-br from-white/12 via-white/8 to-white/5 text-3xl font-semibold text-white/85 shadow-[0_18px_45px_-20px_rgba(124,58,237,0.55)] ring-1 ring-white/20">
           {avatarPreviewSource ? (
-            <img src={avatarPreviewSource} alt="Avatar preview" className="h-full w-full object-cover" />
+            <AppImage src={avatarPreviewSource} alt="Avatar preview" width={96} height={96} className="h-full w-full object-cover" />
           ) : (
             <span>{avatarInitials}</span>
           )}

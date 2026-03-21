@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type CredentialsSignInFormProps = {
   callbackUrl: string;
@@ -35,40 +38,43 @@ export function CredentialsSignInForm({ callbackUrl }: CredentialsSignInFormProp
     window.location.href = result.url ?? callbackUrl;
   };
 
+  const errorId = error ? "credentials-sign-in-error" : undefined;
+
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-black/10 p-5">
       <div className="space-y-1">
-        <label htmlFor="username" className="text-sm font-medium text-white/80">Username</label>
-        <input
+        <Label htmlFor="username" className="text-sm font-medium text-white/80">Username</Label>
+        <Input
           id="username"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-fuchsia-400/40"
           autoComplete="username"
+          aria-describedby={errorId}
         />
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="password" className="text-sm font-medium text-white/80">Password</label>
-        <input
+        <Label htmlFor="password" className="text-sm font-medium text-white/80">Password</Label>
+        <Input
           id="password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-fuchsia-400/40"
           autoComplete="current-password"
+          aria-describedby={errorId}
         />
       </div>
 
-      {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+      {error ? <p id={errorId} role="alert" className="text-sm text-rose-300">{error}</p> : null}
 
-      <button
+      <Button
         type="submit"
+        variant="pill"
         disabled={isSubmitting}
-        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-fuchsia-400/40 hover:bg-fuchsia-500/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-11"
       >
         {isSubmitting ? "Signing in…" : "Sign in with credentials"}
-      </button>
+      </Button>
     </form>
   );
 }

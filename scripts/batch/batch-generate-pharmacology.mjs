@@ -329,11 +329,10 @@ async function callWithRetry(fn, attempts = CONFIG.retryAttempts) {
 
 // Parse generated YAML
 function parseGeneratedYaml(response) {
-  const yamlMatch = response.match(/```ya?ml\s*([\s\S]*?)```/);
-  const yamlContent = yamlMatch ? yamlMatch[1].trim() : response.trim();
+  const yamlContent = extractPharmacologyYaml(response);
 
   try {
-    const parsed = yaml.parse(yamlContent);
+    const parsed = yaml.parse(yamlContent, { uniqueKeys: false });
     let p = parsed.pharmacology || parsed;
 
     if (
@@ -350,6 +349,25 @@ function parseGeneratedYaml(response) {
   } catch (error) {
     throw new Error(`Failed to parse YAML: ${error.message}`);
   }
+}
+
+function extractPharmacologyYaml(response) {
+  const withoutThinkBlocks = response.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  const yamlMatch = withoutThinkBlocks.match(/```ya?ml\s*([\s\S]*?)```/i);
+  if (yamlMatch) {
+    return yamlMatch[1].trim();
+  }
+
+  const lines = withoutThinkBlocks.split(/\r?\n/);
+  const firstRelevantLine = lines.findIndex((line) =>
+    /^(pharmacology|pharmacodynamics|receptor_profile|pharmacokinetics|metabolites)\s*:/i.test(line.trim())
+  );
+
+  if (firstRelevantLine === -1) {
+    return withoutThinkBlocks;
+  }
+
+  return lines.slice(firstRelevantLine).join("\n").trim();
 }
 
 // Normalize pharmacology to ensure all required fields exist
@@ -399,10 +417,37 @@ function normalizePharmacology(p) {
 function mergeRouteDataIntoDosageDuration(article, pharmacology) {
   const { route_bioavailability, route_half_life, route_bioavailability_notes, route_half_life_notes } = pharmacology;
 
-  // Helper to find matching route (case-insensitive)
+  function normalizeRouteName(routeName) {
+    const normalized = routeName
+      .toLowerCase()
+      .replace(/\./g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+    const aliases = {
+      "oral": "oral",
+      "insufflated": "insufflated",
+      "intranasal": "insufflated",
+      "nasal": "insufflated",
+      "snorted": "insufflated",
+      "rectal": "rectal",
+      "intramuscular": "intramuscular",
+      "im": "intramuscular",
+      "i m": "intramuscular",
+      "intravenous": "intravenous",
+      "iv": "intravenous",
+      "i v": "intravenous",
+      "sublingual": "sublingual",
+    };
+
+    return aliases[normalized] || normalized;
+  }
+
+  // Helper to find matching route with alias support
   const findRoute = (routes, routeName) => {
     if (!routes || !Array.isArray(routes)) return null;
-    return routes.find(r => r.route?.toLowerCase() === routeName.toLowerCase());
+    const targetRoute = normalizeRouteName(routeName);
+    return routes.find((route) => normalizeRouteName(route.route || "") === targetRoute);
   };
 
   // Merge bioavailability into dosage routes

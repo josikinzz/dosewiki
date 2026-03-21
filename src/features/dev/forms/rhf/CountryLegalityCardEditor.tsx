@@ -5,6 +5,7 @@
 
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 
 import { Input } from "@/components/ui/input";
@@ -70,9 +71,11 @@ function CountryCard({ index, country, status, notes, onRemove, onUpdate }: Coun
 
       {/* Flag */}
       {countryCode && (
-        <img
+        <AppImage
           src={`/flags/${countryCode}.svg`}
           alt={`${country} flag`}
+          width={24}
+          height={24}
           className="absolute right-10 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
         />
       )}

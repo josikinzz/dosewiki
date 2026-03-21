@@ -1,4 +1,5 @@
 import { Icon } from "@/components/common/Icon";
+import { AppImage } from "@/components/common/AppImage";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import {
   useCallback,
@@ -2312,7 +2313,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   // Show loading state while articles are loading
   if (articles.length === 0) {
     return (
-      <main className={mainClassName}>
+      <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
         <div className="mx-auto w-full max-w-6xl">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
@@ -2330,7 +2331,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   }
 
   return (
-    <main className={mainClassName}>
+    <main id="main-content" tabIndex={-1} className={`${mainClassName} focus:outline-none`}>
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="font-display mt-4 flex items-center justify-center gap-3 text-[2.25rem] font-bold tracking-tight text-fuchsia-300 sm:text-[2.7rem]">
@@ -2352,9 +2353,11 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
                 <div className="flex flex-col gap-3 text-xs md:flex-row md:items-center md:justify-between">
                   <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-200">
                     {nextSession.data?.user?.image && (
-                      <img
+                      <AppImage
                         src={nextSession.data.user.image}
                         alt=""
+                        width={20}
+                        height={20}
                         className="h-5 w-5 rounded-full"
                       />
                     )}

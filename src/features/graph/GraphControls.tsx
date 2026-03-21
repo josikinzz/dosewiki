@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useId, useState, useCallback } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +21,8 @@ export const GraphControls = memo(function GraphControls({
 }: GraphControlsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const inputId = useId();
+  const listboxId = useId();
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +51,9 @@ export const GraphControls = memo(function GraphControls({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <label htmlFor={inputId} className="sr-only">
+          Search graph substances
+        </label>
         <div className="relative">
           <Icon
             icon="lucide:search"
@@ -56,17 +61,24 @@ export const GraphControls = memo(function GraphControls({
             className="theme-text-faint absolute left-3 top-1/2 -translate-y-1/2"
           />
           <input
+            id={inputId}
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
             onFocus={() => searchQuery.length > 0 && setShowResults(true)}
             placeholder="Search substances..."
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showResults && searchResults.length > 0}
+            aria-controls={listboxId}
             className="w-full rounded-xl border border-white/10 bg-white/5 py-2 pl-9 pr-8 text-sm text-white placeholder-white/40 outline-none transition focus:border-fuchsia-400/50 focus:bg-white/10 focus:ring-1 focus:ring-fuchsia-400/30"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={handleClearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-white"
+              aria-label="Clear graph search"
             >
               <Icon icon="lucide:x" size={14} />
             </button>
@@ -74,12 +86,20 @@ export const GraphControls = memo(function GraphControls({
         </div>
 
         {showResults && searchResults.length > 0 && (
-          <div className="theme-overlay-surface absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-xl border py-1 shadow-xl backdrop-blur">
+          <div
+            id={listboxId}
+            role="listbox"
+            aria-label="Matching substances"
+            className="theme-overlay-surface absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-auto rounded-xl border py-1 shadow-xl backdrop-blur"
+          >
             {searchResults.slice(0, 10).map((slug) => (
               <button
                 key={slug}
+                type="button"
+                role="option"
+                aria-selected={false}
                 onClick={() => handleSelectResult(slug)}
-                className="theme-text-secondary w-full px-3 py-1.5 text-left text-sm transition hover:bg-fuchsia-500/20 hover:text-white"
+                className="theme-text-secondary w-full px-3 py-2 text-left text-sm transition hover:bg-fuchsia-500/20 hover:text-white"
               >
                 {slug}
               </button>
@@ -98,8 +118,9 @@ export const GraphControls = memo(function GraphControls({
           variant="secondary"
           size="sm"
           onClick={onZoomIn}
-          className="h-8 w-8 p-0"
+          className="h-10 w-10 p-0"
           title="Zoom in"
+          aria-label="Zoom in"
         >
           <Icon icon="lucide:zoom-in" size={16} />
         </Button>
@@ -107,8 +128,9 @@ export const GraphControls = memo(function GraphControls({
           variant="secondary"
           size="sm"
           onClick={onZoomOut}
-          className="h-8 w-8 p-0"
+          className="h-10 w-10 p-0"
           title="Zoom out"
+          aria-label="Zoom out"
         >
           <Icon icon="lucide:zoom-out" size={16} />
         </Button>
@@ -116,7 +138,7 @@ export const GraphControls = memo(function GraphControls({
           variant="secondary"
           size="sm"
           onClick={onReset}
-          className="gap-1.5 px-3"
+          className="h-10 gap-1.5 px-3"
           title="Reset view"
         >
           <Icon icon="lucide:rotate-ccw" size={14} />

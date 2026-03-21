@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { CategoryGrid } from "@/features/article/components/sections";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
 import type { DosageCategoryGroup, MechanismDetail } from "../../data/builders/library";
 import { UNQUALIFIED_MECHANISM_QUALIFIER_KEY } from "../../data/constants";
 
@@ -42,13 +43,7 @@ export function MechanismDetailPage({
       getSectionId(definition.slug, targetQualifierKey),
     );
     if (element) {
-      const prefersSmoothScroll = typeof document !== "undefined" &&
-        "scrollBehavior" in document.documentElement.style;
-      if (prefersSmoothScroll) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        element.scrollIntoView();
-      }
+      scrollIntoViewRespectingMotion(element);
       lastScrolledQualifierRef.current = targetQualifierKey;
     }
   }, [definition.slug, targetQualifierKey]);

@@ -42,7 +42,7 @@ export const IndexCard = memo(function IndexCard({
   const chevronIcon = isExpanded ? "lucide:chevron-up" : "lucide:chevron-down";
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
-  const iconClassName = `flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 ${onIconClick ? "cursor-pointer transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105" : ""}`;
+  const iconClassName = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 ${onIconClick ? "cursor-pointer transition-[background-color,border-color,box-shadow,transform] duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400" : ""}`;
 
   const iconContent = (
     <Icon
@@ -53,7 +53,7 @@ export const IndexCard = memo(function IndexCard({
   );
 
   const iconElement = onIconClick ? (
-    <button type="button" className={iconClassName} onClick={onIconClick}>
+    <button type="button" className={iconClassName} onClick={onIconClick} aria-label={`${title} action`}>
       {iconContent}
     </button>
   ) : (
@@ -70,7 +70,7 @@ export const IndexCard = memo(function IndexCard({
   );
 
   return (
-    <section className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5">
+    <section className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-sm backdrop-safe transition-[background-color,border-color,box-shadow] duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/15 hover:shadow-lg hover:shadow-fuchsia-500/5">
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}
@@ -79,7 +79,7 @@ export const IndexCard = memo(function IndexCard({
             <button
               type="button"
               onClick={onTitleClick}
-              className="text-left transition hover:opacity-80"
+              className="text-left transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               {titleElement}
             </button>
@@ -92,22 +92,18 @@ export const IndexCard = memo(function IndexCard({
           onClick={() => setIsExpanded(!isExpanded)}
           aria-expanded={isExpanded}
           aria-controls={contentId}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/40 transition hover:bg-white/10 hover:text-white"
+          aria-label={`${isExpanded ? "Collapse" : "Expand"} ${title}`}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white/40 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
           <Icon icon={chevronIcon} size={16} />
         </button>
       </header>
 
-      {/* Content */}
-      <div
-        id={contentId}
-        className={`grid transition-all duration-300 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100 mt-2" : "grid-rows-[0fr] opacity-0 mt-0"
-          }`}
-      >
-        <div className="overflow-hidden">
+      {isExpanded ? (
+        <div id={contentId} className="mt-2">
           {children}
         </div>
-      </div>
+      ) : null}
     </section>
   );
 });
@@ -205,7 +201,7 @@ export const IndexCardListItem = memo(function IndexCardListItem({
       <button
         type="button"
         onClick={handleClick}
-        className="group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] text-white/70 transition-all duration-200 hover:bg-white/[0.06] hover:text-white hover:pl-4"
+        className="group/item flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[0.9375rem] text-white/70 transition-[background-color,color,transform] duration-200 hover:bg-white/[0.06] hover:text-white hover:translate-x-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
       >
         <span className="theme-index-card-bullet mr-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/20 transition-colors group-hover/item:bg-fuchsia-400" />
         {label}

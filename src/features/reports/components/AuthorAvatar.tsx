@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { findProfileByAuthorName } from "@/data/userProfiles";
 
@@ -48,9 +49,11 @@ export const AuthorAvatar = memo(function AuthorAvatar({
   // Render actual avatar image
   if (resolvedAvatarUrl) {
     return (
-      <img
+      <AppImage
         src={resolvedAvatarUrl}
         alt={`${authorName}'s avatar`}
+        width={size}
+        height={size}
         className={`${sizeClass} rounded-full object-cover ring-1 ring-white/20 ${className}`}
         style={{ 
           imageRendering: "auto",
@@ -58,8 +61,6 @@ export const AuthorAvatar = memo(function AuthorAvatar({
           WebkitBackfaceVisibility: "hidden",
           backfaceVisibility: "hidden",
         }}
-        loading="lazy"
-        decoding="async"
       />
     );
   }

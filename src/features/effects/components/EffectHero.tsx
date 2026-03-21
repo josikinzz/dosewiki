@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { AppImage } from "@/components/common/AppImage";
 import { type IconName } from "@/components/common/Icon";
 import { IconBadge } from "@/components/common/IconBadge";
 
@@ -5,7 +7,6 @@ interface EffectHeroProps {
   name: string;
   tags: string[];
   summary?: string;
-  onNavigate?: (path: string) => void;
 }
 
 /**
@@ -15,7 +16,6 @@ export function EffectHero({
   name,
   tags,
   summary,
-  onNavigate,
 }: EffectHeroProps) {
   // Get icon based on primary tag
   const getEffectIcon = (): IconName => {
@@ -56,28 +56,21 @@ export function EffectHero({
 
           {/* Josie Kins Attribution - left aligned under title */}
           <div>
-            <button
-              type="button"
-              onClick={() => {
-                const path = "/contributors/josie";
-                if (onNavigate) {
-                  onNavigate(path);
-                } else {
-                  window.history.pushState({}, "", path);
-                  window.dispatchEvent(new PopStateEvent("popstate"));
-                }
-              }}
+            <Link
+              href="/contributors/josie"
               className="group flex items-center gap-2.5 rounded-full bg-white/[0.03] py-1.5 pl-1.5 pr-4 ring-1 ring-white/10 transition hover:bg-white/[0.06] hover:ring-fuchsia-400/30"
             >
-              <img
+              <AppImage
                 src="/profile-avatars/josie/avatar.webp"
                 alt="Josie Kins"
+                width={24}
+                height={24}
                 className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
               />
               <span className="text-xs tracking-wide text-white/50 transition group-hover:text-white/70">
                 Subjective Effect Index created by <span className="font-semibold text-fuchsia-200/90">Josie Kins</span>, 2011
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

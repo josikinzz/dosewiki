@@ -1,3 +1,5 @@
+import { scrollIntoViewRespectingMotion } from "@/utils/navigation";
+
 interface ReferenceProps {
   to?: string;
   citations?: Array<{ url: string; text: string; from?: string }>;
@@ -27,7 +29,7 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
     // Scroll to the citation in the References section
     const element = document.getElementById(anchorId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      scrollIntoViewRespectingMotion(element);
       // Briefly highlight the citation
       element.classList.add("ring-2", "ring-fuchsia-400/50");
       setTimeout(() => {
@@ -35,8 +37,10 @@ export function Reference({ to, citations = [] }: ReferenceProps) {
       }, 2000);
     }
     
-    // Update URL hash
-    window.history.pushState({}, "", `#${anchorId}`);
+    const hash = `#${anchorId}`;
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
+    }
   };
 
   return (

@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { motion } from "framer-motion";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -34,9 +35,11 @@ const renderAvatar = (profile: NormalizedUserProfile) => {
       <div className="relative group">
         <div className="absolute inset-0 rounded-full bg-fuchsia-500/20 blur-2xl transition duration-500 group-hover:bg-fuchsia-500/30 group-hover:blur-3xl" />
         <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-white/10 shadow-2xl shadow-black/50 ring-1 ring-white/20 transition duration-300 group-hover:border-fuchsia-500/30 group-hover:ring-fuchsia-500/30">
-          <img
+          <AppImage
             src={profile.avatarUrl}
             alt={`${profile.displayName} avatar`}
+            width={128}
+            height={128}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
             draggable={false}
           />
@@ -100,6 +103,8 @@ const contributionBadgeClass =
 export function UserProfilePage({ profile, history, onSelectReport }: UserProfilePageProps) {
   const [isContributionsExpanded, setIsContributionsExpanded] = useState(false);
   const [isReportsExpanded, setIsReportsExpanded] = useState(false);
+  const reportsSectionId = `${profile.key}-reports`;
+  const contributionsSectionId = `${profile.key}-contributions`;
   
   const hasLinks = profile.links.length > 0;
   const hasBio = profile.hasCustomBio;
@@ -124,14 +129,12 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
     if (onSelectReport) {
       onSelectReport(slug);
     } else {
-      // Fallback to standard navigation
-      window.history.pushState({}, "", `/reports/${slug}`);
-      window.dispatchEvent(new PopStateEvent("popstate"));
+      window.location.assign(`/reports/${slug}`);
     }
   };
 
   return (
-    <div className="theme-page-shell min-h-screen">
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto w-full max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <motion.div 
           className="flex flex-col items-center gap-8 text-center"
@@ -141,7 +144,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
           
           <div className="flex flex-col items-center gap-6">
             <div>
-              <h1 className="font-display text-4xl font-bold tracking-tight text-fuchsia-300 sm:text-5xl">
+              <h1 className="font-display break-words text-4xl font-bold tracking-tight text-fuchsia-300 sm:text-5xl">
                 {profile.displayName}
               </h1>
               <p className="mt-2 text-lg font-medium text-fuchsia-300/80">
@@ -176,10 +179,10 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
               transition={{ ...cardAnimation.transition, delay: 0.1 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="relative shrink-0">
                   <div className="theme-section-header-glow absolute inset-0 rounded-full blur-xl" />
-                  <h2 className="relative flex items-center gap-4 text-2xl font-bold tracking-tight text-fuchsia-300 whitespace-nowrap">
+                  <h2 className="relative flex flex-wrap items-center gap-x-4 gap-y-2 text-2xl font-bold tracking-tight text-fuchsia-300">
                     <Icon icon="lucide:user" className="h-8 w-8" />
                     About
                   </h2>
@@ -210,7 +213,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
             </div>
 
             {hasReports ? (
-              <div className="space-y-4">
+              <div id={reportsSectionId} className="space-y-4">
                 {tripReports.slice(0, isReportsExpanded ? undefined : 3).map((report) => (
                   <ReportCard
                     key={report.slug}
@@ -222,7 +225,9 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                   <button
                     type="button"
                     onClick={() => setIsReportsExpanded(!isReportsExpanded)}
-                    className="mx-auto flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/60 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white/80"
+                    aria-expanded={isReportsExpanded}
+                    aria-controls={reportsSectionId}
+                    className="mx-auto flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 text-sm text-white/70 transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
                   >
                     <span className="font-medium">+{tripReports.length - 3}</span>
                     <Icon icon="lucide:chevron-down" size={14} className={`transition-transform ${isReportsExpanded ? "rotate-180" : ""}`} />
@@ -248,15 +253,17 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
               <button
                 type="button"
                 onClick={() => setIsContributionsExpanded(!isContributionsExpanded)}
-                className="flex w-full items-center justify-between gap-3 group"
+                aria-expanded={isContributionsExpanded}
+                aria-controls={contributionsSectionId}
+                className="group flex w-full items-center justify-between gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/10 text-fuchsia-300 ring-1 ring-inset ring-fuchsia-500/20 transition group-hover:bg-fuchsia-500/20">
                     <Icon icon="lucide:git-commit-horizontal" size={20} />
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <h2 className="text-xl font-bold text-white group-hover:text-fuchsia-100 transition">Latest contributions</h2>
-                    <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/60">
+                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/70">
                       {history.length}
                     </span>
                   </div>
@@ -270,9 +277,10 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
 
               {isContributionsExpanded && (
                 <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
+                  id={contributionsSectionId}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
                   className="mt-6 space-y-4"
                 >
                   {history.map((entry) => (
@@ -307,7 +315,7 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                       </div>
                       
                       {entry.markdown.trim().length > 0 && (
-                        <div className="bg-[#0d1117] p-4 overflow-x-auto">
+                        <div className="theme-code-surface p-4 overflow-x-auto">
                           <pre className="text-xs leading-relaxed font-mono">
                             <code>
                               {entry.markdown.split("\n").map((line, index) => {
@@ -317,9 +325,9 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
                                 const lineClass = isHunk
                                   ? "text-blue-300"
                                   : isAdded
-                                    ? "text-emerald-400 bg-emerald-500/10"
+                                    ? "text-[color:var(--theme-success-text-strong)] bg-[color:var(--theme-success-bg)]"
                                     : isRemoved
-                                      ? "text-rose-400 bg-rose-500/10"
+                                      ? "text-[color:var(--theme-danger-text-strong)] bg-[color:var(--theme-danger-bg)]"
                                       : "text-gray-400";
 
                                 return (
@@ -343,6 +351,6 @@ export function UserProfilePage({ profile, history, onSelectReport }: UserProfil
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -107,7 +107,7 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                 onClick={() => handleSelect(match)}
               >
                 <div className="flex flex-col gap-2">
-                  <span className="text-[11px] uppercase tracking-[0.34em] text-white/60">
+                  <span className="text-xs uppercase tracking-[0.28em] text-white/70">
                     {typeLabel(match)}
                   </span>
                   <span className="text-xl font-semibold text-fuchsia-200">{match.label}</span>
@@ -125,7 +125,7 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                           <Badge
                             key={`${match.id}-badge-${token}`}
                             variant="default"
-                            className="text-[10px]"
+                            className="text-[11px]"
                           >
                             {token}
                           </Badge>
@@ -134,7 +134,7 @@ export const SearchResultsPage = memo(function SearchResultsPage({
                     );
                   })()}
                 </div>
-                <span className="mt-1 hidden shrink-0 text-xs font-semibold uppercase tracking-wide text-white/60 sm:inline-flex">
+                <span className="mt-1 hidden shrink-0 text-sm font-semibold uppercase tracking-wide text-white/70 sm:inline-flex">
                   View
                 </span>
               </Button>

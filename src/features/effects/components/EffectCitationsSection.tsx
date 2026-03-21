@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { IconBadge } from "@/components/common/IconBadge";
 import { SectionCard } from "@/components/common/SectionCard";
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
+import { isPlainLeftClick } from "@/utils/navigation";
 
 interface Citation {
   url: string;
@@ -38,22 +40,13 @@ export function EffectCitationsSection({
   onNavigate,
 }: EffectCitationsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const contentId = useId();
 
   if (citations.length === 0 && externalLinks.length === 0 && seeAlso.length === 0) {
     return null;
   }
 
   const totalCount = citations.length + externalLinks.length + seeAlso.length;
-
-  const handleSeeAlsoClick = (location: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onNavigate) {
-      onNavigate(location);
-    } else {
-      window.history.pushState({}, "", location);
-      window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-  };
 
   return (
     <SectionCard delay={0.3}>
@@ -62,6 +55,8 @@ export function EffectCitationsSection({
         type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="mb-4 flex w-full items-center gap-3 text-left"
+        aria-expanded={isExpanded}
+        aria-controls={contentId}
       >
         <IconBadge icon="lucide:library" label="Sources & References" />
         <h2 className="flex-1 text-lg font-semibold text-fuchsia-300">
@@ -77,7 +72,7 @@ export function EffectCitationsSection({
 
       {/* Collapsible content */}
       {isExpanded && (
-        <div className="space-y-6">
+        <div id={contentId} className="space-y-6">
           {/* See Also */}
           {seeAlso.length > 0 && (
             <div>
@@ -97,7 +92,14 @@ export function EffectCitationsSection({
                     <div className="min-w-0 flex-1">
                       <a
                         href={item.location}
-                        onClick={handleSeeAlsoClick(item.location)}
+                        onClick={(event) => {
+                          if (!onNavigate || !isPlainLeftClick(event)) {
+                            return;
+                          }
+
+                          event.preventDefault();
+                          onNavigate(item.location);
+                        }}
                         className="text-sm text-white/80 hover:text-fuchsia-200 cursor-pointer transition-colors"
                       >
                         {item.title}
@@ -125,11 +127,12 @@ export function EffectCitationsSection({
                       className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
                     >
                       {favicon ? (
-                        <img
+                        <AppImage
                           src={favicon}
                           alt=""
+                          width={20}
+                          height={20}
                           className="mt-0.5 h-5 w-5 shrink-0 rounded"
-                          loading="lazy"
                         />
                       ) : (
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
@@ -176,11 +179,12 @@ export function EffectCitationsSection({
                       className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8 scroll-mt-20"
                     >
                       {favicon ? (
-                        <img
+                        <AppImage
                           src={favicon}
                           alt=""
+                          width={20}
+                          height={20}
                           className="mt-0.5 h-5 w-5 shrink-0 rounded"
-                          loading="lazy"
                         />
                       ) : (
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">

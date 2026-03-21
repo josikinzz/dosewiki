@@ -425,7 +425,7 @@ export const TagMultiSelect = ({
           onMouseDown={handleOptionMouseDown}
           onMouseEnter={() => setHighlightedIndex(index)}
           onClick={() => handleOptionClick(item)}
-          className={`flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 ${
+          className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
             isActive ? "bg-white/10 text-white" : "text-white/70"
           }`}
         >
@@ -445,7 +445,7 @@ export const TagMultiSelect = ({
         onMouseDown={handleOptionMouseDown}
         onMouseEnter={() => setHighlightedIndex(index)}
         onClick={() => handleOptionClick(item)}
-        className={`flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 ${
+        className={`flex min-h-11 cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400 ${
           isActive ? "bg-white/10 text-white" : "text-white/70"
         }`}
       >
@@ -495,6 +495,7 @@ export const TagMultiSelect = ({
                   {!disabled ? (
                     <Button
                       variant="tagRemove"
+                      size="auto"
                       aria-label={`Remove ${tag}`}
                       onClick={handleRemoveClick}
                     >
@@ -534,7 +535,6 @@ export const TagMultiSelect = ({
             <Button
               variant="pill"
               size="icon"
-              className="h-9 w-9"
               onClick={handleTriggerClick}
               aria-label={computedAddButtonLabel}
               disabled={disabled}
@@ -566,7 +566,7 @@ export const TagMultiSelect = ({
             id={listboxId}
             role="listbox"
             aria-multiselectable="true"
-            className="absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-auto rounded-xl border border-white/10 bg-[#120d27] p-2 shadow-xl"
+            className="theme-select-panel absolute left-0 right-0 z-20 mt-2 max-h-64 overflow-auto rounded-xl border p-2"
           >
             {menuItems.length === 0 ? (
               shouldShowInlineEmptyState ? null : (

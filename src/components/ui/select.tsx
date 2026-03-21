@@ -17,12 +17,12 @@ const selectTriggerVariants = cva(
     variants: {
       variant: {
         default: "border-white/10",
-        error: "border-red-400/50 focus:border-red-400 focus:ring-red-300/30",
+        error: "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)] focus:ring-[color:var(--theme-danger-ring)]",
       },
       selectSize: {
-        default: "h-10 px-4 py-2 pr-12 text-sm",
-        compact: "h-8 px-4 py-2 pr-10 text-xs",
-        lg: "h-11 px-4 py-3 pr-12 text-base",
+        default: "h-11 px-4 py-2 pr-12 text-sm",
+        compact: "h-11 px-4 py-2 pr-10 text-sm",
+        lg: "h-12 px-4 py-3 pr-12 text-base",
       },
     },
     defaultVariants: {

@@ -244,7 +244,7 @@ export function GlobalSearch({
           placeholder="Search..."
           autoComplete="off"
           autoCorrect="off"
-          autoCapitalize="off"
+          autoCapitalize="none"
           spellCheck={false}
           data-form-type="other"
           data-lpignore="true"
@@ -273,7 +273,7 @@ export function GlobalSearch({
               size="icon"
               onMouseDown={preventDefaultMouseDown}
               onClick={handleClear}
-              className="rounded-full"
+              className="h-11 w-11 rounded-full"
               aria-label="Clear search"
             >
               <Icon icon="lucide:x" size={16} />
@@ -323,13 +323,13 @@ export function GlobalSearch({
                     onClick={() => handleSelectMatch(match)}
                     onMouseEnter={() => setActiveIndex(index)}
                   >
-                    <span className="theme-text-faint text-[10px] uppercase tracking-[0.32em]">
+                    <span className="theme-text-muted text-[11px] uppercase tracking-[0.28em]">
                       {renderSuggestionType(match)}
                     </span>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-base font-semibold text-fuchsia-200">{match.label}</span>
                       {match.secondary && (
-                        <span className="theme-text-faint line-clamp-2 text-xs leading-relaxed">{match.secondary}</span>
+                        <span className="theme-text-muted line-clamp-2 text-sm leading-relaxed">{match.secondary}</span>
                       )}
                     </div>
                   </Button>

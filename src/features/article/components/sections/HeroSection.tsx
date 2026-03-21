@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Badge } from "@/components/ui/badge";
 import { getMoleculeUrlByTitle } from "@/data/mappings/moleculeAssets";
@@ -95,9 +96,11 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Molecule SVG - floated right on md+, hidden on mobile (shown below title instead) */}
       {moleculeUrl && (
-        <img
+        <AppImage
           src={moleculeUrl}
           alt={`${title} molecule structure`}
+          width={256}
+          height={256}
           className="theme-molecule-image hidden md:block md:float-right mb-3 h-48 w-48 object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)] md:h-64 md:w-64"
         />
       )}
@@ -110,9 +113,11 @@ export const HeroSection = memo(function HeroSection({
       {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (
         <div className="flex justify-center my-5 md:hidden">
-          <img
+          <AppImage
             src={moleculeUrl}
             alt={`${title} molecule structure`}
+            width={288}
+            height={288}
             className="theme-molecule-image h-auto w-72 max-w-[85%] object-contain drop-shadow-[0_8px_16px_rgba(192,132,252,0.3)]"
           />
         </div>

@@ -85,7 +85,7 @@ export function EffectArticlePage({
   // Show not found if effect doesn't exist
   if (!effect) {
     return (
-      <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+      <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12 focus:outline-none">
         <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
           <p className="text-lg font-semibold text-white">Effect not found.</p>
           <p className="mt-2 text-sm text-white/70">
@@ -103,14 +103,13 @@ export function EffectArticlePage({
   const personalCommentaryContent = effect.personal_commentary_ast || effect.personal_commentary_raw;
 
   return (
-    <main className="theme-page-shell min-h-screen">
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-12 md:px-8">
         <div className="space-y-12">
           <motion.div {...cardAnimation}>
             <EffectHero
               name={effect.name}
               tags={effect.tags}
-              onNavigate={onNavigate}
             />
           </motion.div>
 

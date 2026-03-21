@@ -84,8 +84,9 @@ const EffectLongSummary = memo(function EffectLongSummary({
       <p className="text-sm italic text-white/50 mb-4">
         Full article:{" "}
         <button
+          type="button"
           onClick={handleClick}
-          className="text-fuchsia-300 hover:text-fuchsia-200 underline underline-offset-2 cursor-pointer"
+          className="cursor-pointer text-fuchsia-300 underline underline-offset-2 transition-colors hover:text-fuchsia-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
         >
           {effect.name}
         </button>

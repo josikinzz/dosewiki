@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useMemo } from "react";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
@@ -215,7 +216,7 @@ export const InteractionsSection = memo(function InteractionsSection({
           className="group relative flex items-center gap-2.5 rounded-full bg-white/[0.04] pl-3 pr-4 py-1.5 ring-1 ring-white/10 hover:ring-fuchsia-400/30 hover:bg-white/[0.06] transition"
         >
           <span className="text-xs text-white/50 group-hover:text-white/60 transition">Powered by</span>
-          <img src="/favicons/tripsit.png" alt="" className="h-5 w-5 rounded" />
+          <AppImage src="/favicons/tripsit.png" alt="" width={20} height={20} className="h-5 w-5 rounded" />
           <span className="text-xs font-semibold text-fuchsia-200 group-hover:text-fuchsia-100 transition -ml-1">
             TripSit
           </span>

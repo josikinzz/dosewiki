@@ -35,7 +35,7 @@ type LegacyPublicRouteClientProps = {
 
 function MissingResource({ title, description }: { title: string; description: string }) {
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12">
+    <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-4xl px-4 pb-20 pt-12 focus:outline-none">
       <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-10 text-center shadow-[0_18px_45px_-20px_rgba(0,0,0,0.6)]">
         <p className="text-lg font-semibold text-white">{title}</p>
         <p className="mt-2 text-sm text-white/70">{description}</p>

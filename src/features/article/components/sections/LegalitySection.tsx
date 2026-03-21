@@ -1,5 +1,6 @@
 import { memo, useState } from "react";
 import Masonry from "react-masonry-css";
+import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/common/SectionHeader";
@@ -211,9 +212,11 @@ export const LegalitySection = memo(function LegalitySection({
                   className="relative rounded-xl border border-white/10 bg-white/5 p-3 scale-100 transition-all duration-200 hover:scale-[1.02] hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:shadow-black/20"
                 >
                   {countryCode && (
-                    <img
+                    <AppImage
                       src={`/flags/${countryCode}.svg`}
                       alt={`${countryName} flag`}
+                      width={24}
+                      height={24}
                       className="absolute right-3 top-3 h-6 w-6 rounded-full ring-1 ring-white/20 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)]"
                     />
                   )}
