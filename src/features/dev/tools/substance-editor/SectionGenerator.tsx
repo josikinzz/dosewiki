@@ -13,7 +13,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { streamCompletion, type StreamCompletionOptions } from "@/utils/api/openrouter";
+import { estimateTokens, streamCompletion, type StreamCompletionOptions } from "@/utils/api/openrouter";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
 import { PromptEditorModal } from "./PromptEditorModal";
 import type { SectionKey } from "@/data/config/sectionPrompts";
@@ -29,6 +29,26 @@ const REASONING_OPTIONS: { value: ReasoningEffort; label: string; description: s
   { value: "high", label: "High", description: "80% tokens" },
   { value: "xhigh", label: "Maximum", description: "95% tokens" },
 ];
+
+function safeEstimateTokens(text: string | null | undefined): number | null {
+  if (!text) {
+    return 0;
+  }
+
+  try {
+    return estimateTokens(text);
+  } catch {
+    return null;
+  }
+}
+
+function previewLogText(text: string, maxLength: number = 160): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+  return `${normalized.slice(0, maxLength)}…`;
+}
 
 export interface SectionGeneratorProps {
   /** Display label for the section */
@@ -96,6 +116,8 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const generationRunCounterRef = useRef(0);
+  const activeGenerationRunIdRef = useRef<string | null>(null);
   const outputId = useId();
   
   // Check if current model supports reasoning
@@ -191,6 +213,34 @@ export const SectionGenerator = memo(function SectionGenerator({
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
 
+    const runId = `${sectionKey}-${Date.now().toString(36)}-${++generationRunCounterRef.current}`;
+    activeGenerationRunIdRef.current = runId;
+
+    const log = (level: "info" | "warn" | "error", event: string, details?: Record<string, unknown>) => {
+      const payload = {
+        runId,
+        sectionKey,
+        sectionLabel,
+        model,
+        generationMode,
+        reasoningEffort,
+        supportsReasoning,
+        ...details,
+      };
+
+      if (level === "warn") {
+        console.warn(`[SectionGenerator:${sectionKey}] ${event}`, payload);
+        return;
+      }
+
+      if (level === "error") {
+        console.error(`[SectionGenerator:${sectionKey}] ${event}`, payload);
+        return;
+      }
+
+      console.info(`[SectionGenerator:${sectionKey}] ${event}`, payload);
+    };
+
     setIsGenerating(true);
     setStreamedOutput("");
     setStreamedReasoning("");
@@ -200,9 +250,29 @@ export const SectionGenerator = memo(function SectionGenerator({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    const runPass = async (options: StreamCompletionOptions) => {
+    log("info", "generation-started", {
+      promptChars: prompt.length,
+      promptTokens: safeEstimateTokens(prompt),
+      userMessageChars: userMessage.length,
+      userMessageTokens: safeEstimateTokens(userMessage),
+      currentArticleChars: currentArticleYaml?.length ?? 0,
+      currentArticleTokens: safeEstimateTokens(currentArticleYaml),
+      extractedContentChars: extractedContent?.length ?? 0,
+      extractedContentTokens: safeEstimateTokens(extractedContent),
+      genericSourcesCount: genericSources.length,
+      genericSourceChars: genericSources.reduce((total, source) => total + source.content.length, 0),
+    });
+
+    const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
       let receivedOutput = false;
       let hadError = false;
+      let outputChunkCount = 0;
+      let reasoningChunkCount = 0;
+
+      log("info", `${passName}-pass-started`, {
+        enableReasoning: options.enableReasoning ?? false,
+        reasoningEffort: options.reasoningEffort ?? null,
+      });
 
       const result = await streamCompletion(
         apiKey,
@@ -212,21 +282,47 @@ export const SectionGenerator = memo(function SectionGenerator({
         {
           onChunk: (chunk) => {
             receivedOutput = true;
+            outputChunkCount += 1;
+            if (outputChunkCount === 1) {
+              log("info", `${passName}-pass-first-output-chunk`, {
+                chunkLength: chunk.length,
+                preview: previewLogText(chunk),
+              });
+            }
             setStreamedOutput((prev) => prev + chunk);
           },
           onReasoning: (chunk) => {
+            reasoningChunkCount += 1;
+            if (reasoningChunkCount === 1) {
+              log("info", `${passName}-pass-first-reasoning-chunk`, {
+                chunkLength: chunk.length,
+                preview: previewLogText(chunk),
+              });
+            }
             setStreamedReasoning((prev) => prev + chunk);
           },
-          onComplete: () => {
+          onComplete: (fullText) => {
+            log("info", `${passName}-pass-complete-callback`, {
+              callbackOutputChars: fullText.length,
+            });
           },
           onError: (err) => {
             hadError = true;
             setError(err.message);
+            log("error", `${passName}-pass-error`, {
+              error: err.message,
+            });
           },
         },
         controller.signal,
         options,
       );
+
+      log(receivedOutput ? "info" : "warn", `${passName}-pass-finished`, {
+        receivedOutput,
+        hadError,
+        ...result,
+      });
 
       return {
         ...result,
@@ -236,7 +332,7 @@ export const SectionGenerator = memo(function SectionGenerator({
     };
 
     try {
-      const primaryPass = await runPass({
+      const primaryPass = await runPass("primary", {
         enableReasoning: supportsReasoning,
         reasoningEffort,
       });
@@ -259,59 +355,140 @@ export const SectionGenerator = memo(function SectionGenerator({
 [No YAML was returned from the reasoning pass. Retrying without reasoning.]`
           : "[No YAML was returned from the reasoning pass. Retrying without reasoning.]",
         );
+        log("warn", "retrying-without-reasoning", {
+          primaryFinishReason: primaryPass.finishReason,
+          primaryDurationMs: primaryPass.durationMs,
+          primaryContentChars: primaryPass.contentChars,
+          primaryReasoningChars: primaryPass.reasoningChars,
+        });
 
-        const fallbackPass = await runPass({
+        const fallbackPass = await runPass("fallback", {
           enableReasoning: false,
         });
 
         if (!fallbackPass.hadError && fallbackPass.receivedOutput) {
           setError(null);
+          log("info", "generation-finished-with-fallback-output", {
+            fallbackFinishReason: fallbackPass.finishReason,
+            fallbackDurationMs: fallbackPass.durationMs,
+            fallbackContentChars: fallbackPass.contentChars,
+          });
         } else if (!fallbackPass.hadError && !fallbackPass.receivedOutput) {
-          setError(
-            fallbackPass.finishReason === "length"
-              ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout. Try a smaller source set or a larger-context model like Gemini 3 Pro."
-              : "Generation completed but returned no YAML at all. This is usually an upstream model/output-budget issue rather than a timeout. Try Gemini 3 Pro/Flash or reduce the source/context size.",
-          );
+          const failureMessage = fallbackPass.finishReason === "length"
+            ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout. Try a smaller source set or a larger-context model like Gemini 3 Pro."
+            : "Generation completed but returned no YAML at all. This is usually an upstream model/output-budget issue rather than a timeout. Try Gemini 3 Pro/Flash or reduce the source/context size.";
+
+          setError(failureMessage);
+          log("warn", "generation-finished-without-yaml-after-fallback", {
+            fallbackFinishReason: fallbackPass.finishReason,
+            fallbackDurationMs: fallbackPass.durationMs,
+            fallbackContentChars: fallbackPass.contentChars,
+            fallbackReasoningChars: fallbackPass.reasoningChars,
+            failureMessage,
+          });
         }
       } else if (!primaryPass.hadError && !primaryPass.receivedOutput) {
-        setError(
-          primaryPass.finishReason === "length"
-            ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout."
-            : "Generation completed without any YAML output.",
-        );
+        const failureMessage = primaryPass.finishReason === "length"
+          ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout."
+          : "Generation completed without any YAML output.";
+
+        setError(failureMessage);
+        log("warn", "generation-finished-without-yaml", {
+          primaryFinishReason: primaryPass.finishReason,
+          primaryDurationMs: primaryPass.durationMs,
+          primaryContentChars: primaryPass.contentChars,
+          primaryReasoningChars: primaryPass.reasoningChars,
+          failureMessage,
+        });
+      } else {
+        log("info", "generation-finished-with-output", {
+          usedFallback: false,
+          primaryFinishReason: primaryPass.finishReason,
+          primaryDurationMs: primaryPass.durationMs,
+          primaryContentChars: primaryPass.contentChars,
+          primaryReasoningChars: primaryPass.reasoningChars,
+        });
       }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
+        log("error", "generation-threw", {
+          error: err.message,
+        });
       }
     } finally {
       setIsGenerating(false);
+      activeGenerationRunIdRef.current = null;
     }
-  }, [apiKey, model, prompt, userMessage, canGenerate, supportsReasoning, reasoningEffort]);
+  }, [
+    apiKey,
+    model,
+    prompt,
+    userMessage,
+    canGenerate,
+    supportsReasoning,
+    reasoningEffort,
+    sectionKey,
+    sectionLabel,
+    generationMode,
+    currentArticleYaml,
+    extractedContent,
+    genericSources,
+  ]);
 
   const handleCancel = useCallback(() => {
+    if (activeGenerationRunIdRef.current) {
+      console.warn(`[SectionGenerator:${sectionKey}] generation-cancelled`, {
+        runId: activeGenerationRunIdRef.current,
+        sectionKey,
+        sectionLabel,
+      });
+    }
     abortControllerRef.current?.abort();
     setIsGenerating(false);
-  }, []);
+  }, [sectionKey, sectionLabel]);
 
   const handleApply = useCallback(() => {
     const trimmedOutput = streamedOutput.trim();
 
     if (!trimmedOutput) {
+      console.warn(`[SectionGenerator:${sectionKey}] apply-skipped-empty-output`, {
+        sectionKey,
+        sectionLabel,
+      });
       setError("There is no generated YAML to apply yet.");
       return;
     }
 
     try {
+      console.info(`[SectionGenerator:${sectionKey}] apply-started`, {
+        sectionKey,
+        sectionLabel,
+        outputChars: trimmedOutput.length,
+        outputPreview: previewLogText(trimmedOutput),
+      });
       onApply(trimmedOutput);
       setStreamedOutput("");
       setStreamedReasoning("");
       setHasGenerated(false);
       setError(null);
+      console.info(`[SectionGenerator:${sectionKey}] apply-succeeded`, {
+        sectionKey,
+        sectionLabel,
+        outputChars: trimmedOutput.length,
+      });
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to apply generated YAML.");
+      const message = error instanceof Error ? error.message : "Failed to apply generated YAML.";
+      console.error(`[SectionGenerator:${sectionKey}] apply-failed`, {
+        sectionKey,
+        sectionLabel,
+        outputChars: trimmedOutput.length,
+        outputPreview: previewLogText(trimmedOutput),
+        error: message,
+      });
+      setError(message);
     }
-  }, [streamedOutput, onApply]);
+  }, [streamedOutput, onApply, sectionKey, sectionLabel]);
 
   const handleDiscard = useCallback(() => {
     setStreamedOutput("");

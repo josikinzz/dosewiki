@@ -124,6 +124,16 @@ export interface StreamCompletionOptions {
 export interface StreamCompletionResult {
   fullText: string;
   finishReason: string | null;
+  durationMs: number;
+  responseStatus: number;
+  contentChunkCount: number;
+  reasoningChunkCount: number;
+  contentChars: number;
+  reasoningChars: number;
+  sseEventCount: number;
+  malformedEventCount: number;
+  doneEventReceived: boolean;
+  aborted: boolean;
 }
 
 export async function streamCompletion(
@@ -186,13 +196,37 @@ export async function streamCompletion(
   if (!reader) throw new Error("No response body");
 
   const decoder = new TextDecoder();
+  const startedAt = Date.now();
   let fullText = "";
   let buffer = "";
   let finishReason: string | null = null;
+  let contentChunkCount = 0;
+  let reasoningChunkCount = 0;
+  let contentChars = 0;
+  let reasoningChars = 0;
+  let sseEventCount = 0;
+  let malformedEventCount = 0;
+  let doneEventReceived = false;
+  let aborted = false;
   
   // Track last chunks to deduplicate (OpenRouter sometimes sends duplicates)
   let lastReasoningChunk = "";
   let lastContentChunk = "";
+
+  const buildResult = (): StreamCompletionResult => ({
+    fullText,
+    finishReason,
+    durationMs: Date.now() - startedAt,
+    responseStatus: response.status,
+    contentChunkCount,
+    reasoningChunkCount,
+    contentChars,
+    reasoningChars,
+    sseEventCount,
+    malformedEventCount,
+    doneEventReceived,
+    aborted,
+  });
 
   try {
     while (true) {
@@ -206,7 +240,11 @@ export async function streamCompletion(
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
         const data = line.slice(6).trim();
-        if (data === "[DONE]") continue;
+        if (data === "[DONE]") {
+          doneEventReceived = true;
+          continue;
+        }
+        sseEventCount += 1;
 
         try {
           const parsed = JSON.parse(data);
@@ -240,6 +278,8 @@ export async function streamCompletion(
             // Deduplicate - skip if this is the same as the last chunk
             if (reasoningChunk && reasoningChunk !== lastReasoningChunk) {
               callbacks.onReasoning(reasoningChunk);
+              reasoningChunkCount += 1;
+              reasoningChars += reasoningChunk.length;
               lastReasoningChunk = reasoningChunk;
             }
           }
@@ -249,24 +289,27 @@ export async function streamCompletion(
           if (contentChunk && contentChunk !== lastContentChunk) {
             fullText += contentChunk;
             callbacks.onChunk(contentChunk);
+            contentChunkCount += 1;
+            contentChars += contentChunk.length;
             lastContentChunk = contentChunk;
           }
         } catch {
-          // Skip malformed JSON
+          malformedEventCount += 1;
         }
       }
     }
 
     callbacks.onComplete(fullText);
-    return { fullText, finishReason };
+    return buildResult();
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
+      aborted = true;
       callbacks.onError(new Error("Generation cancelled"));
     } else {
       callbacks.onError(error instanceof Error ? error : new Error(String(error)));
     }
 
-    return { fullText, finishReason };
+    return buildResult();
   }
 }
 

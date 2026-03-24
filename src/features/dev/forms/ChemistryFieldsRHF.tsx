@@ -111,7 +111,9 @@ export function ChemistryFieldsRHF({
   // Always overwrites pharmacology fields - use empty defaults for missing fields
   // Also applies route-specific fields to dosage/duration routes (creates new routes if needed)
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
+    try {
       const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const parsedKeys = Object.keys(parsed);
       const pharmacology: Pharmacology & {
         summary?: string;
         route_bioavailability?: Record<string, string>;
@@ -121,7 +123,15 @@ export function ChemistryFieldsRHF({
         bioavailability_notes?: string;
         half_life?: string;
       } = normalizePharmacologySection(parsed.pharmacology ?? parsed);
-      
+
+      console.info("[PharmacologyGenerator] parsed-generated-yaml", {
+        inputChars: generatedYaml.length,
+        topLevelKeys: parsedKeys,
+        parsedHasNestedPharmacology: Boolean(parsed.pharmacology),
+        receptorProfileCount: pharmacology.receptor_profile?.length ?? 0,
+        metaboliteCount: pharmacology.metabolites?.length ?? 0,
+      });
+
       setValue("pharmacology.pharmacodynamics", pharmacology.pharmacodynamics ?? pharmacology.summary ?? "");
       setValue("pharmacology.summary", pharmacology.summary ?? "");
       setValue("pharmacology.receptor_profile", pharmacology.receptor_profile ?? []);
@@ -135,29 +145,30 @@ export function ChemistryFieldsRHF({
       setValue("pharmacology.route_bioavailability_notes", normalizeRouteRecord(pharmacology.route_bioavailability_notes));
       setValue("pharmacology.bioavailability_notes", pharmacology.bioavailability_notes ?? "");
       setValue("pharmacology.half_life", pharmacology.half_life ?? "");
-      
+
       const routeBioMap = normalizeRouteRecord(pharmacology.route_bioavailability);
       const routeHalfLifeMap = normalizeRouteRecord(pharmacology.route_half_life);
       const routeHalfLifeNotesMap = normalizeRouteRecord(pharmacology.route_half_life_notes);
       const routeBioNotesMap = normalizeRouteRecord(pharmacology.route_bioavailability_notes);
-      
-      // Check if we have any route-specific data to apply
-      const hasRouteData = 
+
+      const hasRouteData =
         Object.keys(routeBioMap).length > 0 ||
         Object.keys(routeHalfLifeMap).length > 0 ||
         Object.keys(routeHalfLifeNotesMap).length > 0 ||
         Object.keys(routeBioNotesMap).length > 0;
-      
+
+      let addedRouteCount = 0;
+      let finalDosageRouteCount = getValues("dosage.routes")?.length ?? 0;
+      let finalDurationRouteCount = getValues("duration.routes")?.length ?? 0;
+
       if (hasRouteData) {
         const currentDosageRoutes = getValues("dosage.routes") ?? [];
         const currentDurationRoutes = getValues("duration.routes") ?? [];
-        
-        // Track which canonical routes already exist in the form
+
         const existingRoutes = new Set(
           currentDosageRoutes.map((r) => normalizeRouteName(r.route))
         );
-        
-        // 1. Apply route-specific data to existing routes
+
         currentDosageRoutes.forEach((route, index) => {
           const normalizedRoute = normalizeRouteName(route.route);
           if (routeBioMap[normalizedRoute]) {
@@ -167,7 +178,7 @@ export function ChemistryFieldsRHF({
             setValue(`dosage.routes.${index}.bioavailability_notes`, routeBioNotesMap[normalizedRoute]);
           }
         });
-        
+
         currentDurationRoutes.forEach((route, index) => {
           const normalizedRoute = normalizeRouteName(route.route);
           if (routeHalfLifeMap[normalizedRoute]) {
@@ -177,8 +188,7 @@ export function ChemistryFieldsRHF({
             setValue(`duration.routes.${index}.half_life_notes`, routeHalfLifeNotesMap[normalizedRoute]);
           }
         });
-        
-        // 2. Collect all unique routes from all four maps that don't exist yet
+
         const allNewRoutes = new Set<string>();
         for (const routeName of Object.keys(routeBioMap)) {
           if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
@@ -192,26 +202,50 @@ export function ChemistryFieldsRHF({
         for (const routeName of Object.keys(routeBioNotesMap)) {
           if (!existingRoutes.has(routeName)) allNewRoutes.add(routeName);
         }
-        
-        // 3. Create new blank routes for any routes with data that don't exist yet
+
         if (allNewRoutes.size > 0) {
           const newDosageRoutes = [...currentDosageRoutes];
           const newDurationRoutes = [...currentDurationRoutes];
-          
+
           for (const routeName of allNewRoutes) {
             const bioavailability = routeBioMap[routeName] ?? "";
             const bioavailabilityNotes = routeBioNotesMap[routeName] ?? "";
             const halfLife = routeHalfLifeMap[routeName] ?? "";
             const halfLifeNotes = routeHalfLifeNotesMap[routeName] ?? "";
-            
+
             newDosageRoutes.push(createBlankDosageRoute(routeName, bioavailability, bioavailabilityNotes));
             newDurationRoutes.push(createBlankDurationRoute(routeName, halfLife, halfLifeNotes));
           }
-          
+
+          addedRouteCount = allNewRoutes.size;
+          finalDosageRouteCount = newDosageRoutes.length;
+          finalDurationRouteCount = newDurationRoutes.length;
           setValue("dosage.routes", newDosageRoutes);
           setValue("duration.routes", newDurationRoutes);
         }
       }
+
+      console.info("[PharmacologyGenerator] apply-succeeded", {
+        inputChars: generatedYaml.length,
+        receptorProfileCount: pharmacology.receptor_profile?.length ?? 0,
+        metaboliteCount: pharmacology.metabolites?.length ?? 0,
+        routeBioavailabilityCount: Object.keys(routeBioMap).length,
+        routeHalfLifeCount: Object.keys(routeHalfLifeMap).length,
+        routeHalfLifeNotesCount: Object.keys(routeHalfLifeNotesMap).length,
+        routeBioavailabilityNotesCount: Object.keys(routeBioNotesMap).length,
+        addedRouteCount,
+        finalDosageRouteCount,
+        finalDurationRouteCount,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to apply generated pharmacology YAML.";
+      console.error("[PharmacologyGenerator] apply-failed", {
+        inputChars: generatedYaml.length,
+        preview: generatedYaml.slice(0, 500),
+        error: message,
+      });
+      throw error instanceof Error ? error : new Error(message);
+    }
   }, [setValue, getValues]);
 
   return (
