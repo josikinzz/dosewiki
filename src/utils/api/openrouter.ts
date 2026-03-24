@@ -52,6 +52,58 @@ export function estimateTokens(text: string): number {
   return estimateTokenCount(text);
 }
 
+function extractTextFromStructuredContent(content: unknown): string {
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content.map((entry) => extractTextFromStructuredContent(entry)).join("");
+  }
+
+  if (!content || typeof content !== "object") {
+    return "";
+  }
+
+  const record = content as Record<string, unknown>;
+
+  if (typeof record.text === "string") {
+    return record.text;
+  }
+
+  if (typeof record.content === "string") {
+    return record.content;
+  }
+
+  if (Array.isArray(record.content)) {
+    return extractTextFromStructuredContent(record.content);
+  }
+
+  if (Array.isArray(record.parts)) {
+    return extractTextFromStructuredContent(record.parts);
+  }
+
+  return "";
+}
+
+function extractContentChunk(choice: Record<string, unknown> | undefined): string {
+  if (!choice) {
+    return "";
+  }
+
+  const delta = choice.delta as Record<string, unknown> | undefined;
+  const message = choice.message as Record<string, unknown> | undefined;
+
+  return extractTextFromStructuredContent(
+    delta?.content ??
+      delta?.output_text ??
+      delta?.text ??
+      message?.content ??
+      choice.text ??
+      "",
+  );
+}
+
 export interface StreamCompletionOptions {
   /** Enable extended thinking/reasoning (default: true for Claude) */
   enableReasoning?: boolean;
@@ -152,7 +204,8 @@ export async function streamCompletion(
 
         try {
           const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta;
+          const choice = parsed.choices?.[0] as Record<string, unknown> | undefined;
+          const delta = choice?.delta as Record<string, unknown> | undefined;
           
           // Handle reasoning content - OpenRouter uses different fields depending on model
           // Only process ONE of these to avoid duplicates
@@ -160,15 +213,15 @@ export async function streamCompletion(
             let reasoningChunk: string | null = null;
             
             // Prefer reasoning_content (used by some models)
-            if (delta?.reasoning_content) {
+            if (typeof delta?.reasoning_content === "string") {
               reasoningChunk = delta.reasoning_content;
             }
             // Fall back to reasoning (used by other models)
-            else if (delta?.reasoning) {
+            else if (typeof delta?.reasoning === "string") {
               reasoningChunk = delta.reasoning;
             }
             // Some models use reasoning_details array
-            else if (delta?.reasoning_details?.length > 0) {
+            else if (Array.isArray(delta?.reasoning_details) && delta.reasoning_details.length > 0) {
               reasoningChunk = delta.reasoning_details
                 .map((d: { text?: string }) => d?.text || "")
                 .join("");
@@ -182,10 +235,11 @@ export async function streamCompletion(
           }
           
           // Handle regular content
-          if (delta?.content && delta.content !== lastContentChunk) {
-            fullText += delta.content;
-            callbacks.onChunk(delta.content);
-            lastContentChunk = delta.content;
+          const contentChunk = extractContentChunk(choice);
+          if (contentChunk && contentChunk !== lastContentChunk) {
+            fullText += contentChunk;
+            callbacks.onChunk(contentChunk);
+            lastContentChunk = contentChunk;
           }
         } catch {
           // Skip malformed JSON

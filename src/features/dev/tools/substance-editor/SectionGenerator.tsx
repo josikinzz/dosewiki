@@ -226,7 +226,10 @@ export const SectionGenerator = memo(function SectionGenerator({
           onReasoning: (chunk) => {
             setStreamedReasoning((prev) => prev + chunk);
           },
-          onComplete: () => {
+          onComplete: (fullText) => {
+            if (!fullText.trim()) {
+              setError("Generation completed without any YAML output. Try lowering reasoning effort or regenerating.");
+            }
             setIsGenerating(false);
           },
           onError: (err) => {
@@ -251,11 +254,21 @@ export const SectionGenerator = memo(function SectionGenerator({
   }, []);
 
   const handleApply = useCallback(() => {
-    if (streamedOutput) {
-      onApply(streamedOutput);
+    const trimmedOutput = streamedOutput.trim();
+
+    if (!trimmedOutput) {
+      setError("There is no generated YAML to apply yet.");
+      return;
+    }
+
+    try {
+      onApply(trimmedOutput);
       setStreamedOutput("");
       setStreamedReasoning("");
       setHasGenerated(false);
+      setError(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to apply generated YAML.");
     }
   }, [streamedOutput, onApply]);
 

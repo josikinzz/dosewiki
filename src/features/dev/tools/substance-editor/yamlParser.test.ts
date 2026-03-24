@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import yaml from "yaml";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { parseGeneratedYaml } from "./yamlParser";
+import { parseGeneratedYaml, parseSectionYamlObject } from "./yamlParser";
 
 describe("parseGeneratedYaml", () => {
   it("preserves legacy pharmacology data when hydrating an existing article", () => {
@@ -45,5 +45,10 @@ describe("parseGeneratedYaml", () => {
         expect.objectContaining({ receptor: "NMDA receptor", efficacy: "antagonist" }),
       ]),
     );
+  });
+
+  it("rejects empty or non-object section YAML", () => {
+    expect(() => parseSectionYamlObject("   ")).toThrow("Generated YAML is empty.");
+    expect(() => parseSectionYamlObject("null")).toThrow("Generated YAML must parse to an object.");
   });
 });

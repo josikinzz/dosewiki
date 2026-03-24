@@ -9,8 +9,26 @@ export interface ParseResult {
   lineNumber?: number;
 }
 
-export function parseSectionYamlObject<T = Record<string, unknown>>(yamlString: string): T {
-  return parse(stripMarkdownCodeFences(yamlString)) as T;
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+export function parseSectionYamlObject<T extends Record<string, unknown> = Record<string, unknown>>(
+  yamlString: string,
+): T {
+  const cleanedYaml = stripMarkdownCodeFences(yamlString);
+
+  if (!cleanedYaml.trim()) {
+    throw new Error("Generated YAML is empty.");
+  }
+
+  const parsed = parse(cleanedYaml);
+
+  if (!isObjectRecord(parsed)) {
+    throw new Error("Generated YAML must parse to an object.");
+  }
+
+  return parsed as T;
 }
 
 /**
@@ -31,7 +49,7 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
   try {
     const parsed = parse(cleanedYaml);
 
-    if (!parsed || typeof parsed !== "object") {
+    if (!isObjectRecord(parsed)) {
       return {
         success: false,
         error: "Parsed content is not a valid object",

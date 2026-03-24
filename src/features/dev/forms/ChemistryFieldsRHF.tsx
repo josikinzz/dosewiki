@@ -111,7 +111,6 @@ export function ChemistryFieldsRHF({
   // Always overwrites pharmacology fields - use empty defaults for missing fields
   // Also applies route-specific fields to dosage/duration routes (creates new routes if needed)
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
-    try {
       const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
       const pharmacology: Pharmacology & {
         summary?: string;
@@ -213,9 +212,6 @@ export function ChemistryFieldsRHF({
           setValue("duration.routes", newDurationRoutes);
         }
       }
-    } catch (error) {
-      console.error("Failed to parse generated pharmacology YAML:", error);
-    }
   }, [setValue, getValues]);
 
   return (
