@@ -21,6 +21,7 @@ export const DEFAULT_OPENROUTER_MODEL_ID = "anthropic/claude-opus-4.6";
 const LEGACY_OPENROUTER_MODEL_IDS: Record<string, string> = {
   "anthropic/claude-opus-4.5": DEFAULT_OPENROUTER_MODEL_ID,
 };
+const STREAM_MAX_TOKENS = 16384;
 
 export const MODEL_OPTIONS: ModelOption[] = [
   { id: DEFAULT_OPENROUTER_MODEL_ID, label: "Claude Opus 4.6", contextWindow: 200000, provider: "anthropic", description: "Undoubtedly the best model, if the articles fit into its 200k context window." },
@@ -104,19 +105,16 @@ function extractContentChunk(choice: Record<string, unknown> | undefined): strin
   );
 }
 
+export type ReasoningEffortLevel = "minimal" | "low" | "medium" | "high" | "xhigh";
+
 export interface StreamCompletionOptions {
   /** Enable extended thinking/reasoning (default: true for Claude) */
   enableReasoning?: boolean;
-  /** 
-   * Reasoning effort level: "minimal" | "low" | "medium" | "high" | "xhigh"
-   * - minimal: 5% of max_tokens for reasoning
-   * - low: 20% of max_tokens for reasoning
-   * - medium: 50% of max_tokens for reasoning
-   * - high: 80% of max_tokens for reasoning  
-   * - xhigh: 95% of max_tokens for reasoning
-   * Default: "medium"
+  /**
+   * For Claude 4.6 models, this maps to explicit `reasoning.max_tokens` budgets.
+   * For older Claude models, this is passed through as `reasoning.effort`.
    */
-  reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh";
+  reasoningEffort?: ReasoningEffortLevel;
   /** Temperature for generation (default: 0.3) */
   temperature?: number;
 }
@@ -136,6 +134,68 @@ export interface StreamCompletionResult {
   aborted: boolean;
 }
 
+export function isClaude46Model(model: string): boolean {
+  return /anthropic\/claude-(?:opus|sonnet)-4\.6$/.test(model)
+    || /anthropic\/claude-4\.6-(?:opus|sonnet)$/.test(model);
+}
+
+export function getClaude46ReasoningMaxTokens(reasoningEffort: ReasoningEffortLevel): number {
+  switch (reasoningEffort) {
+    case "minimal":
+      return 1024;
+    case "low":
+      return 2048;
+    case "medium":
+      return 4096;
+    case "high":
+      return 6144;
+    case "xhigh":
+      return 8192;
+    default:
+      return 2048;
+  }
+}
+
+export function buildOpenRouterRequestBody(
+  model: string,
+  systemPrompt: string,
+  userMessage: string,
+  options: StreamCompletionOptions = {},
+): Record<string, unknown> {
+  const isClaudeModel = model.includes("claude");
+  const {
+    enableReasoning = isClaudeModel,
+    reasoningEffort = "medium",
+    temperature = 0.3,
+  } = options;
+
+  const requestBody: Record<string, unknown> = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    stream: true,
+    temperature,
+    max_tokens: STREAM_MAX_TOKENS,
+  };
+
+  if (enableReasoning) {
+    if (isClaude46Model(model)) {
+      requestBody.reasoning = {
+        enabled: true,
+        max_tokens: getClaude46ReasoningMaxTokens(reasoningEffort),
+      };
+    } else {
+      requestBody.reasoning = {
+        effort: reasoningEffort,
+      };
+    }
+  }
+
+  return requestBody;
+}
+
 export async function streamCompletion(
   apiKey: string,
   model: string,
@@ -145,32 +205,7 @@ export async function streamCompletion(
   signal?: AbortSignal,
   options: StreamCompletionOptions = {}
 ): Promise<StreamCompletionResult> {
-  const isClaudeModel = model.includes("claude");
-  const {
-    enableReasoning = isClaudeModel, // Enable by default for Claude
-    reasoningEffort = "medium",
-    temperature = 0.3,
-  } = options;
-
-  // Build request body
-  const requestBody: Record<string, unknown> = {
-    model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
-    ],
-    stream: true,
-    temperature,
-    max_tokens: 16384,
-  };
-
-  // Add reasoning for supported models (Claude, etc.)
-  // OpenRouter uses a unified "reasoning" parameter
-  if (enableReasoning) {
-    requestBody.reasoning = {
-      effort: reasoningEffort,
-    };
-  }
+  const requestBody = buildOpenRouterRequestBody(model, systemPrompt, userMessage, options);
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -208,8 +243,7 @@ export async function streamCompletion(
   let malformedEventCount = 0;
   let doneEventReceived = false;
   let aborted = false;
-  
-  // Track last chunks to deduplicate (OpenRouter sometimes sends duplicates)
+
   let lastReasoningChunk = "";
   let lastContentChunk = "";
 
@@ -254,28 +288,20 @@ export async function streamCompletion(
           if (typeof choice?.finish_reason === "string") {
             finishReason = choice.finish_reason;
           }
-          
-          // Handle reasoning content - OpenRouter uses different fields depending on model
-          // Only process ONE of these to avoid duplicates
+
           if (callbacks.onReasoning) {
             let reasoningChunk: string | null = null;
-            
-            // Prefer reasoning_content (used by some models)
+
             if (typeof delta?.reasoning_content === "string") {
               reasoningChunk = delta.reasoning_content;
-            }
-            // Fall back to reasoning (used by other models)
-            else if (typeof delta?.reasoning === "string") {
+            } else if (typeof delta?.reasoning === "string") {
               reasoningChunk = delta.reasoning;
-            }
-            // Some models use reasoning_details array
-            else if (Array.isArray(delta?.reasoning_details) && delta.reasoning_details.length > 0) {
+            } else if (Array.isArray(delta?.reasoning_details) && delta.reasoning_details.length > 0) {
               reasoningChunk = delta.reasoning_details
                 .map((d: { text?: string }) => d?.text || "")
                 .join("");
             }
-            
-            // Deduplicate - skip if this is the same as the last chunk
+
             if (reasoningChunk && reasoningChunk !== lastReasoningChunk) {
               callbacks.onReasoning(reasoningChunk);
               reasoningChunkCount += 1;
@@ -283,8 +309,7 @@ export async function streamCompletion(
               lastReasoningChunk = reasoningChunk;
             }
           }
-          
-          // Handle regular content
+
           const contentChunk = extractContentChunk(choice);
           if (contentChunk && contentChunk !== lastContentChunk) {
             fullText += contentChunk;
