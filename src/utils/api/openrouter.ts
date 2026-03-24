@@ -121,6 +121,11 @@ export interface StreamCompletionOptions {
   temperature?: number;
 }
 
+export interface StreamCompletionResult {
+  fullText: string;
+  finishReason: string | null;
+}
+
 export async function streamCompletion(
   apiKey: string,
   model: string,
@@ -129,7 +134,7 @@ export async function streamCompletion(
   callbacks: StreamCallbacks,
   signal?: AbortSignal,
   options: StreamCompletionOptions = {}
-): Promise<void> {
+): Promise<StreamCompletionResult> {
   const isClaudeModel = model.includes("claude");
   const {
     enableReasoning = isClaudeModel, // Enable by default for Claude
@@ -183,6 +188,7 @@ export async function streamCompletion(
   const decoder = new TextDecoder();
   let fullText = "";
   let buffer = "";
+  let finishReason: string | null = null;
   
   // Track last chunks to deduplicate (OpenRouter sometimes sends duplicates)
   let lastReasoningChunk = "";
@@ -206,6 +212,10 @@ export async function streamCompletion(
           const parsed = JSON.parse(data);
           const choice = parsed.choices?.[0] as Record<string, unknown> | undefined;
           const delta = choice?.delta as Record<string, unknown> | undefined;
+
+          if (typeof choice?.finish_reason === "string") {
+            finishReason = choice.finish_reason;
+          }
           
           // Handle reasoning content - OpenRouter uses different fields depending on model
           // Only process ONE of these to avoid duplicates
@@ -248,12 +258,15 @@ export async function streamCompletion(
     }
 
     callbacks.onComplete(fullText);
+    return { fullText, finishReason };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       callbacks.onError(new Error("Generation cancelled"));
     } else {
       callbacks.onError(error instanceof Error ? error : new Error(String(error)));
     }
+
+    return { fullText, finishReason };
   }
 }
 

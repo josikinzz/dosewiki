@@ -13,13 +13,6 @@ import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { streamCompletion, type StreamCompletionOptions } from "@/utils/api/openrouter";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
 import { PromptEditorModal } from "./PromptEditorModal";
@@ -97,7 +90,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [streamedOutput, setStreamedOutput] = useState("");
   const [streamedReasoning, setStreamedReasoning] = useState("");
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
-  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>("medium");
+  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>("low");
   const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -207,43 +200,91 @@ export const SectionGenerator = memo(function SectionGenerator({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // Build options with reasoning settings
-    const options: StreamCompletionOptions = {
-      enableReasoning: supportsReasoning,
-      reasoningEffort: reasoningEffort,
-    };
+    const runPass = async (options: StreamCompletionOptions) => {
+      let receivedOutput = false;
+      let hadError = false;
 
-    try {
-      await streamCompletion(
+      const result = await streamCompletion(
         apiKey,
         model,
         prompt,
         userMessage,
         {
           onChunk: (chunk) => {
+            receivedOutput = true;
             setStreamedOutput((prev) => prev + chunk);
           },
           onReasoning: (chunk) => {
             setStreamedReasoning((prev) => prev + chunk);
           },
-          onComplete: (fullText) => {
-            if (!fullText.trim()) {
-              setError("Generation completed without any YAML output. Try lowering reasoning effort or regenerating.");
-            }
-            setIsGenerating(false);
+          onComplete: () => {
           },
           onError: (err) => {
+            hadError = true;
             setError(err.message);
-            setIsGenerating(false);
           },
         },
         controller.signal,
-        options
+        options,
       );
+
+      return {
+        ...result,
+        receivedOutput,
+        hadError,
+      };
+    };
+
+    try {
+      const primaryPass = await runPass({
+        enableReasoning: supportsReasoning,
+        reasoningEffort,
+      });
+
+      const shouldRetryWithoutReasoning =
+        supportsReasoning &&
+        !controller.signal.aborted &&
+        !primaryPass.hadError &&
+        !primaryPass.receivedOutput;
+
+      if (shouldRetryWithoutReasoning) {
+        const retryMessage = primaryPass.finishReason === "length"
+          ? "Reasoning used the response budget before YAML was emitted. Retrying without reasoning…"
+          : "Reasoning completed without YAML output. Retrying without reasoning…";
+
+        setError(retryMessage);
+        setStreamedReasoning((prev) => prev
+          ? `${prev}
+
+[No YAML was returned from the reasoning pass. Retrying without reasoning.]`
+          : "[No YAML was returned from the reasoning pass. Retrying without reasoning.]",
+        );
+
+        const fallbackPass = await runPass({
+          enableReasoning: false,
+        });
+
+        if (!fallbackPass.hadError && fallbackPass.receivedOutput) {
+          setError(null);
+        } else if (!fallbackPass.hadError && !fallbackPass.receivedOutput) {
+          setError(
+            fallbackPass.finishReason === "length"
+              ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout. Try a smaller source set or a larger-context model like Gemini 3 Pro."
+              : "Generation completed but returned no YAML at all. This is usually an upstream model/output-budget issue rather than a timeout. Try Gemini 3 Pro/Flash or reduce the source/context size.",
+          );
+        }
+      } else if (!primaryPass.hadError && !primaryPass.receivedOutput) {
+        setError(
+          primaryPass.finishReason === "length"
+            ? "Generation hit the output budget before any YAML was returned. This is usually token exhaustion rather than a timeout."
+            : "Generation completed without any YAML output.",
+        );
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       }
+    } finally {
       setIsGenerating(false);
     }
   }, [apiKey, model, prompt, userMessage, canGenerate, supportsReasoning, reasoningEffort]);
@@ -373,26 +414,18 @@ export const SectionGenerator = memo(function SectionGenerator({
             {supportsReasoning && !isGenerating && (
               <div className="flex items-center gap-1.5">
                 <Icon icon="lucide:brain" className="h-4 w-4 text-fuchsia-300" size={16} />
-                <Select
+                <select
+                  aria-label="Reasoning effort"
                   value={reasoningEffort}
-                  onValueChange={(v) => setReasoningEffort(v as ReasoningEffort)}
+                  onChange={(event) => setReasoningEffort(event.target.value as ReasoningEffort)}
+                  className="h-7 w-36 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
-                  <SelectTrigger className="h-7 w-28" selectSize="compact">
-                    <SelectValue>
-                      {REASONING_OPTIONS.find(o => o.value === reasoningEffort)?.label ?? "Medium"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REASONING_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        <div className="flex items-center gap-3">
-                          <span>{opt.label}</span>
-                          <span className="text-xs text-white/40">{opt.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {REASONING_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} · {opt.description}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
