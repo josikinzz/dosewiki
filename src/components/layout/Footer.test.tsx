@@ -88,6 +88,7 @@ describe("Footer theme toggle", () => {
       "https://creativecommons.org/licenses/by-sa/4.0/",
     );
     expect(screen.getByRole("link", { name: /About/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Dev tools" })).toHaveAttribute("href", "/dev");
     expect(screen.getByRole("link", { name: "dose.wiki GitHub" })).toHaveAttribute(
       "href",
       "https://github.com/dose-wiki/dose.wiki",

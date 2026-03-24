@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Github, Info } from "lucide-react";
+import { Github, Info, Settings } from "lucide-react";
 import { AppImage } from "../common/AppImage";
 import { ThemeToggle } from "@/app/_components/ThemeToggle";
 
@@ -52,6 +52,14 @@ export function Footer() {
               className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
             >
               <Info size={18} />
+            </Link>
+            <Link
+              href="/dev"
+              aria-label="Dev tools"
+              title="Dev tools"
+              className="theme-icon-button inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
+            >
+              <Settings size={18} />
             </Link>
             <a
               href="https://github.com/dose-wiki/dose.wiki"

@@ -15,7 +15,7 @@ const authSecret =
 
 export const hasGitHubAuthConfigured = Boolean(githubClientId && githubClientSecret);
 export const hasLegacyCredentialsAuthConfigured =
-  !hasGitHubAuthConfigured && process.env.NODE_ENV !== "production" && hasLegacyCredentialsConfigured();
+  !hasGitHubAuthConfigured && hasLegacyCredentialsConfigured();
 
 const providers = [];
 

@@ -46,12 +46,12 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         <>
           Editor access to <code className={inlineCodeClassName}>/dev</code> is limited to accounts with the{" "}
           <code className={inlineCodeClassName}>admin</code> or <code className={inlineCodeClassName}>editor</code>{" "}
-          role in Convex memberships.
+          role. Sign in with your editor username and password to continue.
         </>
       }
       actions={
         <>
-          <SignInButton callbackUrl={callbackUrl} disabled={!hasGitHubAuthConfigured} />
+          {hasGitHubAuthConfigured ? <SignInButton callbackUrl={callbackUrl} /> : null}
           <Button asChild variant="outline">
             <Link href="/substances">Back to public site</Link>
           </Button>
@@ -80,11 +80,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       {hasGitHubAuthConfigured || hasLegacyCredentialsAuthConfigured ? null : (
         <Alert variant="warning">
           <TriangleAlert className="h-4 w-4" />
-          <AlertTitle>GitHub auth is not configured</AlertTitle>
+          <AlertTitle>Sign-in is not configured</AlertTitle>
           <AlertDescription>
-            Add <code className={inlineCodeClassName}>AUTH_GITHUB_ID</code>,{" "}
-            <code className={inlineCodeClassName}>AUTH_GITHUB_SECRET</code>, and{" "}
-            <code className={inlineCodeClassName}>AUTH_SECRET</code> to enable real sign-in.
+            Add <code className={inlineCodeClassName}>AUTH_SECRET</code> and at least one editor credentials env var
+            to enable sign-in.
           </AlertDescription>
         </Alert>
       )}
@@ -92,10 +91,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       {hasLegacyCredentialsAuthConfigured ? (
         <Alert variant="warning">
           <Info className="h-4 w-4" />
-          <AlertTitle>Using local credentials fallback</AlertTitle>
+          <AlertTitle>Use your editor credentials</AlertTitle>
           <AlertDescription>
-            GitHub OAuth is not configured locally, so this dev shell is using a temporary Auth.js credentials
-            provider. Keep it limited to local migration work and use GitHub auth for production access.
+            Sign in with the same editor username and password used for the legacy dev tools account.
           </AlertDescription>
         </Alert>
       ) : null}
