@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { SectionHeader } from "@/components/common/SectionHeader";
-import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/common/Icon";
 import { getContributorPath } from "@/utils/contributors";
 import { isPlainLeftClick } from "@/utils/navigation";
 
@@ -11,6 +10,7 @@ interface EffectContributorsSectionProps {
 
 /**
  * Contributors section for effect articles.
+ * Compact inline list of contributor names.
  */
 export function EffectContributorsSection({
   contributors,
@@ -21,36 +21,33 @@ export function EffectContributorsSection({
   }
 
   return (
-    <div className="space-y-6">
-      <SectionHeader icon="lucide:users" title="Contributors" />
-      <div className="flex flex-wrap gap-2">
-        {contributors.map((contributor) => {
-          const path = getContributorPath(contributor);
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-white/50">
+      <Icon icon="lucide:users" size={14} className="shrink-0 text-white/40" />
+      <span className="mr-1 font-medium text-white/50">Contributors:</span>
+      {contributors.map((contributor, index) => {
+        const path = getContributorPath(contributor);
 
-          return (
-            <Button
-              key={contributor}
-              asChild
-              variant="chip"
-              size="chip"
+        return (
+          <span key={contributor} className="inline">
+            <Link
+              href={path}
+              onClick={(event) => {
+                if (!onNavigate || !isPlainLeftClick(event)) {
+                  return;
+                }
+                event.preventDefault();
+                onNavigate(path);
+              }}
+              className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors"
             >
-              <Link
-                href={path}
-                onClick={(event) => {
-                  if (!onNavigate || !isPlainLeftClick(event)) {
-                    return;
-                  }
-
-                  event.preventDefault();
-                  onNavigate(path);
-                }}
-              >
-                {contributor}
-              </Link>
-            </Button>
-          );
-        })}
-      </div>
+              {contributor}
+            </Link>
+            {index < contributors.length - 1 && (
+              <span className="text-white/25 ml-1">&middot;</span>
+            )}
+          </span>
+        );
+      })}
     </div>
   );
 }

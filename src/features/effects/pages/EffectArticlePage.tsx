@@ -145,21 +145,23 @@ export function EffectArticlePage({
       <div className="mx-auto max-w-4xl space-y-10 px-4 pb-16 pt-8 md:px-8">
         <div className="flex items-center gap-3">
           <Icon icon={getEffectIcon(effect.tags)} size={32} className="shrink-0 text-fuchsia-300" />
-          <h1 className="font-display text-3xl font-bold tracking-tight text-fuchsia-200 sm:text-4xl">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-fuchsia-300 sm:text-4xl">
             {effect.name}
           </h1>
         </div>
 
-        <EffectArticleRichSection
-          id="overview"
-          title="Overview"
-          icon="lucide:book-open-text"
-          content={descriptionContent}
-          citations={effect.citations}
-          subarticles={effect.subarticles}
-          onNavigate={onNavigate}
-          contentClassName="prose prose-invert prose-fuchsia mt-6 max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82"
-        />
+        {descriptionContent && (
+          <section id="overview" className="scroll-mt-24">
+            <div className="prose prose-invert prose-fuchsia max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82">
+              <VCodeRenderer
+                content={descriptionContent}
+                onNavigate={onNavigate}
+                citations={effect.citations}
+                subarticles={effect.subarticles}
+              />
+            </div>
+          </section>
+        )}
 
         <EffectArticleRichSection
           id="analysis"
