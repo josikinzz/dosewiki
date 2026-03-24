@@ -97,7 +97,7 @@ function EffectArticleRichSection({
   return (
     <section id={id} className={cn("scroll-mt-24 space-y-6", className)}>
       <SectionHeader icon={icon} title={title} />
-      <div className={contentClassName ?? "prose prose-invert prose-fuchsia mt-6 max-w-none text-white/85"}>
+      <div className={contentClassName ?? "prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-white/85"}>
         <VCodeRenderer
           content={content}
           onNavigate={onNavigate}
@@ -152,7 +152,7 @@ export function EffectArticlePage({
 
         {descriptionContent && (
           <section id="overview" className="scroll-mt-24">
-            <div className="prose prose-invert prose-fuchsia max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82">
+            <div className="prose prose-invert prose-fuchsia prose-a:font-normal max-w-none overflow-hidden text-[1.0625rem] leading-7 text-white/82">
               <VCodeRenderer
                 content={descriptionContent}
                 onNavigate={onNavigate}
@@ -232,7 +232,7 @@ export function EffectArticlePage({
           subarticles={effect.subarticles}
           onNavigate={onNavigate}
           className="border-l border-fuchsia-400/20 pl-5 sm:pl-6"
-          contentClassName="prose prose-invert prose-fuchsia mt-6 max-w-none text-lg italic leading-relaxed text-white/85"
+          contentClassName="prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-lg italic leading-relaxed text-white/85"
         />
 
         {hasRelatedSubstances ? (
