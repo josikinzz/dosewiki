@@ -482,6 +482,8 @@
         color-mix(in srgb, var(--theme-page-mid) 88%, var(--theme-page-start)) 42%,
         var(--theme-page-end) 100%
       );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
     color: var(--theme-text-primary);
   }
 
@@ -1060,6 +1062,8 @@
 
   .app-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: visible;
     -webkit-overflow-scrolling: touch;
     padding-bottom: env(safe-area-inset-bottom, 0);

@@ -90,7 +90,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <RouteChrome />
         <div className="app-content relative">
-          {children}
+          <div className="flex-1">
+            {children}
+          </div>
           <Footer />
         </div>
       </body>
