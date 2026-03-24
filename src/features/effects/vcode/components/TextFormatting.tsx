@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 
 export function Bold({ children }: PropsWithChildren) {
-  return <strong className="font-semibold text-white/95">{children}</strong>;
+  return <strong className="font-semibold text-fuchsia-300">{children}</strong>;
 }
 
 export function Italic({ children }: PropsWithChildren) {

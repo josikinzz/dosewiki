@@ -982,7 +982,7 @@
   .prose.prose-invert :where(a),
   .prose-fuchsia :where(a) {
     color: var(--theme-accent-strong);
-    font-weight: 600;
+    font-weight: inherit;
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, var(--theme-accent-strong) 45%, transparent);
     text-decoration-thickness: 0.08em;
@@ -998,9 +998,13 @@
   }
 
   .prose :where(strong, b),
-  .prose.prose-invert :where(strong, b),
-  .prose-fuchsia :where(strong, b) {
+  .prose.prose-invert :where(strong, b) {
     color: var(--theme-text-primary);
+    font-weight: 600;
+  }
+
+  .prose-fuchsia :where(strong, b) {
+    color: var(--theme-accent-strong);
     font-weight: 600;
   }
 
@@ -1563,9 +1567,16 @@ html[data-theme="light"] .theme-external-link-badge-icon:hover {
 }
 
 html[data-theme="light"] .prose-invert :where(h1, h2, h3, h4, strong, b),
-html[data-theme="light"] .prose.prose-invert :where(h1, h2, h3, h4, strong, b),
-html[data-theme="light"] .prose-fuchsia :where(h1, h2, h3, h4, strong, b) {
+html[data-theme="light"] .prose.prose-invert :where(h1, h2, h3, h4, strong, b) {
   color: var(--theme-text-primary);
+}
+
+html[data-theme="light"] .prose-fuchsia :where(h1, h2, h3, h4) {
+  color: var(--theme-text-primary);
+}
+
+html[data-theme="light"] .prose-fuchsia :where(strong, b) {
+  color: var(--theme-accent-strong);
 }
 
 html[data-theme="light"] .prose-invert :where(a),
