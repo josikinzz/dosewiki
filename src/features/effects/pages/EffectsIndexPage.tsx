@@ -362,7 +362,7 @@ export const EffectsIndexPage = memo(function EffectsIndexPage({
         {/* Tab Navigation */}
         <div>
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)} className="mb-4 flex justify-center">
-            <TabsList className="flex-wrap h-auto rounded-2xl border border-white/12 bg-white/[0.04] p-1.5 shadow-[0_18px_36px_-28px_rgba(0,0,0,0.55)] gap-1">
+            <TabsList className="flex-wrap h-auto rounded-2xl bg-white/[0.035] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_18px_36px_-28px_rgba(0,0,0,0.55)] gap-1">
               {TABS.map(tab => (
                 <TabsTrigger
                   key={tab.id}

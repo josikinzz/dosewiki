@@ -47,9 +47,9 @@ export const IndexCard = memo(function IndexCard({
   const contentId = `${title.toLowerCase().replace(/\s+/g, "-")}-content`;
 
   const iconClassName = cn(
-    "theme-public-card-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-[background-color,border-color,box-shadow,transform,color] duration-300 group-hover:border-[color:var(--theme-card-border-strong)] group-hover:text-[color:var(--theme-accent-strong)]",
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-inner shadow-black/20 outline-none transition duration-300 hover:bg-white/10 hover:ring-fuchsia-400/30 hover:shadow-fuchsia-500/10 hover:scale-105",
     onIconClick
-      ? "theme-public-card-interactive cursor-pointer hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-strong)]"
+      ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       : undefined,
   );
 
@@ -57,7 +57,7 @@ export const IndexCard = memo(function IndexCard({
     <Icon
       icon={iconActiveState ? "lucide:check" : icon}
       size={20}
-      className={iconActiveState ? "text-emerald-500" : "transition-colors"}
+      className={iconActiveState ? "text-emerald-400" : "text-fuchsia-300/80 transition-colors group-hover:text-fuchsia-300"}
     />
   );
 
@@ -79,7 +79,7 @@ export const IndexCard = memo(function IndexCard({
   );
 
   return (
-    <section className="theme-public-card theme-public-card-interactive group w-full rounded-[20px] border p-5 backdrop-blur-sm backdrop-safe">
+    <section className="group w-full rounded-[20px] border border-white/10 bg-white/[0.02] p-5 shadow-lg shadow-black/20 backdrop-blur-md backdrop-safe transition-all duration-300 hover:bg-white/[0.04] hover:border-fuchsia-500/20 hover:shadow-xl hover:shadow-fuchsia-500/5 hover:-translate-y-0.5">
       {/* Header */}
       <header className="flex items-start gap-4 pb-2">
         {iconElement}

@@ -102,8 +102,6 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
 
   // Other tabs remain disabled until dedicated public datasets are wired in.
   const psychoactiveClassCount = psychoactiveGroups.length;
-  const chemicalClassCount = 0;
-  const mechanismCount = 0;
 
   const formatLabel = (count: number, singular: string, plural: string) =>
     `${count} ${count === 1 ? singular : plural}`;
@@ -122,23 +120,11 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
             description={
               <>
                 Browse {" "}
-                <strong>{formatLabel(substanceCount, "compound", "compounds")}</strong>
-                {" "} and organize them across {" "}
+                <strong>{formatLabel(substanceCount, "educational substance article", "educational substance articles")}</strong>
+                {" "} organized across {" "}
                 <strong>{formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}</strong>
-                {chemicalClassCount > 0 && (
-                  <>
-                    ,{" "}
-                    <strong>{formatLabel(chemicalClassCount, "chemical class", "chemical classes")}</strong>
-                  </>
-                )}
-                {mechanismCount > 0 && (
-                  <>
-                    , and{" "}
-                    <strong>{formatLabel(mechanismCount, "mechanism of action", "mechanisms of action")}</strong>
-                  </>
-                )}
                 .{" "}
-                Open any entry to explore detailed dosage tables, durational timelines, psychopharmacological data, and general harm reduction information.
+                Open any entry to explore detailed harm reduction information such as: dosage &amp; duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history &amp; culture, legality, and further reading.
               </>
             }
           />
