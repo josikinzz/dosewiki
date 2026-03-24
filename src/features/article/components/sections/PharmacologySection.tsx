@@ -5,6 +5,7 @@ import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import type { SubstanceArticle } from "@/schema";
 import { isPlainLeftClick } from "@/utils/navigation";
+import { normalizePharmacologySection } from "../../../../../lib/article/normalization.js";
 
 // Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
@@ -50,7 +51,7 @@ export const PharmacologySection = memo(function PharmacologySection({
 }: PharmacologySectionProps) {
   const [isReceptorProfileExpanded, setIsReceptorProfileExpanded] = useState(false);
   const [isMetabolitesExpanded, setIsMetabolitesExpanded] = useState(false);
-  const { pharmacology } = article;
+  const pharmacology = normalizePharmacologySection(article.pharmacology);
 
   const pharmacodynamicsText = pharmacology.pharmacodynamics?.trim().length > 0
     ? pharmacology.pharmacodynamics

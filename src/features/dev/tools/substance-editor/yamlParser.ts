@@ -1,11 +1,16 @@
 import { parse, YAMLParseError } from "yaml";
 import { substanceArticleSchema, type SubstanceArticle } from "@/schema";
+import { normalizePharmacologySection, stripMarkdownCodeFences } from "../../../../../lib/article/normalization.js";
 
 export interface ParseResult {
   success: boolean;
   data?: SubstanceArticle;
   error?: string;
   lineNumber?: number;
+}
+
+export function parseSectionYamlObject<T = Record<string, unknown>>(yamlString: string): T {
+  return parse(stripMarkdownCodeFences(yamlString)) as T;
 }
 
 /**
@@ -21,16 +26,7 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
   }
 
   // Strip markdown code fence if present (common when LLM wraps output)
-  let cleanedYaml = yamlString.trim();
-  if (cleanedYaml.startsWith("```yaml") || cleanedYaml.startsWith("```yml")) {
-    cleanedYaml = cleanedYaml.replace(/^```ya?ml\s*\n?/, "");
-  }
-  if (cleanedYaml.startsWith("```")) {
-    cleanedYaml = cleanedYaml.replace(/^```\s*\n?/, "");
-  }
-  if (cleanedYaml.endsWith("```")) {
-    cleanedYaml = cleanedYaml.replace(/\s*```$/, "");
-  }
+  const cleanedYaml = stripMarkdownCodeFences(yamlString);
 
   try {
     const parsed = parse(cleanedYaml);
@@ -43,7 +39,7 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
     }
 
     // Normalize first (fills in defaults for missing fields)
-    const article = normalizeArticle(parsed);
+    const article = normalizeArticleInput(parsed);
 
     // Validate with Zod
     const validation = substanceArticleSchema.safeParse(article);
@@ -84,7 +80,7 @@ export function parseGeneratedYaml(yamlString: string): ParseResult {
  * Normalizes the parsed YAML into a proper SubstanceArticle with defaults.
  * This provides defensive parsing to handle missing or malformed fields.
  */
-function normalizeArticle(raw: Record<string, unknown>): SubstanceArticle {
+export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceArticle {
   // Normalize priority with validation
   const rawPriority = raw.priority;
   const priority = rawPriority === "high" || rawPriority === "normal" || rawPriority === "low"
@@ -424,28 +420,7 @@ function normalizeSubjectiveEffects(raw: unknown): SubstanceArticle["subjective_
 }
 
 function normalizePharmacology(raw: unknown): SubstanceArticle["pharmacology"] {
-  const obj = getObject(raw);
-
-  // Normalize receptor_profile array of objects
-  const rawProfile = Array.isArray(obj.receptor_profile) ? obj.receptor_profile : [];
-  const receptor_profile = rawProfile.map((entry: unknown) => {
-    const e = getObject(entry);
-    return {
-      receptor: getString(e.receptor),
-      ...(e.tag ? { tag: getString(e.tag) } : {}),
-      ...(e.affinity ? { affinity: getString(e.affinity) } : {}),
-      ...(e.efficacy ? { efficacy: getString(e.efficacy) } : {}),
-    };
-  });
-
-  return {
-    pharmacodynamics: getString(obj.pharmacodynamics) || getString(obj.summary),
-    receptor_profile,
-    pharmacokinetics: getString(obj.pharmacokinetics),
-    metabolites: getStringArray(obj.metabolites),
-    protein_binding: obj.protein_binding ? getString(obj.protein_binding) : undefined,
-    volume_of_distribution: obj.volume_of_distribution ? getString(obj.volume_of_distribution) : undefined,
-  };
+  return normalizePharmacologySection(raw);
 }
 
 function normalizeInteractions(raw: unknown): SubstanceArticle["interactions"] {

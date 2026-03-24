@@ -81,7 +81,11 @@ export function createEmptyArticle(): SubstanceArticle {
     pharmacodynamics: "",
     receptor_profile: [],
     pharmacokinetics: "",
-    metabolites: []
+    metabolites: [],
+    route_bioavailability: {},
+    route_half_life: {},
+    route_half_life_notes: {},
+    route_bioavailability_notes: {}
   },
   interactions: {
     dangerous: [],
@@ -95,10 +99,50 @@ export function createEmptyArticle(): SubstanceArticle {
     baseline_tolerance: "",
     cross_tolerance: []
   },
+  harm_potential: {
+    addiction: {
+      psychological: {
+        level: null,
+        description: ""
+      },
+      physical_dependence: {
+        level: null,
+        description: ""
+      }
+    },
+    toxicity: {
+      lethal_dosage: {
+        ld50: []
+      },
+      organ_toxicity: [],
+      carcinogenicity: {
+        level: null,
+        evidence: null,
+        description: ""
+      },
+      antibiotic_function: {
+        level: null,
+        description: ""
+      }
+    },
+    psychosis: {
+      level: null,
+      description: ""
+    },
+    seizure: {
+      level: null,
+      description: ""
+    }
+  },
+  history_culture: {
+    content: "",
+    sections: []
+  },
   legality: {
     international: [],
     countries: {}
   },
+  source_citations: [],
   citations: []
 };
 }

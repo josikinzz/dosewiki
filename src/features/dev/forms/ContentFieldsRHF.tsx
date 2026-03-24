@@ -26,6 +26,7 @@ import type { SubstanceArticle, HarmPotential, Tolerance, Interactions, RiskLeve
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 
 // Tolerance field labels with icons matching ToleranceSection.tsx
 const toleranceLabels: Array<{
@@ -449,8 +450,8 @@ export function AddictionFieldsRHF({ idPrefix }: AddictionFieldsRHFProps) {
   // Handle applying generated harm potential YAML to form (new schema)
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const hp: HarmPotential = parsed.harm_potential ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const hp = (parsed.harm_potential ?? parsed) as Partial<NonNullable<HarmPotential>>;
 
       // Addiction
       setValue("harm_potential.addiction.psychological.level", hp.addiction?.psychological?.level ?? null);
@@ -694,8 +695,8 @@ export function InteractionsFieldsRHF() {
   // Handle applying generated interactions YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const interactions: Interactions = parsed.interactions ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const interactions = (parsed.interactions ?? parsed) as Partial<Interactions>;
 
       setValue("interactions.dangerous", interactions.dangerous ?? []);
       setValue("interactions.unsafe", interactions.unsafe ?? []);
@@ -787,8 +788,8 @@ export function ToleranceFieldsRHF({ idPrefix }: ToleranceFieldsRHFProps) {
   // Handle applying generated tolerance YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const tolerance: Tolerance = parsed.tolerance ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const tolerance = (parsed.tolerance ?? parsed) as Partial<Tolerance>;
 
       setValue("tolerance.full_tolerance", tolerance.full_tolerance ?? "");
       setValue("tolerance.half_tolerance", tolerance.half_tolerance ?? "");
@@ -874,7 +875,7 @@ export function NotesFieldsRHF({ idPrefix }: NotesFieldsRHFProps) {
   // Handle applying generated summary YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
       const summary = parsed.summary ?? parsed;
 
       if (typeof summary === "string") {

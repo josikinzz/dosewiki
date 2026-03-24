@@ -1,10 +1,12 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-import { IconBadge } from "@/components/common/IconBadge";
-import { SectionCard } from "@/components/common/SectionCard";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import { getFaviconForUrl } from "@/data/config/sourceFavicons";
 import { isPlainLeftClick } from "@/utils/navigation";
+
+const COLLAPSED_LIMIT = 3;
 
 interface Citation {
   url: string;
@@ -30,17 +32,19 @@ interface EffectCitationsSectionProps {
 }
 
 /**
- * Combined citations, external links, and see also section for effect articles.
- * Collapsible (expanded by default) with a toggle button.
+ * Citations section for effect articles.
+ * Normalized to match substance article styling — no card wrapper,
+ * SectionHeader headings, and ExpandButton collapse behavior.
  */
-export function EffectCitationsSection({ 
+export function EffectCitationsSection({
   citations = [],
   externalLinks = [],
   seeAlso = [],
   onNavigate,
 }: EffectCitationsSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const contentId = useId();
+  const [seeAlsoExpanded, setSeeAlsoExpanded] = useState(false);
+  const [externalLinksExpanded, setExternalLinksExpanded] = useState(false);
+  const [referencesExpanded, setReferencesExpanded] = useState(false);
 
   if (citations.length === 0 && externalLinks.length === 0 && seeAlso.length === 0) {
     return null;
@@ -48,182 +52,177 @@ export function EffectCitationsSection({
 
   const totalCount = citations.length + externalLinks.length + seeAlso.length;
 
+  const visibleSeeAlso = seeAlsoExpanded ? seeAlso : seeAlso.slice(0, COLLAPSED_LIMIT);
+  const visibleExternalLinks = externalLinksExpanded ? externalLinks : externalLinks.slice(0, COLLAPSED_LIMIT);
+  const visibleCitations = referencesExpanded ? citations : citations.slice(0, COLLAPSED_LIMIT);
+
   return (
-    <SectionCard delay={0.3}>
-      {/* Header with toggle */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="mb-4 flex w-full items-center gap-3 text-left"
-        aria-expanded={isExpanded}
-        aria-controls={contentId}
-      >
-        <IconBadge icon="lucide:library" label="Sources & References" />
-        <h2 className="flex-1 text-lg font-semibold text-fuchsia-300">
-          Sources & References
-        </h2>
-        <span className="text-sm text-white/50">({totalCount})</span>
-        <Icon 
-          icon="lucide:chevron-down" 
-          size={20} 
-          className={`text-white/50 transition-transform ${isExpanded ? "rotate-180" : ""}`} 
-        />
-      </button>
-
-      {/* Collapsible content */}
-      {isExpanded && (
-        <div id={contentId} className="space-y-6">
-          {/* See Also */}
-          {seeAlso.length > 0 && (
-            <div>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white/50">
-                <Icon icon="lucide:link" size={14} />
-                See Also
-              </h3>
-              <ol className="space-y-2">
-                {seeAlso.map((item, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
+    <div className="space-y-8 pt-12 scroll-mt-6">
+      {/* See Also */}
+      {seeAlso.length > 0 && (
+        <div className="space-y-6">
+          <SectionHeader icon="lucide:link" title="See Also" />
+          <ol className="space-y-2">
+            {visibleSeeAlso.map((item, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
+                  {index + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <a
+                    href={item.location}
+                    onClick={(event) => {
+                      if (!onNavigate || !isPlainLeftClick(event)) {
+                        return;
+                      }
+                      event.preventDefault();
+                      onNavigate(item.location);
+                    }}
+                    className="text-sm text-white/80 hover:text-fuchsia-200 cursor-pointer transition-colors"
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <a
-                        href={item.location}
-                        onClick={(event) => {
-                          if (!onNavigate || !isPlainLeftClick(event)) {
-                            return;
-                          }
-
-                          event.preventDefault();
-                          onNavigate(item.location);
-                        }}
-                        className="text-sm text-white/80 hover:text-fuchsia-200 cursor-pointer transition-colors"
-                      >
-                        {item.title}
-                      </a>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+                    {item.title}
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {seeAlso.length > COLLAPSED_LIMIT && (
+            <div className="mt-3 flex justify-center">
+              <ExpandButton
+                isExpanded={seeAlsoExpanded}
+                onToggle={() => setSeeAlsoExpanded(!seeAlsoExpanded)}
+                variant="count"
+                count={seeAlso.length - COLLAPSED_LIMIT}
+                ariaLabel={seeAlsoExpanded ? "Collapse see also" : "Expand see also"}
+              />
             </div>
           )}
-
-          {/* External Links */}
-          {externalLinks.length > 0 && (
-            <div>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white/50">
-                <Icon icon="lucide:external-link" size={14} />
-                External Links
-              </h3>
-              <ol className="space-y-2">
-                {externalLinks.map((link, index) => {
-                  const favicon = getFaviconForUrl(link.url);
-                  return (
-                    <li
-                      key={index}
-                      className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
-                    >
-                      {favicon ? (
-                        <AppImage
-                          src={favicon}
-                          alt=""
-                          width={20}
-                          height={20}
-                          className="mt-0.5 h-5 w-5 shrink-0 rounded"
-                        />
-                      ) : (
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
-                          {index + 1}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <span className="text-sm text-white/80">{link.title}</span>
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
-                        >
-                          <Icon icon="lucide:external-link" size={12} className="shrink-0" />
-                          <span className="truncate">{link.url}</span>
-                        </a>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          )}
-
-          {/* Citations / References */}
-          {citations.length > 0 && (
-            <div>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-white/50">
-                <Icon icon="lucide:book-open" size={14} />
-                References
-              </h3>
-              <ol className="space-y-2">
-                {citations.map((citation, index) => {
-                  const favicon = getFaviconForUrl(citation.url);
-                  const anchorId = citation.from 
-                    ? `cite-${citation.from}` 
-                    : `cite-${index + 1}`;
-                  
-                  return (
-                    <li
-                      key={index}
-                      id={anchorId}
-                      className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8 scroll-mt-20"
-                    >
-                      {favicon ? (
-                        <AppImage
-                          src={favicon}
-                          alt=""
-                          width={20}
-                          height={20}
-                          className="mt-0.5 h-5 w-5 shrink-0 rounded"
-                        />
-                      ) : (
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
-                          {index + 1}
-                        </span>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        {citation.text && (
-                          <span className="text-sm text-white/80">{citation.text}</span>
-                        )}
-                        <a
-                          href={citation.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
-                        >
-                          <Icon icon="lucide:external-link" size={12} className="shrink-0" />
-                          <span className="truncate">{citation.url}</span>
-                        </a>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          )}
-
-          <p className="text-xs text-white/50">
-            {totalCount} source{totalCount !== 1 ? "s" : ""} cited
-          </p>
         </div>
       )}
 
-      {/* Collapsed state summary */}
-      {!isExpanded && (
-        <p className="text-sm text-white/50">
-          {totalCount} source{totalCount !== 1 ? "s" : ""} cited
-        </p>
+      {/* External Links */}
+      {externalLinks.length > 0 && (
+        <div className={seeAlso.length > 0 ? "pt-12 space-y-6" : "space-y-6"}>
+          <SectionHeader icon="lucide:external-link" title="External Links" />
+          <ol className="space-y-2">
+            {visibleExternalLinks.map((link, index) => {
+              const favicon = getFaviconForUrl(link.url);
+              return (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8"
+                >
+                  {favicon ? (
+                    <AppImage
+                      src={favicon}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="mt-0.5 h-5 w-5 shrink-0 rounded"
+                    />
+                  ) : (
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
+                      {index + 1}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <span className="text-sm text-white/80">{link.title}</span>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
+                    >
+                      <Icon icon="lucide:external-link" size={12} className="shrink-0" />
+                      <span className="truncate">{link.url}</span>
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          {externalLinks.length > COLLAPSED_LIMIT && (
+            <div className="mt-3 flex justify-center">
+              <ExpandButton
+                isExpanded={externalLinksExpanded}
+                onToggle={() => setExternalLinksExpanded(!externalLinksExpanded)}
+                variant="count"
+                count={externalLinks.length - COLLAPSED_LIMIT}
+                ariaLabel={externalLinksExpanded ? "Collapse external links" : "Expand external links"}
+              />
+            </div>
+          )}
+        </div>
       )}
-    </SectionCard>
+
+      {/* References */}
+      {citations.length > 0 && (
+        <div className={(seeAlso.length > 0 || externalLinks.length > 0) ? "pt-12 space-y-6" : "space-y-6"}>
+          <SectionHeader icon="lucide:book-open" title="References" />
+          <ol className="space-y-2">
+            {visibleCitations.map((citation, index) => {
+              const favicon = getFaviconForUrl(citation.url);
+              const anchorId = citation.from
+                ? `cite-${citation.from}`
+                : `cite-${index + 1}`;
+
+              return (
+                <li
+                  key={index}
+                  id={anchorId}
+                  className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-3 transition hover:border-fuchsia-400/30 hover:bg-white/8 scroll-mt-20"
+                >
+                  {favicon ? (
+                    <AppImage
+                      src={favicon}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="mt-0.5 h-5 w-5 shrink-0 rounded"
+                    />
+                  ) : (
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/20 text-xs font-medium text-fuchsia-300">
+                      {index + 1}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    {citation.text && (
+                      <span className="text-sm text-white/80">{citation.text}</span>
+                    )}
+                    <a
+                      href={citation.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 flex items-center gap-1 text-xs text-fuchsia-300 hover:text-fuchsia-200"
+                    >
+                      <Icon icon="lucide:external-link" size={12} className="shrink-0" />
+                      <span className="truncate">{citation.url}</span>
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          {citations.length > COLLAPSED_LIMIT && (
+            <div className="mt-3 flex justify-center">
+              <ExpandButton
+                isExpanded={referencesExpanded}
+                onToggle={() => setReferencesExpanded(!referencesExpanded)}
+                variant="count"
+                count={citations.length - COLLAPSED_LIMIT}
+                ariaLabel={referencesExpanded ? "Collapse references" : "Expand references"}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className="mt-4 text-xs text-white/50">
+        {totalCount} source{totalCount !== 1 ? "s" : ""} cited
+      </p>
+    </div>
   );
 }

@@ -18,6 +18,7 @@ import type { SubstanceArticle, Dosage, Duration } from "@/schema";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 
 // Dose range tier labels
 const doseRangeLabels: Array<["threshold" | "light" | "moderate" | "strong" | "heavy", string]> = [
@@ -74,9 +75,9 @@ export function DosageDurationFieldsRHF({
   // Handle applying generated dosage/duration YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const dosage: Dosage = parsed.dosage ?? {};
-      const duration: Duration = parsed.duration ?? {};
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const dosage = (parsed.dosage ?? {}) as Partial<Dosage>;
+      const duration = (parsed.duration ?? {}) as Partial<Duration>;
 
       // Update dosage routes
       if (dosage.routes && Array.isArray(dosage.routes)) {

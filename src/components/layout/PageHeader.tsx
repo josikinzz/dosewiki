@@ -6,6 +6,7 @@ interface PageHeaderProps {
   description?: ReactNode;
   icon?: IconName;
   showSpotlight?: boolean;
+  descriptionClassName?: string;
 }
 
 export const PageHeader = memo(function PageHeader({
@@ -13,6 +14,7 @@ export const PageHeader = memo(function PageHeader({
   description,
   icon,
   showSpotlight = true,
+  descriptionClassName,
 }: PageHeaderProps) {
   return (
     <header className="relative isolate mb-16 flex flex-col gap-5 text-center">
@@ -27,7 +29,7 @@ export const PageHeader = memo(function PageHeader({
         <span className="min-w-0">{title}</span>
       </h1>
       {description ? (
-        <div className="type-lead type-reading-measure theme-accent-emphasis-scope theme-text-secondary mx-auto text-balance">
+        <div className={descriptionClassName ?? "type-lead type-reading-measure theme-accent-emphasis-scope theme-text-secondary mx-auto text-balance"}>
           {description}
         </div>
       ) : null}

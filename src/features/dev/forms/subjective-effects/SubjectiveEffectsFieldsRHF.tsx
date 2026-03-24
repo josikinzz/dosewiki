@@ -15,6 +15,7 @@ import { CollapsibleSubsection } from "../FormHelpers";
 import { SectionGenerator } from "../../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../../tools/substance-editor/yamlParser";
 import { EffectCategoryCard } from "./EffectCategoryCard";
 import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
 import { AttributionEditor } from "./AttributionEditor";
@@ -53,20 +54,11 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix }: SubjectiveEffectsFields
     }
   }, [getValues]);
 
-  // Strip markdown code fences from LLM output
-  const stripCodeFences = (text: string): string => {
-    return text
-      .replace(/^```(?:yaml|yml)?\s*\n?/i, "")
-      .replace(/\n?```\s*$/i, "")
-      .trim();
-  };
-
   // Handle applying generated subjective effects YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const cleanYaml = stripCodeFences(generatedYaml);
-      const parsed = yaml.parse(cleanYaml);
-      const subjectiveEffects: SubjectiveEffects = parsed.subjective_effects ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const subjectiveEffects = (parsed.subjective_effects ?? parsed) as Partial<SubjectiveEffects>;
       
       // Apply notes
       if (subjectiveEffects.notes) {

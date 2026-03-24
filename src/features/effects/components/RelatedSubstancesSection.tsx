@@ -51,6 +51,7 @@ export function RelatedSubstancesSection({
         onSelectDrug={onSelectDrug}
         onSelectCategory={onSelectCategory}
         hideEmptyGroups
+        maxColumns={2}
       />
     </div>
   );

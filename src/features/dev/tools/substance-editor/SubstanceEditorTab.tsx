@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  DEFAULT_OPENROUTER_MODEL_ID,
   MODEL_OPTIONS,
+  resolveOpenRouterModelId,
   validateApiKey,
 } from "@/utils/api/openrouter";
 import {
@@ -27,7 +29,7 @@ import {
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import { GeneratorOutputPreview } from "./GeneratorOutputPreview";
 import { SourcePreviewModal } from "./SourcePreviewModal";
-import { parseGeneratedYaml } from "./yamlParser";
+import { normalizeArticleInput, parseGeneratedYaml } from "./yamlParser";
 import {
   STORAGE_KEYS,
   type SubstanceEditorTabProps,
@@ -62,16 +64,17 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   // Use sessionStorage for API key (more secure - cleared when browser closes)
   const [apiKey, setApiKey] = useState(() => {
     if (typeof window !== "undefined") {
-      return sessionStorage.getItem(STORAGE_KEYS.API_KEY) || "";
+      return sessionStorage.getItem(STORAGE_KEYS.API_KEY)?.trim() || "";
     }
     return "";
   });
+  const [apiKeyInput, setApiKeyInput] = useState(apiKey);
   // Use localStorage for model preference (not sensitive)
   const [selectedModel, setSelectedModel] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem(STORAGE_KEYS.SELECTED_MODEL) || MODEL_OPTIONS[0].id;
+      return resolveOpenRouterModelId(localStorage.getItem(STORAGE_KEYS.SELECTED_MODEL));
     }
-    return MODEL_OPTIONS[0].id;
+    return DEFAULT_OPENROUTER_MODEL_ID;
   });
   const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
   const [isValidatingKey, setIsValidatingKey] = useState(false);
@@ -108,9 +111,11 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   const formRef = useRef<UseArticleFormReturn | null>(null);
   const [formDirty, setFormDirty] = useState(false);
   const [formParseError, setFormParseError] = useState<string | null>(null);
+  const [formArticleOverride, setFormArticleOverride] = useState<SubstanceArticle | null>(null);
 
   // Source preview state
   const [fullscreenSourceId, setFullscreenSourceId] = useState<string | null>(null);
+  const apiKeyValidationRequestIdRef = useRef(0);
 
   // Quotes loaded from Convex via hooks
   const summaryQuoteResult = useQuote(selectedSubstanceSlug, "summary");
@@ -139,25 +144,57 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   }, [apiKey]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SELECTED_MODEL, selectedModel);
-  }, [selectedModel]);
+    const normalizedSelectedModel = resolveOpenRouterModelId(selectedModel);
 
-  // Validate API key on change
-  useEffect(() => {
-    if (!apiKey || apiKey.length < 10) {
-      setIsKeyValid(null);
+    if (normalizedSelectedModel !== selectedModel) {
+      setSelectedModel(normalizedSelectedModel);
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsValidatingKey(true);
-      const valid = await validateApiKey(apiKey);
-      setIsKeyValid(valid);
-      setIsValidatingKey(false);
-    }, 500);
+    localStorage.setItem(STORAGE_KEYS.SELECTED_MODEL, normalizedSelectedModel);
+  }, [selectedModel]);
 
-    return () => clearTimeout(timer);
-  }, [apiKey]);
+  const runApiKeyValidation = useCallback(async (candidateApiKey: string) => {
+    const trimmedApiKey = candidateApiKey.trim();
+    const requestId = ++apiKeyValidationRequestIdRef.current;
+
+    if (!trimmedApiKey || trimmedApiKey.length < 10) {
+      setIsKeyValid(null);
+      setIsValidatingKey(false);
+      return;
+    }
+
+    setIsValidatingKey(true);
+    const valid = await validateApiKey(trimmedApiKey);
+
+    if (apiKeyValidationRequestIdRef.current !== requestId) {
+      return;
+    }
+
+    setIsKeyValid(valid);
+    setIsValidatingKey(false);
+  }, []);
+
+  useEffect(() => {
+    if (!apiKey) {
+      return;
+    }
+
+    void runApiKeyValidation(apiKey);
+  }, [apiKey, runApiKeyValidation]);
+
+  const handleApiKeySubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedApiKey = apiKeyInput.trim();
+    setApiKeyInput(trimmedApiKey);
+
+    if (trimmedApiKey === apiKey) {
+      void runApiKeyValidation(trimmedApiKey);
+    }
+
+    setApiKey(trimmedApiKey);
+  }, [apiKey, apiKeyInput, runApiKeyValidation]);
 
   // Filter and sort substances
   const filteredSubstances = useMemo(() => {
@@ -193,7 +230,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   }, [selectedSubstanceSlug]);
 
   const selectedModelInfo = useMemo(
-    () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS[0],
+    () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS.find((m) => m.id === DEFAULT_OPENROUTER_MODEL_ID) ?? MODEL_OPTIONS[0],
     [selectedModel]
   );
 
@@ -223,6 +260,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     setFullscreenSourceId(null);
     setFormDirty(false);
     setFormParseError(null);
+    setFormArticleOverride(null);
     formRef.current = null;
     setStreamedOutput("");  // Clear stale form data immediately
   }, [selectedSubstanceSlug]);
@@ -304,9 +342,10 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     });
 
     if (existing) {
-      // Auto-load the existing article
-      const yamlOutput = yaml.stringify(existing, { lineWidth: 0, nullStr: "" });
+      const normalizedArticle = normalizeArticleInput(existing as Record<string, unknown>);
+      const yamlOutput = yaml.stringify(normalizedArticle, { lineWidth: 0, nullStr: "" });
       setStreamedOutput(yamlOutput);
+      setFormArticleOverride(normalizedArticle);
       setOutputViewMode("form");
     }
   }, [selectedSubstanceSlug, articles]);
@@ -333,6 +372,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
       const values = formRef.current.methods.getValues();
       const yamlOutput = yaml.stringify(values, { lineWidth: 0, nullStr: "" });
       setStreamedOutput(yamlOutput);
+      setFormArticleOverride(values);
       setFormDirty(false);
     }
 
@@ -341,9 +381,10 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
       const parseResult = parseGeneratedYaml(streamedOutput);
       if (parseResult.success && parseResult.data) {
         setFormParseError(null);
-        // Form will receive the parsed article as prop and reset via useEffect
+        setFormArticleOverride(parseResult.data);
       } else {
         setFormParseError(parseResult.error ?? "Failed to parse YAML");
+        setFormArticleOverride(null);
       }
     }
 
@@ -446,7 +487,19 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   }, [streamedOutput, articles, applyArticlesTransform, outputViewMode, commitPanel]);
 
   const openRouterCredentialInputId = "articles-openrouter-credential";
+  const openRouterCredentialHelpId = "articles-openrouter-credential-help";
   const modelSelectId = "articles-model";
+  const trimmedApiKeyInput = apiKeyInput.trim();
+  const hasPendingApiKeyChange = trimmedApiKeyInput !== apiKey;
+  const apiKeySubmitLabel = trimmedApiKeyInput
+    ? hasPendingApiKeyChange
+      ? apiKey
+        ? "Update key"
+        : "Save key"
+      : "Validate key"
+    : apiKey
+      ? "Clear key"
+      : "Save key";
 
   // Helper to get all sources as array for section generators
   const getAllSources = useCallback((): Array<{ source: string; content: string }> => {
@@ -523,25 +576,46 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
             <label htmlFor={openRouterCredentialInputId} className="mb-1.5 block text-sm font-medium text-white/70">
               OpenRouter API Key
             </label>
-            <div className="relative">
-              <Input
-                id={openRouterCredentialInputId}
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-or-..."
-                className="pr-10"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {isValidatingKey ? (
-                  <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin text-white/40" size={16} />
-                ) : isKeyValid === true ? (
-                  <Icon icon="lucide:check" className="h-4 w-4 text-emerald-400" size={16} />
-                ) : isKeyValid === false ? (
-                  <Icon icon="lucide:x" className="h-4 w-4 text-red-400" size={16} />
-                ) : null}
+            <form className="space-y-2" onSubmit={handleApiKeySubmit}>
+              <div className="relative">
+                <Input
+                  id={openRouterCredentialInputId}
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(event) => {
+                    setApiKeyInput(event.target.value);
+                    if (event.target.value.trim() !== apiKey) {
+                      setIsKeyValid(null);
+                    }
+                  }}
+                  placeholder="sk-or-..."
+                  className="pr-10"
+                  aria-describedby={openRouterCredentialHelpId}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isValidatingKey ? (
+                    <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin text-white/40" size={16} />
+                  ) : isKeyValid === true ? (
+                    <Icon icon="lucide:check" className="h-4 w-4 text-emerald-400" size={16} />
+                  ) : isKeyValid === false ? (
+                    <Icon icon="lucide:x" className="h-4 w-4 text-red-400" size={16} />
+                  ) : null}
+                </div>
               </div>
-            </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p id={openRouterCredentialHelpId} className="text-xs text-white/40">
+                  Press Enter or {apiKeySubmitLabel.toLowerCase()} to apply this key for the current session.
+                </p>
+                <Button
+                  type="submit"
+                  variant="glass"
+                  size="pill"
+                  disabled={isValidatingKey || (!trimmedApiKeyInput && !apiKey)}
+                >
+                  {apiKeySubmitLabel}
+                </Button>
+              </div>
+            </form>
             <p className="mt-1.5 text-xs text-white/40">
               Get an API key from{" "}
               <a
@@ -748,8 +822,12 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                   </div>
                 );
               }
-              const parseResult = parseGeneratedYaml(streamedOutput);
-              if (!parseResult.success || !parseResult.data) {
+              const hydratedArticle = formArticleOverride ?? (() => {
+                const parseResult = parseGeneratedYaml(streamedOutput);
+                return parseResult.success ? parseResult.data ?? null : null;
+              })();
+              if (!hydratedArticle) {
+                const parseResult = parseGeneratedYaml(streamedOutput);
                 return (
                   <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-6">
                     <div className="mb-4 flex items-center gap-2 text-red-400">
@@ -772,7 +850,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
                   <ArticleDraftFormFieldsRHF
                     key={selectedSubstanceSlug}
                     idPrefix="generator-form"
-                    article={parseResult.data}
+                    article={hydratedArticle}
                     onMutate={handleFormMutate}
                     formRef={formRef}
                   />

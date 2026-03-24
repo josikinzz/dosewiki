@@ -5,6 +5,7 @@ import {
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
 import type { SubstanceArticle } from "@/schema";
+import { hasPharmacologyContent } from "../../../../../lib/article/normalization.js";
 
 interface TableOfContentsSectionProps {
   article: SubstanceArticle;
@@ -36,7 +37,10 @@ const TOC_ITEMS: TocItem[] = [
       );
       const hasCognitive = se.cognitive && Object.keys(se.cognitive).length > 0;
       const hasPhysical = se.physical && Object.keys(se.physical).length > 0;
-      return hasSensory || hasCognitive || hasPhysical;
+      const hasProgressiveStages = se.progressive_stages && Object.keys(se.progressive_stages).length > 0;
+      const hasOverview = se.notes?.overview?.trim().length > 0;
+      const hasComparisons = (a.comparisons?.length ?? 0) > 0;
+      return hasSensory || hasCognitive || hasPhysical || hasProgressiveStages || hasOverview || hasComparisons;
     },
   },
   {
@@ -49,17 +53,7 @@ const TOC_ITEMS: TocItem[] = [
     id: "pharmacology",
     label: "Pharmacology",
     icon: "mingcute:settings-6-line",
-    isPresent: (a) => {
-      const p = a.pharmacology;
-      if (!p) return false;
-      return (
-        p.pharmacodynamics?.trim().length > 0 ||
-        p.summary?.trim().length > 0 ||
-        p.receptor_profile?.length > 0 ||
-        p.pharmacokinetics?.trim().length > 0 ||
-        p.metabolites?.length > 0
-      );
-    },
+    isPresent: (a) => hasPharmacologyContent(a.pharmacology),
   },
   {
     id: "interactions",

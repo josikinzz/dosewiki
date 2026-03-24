@@ -1,6 +1,6 @@
 # DoseWiki Agent Notes
 
-Last verified: 2026-03-17
+Last verified: 2026-03-24
 
 ## Scope
 
@@ -65,6 +65,7 @@ Migration note:
 - Vercel previews and production must include `AUTH_SECRET`; otherwise Next routes that read Auth.js session state will fail at runtime.
 - Vercel previews only support real `/sign-in` flows when `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are configured; without them the sign-in page renders a disabled state but `/dev` and protected API handlers should still deny unauthenticated access.
 - In the Next `/dev` shell, navigation now goes through the App Router instead of relying on `window.history.pushState` hacks.
+- The dev article editor now normalizes legacy and current article section shapes through shared adapters before rendering forms or applying generated YAML.
 - Legacy Vercel API entrypoints have been removed; shared GitHub save helpers now live in `lib/server/github/`.
 - The legacy Vite shell, offline inline build, and old prerender/sitemap scripts have been retired.
 
@@ -73,6 +74,7 @@ Common direct script entrypoints:
 - `node scripts/batch/batch-generate-<section>.mjs`
 - `node scripts/batch/batch-extract-quotes.mjs`
 - `node scripts/convex/sync-convex-to-production.mjs`
+- `node scripts/migrate/migrate-pharmacology-schema.mjs --dry-run --verbose`
 - `node scripts/migrate/migrate-prompts-to-convex.mjs`
 
 ## Prompt System Notes

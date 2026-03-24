@@ -95,8 +95,17 @@ function generateDefault(schema: ZodType): unknown {
       return "";
     case "number":
       return null; // Numbers default to null for this schema
-    case "optional":
+    case "optional": {
+      const inner = unwrapType(schema);
+      const innerType = getZodTypeName(inner);
+      if (innerType === "object" || innerType === "array" || innerType === "record") {
+        return generateDefault(inner);
+      }
+      if (innerType === "number") {
+        return null;
+      }
       return undefined;
+    }
     case "nullable": {
       const inner = unwrapType(schema);
       // For nullable numbers, return null; for nullable objects, generate defaults
@@ -127,7 +136,31 @@ function generateDefault(schema: ZodType): unknown {
  * Generate the createEmptyArticle function as TypeScript code
  */
 function generateDefaultsFile(): string {
-  const defaults = generateDefault(substanceArticleSchema);
+  const defaults = generateDefault(substanceArticleSchema) as Record<string, unknown>;
+  const pharmacology = (defaults.pharmacology ??= {}) as Record<string, unknown>;
+  pharmacology.route_bioavailability ??= {};
+  pharmacology.route_half_life ??= {};
+  pharmacology.route_half_life_notes ??= {};
+  pharmacology.route_bioavailability_notes ??= {};
+
+  defaults.harm_potential ??= {};
+  const harmPotential = defaults.harm_potential as Record<string, unknown>;
+  harmPotential.addiction ??= {
+    psychological: { level: null, description: "" },
+    physical_dependence: { level: null, description: "" },
+  };
+  harmPotential.toxicity ??= {};
+  const toxicity = harmPotential.toxicity as Record<string, unknown>;
+  toxicity.lethal_dosage ??= { ld50: [], notes: "" };
+  toxicity.organ_toxicity ??= [];
+  toxicity.carcinogenicity ??= { level: null, evidence: null, description: "" };
+  toxicity.antibiotic_function ??= { level: null, description: "" };
+  harmPotential.psychosis ??= { level: null, description: "" };
+  harmPotential.seizure ??= { level: null, description: "" };
+
+  defaults.history_culture ??= { content: "", sections: [] };
+  defaults.source_citations ??= [];
+
   const json = JSON.stringify(defaults, null, 2);
 
   return `/**

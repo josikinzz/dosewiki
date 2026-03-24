@@ -24,6 +24,7 @@ import type { SubstanceArticle, Identification, Classification } from "@/schema"
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 
 const PRIORITY_OPTIONS = [
   { value: "high", label: "High", description: "Featured in listings" },
@@ -70,9 +71,9 @@ export function OverviewFieldsRHF({
   // Handle applying generated identification YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const identification: Identification = parsed.identification ?? {};
-      const classification: Classification = parsed.classification ?? {};
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const identification = (parsed.identification ?? {}) as Partial<Identification>;
+      const classification = (parsed.classification ?? {}) as Partial<Classification>;
 
       // Update identification fields
       if (identification.common_name) {

@@ -37,6 +37,7 @@ import type {
 import { slugify } from "../../utils/slug";
 import { getCategoryIcon } from "../config/categoryIcons";
 import { canonicalizeRouteLabel } from "../routeSynonyms";
+import { getLegacyAwareMechanismTags } from "../../../lib/article/normalization.js";
 
 export interface SubstanceRecord {
   id: number | null;
@@ -495,9 +496,7 @@ function buildInfoSections(
   }
 
   // Mechanism of action derived from receptor_profile tags
-  const mechanismArray = (pharmacology?.receptor_profile || [])
-    .map(e => e.tag)
-    .filter((t): t is string => !!t);
+  const mechanismArray = getLegacyAwareMechanismTags(pharmacology);
   if (mechanismArray && mechanismArray.length > 0) {
     const mechanism = mechanismArray.join("; ");
     const seen = new Set<string>();

@@ -12,11 +12,13 @@ const BREAKPOINTS = {
 
 type ResponsiveColumnOptions = {
   limitColumns?: boolean;
+  maxColumns?: number;
 };
 
 export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): number {
   const limitColumns = options?.limitColumns ?? false;
-  const maxColumns = limitColumns ? 3 : 6;
+  const maxColumnsOverride = options?.maxColumns;
+  const maxColumns = maxColumnsOverride ?? (limitColumns ? 3 : 6);
 
   const getColumnCount = useCallback(() => {
     if (typeof window === "undefined") {

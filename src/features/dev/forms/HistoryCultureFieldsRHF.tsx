@@ -18,6 +18,7 @@ import { CharacterCount } from "./FormHelpers";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 import type { SubstanceArticle, HistoryCulture } from "@/schema";
 
 export type HistoryCultureFieldsRHFProps = {
@@ -153,20 +154,11 @@ export function HistoryCultureFieldsRHF({ idPrefix }: HistoryCultureFieldsRHFPro
     }
   }, [getValues]);
 
-  // Strip markdown code fences from LLM output
-  const stripCodeFences = (text: string): string => {
-    return text
-      .replace(/^```(?:yaml|yml)?\s*\n?/i, "")  // Opening fence
-      .replace(/\n?```\s*$/i, "")               // Closing fence
-      .trim();
-  };
-
   // Handle applying generated history & culture YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const cleanYaml = stripCodeFences(generatedYaml);
-      const parsed = yaml.parse(cleanYaml);
-      const historyCulture: HistoryCulture = parsed.history_culture ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const historyCulture = (parsed.history_culture ?? parsed) as Partial<HistoryCulture>;
       
       // Apply both content and sections
       setValue("history_culture.content", historyCulture.content ?? "");

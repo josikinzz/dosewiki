@@ -25,6 +25,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { normalizePharmacologySection } from "../../lib/article/normalization.js";
 import yaml from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -360,7 +361,7 @@ function extractPharmacologyYaml(response) {
 
   const lines = withoutThinkBlocks.split(/\r?\n/);
   const firstRelevantLine = lines.findIndex((line) =>
-    /^(pharmacology|pharmacodynamics|receptor_profile|pharmacokinetics|metabolites)\s*:/i.test(line.trim())
+    /^(pharmacology|pharmacodynamics|summary|mechanism_of_action|receptor_profile|receptor_binding|pharmacokinetics|metabolism|metabolites|route_bioavailability|route_half_life|route_half_life_notes|route_bioavailability_notes)\s*:/i.test(line.trim())
   );
 
   if (firstRelevantLine === -1) {
@@ -372,44 +373,7 @@ function extractPharmacologyYaml(response) {
 
 // Normalize pharmacology to ensure all required fields exist
 function normalizePharmacology(p) {
-  // Handle legacy format: convert mechanism_of_action + receptor_binding → receptor_profile
-  let receptorProfile;
-  if (Array.isArray(p.receptor_profile)) {
-    receptorProfile = p.receptor_profile.map(entry => ({
-      receptor: typeof entry.receptor === 'string' ? entry.receptor : "",
-      ...(entry.tag ? { tag: String(entry.tag) } : {}),
-      ...(entry.affinity ? { affinity: String(entry.affinity) } : {}),
-      ...(entry.efficacy ? { efficacy: String(entry.efficacy) } : {}),
-    }));
-  } else if (Array.isArray(p.mechanism_of_action)) {
-    // Legacy fallback: derive from old fields
-    receptorProfile = p.mechanism_of_action.map(tag => ({
-      receptor: tag.split(" receptor")[0] || tag,
-      tag,
-    }));
-  } else {
-    receptorProfile = [];
-  }
-
-  return {
-    // Core pharmacology fields
-    pharmacodynamics: typeof p.pharmacodynamics === 'string'
-      ? p.pharmacodynamics
-      : (typeof p.summary === 'string' ? p.summary : ""),
-    receptor_profile: receptorProfile,
-    pharmacokinetics: typeof p.pharmacokinetics === 'string' ? p.pharmacokinetics
-      : (typeof p.metabolism === 'string' ? p.metabolism : ""),
-    metabolites: Array.isArray(p.metabolites) ? p.metabolites : [],
-    // Route-specific data (will be merged into dosage/duration)
-    route_bioavailability: typeof p.route_bioavailability === 'object' && p.route_bioavailability !== null
-      ? p.route_bioavailability : {},
-    route_half_life: typeof p.route_half_life === 'object' && p.route_half_life !== null
-      ? p.route_half_life : {},
-    route_half_life_notes: typeof p.route_half_life_notes === 'object' && p.route_half_life_notes !== null
-      ? p.route_half_life_notes : {},
-    route_bioavailability_notes: typeof p.route_bioavailability_notes === 'object' && p.route_bioavailability_notes !== null
-      ? p.route_bioavailability_notes : {},
-  };
+  return normalizePharmacologySection(p);
 }
 
 // Merge route-specific pharmacokinetic data into dosage/duration routes

@@ -117,14 +117,17 @@ export function DosagesPage({ layout, substances }: DosagesPageProps) {
             title="Substance Index"
             icon="lucide:flask-conical"
             showSpotlight={false}
+            descriptionClassName="type-lead theme-accent-emphasis-scope theme-text-secondary mx-auto max-w-[90ch] text-balance"
             description={
               <>
                 Browse {" "}
-                <strong>{formatLabel(substanceCount, "educational substance article", "educational substance articles")}</strong>
-                {" "} organized across {" "}
+                <strong>{formatLabel(substanceCount, "substance article", "substance articles")}</strong>
+                {" "} focused on education and harm reduction, organized across {" "}
                 <strong>{formatLabel(psychoactiveClassCount, "psychoactive class", "psychoactive classes")}</strong>
-                .{" "}
-                Open any entry to explore detailed harm reduction information such as: dosage &amp; duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history &amp; culture, legality, and further reading.
+                .
+                <br />
+                Open any page below to explore detailed information including: {" "}
+                <em>dosage &amp; duration, subjective effects, reagent testing, pharmacology, interactions, harm potential, history &amp; culture, legality, and further reading.</em>
               </>
             }
           />

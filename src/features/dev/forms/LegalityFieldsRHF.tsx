@@ -14,6 +14,7 @@ import type { SubstanceArticle, Legality } from "@/schema";
 import { SectionGenerator } from "../tools/substance-editor/SectionGenerator";
 import { useOptionalSubstanceEditorContext } from "../tools/substance-editor/SubstanceEditorContext";
 import { useSectionPrompt } from "@/hooks/usePrompts";
+import { parseSectionYamlObject } from "../tools/substance-editor/yamlParser";
 
 export type LegalityFieldsRHFProps = {
   idPrefix: string;
@@ -37,8 +38,8 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix }: LegalityFieldsRHFProp
   // Handle applying generated legality YAML to form
   const handleApplyGenerated = useCallback((generatedYaml: string) => {
     try {
-      const parsed = yaml.parse(generatedYaml);
-      const legality: Legality = parsed.legality ?? parsed;
+      const parsed = parseSectionYamlObject<Record<string, unknown>>(generatedYaml);
+      const legality = (parsed.legality ?? parsed) as Partial<Legality>;
 
       setValue("legality.international", legality.international ?? []);
       if (legality.countries) {

@@ -371,13 +371,13 @@ export function VCodeRenderer({
   // Handle different content types
   if (typeof content === "string") {
     // Raw string content - just render as text
-    return <div className="type-reading-measure type-supporting-copy text-white/80">{content}</div>;
+    return <div className="type-supporting-copy text-white/80">{content}</div>;
   }
 
   if (Array.isArray(content)) {
     // Parsed AST array
     return (
-      <div className="type-reading-measure space-y-5 text-white/80">
+      <div className="space-y-5 text-white/80">
         {content.map((node, index) => renderNode(node, index))}
       </div>
     );
@@ -385,7 +385,7 @@ export function VCodeRenderer({
 
   // Single node
   return (
-    <div className="type-reading-measure text-white/80">
+    <div className="text-white/80">
       {renderNode(content, 0)}
     </div>
   );

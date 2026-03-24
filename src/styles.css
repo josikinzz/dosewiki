@@ -908,7 +908,6 @@
   .prose,
   .prose.prose-invert,
   .prose-fuchsia {
-    max-width: var(--type-measure-reading);
     color: var(--theme-text-secondary);
     font-size: var(--type-size-body);
     line-height: var(--type-leading-relaxed);

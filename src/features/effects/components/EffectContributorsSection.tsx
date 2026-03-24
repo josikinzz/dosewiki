@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { IconBadge } from "@/components/common/IconBadge";
-import { SectionCard } from "@/components/common/SectionCard";
+import { SectionHeader } from "@/components/common/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { getContributorPath } from "@/utils/contributors";
 import { isPlainLeftClick } from "@/utils/navigation";
@@ -13,7 +12,7 @@ interface EffectContributorsSectionProps {
 /**
  * Contributors section for effect articles.
  */
-export function EffectContributorsSection({ 
+export function EffectContributorsSection({
   contributors,
   onNavigate,
 }: EffectContributorsSectionProps) {
@@ -22,11 +21,8 @@ export function EffectContributorsSection({
   }
 
   return (
-    <SectionCard delay={0.4}>
-      <h2 className="mb-4 flex items-center gap-3 text-lg font-semibold text-fuchsia-300">
-        <IconBadge icon="lucide:users" label="Contributors" />
-        Contributors
-      </h2>
+    <div className="space-y-6">
+      <SectionHeader icon="lucide:users" title="Contributors" />
       <div className="flex flex-wrap gap-2">
         {contributors.map((contributor) => {
           const path = getContributorPath(contributor);
@@ -55,6 +51,6 @@ export function EffectContributorsSection({
           );
         })}
       </div>
-    </SectionCard>
+    </div>
   );
 }

@@ -1,6 +1,10 @@
 import type { SubstanceArticle } from "../../schema";
 import { slugifyDrugName } from "../../data/builders/contentBuilder";
 import { ensureNormalizedTagList } from "./tagDelimiters";
+import {
+  getLegacyAwareMechanismTags,
+  normalizePharmacologySection,
+} from "../../../lib/article/normalization.js";
 
 type ArticleRecord = SubstanceArticle;
 
@@ -183,14 +187,10 @@ const fieldConfigs: Record<TagField, FieldConfig> = {
     },
   },
   mechanism_of_action: {
-    getter: (article) => ensureNormalizedTagList(
-      (article.pharmacology?.receptor_profile || [])
-        .map(e => e.tag)
-        .filter((t): t is string => !!t)
-    ),
+    getter: (article) => ensureNormalizedTagList(getLegacyAwareMechanismTags(article.pharmacology)),
     setter: (article, values) => {
       const next = cloneArticle(article);
-      const existing = next.pharmacology?.receptor_profile || [];
+      const existing = normalizePharmacologySection(next.pharmacology).receptor_profile || [];
       const normalizedValues = ensureNormalizedTagList(values);
       // Update tags on existing entries, add new entries for new tags
       const existingTags = new Set(existing.map(e => e.tag).filter(Boolean));

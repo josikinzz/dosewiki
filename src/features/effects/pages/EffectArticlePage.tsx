@@ -2,13 +2,9 @@
 
 import type { ReactNode } from "react";
 import type { IconName } from "@/components/common/Icon";
-import {
-  PublicTableOfContents,
-  type PublicTableOfContentsItem,
-} from "@/components/common/PublicTableOfContents";
+import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
 import { VCodeRenderer } from "../vcode/VCodeRenderer";
-import { EffectHero } from "../components/EffectHero";
 import { EffectCitationsSection } from "../components/EffectCitationsSection";
 import { EffectContributorsSection } from "../components/EffectContributorsSection";
 import { RelatedSubstancesSection } from "../components/RelatedSubstancesSection";
@@ -55,6 +51,20 @@ interface EffectArticlePageProps {
   categoryHrefPrefix?: string;
   onSelectDrug?: (slug: string) => void;
   onSelectCategory?: (categoryKey: string) => void;
+}
+
+function getEffectIcon(tags: string[]): IconName {
+  const tagSet = new Set(tags.map(t => t.toLowerCase()));
+  if (tagSet.has("visual")) return "lucide:eye";
+  if (tagSet.has("auditory")) return "lucide:ear";
+  if (tagSet.has("cognitive")) return "fluent:thinking-24-regular";
+  if (tagSet.has("physical")) return "lucide:activity";
+  if (tagSet.has("tactile")) return "lucide:hand";
+  if (tagSet.has("multisensory")) return "lucide:cog";
+  if (tagSet.has("smell and taste")) return "lucide:utensils";
+  if (tagSet.has("geometric")) return "lucide:shapes";
+  if (tagSet.has("hallucinatory state")) return "custom:elf";
+  return "lucide:sparkles";
 }
 
 interface EffectArticleRichSectionProps {
@@ -130,42 +140,15 @@ export function EffectArticlePage({
   );
   const hasContributors = Boolean(effect.contributors?.length);
 
-  const tocItems = [
-    descriptionContent
-      ? { id: "overview", label: "Overview", icon: "lucide:book-open-text" as const }
-      : null,
-    analysisContent
-      ? { id: "analysis", label: "Analysis", icon: "lucide:microscope" as const }
-      : null,
-    styleVariationsContent
-      ? { id: "style-variations", label: "Style Variations", icon: "lucide:palette" as const }
-      : null,
-    hasGallery
-      ? { id: "replications", label: "Replications", icon: "lucide:image" as const }
-      : null,
-    hasAudioReplications
-      ? { id: "audio-replications", label: "Audio Replications", icon: "lucide:volume-2" as const }
-      : null,
-    personalCommentaryContent
-      ? { id: "commentary", label: "Insight & Commentary", icon: "lucide:quote" as const }
-      : null,
-    hasRelatedSubstances
-      ? { id: "related-substances", label: "Related Substances", icon: "lucide:flask-conical" as const, tone: "accent" as const }
-      : null,
-    hasSources
-      ? { id: "sources", label: "Sources & References", icon: "lucide:library" as const }
-      : null,
-    hasContributors
-      ? { id: "contributors", label: "Contributors", icon: "lucide:users" as const }
-      : null,
-  ].filter(Boolean) as PublicTableOfContentsItem[];
-
   return (
     <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <div className="mx-auto max-w-4xl space-y-10 px-4 pb-16 pt-8 md:px-8">
-        <EffectHero name={effect.name} tags={effect.tags} summary={effect.summary} />
-
-        <PublicTableOfContents items={tocItems} />
+        <div className="flex items-center gap-3">
+          <Icon icon={getEffectIcon(effect.tags)} size={32} className="shrink-0 text-fuchsia-300" />
+          <h1 className="font-display text-3xl font-bold tracking-tight text-fuchsia-200 sm:text-4xl">
+            {effect.name}
+          </h1>
+        </div>
 
         <EffectArticleRichSection
           id="overview"

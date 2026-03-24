@@ -369,6 +369,12 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
     default: "",
     isNullable: false,
   },
+  "pharmacology.summary": {
+    path: "pharmacology.summary",
+    type: "text",
+    default: undefined,
+    isNullable: false,
+  },
   "pharmacology.receptor_profile": {
     path: "pharmacology.receptor_profile",
     type: "object",
@@ -402,25 +408,25 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "pharmacology.route_bioavailability": {
     path: "pharmacology.route_bioavailability",
     type: "text",
-    default: undefined,
+    default: {},
     isNullable: false,
   },
   "pharmacology.route_half_life": {
     path: "pharmacology.route_half_life",
     type: "text",
-    default: undefined,
+    default: {},
     isNullable: false,
   },
   "pharmacology.route_half_life_notes": {
     path: "pharmacology.route_half_life_notes",
     type: "text",
-    default: undefined,
+    default: {},
     isNullable: false,
   },
   "pharmacology.route_bioavailability_notes": {
     path: "pharmacology.route_bioavailability_notes",
     type: "text",
-    default: undefined,
+    default: {},
     isNullable: false,
   },
   "pharmacology.bioavailability_notes": {
@@ -486,7 +492,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   "harm_potential": {
     path: "harm_potential",
     type: "text",
-    default: undefined,
+    default: {"addiction":{"psychological":{"level":null,"description":""},"physical_dependence":{"level":null,"description":""}},"toxicity":{"lethal_dosage":{"ld50":[]}},"psychosis":{"level":null,"description":""},"seizure":{"level":null,"description":""}},
     isNullable: false,
   },
   "history_culture": {
@@ -584,6 +590,7 @@ export const FIELD_PATHS = [
   "subjective_effects.attribution",
   "comparisons",
   "pharmacology.pharmacodynamics",
+  "pharmacology.summary",
   "pharmacology.receptor_profile",
   "pharmacology.pharmacokinetics",
   "pharmacology.metabolites",

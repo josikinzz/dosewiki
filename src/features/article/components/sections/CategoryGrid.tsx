@@ -174,6 +174,7 @@ interface CategoryGridProps {
   defaultExpanded?: boolean;
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
+  maxColumns?: number;
 }
 
 export function CategoryGrid({
@@ -185,8 +186,9 @@ export function CategoryGrid({
   defaultExpanded = true,
   hideEmptyGroups = false,
   limitColumns = false,
+  maxColumns,
 }: CategoryGridProps) {
-  const columnCount = useResponsiveColumnCount({ limitColumns });
+  const columnCount = useResponsiveColumnCount({ limitColumns, maxColumns });
 
   const visibleGroups = useMemo(() => {
     if (!hideEmptyGroups) {

@@ -105,5 +105,31 @@ describe('buildSubstanceRecord', () => {
       expect(result?.aliases).toContain('Acid');
       expect(result?.aliases).toContain('Lucy');
     });
+
+    it('builds mechanism info from legacy pharmacology fields', () => {
+      const legacyArticle = {
+        ...minimalArticle,
+        pharmacology: {
+          mechanism_of_action: ['5-HT2A receptor agonist'],
+          receptor_binding: {},
+          metabolites: [],
+          metabolism: '',
+        },
+      } as unknown as typeof minimalArticle;
+
+      const result = buildSubstanceRecord(legacyArticle);
+      const mechanismSection = result?.content.infoSections?.find((section) =>
+        section.items.some((item) => item.label === 'Mechanism of Action')
+      );
+
+      expect(mechanismSection?.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Mechanism of Action',
+            value: '5-HT2A receptor agonist',
+          }),
+        ]),
+      );
+    });
   });
 });
