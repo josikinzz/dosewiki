@@ -22,7 +22,7 @@ vi.mock("@/utils/api/openrouter", () => ({
 import { SectionGenerator } from "./SectionGenerator";
 
 describe("SectionGenerator", () => {
-  it("defaults Claude reasoning to adaptive", () => {
+  it("defaults Claude reasoning to medium", () => {
     render(
       <SectionGenerator
         sectionLabel="Summary"
@@ -40,7 +40,7 @@ describe("SectionGenerator", () => {
 
     const reasoningSelect = screen.getByRole("combobox", { name: "Reasoning effort" });
 
-    expect(reasoningSelect).toHaveValue("adaptive");
+    expect(reasoningSelect).toHaveValue("medium");
   });
 
   it("lets users change reasoning effort for Claude models", () => {
@@ -61,14 +61,14 @@ describe("SectionGenerator", () => {
 
     const reasoningSelect = screen.getByRole("combobox", { name: "Reasoning effort" });
 
-    expect(reasoningSelect).toHaveValue("adaptive");
+    expect(reasoningSelect).toHaveValue("medium");
 
     fireEvent.change(reasoningSelect, { target: { value: "high" } });
 
     expect(reasoningSelect).toHaveValue("high");
   });
 
-  it("disables reasoning in adaptive mode for large prompts", async () => {
+  it("uses medium reasoning by default during generation", async () => {
     streamCompletionMock.mockResolvedValueOnce({
       fullText: "",
       finishReason: "stop",
@@ -88,13 +88,13 @@ describe("SectionGenerator", () => {
       <SectionGenerator
         sectionLabel="Pharmacology"
         sectionKey="pharmacology"
-        prompt={"Prompt ".repeat(9000)}
-        extractedContent={"Extracted source ".repeat(3000)}
+        prompt="Write a pharmacology section"
+        extractedContent="Extracted source"
         genericSources={[]}
         currentArticleYaml={null}
         onApply={() => {}}
         apiKey="test-key"
-        model="anthropic/claude-opus-4.6"
+        model="anthropic/claude-opus-4.5"
         isKeyValid={true}
       />,
     );
@@ -107,13 +107,14 @@ describe("SectionGenerator", () => {
 
     expect(streamCompletionMock).toHaveBeenCalledWith(
       "test-key",
-      "anthropic/claude-opus-4.6",
+      "anthropic/claude-opus-4.5",
       expect.any(String),
       expect.any(String),
       expect.any(Object),
       expect.any(AbortSignal),
       expect.objectContaining({
-        enableReasoning: false,
+        enableReasoning: true,
+        reasoningEffort: "medium",
       }),
     );
   });

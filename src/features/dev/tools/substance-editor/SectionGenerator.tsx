@@ -24,15 +24,9 @@ import { PromptEditorModal } from "./PromptEditorModal";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import type { QuoteSection } from "@/hooks/useQuotes";
 
-type ReasoningPreference = "adaptive" | ReasoningEffortLevel;
 type GenerationMode = "fresh_slate" | "review";
 
-const ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS = 12000;
-const ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS = 8000;
-const ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS = 40000;
-
-const REASONING_OPTIONS: { value: ReasoningPreference; label: string; description: string }[] = [
-  { value: "adaptive", label: "Adaptive", description: "Auto" },
+const REASONING_OPTIONS: { value: ReasoningEffortLevel; label: string; description: string }[] = [
   { value: "minimal", label: "Minimal", description: "5% tokens" },
   { value: "low", label: "Low", description: "20% tokens" },
   { value: "medium", label: "Medium", description: "50% tokens" },
@@ -120,7 +114,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [streamedOutput, setStreamedOutput] = useState("");
   const [streamedReasoning, setStreamedReasoning] = useState("");
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
-  const [reasoningEffort, setReasoningEffort] = useState<ReasoningPreference>("adaptive");
+  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffortLevel>("medium");
   const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -231,60 +225,6 @@ export const SectionGenerator = memo(function SectionGenerator({
     () => genericSources.reduce((total, source) => total + source.content.length, 0),
     [genericSources]
   );
-  const effectiveReasoningConfig = useMemo(() => {
-    if (!supportsReasoning) {
-      return {
-        enableReasoning: false,
-        reasoningEffort: null,
-        mode: "unsupported",
-        reason: "Current model does not support reasoning.",
-      } as const;
-    }
-
-    if (reasoningEffort !== "adaptive") {
-      return {
-        enableReasoning: true,
-        reasoningEffort,
-        mode: "manual",
-        reason: "Using the manually selected reasoning effort.",
-      } as const;
-    }
-
-    if (
-      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS)
-      || (extractedContent?.length ?? 0) >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
-      || genericSourceChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
-    ) {
-      return {
-        enableReasoning: false,
-        reasoningEffort: null,
-        mode: "adaptive-disabled",
-        reason: "Adaptive mode disabled reasoning for this larger prompt/source payload.",
-      } as const;
-    }
-
-    if (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS) {
-      return {
-        enableReasoning: true,
-        reasoningEffort: "minimal",
-        mode: "adaptive-minimal",
-        reason: "Adaptive mode reduced reasoning to minimal for this medium-size prompt.",
-      } as const;
-    }
-
-    return {
-      enableReasoning: true,
-      reasoningEffort: "low",
-      mode: "adaptive-low",
-      reason: "Adaptive mode kept low reasoning for this prompt size.",
-    } as const;
-  }, [
-    extractedContent,
-    genericSourceChars,
-    reasoningEffort,
-    supportsReasoning,
-    totalInputTokenEstimate,
-  ]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -339,17 +279,12 @@ export const SectionGenerator = memo(function SectionGenerator({
       genericSourcesCount: genericSources.length,
       genericSourceChars,
       selectedReasoningEffort: reasoningEffort,
-      effectiveReasoningEnabled: effectiveReasoningConfig.enableReasoning,
-      effectiveReasoningEffort: effectiveReasoningConfig.reasoningEffort,
-      effectiveReasoningMode: effectiveReasoningConfig.mode,
-      effectiveReasoningReason: effectiveReasoningConfig.reason,
+      reasoningEnabled: supportsReasoning,
     });
 
     const primaryPassOptions: StreamCompletionOptions = {
-      enableReasoning: effectiveReasoningConfig.enableReasoning,
-      ...(effectiveReasoningConfig.reasoningEffort
-        ? { reasoningEffort: effectiveReasoningConfig.reasoningEffort }
-        : {}),
+      enableReasoning: supportsReasoning,
+      reasoningEffort,
     };
 
     const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
@@ -514,7 +449,6 @@ export const SectionGenerator = memo(function SectionGenerator({
     canGenerate,
     supportsReasoning,
     reasoningEffort,
-    effectiveReasoningConfig,
     sectionKey,
     sectionLabel,
     generationMode,
@@ -685,7 +619,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                 <select
                   aria-label="Reasoning effort"
                   value={reasoningEffort}
-                  onChange={(event) => setReasoningEffort(event.target.value as ReasoningPreference)}
+                  onChange={(event) => setReasoningEffort(event.target.value as ReasoningEffortLevel)}
                   className="h-7 w-36 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
                   {REASONING_OPTIONS.map((opt) => (
