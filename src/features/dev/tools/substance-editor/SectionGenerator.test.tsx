@@ -22,7 +22,7 @@ vi.mock("@/utils/api/openrouter", () => ({
 import { SectionGenerator } from "./SectionGenerator";
 
 describe("SectionGenerator", () => {
-  it("defaults Claude reasoning to medium", () => {
+  it("defaults Claude reasoning to force mode with medium effort", () => {
     render(
       <SectionGenerator
         sectionLabel="Summary"
@@ -38,12 +38,14 @@ describe("SectionGenerator", () => {
       />,
     );
 
+    const reasoningModeSelect = screen.getByRole("combobox", { name: "Reasoning mode" });
     const reasoningSelect = screen.getByRole("combobox", { name: "Reasoning effort" });
 
+    expect(reasoningModeSelect).toHaveValue("force");
     expect(reasoningSelect).toHaveValue("medium");
   });
 
-  it("lets users change reasoning effort for Claude models", () => {
+  it("lets users change reasoning mode and effort for Claude models", () => {
     render(
       <SectionGenerator
         sectionLabel="Summary"
@@ -59,9 +61,15 @@ describe("SectionGenerator", () => {
       />,
     );
 
+    const reasoningModeSelect = screen.getByRole("combobox", { name: "Reasoning mode" });
     const reasoningSelect = screen.getByRole("combobox", { name: "Reasoning effort" });
 
+    expect(reasoningModeSelect).toHaveValue("force");
     expect(reasoningSelect).toHaveValue("medium");
+
+    fireEvent.change(reasoningModeSelect, { target: { value: "adaptive" } });
+
+    expect(reasoningModeSelect).toHaveValue("adaptive");
 
     fireEvent.change(reasoningSelect, { target: { value: "high" } });
 
@@ -115,6 +123,61 @@ describe("SectionGenerator", () => {
       expect.objectContaining({
         enableReasoning: true,
         reasoningEffort: "medium",
+      }),
+    );
+  });
+
+  it("downgrades adaptive reasoning instead of disabling it for large prompts", async () => {
+    streamCompletionMock.mockResolvedValueOnce({
+      fullText: "",
+      finishReason: "stop",
+      durationMs: 10,
+      responseStatus: 200,
+      contentChunkCount: 0,
+      reasoningChunkCount: 0,
+      contentChars: 0,
+      reasoningChars: 0,
+      sseEventCount: 0,
+      malformedEventCount: 0,
+      doneEventReceived: true,
+      aborted: false,
+    });
+
+    render(
+      <SectionGenerator
+        sectionLabel="Pharmacology"
+        sectionKey="pharmacology"
+        prompt={"Prompt ".repeat(9000)}
+        extractedContent={"Extracted source ".repeat(2000)}
+        genericSources={[]}
+        currentArticleYaml={null}
+        onApply={() => {}}
+        apiKey="test-key"
+        model="anthropic/claude-opus-4.5"
+        isKeyValid={true}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Reasoning mode" }), {
+      target: { value: "adaptive" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /generate/i }));
+
+    await waitFor(() => {
+      expect(streamCompletionMock).toHaveBeenCalled();
+    });
+
+    expect(streamCompletionMock).toHaveBeenCalledWith(
+      "test-key",
+      "anthropic/claude-opus-4.5",
+      expect.any(String),
+      expect.any(String),
+      expect.any(Object),
+      expect.any(AbortSignal),
+      expect.objectContaining({
+        enableReasoning: true,
+        reasoningEffort: "minimal",
       }),
     );
   });

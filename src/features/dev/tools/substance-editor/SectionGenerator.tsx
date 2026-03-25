@@ -24,7 +24,21 @@ import { PromptEditorModal } from "./PromptEditorModal";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import type { QuoteSection } from "@/hooks/useQuotes";
 
+type ReasoningMode = "off" | "adaptive" | "force";
 type GenerationMode = "fresh_slate" | "review";
+
+const ADAPTIVE_REASONING_LOW_INPUT_TOKENS = 12000;
+const ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS = 18000;
+const ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS = 30000;
+const ADAPTIVE_REASONING_LOW_SOURCE_CHARS = 50000;
+const ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS = 80000;
+const ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS = 120000;
+
+const REASONING_MODE_OPTIONS: { value: ReasoningMode; label: string }[] = [
+  { value: "force", label: "Force" },
+  { value: "adaptive", label: "Adaptive" },
+  { value: "off", label: "Off" },
+];
 
 const REASONING_OPTIONS: { value: ReasoningEffortLevel; label: string; description: string }[] = [
   { value: "minimal", label: "Minimal", description: "5% tokens" },
@@ -114,6 +128,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [streamedOutput, setStreamedOutput] = useState("");
   const [streamedReasoning, setStreamedReasoning] = useState("");
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
+  const [reasoningMode, setReasoningMode] = useState<ReasoningMode>("force");
   const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffortLevel>("medium");
   const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
   const [error, setError] = useState<string | null>(null);
@@ -225,6 +240,91 @@ export const SectionGenerator = memo(function SectionGenerator({
     () => genericSources.reduce((total, source) => total + source.content.length, 0),
     [genericSources]
   );
+  const effectiveReasoningConfig = useMemo(() => {
+    if (!supportsReasoning) {
+      return {
+        enableReasoning: false,
+        reasoningEffort: null,
+        mode: "unsupported",
+        reason: "Current model does not support reasoning.",
+      } as const;
+    }
+
+    if (reasoningMode === "off") {
+      return {
+        enableReasoning: false,
+        reasoningEffort: null,
+        mode: "off",
+        reason: "Reasoning is disabled for this run.",
+      } as const;
+    }
+
+    if (reasoningMode === "force") {
+      return {
+        enableReasoning: true,
+        reasoningEffort,
+        mode: "force",
+        reason: `Force mode keeps ${reasoningEffort} reasoning for this run.`,
+      } as const;
+    }
+
+    const extractedContentChars = extractedContent?.length ?? 0;
+    const shouldDisableReasoning =
+      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS)
+      || extractedContentChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
+      || genericSourceChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS;
+
+    if (shouldDisableReasoning) {
+      return {
+        enableReasoning: false,
+        reasoningEffort: null,
+        mode: "adaptive-disabled",
+        reason: "Adaptive mode disables reasoning only for very large prompts.",
+      } as const;
+    }
+
+    const shouldUseMinimalReasoning =
+      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS)
+      || extractedContentChars >= ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS
+      || genericSourceChars >= ADAPTIVE_REASONING_MINIMAL_SOURCE_CHARS;
+
+    if (shouldUseMinimalReasoning) {
+      return {
+        enableReasoning: true,
+        reasoningEffort: "minimal",
+        mode: "adaptive-minimal",
+        reason: "Adaptive mode downgraded reasoning to minimal for this larger prompt.",
+      } as const;
+    }
+
+    const shouldUseLowReasoning =
+      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_LOW_INPUT_TOKENS)
+      || extractedContentChars >= ADAPTIVE_REASONING_LOW_SOURCE_CHARS
+      || genericSourceChars >= ADAPTIVE_REASONING_LOW_SOURCE_CHARS;
+
+    if (shouldUseLowReasoning) {
+      return {
+        enableReasoning: true,
+        reasoningEffort: "low",
+        mode: "adaptive-low",
+        reason: "Adaptive mode downgraded reasoning to low for this medium-size prompt.",
+      } as const;
+    }
+
+    return {
+      enableReasoning: true,
+      reasoningEffort,
+      mode: "adaptive-selected",
+      reason: `Adaptive mode kept your selected ${reasoningEffort} effort.`,
+    } as const;
+  }, [
+    extractedContent,
+    genericSourceChars,
+    reasoningEffort,
+    reasoningMode,
+    supportsReasoning,
+    totalInputTokenEstimate,
+  ]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -239,6 +339,7 @@ export const SectionGenerator = memo(function SectionGenerator({
         sectionLabel,
         model,
         generationMode,
+        reasoningMode,
         reasoningEffort,
         supportsReasoning,
         ...details,
@@ -278,13 +379,19 @@ export const SectionGenerator = memo(function SectionGenerator({
       extractedContentTokens: safeEstimateTokens(extractedContent),
       genericSourcesCount: genericSources.length,
       genericSourceChars,
+      selectedReasoningMode: reasoningMode,
       selectedReasoningEffort: reasoningEffort,
-      reasoningEnabled: supportsReasoning,
+      effectiveReasoningEnabled: effectiveReasoningConfig.enableReasoning,
+      effectiveReasoningEffort: effectiveReasoningConfig.reasoningEffort,
+      effectiveReasoningMode: effectiveReasoningConfig.mode,
+      effectiveReasoningReason: effectiveReasoningConfig.reason,
     });
 
     const primaryPassOptions: StreamCompletionOptions = {
-      enableReasoning: supportsReasoning,
-      reasoningEffort,
+      enableReasoning: effectiveReasoningConfig.enableReasoning,
+      ...(effectiveReasoningConfig.reasoningEffort
+        ? { reasoningEffort: effectiveReasoningConfig.reasoningEffort }
+        : {}),
     };
 
     const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
@@ -448,6 +555,7 @@ export const SectionGenerator = memo(function SectionGenerator({
     userMessage,
     canGenerate,
     supportsReasoning,
+    reasoningMode,
     reasoningEffort,
     sectionKey,
     sectionLabel,
@@ -456,6 +564,7 @@ export const SectionGenerator = memo(function SectionGenerator({
     extractedContent,
     genericSources,
     genericSourceChars,
+    effectiveReasoningConfig,
     promptTokenEstimate,
     totalInputTokenEstimate,
     userMessageTokenEstimate,
@@ -612,14 +721,27 @@ export const SectionGenerator = memo(function SectionGenerator({
               </button>
             )}
 
-            {/* Reasoning effort selector - only for Claude models, hidden during generation */}
+            {/* Reasoning controls - only for Claude models, hidden during generation */}
             {supportsReasoning && !isGenerating && (
               <div className="flex items-center gap-1.5">
                 <Icon icon="lucide:brain" className="h-4 w-4 text-fuchsia-300" size={16} />
                 <select
+                  aria-label="Reasoning mode"
+                  value={reasoningMode}
+                  onChange={(event) => setReasoningMode(event.target.value as ReasoningMode)}
+                  className="h-7 w-24 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
+                >
+                  {REASONING_MODE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <select
                   aria-label="Reasoning effort"
                   value={reasoningEffort}
                   onChange={(event) => setReasoningEffort(event.target.value as ReasoningEffortLevel)}
+                  disabled={reasoningMode === "off"}
                   className="h-7 w-36 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
                   {REASONING_OPTIONS.map((opt) => (
@@ -629,6 +751,12 @@ export const SectionGenerator = memo(function SectionGenerator({
                   ))}
                 </select>
               </div>
+            )}
+
+            {supportsReasoning && !isGenerating && (
+              <span className="basis-full text-right text-[11px] text-white/40">
+                {effectiveReasoningConfig.reason}
+              </span>
             )}
 
             <Button

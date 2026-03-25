@@ -111,7 +111,7 @@ export interface StreamCompletionOptions {
   /** Enable extended thinking/reasoning (default: true for Claude) */
   enableReasoning?: boolean;
   /**
-   * For Claude 4.6 models, this maps to explicit `reasoning.max_tokens` budgets.
+   * For Claude 4.5+ models, this maps to explicit `reasoning.max_tokens` budgets.
    * For older Claude models, this is passed through as `reasoning.effort`.
    */
   reasoningEffort?: ReasoningEffortLevel;
@@ -134,12 +134,12 @@ export interface StreamCompletionResult {
   aborted: boolean;
 }
 
-export function isClaude46Model(model: string): boolean {
-  return /anthropic\/claude-(?:opus|sonnet)-4\.6$/.test(model)
-    || /anthropic\/claude-4\.6-(?:opus|sonnet)$/.test(model);
+export function isClaudeExplicitReasoningModel(model: string): boolean {
+  return /anthropic\/claude-(?:opus|sonnet)-4\.[56]$/.test(model)
+    || /anthropic\/claude-4\.[56]-(?:opus|sonnet)$/.test(model);
 }
 
-export function getClaude46ReasoningMaxTokens(reasoningEffort: ReasoningEffortLevel): number {
+export function getClaudeReasoningMaxTokens(reasoningEffort: ReasoningEffortLevel): number {
   switch (reasoningEffort) {
     case "minimal":
       return 1024;
@@ -181,10 +181,10 @@ export function buildOpenRouterRequestBody(
   };
 
   if (enableReasoning) {
-    if (isClaude46Model(model)) {
+    if (isClaudeExplicitReasoningModel(model)) {
       requestBody.reasoning = {
         enabled: true,
-        max_tokens: getClaude46ReasoningMaxTokens(reasoningEffort),
+        max_tokens: getClaudeReasoningMaxTokens(reasoningEffort),
       };
     } else {
       requestBody.reasoning = {
