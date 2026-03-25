@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import type { IconName } from "@/components/common/Icon";
 import { Icon } from "@/components/common/Icon";
 import { SectionHeader } from "@/components/common/SectionHeader";
@@ -124,6 +124,9 @@ export function EffectArticlePage({
   onSelectDrug,
   onSelectCategory,
 }: EffectArticlePageProps) {
+  const normalizedReplicationsSection = replicationsSection
+    ? Children.toArray(replicationsSection)
+    : null;
   const relatedSubstances = effectDetail
     ? { groups: effectDetail.groups, total: effectDetail.definition.total }
     : undefined;
@@ -184,10 +187,10 @@ export function EffectArticlePage({
         />
 
         {hasGallery ? (
-          replicationsSection ?? (
+          normalizedReplicationsSection ?? (
             <section id="replications" className="scroll-mt-24 space-y-6">
               <SectionHeader icon="lucide:image" title="Replications" />
-              <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 ring-1 ring-white/5 sm:p-6">
+              <div className="mt-6 rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
                 <ReplicationGallery galleryOrder={effect.gallery_order} replications={[]} />
               </div>
             </section>
@@ -201,7 +204,7 @@ export function EffectArticlePage({
               {effect.audio_replications?.map((audio, index) => (
                 <div
                   key={`${audio.title}-${index}`}
-                  className="theme-public-card-subtle group rounded-xl border p-4 transition hover:border-[color:var(--theme-card-border-strong)] hover:bg-[color:color-mix(in_srgb,var(--theme-surface-strong)_76%,transparent)]"
+                  className="group rounded-xl ring-1 ring-white/5 bg-white/5 p-4 transition hover:bg-white/8 hover:ring-white/10"
                 >
                   <div className="mb-3 flex flex-col gap-1">
                     <span className="theme-text-primary text-sm font-semibold truncate">{audio.title}</span>

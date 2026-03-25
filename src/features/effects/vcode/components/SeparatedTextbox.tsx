@@ -17,7 +17,7 @@ export function SeparatedTextbox({
   children,
 }: PropsWithChildren<SeparatedTextboxProps>) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 my-3">
+    <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4 my-3">
       {(leftHeader || rightHeader) && (
         <div className="flex items-center justify-between mb-3 pb-2 relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/10 after:to-transparent">
           {leftHeader && (

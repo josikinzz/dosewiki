@@ -164,7 +164,7 @@ export function VCodeRenderer({
 
       case "panel":
         return (
-          <div key={index} className="my-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5 ring-1 ring-white/5">
+          <div key={index} className="my-6 rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
             {node.properties.title ? (
               <h3 className="mb-4 text-[1.125rem] font-semibold leading-[1.24] tracking-[-0.01em] text-fuchsia-300/85 text-balance">
                 {node.properties.title}
