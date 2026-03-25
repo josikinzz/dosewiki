@@ -1,7 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { useMutation as useConvexMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { isConvexEnabled } from "../lib/convex";
 
 // ============================================================================
 // Types
@@ -78,6 +75,52 @@ export interface SaveProfileResult {
   error?: string;
 }
 
+export interface SaveToConvexPayload {
+  articles?: unknown[];
+  about?: {
+    aboutMarkdown?: string;
+    aboutSubtitle?: string;
+    founderProfileKeys?: string[];
+  };
+  changelog?: {
+    markdown: string;
+    articles: Array<{
+      id: number;
+      title: string;
+      slug: string;
+    }>;
+  };
+}
+
+export interface SaveToConvexResult {
+  success: boolean;
+  savedItems: string[];
+  submittedBy?: string;
+  warnings?: string[];
+  articleResult?: {
+    created: number;
+    updated: number;
+    errors: string[];
+  };
+  entry?: {
+    id: string;
+    createdAt: string;
+    commit: {
+      sha: string;
+      url: string;
+      message: string;
+    };
+    articles: Array<{
+      id: number;
+      title: string;
+      slug: string;
+    }>;
+    markdown: string;
+    submittedBy: string | null;
+  };
+  error?: string;
+}
+
 // ============================================================================
 // API Functions
 // ============================================================================
@@ -150,6 +193,73 @@ async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResu
   };
 }
 
+async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
+  const response = await fetch("/api/save-to-convex", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const details = Array.isArray(result.details)
+      ? result.details.filter((value): value is string => typeof value === "string")
+      : [];
+    const error = typeof result.error === "string" ? result.error : "Unable to save to Convex.";
+    throw new Error(details.length > 0 ? `${error} ${details.join(" ")}`.trim() : error);
+  }
+
+  return {
+    success: true,
+    savedItems: Array.isArray(result.savedItems)
+      ? result.savedItems.filter((value): value is string => typeof value === "string")
+      : [],
+    submittedBy: typeof result.submittedBy === "string" ? result.submittedBy : undefined,
+    warnings: Array.isArray(result.warnings)
+      ? result.warnings.filter((value): value is string => typeof value === "string")
+      : [],
+    articleResult:
+      result.articleResult && typeof result.articleResult === "object"
+        ? {
+            created: Number((result.articleResult as { created?: unknown }).created ?? 0),
+            updated: Number((result.articleResult as { updated?: unknown }).updated ?? 0),
+            errors: Array.isArray((result.articleResult as { errors?: unknown[] }).errors)
+              ? (result.articleResult as { errors: unknown[] }).errors.filter(
+                  (value): value is string => typeof value === "string",
+                )
+              : [],
+          }
+        : undefined,
+    entry:
+      result.entry && typeof result.entry === "object"
+        ? {
+            id: typeof result.entry.id === "string" ? result.entry.id : "",
+            createdAt: typeof result.entry.createdAt === "string" ? result.entry.createdAt : "",
+            commit: {
+              sha: typeof result.entry.commit?.sha === "string" ? result.entry.commit.sha : "",
+              url: typeof result.entry.commit?.url === "string" ? result.entry.commit.url : "",
+              message:
+                typeof result.entry.commit?.message === "string" ? result.entry.commit.message : "",
+            },
+            articles: Array.isArray(result.entry.articles)
+              ? result.entry.articles.filter(
+                  (value: unknown): value is { id: number; title: string; slug: string } =>
+                    typeof value === "object" &&
+                    value !== null &&
+                    typeof (value as { id?: unknown }).id === "number" &&
+                    typeof (value as { title?: unknown }).title === "string" &&
+                    typeof (value as { slug?: unknown }).slug === "string",
+                )
+              : [],
+            markdown: typeof result.entry.markdown === "string" ? result.entry.markdown : "",
+            submittedBy:
+              typeof result.entry.submittedBy === "string" ? result.entry.submittedBy : null,
+          }
+        : undefined,
+  };
+}
+
 // ============================================================================
 // Mutation Hooks
 // ============================================================================
@@ -174,53 +284,8 @@ export function useSaveProfileMutation() {
   });
 }
 
-// ============================================================================
-// Convex Mutation Hooks
-// ============================================================================
-
-/**
- * Mutation hook for saving articles to Convex.
- * Returns null if Convex is not enabled.
- */
-export function useSaveArticlesToConvex() {
-  const enabled = isConvexEnabled();
-  const convexMutation = useConvexMutation(api.substanceIndex.saveSubstances);
-
-  if (!enabled) {
-    return null;
-  }
-
-  return {
-    mutate: convexMutation,
-    isEnabled: enabled,
-  };
-}
-
-/**
- * Mutation hook for replacing all articles in Convex.
- * Use for bulk sync operations.
- */
-export function useReplaceAllArticlesInConvex() {
-  return {
-    mutate: null,
-    isEnabled: false,
-  };
-}
-
-/**
- * Mutation hook for saving changelog entries to Convex.
- * Returns null if Convex is not enabled.
- */
-export function useSaveChangelogToConvex() {
-  const enabled = isConvexEnabled();
-  const convexMutation = useConvexMutation(api.changelog.addEntry);
-
-  if (!enabled) {
-    return null;
-  }
-
-  return {
-    mutate: convexMutation,
-    isEnabled: enabled,
-  };
+export function useSaveToConvexMutation() {
+  return useMutation({
+    mutationFn: saveToConvex,
+  });
 }

@@ -150,8 +150,9 @@ Six tabs at `/dev`:
 - `src/app/sign-in` and `src/app/dev` are the new Auth.js-backed editor entry points.
 - Convex `memberships` stores role assignments (`admin`, `editor`, `viewer`).
 - `AUTH_ADMIN_EMAILS` bootstraps first admin accounts on sign-in without needing a manual seed script.
-- Protected Next API routes now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-user-profile/route.ts`, and `src/app/api/test-env/route.ts`.
+- Protected Next API routes now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, and `src/app/api/test-env/route.ts`.
 - Those protected routes require an Auth.js session plus a Convex-backed `admin` or `editor` role.
+- The `/dev` “Save to Convex” flow now goes through `src/app/api/save-to-convex/route.ts`, which applies the server-side editor session check and forwards privileged writes with `CONVEX_ADMIN_KEY`.
 - `src/app/api/reagent-proxy/route.ts` replaces the public reagent proxy in the Next shell.
 - The Next editor now mounts at `src/app/dev/[[...segments]]/page.tsx` and preserves deep links like `/dev/articles/lsd`.
 - If GitHub OAuth is not configured locally, the sign-in screen can expose a development-only Auth.js credentials fallback backed by the legacy password env vars.

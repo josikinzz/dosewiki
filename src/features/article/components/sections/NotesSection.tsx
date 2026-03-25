@@ -62,7 +62,6 @@ export function NotesSection({ notes }: NotesSectionProps) {
     <div className="space-y-6 pt-12">
       <div className="flex items-center gap-4">
         <div className="relative">
-          <div className="theme-section-header-glow pointer-events-none absolute -inset-x-4 -inset-y-3 rounded-full blur-xl" />
           <h2 className="theme-accent-heading relative flex shrink-0 items-center gap-3 whitespace-nowrap text-xl font-bold tracking-tight">
             <IconBadge icon="lucide:notebook-text" />
             Notes

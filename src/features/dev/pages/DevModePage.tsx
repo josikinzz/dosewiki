@@ -21,9 +21,9 @@ import {
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "@/utils/data/changelog";
 import { DiffPreview } from "@/components/common/DiffPreview";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
-import { useSaveArticlesMutation, useSaveArticlesToConvex, useSaveChangelogToConvex } from "@/hooks/useApiMutations";
+import { useSaveArticlesMutation, useSaveToConvexMutation } from "@/hooks/useApiMutations";
 import { isConvexEnabled } from "@/lib/convex";
-import { useQuery as useConvexQuery, useMutation as useConvexMutation } from "convex/react";
+import { useQuery as useConvexQuery } from "convex/react";
 import { signOut, useSession } from "next-auth/react";
 import { api } from "../../../../convex/_generated/api";
 import type { SubstanceArticle } from "@/schema";
@@ -285,9 +285,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const [, setLastVerifiedAt] = useState<string | null>(null);
   const [githubNotice, setGithubNotice] = useState<ChangeNotice | null>(null);
   const saveArticlesMutation = useSaveArticlesMutation();
-  const convexSave = useSaveArticlesToConvex();
-  const convexChangelogSave = useSaveChangelogToConvex();
-  const convexSaveAbout = useConvexMutation(api.siteConfig.saveAbout);
+  const saveToConvexMutation = useSaveToConvexMutation();
   const isSaving = saveArticlesMutation.isPending;
   const [isConvexSaving, setIsConvexSaving] = useState(false);
   const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
@@ -1487,21 +1485,8 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         message: `Credentials verified for ${credentials.key}. Saving to Convex…`,
       });
 
-      const savedItems: string[] = [];
-
       // Get fresh original articles from ref (not the stale memoized value which may have been computed before articles loaded)
       const freshOriginalArticles = getOriginalArticles();
-
-      // Save About content if changed
-      if (hasAboutChanges) {
-        await convexSaveAbout({
-          aboutMarkdown: aboutMarkdown,
-          aboutSubtitle: aboutSubtitle,
-          founderProfileKeys: aboutFounderKeys,
-          updatedBy: credentials.key,
-        });
-        savedItems.push("About page");
-      }
 
       // Get changed articles by comparing with originals
       const changedArticles = articles.filter((article, index) => {
@@ -1510,62 +1495,65 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         return JSON.stringify(article) !== JSON.stringify(original);
       });
 
-      // Save articles if there are changes and convexSave is available
-      if (changedArticles.length > 0 && convexSave) {
-        const result = await convexSave.mutate({ articles: changedArticles } as never);
-        savedItems.push(`${result.created + result.updated} article(s)`);
+      const result = await saveToConvexMutation.mutateAsync({
+        articles: changedArticles,
+        about: hasAboutChanges
+          ? {
+              aboutMarkdown,
+              aboutSubtitle,
+              founderProfileKeys: aboutFounderKeys,
+            }
+          : undefined,
+        changelog:
+          changedArticles.length > 0 && datasetChangelog.sections.length > 0
+            ? {
+                markdown: datasetChangelog.markdown,
+                articles: datasetChangelog.articles.map((article) => ({
+                  id: article.id,
+                  title: article.title,
+                  slug: article.slug,
+                })),
+              }
+            : undefined,
+      });
 
-        // Generate and save changelog entry
-        if (convexChangelogSave && datasetChangelog.sections.length > 0) {
-          const now = new Date();
-          const entryId = `${now.toISOString().slice(0, 10).replace(/-/g, "")}-${now.toTimeString().slice(0, 8).replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
-          const message = `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      const resolvedKey = result.submittedBy?.trim() || credentials.key;
+      setPasswordKey(resolvedKey);
 
-          // Truncate markdown if too large (Convex has 1 MiB document limit)
-          const MAX_MARKDOWN_SIZE = 500_000; // ~500KB to leave room for other fields
-          let markdown = datasetChangelog.markdown;
-          if (markdown.length > MAX_MARKDOWN_SIZE) {
-            markdown = markdown.slice(0, MAX_MARKDOWN_SIZE) + "\n\n... [Diff truncated - too large to store]";
-          }
-
-          await convexChangelogSave.mutate({
-            entryId,
-            createdAt: now.toISOString(),
-            message,
-            markdown,
-            submittedBy: credentials.key,
-            articles: datasetChangelog.articles.map((a) => ({
-              id: a.id,
-              title: a.title,
-              slug: a.slug,
-            })),
-          });
-
-          // Add the new entry to local state so it appears immediately
-          const newEntry: ChangeLogEntry = {
-            id: entryId,
-            createdAt: now.toISOString(),
-            commit: {
-              sha: "",
-              url: "",
-              message,
-            },
-            articles: datasetChangelog.articles,
-            markdown: datasetChangelog.markdown,
-            submittedBy: credentials.key,
-          };
-          setChangeLogEntries((prev) => appendChangeLogEntry(prev, newEntry));
-        }
+      if (result.entry) {
+        const newEntry: ChangeLogEntry = {
+          id: result.entry.id,
+          createdAt: result.entry.createdAt,
+          commit: {
+            sha: result.entry.commit.sha,
+            url: result.entry.commit.url,
+            message: result.entry.commit.message,
+          },
+          articles: result.entry.articles,
+          markdown: result.entry.markdown,
+          submittedBy: result.entry.submittedBy,
+        };
+        setChangeLogEntries((prev) => appendChangeLogEntry(prev, newEntry));
       }
 
-      if (savedItems.length === 0) {
+      if (result.savedItems.length === 0) {
         setConvexNotice({ type: "error", message: "No Convex-compatible changes to save." });
+        return;
+      }
+
+      if (result.warnings && result.warnings.length > 0) {
+        console.warn("[handleSaveToConvex] Convex save warnings:", result.warnings);
+        setConvexNotice({
+          type: "error",
+          message: `Saved ${result.savedItems.join(" and ")} to Convex as ${resolvedKey}, but ${result.warnings.length} issue(s) occurred.`,
+        });
+        setTimeout(() => setConvexNotice(null), 10000);
         return;
       }
 
       setConvexNotice({
         type: "success",
-        message: `Saved ${savedItems.join(" and ")} to Convex as ${credentials.key}.`,
+        message: `Saved ${result.savedItems.join(" and ")} to Convex as ${resolvedKey}.`,
       });
 
       // Reset local edits flag so future Convex syncs don't skip
@@ -1582,9 +1570,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     }
   }, [
     articles,
-    convexSave,
-    convexSaveAbout,
-    convexChangelogSave,
     datasetChangelog,
     hasPendingChanges,
     hasAboutMarkdownChanges,
@@ -1593,8 +1578,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     aboutMarkdown,
     aboutSubtitle,
     aboutFounderKeys,
-    originalArticles,
+    saveToConvexMutation,
     verifyDevCredentials,
+    getOriginalArticles,
+    markChangesSaved,
   ]);
 
   const handleSaveToGitHub = useCallback(async () => {

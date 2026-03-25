@@ -12,6 +12,9 @@ import { ReplicationGallery } from "../components/ReplicationGallery";
 import type { EffectDetail } from "@/data/builders/library";
 import type { VCodeContent } from "../vcode/types";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { AppImage } from "@/components/common/AppImage";
+import { getContributorPath } from "@/utils/contributors";
 
 /**
  * Subjective effect article from Convex.
@@ -226,17 +229,51 @@ export function EffectArticlePage({
           </section>
         ) : null}
 
-        <EffectArticleRichSection
-          id="commentary"
-          title="Insight & Commentary"
-          icon="lucide:quote"
-          content={personalCommentaryContent}
-          citations={effect.citations}
-          subarticles={effect.subarticles}
-          onNavigate={onNavigate}
-          className="border-l border-fuchsia-400/20 pl-5 sm:pl-6"
-          contentClassName="prose prose-invert prose-fuchsia prose-a:font-normal mt-6 max-w-none text-lg italic leading-relaxed text-white/85"
-        />
+        {personalCommentaryContent && (
+          <section id="commentary" className="scroll-mt-24 space-y-6">
+            <SectionHeader icon="lucide:quote" title="Personal Commentary" />
+
+            {/* Quote-styled content area with gradient accent bar */}
+            <div className="relative ml-2 pl-7 sm:pl-8">
+              {/* Gradient vertical accent */}
+              <div className="absolute left-0 top-0 bottom-0 w-[2px] rounded-full bg-gradient-to-b from-fuchsia-400/60 via-fuchsia-500/25 to-transparent" />
+
+              <div className={cn(
+                "prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
+                "text-lg italic leading-relaxed text-white/80",
+                // Suppress inner Quote borders & footers — badge handles attribution
+                "prose-blockquote:border-0 prose-blockquote:pl-0 prose-blockquote:my-0",
+                "[&_blockquote_footer]:hidden",
+              )}>
+                <VCodeRenderer
+                  content={personalCommentaryContent}
+                  onNavigate={onNavigate}
+                  citations={effect.citations}
+                  subarticles={effect.subarticles}
+                />
+              </div>
+
+              {/* Author badge */}
+              <div className="mt-5 flex justify-end">
+                <Link
+                  href={getContributorPath("Josie Kins")}
+                  className="group inline-flex items-center gap-2.5 rounded-2xl bg-white/[0.04] px-3 py-2 ring-1 ring-white/10 transition hover:bg-white/[0.06] hover:ring-fuchsia-400/30"
+                >
+                  <AppImage
+                    src="/profile-avatars/josie/avatar.webp"
+                    alt="Josie Kins"
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
+                  />
+                  <span className="text-xs font-semibold text-white/70 transition group-hover:text-fuchsia-300">
+                    Josie Kins
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {hasRelatedSubstances ? (
           <section id="related-substances" className="scroll-mt-24 space-y-6">

@@ -9,6 +9,8 @@ interface ToxicitySubsectionProps {
   toxicity: NormalizedHarmPotential['toxicity'];
 }
 
+const DEFAULT_ORGAN_SYSTEM_ICON = "healthicons:organ-outline";
+
 // Mapping of organ system names to their icons
 const ORGAN_SYSTEM_ICONS: Record<string, string> = {
   // Primary terms
@@ -17,6 +19,7 @@ const ORGAN_SYSTEM_ICONS: Record<string, string> = {
   "Central Nervous System": "healthicons:nerve",
   "Renal": "healthicons:kidneys-outline-24px",
   "Respiratory": "tabler:lungs",
+  "Respiratory System": "tabler:lungs",
   "Cardiovascular": "icon-park-outline:heart",
   "Digestive": "covid:symptoms-nausea",
   "Hematological": "hugeicons:blood",
@@ -46,6 +49,18 @@ const ORGAN_SYSTEM_ICONS: Record<string, string> = {
   // "Developmental": "",
   // "Vascular": "",
 };
+
+const NORMALIZED_ORGAN_SYSTEM_ICONS = Object.fromEntries(
+  Object.entries(ORGAN_SYSTEM_ICONS).map(([system, icon]) => [system.trim().toLowerCase(), icon]),
+);
+
+export function getOrganSystemIcon(system?: string | null) {
+  if (!system) return DEFAULT_ORGAN_SYSTEM_ICON;
+
+  return ORGAN_SYSTEM_ICONS[system]
+    || NORMALIZED_ORGAN_SYSTEM_ICONS[system.trim().toLowerCase()]
+    || DEFAULT_ORGAN_SYSTEM_ICON;
+}
 
 function LethalDosageCard({ toxicity }: { toxicity: NormalizedHarmPotential['toxicity'] }) {
   const { lethal_dosage, ld50String } = toxicity;
@@ -126,7 +141,7 @@ interface OrganToxicityEntry {
 function OrganToxicityCard({ entry }: { entry: OrganToxicityEntry }) {
   const [expanded, setExpanded] = useState(false);
   const hasDetails = !!entry.mechanism || !!entry.notes;
-  const systemIcon = entry.system ? ORGAN_SYSTEM_ICONS[entry.system] || "healthicons:organ-outline" : "healthicons:organ-outline";
+  const systemIcon = getOrganSystemIcon(entry.system);
 
   return (
     <div className="break-inside-avoid flex flex-col rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10">
