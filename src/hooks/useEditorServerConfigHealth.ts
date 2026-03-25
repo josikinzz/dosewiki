@@ -1,0 +1,132 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+
+export type EditorServerConfigHealth = {
+  status: "idle" | "checking" | "healthy" | "unhealthy" | "error";
+  canSaveToConvex: boolean;
+  issues: string[];
+  summary: string;
+  checkedAt: string | null;
+  isRefreshing: boolean;
+};
+
+const idleHealthState: EditorServerConfigHealth = {
+  status: "idle",
+  canSaveToConvex: false,
+  issues: [],
+  summary: "",
+  checkedAt: null,
+  isRefreshing: false,
+};
+
+function summarizeIssues(canSaveToConvex: boolean, issues: string[]): string {
+  if (canSaveToConvex) {
+    return "Server ready";
+  }
+
+  if (issues.some((issue) => issue.includes("CONVEX_ADMIN_KEY"))) {
+    return "Missing admin key";
+  }
+
+  if (issues.some((issue) => issue.includes("Convex URL"))) {
+    return "Missing Convex URL";
+  }
+
+  return issues[0] ?? "Server issue";
+}
+
+export function useEditorServerConfigHealth(enabled: boolean) {
+  const [health, setHealth] = useState<EditorServerConfigHealth>(idleHealthState);
+
+  const refresh = useCallback(async () => {
+    if (!enabled) {
+      setHealth(idleHealthState);
+      return;
+    }
+
+    setHealth((current) => ({
+      ...current,
+      status: current.status === "idle" ? "checking" : current.status,
+      summary: current.status === "idle" ? "Checking server" : current.summary,
+      isRefreshing: true,
+    }));
+
+    try {
+      const response = await fetch("/api/editor-config-health", {
+        method: "GET",
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message =
+          typeof result.error === "string" ? result.error : "Unable to check editor server config.";
+
+        setHealth({
+          status: "error",
+          canSaveToConvex: false,
+          issues: [message],
+          summary: "Check failed",
+          checkedAt: null,
+          isRefreshing: false,
+        });
+        return;
+      }
+
+      const issues = Array.isArray(result.issues)
+        ? result.issues.filter((value): value is string => typeof value === "string")
+        : [];
+      const canSaveToConvex = result.canSaveToConvex === true;
+
+      setHealth({
+        status: canSaveToConvex ? "healthy" : "unhealthy",
+        canSaveToConvex,
+        issues,
+        summary: summarizeIssues(canSaveToConvex, issues),
+        checkedAt: typeof result.checkedAt === "string" ? result.checkedAt : null,
+        isRefreshing: false,
+      });
+    } catch {
+      setHealth({
+        status: "error",
+        canSaveToConvex: false,
+        issues: ["Unable to reach the editor health check."],
+        summary: "Check failed",
+        checkedAt: null,
+        isRefreshing: false,
+      });
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setHealth(idleHealthState);
+      return;
+    }
+
+    void refresh();
+
+    const intervalId = window.setInterval(() => {
+      void refresh();
+    }, 60_000);
+
+    const handleFocus = () => {
+      void refresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [enabled, refresh]);
+
+  return {
+    health,
+    refresh,
+  };
+}

@@ -22,6 +22,7 @@ import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from
 import { DiffPreview } from "@/components/common/DiffPreview";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import { useSaveArticlesMutation, useSaveToConvexMutation } from "@/hooks/useApiMutations";
+import { useEditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
 import { isConvexEnabled } from "@/lib/convex";
 import { useQuery as useConvexQuery } from "convex/react";
 import { signOut, useSession } from "next-auth/react";
@@ -35,6 +36,7 @@ import { slugify } from "@/utils/slug";
 import { viewToPath } from "@/utils/routing";
 import { useDevMode } from "../context/DevModeContext";
 import { DevCommitCard } from "../components/DevCommitCard";
+import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
 import { TagEditorTab } from "../tags";
 import { ProfileEditorTab } from "../profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
@@ -604,6 +606,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const nextSession = useSession();
   const nextSessionRole = nextSession.data?.user?.role;
   const hasNextEditorSession = nextSession.status === "authenticated" && canAccessDev(nextSessionRole);
+  const { health: convexServerHealth, refresh: refreshConvexServerHealth } = useEditorServerConfigHealth(
+    isConvexEnabled() && hasNextEditorSession,
+  );
   const nextSessionProfileKey = useMemo(() => {
     const email = nextSession.data?.user?.email?.trim() ?? "";
     if (email) {
@@ -1466,6 +1471,16 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   // Save articles and About content to Convex (instant sync, no GitHub commit)
   // Requires credential verification just like GitHub commits
   const handleSaveToConvex = useCallback(async () => {
+    if (convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex) {
+      setConvexNotice({
+        type: "error",
+        message:
+          convexServerHealth.issues[0] ??
+          "Convex save is unavailable until the server configuration is fixed.",
+      });
+      return;
+    }
+
     if (!hasPendingChanges) {
       setConvexNotice({ type: "error", message: "No changes to save." });
       return;
@@ -1571,6 +1586,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   }, [
     articles,
     datasetChangelog,
+    convexServerHealth.canSaveToConvex,
+    convexServerHealth.issues,
+    convexServerHealth.status,
     hasPendingChanges,
     hasAboutMarkdownChanges,
     hasAboutSubtitleChanges,
@@ -2226,8 +2244,18 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   }, [resetAboutFounderKeys]);
 
   // Convex save button (requires authentication via handleSaveToConvex)
+  const isConvexSaveBlocked =
+    convexServerHealth.status === "unhealthy" && !convexServerHealth.canSaveToConvex;
   const convexSaveButton = isConvexEnabled() ? (
     <div className="flex items-center gap-2">
+      {hasNextEditorSession ? (
+        <EditorServerHealthIndicator
+          health={convexServerHealth}
+          onRefresh={() => {
+            void refreshConvexServerHealth();
+          }}
+        />
+      ) : null}
       {convexNotice && (
         <span className={`text-xs ${convexNotice.type === "error" ? "text-rose-300" : convexNotice.type === "pending" ? "text-cyan-200" : "text-emerald-300"}`}>
           {convexNotice.message}
@@ -2238,7 +2266,7 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
         size="pill"
         className="rounded-full border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-200"
         onClick={handleSaveToConvex}
-        disabled={isConvexSaving || !hasPendingChanges}
+        disabled={isConvexSaving || !hasPendingChanges || isConvexSaveBlocked}
       >
         <Icon icon="lucide:cloud" size={16} />
         {isConvexSaving ? "Saving…" : "Save to Convex"}

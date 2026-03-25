@@ -94,6 +94,7 @@ export interface SaveToConvexPayload {
 
 export interface SaveToConvexResult {
   success: boolean;
+  requestId?: string;
   savedItems: string[];
   submittedBy?: string;
   warnings?: string[];
@@ -102,6 +103,17 @@ export interface SaveToConvexResult {
     updated: number;
     errors: string[];
   };
+  verification?: Array<{
+    target: string;
+    found: boolean;
+    previousSlug: string | null;
+    requestedSlug: string | null;
+    storedSlug: string | null;
+    storedTitle: string | null;
+    titleMatches: boolean;
+    slugMatches: boolean;
+  }>;
+  revalidatedPaths?: string[];
   entry?: {
     id: string;
     createdAt: string;
@@ -194,6 +206,34 @@ async function saveProfile(payload: SaveProfilePayload): Promise<SaveProfileResu
 }
 
 async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexResult> {
+  const payloadSummary = {
+    articleCount: payload.articles?.length ?? 0,
+    hasAbout: payload.about !== undefined,
+    hasChangelog: payload.changelog !== undefined,
+    articleTargets: (payload.articles ?? []).map((article, index) => {
+      if (!article || typeof article !== "object") {
+        return `index:${index}`;
+      }
+
+      const candidate = article as { id?: unknown; slug?: unknown; title?: unknown };
+      if (typeof candidate.id === "number") {
+        return `id:${candidate.id}`;
+      }
+
+      if (typeof candidate.slug === "string" && candidate.slug.trim().length > 0) {
+        return `slug:${candidate.slug.trim()}`;
+      }
+
+      if (typeof candidate.title === "string" && candidate.title.trim().length > 0) {
+        return `title:${candidate.title.trim()}`;
+      }
+
+      return `index:${index}`;
+    }),
+  };
+
+  console.info("[saveToConvex] Starting save request", payloadSummary);
+
   const response = await fetch("/api/save-to-convex", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -201,6 +241,17 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
   });
 
   const result = await response.json().catch(() => ({}));
+
+  console.info("[saveToConvex] Response received", {
+    status: response.status,
+    ok: response.ok,
+    requestId: typeof result.requestId === "string" ? result.requestId : undefined,
+    savedItems: Array.isArray(result.savedItems) ? result.savedItems : [],
+    warnings: Array.isArray(result.warnings) ? result.warnings : [],
+    articleResult: result.articleResult,
+    verification: Array.isArray(result.verification) ? result.verification : [],
+    revalidatedPaths: Array.isArray(result.revalidatedPaths) ? result.revalidatedPaths : [],
+  });
 
   if (!response.ok) {
     const details = Array.isArray(result.details)
@@ -212,12 +263,38 @@ async function saveToConvex(payload: SaveToConvexPayload): Promise<SaveToConvexR
 
   return {
     success: true,
+    requestId: typeof result.requestId === "string" ? result.requestId : undefined,
     savedItems: Array.isArray(result.savedItems)
       ? result.savedItems.filter((value): value is string => typeof value === "string")
       : [],
     submittedBy: typeof result.submittedBy === "string" ? result.submittedBy : undefined,
     warnings: Array.isArray(result.warnings)
       ? result.warnings.filter((value): value is string => typeof value === "string")
+      : [],
+    verification: Array.isArray(result.verification)
+      ? result.verification.filter(
+          (
+            value,
+          ): value is {
+            target: string;
+            found: boolean;
+            previousSlug: string | null;
+            requestedSlug: string | null;
+            storedSlug: string | null;
+            storedTitle: string | null;
+            titleMatches: boolean;
+            slugMatches: boolean;
+          } =>
+            typeof value === "object" &&
+            value !== null &&
+            typeof (value as { target?: unknown }).target === "string" &&
+            typeof (value as { found?: unknown }).found === "boolean" &&
+            typeof (value as { titleMatches?: unknown }).titleMatches === "boolean" &&
+            typeof (value as { slugMatches?: unknown }).slugMatches === "boolean",
+        )
+      : [],
+    revalidatedPaths: Array.isArray(result.revalidatedPaths)
+      ? result.revalidatedPaths.filter((value): value is string => typeof value === "string")
       : [],
     articleResult:
       result.articleResult && typeof result.articleResult === "object"

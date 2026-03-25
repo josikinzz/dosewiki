@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
+import { getServerConvexWriteHealth } from "@server/convex/serverWriteHealth";
 
 export const runtime = "nodejs";
 
@@ -21,13 +22,28 @@ export async function POST(request: Request) {
     return auth.response;
   }
 
-  const keys = ["GITHUB_TOKEN", "ADMIN_PASSWORD", "ZENBY", "KOSM", "COE", "JOSIE", "WITCHY", "ARCTIC"];
+  const keys = [
+    "GITHUB_TOKEN",
+    "ADMIN_PASSWORD",
+    "CONVEX_ADMIN_KEY",
+    "ZENBY",
+    "KOSM",
+    "COE",
+    "JOSIE",
+    "WITCHY",
+    "ARCTIC",
+  ];
   const keysFound = keys.filter((key) => typeof process.env[key] === "string" && process.env[key]!.length > 0).length;
+  const convexHealth = getServerConvexWriteHealth();
 
   return NextResponse.json({
     ok: true,
     keysFound,
     totalKeys: keys.length,
+    convexAdminKeyConfigured: convexHealth.adminKeyConfigured,
+    convexUrlConfigured: convexHealth.convexUrlConfigured,
+    canSaveToConvex: convexHealth.canSaveToConvex,
+    convexIssues: convexHealth.issues,
     timestamp: new Date().toISOString(),
   });
 }

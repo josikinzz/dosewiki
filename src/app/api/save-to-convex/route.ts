@@ -1,9 +1,11 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { api } from "../../../../convex/_generated/api";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
 import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { getServerConvexClient } from "@server/convex/serverClient";
+import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
 
 export const runtime = "nodejs";
 
@@ -31,6 +33,31 @@ type ChangelogArticle = {
 type ChangelogPayload = {
   markdown: string;
   articles: ChangelogArticle[];
+};
+
+type ArticleDebugSummary = {
+  target: string;
+  id: number | null;
+  title: string;
+  requestedSlug: string | null;
+  fallbackSlug: string | null;
+};
+
+type ArticleSnapshot = {
+  id: number | null;
+  title: string;
+  slug: string | null;
+};
+
+type ArticleVerification = {
+  target: string;
+  found: boolean;
+  previousSlug: string | null;
+  requestedSlug: string | null;
+  storedSlug: string | null;
+  storedTitle: string | null;
+  titleMatches: boolean;
+  slugMatches: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -101,6 +128,122 @@ function buildEntryId(now: Date): string {
     .replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
 }
 
+function normalizeString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function summarizeArticleForDebug(article: unknown, index: number): ArticleDebugSummary {
+  const record = isRecord(article) ? article : null;
+  const id = typeof record?.id === "number" ? record.id : null;
+  const title = normalizeString(record?.title) ?? `Article ${index + 1}`;
+  const requestedSlug = normalizeString(record?.slug);
+  const fallbackSlug = requestedSlug ?? (slugify(title) || null);
+  const target = id !== null ? `id:${id}` : fallbackSlug ? `slug:${fallbackSlug}` : `index:${index}`;
+
+  return {
+    target,
+    id,
+    title,
+    requestedSlug,
+    fallbackSlug,
+  };
+}
+
+function toArticleSnapshot(article: { id?: number | null; title?: string; slug?: string | null } | null): ArticleSnapshot | null {
+  if (!article) {
+    return null;
+  }
+
+  return {
+    id: typeof article.id === "number" ? article.id : null,
+    title: article.title ?? "",
+    slug: article.slug ?? null,
+  };
+}
+
+async function findArticleSnapshot(
+  client: ReturnType<typeof getServerConvexClient>,
+  summary: ArticleDebugSummary,
+): Promise<ArticleSnapshot | null> {
+  if (summary.id !== null) {
+    const byId = await client.query(api.substanceIndex.getById, { id: summary.id });
+    if (byId) {
+      return toArticleSnapshot(byId);
+    }
+  }
+
+  const slug = summary.requestedSlug ?? summary.fallbackSlug;
+  if (!slug) {
+    return null;
+  }
+
+  const bySlug = await client.query(api.substanceIndex.getBySlug, { slug });
+  return toArticleSnapshot(bySlug);
+}
+
+async function verifySavedArticle(
+  client: ReturnType<typeof getServerConvexClient>,
+  summary: ArticleDebugSummary,
+  previous: ArticleSnapshot | null,
+): Promise<ArticleVerification> {
+  const stored = await findArticleSnapshot(client, summary);
+  const requestedSlug = summary.requestedSlug ?? summary.fallbackSlug;
+  const storedSlug = stored?.slug ?? null;
+  const storedTitle = stored?.title ?? null;
+
+  return {
+    target: summary.target,
+    found: stored !== null,
+    previousSlug: previous?.slug ?? null,
+    requestedSlug,
+    storedSlug,
+    storedTitle,
+    titleMatches: storedTitle === summary.title,
+    slugMatches: requestedSlug === null ? storedSlug !== null : storedSlug === requestedSlug,
+  };
+}
+
+function buildArticlePathsForRevalidation(
+  summaries: ArticleDebugSummary[],
+  previousByTarget: Map<string, ArticleSnapshot | null>,
+  verification: ArticleVerification[],
+): string[] {
+  const paths = new Set<string>(["/substances"]);
+
+  for (const entry of summaries) {
+    const previousSlug = previousByTarget.get(entry.target)?.slug ?? null;
+    const requestedSlug = entry.requestedSlug ?? entry.fallbackSlug;
+
+    if (previousSlug) {
+      paths.add(`/${previousSlug}`);
+    }
+
+    if (requestedSlug) {
+      paths.add(`/${requestedSlug}`);
+    }
+  }
+
+  for (const entry of verification) {
+    if (entry.storedSlug) {
+      paths.add(`/${entry.storedSlug}`);
+    }
+  }
+
+  return Array.from(paths).sort((left, right) => left.localeCompare(right));
+}
+
 export async function POST(request: Request) {
   const rateLimited = await enforceRateLimit(request, { windowMs: 60_000, max: 5 });
   if (rateLimited) {
@@ -112,15 +255,19 @@ export async function POST(request: Request) {
     return auth.response;
   }
 
-  const adminKey = process.env.CONVEX_ADMIN_KEY;
+  const adminKey = getServerConvexAdminKey();
   if (!adminKey) {
     return NextResponse.json(
-      { error: "Convex admin key is not configured." },
+      {
+        error:
+          "Convex admin key is not configured on the server. Set CONVEX_ADMIN_KEY in the Vercel project environment for this deployment.",
+      },
       { status: 500 },
     );
   }
 
   try {
+    const requestId = `save-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
     const body = await readJsonBody<SaveToConvexBody>(request, {
       maxBytes: MAX_SAVE_PAYLOAD_BYTES,
     });
@@ -128,6 +275,7 @@ export async function POST(request: Request) {
     const articles = Array.isArray(body.articles) ? body.articles : [];
     const about = parseAboutPayload(body.about);
     const changelog = parseChangelogPayload(body.changelog);
+    const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
 
     if (articles.length === 0 && !about) {
       return NextResponse.json({ error: "No Convex-compatible changes to save." }, { status: 400 });
@@ -137,6 +285,32 @@ export async function POST(request: Request) {
     const client = getServerConvexClient();
     const savedItems: string[] = [];
     const warnings: string[] = [];
+    const previousByTarget = new Map<string, ArticleSnapshot | null>();
+
+    if (articleSummaries.length > 0) {
+      const previousSnapshots = await Promise.all(
+        articleSummaries.map(async (summary) => [summary.target, await findArticleSnapshot(client, summary)] as const),
+      );
+
+      previousSnapshots.forEach(([target, snapshot]) => {
+        previousByTarget.set(target, snapshot);
+      });
+    }
+
+    console.info("[save-to-convex] request:start", {
+      requestId,
+      submittedBy,
+      contentLength: request.headers.get("content-length"),
+      articleCount: articleSummaries.length,
+      hasAbout: about !== null,
+      hasChangelog: changelog !== null,
+      articles: articleSummaries,
+      previousArticles: articleSummaries.map((summary) => ({
+        target: summary.target,
+        existingSlug: previousByTarget.get(summary.target)?.slug ?? null,
+        existingTitle: previousByTarget.get(summary.target)?.title ?? null,
+      })),
+    });
 
     if (about) {
       await client.mutation(api.siteConfig.saveAbout, {
@@ -171,6 +345,11 @@ export async function POST(request: Request) {
       if (articleResult.errors.length > 0) {
         warnings.push(...articleResult.errors);
       }
+
+      console.info("[save-to-convex] request:article-mutation", {
+        requestId,
+        articleResult,
+      });
     }
 
     let entry:
@@ -189,6 +368,23 @@ export async function POST(request: Request) {
       | undefined;
 
     const savedArticleCount = articleResult ? articleResult.created + articleResult.updated : 0;
+    const verification =
+      savedArticleCount > 0
+        ? await Promise.all(
+            articleSummaries.map((summary) => verifySavedArticle(client, summary, previousByTarget.get(summary.target) ?? null)),
+          )
+        : [];
+
+    const revalidatedPaths = buildArticlePathsForRevalidation(articleSummaries, previousByTarget, verification);
+
+    if (about) {
+      revalidatedPaths.push("/about");
+    }
+
+    const uniqueRevalidatedPaths = Array.from(new Set(revalidatedPaths)).sort((left, right) =>
+      left.localeCompare(right),
+    );
+
     if (savedArticleCount > 0 && changelog) {
       const now = new Date();
       const createdAt = now.toISOString();
@@ -223,6 +419,20 @@ export async function POST(request: Request) {
       };
     }
 
+    uniqueRevalidatedPaths.forEach((path) => {
+      revalidatePath(path);
+    });
+
+    console.info("[save-to-convex] request:complete", {
+      requestId,
+      savedItems,
+      warnings,
+      articleResult,
+      verification,
+      revalidatedPaths: uniqueRevalidatedPaths,
+      entryId: entry?.id ?? null,
+    });
+
     if (savedItems.length === 0 && warnings.length > 0) {
       return NextResponse.json(
         {
@@ -235,11 +445,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      requestId,
       savedItems,
       submittedBy,
       warnings,
       articleResult,
       entry,
+      verification,
+      revalidatedPaths: uniqueRevalidatedPaths,
     });
   } catch (error) {
     if (error instanceof JsonBodyError) {
