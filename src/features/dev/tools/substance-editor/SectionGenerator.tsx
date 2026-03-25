@@ -13,16 +13,26 @@ import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { estimateTokens, streamCompletion, type StreamCompletionOptions } from "@/utils/api/openrouter";
+import {
+  estimateTokens,
+  streamCompletion,
+  type ReasoningEffortLevel,
+  type StreamCompletionOptions,
+} from "@/utils/api/openrouter";
 import type { ExtractedSourceInfo } from "@/utils/sectionSources";
 import { PromptEditorModal } from "./PromptEditorModal";
 import type { SectionKey } from "@/data/config/sectionPrompts";
 import type { QuoteSection } from "@/hooks/useQuotes";
 
-type ReasoningEffort = "minimal" | "low" | "medium" | "high" | "xhigh";
+type ReasoningPreference = "adaptive" | ReasoningEffortLevel;
 type GenerationMode = "fresh_slate" | "review";
 
-const REASONING_OPTIONS: { value: ReasoningEffort; label: string; description: string }[] = [
+const ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS = 12000;
+const ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS = 8000;
+const ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS = 40000;
+
+const REASONING_OPTIONS: { value: ReasoningPreference; label: string; description: string }[] = [
+  { value: "adaptive", label: "Adaptive", description: "Auto" },
   { value: "minimal", label: "Minimal", description: "5% tokens" },
   { value: "low", label: "Low", description: "20% tokens" },
   { value: "medium", label: "Medium", description: "50% tokens" },
@@ -110,7 +120,7 @@ export const SectionGenerator = memo(function SectionGenerator({
   const [streamedOutput, setStreamedOutput] = useState("");
   const [streamedReasoning, setStreamedReasoning] = useState("");
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(true);
-  const [reasoningEffort, setReasoningEffort] = useState<ReasoningEffort>("low");
+  const [reasoningEffort, setReasoningEffort] = useState<ReasoningPreference>("adaptive");
   const [generationMode, setGenerationMode] = useState<GenerationMode>("fresh_slate");
   const [error, setError] = useState<string | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
@@ -209,6 +219,72 @@ export const SectionGenerator = memo(function SectionGenerator({
 
     return messageParts.join("\n\n---\n\n");
   }, [currentArticleYaml, generationMode, getFilteredArticleYaml, extractedContent, genericSources, sectionLabel]);
+  const promptTokenEstimate = useMemo(() => safeEstimateTokens(prompt), [prompt]);
+  const userMessageTokenEstimate = useMemo(() => safeEstimateTokens(userMessage), [userMessage]);
+  const totalInputTokenEstimate = useMemo(() => {
+    if (promptTokenEstimate == null || userMessageTokenEstimate == null) {
+      return null;
+    }
+    return promptTokenEstimate + userMessageTokenEstimate;
+  }, [promptTokenEstimate, userMessageTokenEstimate]);
+  const genericSourceChars = useMemo(
+    () => genericSources.reduce((total, source) => total + source.content.length, 0),
+    [genericSources]
+  );
+  const effectiveReasoningConfig = useMemo(() => {
+    if (!supportsReasoning) {
+      return {
+        enableReasoning: false,
+        reasoningEffort: null,
+        mode: "unsupported",
+        reason: "Current model does not support reasoning.",
+      } as const;
+    }
+
+    if (reasoningEffort !== "adaptive") {
+      return {
+        enableReasoning: true,
+        reasoningEffort,
+        mode: "manual",
+        reason: "Using the manually selected reasoning effort.",
+      } as const;
+    }
+
+    if (
+      (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_DISABLE_INPUT_TOKENS)
+      || (extractedContent?.length ?? 0) >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
+      || genericSourceChars >= ADAPTIVE_REASONING_DISABLE_SOURCE_CHARS
+    ) {
+      return {
+        enableReasoning: false,
+        reasoningEffort: null,
+        mode: "adaptive-disabled",
+        reason: "Adaptive mode disabled reasoning for this larger prompt/source payload.",
+      } as const;
+    }
+
+    if (totalInputTokenEstimate != null && totalInputTokenEstimate >= ADAPTIVE_REASONING_MINIMAL_INPUT_TOKENS) {
+      return {
+        enableReasoning: true,
+        reasoningEffort: "minimal",
+        mode: "adaptive-minimal",
+        reason: "Adaptive mode reduced reasoning to minimal for this medium-size prompt.",
+      } as const;
+    }
+
+    return {
+      enableReasoning: true,
+      reasoningEffort: "low",
+      mode: "adaptive-low",
+      reason: "Adaptive mode kept low reasoning for this prompt size.",
+    } as const;
+  }, [
+    extractedContent,
+    genericSourceChars,
+    reasoningEffort,
+    supportsReasoning,
+    totalInputTokenEstimate,
+  ]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -250,18 +326,31 @@ export const SectionGenerator = memo(function SectionGenerator({
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    log("info", "generation-started", {
+      log("info", "generation-started", {
       promptChars: prompt.length,
-      promptTokens: safeEstimateTokens(prompt),
+      promptTokens: promptTokenEstimate,
       userMessageChars: userMessage.length,
-      userMessageTokens: safeEstimateTokens(userMessage),
+      userMessageTokens: userMessageTokenEstimate,
+      totalInputTokens: totalInputTokenEstimate,
       currentArticleChars: currentArticleYaml?.length ?? 0,
       currentArticleTokens: safeEstimateTokens(currentArticleYaml),
       extractedContentChars: extractedContent?.length ?? 0,
       extractedContentTokens: safeEstimateTokens(extractedContent),
       genericSourcesCount: genericSources.length,
-      genericSourceChars: genericSources.reduce((total, source) => total + source.content.length, 0),
+      genericSourceChars,
+      selectedReasoningEffort: reasoningEffort,
+      effectiveReasoningEnabled: effectiveReasoningConfig.enableReasoning,
+      effectiveReasoningEffort: effectiveReasoningConfig.reasoningEffort,
+      effectiveReasoningMode: effectiveReasoningConfig.mode,
+      effectiveReasoningReason: effectiveReasoningConfig.reason,
     });
+
+    const primaryPassOptions: StreamCompletionOptions = {
+      enableReasoning: effectiveReasoningConfig.enableReasoning,
+      ...(effectiveReasoningConfig.reasoningEffort
+        ? { reasoningEffort: effectiveReasoningConfig.reasoningEffort }
+        : {}),
+    };
 
     const runPass = async (passName: "primary" | "fallback", options: StreamCompletionOptions) => {
       let receivedOutput = false;
@@ -332,13 +421,10 @@ export const SectionGenerator = memo(function SectionGenerator({
     };
 
     try {
-      const primaryPass = await runPass("primary", {
-        enableReasoning: supportsReasoning,
-        reasoningEffort,
-      });
+      const primaryPass = await runPass("primary", primaryPassOptions);
 
       const shouldRetryWithoutReasoning =
-        supportsReasoning &&
+        primaryPassOptions.enableReasoning === true &&
         !controller.signal.aborted &&
         !primaryPass.hadError &&
         !primaryPass.receivedOutput;
@@ -428,12 +514,17 @@ export const SectionGenerator = memo(function SectionGenerator({
     canGenerate,
     supportsReasoning,
     reasoningEffort,
+    effectiveReasoningConfig,
     sectionKey,
     sectionLabel,
     generationMode,
     currentArticleYaml,
     extractedContent,
     genericSources,
+    genericSourceChars,
+    promptTokenEstimate,
+    totalInputTokenEstimate,
+    userMessageTokenEstimate,
   ]);
 
   const handleCancel = useCallback(() => {
@@ -594,7 +685,7 @@ export const SectionGenerator = memo(function SectionGenerator({
                 <select
                   aria-label="Reasoning effort"
                   value={reasoningEffort}
-                  onChange={(event) => setReasoningEffort(event.target.value as ReasoningEffort)}
+                  onChange={(event) => setReasoningEffort(event.target.value as ReasoningPreference)}
                   className="h-7 w-36 rounded-lg border border-white/10 bg-slate-950/60 px-2.5 text-xs text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
                 >
                   {REASONING_OPTIONS.map((opt) => (
