@@ -34,7 +34,7 @@ export default async function EffectPage({ params }: EffectPageProps) {
   const { effectSlug } = await params;
   const [effect, detail] = await Promise.all([getPublicEffectBySlug(effectSlug), getPublicEffectDetail(effectSlug)]);
 
-  if (!effect || !detail) {
+  if (!effect) {
     notFound();
   }
 

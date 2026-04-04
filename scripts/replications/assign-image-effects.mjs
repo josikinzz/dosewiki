@@ -18,35 +18,35 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  applyGalleryOrderMappingsToMetadata,
+  canonicalizeEffectSlug,
+  loadGalleryOrderMapping,
+  resolveReplicationsPaths,
+} from './lib/reconciliation.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Paths
 const EI_INDEX_FILE = '/Users/josie/Documents/Utilities/unified osmanthus app/replications/esei-replications-index.json';
-const METADATA_FILE = path.join(
-  __dirname,
-  '..',
-  'notes-and-plans',
-  'exports',
-  'replications',
-  'replications-metadata.json'
-);
+const { metadataFile: METADATA_FILE, galleryOrderMappingFile: GALLERY_ORDER_MAPPING_FILE } =
+  resolveReplicationsPaths(__dirname);
 
 // Effect mapping: ESEI effect names → DoseWiki effect slugs
 const ESEI_TO_DOSEWIKI_EFFECTS = {
   'After images': 'tracers',
   'Aesthetic distillation': 'aesthetic-distillation',
   'Akinetopsia': 'akinetopsia',
-  'Autonomous entities': 'hallucinatory-entities',
+  'Autonomous entities': 'autonomous-entity',
   'Blurred vision': 'blurred-vision',
-  'Breathing': 'breathing',
+  'Breathing': 'drifting',
   'Chromatic aberration': 'chromatic-aberration',
-  'Closed eye visuals': 'closed-eye-visuals',
-  'Color enhancement': 'color-enhancement',
+  'Closed eye visuals': 'internal-hallucination',
+  'Color enhancement': 'colour-enhancement',
   'Color flashes': 'color-transformation',
-  'Color modulation': 'color-modulation',
-  'Color shifting': 'color-transformation',
-  'Color transformation': 'color-transformation',
+  'Color modulation': 'colour-shifting',
+  'Color shifting': 'colour-shifting',
+  'Color transformation': 'colour-shifting',
   'Depersonalization': 'depersonalization',
   'Diffraction': 'diffraction-spikes',
   'Diffraction spikes': 'diffraction-spikes',
@@ -54,37 +54,37 @@ const ESEI_TO_DOSEWIKI_EFFECTS = {
   'Environmental cubism': 'environmental-cubism',
   'External hallucinations': 'external-hallucinations',
   'Flowing': 'melting',
-  'Geometry': 'visual-geometry',
-  'Hallucinatory entity': 'hallucinatory-entities',
-  'Hallucinatory entities': 'hallucinatory-entities',
+  'Geometry': 'geometry',
+  'Hallucinatory entity': 'autonomous-entity',
+  'Hallucinatory entities': 'autonomous-entity',
   'Hallucinatory visual acuity': 'hallucinatory-visual-acuity',
   'Immersive hallucinations': 'immersive-hallucinations',
   'Increased pareidolia': 'increased-pareidolia',
-  'Internal hallucinations': 'internal-hallucinations',
-  'Loss of Contact with Reality': 'loss-of-contact-with-reality',
+  'Internal hallucinations': 'internal-hallucination',
+  'Loss of Contact with Reality': 'derealization',
   'Machinescapes': 'machinescapes',
   'Melting': 'melting',
   'Motion': 'visual-drifting',
   'Object activation': 'object-activation',
-  'Open eye visuals': 'open-eye-visuals',
+  'Open eye visuals': 'environmental-patterning',
   'Peripheral pareidolia': 'peripheral-pareidolia',
   'Recursion': 'recursion',
   'Scenery slicing': 'scenery-slicing',
-  'Selective strobing': 'visual-distortions',
-  'Shadow people': 'hallucinatory-entities',
-  'Size distortion': 'visual-distortions',
+  'Selective strobing': 'perspective-distortion',
+  'Shadow people': 'shadow-people',
+  'Size distortion': 'perspective-distortion',
   'Symmetrical texture repetition': 'symmetrical-texture-repetition',
-  'Tachypsychia': 'visual-distortions',
+  'Tachypsychia': 'perspective-distortion',
   'Trails': 'tracers',
   'Tracers': 'tracers',
-  'Transformation': 'visual-distortions',
-  'Unspeakable horrors': 'hallucinatory-entities',
+  'Transformation': 'perspective-distortion',
+  'Unspeakable horrors': 'unspeakable-horrors',
   'Visual acuity enhancement': 'visual-acuity-enhancement',
   'Visual amplifications': 'visual-acuity-enhancement',
-  'Visual Distortions': 'visual-distortions',
-  'Visual distortions': 'visual-distortions',
-  'Visual drifting': 'visual-drifting',
-  'Visual geometry': 'visual-geometry',
+  'Visual Distortions': 'perspective-distortion',
+  'Visual distortions': 'perspective-distortion',
+  'Visual drifting': 'drifting',
+  'Visual geometry': 'geometry',
   'Visual recursion': 'recursion',
   'Visual swirling': 'visual-distortions',
   'Visual trails': 'tracers',
@@ -164,7 +164,7 @@ function assignImageEffects() {
     const mapping = imageEffectMap[normalized];
 
     if (mapping) {
-      rep.effect_slug = mapping.dosewikiSlug;
+      rep.effect_slug = canonicalizeEffectSlug(mapping.dosewikiSlug);
       rep.ei_effect = mapping.eseiEffect;
       assigned++;
       assignments.push({
@@ -179,6 +179,9 @@ function assignImageEffects() {
     }
   }
 
+  const galleryOrderMapping = loadGalleryOrderMapping(GALLERY_ORDER_MAPPING_FILE);
+  const galleryMapped = applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
+
   // Write updated metadata
   fs.writeFileSync(METADATA_FILE, JSON.stringify(metadata, null, 2));
 
@@ -187,6 +190,7 @@ function assignImageEffects() {
   console.log('Assignment Results');
   console.log(`${'='.repeat(60)}`);
   console.log(`Newly assigned: ${assigned}`);
+  console.log(`Assigned from gallery mapping fallback: ${galleryMapped}`);
   console.log(`Already assigned: ${alreadyAssigned}`);
   console.log(`Not found in EI index: ${notFound}`);
 

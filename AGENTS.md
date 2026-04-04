@@ -57,8 +57,9 @@ Migration note:
 - Public Next routes should read Convex through the shared server helpers first; keep client Convex hooks for real-time or interaction-heavy surfaces only.
 - The Next shell now covers the public route tree for substance, category, effect, mechanism, classification, report, search, contributor, and legacy redirect routes.
 - Framework-native SEO for the Next shell now lives in `src/app/sitemap.ts`, `src/app/robots.ts`, and `lib/next/metadata.ts`.
-- Protected Next write endpoints now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, and `src/app/api/test-env/route.ts`; they require an Auth.js session plus an `admin` or `editor` role.
+- Protected Next write and editor health endpoints now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, `src/app/api/editor-config-health/route.ts`, and `src/app/api/test-env/route.ts`; they require an Auth.js session plus an `admin` or `editor` role.
 - The Next `/dev` “Save to Convex” action now routes through `src/app/api/save-to-convex/route.ts`, which validates the Auth.js editor session server-side and forwards privileged Convex writes with `CONVEX_ADMIN_KEY`.
+- The Next `/dev` shell now shows a small server health indicator backed by `src/app/api/editor-config-health/route.ts` so missing Convex save config is visible before attempting a save.
 - `src/app/api/reagent-proxy/route.ts` is the active Next proxy for ProtestKit and keeps the existing public endpoint behavior with rate limiting and CORS handling.
 - The Next editor route now lives at `src/app/dev/[[...segments]]/page.tsx` and mounts the existing `DevModePage` inside a Next-specific client/provider shell.
 - The Next editor shell needs a readable Convex URL via `NEXT_PUBLIC_CONVEX_URL` or the existing `VITE_CONVEX_URL`.

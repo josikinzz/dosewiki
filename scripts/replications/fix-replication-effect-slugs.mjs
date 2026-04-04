@@ -1,128 +1,126 @@
 #!/usr/bin/env node
 /**
- * Fix replication effect_slug values to match Convex effect slugs.
- * The replications were uploaded with old metadata effect_slug names,
- * but queries look for replications by the new Convex effect slugs.
+ * Sync replication effect_slug values in Convex from local replication metadata.
+ *
+ * Usage:
+ *   node scripts/replications/fix-replication-effect-slugs.mjs --dry-run
+ *   node scripts/replications/fix-replication-effect-slugs.mjs --execute
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
-import os from 'os';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../../convex/_generated/api.js";
+import {
+  applyGalleryOrderMappingsToMetadata,
+  loadGalleryOrderMapping,
+  readSimpleEnvFile,
+  resolveReplicationsPaths,
+} from "./lib/reconciliation.mjs";
 
+const dryRun = process.argv.includes("--dry-run");
+const execute = process.argv.includes("--execute");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const METADATA_FILE = path.join(
-  __dirname,
-  '..',
-  'notes-and-plans',
-  'exports',
-  'replications',
-  'replications-metadata.json'
-);
-const PROJECT_DIR = path.join(__dirname, '../..');
 
-// Mapping: old metadata effect_slug -> new Convex effect_slug
-const EFFECT_SLUG_MAPPING = {
-  'breathing': 'drifting',
-  'melting': 'drifting',
-  'flowing': 'drifting',
-  'warping': 'drifting',
-  'closed-eye-visuals': 'internal-hallucination',
-  'color-modulation': 'colour-shifting',
-  'external-hallucinations': 'external-hallucination',
-  'hallucinatory-entities': 'autonomous-entity',
-  'internal-hallucinations': 'internal-hallucination',
-  'loss-of-contact-with-reality': 'derealization',
-  'open-eye-visuals': 'environmental-patterning',
-  'visual-distortions': 'perspective-distortion',
-  'visual-drifting': 'drifting',
-  'visual-geometry': 'geometry',
-  'visual-acuity-enhancement': 'visual-acuity-enhancement',
-  'recursion': 'recursion',
-  'symmetrical-texture-repetition': 'symmetrical-texture-repetition',
-  'tracers': 'tracers',
+if (!dryRun && !execute) {
+  console.error("Usage: node scripts/replications/fix-replication-effect-slugs.mjs --dry-run|--execute");
+  process.exit(1);
+}
+
+const { metadataFile, galleryOrderMappingFile, envFile } = resolveReplicationsPaths(__dirname);
+const env = {
+  ...readSimpleEnvFile(envFile),
+  ...process.env,
 };
 
-// Load metadata
-const { replications } = JSON.parse(fs.readFileSync(METADATA_FILE, 'utf-8'));
+const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
+const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
 
-console.log('\n' + '='.repeat(60));
-console.log('Fix Replication Effect Slugs');
-console.log('='.repeat(60) + '\n');
+if (!CONVEX_URL) {
+  throw new Error("Convex URL is not configured.");
+}
 
-let updated = 0;
-let skipped = 0;
-let failed = 0;
-const failedReps = [];
+if (!CONVEX_ADMIN_KEY) {
+  throw new Error("CONVEX_ADMIN_KEY is not configured.");
+}
 
-for (const rep of replications) {
-  if (!rep.effect_slug) {
-    skipped++;
-    continue;
+const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
+const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
+applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
+
+const client = new ConvexHttpClient(CONVEX_URL);
+
+async function main() {
+  console.log(`\n${"=".repeat(60)}`);
+  console.log("Fix Replication Effect Slugs");
+  console.log(`Mode: ${dryRun ? "DRY RUN" : "EXECUTE"}`);
+  console.log(`${"=".repeat(60)}\n`);
+
+  const currentReplications = await client.query(api.replications.getAll, {});
+  const currentBySlug = new Map(currentReplications.map((replication) => [replication.slug, replication]));
+
+  const updates = metadata.replications
+    .filter((replication) => replication.effect_slug)
+    .map((replication) => ({
+      slug: replication.slug,
+      desiredEffectSlug: replication.effect_slug,
+      currentEffectSlug: currentBySlug.get(replication.slug)?.effect_slug ?? null,
+    }))
+    .filter(
+      (replication) =>
+        replication.currentEffectSlug !== null &&
+        replication.currentEffectSlug !== replication.desiredEffectSlug,
+    );
+
+  console.log(`Found ${updates.length} replications with mismatched effect slugs.\n`);
+
+  for (const update of updates.slice(0, 20)) {
+    console.log(
+      `  ${update.slug}: ${update.currentEffectSlug ?? "null"} -> ${update.desiredEffectSlug}`,
+    );
   }
 
-  const newEffectSlug = EFFECT_SLUG_MAPPING[rep.effect_slug];
-  if (!newEffectSlug) {
-    skipped++;
-    continue;
+  if (updates.length > 20) {
+    console.log(`  ... and ${updates.length - 20} more`);
   }
 
-  // If already correct, skip
-  if (rep.effect_slug === newEffectSlug) {
-    skipped++;
-    continue;
+  if (dryRun) {
+    console.log("");
+    return;
   }
 
-  const timestamp = Date.now();
-  const randomId = Math.random().toString(36).substring(7);
-  const tempFile = path.join(os.tmpdir(), `convex-update-slug-${timestamp}-${randomId}.json`);
+  let updated = 0;
+  const errors = [];
 
-  try {
-    const args = JSON.stringify({
-      slug: rep.slug,
-      effect_slug: newEffectSlug,
-    });
-
-    fs.writeFileSync(tempFile, args, 'utf-8');
-
+  for (const update of updates) {
     try {
-      execSync(
-        `cd "${PROJECT_DIR}" && npx convex run "replications:updateEffectSlug" "$(cat ${tempFile})"`,
-        { stdio: 'pipe', cwd: PROJECT_DIR }
-      );
+      await client.mutation(api.replications.updateEffectSlug, {
+        apiKey: CONVEX_ADMIN_KEY,
+        slug: update.slug,
+        effect_slug: update.desiredEffectSlug,
+      });
       updated++;
-      if (updated % 10 === 0) {
-        console.log(`✓ Updated ${updated} replications...`);
-      }
+      console.log(`✓ ${update.slug} -> ${update.desiredEffectSlug}`);
     } catch (error) {
-      failed++;
-      failedReps.push(`${rep.slug}: ${error.message}`);
-    }
-  } finally {
-    if (fs.existsSync(tempFile)) {
-      fs.unlinkSync(tempFile);
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${update.slug}: ${message}`);
+      console.log(`✗ ${update.slug}: ${message}`);
     }
   }
-}
 
-console.log('\n' + '='.repeat(60));
-console.log(`✓ Updated: ${updated} replications`);
-console.log(`⏭️  Skipped: ${skipped} replications`);
-if (failed > 0) {
-  console.log(`✗ Failed: ${failed} replications`);
-  if (failedReps.length > 0) {
-    console.log('\nFailed replications:');
-    failedReps.slice(0, 10).forEach(r => console.log(`  • ${r}`));
-    if (failedReps.length > 10) {
-      console.log(`  ... and ${failedReps.length - 10} more`);
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`✓ Updated: ${updated}`);
+  if (errors.length > 0) {
+    console.log(`✗ Failed: ${errors.length}`);
+    for (const error of errors) {
+      console.log(`  - ${error}`);
     }
   }
-}
-console.log('='.repeat(60) + '\n');
-
-if (failed === 0) {
-  console.log('✅ All replications updated! Galleries should now load.\n');
+  console.log(`${"=".repeat(60)}\n`);
 }
 
-process.exit(failed > 0 ? 1 : 0);
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});

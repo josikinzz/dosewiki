@@ -1,196 +1,178 @@
 #!/usr/bin/env node
 /**
- * Create gallery_order arrays for subjective effects.
+ * Rebuild subjective effect gallery_order arrays from replication metadata.
  *
- * This script:
- * 1. Queries the replications table via Convex
- * 2. Groups replications by effect_slug
- * 3. Updates each effect's gallery_order field
+ * This script uses the same canonical effect-slug mapping as the replication
+ * import flow, so effect pages and the replications table stay aligned.
  *
  * Usage:
- *   npx convex dev  # In separate terminal
- *   node scripts/create-gallery-order.mjs --dry-run
- *   node scripts/create-gallery-order.mjs --execute
+ *   node scripts/replications/create-gallery-order.mjs --dry-run
+ *   node scripts/replications/create-gallery-order.mjs --execute
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../../convex/_generated/api.js";
+import {
+  applyGalleryOrderMappingsToMetadata,
+  buildGalleryOrderByEffect,
+  loadGalleryOrderMapping,
+  readSimpleEnvFile,
+  resolveReplicationsPaths,
+} from "./lib/reconciliation.mjs";
 
+const dryRun = process.argv.includes("--dry-run");
+const execute = process.argv.includes("--execute");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const dryRun = process.argv.includes('--dry-run');
-const execute = process.argv.includes('--execute');
-
 if (!dryRun && !execute) {
-  console.error('Usage: node create-gallery-order.mjs --dry-run|--execute');
-  console.error('');
-  console.error('Make sure to run: npx convex dev');
+  console.error("Usage: node scripts/replications/create-gallery-order.mjs --dry-run|--execute");
   process.exit(1);
 }
 
-const CONVEX_URL = 'http://localhost:3210';
-const METADATA_FILE = path.join(
-  __dirname,
-  '..',
-  'notes-and-plans',
-  'exports',
-  'replications',
-  'replications-metadata.json'
-);
+const { metadataFile, galleryOrderMappingFile, envFile } = resolveReplicationsPaths(__dirname);
 
-/**
- * Call Convex query/mutation via HTTP
- */
-async function callConvex(functionPath, args) {
-  try {
-    const response = await fetch(`${CONVEX_URL}/api/${functionPath}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-    });
+const env = {
+  ...readSimpleEnvFile(envFile),
+  ...process.env,
+};
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`HTTP ${response.status}: ${error}`);
-    }
+const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
+const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
 
-    return await response.json();
-  } catch (error) {
-    throw error;
-  }
+if (!CONVEX_URL) {
+  throw new Error("Convex URL is not configured.");
 }
 
-/**
- * Main function
- */
-async function createGalleryOrder() {
-  console.log(`\n${'='.repeat(60)}`);
-  console.log('Create Gallery Order for Effects');
-  console.log(`Mode: ${dryRun ? 'DRY RUN' : 'EXECUTE'}`);
-  console.log(`${'='.repeat(60)}\n`);
+if (!CONVEX_ADMIN_KEY) {
+  throw new Error("CONVEX_ADMIN_KEY is not configured.");
+}
 
-  // Load metadata to see what's imported
-  if (!fs.existsSync(METADATA_FILE)) {
-    console.error(`Error: Metadata file not found: ${METADATA_FILE}`);
-    process.exit(1);
+if (!fs.existsSync(metadataFile)) {
+  throw new Error(`Replication metadata file not found: ${metadataFile}`);
+}
+
+const metadata = JSON.parse(fs.readFileSync(metadataFile, "utf8"));
+const galleryOrderMapping = loadGalleryOrderMapping(galleryOrderMappingFile);
+applyGalleryOrderMappingsToMetadata(metadata.replications, galleryOrderMapping);
+const galleryOrderByEffect = buildGalleryOrderByEffect(metadata.replications, galleryOrderMapping);
+const client = new ConvexHttpClient(CONVEX_URL);
+
+async function main() {
+  console.log(`\n${"=".repeat(60)}`);
+  console.log("Create Gallery Order for Effects");
+  console.log(`Mode: ${dryRun ? "DRY RUN" : "EXECUTE"}`);
+  console.log(`${"=".repeat(60)}\n`);
+
+  const currentEffects = await client.query(api.subjectiveEffects.getAll, {});
+  const currentEffectSlugs = new Set(currentEffects.map((effect) => effect.slug));
+  const effects = [...galleryOrderByEffect.entries()]
+    .filter(([effectSlug, replicationSlugs]) => replicationSlugs.length > 0 && currentEffectSlugs.has(effectSlug))
+    .sort(([left], [right]) => left.localeCompare(right));
+  const legacyOnlyEffects = [...galleryOrderByEffect.entries()]
+    .filter(([effectSlug, replicationSlugs]) => replicationSlugs.length > 0 && !currentEffectSlugs.has(effectSlug))
+    .map(([effectSlug]) => effectSlug)
+    .sort();
+  const staleEffects = currentEffects
+    .filter(
+      (effect) =>
+        Array.isArray(effect.gallery_order) &&
+        effect.gallery_order.length > 0 &&
+        !galleryOrderByEffect.has(effect.slug),
+    )
+    .map((effect) => effect.slug)
+    .sort();
+
+  console.log(`Found ${effects.length} effects with gallery replications:\n`);
+  for (const [effectSlug, replicationSlugs] of effects) {
+    console.log(`  ${effectSlug.padEnd(35)} (${replicationSlugs.length})`);
   }
 
-  const { replications } = JSON.parse(fs.readFileSync(METADATA_FILE, 'utf-8'));
-
-  // Filter to only imported replications
-  const imported = replications.filter(r => r.effect_slug);
-
-  // Group by effect
-  const byEffect = {};
-  for (const rep of imported) {
-    if (!byEffect[rep.effect_slug]) {
-      byEffect[rep.effect_slug] = [];
+  if (staleEffects.length > 0) {
+    console.log(`\nFound ${staleEffects.length} effects with stale gallery_order and no matching replications:\n`);
+    for (const effectSlug of staleEffects) {
+      console.log(`  ${effectSlug}`);
     }
-    byEffect[rep.effect_slug].push(rep.slug);
   }
 
-  const effects = Object.keys(byEffect).sort();
-
-  console.log(`Found ${effects.length} effects with replications:`);
-  console.log(`Total replications: ${imported.length}\n`);
-
-  effects.forEach(effect => {
-    const count = byEffect[effect].length;
-    console.log(`  ${effect.padEnd(35)} (${count})`);
-  });
-
-  console.log('');
+  if (legacyOnlyEffects.length > 0) {
+    console.log(`\nSkipping ${legacyOnlyEffects.length} legacy-only gallery mappings with no current effect article:\n`);
+    for (const effectSlug of legacyOnlyEffects) {
+      console.log(`  ${effectSlug}`);
+    }
+  }
 
   if (dryRun) {
-    console.log('[DRY RUN] Would update gallery_order for all effects above\n');
-    console.log('Sample gallery_order for "breathing":');
-    if (byEffect['breathing']) {
-      console.log(JSON.stringify(byEffect['breathing'].slice(0, 3), null, 2));
+    console.log("\n[DRY RUN] Example payload:");
+    const sample = effects[0];
+    if (sample) {
+      console.log(
+        JSON.stringify(
+          { effect_slug: sample[0], replication_slugs: sample[1].slice(0, 5) },
+          null,
+          2,
+        ),
+      );
     }
-    console.log('\nRun with --execute to apply updates\n');
+    console.log("");
     return;
   }
 
-  // Test Convex connection with retries
-  console.log('Testing Convex connection...');
-  let connected = false;
-  for (let i = 0; i < 10; i++) {
-    try {
-      const response = await fetch(`${CONVEX_URL}/api/subjectiveEffects.getBySlug`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: 'breathing' }),
-      });
-      if (response.ok) {
-        connected = true;
-        break;
-      }
-    } catch (error) {
-      // Keep trying
-    }
-    if (i < 9) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
-
-  if (!connected) {
-    console.error('\n✗ Cannot connect to Convex dev server!');
-    console.error('Make sure you have convex dev running:\n');
-    console.error('  npx convex dev\n');
-    process.exit(1);
-  }
-  console.log('✓ Convex dev server is running\n');
-
-  console.log(`Starting to update ${effects.length} effects...\n`);
-
   let updated = 0;
-  let failed = 0;
   const errors = [];
 
-  for (const effect of effects) {
-    const slugs = byEffect[effect];
+  for (const [effectSlug, replicationSlugs] of effects) {
     try {
-      await callConvex('subjectiveEffects.update', {
-        slug: effect,
+      await client.mutation(api.replications.updateGalleryOrder, {
+        apiKey: CONVEX_ADMIN_KEY,
+        effect_slug: effectSlug,
+        replication_slugs: replicationSlugs,
+      });
+      updated++;
+      console.log(`✓ ${effectSlug} (${replicationSlugs.length} replications)`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${effectSlug}: ${message}`);
+      console.log(`✗ ${effectSlug}: ${message}`);
+    }
+  }
+
+  for (const effectSlug of staleEffects) {
+    try {
+      await client.mutation(api.subjectiveEffects.update, {
+        apiKey: CONVEX_ADMIN_KEY,
+        slug: effectSlug,
         updates: {
-          gallery_order: slugs,
+          gallery_order: [],
         },
       });
       updated++;
-      console.log(`✓ Updated ${effect} (${slugs.length} replications)`);
+      console.log(`✓ cleared ${effectSlug} gallery_order`);
     } catch (error) {
-      failed++;
-      errors.push(`${effect}: ${error.message}`);
-      console.log(`✗ Failed to update ${effect}: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${effectSlug}: ${message}`);
+      console.log(`✗ clearing ${effectSlug}: ${message}`);
     }
   }
 
-  // Summary
-  console.log(`\n${'='.repeat(60)}`);
-  console.log('Update Summary');
-  console.log(`${'='.repeat(60)}`);
+  console.log(`\n${"=".repeat(60)}`);
   console.log(`✓ Updated: ${updated} effects`);
-  if (failed > 0) {
-    console.log(`✗ Failed: ${failed} effects`);
-  }
-  console.log(`Total: ${effects.length}`);
-
   if (errors.length > 0) {
-    console.log('\nErrors:');
-    errors.forEach(e => console.log(`  - ${e}`));
+    console.log(`✗ Failed: ${errors.length} effects`);
+    for (const error of errors) {
+      console.log(`  - ${error}`);
+    }
   }
+  console.log(`${"=".repeat(60)}\n`);
 
-  console.log(`\n${'='.repeat(60)}\n`);
-
-  if (failed === 0) {
-    console.log('✅ All effects updated with gallery order!\n');
-    console.log('Gallery should now display on effect pages.\n');
+  if (errors.length === 0) {
+    console.log("✅ Gallery order synchronized from replication metadata.\n");
   }
 }
 
-// Run
-createGalleryOrder().catch(error => {
-  console.error('Fatal error:', error);
+main().catch((error) => {
+  console.error("Fatal error:", error);
   process.exit(1);
 });

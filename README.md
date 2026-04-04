@@ -1,6 +1,6 @@
 # dose.wiki
 
-Front-end for the dose.wiki harm-reduction knowledge base. A React + Tailwind application that renders substance profiles, dosage guidance, subjective effects, trip reports, and interaction references sourced from a Convex real-time database.
+Next.js + Convex application for the dose.wiki harm-reduction knowledge base. The public site renders substance articles, subjective effects, trip reports, classifications, and editor-managed project content from Convex. The protected `/dev` surface provides editorial tools for maintaining that data.
 
 ---
 
@@ -8,7 +8,8 @@ Front-end for the dose.wiki harm-reduction knowledge base. A React + Tailwind ap
 - [Platform Overview](#platform-overview)
 - [Data Architecture](#data-architecture)
 - [Project Layout](#project-layout)
-- [Key Features](#key-features)
+- [Public Routes](#public-routes)
+- [Editor Surface](#editor-surface)
 - [Build, Run, and Deploy](#build-run-and-deploy)
 - [Development Workflow](#development-workflow)
 - [Scripts](#scripts)
@@ -18,176 +19,248 @@ Front-end for the dose.wiki harm-reduction knowledge base. A React + Tailwind ap
 
 ## Platform Overview
 
-- **Type**: Next.js App Router application
-- **Primary data source**: Convex database (679 substances, 164 trip reports, 233 subjective effects)
-- **Routing**: Path-based URLs (`/lsd`, `/effects`, `/reports/{slug}`, `/dev/articles`)
-- **Styling**: Tailwind CSS with dark cosmic theme and fuchsia accent gradients
-- **Icons**: [Lucide React](https://lucide.dev/) for consistency
-- **Offline**: No separate offline single-file build is maintained
+- **Type**: Next.js 16 App Router application
+- **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Primary runtime data source**: Convex
+- **Auth**: Auth.js (`next-auth`) with Convex-backed membership roles
+- **Package manager**: Bun-lock repo with npm scripts
+- **Current live dataset**: 577 substances, 233 subjective effects, 163 trip reports
+- **Current static build surface**: 1,898 prerendered pages in the active production build
 
 ## Data Architecture
 
-**Convex is the source of truth.** All substance data, trip reports, subjective effects, and configuration live in Convex.
+**Convex is the source of truth for runtime data.** Public pages and the active Next.js editor shell read live records from Convex.
 
-```
-Convex Database
-  ├── substanceIndex     → 679 substance articles
-  ├── articleSources     → Scraped source content (~21MB)
-  ├── tripReports        → 164 trip reports with timelines
-  ├── subjectiveEffects  → 233 effect articles with VCode content
-  ├── replications       → Effect videos/images with file storage
-  ├── memberships        → Auth.js-backed editor/admin roles
-  ├── indexLayouts       → Category page arrangements
-  ├── siteConfig         → About page and global settings
-  ├── prompts            → AI generation prompts (12 sections)
-  ├── quotes             → Extracted source quotes per substance
-  └── changelog          → Article modification history
+### Convex tables
 
-Local files (scripts only):
-  ├── SubstanceIndex.json    → Backup/migration scripts
-  ├── parsed-sources.json    → Parser output for prepopulation
-  └── tripsit-combos.json    → Interaction data
+```text
+substanceIndex       → full substance articles
+articleSources       → scraped source content
+tripReports          → trip report entries
+subjectiveEffects    → subjective effect articles
+effectIndexArticles  → supplementary EffectIndex content
+replications         → effect gallery media
+memberships          → editor/admin/viewer roles
+indexLayouts         → psychoactive / chemical / mechanism layouts
+categoryLayout       → legacy public category layout document
+siteConfig           → about-page content and global settings
+prompts              → generator and section prompts
+quotes               → extracted source quotes
+changelog            → article change history
 ```
 
-**Critical rule**: Never overwrite Convex with local JSON. Fetch from Convex first, modify in memory, sync back.
+### Local data files
+
+Local JSON and markdown files still exist for backup, migration, export/import, batch generation, and selected GitHub-backed editing flows. They are **not** the authoritative public runtime state.
+
+Key local artifacts:
+
+- `src/data/SubstanceIndex.json`
+- `src/data/parsed-sources.json`
+- `src/data/config/userProfiles.json`
+- `src/data/config/generatorPrompt.md`
+- `src/data/config/sectionPrompts/*.md`
+
+### Schema ownership
+
+- Canonical article contract: `src/schema/substance.schema.ts`
+- Generated schema helpers: `src/data/schema/`
+- Convex schema: `convex/schema.ts`
+
+The Convex schema is intentionally permissive. The Zod schema is the stricter article definition used by the app.
 
 ## Project Layout
 
-```
+```text
 src/
+├── app/                 # Next.js App Router shell, routes, metadata routes, API handlers
+├── features/
+│   ├── article/         # Substance article rendering
+│   ├── dev/             # Protected editor surface and tools
+│   ├── effects/         # Subjective effect pages and VCode renderer
+│   ├── reports/         # Trip report pages
+│   └── graph/           # Graph feature code (not part of the active route tree)
 ├── components/
-│   ├── common/        # Primitives (SectionCard, GlobalSearch, DiffPreview)
-│   ├── dev/           # DevMode system (forms, profile, tags, tools)
-│   ├── effects/       # Effect-specific (EffectHero, ReplicationGallery)
-│   ├── article/       # ArticleLayout orchestration
-│   ├── layout/        # Header, Footer, PageHeader
-│   ├── pages/         # Route shells (TripReportsPage, EffectsIndexPage)
-│   ├── reports/       # Trip report components
-│   ├── sections/      # Article sections (canonical, used everywhere)
-│   ├── vcode/         # VCodeRenderer for EffectIndex markup
-│   └── ui/            # Radix-based primitives
-├── data/
-│   ├── SubstanceIndex.json     # Local backup
-│   ├── builders/               # contentBuilder, libraryBuilder, search
-│   ├── config/                 # tagOptions, sectionPrompts/
-│   └── schema/                 # Generated schema utilities
-├── hooks/             # useArticleForm, useApiMutations, etc.
-├── schema/            # Zod schemas (substance.schema.ts)
-├── types/             # TypeScript models
-└── utils/             # routing, interactions, slug, seo
+│   ├── common/          # Shared primitives
+│   ├── layout/          # Header, footer, page chrome
+│   ├── pages/           # Page-level presentational components
+│   └── ui/              # Shared UI components
+├── data/                # Local artifacts, builders, config, generated schema helpers
+├── hooks/               # Client hooks for editor/search/config flows
+├── schema/              # Zod schemas
+├── lib/                 # Client-side shared helpers
+└── utils/               # Routing, SEO, tags, slugging, interaction helpers
+
+lib/
+├── auth/                # Auth/Convex membership sync
+├── convex/              # Server-side Convex reads and write health helpers
+├── http/                # Rate limiting and request helpers
+├── next/                # Metadata, sitemap, static param helpers
+├── runtime/             # Runtime env helpers
+└── server/github/       # GitHub-backed write helpers
 
 convex/
-├── schema.ts              # Database schema
-├── substanceIndex.ts      # Substance CRUD
-├── tripReports.ts         # Trip report queries
-├── subjectiveEffects.ts   # Effect queries
-├── replications.ts        # Effect media with file storage
-├── articleSources.ts      # Source content (on-demand)
-└── prompts.ts             # AI generation prompts
+├── schema.ts
+├── substanceIndex.ts
+├── subjectiveEffects.ts
+├── tripReports.ts
+├── memberships.ts
+├── prompts.ts
+├── quotes.ts
+├── replications.ts
+├── siteConfig.ts
+└── indexLayouts.ts
 
 scripts/
-├── batch/             # Batch AI generation and quote extraction
-├── replications/      # Effect replication media management
-├── migrate/           # Data migrations (Convex, schema changes)
-├── prepopulate/       # Populate articles from parsed sources
-├── seed/              # Seed initial Convex data
-├── analyze/           # Data analysis and gap detection
-├── convex/            # Convex import/export/sync
-├── build/             # Build-time scripts (compress, sitemap)
-├── parsers/           # Source extraction parsers
-└── data/              # Data utilities
-
-api/                   # Vercel serverless endpoints
+├── analyze/             # Coverage and data audits
+├── batch/               # AI generation and quote extraction
+├── build/               # Build-time generators
+├── convex/              # Convex import/export/sync
+├── data/                # Data transforms
+├── migrate/             # Schema/data migrations
+├── parsers/             # Source parsers
+├── prepopulate/         # Prepopulation from parsed sources
+├── replications/        # Effect gallery media tooling
+└── seed/                # Initial config/layout seed scripts
 ```
 
-## Key Features
+### Repository notes
 
-### Substance Articles
-- 679 indexed substances (252 high/normal priority visible, 325 low priority direct-URL only)
-- Structured sections: dosage, duration, effects, pharmacology, interactions, harm potential, legality, history
-- DevMode at `/dev/articles` for content creation with AI assistance
+This repository still contains legacy or generated material that is not part of the active runtime path, including `.next/`, `dist/`, `dist-inline/`, `coverage/`, `archive/`, and `notes-and-plans/`.
 
-### Trip Reports
-- 164 imported reports from EffectIndex
-- Timeline-based narratives with onset/peak/offset phases
-- Subject metadata (age, setting, medications)
+## Public Routes
 
-### Subjective Effects
-- 233 effect articles with VCode markup
-- Replication gallery with videos/images
-- Category pages for cognitive, sensory, physical effects
+Active public route groups live under `src/app/`:
 
-### DevMode
-Six tabs at `/dev`:
-1. **articles** - AI article generation with source integration
-2. **change-log** - Modification tracking
-3. **tag-editor** - Manage tags across articles
-4. **profile** - Contributor profiles
-5. **index-layout** - Category arrangement
-6. **about** - About page editor
+- `/substances`
+- `/[slug]`
+- `/effects`
+- `/effects/[effectSlug]`
+- `/effects/category/[categorySlug]`
+- `/reports`
+- `/reports/[slug]`
+- `/category/[categoryKey]`
+- `/chemical/[slug]`
+- `/psychoactive/[slug]`
+- `/mechanism/[mechanismSlug]`
+- `/mechanism/[mechanismSlug]/[qualifierSlug]`
+- `/contributors/[profileKey]`
+- `/about`
+
+Legacy redirect routes also exist for compatibility:
+
+- `/effect/[effectSlug]` → `/effects/[effectSlug]`
+- `/data` → `/about`
+- `/interactions` → `/substances`
+
+SEO and crawl surfaces:
+
+- `src/app/sitemap.ts`
+- `src/app/robots.ts`
+- `lib/next/metadata.ts`
+
+## Editor Surface
+
+Protected editor entry points:
+
+- `/sign-in`
+- `/dev`
+- `/dev/[tab]`
+- `/dev/[tab]/[slug]`
+
+Current editor tabs:
+
+1. `articles`
+2. `change-log`
+3. `tag-editor`
+4. `profile`
+5. `index-layout`
+6. `about`
+
+### Auth and authorization
+
+- Auth config: `auth.ts`
+- Middleware gate for `/dev`: `middleware.ts`
+- Role source of truth: Convex `memberships`
+- Bootstrap admins: `AUTH_ADMIN_EMAILS`
+- Allowed editor roles: `admin`, `editor`
+
+If GitHub OAuth is not configured locally, the sign-in page can fall back to a development-only credentials provider backed by the legacy password env vars.
+
+### Protected API handlers
+
+- `src/app/api/save-to-convex/route.ts`
+- `src/app/api/save-substance-index/route.ts`
+- `src/app/api/save-user-profile/route.ts`
+- `src/app/api/editor-config-health/route.ts`
+- `src/app/api/reagent-proxy/route.ts`
+- `src/app/api/search-suggestions/route.ts`
+- `src/app/api/test-env/route.ts`
+
+The preferred editor write path for live content is `save-to-convex`. GitHub-backed routes remain in the repo for selected file-backed workflows.
 
 ## Build, Run, and Deploy
 
 | Command | Description |
 |---------|-------------|
-| `npm install` | Install dependencies (Node 20 LTS) |
-| `npm run dev` | Next.js dev server at http://localhost:3000 |
-| `npm run next:dev` | Alias for the Next.js dev server |
-| `npm run build` | Canonical production build |
-| `npm run next:build` | Alias for the Next.js production build |
-| `npm run start` | Start the built Next.js app |
-| `npm run test` | Run Vitest tests |
-| `npm run lint` | ESLint with a11y rules |
-| `npm run typecheck` | Run TypeScript without emitting |
+| `npm install` | Install dependencies |
+| `npm run dev` | Start the Next.js dev server on `http://localhost:3000` |
+| `npm run next:dev` | Alias for `npm run dev` |
+| `npm run build` | Production build |
+| `npm run next:build` | Alias for `npm run build` |
+| `npm run start` | Start the built app |
+| `npm run test` | Run Vitest |
+| `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript without emit |
+| `npm run generate:schema` | Regenerate schema helpers |
+| `npm run parse:sources` | Parse raw source files and print stats |
 
-**Environment**: The Next.js auth path uses `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`, `AUTH_ADMIN_EMAILS`, and `NEXTAUTH_URL`. The Next `/dev` shell can use `NEXT_PUBLIC_CONVEX_URL` explicitly, or it falls back to `VITE_CONVEX_URL`. On Vercel previews and production, `AUTH_SECRET` must be present or any route that reads the Auth.js session will fail at runtime; if `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are missing, `/sign-in` renders a disabled GitHub sign-in state and `/dev` remains protected.
+### Key environment variables
 
-**Migration note**: `src/app/` is now the primary shell. The legacy Vite shell and offline inline build path have been retired.
+- `AUTH_SECRET`
+- `AUTH_GITHUB_ID`
+- `AUTH_GITHUB_SECRET`
+- `AUTH_ADMIN_EMAILS`
+- `NEXTAUTH_URL`
+- `CONVEX_URL`
+- `VITE_CONVEX_URL`
+- `NEXT_PUBLIC_CONVEX_URL`
+- `CONVEX_ADMIN_KEY`
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+- `GITHUB_TOKEN`
 
-### Auth.js Editor Access
+### Deployment notes
 
-- Active Next auth config lives in `auth.ts`.
-- `src/app/sign-in` and `src/app/dev` are the new Auth.js-backed editor entry points.
-- Convex `memberships` stores role assignments (`admin`, `editor`, `viewer`).
-- `AUTH_ADMIN_EMAILS` bootstraps first admin accounts on sign-in without needing a manual seed script.
-- Protected Next API routes now live in `src/app/api/save-substance-index/route.ts`, `src/app/api/save-to-convex/route.ts`, `src/app/api/save-user-profile/route.ts`, and `src/app/api/test-env/route.ts`.
-- Those protected routes require an Auth.js session plus a Convex-backed `admin` or `editor` role.
-- The `/dev` “Save to Convex” flow now goes through `src/app/api/save-to-convex/route.ts`, which applies the server-side editor session check and forwards privileged writes with `CONVEX_ADMIN_KEY`.
-- `src/app/api/reagent-proxy/route.ts` replaces the public reagent proxy in the Next shell.
-- The Next editor now mounts at `src/app/dev/[[...segments]]/page.tsx` and preserves deep links like `/dev/articles/lsd`.
-- If GitHub OAuth is not configured locally, the sign-in screen can expose a development-only Auth.js credentials fallback backed by the legacy password env vars.
-- Shared GitHub commit helpers now live in `lib/server/github/` and are used by the Next route handlers directly.
+- Vercel previews and production need `AUTH_SECRET`.
+- The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
+- The public/editor shell needs a readable Convex URL from `CONVEX_URL`, `VITE_CONVEX_URL`, or `NEXT_PUBLIC_CONVEX_URL`.
+- The reagent proxy and protected API handlers run on the Node.js runtime.
 
 ## Development Workflow
 
-1. **Read CLAUDE.md** - Contains operational constraints and patterns
-2. **Consult style guide** - `notes-and-plans/guides/dosewiki-visual-style-guide.md`
-3. **Read contributor guide** - `docs/next-auth-convex-contributor-guide.md`
-4. **Source from Convex** - Never hard-code substance data
-5. **Run tests** - `npm run test`
-6. **Build** - `npm run build` after changes
+1. Read `AGENTS.md` and `CLAUDE.md` before changing shared architecture or workflows.
+2. Treat Convex as the runtime source of truth.
+3. Check the article schema before changing shared content shape.
+4. Prefer server-side Convex reads for public App Router routes.
+5. Reserve client-side Convex hooks for editor and interaction-heavy surfaces.
+6. Run `npm run test`, `npm run lint`, `npm run typecheck`, and `npm run build` before shipping meaningful changes.
 
-### Next.js Data Fetching Rules
+### Data-fetching rules
 
-- Public Next routes should use `lib/convex/serverClient.ts` and `lib/convex/publicData.ts` for server-side Convex reads.
-- Reuse `lib/next/metadata.ts` and `lib/next/sitemap.ts` when adding metadata or future sitemap routes.
-- Keep client-side Convex hooks for live or interaction-heavy surfaces such as editor tooling, search interactions, and similar islands.
-- Do not reintroduce `SubstanceIndex.json` as the primary source for public Next rendering.
-
-### Next.js SEO Rules
-
-- Public metadata should be generated with `buildPageMetadata` in `lib/next/metadata.ts`.
-- `src/app/sitemap.ts` and `src/app/robots.ts` are the canonical SEO routes for the active app shell.
+- Public server reads belong in `lib/convex/serverClient.ts`, `lib/convex/publicData.ts`, and `lib/convex/publicLibrary.ts`.
+- Metadata should go through `lib/next/metadata.ts`.
+- Static param planning belongs in `lib/next/staticParams.ts`.
+- Do not reintroduce `SubstanceIndex.json` as the public rendering source.
 
 ## Scripts
 
-See [scripts/README.md](scripts/README.md) for full documentation.
+See [scripts/README.md](scripts/README.md) for the script catalog.
 
-## Contributor Guide
+Common workflows:
 
-- `docs/next-auth-convex-contributor-guide.md` summarizes the route, auth, and data ownership rules for the current architecture.
+### Batch generation
 
-### Batch Generation
 ```bash
 export OPENROUTER_API_KEY="sk-or-..."
 export VITE_CONVEX_URL="https://..."
@@ -197,29 +270,34 @@ node scripts/batch/batch-generate-history-culture.mjs --substance=lsd
 node scripts/batch/batch-generate-harm-potential.mjs --all --concurrency=5
 ```
 
-### Source Parsing
+### Source parsing
+
 ```bash
-npm run parse:sources                              # Extract to parsed-sources.json
-node scripts/prepopulate/prepopulate-*.mjs         # Populate articles from parsed data
+npm run parse:sources
+node scripts/prepopulate/prepopulate-*.mjs
 ```
 
-### Migrations
+### Migrations and sync
+
 ```bash
-node scripts/migrate/migrate-trip-reports.mjs      # Import trip reports
-node scripts/migrate/migrate-effects.mjs           # Import subjective effects
-node scripts/migrate/migrate-prompts-to-convex.mjs # Sync prompts
+node scripts/migrate/migrate-trip-reports.mjs
+node scripts/migrate/migrate-effects.mjs
+node scripts/migrate/migrate-prompts-to-convex.mjs
+node scripts/convex/sync-convex-to-production.mjs
 ```
 
 ## Further Reading
 
 | Document | Description |
 |----------|-------------|
-| [CLAUDE.md](CLAUDE.md) | Comprehensive development guidelines |
-| [notes-and-plans/index.md](notes-and-plans/index.md) | Documentation index |
-| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Deep architecture |
-| [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling |
-| [.claude/skills/batch/SKILL.md](.claude/skills/batch/SKILL.md) | Batch generation guide |
+| [AGENTS.md](AGENTS.md) | Current repo-specific agent guidance |
+| [CLAUDE.md](CLAUDE.md) | Operational notes and workflow constraints |
+| [docs/next-auth-convex-contributor-guide.md](docs/next-auth-convex-contributor-guide.md) | Next/Auth.js/Convex contributor guide |
+| [scripts/README.md](scripts/README.md) | Script catalog and examples |
+| [notes-and-plans/index.md](notes-and-plans/index.md) | Internal documentation index |
+| [notes-and-plans/guides/dosewiki-site-readme.md](notes-and-plans/guides/dosewiki-site-readme.md) | Deep architecture notes |
+| [notes-and-plans/guides/dosewiki-visual-style-guide.md](notes-and-plans/guides/dosewiki-visual-style-guide.md) | UI styling guidance |
 
 ---
 
-Questions or improvements? Open an issue or update `notes-and-plans/` docs.
+If project workflows, schema ownership, or editor/save paths change, update this file together with `AGENTS.md`, `CLAUDE.md`, and any affected script docs.

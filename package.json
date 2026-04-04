@@ -78,6 +78,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tokenx": "^1.2.1",
     "yaml": "^2.8.2",
+    "yet-another-react-lightbox": "^3.30.1",
     "zod": "^4.3.5"
   },
   "devDependencies": {

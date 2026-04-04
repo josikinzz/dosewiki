@@ -16,6 +16,8 @@ npm-debug.log*
 npm-dev.log
 npm-dev.err.log
 .DS_Store
+.codex-dev.log
+.codex-dev.pid
 
 # npm lockfile (using bun)
 package-lock.json
@@ -48,3 +50,4 @@ src/data/config/sectionPrompts/*.md
 src/data/config/generatorPrompt.md
 .vercel
 .impeccable.md
+tmp/

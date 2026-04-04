@@ -5,69 +5,171 @@
  * Uses Convex generateUploadUrl + HTTP upload pattern.
  */
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
 import os from 'os';
+import path from 'path';
+import { spawnSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { ConvexHttpClient } from 'convex/browser';
+import sharp from 'sharp';
+import { api } from '../../convex/_generated/api.js';
+import {
+  readSimpleEnvFile,
+  resolveReplicationsPaths,
+} from './lib/reconciliation.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/**
- * Execute a command safely using spawn (no shell injection).
- * @param {string} command - The command to execute
- * @param {string[]} args - Array of arguments
- * @param {object} options - spawn options
- * @returns {Promise<{stdout: string, stderr: string}>}
- */
-function execSafe(command, args, options = {}) {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(command, args, {
-      ...options,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    proc.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    proc.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    proc.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`Command failed with code ${code}: ${stderr || stdout}`));
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
-
-    proc.on('error', (err) => {
-      reject(err);
-    });
-  });
-}
-
 // Paths
 const REPLICATIONS_SOURCE_DIR = '/Users/josie/Documents/Utilities/unified osmanthus app/replications';
-const VIDEOS_DIR = path.join(REPLICATIONS_SOURCE_DIR, 'videos');
+const VIDEOS_DIR = path.join(REPLICATIONS_SOURCE_DIR, 'videos', 'new');
 const IMAGES_DIR = path.join(REPLICATIONS_SOURCE_DIR, 'images');
-const METADATA_FILE = path.join(
-  __dirname,
-  '..',
-  'notes-and-plans',
-  'exports',
-  'replications',
-  'replications-metadata.json'
-);
-const PROJECT_DIR = path.join(__dirname, '../..');
+const { metadataFile: METADATA_FILE, envFile: ENV_FILE } = resolveReplicationsPaths(__dirname);
+
+const env = {
+  ...readSimpleEnvFile(ENV_FILE),
+  ...process.env,
+};
+
+const CONVEX_URL = env.CONVEX_URL || env.VITE_CONVEX_URL || env.NEXT_PUBLIC_CONVEX_URL;
+const CONVEX_ADMIN_KEY = env.CONVEX_ADMIN_KEY;
+
+if (!CONVEX_URL) {
+  throw new Error('Convex URL is not configured. Set CONVEX_URL, VITE_CONVEX_URL, or NEXT_PUBLIC_CONVEX_URL.');
+}
+
+if (!CONVEX_ADMIN_KEY) {
+  throw new Error('CONVEX_ADMIN_KEY is not configured. Uploads require admin authentication.');
+}
+
+const client = new ConvexHttpClient(CONVEX_URL);
+
+const CONTENT_TYPES = {
+  gif: 'image/gif',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  m4v: 'video/x-m4v',
+  mov: 'video/quicktime',
+  mp4: 'video/mp4',
+  png: 'image/png',
+  webm: 'video/webm',
+  webp: 'image/webp',
+};
+
+const THUMBNAIL_MAX_WIDTH = 640;
+const THUMBNAIL_QUALITY = 80;
 
 // State
 let uploadUrlCache = null;
 let uploadUrlExpiry = 0;
+
+function formatTimestamp(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return '0.5';
+  }
+
+  return seconds.toFixed(3);
+}
+
+function getVideoMetadata(filePath) {
+  const result = spawnSync(
+    'ffprobe',
+    [
+      '-v',
+      'error',
+      '-select_streams',
+      'v:0',
+      '-show_entries',
+      'stream=width,height:format=duration',
+      '-of',
+      'json',
+      filePath,
+    ],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr.trim() || `ffprobe failed for ${filePath}`);
+  }
+
+  const metadata = JSON.parse(result.stdout);
+  const stream = metadata.streams?.[0] ?? {};
+  const duration = Number.parseFloat(metadata.format?.duration ?? '');
+
+  return {
+    width: Number.isFinite(stream.width) ? stream.width : undefined,
+    height: Number.isFinite(stream.height) ? stream.height : undefined,
+    duration: Number.isFinite(duration) ? duration : undefined,
+  };
+}
+
+function getThumbnailTimestamp(duration) {
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return 0.5;
+  }
+
+  return Math.max(0.25, Math.min(1.0, duration * 0.15));
+}
+
+function extractVideoFrame(videoPath, outputPath, timestampSeconds) {
+  const result = spawnSync(
+    'ffmpeg',
+    [
+      '-y',
+      '-ss',
+      formatTimestamp(timestampSeconds),
+      '-i',
+      videoPath,
+      '-frames:v',
+      '1',
+      outputPath,
+    ],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr.trim() || `ffmpeg failed for ${videoPath}`);
+  }
+}
+
+async function createVideoThumbnail(videoPath, slug, duration) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dosewiki-replication-thumb-'));
+  const framePath = path.join(tempDir, `${slug}.jpg`);
+  const outputPath = path.join(tempDir, `${slug}.webp`);
+
+  try {
+    extractVideoFrame(videoPath, framePath, getThumbnailTimestamp(duration));
+
+    await sharp(framePath)
+      .resize({ width: THUMBNAIL_MAX_WIDTH, withoutEnlargement: true })
+      .webp({ quality: THUMBNAIL_QUALITY })
+      .toFile(outputPath);
+
+    return outputPath;
+  } catch (error) {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+function removeTempFile(filePath) {
+  if (!filePath) {
+    return;
+  }
+
+  fs.rmSync(path.dirname(filePath), { recursive: true, force: true });
+}
+
+function dedupeBySlug(replications) {
+  const seen = new Set();
+  return replications.filter((replication) => {
+    if (seen.has(replication.slug)) {
+      return false;
+    }
+
+    seen.add(replication.slug);
+    return true;
+  });
+}
 
 async function getUploadUrl() {
   // Cache upload URLs for 5 minutes to avoid excess mutation calls
@@ -78,66 +180,71 @@ async function getUploadUrl() {
 
   console.log('  🔗 Requesting new upload URL...');
 
-  try {
-    // Use execSafe with cwd option instead of cd command (prevents shell injection)
-    const { stdout } = await execSafe('npx', [
-      'convex', 'run', 'replications:generateUploadUrl', '{}'
-    ], { cwd: PROJECT_DIR, maxBuffer: 10 * 1024 * 1024 });
+  const url = await client.mutation(api.replications.generateUploadUrl, {
+    apiKey: CONVEX_ADMIN_KEY,
+  });
 
-    // Extract the URL from output (npx convex run returns JSON-encoded string)
-    const lines = stdout.split('\n');
-    let url = null;
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('"https://') || trimmed.startsWith('https://')) {
-        // Remove JSON quotes if present
-        url = trimmed.replace(/^"|"$/g, '');
-        break;
-      }
-    }
-
-    if (!url) {
-      throw new Error('No upload URL found in response');
-    }
-
-    uploadUrlCache = url;
-    uploadUrlExpiry = now + (5 * 60 * 1000); // 5 minutes
-    return url;
-  } catch (err) {
-    throw new Error(`Failed to get upload URL: ${err.message}`);
-  }
+  uploadUrlCache = url;
+  uploadUrlExpiry = now + (5 * 60 * 1000); // 5 minutes
+  return url;
 }
 
 async function uploadFile(filePath, filename, contentType) {
   const fileBuffer = fs.readFileSync(filePath);
-  const uploadUrl = await getUploadUrl();
   
   console.log(`    📤 Uploading ${filename} (${(fileBuffer.length / 1024).toFixed(1)}KB)...`);
-  
-  const response = await fetch(uploadUrl, {
-    method: 'POST',
-    body: fileBuffer,
-    headers: { 'Content-Type': contentType },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      if (attempt > 1) {
+        uploadUrlCache = null;
+        uploadUrlExpiry = 0;
+        console.log(`    🔁 Retrying upload with a fresh URL (attempt ${attempt}/3)...`);
+      }
+
+      const uploadUrl = await getUploadUrl();
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: fileBuffer,
+        headers: { 'Content-Type': contentType },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const storageId = data.storageId;
+
+      if (!storageId) {
+        throw new Error('No storageId in response');
+      }
+
+      return storageId;
+    } catch (error) {
+      lastError = error;
+    }
   }
-  
-  const data = await response.json();
-  const storageId = data.storageId;
-  
-  if (!storageId) {
-    throw new Error('No storageId in response');
-  }
-  
-  return storageId;
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-async function updateReplication(rep, storageId) {
-  console.log(`    ✏️  Updating record...`);
+async function persistReplication(rep, storageId, thumbnailStorageId, existingReplication) {
+  console.log(`    ✏️  ${existingReplication ? 'Updating' : 'Creating'} record...`);
+
+  if (existingReplication) {
+    await client.mutation(api.replications.updateStorageIds, {
+      apiKey: CONVEX_ADMIN_KEY,
+      id: existingReplication._id,
+      storage_id: storageId ?? existingReplication.storage_id,
+      thumbnail_storage_id: thumbnailStorageId ?? existingReplication.thumbnail_storage_id,
+    });
+    return;
+  }
 
   const args = {
+    apiKey: CONVEX_ADMIN_KEY,
     slug: rep.slug,
     title: rep.title,
     artist: rep.artist || 'Unknown',
@@ -154,29 +261,19 @@ async function updateReplication(rep, storageId) {
 
   if (rep.fileSize) args.file_size = rep.fileSize;
   if (rep.type === 'video' && rep.duration) args.duration = rep.duration;
+  if (thumbnailStorageId) args.thumbnail_storage_id = thumbnailStorageId;
 
-  try {
-    // Pass args as JSON string directly to convex run (safe: spawn with array args)
-    const argsJson = JSON.stringify(args);
-    const { stdout } = await execSafe('npx', [
-      'convex', 'run', 'replications:insertReplication', argsJson
-    ], { cwd: PROJECT_DIR, maxBuffer: 10 * 1024 * 1024 });
-
-    if (stdout.includes('Error') || stdout.includes('error')) {
-      throw new Error(`Convex error: ${stdout}`);
-    }
-  } catch (err) {
-    throw new Error(`Failed to update record: ${err.message}`);
-  }
+  await client.mutation(api.replications.insertReplication, args);
 }
 
-async function processReplication(rep, index, total) {
+async function processReplication(rep, index, total, existingReplication, options) {
   const progress = `[${String(index).padStart(3)}/${total}]`;
+  let thumbnailPath = null;
   
   try {
     let filePath;
     if (rep.type === 'video') {
-      filePath = path.join(VIDEOS_DIR, rep.filename);
+      filePath = path.join(VIDEOS_DIR, rep.folder_name || '', rep.filename);
     } else {
       filePath = path.join(IMAGES_DIR, rep.filename);
     }
@@ -187,10 +284,23 @@ async function processReplication(rep, index, total) {
     }
     
     console.log(`${progress} 🎬 Processing: ${rep.slug}`);
-    
-    const contentType = rep.type === 'video' ? 'video/mp4' : 'image/jpeg';
-    const storageId = await uploadFile(filePath, rep.filename, contentType);
-    await updateReplication(rep, storageId);
+
+    const metadata = rep.type === 'video' ? getVideoMetadata(filePath) : {};
+    const shouldUploadMedia = !options.onlyMissingThumbnails;
+
+    let storageId = existingReplication?.storage_id;
+    if (shouldUploadMedia) {
+      const contentType = CONTENT_TYPES[rep.format?.toLowerCase()] || 'application/octet-stream';
+      storageId = await uploadFile(filePath, rep.filename, contentType);
+    }
+
+    let thumbnailStorageId = existingReplication?.thumbnail_storage_id;
+    if (rep.type === 'video') {
+      thumbnailPath = await createVideoThumbnail(filePath, rep.slug, metadata.duration ?? rep.duration);
+      thumbnailStorageId = await uploadFile(thumbnailPath, `${rep.slug}.webp`, 'image/webp');
+    }
+
+    await persistReplication(rep, storageId, thumbnailStorageId, existingReplication);
     
     console.log(`${progress} ✅ Complete\n`);
     return { status: 'uploaded' };
@@ -198,6 +308,8 @@ async function processReplication(rep, index, total) {
   } catch (err) {
     console.log(`${progress} ❌ ERROR: ${err.message}\n`);
     return { status: 'error', error: err.message };
+  } finally {
+    removeTempFile(thumbnailPath);
   }
 }
 
@@ -209,16 +321,45 @@ async function main() {
   // Parse args
   const skipImages = process.argv.includes('--skip-images');
   const skipVideos = process.argv.includes('--skip-videos');
+  const onlyMissing = process.argv.includes('--only-missing');
+  const onlyMissingThumbnails = process.argv.includes('--only-missing-thumbnails');
   
   if (skipImages) console.log('⏭️  Will skip images\n');
   if (skipVideos) console.log('⏭️  Will skip videos\n');
+  if (onlyMissing) console.log('🩹 Will only import replications missing from Convex\n');
+  if (onlyMissingThumbnails) console.log('🖼️  Will only backfill missing video thumbnails\n');
   
   // Load metadata
   const metadata = JSON.parse(fs.readFileSync(METADATA_FILE, 'utf-8'));
   let replications = metadata.replications;
-  
+  const existing = await client.query(api.replications.getAll, {});
+  const existingBySlug = new Map(existing.map((replication) => [replication.slug, replication]));
+
   if (skipImages) replications = replications.filter(r => r.type === 'video');
   if (skipVideos) replications = replications.filter(r => r.type === 'image');
+  replications = replications.filter((replication) => Boolean(replication.effect_slug));
+
+  if (onlyMissing) {
+    const existingSlugs = new Set(existing.map((replication) => replication.slug));
+    replications = replications.filter((replication) => !existingSlugs.has(replication.slug));
+  }
+
+  if (onlyMissingThumbnails) {
+    replications = replications.filter((replication) => {
+      if (replication.type !== 'video') {
+        return false;
+      }
+
+      const current = existingBySlug.get(replication.slug);
+      if (!current) {
+        return false;
+      }
+
+      return !current.thumbnail_storage_id && !current.thumbnail_url;
+    });
+  }
+
+  replications = dedupeBySlug(replications);
   
   console.log(`📦 Total files: ${replications.length}\n`);
   
@@ -227,7 +368,13 @@ async function main() {
   
   for (let i = 0; i < replications.length; i++) {
     const rep = replications[i];
-    const result = await processReplication(rep, i + 1, replications.length);
+    const result = await processReplication(
+      rep,
+      i + 1,
+      replications.length,
+      existingBySlug.get(rep.slug),
+      { onlyMissingThumbnails },
+    );
     
     if (result.status === 'uploaded') results.uploaded++;
     else if (result.status === 'skipped') results.skipped++;

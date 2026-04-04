@@ -13,13 +13,16 @@
  */
 
 import { readFileSync, existsSync } from "fs";
+import path from "path";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
+import { canonicalizeEffectSlug, loadGalleryOrderMapping } from "../replications/lib/reconciliation.mjs";
 
 // Configuration
 const DEFAULT_EFFECTS_PATH = "../EffectIndex-master/effectindex_dump/effects.json";
 const DEFAULT_REPLICATIONS_PATH = "../EffectIndex-master/effectindex_dump/replications.json";
 const BATCH_SIZE = 20; // Smaller batch size for larger documents
+const GALLERY_ORDER_MAPPING_PATH = path.resolve("notes-and-plans/exports/replications/gallery-order-mapping.json");
 
 // R2 CDN base URL for assets
 const R2_CDN_BASE = "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev";
@@ -238,7 +241,7 @@ function rewriteSeeAlso(seeAlso) {
 /**
  * Transform a MongoDB-style effect to our clean schema.
  */
-function transformEffect(rawEffect, assetMap) {
+function transformEffect(rawEffect, assetMap, galleryOrderByEffect) {
   // Normalize tags
   const tags = (rawEffect.tags || []).map(normalizeTag);
   
@@ -339,16 +342,21 @@ function transformEffect(rawEffect, assetMap) {
   
   // Transform gallery_order (array of replication slugs)
   // gallery_order can be either strings or objects with url field
-  const galleryOrder = rawEffect.gallery_order?.length
+  const rawGalleryOrder = rawEffect.gallery_order?.length
     ? rawEffect.gallery_order.map(item => {
         if (typeof item === "string") return item;
         // Extract URL slug from object
         return item.url || item.title?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "";
       }).filter(Boolean)
     : undefined;
+
+  const effectSlug = canonicalizeEffectSlug(
+    rawEffect.url || rawEffect.name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+  );
+  const galleryOrder = galleryOrderByEffect.get(effectSlug) ?? rawGalleryOrder;
   
   const result = {
-    slug: rawEffect.url || rawEffect.name?.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+    slug: effectSlug,
     name: rawEffect.name,
     tags,
     featured: rawEffect.featured === true,
@@ -441,9 +449,14 @@ async function main() {
     console.log("   Continuing without asset URL mapping...\n");
   }
 
+  const galleryOrderByEffect = loadGalleryOrderMapping(GALLERY_ORDER_MAPPING_PATH);
+  if (galleryOrderByEffect.size > 0) {
+    console.log(`🖼️  Loaded canonical gallery-order mapping for ${galleryOrderByEffect.size} effects`);
+  }
+
   // Transform effects
   console.log("🔄 Transforming effects to new schema...");
-  const transformedEffects = rawEffects.map(e => transformEffect(e, assetMap));
+  const transformedEffects = rawEffects.map((effect) => transformEffect(effect, assetMap, galleryOrderByEffect));
 
   // Count featured
   const featuredCount = transformedEffects.filter(e => e.featured).length;

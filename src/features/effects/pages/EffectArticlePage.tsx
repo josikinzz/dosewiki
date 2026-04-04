@@ -233,44 +233,51 @@ export function EffectArticlePage({
           <section id="commentary" className="scroll-mt-24 space-y-6">
             <SectionHeader icon="lucide:quote" title="Personal Commentary" />
 
-            {/* Quote-styled content area with gradient accent bar */}
-            <div className="relative ml-2 pl-7 sm:pl-8">
-              {/* Gradient vertical accent */}
-              <div className="absolute left-0 top-0 bottom-0 w-[2px] rounded-full bg-gradient-to-b from-fuchsia-400/60 via-fuchsia-500/25 to-transparent" />
+            {/* Speech bubble card */}
+            <div className="relative">
+              <div className="rounded-xl ring-1 ring-white/5 bg-white/5 px-5 py-5 sm:px-6">
+                <div className={cn(
+                  "effect-vcode-card-body prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
+                  "text-lg italic leading-relaxed text-white/80",
+                  // Suppress inner Quote borders & footers — avatar handles attribution
+                  "prose-blockquote:border-0 prose-blockquote:pl-0 prose-blockquote:my-0",
+                  "[&_blockquote_footer]:hidden",
+                )}>
+                  <VCodeRenderer
+                    content={personalCommentaryContent}
+                    onNavigate={onNavigate}
+                    citations={effect.citations}
+                    subarticles={effect.subarticles}
+                  />
+                </div>
+              </div>
 
-              <div className={cn(
-                "prose prose-invert prose-fuchsia prose-a:font-normal max-w-none",
-                "text-lg italic leading-relaxed text-white/80",
-                // Suppress inner Quote borders & footers — badge handles attribution
-                "prose-blockquote:border-0 prose-blockquote:pl-0 prose-blockquote:my-0",
-                "[&_blockquote_footer]:hidden",
-              )}>
-                <VCodeRenderer
-                  content={personalCommentaryContent}
-                  onNavigate={onNavigate}
-                  citations={effect.citations}
-                  subarticles={effect.subarticles}
+              {/* Speech bubble tail pointing toward avatar */}
+              <div className="flex justify-end pr-10">
+                <div
+                  className="h-3 w-3 -mt-[1px] bg-white/5 ring-1 ring-white/5"
+                  style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
                 />
               </div>
+            </div>
 
-              {/* Author badge */}
-              <div className="mt-5 flex justify-end">
-                <Link
-                  href={getContributorPath("Josie Kins")}
-                  className="group inline-flex items-center gap-2.5 rounded-2xl bg-white/[0.04] px-3 py-2 ring-1 ring-white/10 transition hover:bg-white/[0.06] hover:ring-fuchsia-400/30"
-                >
-                  <AppImage
-                    src="/profile-avatars/josie/avatar.webp"
-                    alt="Josie Kins"
-                    width={24}
-                    height={24}
-                    className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
-                  />
-                  <span className="text-xs font-semibold text-white/70 transition group-hover:text-fuchsia-300">
-                    Josie Kins
-                  </span>
-                </Link>
-              </div>
+            {/* Author attribution — avatar + name below the tail */}
+            <div className="-mt-3 flex items-center justify-end gap-2.5 pr-4">
+              <Link
+                href={getContributorPath("Josie Kins")}
+                className="group flex items-center gap-2.5 transition"
+              >
+                <AppImage
+                  src="/profile-avatars/josie/avatar.webp"
+                  alt="Josie Kins"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover ring-1 ring-white/20 transition group-hover:ring-fuchsia-400/50"
+                />
+                <span className="text-xs font-semibold text-white/60 transition group-hover:text-fuchsia-300">
+                  Josie Kins
+                </span>
+              </Link>
             </div>
           </section>
         )}

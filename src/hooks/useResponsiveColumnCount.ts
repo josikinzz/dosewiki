@@ -25,15 +25,18 @@ export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): num
       return maxColumns;
     }
     const width = window.innerWidth;
-    if (width < BREAKPOINTS.sm) return 1;
-    if (width < BREAKPOINTS.md) return 2;
-    if (width < BREAKPOINTS.lg) return 3;
-    if (width < BREAKPOINTS.xl) return 4;
-    if (width < BREAKPOINTS["2xl"]) return 5;
-    return maxColumns;
+    const responsiveColumns =
+      width < BREAKPOINTS.sm ? 1
+      : width < BREAKPOINTS.md ? 2
+      : width < BREAKPOINTS.lg ? 3
+      : width < BREAKPOINTS.xl ? 4
+      : width < BREAKPOINTS["2xl"] ? 5
+      : 6;
+
+    return Math.min(responsiveColumns, maxColumns);
   }, [maxColumns]);
 
-  const [columnCount, setColumnCount] = useState(getColumnCount);
+  const [columnCount, setColumnCount] = useState(maxColumns);
 
   useEffect(() => {
     const handleResize = () => {

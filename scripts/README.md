@@ -46,7 +46,7 @@ node scripts/batch/watch-batch-progress.mjs
 # Scan and import workflow
 node scripts/replications/scan-replications.mjs
 node scripts/replications/assign-image-effects.mjs
-node scripts/replications/upload-replications.mjs
+node scripts/replications/upload-replications.mjs --only-missing
 node scripts/replications/create-gallery-order.mjs
 ```
 

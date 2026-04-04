@@ -1003,7 +1003,8 @@
     font-weight: 600;
   }
 
-  .prose-fuchsia :where(strong, b) {
+  .prose-fuchsia :where(strong, b),
+  .prose.prose-fuchsia :where(strong, b) {
     color: var(--theme-accent-strong);
     font-weight: 600;
   }
@@ -1575,7 +1576,8 @@ html[data-theme="light"] .prose-fuchsia :where(h1, h2, h3, h4) {
   color: var(--theme-text-primary);
 }
 
-html[data-theme="light"] .prose-fuchsia :where(strong, b) {
+html[data-theme="light"] .prose-fuchsia :where(strong, b),
+html[data-theme="light"] .prose.prose-fuchsia :where(strong, b) {
   color: var(--theme-accent-strong);
 }
 
@@ -1674,6 +1676,18 @@ html[data-theme="light"] .prose-fuchsia :where(a) {
     outline-offset: 2px;
   }
 
+  .effect-vcode-card-body > :where(h1, h2, h3, h4, p, ul, ol, blockquote, pre, figure) {
+    margin: 0;
+  }
+
+  .effect-vcode-card-body > :where(* + h1, * + h2, * + h3, * + h4, * + p, * + ul, * + ol, * + blockquote, * + pre, * + figure) {
+    margin-top: 0.95rem;
+  }
+
+  .effect-vcode-caption > :where(*) {
+    margin: 0;
+  }
+
   /* High contrast mode support */
   @media (prefers-contrast: more) {
     .text-white\/45,
@@ -1688,4 +1702,73 @@ html[data-theme="light"] .prose-fuchsia :where(a) {
       --tw-border-opacity: 0.4 !important;
     }
   }
+}
+
+/* ── YARL Lightbox Theme ──
+ * Overrides yet-another-react-lightbox defaults to match the dark cosmic
+ * fuchsia aesthetic. Requires styles.css to be imported AFTER YARL CSS
+ * in layout.tsx for cascade order to work without !important.
+ */
+.yarl__root {
+  --yarl__color_backdrop: rgba(6, 8, 15, 0.96);
+  --yarl__color_button: rgba(255, 255, 255, 0.7);
+  --yarl__color_button_active: rgba(240, 171, 252, 0.9);
+  --yarl__color_button_disabled: rgba(255, 255, 255, 0.25);
+  --yarl__slide_title_color: rgba(255, 255, 255, 0.92);
+  --yarl__slide_description_color: rgba(255, 255, 255, 0.6);
+}
+
+.yarl__root .yarl__container {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Navigation arrows — fuchsia glow on hover */
+.yarl__root .yarl__navigation_prev:hover,
+.yarl__root .yarl__navigation_next:hover {
+  filter: drop-shadow(0 0 12px rgba(217, 70, 239, 0.35));
+}
+
+/* Focus ring for keyboard navigation */
+.yarl__root .yarl__button:focus-visible {
+  outline: 2px solid rgba(217, 70, 239, 0.6);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Captions container — gradient instead of flat black */
+.yarl__root .yarl__slide_captions_container {
+  background: linear-gradient(to top, rgba(6, 8, 15, 0.85), transparent);
+  padding: 20px 16px 16px;
+}
+
+/* Caption typography */
+.yarl__root .yarl__slide_title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.01em;
+}
+
+.yarl__root .yarl__slide_description {
+  font-size: 0.8125rem;
+}
+
+/* Counter */
+.yarl__root .yarl__counter_container {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Light theme overrides */
+html[data-theme="light"] .yarl__root {
+  --yarl__color_backdrop: rgba(246, 239, 255, 0.96);
+  --yarl__color_button: rgba(38, 21, 52, 0.7);
+  --yarl__color_button_active: rgba(159, 33, 128, 0.9);
+  --yarl__slide_title_color: rgba(38, 21, 52, 0.92);
+  --yarl__slide_description_color: rgba(38, 21, 52, 0.6);
+}
+
+html[data-theme="light"] .yarl__root .yarl__slide_captions_container {
+  background: linear-gradient(to top, rgba(246, 239, 255, 0.9), transparent);
 }

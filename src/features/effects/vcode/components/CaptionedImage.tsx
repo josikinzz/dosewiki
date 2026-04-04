@@ -19,24 +19,24 @@ const R2_CDN_BASE = "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev";
  */
 function rewriteImageUrl(url: string): string {
   if (!url) return url;
-  
+
   // Already a full URL - return as-is
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  
+
   // Rewrite /img/gallery/ paths to R2 CDN
   if (url.startsWith("/img/gallery/")) {
     const filename = url.replace("/img/gallery/", "");
     return `${R2_CDN_BASE}/${encodeURIComponent(filename)}`;
   }
-  
+
   // Rewrite /img/ paths (without gallery)
   if (url.startsWith("/img/")) {
     const filename = url.replace("/img/", "");
     return `${R2_CDN_BASE}/${encodeURIComponent(filename)}`;
   }
-  
+
   return url;
 }
 
@@ -45,6 +45,7 @@ function rewriteImageUrl(url: string): string {
  *
  * Adapts EffectIndex's captioned-image to DoseWiki's visual style.
  * Supports Wikipedia-style floating when align is "left" or "right".
+ * Image, caption, and artist are contained within a unified card.
  */
 export function CaptionedImage({
   src,
@@ -62,25 +63,38 @@ export function CaptionedImage({
 
   // Wikipedia-style float classes for left/right alignment
   const containerClass = {
-    left: "float-left mr-6 mb-4",
-    right: "float-right ml-6 mb-4",
-    center: "mx-auto my-4 clear-both",
+    left: "float-left mr-8 mb-6 mt-1",
+    right: "float-right ml-8 mb-6 mt-1",
+    center: "mx-auto my-4 clear-both flex w-fit max-w-full flex-col items-center",
   }[align];
 
-  // Constrain floated images to reasonable width
+  // Centered article images need a desktop cap; otherwise they expand to the
+  // full prose width and visually read as left-aligned even when centered.
   const maxWidth = width
     ? `${width}px`
-    : align === "center" ? "100%" : "min(350px, 40%)";
+    : align === "center" ? "min(100%, 48rem)" : "min(350px, 40%)";
+
+  const figureStyle = align === "center"
+    ? {
+        maxWidth,
+        marginLeft: "auto",
+        marginRight: "auto",
+      }
+    : {
+        maxWidth,
+      };
+
+  const hasCaptionContent = caption || artist;
 
   return (
     <figure
       className={containerClass}
-      style={{ maxWidth }}
+      style={figureStyle}
     >
       <div
         className={`
-          rounded-xl overflow-hidden
-          ${border ? "border border-fuchsia-400/30 p-1 bg-gradient-to-br from-fuchsia-500/10 to-violet-500/10" : ""}
+          rounded-xl overflow-hidden ring-1 bg-white/5
+          ${border ? "ring-fuchsia-400/20" : "ring-white/5"}
         `}
       >
         <AppImage
@@ -88,23 +102,23 @@ export function CaptionedImage({
           alt={title || caption || "Effect replication"}
           width={1200}
           height={900}
-          className="w-full h-auto rounded-lg"
+          className="w-full h-auto"
         />
+        {hasCaptionContent && (
+          <figcaption className="effect-vcode-caption px-3 py-2">
+            {caption && (
+              <div className="text-xs leading-relaxed text-white/60">
+                {caption}
+              </div>
+            )}
+            {artist && (
+              <div className="mt-0.5 text-[11px] text-white/40">
+                by {artist}
+              </div>
+            )}
+          </figcaption>
+        )}
       </div>
-      {(caption || artist) && (
-        <figcaption className="mt-2 text-center">
-          {caption && (
-            <p className="text-xs text-white/60 leading-relaxed">
-              {caption}
-            </p>
-          )}
-          {artist && (
-            <p className="text-[11px] text-white/40 mt-1">
-              Artist: {artist}
-            </p>
-          )}
-        </figcaption>
-      )}
     </figure>
   );
 }

@@ -1,7 +1,11 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
+import { memo, useMemo, useState } from 'react';
+import { Play } from 'lucide-react';
+import Lightbox, { type Slide } from 'yet-another-react-lightbox';
+import Captions from 'yet-another-react-lightbox/plugins/captions';
+import Counter from 'yet-another-react-lightbox/plugins/counter';
+import Video from 'yet-another-react-lightbox/plugins/video';
 import { AppImage } from '@/components/common/AppImage';
 import type { ReplicationWithUrl } from '@/types/replications';
 
@@ -24,7 +28,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   galleryOrder,
   replications,
 }: ReplicationGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
 
   const sortedReplications = useMemo(() => {
     if (!replications) {
@@ -43,60 +47,41 @@ export const ReplicationGallery = memo(function ReplicationGallery({
     return replications;
   }, [replications, galleryOrder]);
 
-  const activeReplication = activeIndex === null ? null : sortedReplications[activeIndex] ?? null;
+  const slides = useMemo<Slide[]>(
+    () =>
+      sortedReplications.map((replication) => {
+        const sharedSlideProps = {
+          width: replication.width,
+          height: replication.height,
+          title: replication.title,
+          description: `by ${replication.artist}`,
+        };
 
-  useEffect(() => {
-    if (activeIndex !== null && activeIndex >= sortedReplications.length) {
-      setActiveIndex(sortedReplications.length > 0 ? sortedReplications.length - 1 : null);
-    }
-  }, [activeIndex, sortedReplications.length]);
+        if (replication.type === 'video') {
+          return {
+            type: 'video',
+            poster: replication.thumbnail_url,
+            sources: [
+              {
+                src: replication.url,
+                type: getMimeType(replication.format),
+              },
+            ],
+            ...sharedSlideProps,
+          };
+        }
 
-  useEffect(() => {
-    if (activeReplication === null) {
-      return;
-    }
+        return {
+          src: replication.url,
+          alt: replication.title,
+          ...sharedSlideProps,
+        };
+      }),
+    [sortedReplications],
+  );
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setActiveIndex(null);
-        return;
-      }
-
-      if (sortedReplications.length < 2) {
-        return;
-      }
-
-      if (event.key === 'ArrowLeft') {
-        setActiveIndex((current) => {
-          if (current === null) {
-            return current;
-          }
-
-          return (current - 1 + sortedReplications.length) % sortedReplications.length;
-        });
-      }
-
-      if (event.key === 'ArrowRight') {
-        setActiveIndex((current) => {
-          if (current === null) {
-            return current;
-          }
-
-          return (current + 1) % sortedReplications.length;
-        });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [activeReplication, sortedReplications.length]);
+  const activeReplication = activeIndex >= 0 ? sortedReplications[activeIndex] ?? null : null;
+  const isLightboxOpen = activeIndex >= 0;
 
   if (sortedReplications.length === 0) {
     return null;
@@ -107,27 +92,7 @@ export const ReplicationGallery = memo(function ReplicationGallery({
   };
 
   const closeLightbox = () => {
-    setActiveIndex(null);
-  };
-
-  const showPrevious = () => {
-    setActiveIndex((current) => {
-      if (current === null) {
-        return current;
-      }
-
-      return (current - 1 + sortedReplications.length) % sortedReplications.length;
-    });
-  };
-
-  const showNext = () => {
-    setActiveIndex((current) => {
-      if (current === null) {
-        return current;
-      }
-
-      return (current + 1) % sortedReplications.length;
-    });
+    setActiveIndex(-1);
   };
 
   return (
@@ -180,97 +145,65 @@ export const ReplicationGallery = memo(function ReplicationGallery({
         })}
       </div>
 
-      {activeReplication ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={activeReplication.title}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
-        >
-          <button
-            type="button"
-            aria-label="Close replication viewer"
-            className="absolute inset-0 cursor-default"
-            onClick={closeLightbox}
-          />
-          <div
-            className="relative w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-[color:var(--theme-page-end)] shadow-2xl"
-          >
-            <button
-              type="button"
-              onClick={closeLightbox}
-              className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-              aria-label="Close replication viewer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            {sortedReplications.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={showPrevious}
-                  className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                  aria-label="Previous replication"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={showNext}
-                  className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/40 p-2 text-white/80 transition hover:bg-black/60 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fuchsia-400"
-                  aria-label="Next replication"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </>
-            ) : null}
-
-            <div className="flex max-h-[85vh] min-h-[24rem] items-center justify-center bg-black/30 px-4 py-16 sm:px-8">
-              {activeReplication.type === 'video' ? (
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  autoPlay
-                  className="max-h-[70vh] w-full rounded-2xl bg-black"
-                >
-                  <source src={activeReplication.url} type={getMimeType(activeReplication.format)} />
-                  <track kind="captions" />
-                </video>
-              ) : (
-                <AppImage
-                  src={activeReplication.url}
-                  alt={activeReplication.title}
-                  width={activeReplication.width ?? 1400}
-                  height={activeReplication.height ?? 1400}
-                  className="max-h-[70vh] w-auto rounded-2xl object-contain"
-                />
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/20 px-5 py-4">
-              <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-white">{activeReplication.title}</p>
-                <p className="truncate text-sm text-white/60">by {activeReplication.artist}</p>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-white/55">
-                <span>
-                  {activeIndex !== null ? activeIndex + 1 : 1} / {sortedReplications.length}
-                </span>
-                <a
-                  href={activeReplication.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-white/10 px-3 py-1.5 text-white/75 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
-                >
-                  Open original
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <Lightbox
+        open={isLightboxOpen}
+        close={closeLightbox}
+        index={isLightboxOpen ? activeIndex : 0}
+        slides={slides}
+        plugins={[Captions, Counter, Video]}
+        carousel={{
+          finite: sortedReplications.length < 2,
+          imageFit: 'contain',
+        }}
+        controller={{
+          closeOnBackdropClick: true,
+        }}
+        captions={{
+          showToggle: true,
+          descriptionTextAlign: 'start',
+          descriptionMaxLines: 2,
+        }}
+        counter={{
+          container: {
+            style: {
+              top: 'unset',
+              bottom: '20px',
+              left: '20px',
+            },
+          },
+        }}
+        video={{
+          autoPlay: true,
+          controls: true,
+          playsInline: true,
+          preload: 'metadata',
+        }}
+        toolbar={{
+          buttons: [
+            activeReplication ? (
+              <a
+                key="open-original"
+                href={activeReplication.url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-white/15 backdrop-blur-sm bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-white/80 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+              >
+                Open original
+              </a>
+            ) : null,
+            'close',
+          ],
+        }}
+        on={{
+          view: ({ index }) => setActiveIndex(index),
+        }}
+        styles={{
+          container: {
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+          },
+        }}
+      />
     </div>
   );
 });

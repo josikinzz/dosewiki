@@ -17,10 +17,10 @@
  *   --concurrency=3        Parallel requests (default: 3)
  *   --limit=5              Process only N articles
  *   --skip-backup          Don't create backup file
- *   --all                  Process all articles with quotes
+ *   --all                  Process all priority levels with quotes
  */
 
-import { readFileSync, writeFileSync, existsSync, copyFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, copyFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
@@ -71,7 +71,10 @@ const CONFIG = {
   articlesFile: join(PROJECT_ROOT, "src/data/SubstanceIndex.json"),
   quotesDir: join(PROJECT_ROOT, "quotes/pharmacology-quotes"),
   backupFile: join(PROJECT_ROOT, "src/data/backups/articles.backup.json"),
+  debugDir: join(PROJECT_ROOT, "tmp"),
 };
+
+const COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD = 5;
 
 // Security bounds for input validation
 const INPUT_BOUNDS = {
@@ -91,6 +94,7 @@ function parseArgs() {
     limit: null,
     skipBackup: false,
     all: false,
+    includeComplete: false,
   };
 
   for (const arg of args) {
@@ -118,6 +122,8 @@ function parseArgs() {
       options.skipBackup = true;
     } else if (arg === "--all") {
       options.all = true;
+    } else if (arg === "--include-complete") {
+      options.includeComplete = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -146,7 +152,8 @@ Options:
   --concurrency=<n>      Number of parallel API requests (default: 3)
   --limit=<n>            Process at most N items then stop
   --skip-backup          Don't create backup file
-  --all                  Process all articles with quotes
+  --all                  Process all priority levels with quotes
+  --include-complete     Rebuild articles even if pharmacology already looks complete
   --help, -h             Show this help message
 
 Examples:
@@ -163,12 +170,27 @@ function titleToSlug(title) {
     .replace(/^-+|-+$/g, "");
 }
 
-function loadArticles() {
-  if (!existsSync(CONFIG.articlesFile)) {
-    console.error("Error: SubstanceIndex.json not found at", CONFIG.articlesFile);
-    process.exit(1);
-  }
-  return JSON.parse(readFileSync(CONFIG.articlesFile, "utf-8"));
+function getArticleSlug(article) {
+  return article.slug || titleToSlug(article.title);
+}
+
+function stripConvexMetadata(article) {
+  const { _id, _creationTime, ...cleanArticle } = article;
+  return cleanArticle;
+}
+
+async function loadArticlesFromConvex() {
+  const articles = await convexClient.query(api.substanceIndex.getAll, {});
+  return articles.map(stripConvexMetadata);
+}
+
+async function loadPharmacologyQuoteSlugs() {
+  const metadata = await convexClient.query(api.quotes.getAllMetadata, {});
+  return new Set(
+    metadata
+      .filter((quote) => quote.section === "pharmacology")
+      .map((quote) => quote.slug),
+  );
 }
 
 function saveArticles(articles) {
@@ -179,6 +201,12 @@ function createBackup() {
   if (existsSync(CONFIG.articlesFile)) {
     copyFileSync(CONFIG.articlesFile, CONFIG.backupFile);
     console.log(`Backup created: ${CONFIG.backupFile}`);
+  }
+}
+
+function ensureDebugDir() {
+  if (!existsSync(CONFIG.debugDir)) {
+    mkdirSync(CONFIG.debugDir, { recursive: true });
   }
 }
 
@@ -210,6 +238,23 @@ function hasExistingPharmacology(article) {
     Object.keys(p.route_bioavailability || {}).length > 0 ||
     Object.keys(p.route_half_life || {}).length > 0
   );
+}
+
+function countPopulatedPharmacologyFields(article) {
+  const pharmacology = normalizePharmacologySection(article?.pharmacology);
+  return [
+    pharmacology.pharmacodynamics.trim().length > 0,
+    (pharmacology.summary ?? "").trim().length > 0,
+    pharmacology.receptor_profile.length > 0,
+    pharmacology.pharmacokinetics.trim().length > 0,
+    pharmacology.metabolites.length > 0,
+    Object.keys(pharmacology.route_bioavailability ?? {}).length > 0,
+    Object.keys(pharmacology.route_half_life ?? {}).length > 0,
+  ].filter(Boolean).length;
+}
+
+function hasCompletePharmacology(article) {
+  return countPopulatedPharmacologyFields(article) >= COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD;
 }
 
 // Convex client
@@ -257,7 +302,22 @@ Generate ONLY the pharmacology section as valid YAML. Do not include information
 }
 
 // Call OpenRouter API
-async function callOpenRouter(apiKey, systemPrompt, userMessage) {
+async function callOpenRouter(apiKey, systemPrompt, userMessage, debugContext = null, options = {}) {
+  const requestBody = {
+    model: CONFIG.model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    temperature: CONFIG.temperature,
+    max_tokens: CONFIG.maxTokens,
+    ...(options.disableReasoning
+      ? {}
+      : (CONFIG.reasoningEffort && CONFIG.model.startsWith("anthropic/")
+        ? { reasoning: { effort: CONFIG.reasoningEffort } }
+        : {})),
+  };
+
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -266,18 +326,7 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
       "HTTP-Referer": "https://dose.wiki",
       "X-Title": "Dose.wiki Batch Pharmacology Generator",
     },
-    body: JSON.stringify({
-      model: CONFIG.model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      temperature: CONFIG.temperature,
-      max_tokens: CONFIG.maxTokens,
-      ...(CONFIG.reasoningEffort && CONFIG.model.startsWith("anthropic/")
-        ? { reasoning: { effort: CONFIG.reasoningEffort } }
-        : {}),
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
@@ -295,17 +344,118 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage) {
     throw { status, message: error.error?.message || `API error: ${status}`, retryable: false };
   }
 
-  const data = await response.json();
+  const rawText = await response.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (error) {
+    writeOpenRouterDebugArtifact({
+      debugContext,
+      suffix: "openrouter-invalid-json",
+      payload: rawText,
+      metadata: {
+        errorMessage: error.message,
+      },
+    });
+    throw { status: response.status, message: "Invalid JSON from OpenRouter", retryable: true };
+  }
   const usage = data.usage || {};
+  const content = extractOpenRouterMessageText(data);
+  const choice = data?.choices?.[0];
+  const message = choice?.message;
+
+  if (!content.trim()) {
+    writeOpenRouterDebugArtifact({
+      debugContext,
+      suffix: "openrouter-empty-content",
+      payload: rawText,
+      metadata: {
+        message: "OpenRouter response contained no extractable message content",
+      },
+    });
+
+    if (!options.disableReasoning && typeof message?.reasoning === "string" && choice?.finish_reason === "length") {
+      return await callOpenRouter(apiKey, systemPrompt, userMessage, debugContext, {
+        ...options,
+        disableReasoning: true,
+      });
+    }
+  }
 
   return {
-    content: data.choices?.[0]?.message?.content || "",
+    content,
     usage: {
       promptTokens: usage.prompt_tokens || 0,
       completionTokens: usage.completion_tokens || 0,
       totalTokens: usage.total_tokens || 0,
     },
   };
+}
+
+function extractOpenRouterMessageText(data) {
+  const message = data?.choices?.[0]?.message;
+  const content = message?.content;
+
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === "string") {
+          return part;
+        }
+        if (!part || typeof part !== "object") {
+          return "";
+        }
+        if (typeof part.text === "string") {
+          return part.text;
+        }
+        if (typeof part.content === "string") {
+          return part.content;
+        }
+        return "";
+      })
+      .join("\n")
+      .trim();
+  }
+
+  if (typeof data?.choices?.[0]?.text === "string") {
+    return data.choices[0].text;
+  }
+
+  if (typeof data?.response?.output_text === "string") {
+    return data.response.output_text;
+  }
+
+  return "";
+}
+
+function writeOpenRouterDebugArtifact({ debugContext, suffix, payload, metadata = {} }) {
+  if (!debugContext?.slug) {
+    return;
+  }
+
+  ensureDebugDir();
+  const baseName = `${debugContext.slug.replace(/[^a-z0-9_-]+/gi, "_")}-${suffix}`;
+  const payloadPath = join(CONFIG.debugDir, `${baseName}.txt`);
+  const metaPath = join(CONFIG.debugDir, `${baseName}-meta.json`);
+  writeFileSync(payloadPath, `${payload ?? ""}`, "utf8");
+  writeFileSync(
+    metaPath,
+    JSON.stringify(
+      {
+        slug: debugContext.slug,
+        title: debugContext.title,
+        payloadPath,
+        ...metadata,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
 }
 
 // Retry wrapper
@@ -329,27 +479,107 @@ async function callWithRetry(fn, attempts = CONFIG.retryAttempts) {
 }
 
 // Parse generated YAML
-function parseGeneratedYaml(response) {
+function parseGeneratedYaml(response, debugContext = null) {
   const yamlContent = extractPharmacologyYaml(response);
+  const parseAttempts = [yamlContent, repairCommonYamlIssues(yamlContent)].filter(
+    (content, index, arr) => content && arr.indexOf(content) === index,
+  );
 
-  try {
-    const parsed = yaml.parse(yamlContent, { uniqueKeys: false });
-    let p = parsed.pharmacology || parsed;
-
-    if (
-      p.receptor_profile !== undefined ||
-      p.pharmacodynamics !== undefined ||
-      p.summary !== undefined ||
-      p.pharmacokinetics !== undefined ||
-      p.metabolites !== undefined
-    ) {
-      return normalizePharmacology(p);
+  let lastError = null;
+  for (const content of parseAttempts) {
+    try {
+      const parsed = yaml.parse(content, { uniqueKeys: false });
+      const pharmacology = extractParsedPharmacology(parsed);
+      if (pharmacology) {
+        return normalizePharmacology(pharmacology);
+      }
+      lastError = new Error("Invalid pharmacology structure - missing expected fields");
+    } catch (error) {
+      lastError = error;
     }
-
-    throw new Error("Invalid pharmacology structure - missing expected fields");
-  } catch (error) {
-    throw new Error(`Failed to parse YAML: ${error.message}`);
   }
+
+  writeParseDebugArtifacts({
+    debugContext,
+    response,
+    yamlContent,
+    repairedYamlContent: parseAttempts[1] && parseAttempts[1] !== yamlContent ? parseAttempts[1] : null,
+    errorMessage: lastError?.message ?? "Unknown parse failure",
+  });
+
+  throw new Error(`Failed to parse YAML: ${lastError?.message ?? "Unknown parse failure"}`);
+}
+
+function writeParseDebugArtifacts({ debugContext, response, yamlContent, repairedYamlContent, errorMessage }) {
+  if (!debugContext?.slug) {
+    return;
+  }
+
+  ensureDebugDir();
+  const baseName = `${debugContext.slug.replace(/[^a-z0-9_-]+/gi, "_")}-pharmacology-parse-failure`;
+  const rawPath = join(CONFIG.debugDir, `${baseName}-raw.txt`);
+  const yamlPath = join(CONFIG.debugDir, `${baseName}-yaml.txt`);
+  const metaPath = join(CONFIG.debugDir, `${baseName}-meta.json`);
+
+  writeFileSync(rawPath, `${response ?? ""}`, "utf8");
+  writeFileSync(yamlPath, `${repairedYamlContent || yamlContent || ""}`, "utf8");
+  writeFileSync(
+    metaPath,
+    JSON.stringify(
+      {
+        slug: debugContext.slug,
+        title: debugContext.title,
+        errorMessage,
+        rawPath,
+        yamlPath,
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+}
+
+function extractParsedPharmacology(parsed) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const root =
+    parsed.pharmacology && typeof parsed.pharmacology === "object" && !Array.isArray(parsed.pharmacology)
+      ? parsed.pharmacology
+      : parsed;
+
+  if (!root || typeof root !== "object" || Array.isArray(root)) {
+    return null;
+  }
+
+  if (
+    root.receptor_profile !== undefined ||
+    root.pharmacodynamics !== undefined ||
+    root.summary !== undefined ||
+    root.pharmacokinetics !== undefined ||
+    root.metabolites !== undefined ||
+    root.route_bioavailability !== undefined ||
+    root.route_half_life !== undefined
+  ) {
+    return root;
+  }
+
+  return null;
+}
+
+function repairCommonYamlIssues(yamlContent) {
+  return yamlContent
+    .split(/\r?\n/)
+    .map((line) => {
+      const quotedScalarMatch = line.match(/^(\s*[^:#][^:]*:\s*)"([^"\n]*)$/);
+      if (quotedScalarMatch) {
+        return `${quotedScalarMatch[1]}${quotedScalarMatch[2]}`;
+      }
+      return line;
+    })
+    .join("\n");
 }
 
 function extractPharmacologyYaml(response) {
@@ -459,7 +689,7 @@ function mergeRouteDataIntoDosageDuration(article, pharmacology) {
 
 // Process a single article
 async function processArticle(apiKey, article, systemPrompt, verbose) {
-  const slug = titleToSlug(article.title);
+  const slug = getArticleSlug(article);
 
   const quotes = await loadPharmacologyQuotes(slug);
   if (!quotes) {
@@ -469,10 +699,16 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
   const userMessage = buildUserMessage(article, quotes);
 
   const result = await callWithRetry(() =>
-    callOpenRouter(apiKey, systemPrompt, userMessage)
+    callOpenRouter(apiKey, systemPrompt, userMessage, {
+      slug,
+      title: article.title,
+    })
   );
 
-  const newPharmacology = parseGeneratedYaml(result.content);
+  const newPharmacology = parseGeneratedYaml(result.content, {
+    slug,
+    title: article.title,
+  });
 
   if (verbose) {
     console.log(`  Generated pharmacology for ${slug}:`);
@@ -480,8 +716,8 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
     console.log(`    receptor_profile: ${newPharmacology.receptor_profile.length} entries`);
     console.log(`    pharmacokinetics: ${newPharmacology.pharmacokinetics ? "yes" : "no"} (${newPharmacology.pharmacokinetics.length} chars)`);
     console.log(`    metabolites: ${newPharmacology.metabolites.length} entries`);
-    console.log(`    → dosage bioavailability: ${Object.keys(newPharmacology.route_bioavailability).length} routes`);
-    console.log(`    → duration half_life: ${Object.keys(newPharmacology.route_half_life).length} routes`);
+    console.log(`    → dosage bioavailability: ${Object.keys(newPharmacology.route_bioavailability || {}).length} routes`);
+    console.log(`    → duration half_life: ${Object.keys(newPharmacology.route_half_life || {}).length} routes`);
   }
 
   return {
@@ -494,8 +730,29 @@ async function processArticle(apiKey, article, systemPrompt, verbose) {
   };
 }
 
+async function persistSuccessfulUpdate(result, persistenceContext) {
+  const { articlesMap, allArticles, adminKey } = persistenceContext;
+  const article = articlesMap.get(result.title);
+
+  if (!article) {
+    throw new Error(`Article not found in persistence map: ${result.title}`);
+  }
+
+  article.pharmacology = { ...result.pharmacology };
+  mergeRouteDataIntoDosageDuration(article, article.pharmacology);
+
+  const sanitizedArticle = sanitizeObjectKeys(article);
+
+  await convexClient.mutation(api.substanceIndex.saveSubstances, {
+    apiKey: adminKey,
+    articles: [sanitizedArticle],
+  });
+
+  saveArticles(allArticles);
+}
+
 // Process all articles with concurrency
-async function processAll(apiKey, articles, systemPrompt, options) {
+async function processAll(apiKey, articles, systemPrompt, options, persistenceContext) {
   const { concurrency, verbose, dryRun } = options;
 
   let completed = 0;
@@ -504,7 +761,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
   let totalPromptTokens = 0;
   let totalCompletionTokens = 0;
   const failedItems = [];
-  const successfulUpdates = [];
 
   const total = articles.length;
 
@@ -512,16 +768,16 @@ async function processAll(apiKey, articles, systemPrompt, options) {
     const batch = articles.slice(i, i + concurrency);
 
     const promises = batch.map(async (article) => {
-      const slug = titleToSlug(article.title);
+      const articleSlug = getArticleSlug(article);
 
       if (verbose) {
         console.log(`  Processing: ${article.title}`);
       }
 
       if (dryRun) {
-        const quotes = await loadPharmacologyQuotes(slug);
+        const quotes = await loadPharmacologyQuotes(articleSlug);
         return {
-          slug,
+          slug: articleSlug,
           title: article.title,
           status: quotes ? "dry-run" : "would-skip",
           reason: quotes ? null : "No pharmacology quotes in Convex",
@@ -535,28 +791,33 @@ async function processAll(apiKey, articles, systemPrompt, options) {
         if (result.status === "success") {
           totalPromptTokens += result.promptTokens;
           totalCompletionTokens += result.completionTokens;
-          successfulUpdates.push({
-            title: article.title,
-            pharmacology: result.pharmacology,
-          });
           if (verbose) {
-            console.log(`  Completed: ${slug} (${result.tokens} tokens)`);
+            console.log(`  Completed: ${articleSlug} (${result.tokens} tokens)`);
           }
         } else if (verbose) {
-          console.log(`  Skipped: ${slug} - ${result.reason}`);
+          console.log(`  Skipped: ${articleSlug} - ${result.reason}`);
         }
 
-        return result;
+        return { ...result, title: article.title };
       } catch (error) {
-        console.error(`  Failed: ${slug} - ${error.message}`);
-        return { slug, title: article.title, status: "failed", error: error.message };
+        console.error(`  Failed: ${articleSlug} - ${error.message}`);
+        return { slug: articleSlug, title: article.title, status: "failed", error: error.message };
       }
     });
 
     const results = await Promise.all(promises);
 
     for (const result of results) {
-      if (result.status === "success" || result.status === "dry-run") {
+      if (result.status === "success") {
+        try {
+          await persistSuccessfulUpdate(result, persistenceContext);
+          completed++;
+        } catch (error) {
+          failed++;
+          failedItems.push({ slug: result.slug, title: result.title, error: error.message });
+          console.error(`  Failed to persist: ${result.slug} - ${error.message}`);
+        }
+      } else if (result.status === "dry-run") {
         completed++;
       } else if (result.status === "skipped" || result.status === "would-skip") {
         skipped++;
@@ -579,7 +840,6 @@ async function processAll(apiKey, articles, systemPrompt, options) {
     totalPromptTokens,
     totalCompletionTokens,
     failedItems,
-    successfulUpdates,
   };
 }
 
@@ -617,16 +877,29 @@ async function main() {
     process.exit(1);
   }
 
-  const allArticles = loadArticles();
+  console.log("\nLoading authoritative articles from Convex...");
+  let allArticles;
+  let pharmacologyQuoteSlugs;
+  try {
+    [allArticles, pharmacologyQuoteSlugs] = await Promise.all([
+      loadArticlesFromConvex(),
+      loadPharmacologyQuoteSlugs(),
+    ]);
+    console.log(`  Articles loaded: ${allArticles.length}`);
+    console.log(`  Pharmacology quote docs: ${pharmacologyQuoteSlugs.size}`);
+  } catch (error) {
+    console.error(`Error loading Convex data: ${error.message}`);
+    process.exit(1);
+  }
 
   let articles = allArticles.filter(a =>
-    a.priority === "high" || a.priority === "normal"
+    options.all ? true : a.priority === "high" || a.priority === "normal"
   );
-  console.log(`\nPriority articles (high/normal): ${articles.length}`);
+  console.log(`\nCandidate articles: ${articles.length}${options.all ? " (all priorities)" : " (high/normal)"}`);
 
   if (options.substance) {
     articles = articles.filter(a =>
-      titleToSlug(a.title) === options.substance
+      getArticleSlug(a) === options.substance
     );
     if (articles.length === 0) {
       console.error(`Error: No article found for slug "${options.substance}"`);
@@ -635,23 +908,31 @@ async function main() {
     console.log(`Filtered to substance: ${options.substance}`);
   } else if (options.slugs) {
     articles = articles.filter(a =>
-      options.slugs.includes(titleToSlug(a.title))
+      options.slugs.includes(getArticleSlug(a))
     );
     if (articles.length === 0) {
       console.error(`Error: No articles found for slugs: ${options.slugs.join(", ")}`);
       process.exit(1);
     }
     const notFound = options.slugs.filter(slug =>
-      !articles.some(a => titleToSlug(a.title) === slug)
+      !articles.some(a => getArticleSlug(a) === slug)
     );
     if (notFound.length > 0) {
       console.warn(`Warning: Slugs not found: ${notFound.join(", ")}`);
     }
     console.log(`Filtered to ${articles.length} substances from ${options.slugs.length} slugs`);
-  } else if (!options.all) {
-    const beforeCount = articles.length;
-    articles = articles.filter(hasExistingPharmacology);
-    console.log(`Filtered to articles with existing pharmacology: ${articles.length} (of ${beforeCount})`);
+  }
+
+  const quoteBackedCount = articles.length;
+  articles = articles.filter((article) => pharmacologyQuoteSlugs.has(getArticleSlug(article)));
+  console.log(`Filtered to quote-backed articles: ${articles.length} (of ${quoteBackedCount})`);
+
+  if (!options.includeComplete) {
+    const incompleteCount = articles.length;
+    articles = articles.filter((article) => !hasCompletePharmacology(article));
+    console.log(
+      `Filtered to incomplete pharmacology (<${COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD} populated fields): ${articles.length} (of ${incompleteCount})`,
+    );
   }
 
   if (options.limit && articles.length > options.limit) {
@@ -667,17 +948,20 @@ async function main() {
   if (options.dryRun) {
     console.log("\n[DRY RUN] Would process:");
     for (const article of articles.slice(0, 20)) {
-      const slug = titleToSlug(article.title);
-      const quotes = await loadPharmacologyQuotes(slug);
-      const hasExisting = hasExistingPharmacology(article);
-      const status = quotes ? "has quotes" : "NO QUOTES";
-      const existing = hasExisting ? "(has content)" : "(no content)";
-      console.log(`  - ${article.title} ${existing} [${status}]`);
+      const slug = getArticleSlug(article);
+      const fieldCount = countPopulatedPharmacologyFields(article);
+      console.log(`  - ${article.title} (${slug}) [fields=${fieldCount}] [quote-backed]`);
     }
     if (articles.length > 20) {
       console.log(`  ... and ${articles.length - 20} more`);
     }
     return;
+  }
+
+  const adminKey = process.env.CONVEX_ADMIN_KEY;
+  if (!adminKey) {
+    console.error("Error: CONVEX_ADMIN_KEY environment variable is required for Convex sync");
+    process.exit(1);
   }
 
   if (!options.skipBackup) {
@@ -687,56 +971,13 @@ async function main() {
   console.log(`\nProcessing ${articles.length} articles...\n`);
 
   const startTime = Date.now();
-  const results = await processAll(apiKey, articles, systemPrompt, options);
+  const results = await processAll(apiKey, articles, systemPrompt, options, {
+    adminKey,
+    allArticles,
+    articlesMap: new Map(allArticles.map((article) => [article.title, article])),
+  });
   const endTime = Date.now();
   const duration = (endTime - startTime) / 1000;
-
-  if (results.successfulUpdates.length > 0) {
-    console.log(`\nApplying ${results.successfulUpdates.length} updates to SubstanceIndex.json...`);
-
-    const articlesMap = new Map(allArticles.map(a => [a.title, a]));
-
-    for (const update of results.successfulUpdates) {
-      const article = articlesMap.get(update.title);
-      if (article) {
-        // Update core pharmacology fields
-        const corePharmacology = {
-          pharmacodynamics: update.pharmacology.pharmacodynamics,
-          receptor_profile: update.pharmacology.receptor_profile,
-          pharmacokinetics: update.pharmacology.pharmacokinetics,
-          metabolites: update.pharmacology.metabolites,
-        };
-        article.pharmacology = { ...article.pharmacology, ...corePharmacology };
-
-        // Merge route-specific data (bioavailability, half_life) into dosage/duration sections
-        mergeRouteDataIntoDosageDuration(article, update.pharmacology);
-      }
-    }
-
-    saveArticles(allArticles);
-    console.log("Articles saved successfully.");
-
-    console.log(`\nSyncing ${results.successfulUpdates.length} articles to Convex...`);
-    try {
-      const updatedArticles = results.successfulUpdates.map(u =>
-        allArticles.find(a => a.title === u.title)
-      ).filter(Boolean);
-
-      const sanitizedArticles = updatedArticles.map(sanitizeObjectKeys);
-
-      const adminKey = process.env.CONVEX_ADMIN_KEY;
-      if (!adminKey) {
-        throw new Error("CONVEX_ADMIN_KEY environment variable is required for Convex sync");
-      }
-      const result = await convexClient.mutation(api.substanceIndex.saveSubstances, {
-        apiKey: adminKey,
-        articles: sanitizedArticles,
-      });
-      console.log(`Convex sync complete (${result.created} created, ${result.updated} updated).`);
-    } catch (syncError) {
-      console.error("Warning: Convex sync failed:", syncError.message);
-    }
-  }
 
   console.log("\n" + "=".repeat(50));
   console.log("Complete!");
@@ -757,13 +998,6 @@ async function main() {
     for (const item of results.failedItems) {
       console.log(`  - ${item.title}: ${item.error}`);
     }
-  }
-
-  if (results.successfulUpdates.length > 0) {
-    console.log("\n" + "=".repeat(50));
-    console.log("IMPORTANT: Sync to production:");
-    console.log("  TARGET_CONVEX_URL=https://glad-minnow-656.convex.cloud node scripts/convex/sync-convex-to-production.mjs");
-    console.log("=".repeat(50));
   }
 }
 

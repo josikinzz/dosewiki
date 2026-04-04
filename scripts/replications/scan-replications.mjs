@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
+import { canonicalizeEffectSlug } from './lib/reconciliation.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -175,7 +176,7 @@ function scan() {
     const folderPath = path.join(VIDEOS_NEW_DIR, folder);
     if (!fs.statSync(folderPath).isDirectory()) continue;
 
-    const effectSlug = EFFECT_SLUG_MAP[folder];
+    const effectSlug = canonicalizeEffectSlug(EFFECT_SLUG_MAP[folder]);
     if (!effectSlug) {
       console.warn(`⚠ Warning: No mapping found for effect folder: "${folder}"`);
       continue;

@@ -301,7 +301,7 @@ export function VCodeRenderer({
 
       // Horizontal rule
       case "hr":
-        return <div key={index} className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />;
+        return <div key={index} className="my-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />;
 
       // Headings - fuchsia accented to match substance articles
       case "h1":

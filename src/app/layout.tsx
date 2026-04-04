@@ -3,6 +3,9 @@ import Script from "next/script";
 import { blinker } from "./fonts";
 import { Footer } from "@/components/layout/Footer";
 import { RouteChrome } from "./_components/RouteChrome";
+import "yet-another-react-lightbox/styles.css";
+import "yet-another-react-lightbox/plugins/captions.css";
+import "yet-another-react-lightbox/plugins/counter.css";
 import "../styles.css";
 
 const themeBootstrap = `(() => {
