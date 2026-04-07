@@ -171,5 +171,6 @@ jobs:
       - name: Build project
         run: bun run build
         env:
-          # Use placeholder values for build-time env vars
-          VITE_CONVEX_URL: https://placeholder.convex.cloud
+          # Production Convex URL for static param generation during build
+          CONVEX_PUBLIC_READ_URL: https://glad-minnow-656.convex.cloud
+          VITE_CONVEX_URL: https://glad-minnow-656.convex.cloud
