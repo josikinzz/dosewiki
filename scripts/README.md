@@ -31,6 +31,7 @@ scripts/
 node scripts/batch/batch-extract-quotes.mjs --category=legality --resume
 
 # Section generation
+node scripts/batch/batch-generate-summary.mjs --all --concurrency=2
 node scripts/batch/batch-generate-legality.mjs --dry-run
 node scripts/batch/batch-generate-harm-potential.mjs --substance=lsd
 node scripts/batch/batch-generate-history-culture.mjs --all --concurrency=5
@@ -38,6 +39,21 @@ node scripts/batch/batch-generate-dosage-duration.mjs --limit=5
 
 # Monitor progress
 node scripts/batch/watch-batch-progress.mjs
+
+# Export OpenRouter-ready rewrite jobs from the dosage/duration note queue
+node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs
+node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs --article=2c-b
+
+# Run the exported jobs through OpenRouter and write reviewable JSON results
+export OPENROUTER_API_KEY="sk-or-..."
+node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs
+node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs --article=2c-b --verbose
+
+# Apply reviewed rewrite results to SubstanceIndex.json and sync changed articles to Convex
+export CONVEX_ADMIN_KEY="$(grep '^CONVEX_ADMIN_KEY=' .env.local | cut -d= -f2-)"
+export VITE_CONVEX_URL="https://..."
+node scripts/batch/apply-dosage-duration-rewrite-results.mjs
+node scripts/batch/apply-dosage-duration-rewrite-results.mjs --dry-run --article=2c-b
 ```
 
 ### Replications
@@ -93,11 +109,15 @@ export VITE_CONVEX_URL="https://..."      # Convex deployment URL
 export OPENROUTER_API_KEY="sk-or-..."     # For batch generation
 ```
 
+Batch generation and quote extraction scripts use the shared OpenRouter SDK helper at `scripts/lib/openrouter-sdk.mjs`.
+
 ## Output Locations
 
 Generated artifacts are written to `notes-and-plans/exports/`:
 
 - `batch/` - Cost tracking and progress files
+- `openrouter/` - Prompt payloads and NDJSON rewrite jobs
+- `openrouter/results/` - Reviewable rewrite responses, progress, and summaries
 - `replications/` - Replication metadata and gallery mappings
 
 ## Root-Level Scripts

@@ -165,14 +165,15 @@ export const TripReportsSection = memo(function TripReportsSection({
 
         {/* Expand/Collapse button */}
         {hasMore && (
-          <ExpandButton
-            isExpanded={isExpanded}
-            onToggle={() => setIsExpanded(!isExpanded)}
-            variant="count"
-            count={totalHidden}
-            className="mx-auto"
-            ariaLabel={isExpanded ? "Collapse trip reports" : "Expand trip reports"}
-          />
+          <div className="flex justify-center">
+            <ExpandButton
+              isExpanded={isExpanded}
+              onToggle={() => setIsExpanded(!isExpanded)}
+              variant="count"
+              count={totalHidden}
+              ariaLabel={isExpanded ? "Collapse trip reports" : "Expand trip reports"}
+            />
+          </div>
         )}
       </div>
     </div>

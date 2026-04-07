@@ -379,7 +379,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
       {/* Overview note as intro paragraph, or fallback to generic text */}
       <div className="space-y-2">
-        <p className="text-sm text-white/70 leading-relaxed">
+        <p className="text-sm text-white/80 leading-relaxed">
           {displayedOverviewText}
           {canCollapseOverview && !isOverviewExpanded && "…"}
         </p>
@@ -404,7 +404,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               Physical
             </h3>
             {hasPhysicalNote && (
-              <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+              <p className="mb-4 text-sm text-white/60 leading-relaxed">
                 {subjective_effects.notes.physical}
               </p>
             )}
@@ -432,7 +432,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               Cognitive
             </h3>
             {hasCognitiveNote && (
-              <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+              <p className="mb-4 text-sm text-white/60 leading-relaxed">
                 {subjective_effects.notes.cognitive}
               </p>
             )}
@@ -491,7 +491,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
                 {label}
               </h3>
               {hasSenseNote && (
-                <p className="mb-4 text-sm text-white/60 italic leading-relaxed">
+                <p className="mb-4 text-sm text-white/60 leading-relaxed">
                   {senseCategory.note}
                 </p>
               )}
@@ -525,7 +525,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
               <li key={idx} className="text-sm">
                 <span className="font-medium text-fuchsia-300">{item.drug}</span>
                 <span className="text-white/50"> — </span>
-                <span className="text-white/70">{item.comparison}</span>
+                <span className="text-white/80">{item.comparison}</span>
               </li>
             ))}
           </ul>

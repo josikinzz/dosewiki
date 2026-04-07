@@ -565,7 +565,7 @@ function NotableIndividualCard({
       {isExpanded && (
         <>
           <div className="mt-3 mb-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
             {renderWithBoldYears(content)}
           </p>
         </>
@@ -729,7 +729,7 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
                                 <h4 className="font-medium text-white/90 mb-1">
                                   {sub.heading}
                                 </h4>
-                                <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
+                                <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">{renderWithBoldYears(sub.content)}</p>
                               </div>
                             ))}
                           </div>

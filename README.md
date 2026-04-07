@@ -270,7 +270,12 @@ export VITE_CONVEX_URL="https://..."
 node scripts/batch/batch-generate-legality.mjs --dry-run
 node scripts/batch/batch-generate-history-culture.mjs --substance=lsd
 node scripts/batch/batch-generate-harm-potential.mjs --all --concurrency=5
+node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs
+node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs
+node scripts/batch/apply-dosage-duration-rewrite-results.mjs
 ```
+
+Batch scripts and the Next `/dev` section generator both use the official OpenRouter TypeScript SDK via shared helpers instead of raw `fetch` calls.
 
 ### Source parsing
 

@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "../..");
@@ -281,52 +282,15 @@ function buildUserMessage(substanceName, sources, contents, category) {
 
 // Call OpenRouter API (non-streaming)
 async function callOpenRouter(apiKey, systemPrompt, userMessage) {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://dose.wiki",
-      "X-Title": "Dose.wiki Batch Quote Extraction",
-    },
-    body: JSON.stringify({
-      model: CONFIG.model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
-      stream: false,
-      temperature: CONFIG.temperature,
-      max_tokens: CONFIG.maxTokens,
-    }),
+  return callOpenRouterChat({
+    apiKey,
+    appTitle: "Dose.wiki Batch Quote Extraction",
+    model: CONFIG.model,
+    systemPrompt,
+    userMessage,
+    temperature: CONFIG.temperature,
+    maxTokens: CONFIG.maxTokens,
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const status = response.status;
-
-    if (status === 429) {
-      throw { status: 429, message: "Rate limited", retryable: true };
-    } else if (status === 402) {
-      throw { status: 402, message: "Insufficient credits", retryable: false };
-    } else if (status >= 500) {
-      throw { status, message: `Server error: ${status}`, retryable: true };
-    }
-
-    throw { status, message: error.error?.message || `API error: ${status}`, retryable: false };
-  }
-
-  const data = await response.json();
-  const usage = data.usage || {};
-
-  return {
-    content: data.choices?.[0]?.message?.content || "",
-    usage: {
-      promptTokens: usage.prompt_tokens || 0,
-      completionTokens: usage.completion_tokens || 0,
-      totalTokens: usage.total_tokens || 0,
-    },
-  };
 }
 
 // Retry wrapper with exponential backoff

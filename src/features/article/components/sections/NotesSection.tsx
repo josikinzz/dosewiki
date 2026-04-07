@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
-import { IconBadge } from "@/components/common/IconBadge";
 import { Bullet } from "@/components/common/Bullet";
+import { SectionHeader } from "@/components/common/SectionHeader";
 
 interface NotesSectionProps {
   notes: string;
@@ -59,16 +59,8 @@ export function NotesSection({ notes }: NotesSectionProps) {
   };
 
   return (
-    <div className="space-y-6 pt-12">
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <h2 className="theme-accent-heading relative flex shrink-0 items-center gap-3 whitespace-nowrap text-xl font-bold tracking-tight">
-            <IconBadge icon="lucide:notebook-text" />
-            Notes
-          </h2>
-        </div>
-        <div className="h-px w-full bg-gradient-to-r from-fuchsia-500/30 via-fuchsia-500/10 to-transparent" />
-      </div>
+    <div className="space-y-6 pt-12 scroll-mt-6">
+      <SectionHeader icon="lucide:notebook-text" title="Notes" />
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
         {normalizedNotes}
       </ReactMarkdown>

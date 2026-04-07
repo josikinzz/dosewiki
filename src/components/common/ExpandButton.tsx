@@ -8,6 +8,8 @@ interface ExpandButtonProps {
   className?: string;
   variant?: "pill" | "compact" | "count" | "badge";
   count?: number;
+  /** When provided, shows a descriptive label instead of the ellipsis icon */
+  label?: string;
   children?: ReactNode;
   ariaLabel?: string;
 }
@@ -36,6 +38,7 @@ export function ExpandButton({
   className = "",
   variant = "pill",
   count,
+  label,
   children,
   ariaLabel,
 }: ExpandButtonProps) {
@@ -55,6 +58,8 @@ export function ExpandButton({
     >
       {variant === "count" ? (
         <span className="font-medium">+{count ?? 0}</span>
+      ) : label ? (
+        <span>{label}</span>
       ) : (
         children
       )}

@@ -1,6 +1,6 @@
 # DoseWiki Agent Notes
 
-Last verified: 2026-03-24
+Last verified: 2026-04-07
 
 ## Scope
 
@@ -13,6 +13,7 @@ This repository had no `AGENTS.md` file before this update. This document is the
 - Backend/data layer: Convex (`convex/`)
 - API routes: Next route handlers in `src/app/api/`
 - Build tooling: Bun + npm scripts (`package.json`)
+- LLM integration: OpenRouter TypeScript SDK (`@openrouter/sdk`)
 
 ## Ground Truth Rules
 
@@ -31,6 +32,7 @@ This repository had no `AGENTS.md` file before this update. This document is the
 - Migration scripts: `scripts/migrate/`
 - Convex sync/import/export scripts: `scripts/convex/`
 - Prompt files: `src/data/config/sectionPrompts/`
+- Shared OpenRouter helpers: `src/utils/api/openrouter.ts`, `scripts/lib/openrouter-sdk.mjs`
 - Additional script docs: `scripts/README.md`
 - Project docs: `README.md`, `CLAUDE.md`
 
@@ -70,13 +72,20 @@ Migration note:
 - Vercel previews only support real `/sign-in` flows when `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` are configured; without them the sign-in page renders a disabled state but `/dev` and protected API handlers should still deny unauthenticated access.
 - In the Next `/dev` shell, navigation now goes through the App Router instead of relying on `window.history.pushState` hacks.
 - The dev article editor now normalizes legacy and current article section shapes through shared adapters before rendering forms or applying generated YAML.
+- DevTools section generation now uses the OpenRouter SDK through `src/utils/api/openrouter.ts`.
+- Batch quote extraction and section generation now use the OpenRouter SDK through `scripts/lib/openrouter-sdk.mjs`.
+- `scripts/batch/batch-generate-summary.mjs` reads the active summary prompt from the source Convex deployment, prefers Convex `summary` quote docs, falls back to Convex `articleSources`, and writes validated top-level `summary` updates to the configured target deployment.
 - Legacy Vercel API entrypoints have been removed; shared GitHub save helpers now live in `lib/server/github/`.
 - The legacy Vite shell, offline inline build, and old prerender/sitemap scripts have been retired.
 
 Common direct script entrypoints:
 
 - `node scripts/batch/batch-generate-<section>.mjs`
+- `node scripts/batch/batch-generate-summary.mjs --all --concurrency=2`
 - `node scripts/batch/batch-extract-quotes.mjs`
+- `node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs`
+- `node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs`
+- `node scripts/batch/apply-dosage-duration-rewrite-results.mjs`
 - `node scripts/convex/sync-convex-to-production.mjs`
 - `node scripts/migrate/migrate-pharmacology-schema.mjs --dry-run --verbose`
 - `node scripts/migrate/migrate-prompts-to-convex.mjs`

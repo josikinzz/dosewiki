@@ -187,8 +187,8 @@ export const LegalitySection = memo(function LegalitySection({
           </h3>
           <Masonry
             breakpointCols={MASONRY_BREAKPOINTS}
-            className="flex w-full gap-3"
-            columnClassName="flex flex-col gap-3"
+            className="flex w-full gap-4"
+            columnClassName="flex flex-col gap-4"
           >
             {countries.map(([countryName, info]) => {
               const countryCode = getCountryCode(countryName);

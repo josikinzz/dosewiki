@@ -1,4 +1,7 @@
-// OpenRouter API utilities for Article Generator
+// OpenRouter SDK utilities for Article Generator
+import { OpenRouter } from "@openrouter/sdk";
+import { OpenRouterError } from "@openrouter/sdk/models/errors";
+import type { ChatRequest, ChatStreamChunk, ReasoningDetailUnion } from "@openrouter/sdk/models";
 import { estimateTokenCount } from "tokenx";
 
 export interface StreamCallbacks {
@@ -22,6 +25,8 @@ const LEGACY_OPENROUTER_MODEL_IDS: Record<string, string> = {
   "anthropic/claude-opus-4.6": DEFAULT_OPENROUTER_MODEL_ID,
 };
 const STREAM_MAX_TOKENS = 16384;
+const OPENROUTER_HTTP_REFERER = "https://dose.wiki";
+const OPENROUTER_APP_TITLE = "Dose.wiki Article Generator";
 
 export const MODEL_OPTIONS: ModelOption[] = [
   { id: DEFAULT_OPENROUTER_MODEL_ID, label: "Claude Opus 4.5", contextWindow: 200000, provider: "anthropic", description: "Undoubtedly the best model, if the articles fit into its 200k context window." },
@@ -51,6 +56,14 @@ export const ERROR_MESSAGES: Record<number, string> = {
  */
 export function estimateTokens(text: string): number {
   return estimateTokenCount(text);
+}
+
+function createOpenRouterClient(apiKey: string): OpenRouter {
+  return new OpenRouter({
+    apiKey,
+    httpReferer: OPENROUTER_HTTP_REFERER,
+    appTitle: OPENROUTER_APP_TITLE,
+  });
 }
 
 function extractTextFromStructuredContent(content: unknown): string {
@@ -196,6 +209,77 @@ export function buildOpenRouterRequestBody(
   return requestBody;
 }
 
+function buildOpenRouterChatRequest(
+  model: string,
+  systemPrompt: string,
+  userMessage: string,
+  options: StreamCompletionOptions = {},
+): ChatRequest & { stream: true } {
+  const requestBody = buildOpenRouterRequestBody(model, systemPrompt, userMessage, options);
+  const reasoning = requestBody.reasoning as Record<string, unknown> | undefined;
+
+  return {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    stream: true,
+    temperature: requestBody.temperature as number,
+    maxTokens: STREAM_MAX_TOKENS,
+    ...(reasoning
+      ? {
+          reasoning: {
+            ...(typeof reasoning.effort === "string" ? { effort: reasoning.effort as ReasoningEffortLevel } : {}),
+            ...(typeof reasoning.enabled === "boolean" ? { enabled: reasoning.enabled } : {}),
+            ...(typeof reasoning.max_tokens === "number" ? { maxTokens: reasoning.max_tokens } : {}),
+          },
+        }
+      : {}),
+  };
+}
+
+function extractReasoningTextFromDetails(details: ReasoningDetailUnion[] | null | undefined): string {
+  if (!Array.isArray(details) || details.length === 0) {
+    return "";
+  }
+
+  return details
+    .map((detail) => ("text" in detail && typeof detail.text === "string" ? detail.text : ""))
+    .join("");
+}
+
+function extractReasoningChunk(chunk: ChatStreamChunk): string {
+  const delta = chunk.choices[0]?.delta;
+  if (!delta) {
+    return "";
+  }
+
+  if (typeof delta.reasoning === "string") {
+    return delta.reasoning;
+  }
+
+  return extractReasoningTextFromDetails(delta.reasoningDetails);
+}
+
+function normalizeStreamFinishReason(chunk: ChatStreamChunk): string | null {
+  const finishReason = chunk.choices[0]?.finishReason;
+  return typeof finishReason === "string" ? finishReason : null;
+}
+
+function normalizeOpenRouterError(error: unknown): Error {
+  if (error instanceof OpenRouterError) {
+    const statusMessage = ERROR_MESSAGES[error.statusCode];
+    return new Error(statusMessage || error.message || `API error: ${error.statusCode}`);
+  }
+
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(String(error));
+}
+
 export async function streamCompletion(
   apiKey: string,
   model: string,
@@ -205,42 +289,19 @@ export async function streamCompletion(
   signal?: AbortSignal,
   options: StreamCompletionOptions = {}
 ): Promise<StreamCompletionResult> {
-  const requestBody = buildOpenRouterRequestBody(model, systemPrompt, userMessage, options);
+  const client = createOpenRouterClient(apiKey);
+  const request = buildOpenRouterChatRequest(model, systemPrompt, userMessage, options);
+  const stream = await client.chat.send({ chatRequest: request }, { signal });
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://dose.wiki",
-      "X-Title": "Dose.wiki Article Generator",
-    },
-    body: JSON.stringify(requestBody),
-    signal,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const statusMessage = ERROR_MESSAGES[response.status];
-    throw new Error(
-      statusMessage || error.error?.message || `API error: ${response.status} ${response.statusText}`
-    );
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error("No response body");
-
-  const decoder = new TextDecoder();
   const startedAt = Date.now();
   let fullText = "";
-  let buffer = "";
   let finishReason: string | null = null;
   let contentChunkCount = 0;
   let reasoningChunkCount = 0;
   let contentChars = 0;
   let reasoningChars = 0;
   let sseEventCount = 0;
-  let malformedEventCount = 0;
+  const malformedEventCount = 0;
   let doneEventReceived = false;
   let aborted = false;
 
@@ -251,7 +312,7 @@ export async function streamCompletion(
     fullText,
     finishReason,
     durationMs: Date.now() - startedAt,
-    responseStatus: response.status,
+    responseStatus: 200,
     contentChunkCount,
     reasoningChunkCount,
     contentChars,
@@ -263,75 +324,47 @@ export async function streamCompletion(
   });
 
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    for await (const chunk of stream) {
+      sseEventCount += 1;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
+      if (chunk.error) {
+        throw new Error(chunk.error.message);
+      }
 
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (data === "[DONE]") {
-          doneEventReceived = true;
-          continue;
+      finishReason = normalizeStreamFinishReason(chunk) ?? finishReason;
+
+      if (callbacks.onReasoning) {
+        const reasoningChunk = extractReasoningChunk(chunk);
+        if (reasoningChunk && reasoningChunk !== lastReasoningChunk) {
+          callbacks.onReasoning(reasoningChunk);
+          reasoningChunkCount += 1;
+          reasoningChars += reasoningChunk.length;
+          lastReasoningChunk = reasoningChunk;
         }
-        sseEventCount += 1;
+      }
 
-        try {
-          const parsed = JSON.parse(data);
-          const choice = parsed.choices?.[0] as Record<string, unknown> | undefined;
-          const delta = choice?.delta as Record<string, unknown> | undefined;
+      const choice = chunk.choices[0] as Record<string, unknown> | undefined;
+      const contentChunk = extractContentChunk(choice);
 
-          if (typeof choice?.finish_reason === "string") {
-            finishReason = choice.finish_reason;
-          }
-
-          if (callbacks.onReasoning) {
-            let reasoningChunk: string | null = null;
-
-            if (typeof delta?.reasoning_content === "string") {
-              reasoningChunk = delta.reasoning_content;
-            } else if (typeof delta?.reasoning === "string") {
-              reasoningChunk = delta.reasoning;
-            } else if (Array.isArray(delta?.reasoning_details) && delta.reasoning_details.length > 0) {
-              reasoningChunk = delta.reasoning_details
-                .map((d: { text?: string }) => d?.text || "")
-                .join("");
-            }
-
-            if (reasoningChunk && reasoningChunk !== lastReasoningChunk) {
-              callbacks.onReasoning(reasoningChunk);
-              reasoningChunkCount += 1;
-              reasoningChars += reasoningChunk.length;
-              lastReasoningChunk = reasoningChunk;
-            }
-          }
-
-          const contentChunk = extractContentChunk(choice);
-          if (contentChunk && contentChunk !== lastContentChunk) {
-            fullText += contentChunk;
-            callbacks.onChunk(contentChunk);
-            contentChunkCount += 1;
-            contentChars += contentChunk.length;
-            lastContentChunk = contentChunk;
-          }
-        } catch {
-          malformedEventCount += 1;
-        }
+      if (contentChunk && contentChunk !== lastContentChunk) {
+        fullText += contentChunk;
+        callbacks.onChunk(contentChunk);
+        contentChunkCount += 1;
+        contentChars += contentChunk.length;
+        lastContentChunk = contentChunk;
       }
     }
 
+    doneEventReceived = true;
     callbacks.onComplete(fullText);
     return buildResult();
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
+    const normalizedError = normalizeOpenRouterError(error);
+    if (signal?.aborted || normalizedError.name === "AbortError" || normalizedError.name === "RequestAbortedError") {
       aborted = true;
       callbacks.onError(new Error("Generation cancelled"));
     } else {
-      callbacks.onError(error instanceof Error ? error : new Error(String(error)));
+      callbacks.onError(normalizedError);
     }
 
     return buildResult();
@@ -343,10 +376,9 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
     return false;
   }
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/models", {
-      headers: { "Authorization": `Bearer ${apiKey}` },
-    });
-    return response.ok;
+    const client = createOpenRouterClient(apiKey);
+    await client.models.count();
+    return true;
   } catch {
     return false;
   }

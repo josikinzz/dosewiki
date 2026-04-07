@@ -26,6 +26,7 @@ import { fileURLToPath } from "url";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import { normalizePharmacologySection } from "../../lib/article/normalization.js";
+import { callOpenRouterChat } from "../lib/openrouter-sdk.mjs";
 import yaml from "yaml";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -303,78 +304,29 @@ Generate ONLY the pharmacology section as valid YAML. Do not include information
 
 // Call OpenRouter API
 async function callOpenRouter(apiKey, systemPrompt, userMessage, debugContext = null, options = {}) {
-  const requestBody = {
+  const response = await callOpenRouterChat({
+    apiKey,
+    appTitle: "Dose.wiki Batch Pharmacology Generator",
     model: CONFIG.model,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
-    ],
+    systemPrompt,
+    userMessage,
     temperature: CONFIG.temperature,
-    max_tokens: CONFIG.maxTokens,
-    ...(options.disableReasoning
-      ? {}
-      : (CONFIG.reasoningEffort && CONFIG.model.startsWith("anthropic/")
-        ? { reasoning: { effort: CONFIG.reasoningEffort } }
-        : {})),
-  };
-
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://dose.wiki",
-      "X-Title": "Dose.wiki Batch Pharmacology Generator",
-    },
-    body: JSON.stringify(requestBody),
+    maxTokens: CONFIG.maxTokens,
+    reasoningEffort: CONFIG.reasoningEffort,
+    disableReasoning: options.disableReasoning,
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const status = response.status;
-
-    if (status === 429) {
-      throw { status: 429, message: "Rate limited", retryable: true };
-    } else if (status === 402) {
-      throw { status: 402, message: "Insufficient credits", retryable: false };
-    } else if (status >= 500) {
-      throw { status, message: `Server error: ${status}`, retryable: true };
-    }
-
-    throw { status, message: error.error?.message || `API error: ${status}`, retryable: false };
-  }
-
-  const rawText = await response.text();
-  let data;
-  try {
-    data = JSON.parse(rawText);
-  } catch (error) {
-    writeOpenRouterDebugArtifact({
-      debugContext,
-      suffix: "openrouter-invalid-json",
-      payload: rawText,
-      metadata: {
-        errorMessage: error.message,
-      },
-    });
-    throw { status: response.status, message: "Invalid JSON from OpenRouter", retryable: true };
-  }
-  const usage = data.usage || {};
-  const content = extractOpenRouterMessageText(data);
-  const choice = data?.choices?.[0];
-  const message = choice?.message;
-
-  if (!content.trim()) {
+  if (!response.content.trim()) {
     writeOpenRouterDebugArtifact({
       debugContext,
       suffix: "openrouter-empty-content",
-      payload: rawText,
+      payload: JSON.stringify(response.response, null, 2),
       metadata: {
         message: "OpenRouter response contained no extractable message content",
       },
     });
 
-    if (!options.disableReasoning && typeof message?.reasoning === "string" && choice?.finish_reason === "length") {
+    if (!options.disableReasoning && response.reasoning && response.finishReason === "length") {
       return await callOpenRouter(apiKey, systemPrompt, userMessage, debugContext, {
         ...options,
         disableReasoning: true,
@@ -383,53 +335,9 @@ async function callOpenRouter(apiKey, systemPrompt, userMessage, debugContext = 
   }
 
   return {
-    content,
-    usage: {
-      promptTokens: usage.prompt_tokens || 0,
-      completionTokens: usage.completion_tokens || 0,
-      totalTokens: usage.total_tokens || 0,
-    },
+    content: response.content,
+    usage: response.usage,
   };
-}
-
-function extractOpenRouterMessageText(data) {
-  const message = data?.choices?.[0]?.message;
-  const content = message?.content;
-
-  if (typeof content === "string") {
-    return content;
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((part) => {
-        if (typeof part === "string") {
-          return part;
-        }
-        if (!part || typeof part !== "object") {
-          return "";
-        }
-        if (typeof part.text === "string") {
-          return part.text;
-        }
-        if (typeof part.content === "string") {
-          return part.content;
-        }
-        return "";
-      })
-      .join("\n")
-      .trim();
-  }
-
-  if (typeof data?.choices?.[0]?.text === "string") {
-    return data.choices[0].text;
-  }
-
-  if (typeof data?.response?.output_text === "string") {
-    return data.response.output_text;
-  }
-
-  return "";
 }
 
 function writeOpenRouterDebugArtifact({ debugContext, suffix, payload, metadata = {} }) {
