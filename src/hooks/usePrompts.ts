@@ -1,4 +1,5 @@
-import { useQuery, useMutation as useConvexMutation } from "convex/react";
+import { useCallback } from "react";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
 import type { SectionKey } from "../data/config/sectionPrompts";
@@ -53,9 +54,6 @@ export function usePrompt(key: string): UsePromptResult {
     enabled ? { key } : undefined as never
   );
 
-  // Mutation for saving
-  const saveMutation = useConvexMutation(api.prompts.save);
-
   // Loading state: Convex is enabled and data hasn't arrived yet
   const isLoading = enabled && convexPrompt === undefined;
 
@@ -64,13 +62,25 @@ export function usePrompt(key: string): UsePromptResult {
   const content = exists ? convexPrompt.content : "";
 
   // Save function
-  const save = async (newContent: string, updatedBy?: string) => {
+  const save = useCallback(async (newContent: string, _updatedBy?: string) => {
     if (!enabled) {
       console.warn("Convex is not enabled. Prompt save skipped.");
       return;
     }
-    await saveMutation({ key, content: newContent, updatedBy });
-  };
+
+    const response = await fetch("/api/save-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, content: newContent }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = typeof result.error === "string" ? result.error : "Failed to save prompt.";
+      throw new Error(error);
+    }
+  }, [enabled, key]);
 
   return {
     content,

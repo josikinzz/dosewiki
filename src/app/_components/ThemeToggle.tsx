@@ -10,13 +10,25 @@ import {
 } from "@/context/ThemeContext";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemeName>(readInitialTheme);
+  // Always initialise with "dark" so server and client first-render match.
+  // The real theme is synced from the DOM (set by the bootstrap script) in
+  // the mount effect, avoiding a hydration mismatch.
+  const [theme, setTheme] = useState<ThemeName>("dark");
+  const [mounted, setMounted] = useState(false);
   const isLight = theme === "light";
 
+  // After hydration, read the theme the bootstrap script already applied.
   useEffect(() => {
-    applyThemeToDocument(theme);
-    persistTheme(theme);
-  }, [theme]);
+    setTheme(readInitialTheme());
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      applyThemeToDocument(theme);
+      persistTheme(theme);
+    }
+  }, [theme, mounted]);
 
   const toggleTheme = () => {
     setTheme((current) => (current === "dark" ? "light" : "dark"));

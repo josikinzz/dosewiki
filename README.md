@@ -225,6 +225,7 @@ The preferred editor write path for live content is `save-to-convex`. GitHub-bac
 - `CONVEX_URL`
 - `VITE_CONVEX_URL`
 - `NEXT_PUBLIC_CONVEX_URL`
+- `CONVEX_PUBLIC_READ_URL`
 - `CONVEX_ADMIN_KEY`
 - `UPSTASH_REDIS_REST_URL`
 - `UPSTASH_REDIS_REST_TOKEN`
@@ -235,6 +236,7 @@ The preferred editor write path for live content is `save-to-convex`. GitHub-bac
 - Vercel previews and production need `AUTH_SECRET`.
 - The editor save-to-Convex flow needs `CONVEX_ADMIN_KEY` on the server.
 - The public/editor shell needs a readable Convex URL from `CONVEX_URL`, `VITE_CONVEX_URL`, or `NEXT_PUBLIC_CONVEX_URL`.
+- Set `CONVEX_PUBLIC_READ_URL` in local development if you want public App Router pages to read the live production dataset while the `/dev` shell and save flows stay on the local/dev Convex deployment.
 - The reagent proxy and protected API handlers run on the Node.js runtime.
 
 ## Development Workflow

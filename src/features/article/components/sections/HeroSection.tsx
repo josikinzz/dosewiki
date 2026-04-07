@@ -355,7 +355,9 @@ export const HeroSection = memo(function HeroSection({
 
       {/* Summary */}
       {hasSummary && (
-        <p className="type-lead type-reading-measure mt-6 text-white/80">{summary}</p>
+        <p className="mt-8 border-t border-white/[0.06] pt-6 text-sm leading-relaxed text-white/75 whitespace-pre-wrap">
+          <strong className="font-semibold text-fuchsia-300">{summary!.split(/\s/)[0]}</strong>{" "}{summary!.slice(summary!.split(/\s/)[0].length).trimStart()}
+        </p>
       )}
 
     </div>

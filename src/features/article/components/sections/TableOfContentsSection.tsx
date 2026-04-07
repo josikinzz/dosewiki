@@ -4,6 +4,7 @@ import {
   PublicTableOfContents,
   type PublicTableOfContentsItem,
 } from "@/components/common/PublicTableOfContents";
+import { useReagentData } from "@/hooks/useReagentData";
 import type { SubstanceArticle } from "@/schema";
 import { hasPharmacologyContent } from "../../../../../lib/article/normalization.js";
 
@@ -16,6 +17,13 @@ interface TocItem {
   label: string;
   icon: IconName;
   isPresent: (article: SubstanceArticle) => boolean;
+}
+
+function hasStaticReagentData(article: SubstanceArticle): boolean {
+  return Boolean(
+    article.reagent_testing &&
+    Object.values(article.reagent_testing).some((value) => value?.trim().length > 0),
+  );
 }
 
 const TOC_ITEMS: TocItem[] = [
@@ -47,7 +55,7 @@ const TOC_ITEMS: TocItem[] = [
     id: "reagent-testing",
     label: "Reagent Testing",
     icon: "lucide:pipette",
-    isPresent: (a) => a.reagent_testing && Object.keys(a.reagent_testing).length > 0,
+    isPresent: hasStaticReagentData,
   },
   {
     id: "pharmacology",
@@ -130,17 +138,29 @@ const TOC_ITEMS: TocItem[] = [
   },
 ];
 
-const SAFETY_CRITICAL_ITEM_IDS = new Set(["reagent-testing"]);
-
 export const TableOfContentsSection = memo(function TableOfContentsSection({
   article,
 }: TableOfContentsSectionProps) {
-  const presentItems: PublicTableOfContentsItem[] = TOC_ITEMS.filter((item) => item.isPresent(article)).map(
+  const hasStaticReagentEntries = hasStaticReagentData(article);
+  const substanceName = article.identification?.common_name || article.title || "";
+  const aliases = article.identification?.alternative_names || [];
+  const { data: reagentApiData, isLoading: isLoadingReagentData } = useReagentData(
+    hasStaticReagentEntries ? "" : substanceName,
+    hasStaticReagentEntries ? [] : aliases,
+  );
+  const hasApiReagentData = (reagentApiData?.reagents?.length ?? 0) > 0;
+
+  const presentItems: PublicTableOfContentsItem[] = TOC_ITEMS.filter((item) => {
+    if (item.id === "reagent-testing") {
+      return hasStaticReagentEntries || isLoadingReagentData || hasApiReagentData;
+    }
+
+    return item.isPresent(article);
+  }).map(
     (item) => ({
       id: item.id,
       label: item.label,
       icon: item.icon,
-      tone: SAFETY_CRITICAL_ITEM_IDS.has(item.id) ? "warning" : "default",
     }),
   );
 

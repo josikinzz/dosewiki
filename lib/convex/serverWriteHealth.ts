@@ -15,7 +15,7 @@ export function getServerConvexAdminKey(): string | null {
   return hasNonEmptyValue(process.env.CONVEX_ADMIN_KEY) ? process.env.CONVEX_ADMIN_KEY : null;
 }
 
-export function getServerConvexUrl(): string | null {
+export function getServerConvexWriteUrl(): string | null {
   const url =
     process.env.CONVEX_URL ??
     process.env.VITE_CONVEX_URL ??
@@ -24,9 +24,14 @@ export function getServerConvexUrl(): string | null {
   return hasNonEmptyValue(url) ? url : null;
 }
 
+export function getServerConvexReadUrl(): string | null {
+  const url = process.env.CONVEX_PUBLIC_READ_URL ?? getServerConvexWriteUrl();
+  return hasNonEmptyValue(url) ? url : null;
+}
+
 export function getServerConvexWriteHealth(): ServerConvexWriteHealth {
   const adminKeyConfigured = getServerConvexAdminKey() !== null;
-  const convexUrlConfigured = getServerConvexUrl() !== null;
+  const convexUrlConfigured = getServerConvexWriteUrl() !== null;
   const issues: string[] = [];
 
   if (!adminKeyConfigured) {

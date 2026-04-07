@@ -253,7 +253,7 @@ function CollapsibleStage({
   const hasIcon = !!stageIcon;
 
   return (
-    <div className="rounded-lg bg-white/[0.02] ring-1 ring-white/5 overflow-hidden">
+    <div className="rounded-lg bg-white/[0.04] ring-1 ring-white/[0.08] overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
@@ -304,7 +304,7 @@ function SubcategorySection({
   const hasIcon = !!subcategoryIcon;
 
   return (
-    <div className={cn(!isGeneral && "rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/5")}>
+    <div className={cn(!isGeneral && "rounded-lg bg-white/[0.04] p-3 ring-1 ring-white/[0.08]")}>
       {!isGeneral && (
         <h4 className={cn(
           "mb-2 text-sm font-semibold text-white flex items-center gap-2",
@@ -398,7 +398,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
       <div className="space-y-4">
         {/* Physical Effects Card */}
         {hasPhysical && (
-          <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="lucide:hand" size={16} className="text-fuchsia-200" />
               Physical
@@ -426,7 +426,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
         {/* Cognitive Effects Card */}
         {hasCognitive && (
-          <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="fluent:thinking-24-regular" size={20} className="text-fuchsia-200" />
               Cognitive
@@ -454,7 +454,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
         {/* Progressive Stages Card */}
         {hasProgressiveStages && subjective_effects.progressive_stages && (
-          <div className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
             <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
               <Icon icon="lucide:list-ordered" size={16} className="text-fuchsia-200" />
               Progressive Stages
@@ -485,7 +485,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
           const hasSenseNote = senseCategory.note?.trim().length > 0;
 
           return (
-            <div key={key} className="rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+            <div key={key} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
               <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
                 {senseIcon && <Icon icon={senseIcon} size={20} className="text-fuchsia-200" />}
                 {label}
@@ -515,7 +515,7 @@ export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
 
       {/* Comparisons Card - full width below grid */}
       {hasComparisons && (
-        <div className="mt-4 rounded-xl ring-1 ring-white/5 bg-white/5 p-4">
+        <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
           <h3 className="mb-3 flex items-center gap-2 font-semibold text-white">
             <Icon icon="lucide:git-compare-arrows" size={20} className="text-fuchsia-200" />
             Comparisons

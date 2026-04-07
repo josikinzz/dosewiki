@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useQuery, useMutation as useConvexMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { isConvexEnabled } from "../lib/convex";
 
@@ -74,9 +74,6 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
     enabled && slug ? { slug, section } : SKIP
   );
 
-  // Mutation for saving
-  const saveMutation = useConvexMutation(api.quotes.save);
-
   // Determine content and loading state
   const isLoading = enabled && convexQuote === undefined;
   const exists = convexQuote !== undefined && convexQuote !== null;
@@ -85,7 +82,7 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
 
   // Save function
   const save = useCallback(
-    async (newContent: string, updatedBy?: string) => {
+    async (newContent: string, _updatedBy?: string) => {
       if (!enabled) {
         console.warn("Convex is not enabled. Quote save skipped.");
         return;
@@ -94,9 +91,25 @@ export function useQuote(slug: string | null, section: QuoteSection): UseQuoteRe
         console.warn("No slug provided. Quote save skipped.");
         return;
       }
-      await saveMutation({ slug, section, content: newContent, updatedBy });
+
+      const response = await fetch("/api/save-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          section,
+          content: newContent,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const error = typeof result.error === "string" ? result.error : "Failed to save quote.";
+        throw new Error(error);
+      }
     },
-    [enabled, slug, section, saveMutation]
+    [enabled, slug, section]
   );
 
   // Refetch function

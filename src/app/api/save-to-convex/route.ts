@@ -4,7 +4,7 @@ import { api } from "../../../../convex/_generated/api";
 import { requireEditorSession } from "@/lib/auth/requireEditorSession";
 import { readJsonBody, JsonBodyError } from "@/lib/http/readJsonBody";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import { getServerConvexClient } from "@server/convex/serverClient";
+import { getServerConvexWriteClient } from "@server/convex/serverClient";
 import { getServerConvexAdminKey } from "@server/convex/serverWriteHealth";
 
 export const runtime = "nodejs";
@@ -174,7 +174,7 @@ function toArticleSnapshot(article: { id?: number | null; title?: string; slug?:
 }
 
 async function findArticleSnapshot(
-  client: ReturnType<typeof getServerConvexClient>,
+  client: ReturnType<typeof getServerConvexWriteClient>,
   summary: ArticleDebugSummary,
 ): Promise<ArticleSnapshot | null> {
   if (summary.id !== null) {
@@ -194,7 +194,7 @@ async function findArticleSnapshot(
 }
 
 async function verifySavedArticle(
-  client: ReturnType<typeof getServerConvexClient>,
+  client: ReturnType<typeof getServerConvexWriteClient>,
   summary: ArticleDebugSummary,
   previous: ArticleSnapshot | null,
 ): Promise<ArticleVerification> {
@@ -282,7 +282,7 @@ export async function POST(request: Request) {
     }
 
     const submittedBy = deriveSubmittedBy(auth.session.user.email, auth.session.user.name);
-    const client = getServerConvexClient();
+    const client = getServerConvexWriteClient();
     const savedItems: string[] = [];
     const warnings: string[] = [];
     const previousByTarget = new Map<string, ArticleSnapshot | null>();

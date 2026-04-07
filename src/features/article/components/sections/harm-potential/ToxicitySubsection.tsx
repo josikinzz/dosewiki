@@ -336,13 +336,10 @@ export function ToxicitySubsection({ toxicity }: ToxicitySubsectionProps) {
   if (!hasContent) return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Icon icon="healthicons:poison-24px" size={20} className="text-rose-300" />
-          <h3 className="font-semibold text-white">Toxicity</h3>
-        </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <Icon icon="healthicons:poison-24px" size={20} className="text-fuchsia-200" />
+        <h3 className="font-semibold text-white">Toxicity</h3>
       </div>
 
       <div className="flex flex-col gap-4">

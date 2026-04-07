@@ -13,18 +13,14 @@ export function PsychosisRiskSubsection({ risks }: RisksSubsectionProps) {
   if (!hasPsychosis) return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon icon="tabler:mood-crazy-happy" size={20} className="theme-accent-icon text-rose-300" />
-            <h3 className="font-semibold text-white">Psychosis Risk</h3>
-          </div>
-          <RiskLevelBadge level={psychosis.level} />
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon icon="tabler:mood-crazy-happy" size={20} className="text-fuchsia-200" />
+          <h3 className="font-semibold text-white">Psychosis Risk</h3>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <RiskLevelBadge level={psychosis.level} />
       </div>
-
       <p className="text-sm leading-relaxed text-white/80">
         {psychosis.description}
       </p>
@@ -39,18 +35,14 @@ export function SeizureRiskSubsection({ risks }: RisksSubsectionProps) {
   if (!hasSeizure) return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon icon="mage:zap" size={20} className="theme-accent-icon text-rose-300" />
-            <h3 className="font-semibold text-white">Seizure Risk</h3>
-          </div>
-          <RiskLevelBadge level={seizure.level} />
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon icon="mage:zap" size={20} className="text-fuchsia-200" />
+          <h3 className="font-semibold text-white">Seizure Risk</h3>
         </div>
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <RiskLevelBadge level={seizure.level} />
       </div>
-
       <p className="text-sm leading-relaxed text-white/80">
         {seizure.description}
       </p>
