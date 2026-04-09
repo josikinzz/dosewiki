@@ -13,6 +13,12 @@ const authSecret =
   process.env.NEXTAUTH_SECRET ??
   (process.env.NODE_ENV === "development" ? "dosewiki-next-auth-development-secret" : undefined);
 
+const legacyCredentialEmailDomain = "@local.dose.wiki";
+
+function isLegacyCredentialEmail(email: string | null | undefined): boolean {
+  return typeof email === "string" && email.trim().toLowerCase().endsWith(legacyCredentialEmailDomain);
+}
+
 export const hasGitHubAuthConfigured = Boolean(githubClientId && githubClientSecret);
 export const hasLegacyCredentialsAuthConfigured =
   !hasGitHubAuthConfigured && hasLegacyCredentialsConfigured();
@@ -81,7 +87,7 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      if (account?.provider === "credentials") {
+      if (account?.provider === "credentials" || isLegacyCredentialEmail(email)) {
         token.role = "admin";
         return token;
       }

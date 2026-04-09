@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buildPageMetadata } from "@server/next/metadata";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "../_components/SignOutButton";
 import { StatusFact, StatusPageShell } from "../_components/StatusPageShell";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +42,9 @@ export default async function UnauthorizedPage({ searchParams }: UnauthorizedPag
           <Button asChild variant="secondary">
             <Link href="/substances">Return to public site</Link>
           </Button>
-          <Button asChild variant="outline">
-            <Link href="/sign-in">Use a different account</Link>
-          </Button>
+          <SignOutButton callbackUrl="/sign-in" variant="outline">
+            Use a different account
+          </SignOutButton>
         </>
       }
       complement={
