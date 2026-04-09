@@ -1,14 +1,7 @@
-import { Controller, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { Icon } from "@/components/common/Icon";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { SubstanceArticle } from "@/schema";
 
@@ -37,7 +30,7 @@ export type EditorialReviewFieldsRHFProps = {
 };
 
 export function EditorialReviewFieldsRHF({ idPrefix }: EditorialReviewFieldsRHFProps) {
-  const { register, control } = useFormContext<SubstanceArticle>();
+  const { register } = useFormContext<SubstanceArticle>();
 
   return (
     <section className="space-y-6">
@@ -48,27 +41,24 @@ export function EditorialReviewFieldsRHF({ idPrefix }: EditorialReviewFieldsRHFP
               <Icon icon="lucide:list-checks" size={14} className="text-fuchsia-300" />
               Review Status
             </Label>
-            <Controller
-              name="editorial_review.status"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id={`${idPrefix}-editorial-review-status`}>
-                    <SelectValue placeholder="Select review status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REVIEW_STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex flex-col items-start">
-                          <span className="font-medium">{option.label}</span>
-                          <span className="text-xs text-white/50">{option.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <div className="relative">
+              <select
+                id={`${idPrefix}-editorial-review-status`}
+                {...register("editorial_review.status")}
+                className="h-11 w-full appearance-none rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 pr-10 text-sm text-white shadow-inner shadow-black/20 transition focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-300/30"
+              >
+                {REVIEW_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <Icon
+                icon="lucide:chevron-down"
+                size={16}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/50"
+              />
+            </div>
             <p className={helperTextClass}>
               Shown as a badge in the substance selector above.
             </p>
