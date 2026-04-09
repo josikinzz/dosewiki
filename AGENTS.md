@@ -1,6 +1,6 @@
 # DoseWiki Agent Notes
 
-Last verified: 2026-04-07
+Last verified: 2026-04-08
 
 ## Scope
 
@@ -21,6 +21,7 @@ This repository had no `AGENTS.md` file before this update. This document is the
 - Convex `memberships` is the source of truth for editor/admin roles in the Next.js auth path.
 - Local JSON files (for example `src/data/SubstanceIndex.json`) are backup/export artifacts and are not authoritative runtime state.
 - Before changing shared content structures, verify schema in `src/schema/substance.schema.ts` and generated helpers in `src/data/schema/`.
+- Substance articles now include an internal `editorial_review` object for Dev Tools manual review tracking; treat it as editor-only metadata, not public article content.
 
 ## High-Value Paths
 

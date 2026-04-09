@@ -10,7 +10,7 @@
  * complementary layer of defense at the database level.
  */
 
-import { v, Validator } from "convex/values";
+import { v } from "convex/values";
 
 /**
  * Validator for the core article fields that must always be present.
@@ -66,6 +66,7 @@ export const substanceArticleValidator = v.object({
   harm_potential: v.any(),
   history_culture: v.optional(v.any()),
   legality: v.any(),
+  editorial_review: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });
@@ -102,6 +103,7 @@ export const substanceArticleLightValidator = v.object({
   harm_potential: v.any(),
   history_culture: v.optional(v.any()),
   legality: v.any(),
+  editorial_review: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });

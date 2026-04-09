@@ -102,6 +102,7 @@ export function useArticleForm({
       },
       // Ensure history_culture has default values for form editing (optional field)
       history_culture: base.history_culture ?? empty.history_culture,
+      editorial_review: base.editorial_review ?? empty.editorial_review,
       citations: base.citations.length > 0 ? base.citations : [createEmptyCitation()],
     };
   }, []);

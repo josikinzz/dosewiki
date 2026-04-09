@@ -142,6 +142,10 @@ export function createEmptyArticle(): SubstanceArticle {
     international: [],
     countries: {}
   },
+  editorial_review: {
+    status: "needed",
+    notes: ""
+  },
   source_citations: [],
   citations: []
 };

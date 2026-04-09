@@ -40,6 +40,7 @@ const substanceArticle = v.object({
   harm_potential: v.any(),
   history_culture: v.optional(v.any()),
   legality: v.any(),
+  editorial_review: v.optional(v.any()),
   source_citations: v.optional(v.any()),
   citations: v.any(),
 });

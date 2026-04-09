@@ -100,11 +100,13 @@ export interface PromptEditorSectionProps {
 }
 
 export type SortOrder = "sources-asc" | "sources-desc" | "alpha-asc" | "alpha-desc";
+export type ReviewStatus = "needed" | "in_progress" | "completed";
 
 export interface SubstanceInfo {
   slug: string;
   name: string;
   sources: SourceInfo[];
+  reviewStatus: ReviewStatus;
 }
 
 export interface ModelOption {

@@ -513,6 +513,12 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
     default: {},
     isNullable: false,
   },
+  "editorial_review": {
+    path: "editorial_review",
+    type: "text",
+    default: {"status":"needed","notes":""},
+    isNullable: false,
+  },
   "source_citations": {
     path: "source_citations",
     type: "text",
@@ -614,6 +620,7 @@ export const FIELD_PATHS = [
   "history_culture",
   "legality.international",
   "legality.countries",
+  "editorial_review",
   "source_citations",
   "citations"
 ] as const;

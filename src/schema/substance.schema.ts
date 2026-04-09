@@ -432,6 +432,23 @@ export const legalitySchema = z.object({
 });
 
 // ============================================================================
+// Editorial Review Schemas
+// ============================================================================
+
+/** Manual editorial review states used in Dev Tools */
+export const editorialReviewStatusSchema = z.enum([
+  "needed",
+  "in_progress",
+  "completed",
+]);
+
+/** Internal-only editorial review metadata */
+export const editorialReviewSchema = z.object({
+  status: editorialReviewStatusSchema.default("needed"),
+  notes: z.string().default(""),
+});
+
+// ============================================================================
 // Root Schema
 // ============================================================================
 
@@ -456,6 +473,10 @@ export const substanceArticleSchema = z.object({
   harm_potential: harmPotentialSchema,
   history_culture: historyCultureSchema.nullable().optional(),
   legality: legalitySchema,
+  editorial_review: editorialReviewSchema.default({
+    status: "needed",
+    notes: "",
+  }),
   source_citations: z.array(citationSchema).nullable().optional(),
   citations: z.array(citationSchema),
 });
@@ -518,6 +539,8 @@ export type HistoryCulture = z.infer<typeof historyCultureSchema>;
 
 export type CountryLegality = z.infer<typeof countryLegalitySchema>;
 export type Legality = z.infer<typeof legalitySchema>;
+export type EditorialReviewStatus = z.infer<typeof editorialReviewStatusSchema>;
+export type EditorialReview = z.infer<typeof editorialReviewSchema>;
 
 export type Citation = z.infer<typeof citationSchema>;
 

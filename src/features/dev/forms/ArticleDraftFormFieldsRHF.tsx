@@ -25,6 +25,7 @@ import { ReagentPreviewFieldsRHF } from "./ReagentPreviewFieldsRHF";
 import { SourceCitationsFieldsRHF } from "./SourceCitationsFieldsRHF";
 import { CitationsFieldsRHF } from "./CitationsFieldsRHF";
 import { HistoryCultureFieldsRHF } from "./HistoryCultureFieldsRHF";
+import { EditorialReviewFieldsRHF } from "./EditorialReviewFieldsRHF";
 import { CollapsibleFormSectionCard } from "./FormHelpers";
 import { Icon } from "@/components/common/Icon";
 
@@ -184,6 +185,14 @@ export function ArticleDraftFormFieldsRHF({
             addCitation={addCitation}
             removeCitation={removeCitation}
           />
+        </CollapsibleFormSectionCard>
+        {/* 15. Editorial Review */}
+        <CollapsibleFormSectionCard
+          title="Editorial Review"
+          icon={<Icon icon="lucide:list-checks" size={20} />}
+          defaultExpanded
+        >
+          <EditorialReviewFieldsRHF idPrefix={idPrefix} />
         </CollapsibleFormSectionCard>
       </div>
     </FormProvider>

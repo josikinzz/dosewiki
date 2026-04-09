@@ -6,6 +6,7 @@ import { DiffPreview } from "@/components/common/DiffPreview";
 import { JsonEditor } from "@/components/common/JsonEditor";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ import {
   STORAGE_KEYS,
   type SubstanceEditorTabProps,
   type OutputViewMode,
+  type ReviewStatus,
 } from "./types";
 import { useDevMode } from "../../context/DevModeContext";
 import { ArticleDraftFormFieldsRHF } from "../../forms/ArticleDraftFormFieldsRHF";
@@ -46,6 +48,28 @@ import {
 } from "@/utils/sectionSources";
 import { getFaviconForSourceName } from "@/data/config/sourceFavicons";
 import { useQuote } from "@/hooks/useQuotes";
+import { slugify } from "@/utils/slug";
+
+const REVIEW_STATUS_META: Record<
+  ReviewStatus,
+  {
+    label: string;
+    className: string;
+  }
+> = {
+  needed: {
+    label: "Review Needed",
+    className: "border-rose-400/30 bg-rose-500/10 text-rose-200/90",
+  },
+  in_progress: {
+    label: "In Progress",
+    className: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-200/90",
+  },
+  completed: {
+    label: "Completed",
+    className: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200/90",
+  },
+};
 
 export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   // Prompt-related props are kept for backwards compatibility but no longer used
@@ -93,13 +117,36 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
 
   // Load substance source list from Convex
   const { substances: allSourceSubstances } = useSubstanceSourceList();
+  const reviewStatusBySlug = useMemo(() => {
+    const next = new Map<string, ReviewStatus>();
+
+    for (const article of articles) {
+      const recordWithSlug = article as SubstanceArticle & { slug?: unknown };
+      const explicitSlug = typeof recordWithSlug.slug === "string" ? recordWithSlug.slug.trim() : "";
+      const fallbackSlug = slugify(article.title || article.identification.common_name || "");
+      const articleSlug = explicitSlug || fallbackSlug;
+
+      if (!articleSlug) {
+        continue;
+      }
+
+      next.set(articleSlug, article.editorial_review?.status ?? "needed");
+    }
+
+    return next;
+  }, [articles]);
 
   // Compute visible substances based on priority toggle
   const substances = useMemo(() => {
     const records = showLowPriority ? allSubstanceRecords : substanceRecords;
     const visibleSlugs = new Set(records.map((r) => r.slug));
-    return allSourceSubstances.filter((s) => visibleSlugs.has(s.slug));
-  }, [allSubstanceRecords, allSourceSubstances, showLowPriority, substanceRecords]);
+    return allSourceSubstances
+      .filter((s) => visibleSlugs.has(s.slug))
+      .map((s) => ({
+        ...s,
+        reviewStatus: reviewStatusBySlug.get(s.slug) ?? "needed",
+      }));
+  }, [allSubstanceRecords, allSourceSubstances, reviewStatusBySlug, showLowPriority, substanceRecords]);
 
   // Article output state
   const [streamedOutput, setStreamedOutput] = useState("");
@@ -724,13 +771,22 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
               <Button
                 key={substance.slug}
                 variant="substanceListItem"
+                className="justify-between gap-3"
                 onClick={() => setSelectedSubstanceSlug(substance.slug)}
                 data-active={selectedSubstanceSlug === substance.slug}
               >
-                <span className="font-medium">{substance.name}</span>
-                <span className="ml-2 text-xs text-white/40">
-                  ({substance.sources.length} sources)
-                </span>
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="truncate font-medium">{substance.name}</span>
+                  <span className="shrink-0 text-xs text-white/40">
+                    ({substance.sources.length} sources)
+                  </span>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className={REVIEW_STATUS_META[substance.reviewStatus].className}
+                >
+                  {REVIEW_STATUS_META[substance.reviewStatus].label}
+                </Badge>
               </Button>
             ))
           )}

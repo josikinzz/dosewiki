@@ -125,8 +125,22 @@ export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceAr
     tolerance: normalizeTolerance(raw.tolerance),
     history_culture: normalizeHistoryCulture(raw.history_culture),
     legality: normalizeLegality(raw.legality),
+    editorial_review: normalizeEditorialReview(raw.editorial_review),
     source_citations: normalizeSourceCitations(raw.source_citations),
     citations: normalizeCitations(raw.citations),
+  };
+}
+
+function normalizeEditorialReview(raw: unknown): SubstanceArticle["editorial_review"] {
+  const obj = getObject(raw);
+  const rawStatus = obj.status;
+  const status = rawStatus === "needed" || rawStatus === "in_progress" || rawStatus === "completed"
+    ? rawStatus
+    : "needed";
+
+  return {
+    status,
+    notes: getString(obj.notes),
   };
 }
 
