@@ -75,7 +75,6 @@ export const TagMultiSelect = ({
     disabled,
     allowCreate,
     createLabel,
-    emptyStateText,
     openStrategy,
   });
 
