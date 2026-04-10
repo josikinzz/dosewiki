@@ -1,6 +1,6 @@
 # Refactoring Task Tracker
-> **Last updated**: 2026-04-09 17:30 MDT | **Updated by**: AI Agent
-> **Status**: Phase 5 | ✅ 11/11 tasks complete (100%)
+> **Last updated**: 2026-04-09 19:05 MDT | **Updated by**: AI Agent
+> **Status**: Phase 5 | ✅ 10/10 tasks complete (100%)
 
 ## Legend
 - Priority: 🔴 P0 | 🟠 P1 | 🟡 P2 | 🔵 P3
@@ -15,158 +15,126 @@
 |-------|-------|----|----|----|-----|----------|
 | Phase 0: Safety Net | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
 | Phase 1: Quick Wins | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
-| Phase 2: Decomposition | 4 | 4 | 0 | 0 | 0 | ████████ 100% |
+| Phase 2: Decomposition | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
 | Phase 3: Architecture | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
-| **Total** | **11** | **11** | **0** | **0** | **0** | **████████ 100%** |
+| **Total** | **10** | **10** | **0** | **0** | **0** | **██████████ 100%** |
 
 ---
 
 ## Phase 0: Safety Net
-> Goal: Establish test coverage on critical paths before making cleanup edits.
+> Goal: Add narrow tests around the next planned extractions before moving logic.
 
 ### TASK-001 | 🔴 P0 | ✅ DONE | Effort: S
-**Add characterization tests for save-to-convex helper behavior**
-- **File**: `src/app/api/save-to-convex/route.ts`
-- **Why**: The route mixes parsing, article targeting, verification planning, and revalidation path generation. Extraction is unsafe without preserving current behavior first.
+**Add characterization tests for `IndexLayoutTab` sorting and slug-status helpers**
+- **File**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx`
+- **Why**: The first safe extraction is the dataset sort/status logic; tests should lock current psychoactive-vs-non-psychoactive behavior before moving it.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Cover `parseAboutPayload`
-  - [x] Cover `parseChangelogPayload`
-  - [x] Cover article targeting and fallback slug logic
-  - [x] Cover article revalidation path assembly
+  - [x] Cover common-tag prioritization for psychoactive datasets
+  - [x] Cover alphabetical sorting for non-psychoactive datasets
+  - [x] Cover `resolveSlugStatus` missing/hidden/duplicate behavior
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
-### TASK-002 | 🟠 P1 | ✅ DONE | Effort: M
-**Add behavior tests for `GlobalSearch` suggestion loading and close/open state**
-- **File**: `src/components/common/GlobalSearch.tsx`
-- **Why**: The component mixes async suggestion loading, navigation, and keyboard behavior. Any extraction should preserve current interaction semantics.
+### TASK-002 | 🟠 P1 | ✅ DONE | Effort: S
+**Add route-state tests before touching `NextDevRouteClient`**
+- **File**: `src/app/dev/_components/NextDevRouteClient.tsx`
+- **Why**: The app-shell `/dev` route client is a likely quick-win cleanup target after the barrel import fix.
 - **Depends on**: —
 - **Subtasks**:
-  - [x] Mock `/api/search-suggestions`
-  - [x] Cover active-search open/close behavior
-  - [x] Cover cached suggestion reuse
-  - [x] Cover search submit navigation
+  - [x] Cover `resolveDevRouteState`
+  - [x] Cover fallback behavior for non-dev routes
   - [x] Run targeted tests
   - [x] **Update this tracker**
 
 ---
 
 ## Phase 1: Quick Wins
-> Goal: Low-risk improvements that reduce coupling and file size in safe areas.
+> Goal: Low-risk extractions and coupling reductions.
 
-### TASK-003 | 🔴 P0 | ✅ DONE | Effort: S
-**Extract save-to-convex route helpers into a focused module**
-- **Source file**: `src/app/api/save-to-convex/route.ts` (396 LOC)
-- **Target file**: `src/app/api/save-to-convex/saveToConvexUtils.ts`
-- **Methods to move**: parsing, slug/summary helpers, verification planning, revalidation path building
+### TASK-003 | 🔴 P0 | ✅ DONE | Effort: M
+**Extract `IndexLayoutTab` dataset sorting and slug-status logic into a pure helper module**
+- **Source file**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx` (732 LOC)
+- **Target file**: `src/features/dev/tools/index-layout/layoutDataUtils.ts`
+- **Methods to move**: common-tag sorting, dataset sort selection, section sorting, slug-status resolution, manual ordering helpers
 - **Depends on**: TASK-001
-- **Risk**: Low — pure/helper extraction with characterization tests
+- **Risk**: Low — pure/helper extraction with focused tests
 - **Subtasks**:
   - [x] Create helper module
-  - [x] Move pure parsing and article-summary helpers
-  - [x] Move revalidation path builder
-  - [x] Keep route API unchanged
-  - [x] Run targeted tests
+  - [x] Move pure sort/status/manual-ordering logic
+  - [x] Keep `IndexLayoutTab` behavior unchanged
+  - [x] Run targeted tests and `npm run typecheck`
   - [x] Update `CLEANUP-AUDIT.md` metrics
   - [x] **Update this tracker**
 - **Rollback**: revert the helper extraction commit
 
-### TASK-004 | 🔴 P0 | ✅ DONE | Effort: S
-**Break the active dev-editor barrel import cycle**
-- **Source file**: `src/hooks/useDevTagOptions.ts`
-- **Target file**: direct import from `src/features/dev/context/DevModeContext.tsx`
+### TASK-004 | 🟡 P2 | ✅ DONE | Effort: S
+**Break the `@/features/dev` barrel import in `NextDevRouteClient`**
+- **Source file**: `src/app/dev/_components/NextDevRouteClient.tsx`
 - **Depends on**: —
 - **Risk**: Low — import-only change
 - **Subtasks**:
-  - [x] Replace barrel import with direct context import
-  - [x] Verify cycle is removed
-  - [x] Run targeted type/lint checks
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Replace barrel import with direct module imports
+  - [x] Run targeted typecheck
+  - [x] Update `CLEANUP-AUDIT.md` dependency notes
   - [x] **Update this tracker**
-- **Rollback**: revert the cycle-break commit
+- **Rollback**: revert the import change
 
 ### TASK-005 | 🟡 P2 | ✅ DONE | Effort: S
-**Deduplicate small text helpers used by About/editor surfaces**
-- **Source files**: `src/components/pages/AboutPage.tsx`, `src/features/dev/tools/about/AboutEditorTab.tsx`, `src/features/dev/tools/substance-editor/types.ts`
-- **Target file**: new shared utility under `src/features/dev/tools/about/` or `src/lib/`
+**Deduplicate About-editor placeholder and textarea sizing helpers**
+- **Source file**: `src/features/dev/tools/about/AboutEditorTab.tsx`
 - **Depends on**: —
-- **Risk**: Low — pure helper consolidation
+- **Risk**: Low — pure helper consolidation inside one feature
 - **Subtasks**:
-  - [x] Extract shared `toInitials`
-  - [x] Extract shared `normalizeWhitespace`
-  - [x] Replace local duplicates
-  - [x] Run targeted tests or typecheck for touched files
-  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] Extract placeholder-resolution helper
+  - [x] Extract textarea auto-resize helper
+  - [x] Run targeted typecheck
+  - [x] Update `CLEANUP-AUDIT.md` DRY notes
   - [x] **Update this tracker**
-- **Rollback**: revert helper consolidation commit
+- **Rollback**: revert the helper consolidation commit
 
 ---
 
 ## Phase 2: Decomposition
-> Goal: Break god objects into focused, single-responsibility modules.
+> Goal: Break the next tier of oversized files into narrower modules.
 
-### TASK-006 | 🔴 P0 | ✅ DONE | Effort: XL
-**Decompose `DevModePage` into page shell + save-flow + changelog modules**
-- **Source file**: `src/features/dev/pages/DevModePage.tsx` (2447 LOC)
-- **Target files**: new modules under `src/features/dev/pages/` or adjacent feature folders
-- **Methods to move**: save handlers, changelog filtering/derivation, commit panel composition, tab-specific selectors
-- **Depends on**: Current user edits in this file should settle before execution
-- **Risk**: High — currently a dirty worktree file with active local edits
+### TASK-006 | 🔴 P0 | ✅ DONE | Effort: L
+**Split `IndexLayoutTab` into controller logic and render sections**
+- **Source file**: `src/features/dev/tools/index-layout/IndexLayoutTab.tsx`
+- **Target files**: focused modules under `src/features/dev/tools/index-layout/`
+- **Depends on**: TASK-003
+- **Risk**: Medium — stateful drag/drop flow
 - **Subtasks**:
-  - [x] Add characterization tests around save and changelog flows
-  - [x] Extract save-flow controller(s)
-  - [x] Extract changelog derivation utilities
-  - [x] Extract commit panel/presentation fragments
-  - [x] Run full test suite
-  - [x] Verify no behavior regressions in `/dev`
+  - [x] Extract column/group derivation and drag handlers
+  - [x] Extract JSON-editor vs layout-view presentation
+  - [x] Run targeted tests and typecheck
   - [x] Update `CLEANUP-AUDIT.md` metrics
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before decomposition
+- **Rollback**: revert to commit before split
 
-### TASK-007 | 🔴 P0 | ✅ DONE | Effort: L
-**Split `SubstanceEditorTab` into orchestration and presentational modules**
-- **Source file**: `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx` (932 LOC)
-- **Target files**: new modules under `src/features/dev/tools/substance-editor/`
-- **Methods to move**: modal state management, preview/source/prompt wiring, tab layout composition
-- **Depends on**: Current user edits in this file should settle before execution
-- **Risk**: High — currently a dirty worktree file with active local edits
+### TASK-007 | 🟠 P1 | ✅ DONE | Effort: L
+**Break `AboutEditorTab` into editor, preview, and founder-selection modules**
+- **Source file**: `src/features/dev/tools/about/AboutEditorTab.tsx`
+- **Depends on**: TASK-005
+- **Risk**: Medium — mostly render decomposition
 - **Subtasks**:
-  - [x] Add characterization tests for tab interactions
-  - [x] Extract modal state hooks
-  - [x] Extract preview/prompt/source composition blocks
-  - [x] Run targeted tests
+  - [x] Extract preview card
+  - [x] Extract founder selector/pill list
+  - [x] Extract editor controls
+  - [x] Run targeted tests or typecheck
   - [x] Update `CLEANUP-AUDIT.md` metrics
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before extraction
+- **Rollback**: revert to commit before split
 
-### TASK-008 | 🔴 P0 | ✅ DONE | Effort: L
-**Extract a generation engine from `SectionGenerator`**
-- **Source file**: `src/features/dev/tools/substance-editor/SectionGenerator.tsx` (793 LOC)
-- **Target file**: `src/features/dev/tools/substance-editor/useSectionGeneration.ts` or equivalent
-- **Methods to move**: prompt assembly, logging, pass orchestration, fallback logic, response normalization
-- **Depends on**: TASK-007 or equivalent tab-level stabilization
-- **Risk**: Medium — heavily stateful async flow
-- **Subtasks**:
-  - [x] Add characterization tests for generate success/fallback/error paths
-  - [x] Extract generation hook/service
-  - [x] Leave visual component focused on rendering controls
-  - [x] Run targeted tests
-  - [x] Update `CLEANUP-AUDIT.md` metrics
-  - [x] **Update this tracker**
-- **Rollback**: revert to commit before extraction
-
-### TASK-009 | 🟠 P1 | ✅ DONE | Effort: L
-**Split `ContentFieldsRHF` by domain section**
-- **Source file**: `src/features/dev/forms/ContentFieldsRHF.tsx` (808 LOC)
-- **Target files**: domain-focused form section components under `src/features/dev/forms/`
-- **Methods to move**: interactions, tolerance, notes, addiction-related subsections
+### TASK-008 | 🟠 P1 | ✅ DONE | Effort: L
+**Split `TagMultiSelect` into state/controller and presentation pieces**
+- **Source file**: `src/components/common/TagMultiSelect.tsx`
 - **Depends on**: —
-- **Risk**: Medium — large form surface but mostly compositional logic
+- **Risk**: Medium — keyboard interaction-heavy component
 - **Subtasks**:
-  - [x] Add characterization tests for the current rendered sections
-  - [x] Extract domain section components
-  - [x] Keep section API stable for callers
+  - [x] Add characterization tests for selection/filtering if coverage is missing
+  - [x] Extract selection state and filtering helpers
+  - [x] Keep caller API stable
   - [x] Run targeted tests
   - [x] Update `CLEANUP-AUDIT.md` metrics
   - [x] **Update this tracker**
@@ -175,49 +143,46 @@
 ---
 
 ## Phase 3: Architecture Improvements
-> Goal: Reduce coupling and improve module cohesion.
+> Goal: Reduce the remaining coupling hubs.
 
-### TASK-010 | 🟠 P1 | ✅ DONE | Effort: L
-**Split `DevModeContext` into smaller state slices**
-- **Source file**: `src/features/dev/context/DevModeContext.tsx` (472 LOC)
-- **Depends on**: TASK-006 planning clarity
-- **Risk**: Medium — touches shared editor state contracts
+### TASK-009 | 🔴 P0 | ✅ DONE | Effort: XL
+**Continue decomposing `DevModePage` behind tab-level controllers/facades**
+- **Source file**: `src/features/dev/pages/DevModePage.tsx`
+- **Depends on**: TASK-003, TASK-006
+- **Risk**: High — central `/dev` workflow hub
 - **Subtasks**:
-  - [x] Identify article, layout, about, and navigation state seams
-  - [x] Extract focused providers or reducer slices
-  - [x] Keep `useDevMode` consumption stable or provide a facade
+  - [x] Extract changelog controller
+  - [x] Extract about/profile/tag editor orchestration
+  - [x] Preserve current tab API for `NextDevRouteClient`
+  - [x] Run full test suite and typecheck
+  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] **Update this tracker**
+- **Rollback**: revert to commit before decomposition
+
+### TASK-010 | 🔴 P0 | ✅ DONE | Effort: XL
+**Continue splitting `SubstanceEditorTab` and generation flow**
+- **Source files**: `src/features/dev/tools/substance-editor/SubstanceEditorTab.tsx`, `src/features/dev/tools/substance-editor/useSectionGeneration.ts`
+- **Depends on**: TASK-009 sequencing clarity
+- **Risk**: High — async generation and save flow
+- **Subtasks**:
+  - [x] Extract source aggregation and save orchestration
+  - [x] Shrink generation hook responsibilities
   - [x] Run targeted tests and typecheck
   - [x] Update `CLEANUP-AUDIT.md` metrics
   - [x] **Update this tracker**
-- **Rollback**: revert to commit before provider split
-
-### TASK-011 | 🟡 P2 | ✅ DONE | Effort: L
-**Stage `libraryBuilder` and `contentBuilder` into smaller pure pipeline modules**
-- **Source files**: `src/data/builders/libraryBuilder.ts`, `src/data/builders/contentBuilder.ts`
-- **Depends on**: —
-- **Risk**: Medium — broad read surface
-- **Subtasks**:
-  - [x] Identify shared transformation stages
-  - [x] Extract pure builders with narrow inputs/outputs
-  - [x] Keep public builder APIs stable
-  - [x] Run builder tests and typecheck
-  - [x] Update `CLEANUP-AUDIT.md` metrics
-  - [x] **Update this tracker**
-- **Rollback**: revert to commit before builder extraction
+- **Rollback**: revert to commit before split
 
 ---
 
 ## Completed Tasks Log
 | Task | Completed | Before Metrics | After Metrics |
-|------|-----------|---------------|--------------|
-| TASK-001 | 2026-04-09 17:04 MDT | 0 targeted tests for save-to-convex helper behavior | 5 passing tests covering payload parsing, article targeting, submitted-by derivation, and revalidation path assembly |
-| TASK-002 | 2026-04-09 17:09 MDT | 0 interaction tests for `GlobalSearch` | 4 passing tests covering suggestion open/close behavior, cache reuse, submit navigation, and option selection |
-| TASK-003 | 2026-04-09 17:14 MDT | `route.ts` at 396 LOC with duplicated parsing/summary/path logic and no shared helper module | `route.ts` reduced to 251 LOC, helper logic moved into `saveToConvexUtils.ts` (167 LOC), 6 passing helper tests preserved |
-| TASK-004 | 2026-04-09 17:20 MDT | 1 confirmed active-app import cycle through `@/features/dev` barrel usage | 0 confirmed active-app import cycles after direct context import; `npm run typecheck` passed |
-| TASK-005 | 2026-04-09 17:26 MDT | 2 duplicated helper implementations across About/editor files | shared helpers moved to `src/lib/text.ts`; 3 helper tests added and `npm run typecheck` passed |
-| TASK-006 | 2026-04-09 17:35 MDT | `DevModePage.tsx` at 2447 LOC with embedded changelog/save derivation and inline commit-panel rendering | `DevModePage.tsx` reduced to 2313 LOC; extracted `devModePageUtils.ts` and `DevModeCommitPanel.tsx`; full suite passed (108 tests) and `npm run build` succeeded |
-| TASK-007 | 2026-04-09 16:59 MDT | `SubstanceEditorTab.tsx` at 932 LOC with inline source-preview state, source modal rendering, and output/source composition blocks | `SubstanceEditorTab.tsx` reduced to 874 LOC; extracted `useSourcePreviewState.ts`, `SubstanceEditorOutputSection.tsx`, and `SubstanceEditorSourcesSection.tsx`; targeted characterization test and `npm run typecheck` passed |
-| TASK-008 | 2026-04-09 17:06 MDT | `SectionGenerator.tsx` at 793 LOC with prompt assembly, reasoning policy, streaming orchestration, fallback retry, and apply/discard state embedded in the UI component | `SectionGenerator.tsx` reduced to 390 LOC; runtime extracted to `useSectionGeneration.ts`; targeted tests now cover success, adaptive downgrade, retry-without-reasoning, and thrown-error paths |
-| TASK-009 | 2026-04-09 17:12 MDT | `ContentFieldsRHF.tsx` at 808 LOC with harm potential, interactions, tolerance, notes, and shared editor widgets combined in one file | `ContentFieldsRHF.tsx` reduced to a 12-line barrel; domain modules split into four focused files plus `contentFieldsShared.tsx`; 4 barrel-compatibility tests and `npm run typecheck` passed |
-| TASK-010 | 2026-04-09 17:19 MDT | `DevModeContext.tsx` at 472 LOC with article, index-layout, about, prompt, and navigation state combined in one provider | `DevModeContext.tsx` reduced to 100 LOC; state split into six focused context hooks/helpers; targeted provider tests and `npm run typecheck` passed |
-| TASK-011 | 2026-04-09 17:30 MDT | `contentBuilder.ts` and `libraryBuilder.ts` at 748 LOC and 943 LOC respectively, with route parsing, interaction indexing, and taxonomy transforms embedded in the core builders | extracted staged pure helpers into `contentBuilderShared.ts`, `contentBuilderRoutes.ts`, `contentBuilderInteractions.ts`, `libraryBuilderInteractions.ts`, and `libraryBuilderTaxonomy.ts`; `contentBuilder.ts` reduced to 451 LOC and `libraryBuilder.ts` to 677 LOC; builder tests and `npm run typecheck` passed |
+| TASK-001 | 2026-04-09 18:15 MDT | No focused coverage for `IndexLayoutTab` dataset sort and slug-status behavior | Added `layoutDataUtils.test.ts` with 4 passing tests covering psychoactive common-priority sorting, non-psychoactive alphabetical sorting, slug issue resolution, and manual ordering behavior; `npm run typecheck` passed |
+| TASK-002 | 2026-04-09 18:21 MDT | No focused coverage for `NextDevRouteClient` route-state fallback behavior | Added `NextDevRouteClient.test.ts` with 4 passing tests for dev-tab alias parsing, null-path fallback, non-dev fallback, and unknown-tab normalization; `npm run typecheck` passed |
+| TASK-003 | 2026-04-09 18:17 MDT | `IndexLayoutTab.tsx` at 732 LOC with inline dataset sorting, slug-status resolution, and manual-ordering callbacks | Extracted tested pure logic to `layoutDataUtils.ts`; `IndexLayoutTab.tsx` reduced to 653 LOC; targeted tests and `npm run typecheck` passed |
+| TASK-004 | 2026-04-09 18:20 MDT | `NextDevRouteClient.tsx` imported `DevModeProvider` and `DevModePage` via the `@/features/dev` barrel | Replaced the barrel import with direct module imports, confirmed no remaining `@/features/dev` app-shell imports, and `npm run typecheck` passed |
+| TASK-005 | 2026-04-09 18:24 MDT | `AboutEditorTab.tsx` duplicated placeholder replacement and textarea auto-size logic inline | Extracted `aboutEditorUtils.ts` for placeholder resolution and textarea sizing; `npm run typecheck` passed and the tracked DRY finding was removed from the audit |
+| TASK-006 | 2026-04-09 18:27 MDT | `IndexLayoutTab.tsx` at 653 LOC with category controller logic and JSON/layout rendering branches still inline | Split the tab into `useIndexLayoutCategoryController.ts`, `IndexLayoutJsonEditor.tsx`, and `IndexLayoutColumns.tsx`; `IndexLayoutTab.tsx` reduced to 326 LOC; targeted index-layout tests and `npm run typecheck` passed |
+| TASK-007 | 2026-04-09 18:31 MDT | `AboutEditorTab.tsx` at 494 LOC with source editors, live preview, and founder-selection UI all inline | Split the tab into `AboutCopyEditors.tsx`, `AboutPreviewSection.tsx`, and `AboutFounderSelectionSection.tsx`; `AboutEditorTab.tsx` reduced to 219 LOC and `npm run typecheck` passed |
+| TASK-008 | 2026-04-09 18:42 MDT | `TagMultiSelect.tsx` at 531 LOC with filtering, creation, keyboard interaction, menu rendering, and selected-tag rendering all inline and untested | Added `TagMultiSelect.test.tsx` with 3 passing tests, extracted `useTagMultiSelectState.ts`, `TagMultiSelectMenu.tsx`, `TagMultiSelectSelectedTags.tsx`, and `tagMultiSelectUtils.ts`; `TagMultiSelect.tsx` reduced to 162 LOC and `npm run typecheck` passed |
+| TASK-009 | 2026-04-09 18:54 MDT | `DevModePage.tsx` at 2624 LOC with changelog filters/rendering and about/profile/tag prop wiring kept inline with the `/dev` shell | Extracted `useDevModeChangeLog.ts`, `DevModeChangeLogTab.tsx`, and `useDevModeSupportTabProps.ts`; `DevModePage.tsx` reduced to 2009 LOC while preserving child tab APIs; full `npm run test` and `npm run typecheck -- --pretty false` passed |
+| TASK-010 | 2026-04-09 19:04 MDT | `SubstanceEditorTab.tsx` at 874 LOC with source aggregation, draft/save orchestration, and section-editor wiring inline; `useSectionGeneration.ts` at 671 LOC mixing pure reasoning policy with async execution | Extracted `useSubstanceEditorSourceData.ts`, `useSubstanceEditorDraftController.ts`, `substanceEditorDraftUtils.ts`, and `sectionGenerationUtils.ts`; `SubstanceEditorTab.tsx` reduced to 499 LOC and `useSectionGeneration.ts` reduced to 486 LOC; targeted substance-editor tests and `npm run typecheck -- --pretty false` passed |

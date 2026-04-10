@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import yaml from "yaml";
 import { Icon } from "@/components/common/Icon";
 import { SectionCard } from "@/components/common/SectionCard";
 import { DiffPreview } from "@/components/common/DiffPreview";
@@ -20,33 +19,16 @@ import {
   validateApiKey,
 } from "@/utils/api/openrouter";
 import {
-  useSubstanceSourceList,
-  loadSubstanceSourcesFromConvex,
-  type SourceInfo,
-  type SubstanceModule,
-} from "@/hooks/useArticleSources";
-import { useLibrary } from "@/data/SubstanceIndexProvider";
-import { normalizeArticleInput, parseGeneratedYaml } from "./yamlParser";
-import {
   STORAGE_KEYS,
   type SubstanceEditorTabProps,
-  type OutputViewMode,
   type ReviewStatus,
 } from "./types";
 import { useDevMode } from "../../context/DevModeContext";
-import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import type { SubstanceArticle } from "@/schema";
-import type { SubstanceEditorContextValue } from "./SubstanceEditorContext";
-import {
-  parseSourcesFromQuotes,
-  type ExtractedSourceInfo,
-} from "@/utils/sectionSources";
-import { getFaviconForSourceName } from "@/data/config/sourceFavicons";
-import { useQuote } from "@/hooks/useQuotes";
-import { slugify } from "@/utils/slug";
-import { useSourcePreviewState } from "./useSourcePreviewState";
 import { SubstanceEditorOutputSection } from "./SubstanceEditorOutputSection";
 import { SubstanceEditorSourcesSection } from "./SubstanceEditorSourcesSection";
+import { useSubstanceEditorDraftController } from "./useSubstanceEditorDraftController";
+import { useSubstanceEditorSourceData } from "./useSubstanceEditorSourceData";
 
 const REVIEW_STATUS_META: Record<
   ReviewStatus,
@@ -101,81 +83,10 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
   const [isKeyValid, setIsKeyValid] = useState<boolean | null>(null);
   const [isValidatingKey, setIsValidatingKey] = useState(false);
 
-  // Substance selection state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<"sources-asc" | "sources-desc" | "alpha-asc" | "alpha-desc">("sources-desc");
-  const [showLowPriority, setShowLowPriority] = useState(false);
-  const [selectedSubstanceSlug, setSelectedSubstanceSlug] = useState<string | null>(null);
-  const [substanceModule, setSubstanceModule] = useState<SubstanceModule | null>(null);
-  const [isLoadingSubstance, setIsLoadingSubstance] = useState(false);
-
   // DevMode context for saving articles
   const { articles, applyArticlesTransform } = useDevMode();
-  const { substanceRecords, allSubstanceRecords } = useLibrary();
-
-  // Load substance source list from Convex
-  const { substances: allSourceSubstances } = useSubstanceSourceList();
-  const reviewStatusBySlug = useMemo(() => {
-    const next = new Map<string, ReviewStatus>();
-
-    for (const article of articles) {
-      const recordWithSlug = article as SubstanceArticle & { slug?: unknown };
-      const explicitSlug = typeof recordWithSlug.slug === "string" ? recordWithSlug.slug.trim() : "";
-      const fallbackSlug = slugify(article.title || article.identification.common_name || "");
-      const articleSlug = explicitSlug || fallbackSlug;
-
-      if (!articleSlug) {
-        continue;
-      }
-
-      next.set(articleSlug, article.editorial_review?.status ?? "needed");
-    }
-
-    return next;
-  }, [articles]);
-
-  // Compute visible substances based on priority toggle
-  const substances = useMemo(() => {
-    const records = showLowPriority ? allSubstanceRecords : substanceRecords;
-    const visibleSlugs = new Set(records.map((r) => r.slug));
-    return allSourceSubstances
-      .filter((s) => visibleSlugs.has(s.slug))
-      .map((s) => ({
-        ...s,
-        reviewStatus: reviewStatusBySlug.get(s.slug) ?? "needed",
-      }));
-  }, [allSubstanceRecords, allSourceSubstances, reviewStatusBySlug, showLowPriority, substanceRecords]);
-
-  // Article output state
-  const [streamedOutput, setStreamedOutput] = useState("");
-
-  // Output view mode (yaml, preview, or form)
-  const [outputViewMode, setOutputViewMode] = useState<OutputViewMode>("yaml");
-
-  // Form state for bidirectional sync
-  const formRef = useRef<UseArticleFormReturn | null>(null);
-  const [formDirty, setFormDirty] = useState(false);
-  const [formParseError, setFormParseError] = useState<string | null>(null);
-  const [formArticleOverride, setFormArticleOverride] = useState<SubstanceArticle | null>(null);
 
   const apiKeyValidationRequestIdRef = useRef(0);
-
-  // Quotes loaded from Convex via hooks
-  const summaryQuoteResult = useQuote(selectedSubstanceSlug, "summary");
-  const harmPotentialQuoteResult = useQuote(selectedSubstanceSlug, "harm_potential");
-  const pharmacologyQuoteResult = useQuote(selectedSubstanceSlug, "pharmacology");
-  const historyCultureQuoteResult = useQuote(selectedSubstanceSlug, "history_culture");
-  const dosageDurationQuoteResult = useQuote(selectedSubstanceSlug, "dosage_duration");
-  const toleranceQuoteResult = useQuote(selectedSubstanceSlug, "tolerance");
-  const legalityQuoteResult = useQuote(selectedSubstanceSlug, "legality");
-
-  // Save to database state
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Sources section collapsed state (collapsed by default)
-  const [sourcesExpanded, setSourcesExpanded] = useState(false);
 
   // Persist API key (sessionStorage for security) and model (localStorage for convenience)
   useEffect(() => {
@@ -239,301 +150,77 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     setApiKey(trimmedApiKey);
   }, [apiKey, apiKeyInput, runApiKeyValidation]);
 
-  // Filter and sort substances
-  const filteredSubstances = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
-    const filtered = query
-      ? substances.filter((s) => s.name.toLowerCase().includes(query))
-      : [...substances];
-
-    // Sort based on selected order
-    switch (sortOrder) {
-      case "sources-asc":
-        filtered.sort((a, b) => a.sources.length - b.sources.length);
-        break;
-      case "sources-desc":
-        filtered.sort((a, b) => b.sources.length - a.sources.length);
-        break;
-      case "alpha-asc":
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "alpha-desc":
-        filtered.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-    }
-
-    return filtered;
-  }, [searchQuery, sortOrder, substances]);
-
-  // Get available sources for selected substance
-  const availableSources = useMemo<SourceInfo[]>(() => {
-    if (!selectedSubstanceSlug) return [];
-    const substance = substances.find((s) => s.slug === selectedSubstanceSlug);
-    return substance?.sources ?? [];
-  }, [selectedSubstanceSlug]);
-
   const selectedModelInfo = useMemo(
     () => MODEL_OPTIONS.find((m) => m.id === selectedModel) ?? MODEL_OPTIONS.find((m) => m.id === DEFAULT_OPENROUTER_MODEL_ID) ?? MODEL_OPTIONS[0],
     [selectedModel]
   );
 
-  // Load substance module when selection changes
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      setSubstanceModule(null);
-      return;
-    }
-
-    // Clear stale data immediately before loading new data
-    setSubstanceModule(null);
-    setIsLoadingSubstance(true);
-    loadSubstanceSourcesFromConvex(selectedSubstanceSlug)
-      .then((module) => {
-        setSubstanceModule(module);
-        setIsLoadingSubstance(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load substance:", err);
-        setIsLoadingSubstance(false);
-      });
-  }, [selectedSubstanceSlug]);
-
-  // Reset form state when substance changes
-  useEffect(() => {
-    setFormDirty(false);
-    setFormParseError(null);
-    setFormArticleOverride(null);
-    formRef.current = null;
-    setStreamedOutput("");  // Clear stale form data immediately
-  }, [selectedSubstanceSlug]);
-
-  // Helper to build ExtractedSourceInfo from quotes content
-  const buildSourceInfo = useCallback((content: string): ExtractedSourceInfo => {
-    const sourceNames = parseSourcesFromQuotes(content);
-    return {
-      content,
-      count: sourceNames.length,
-      sources: sourceNames.map((name) => ({
-        name,
-        favicon: getFaviconForSourceName(name),
-      })),
-    };
-  }, []);
-
-  // Memoized quote content and sources from Convex hooks
-  const summaryQuotes = summaryQuoteResult.content;
-  const harmPotentialQuotes = harmPotentialQuoteResult.content;
-  const pharmacologyQuotes = pharmacologyQuoteResult.content;
-  const historyCultureQuotes = historyCultureQuoteResult.content;
-  const dosageDurationQuotes = dosageDurationQuoteResult.content;
-  const toleranceQuotes = toleranceQuoteResult.content;
-  const legalityQuotes = legalityQuoteResult.content;
-
-  // Memoized source info built from quote content
-  const summarySources = useMemo(
-    () => (summaryQuotes ? buildSourceInfo(summaryQuotes) : null),
-    [summaryQuotes, buildSourceInfo]
-  );
-  const harmPotentialSources = useMemo(
-    () => (harmPotentialQuotes ? buildSourceInfo(harmPotentialQuotes) : null),
-    [harmPotentialQuotes, buildSourceInfo]
-  );
-  const pharmacologySources = useMemo(
-    () => (pharmacologyQuotes ? buildSourceInfo(pharmacologyQuotes) : null),
-    [pharmacologyQuotes, buildSourceInfo]
-  );
-  const historyCultureSources = useMemo(
-    () => (historyCultureQuotes ? buildSourceInfo(historyCultureQuotes) : null),
-    [historyCultureQuotes, buildSourceInfo]
-  );
-  const dosageDurationSources = useMemo(
-    () => (dosageDurationQuotes ? buildSourceInfo(dosageDurationQuotes) : null),
-    [dosageDurationQuotes, buildSourceInfo]
-  );
-  const toleranceSources = useMemo(
-    () => (toleranceQuotes ? buildSourceInfo(toleranceQuotes) : null),
-    [toleranceQuotes, buildSourceInfo]
-  );
-  const legalitySources = useMemo(
-    () => (legalityQuotes ? buildSourceInfo(legalityQuotes) : null),
-    [legalityQuotes, buildSourceInfo]
-  );
-
-  // Detect and auto-load existing articles when substance is selected
-  useEffect(() => {
-    if (!selectedSubstanceSlug) {
-      return;
-    }
-
-    const substance = substances.find((s) => s.slug === selectedSubstanceSlug);
-    if (!substance) return;
-
-    const substanceName = substance.name.trim().toLowerCase();
-    
-    // Match by title first (more reliable), then common_name (only if non-empty)
-    const existing = articles.find((a) => {
-      const title = a.title?.trim().toLowerCase();
-      if (title && title === substanceName) {
-        return true;
-      }
-      const commonName = a.identification?.common_name?.trim().toLowerCase();
-      if (commonName && commonName.length > 0 && commonName === substanceName) {
-        return true;
-      }
-      return false;
-    });
-
-    if (existing) {
-      const normalizedArticle = normalizeArticleInput(existing as Record<string, unknown>);
-      const yamlOutput = yaml.stringify(normalizedArticle, { lineWidth: 0, nullStr: "" });
-      setStreamedOutput(yamlOutput);
-      setFormArticleOverride(normalizedArticle);
-      setOutputViewMode("form");
-    }
-  }, [selectedSubstanceSlug, articles]);
-
-  // Get content for a source
-  const getSourceContent = useCallback(
-    (sourceId: string): string | null => {
-      if (!substanceModule) return null;
-      return substanceModule.contents[sourceId] ?? null;
+  const applyDraftArticlesTransform = useCallback(
+    (transform: (previous: SubstanceArticle[]) => SubstanceArticle[]) => {
+      applyArticlesTransform((previous) => transform(previous as SubstanceArticle[]));
     },
-    [substanceModule]
+    [applyArticlesTransform],
   );
 
   const {
+    searchQuery,
+    setSearchQuery,
+    sortOrder,
+    setSortOrder,
+    showLowPriority,
+    setShowLowPriority,
+    selectedSubstanceSlug,
+    setSelectedSubstanceSlug,
+    substances,
+    filteredSubstances,
+    availableSources,
+    totalSubstances,
+    substanceModule,
+    isLoadingSubstance,
+    harmPotentialQuotes,
+    pharmacologyQuotes,
+    historyCultureQuotes,
+    harmPotentialSources,
+    pharmacologySources,
+    historyCultureSources,
     fullscreenSource,
     fullscreenSourceContent,
     openSourcePreview,
     closeSourcePreview,
-  } = useSourcePreviewState(availableSources, getSourceContent);
+    getSourceContent,
+    sourcesExpanded,
+    setSourcesExpanded,
+    substanceEditorContextValue,
+  } = useSubstanceEditorSourceData({
+    articles,
+    apiKey,
+    selectedModel,
+    isKeyValid,
+  });
 
-
-  // Copy to clipboard
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(streamedOutput);
-  }, [streamedOutput]);
-
-  // Handle output view mode change with bidirectional sync
-  const handleOutputViewModeChange = useCallback((mode: OutputViewMode) => {
-    // Sync Form → YAML when leaving form tab
-    if (outputViewMode === "form" && formDirty && formRef.current) {
-      const values = formRef.current.methods.getValues();
-      const yamlOutput = yaml.stringify(values, { lineWidth: 0, nullStr: "" });
-      setStreamedOutput(yamlOutput);
-      setFormArticleOverride(values);
-      setFormDirty(false);
-    }
-
-    // Sync YAML → Form when entering form tab
-    if (mode === "form") {
-      const parseResult = parseGeneratedYaml(streamedOutput);
-      if (parseResult.success && parseResult.data) {
-        setFormParseError(null);
-        setFormArticleOverride(parseResult.data);
-      } else {
-        setFormParseError(parseResult.error ?? "Failed to parse YAML");
-        setFormArticleOverride(null);
-      }
-    }
-
-    setOutputViewMode(mode);
-  }, [outputViewMode, formDirty, streamedOutput]);
-
-  // Handle form mutations
-  const handleFormMutate = useCallback(() => {
-    setFormDirty(true);
-  }, []);
-
-  // Download YAML
-  const handleDownload = useCallback(() => {
-    const selectedSubstance = substances.find((s) => s.slug === selectedSubstanceSlug);
-    const blob = new Blob([streamedOutput], { type: "text/yaml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${selectedSubstance?.name ?? "article"}.yaml`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [streamedOutput, selectedSubstanceSlug]);
-
-  // Save to database (draft or publish)
-  const handleSaveToDatabase = useCallback((mode: "draft" | "publish" = "draft") => {
-    if (!streamedOutput) return;
-
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
-
-    try {
-      // Get article from form if in form mode, else parse YAML
-      let article: SubstanceArticle;
-      if (outputViewMode === "form" && formRef.current) {
-        article = formRef.current.methods.getValues();
-      } else {
-        const parseResult = parseGeneratedYaml(streamedOutput);
-        if (!parseResult.success || !parseResult.data) {
-          throw new Error(parseResult.error ?? "Failed to parse YAML");
-        }
-        article = parseResult.data;
-      }
-
-      // Find existing article by ID first (most reliable), then by title/common_name
-      let existingIndex = -1;
-      
-      // 1. Try matching by ID if the article has one
-      if (typeof article.id === "number" && Number.isFinite(article.id)) {
-        existingIndex = articles.findIndex((a) => a.id === article.id);
-      }
-      
-      // 2. If no ID match, try matching by title (more reliable than common_name)
-      if (existingIndex < 0) {
-        const title = article.title?.trim().toLowerCase();
-        if (title && title.length > 0) {
-          existingIndex = articles.findIndex(
-            (a) => a.title?.trim().toLowerCase() === title
-          );
-        }
-      }
-      
-      // 3. Fall back to common_name only if it's non-empty
-      if (existingIndex < 0) {
-        const commonName = article.identification?.common_name?.trim().toLowerCase();
-        if (commonName && commonName.length > 0) {
-          existingIndex = articles.findIndex(
-            (a) => a.identification?.common_name?.trim().toLowerCase() === commonName
-          );
-        }
-      }
-
-      if (existingIndex >= 0) {
-        // Update existing article, preserve its ID
-        const existingId = articles[existingIndex].id;
-        applyArticlesTransform((prev) => {
-          const next = [...prev];
-          next[existingIndex] = { ...article, id: existingId };
-          return next;
-        });
-      } else {
-        // Create new article with next available ID
-        const maxId = articles.reduce((max, a) => Math.max(max, typeof a.id === "number" ? a.id : 0), 0);
-        const newId = maxId + 1;
-        applyArticlesTransform((prev) => [...prev, { ...article, id: newId }]);
-      }
-
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-
-      // If publishing, scroll to commit panel
-      if (mode === "publish" && commitPanel) {
-        // The commit panel is visible, user can proceed to commit
-      }
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Failed to save");
-    } finally {
-      setIsSaving(false);
-    }
-  }, [streamedOutput, articles, applyArticlesTransform, outputViewMode, commitPanel]);
+  const {
+    streamedOutput,
+    setStreamedOutput,
+    outputViewMode,
+    formRef,
+    formDirty,
+    formParseError,
+    formArticleOverride,
+    isSaving,
+    saveSuccess,
+    saveError,
+    handleOutputViewModeChange,
+    handleFormMutate,
+    handleCopy,
+    handleDownload,
+    handleSaveToDatabase,
+  } = useSubstanceEditorDraftController({
+    articles,
+    applyArticlesTransform: applyDraftArticlesTransform,
+    selectedSubstanceSlug,
+    substances,
+    commitPanel,
+  });
 
   const openRouterCredentialInputId = "articles-openrouter-credential";
   const openRouterCredentialHelpId = "articles-openrouter-credential-help";
@@ -549,68 +236,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
     : apiKey
       ? "Clear key"
       : "Save key";
-
-  // Helper to get all sources as array for section generators
-  const getAllSources = useCallback((): Array<{ source: string; content: string }> => {
-    if (!substanceModule) return [];
-    const sources: Array<{ source: string; content: string }> = [];
-    for (const source of availableSources) {
-      const content = substanceModule.contents[source.id];
-      if (content) {
-        sources.push({ source: source.displayName, content });
-      }
-    }
-    return sources;
-  }, [substanceModule, availableSources]);
-
-  // Substance editor context value for section generators
-  const substanceEditorContextValue = useMemo<SubstanceEditorContextValue>(() => ({
-    apiKey,
-    model: selectedModel,
-    isKeyValid,
-    selectedSubstanceSlug,
-    substanceModule,
-    availableSources,
-    summaryQuotes,
-    harmPotentialQuotes,
-    pharmacologyQuotes,
-    historyCultureQuotes,
-    dosageDurationQuotes,
-    toleranceQuotes,
-    legalityQuotes,
-    summarySources,
-    harmPotentialSources,
-    pharmacologySources,
-    historyCultureSources,
-    dosageDurationSources,
-    toleranceSources,
-    legalitySources,
-    getSourceContent,
-    getAllSources,
-  }), [
-    apiKey,
-    selectedModel,
-    isKeyValid,
-    selectedSubstanceSlug,
-    substanceModule,
-    availableSources,
-    summaryQuotes,
-    harmPotentialQuotes,
-    pharmacologyQuotes,
-    historyCultureQuotes,
-    dosageDurationQuotes,
-    toleranceQuotes,
-    legalityQuotes,
-    summarySources,
-    harmPotentialSources,
-    pharmacologySources,
-    historyCultureSources,
-    dosageDurationSources,
-    toleranceSources,
-    legalitySources,
-    getSourceContent,
-    getAllSources,
-  ]);
 
   return (
     <div className="mt-6 space-y-6">
@@ -794,7 +419,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({
           )}
         </div>
         <p className="mt-2 text-xs text-white/40">
-          {substances.length} substances available
+          {totalSubstances} substances available
         </p>
       </SectionCard>
 

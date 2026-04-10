@@ -10,7 +10,8 @@ import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/Light
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
 import { ConvexSyncProvider } from "@/context/ConvexSyncContext";
-import { DevModeProvider, DevModePage } from "@/features/dev";
+import { DevModeProvider } from "@/features/dev/context/DevModeContext";
+import { DevModePage } from "@/features/dev/pages/DevModePage";
 import type { CategoryLayout } from "@/hooks/useCategoryLayout";
 import { parsePath, viewToPath } from "@/utils/routing";
 import type { DevTab } from "@/types/navigation";
@@ -37,7 +38,7 @@ const queryClientOptions = {
   },
 };
 
-function resolveDevRouteState(pathname: string | null, fallback: DevRouteState): DevRouteState {
+export function resolveDevRouteState(pathname: string | null, fallback: DevRouteState): DevRouteState {
   if (!pathname) {
     return fallback;
   }

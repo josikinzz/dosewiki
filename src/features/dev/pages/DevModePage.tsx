@@ -7,18 +7,15 @@ import {
   useMemo,
   useRef,
   useState,
-  type ChangeEvent,
 } from "react";
 
 import {
   appendChangeLogEntry,
-  buildArticleFrequencyIndex,
   initialChangeLogEntries,
   sortChangeLogEntries,
   type ChangeLogEntry,
 } from "@/data/changelog/changeLog";
 import { buildArticleChangelog, buildDatasetChangelog, buildTextChangelog } from "@/utils/data/changelog";
-import { DiffPreview } from "@/components/common/DiffPreview";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import { useSaveArticlesMutation, useSaveToConvexMutation } from "@/hooks/useApiMutations";
 import { useEditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
@@ -29,16 +26,16 @@ import { api } from "../../../../convex/_generated/api";
 import type { SubstanceArticle } from "@/schema";
 import { canAccessDev } from "@/lib/auth/roles";
 import { createEmptyArticle } from "@/data/schema";
-import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
+import { ProfileEditorTab } from "../profile";
+import { TagEditorTab } from "../tags";
 import { AboutEditorTab } from "../tools/about/AboutEditorTab";
-import { viewToPath } from "@/utils/routing";
+import { IndexLayoutTab } from "../tools/index-layout/IndexLayoutTab";
 import { useDevMode } from "../context/DevModeContext";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
-import { TagEditorTab } from "../tags";
-import { ProfileEditorTab } from "../profile";
 import { stringify as yamlStringify, parse as yamlParse } from "yaml";
 import { SubstanceEditorTab } from "../tools/substance-editor/SubstanceEditorTab";
 import { DevModeCommitPanel, DevModeCreateCommitPanel } from "./DevModeCommitPanel";
+import { DevModeChangeLogTab } from "./DevModeChangeLogTab";
 import {
   buildCombinedChangelogMarkdown,
   buildCommitMarkdown,
@@ -52,6 +49,11 @@ import {
   type DevModePrimaryTab,
   type DevModeTab,
 } from "./devModePageUtils";
+import { useDevModeChangeLog, type ChangeNotice } from "./useDevModeChangeLog";
+import { useDevModeSupportTabProps } from "./useDevModeSupportTabProps";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getProfileByKey, userProfiles } from "@/data/userProfiles";
 
 // Helper to stringify articles as YAML for human-readable display
 const toYaml = (value: unknown): string => {
@@ -66,35 +68,8 @@ const toYaml = (value: unknown): string => {
 const fromYaml = (value: string): unknown => {
   return yamlParse(value);
 };
-import { SectionCard } from "@/components/common/SectionCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getProfileByKey, updateProfileCache, userProfiles } from "@/data/userProfiles";
-import type { NormalizedUserProfile } from "@/data/userProfiles";
-
-type ChangeNotice = {
-  type: "success" | "error" | "pending";
-  message: string;
-  actionHref?: string;
-  actionLabel?: string;
-};
 
 type ArticleRecord = SubstanceArticle;
-
-type ChangeLogFilters = {
-  articleSlug: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  searchQuery: string;
-};
 
 const devModePrimaryDefaults: Record<DevModePrimaryTab, DevModeTab> = {
   tools: "articles",
@@ -107,8 +82,6 @@ type DevModePageProps = {
   initialArticleSlug?: string;
   onTabChange: (tab: DevModeTab) => void;
 };
-
-const MAX_ARTICLE_HISTORY_ENTRIES = 5;
 
 const classificationOptions = [
   { value: "psychoactive", label: "Psychoactive class" },
@@ -206,16 +179,9 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const isSaving = saveArticlesMutation.isPending;
   const [isConvexSaving, setIsConvexSaving] = useState(false);
   const [convexNotice, setConvexNotice] = useState<ChangeNotice | null>(null);
-  const [changeLogNotice, setChangeLogNotice] = useState<ChangeNotice | null>(null);
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
-  const [changeLogFilters, setChangeLogFilters] = useState<ChangeLogFilters>({
-    articleSlug: null,
-    startDate: null,
-    endDate: null,
-    searchQuery: "",
-  });
 
   // Fetch changelog entries from Convex when enabled
   const convexEnabled = isConvexEnabled();
@@ -255,7 +221,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   }, [convexEnabled, convexChangelogEntries]);
 
   const passwordNoticeTimeoutRef = useRef<number | null>(null);
-  const changeLogNoticeTimeoutRef = useRef<number | null>(null);
   const previousArticleIndexRef = useRef<number | null>(null);
   const profileVerifyAttemptRef = useRef(false);
   const [enableStickyPanels, setEnableStickyPanels] = useState(false);
@@ -285,6 +250,12 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     };
   }, []);
 
+  const changeLog = useDevModeChangeLog({
+    changeLogEntries,
+    enableStickyPanels,
+  });
+  const { clearNotice: clearChangeLogNotice, pushNotice: pushChangeLogNotice } = changeLog;
+
   const selectedArticle = useMemo(() => articles[selectedIndex], [articles, selectedIndex]);
   const originalArticle = useMemo(() => getOriginalArticle(selectedIndex), [getOriginalArticle, selectedIndex]);
   const selectedArticleSummary = useMemo(() => {
@@ -293,7 +264,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       extractChangeLogSummary(originalArticle, selectedIndex)
     );
   }, [originalArticle, selectedArticle, selectedIndex]);
-  const selectedArticleSlug = selectedArticleSummary?.slug ?? null;
   // RHF form ref for edit article
   const editArticleFormRef = useRef<UseArticleFormReturn | null>(null);
   // Track edit form values reactively for UI updates
@@ -610,170 +580,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
   const _hasArticles = articleOptions.length > 0;
   const _articleDeleteTargetLabel = selectedArticleSummary?.title ?? articleLabel;
 
-  const articleFrequency = useMemo(() => buildArticleFrequencyIndex(changeLogEntries), [changeLogEntries]);
-
-  const _selectedArticleHistoryTotal = useMemo(() => {
-    if (!selectedArticleSlug) {
-      return 0;
-    }
-
-    const frequency = articleFrequency.find((entry) => entry.slug === selectedArticleSlug);
-    return frequency?.count ?? 0;
-  }, [articleFrequency, selectedArticleSlug]);
-
-  const _selectedArticleHistory = useMemo(() => {
-    if (!selectedArticleSlug) {
-      return [] as ChangeLogEntry[];
-    }
-
-    return changeLogEntries
-      .filter((entry) => entry.articles.some((article) => article.slug === selectedArticleSlug))
-      .slice(0, MAX_ARTICLE_HISTORY_ENTRIES);
-  }, [changeLogEntries, selectedArticleSlug]);
-
-  const changeLogArticleOptions = useMemo(() => {
-    const map = new Map<string, { slug: string; title: string }>();
-    changeLogEntries.forEach((entry) => {
-      entry.articles.forEach((article) => {
-        if (!map.has(article.slug)) {
-          map.set(article.slug, { slug: article.slug, title: article.title });
-        }
-      });
-    });
-
-    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
-  }, [changeLogEntries]);
-
-  const normalizedRange = useMemo(() => {
-    const start = changeLogFilters.startDate
-      ? Date.parse(`${changeLogFilters.startDate}T00:00:00.000Z`)
-      : null;
-    const end = changeLogFilters.endDate ? Date.parse(`${changeLogFilters.endDate}T23:59:59.999Z`) : null;
-
-    return {
-      start: Number.isFinite(start) ? (start as number) : null,
-      end: Number.isFinite(end) ? (end as number) : null,
-    };
-  }, [changeLogFilters.endDate, changeLogFilters.startDate]);
-
-  const filteredChangeLogEntries = useMemo(() => {
-    const query = changeLogFilters.searchQuery.trim().toLowerCase();
-
-    return changeLogEntries.filter((entry) => {
-      const entryTimestamp = Date.parse(entry.createdAt);
-      if (normalizedRange.start !== null && entryTimestamp < normalizedRange.start) {
-        return false;
-      }
-      if (normalizedRange.end !== null && entryTimestamp > normalizedRange.end) {
-        return false;
-      }
-
-      if (changeLogFilters.articleSlug) {
-        const matchesArticle = entry.articles.some((article) => article.slug === changeLogFilters.articleSlug);
-        if (!matchesArticle) {
-          return false;
-        }
-      }
-
-      if (query.length > 0) {
-        const commitMessage = (entry.commit?.message ?? "").toLowerCase();
-        const markdown = entry.markdown.toLowerCase();
-        const articleMatch = entry.articles.some((article) =>
-          article.title.toLowerCase().includes(query) || article.slug.toLowerCase().includes(query),
-        );
-
-        if (!commitMessage.includes(query) && !markdown.includes(query) && !articleMatch) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [changeLogEntries, changeLogFilters.articleSlug, changeLogFilters.searchQuery, normalizedRange]);
-
-  const activeChangeLogFilterCount = useMemo(() => {
-    let count = 0;
-    if (changeLogFilters.articleSlug) {
-      count += 1;
-    }
-    if (changeLogFilters.startDate) {
-      count += 1;
-    }
-    if (changeLogFilters.endDate) {
-      count += 1;
-    }
-    if (changeLogFilters.searchQuery.trim().length > 0) {
-      count += 1;
-    }
-    return count;
-  }, [changeLogFilters]);
-
-  const latestChangeLogEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
-
-  const handleChangeLogArticleSelect = useCallback((value: string) => {
-    setChangeLogFilters((previous) => ({
-      ...previous,
-      articleSlug: value === "__all__" ? null : value,
-    }));
-  }, []);
-
-  const handleChangeLogSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setChangeLogFilters((previous) => ({
-      ...previous,
-      searchQuery: value,
-    }));
-  }, []);
-
-  const handleChangeLogDateChange = useCallback(
-    (field: "startDate" | "endDate") => (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value.trim();
-      setChangeLogFilters((previous) => ({
-        ...previous,
-        [field]: value.length > 0 ? value : null,
-      }));
-    },
-    [],
-  );
-
-  const applyQuickDateRange = useCallback((days: number | null) => {
-    if (days === null) {
-      setChangeLogFilters((previous) => ({
-        ...previous,
-        startDate: null,
-        endDate: null,
-      }));
-      return;
-    }
-
-    const now = new Date();
-    const endValue = now.toISOString().slice(0, 10);
-    const start = new Date(now);
-    start.setUTCDate(start.getUTCDate() - (days - 1));
-    const startValue = start.toISOString().slice(0, 10);
-
-    setChangeLogFilters((previous) => ({
-      ...previous,
-      startDate: startValue,
-      endDate: endValue,
-    }));
-  }, []);
-
-  const clearChangeLogFilters = useCallback(() => {
-    setChangeLogFilters({ articleSlug: null, startDate: null, endDate: null, searchQuery: "" });
-  }, []);
-
-  const focusArticleFilter = useCallback((slug: string) => {
-    setChangeLogFilters((previous) => ({
-      ...previous,
-      articleSlug: slug,
-    }));
-  }, []);
-
-  const changeLogFiltersCardClassName = enableStickyPanels
-    ? "w-full space-y-5 bg-white/[0.04] md:sticky md:top-24"
-    : "w-full space-y-5 bg-white/[0.04]";
-
   const verifyDevCredentials = useCallback(
     async () => {
       if (hasNextEditorSession) {
@@ -817,72 +623,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     [],
   );
 
-  const pushChangeLogNotice = useCallback(
-    (next: ChangeNotice) => {
-      if (typeof window !== "undefined" && changeLogNoticeTimeoutRef.current !== null) {
-        window.clearTimeout(changeLogNoticeTimeoutRef.current);
-        changeLogNoticeTimeoutRef.current = null;
-      }
-      setChangeLogNotice(next);
-      if (typeof window !== "undefined") {
-        changeLogNoticeTimeoutRef.current = window.setTimeout(() => {
-          setChangeLogNotice(null);
-          changeLogNoticeTimeoutRef.current = null;
-        }, 6000);
-      }
-    },
-    [],
-  );
-
-  useEffect(
-    () => () => {
-      if (typeof window !== "undefined" && changeLogNoticeTimeoutRef.current !== null) {
-        window.clearTimeout(changeLogNoticeTimeoutRef.current);
-        changeLogNoticeTimeoutRef.current = null;
-      }
-    },
-    [],
-  );
-
-  const handleCopyChangeLogEntry = useCallback(
-    async (entry: ChangeLogEntry) => {
-      try {
-        await navigator.clipboard.writeText(entry.markdown);
-        pushChangeLogNotice({ type: "success", message: "Entry diff copied to clipboard." });
-      } catch {
-        pushChangeLogNotice({ type: "error", message: "Clipboard copy failed. Try downloading instead." });
-      }
-    },
-    [pushChangeLogNotice],
-  );
-
-  const handleDownloadChangeLogEntry = useCallback(
-    (entry: ChangeLogEntry) => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      try {
-        const primarySlug = entry.articles[0]?.slug ?? entry.id;
-        const slug = toFileSlug(primarySlug || "entry");
-        const timestamp = entry.createdAt.replace(/[:.]/g, "-");
-        const fileName = `changelog-${slug}-${timestamp}.diff`;
-        const blob = new Blob([entry.markdown], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(url);
-        pushChangeLogNotice({ type: "success", message: "Entry diff downloaded." });
-      } catch {
-        pushChangeLogNotice({ type: "error", message: "Download failed. Try copying instead." });
-      }
-    },
-    [pushChangeLogNotice],
-  );
 
   const articleIndexById = useMemo(() => {
     const map = new Map<number, number>();
@@ -1742,10 +1482,10 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       }
       setGithubNotice(null);
       if (tab !== "change-log") {
-        setChangeLogNotice(null);
+        clearChangeLogNotice();
       }
     },
-    [setChangeLogNotice, setCreatorNotice, setGithubNotice, setNotice],
+    [clearChangeLogNotice, setCreatorNotice, setGithubNotice, setNotice],
   );
 
   const handleTabChange = useCallback(
@@ -1961,61 +1701,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     setCategoryJumpKey((prev) => prev + 1);
   };
 
-  const handleProfileUpdated = useCallback(
-    (nextProfile: NormalizedUserProfile, canonicalKey: string) => {
-      setProfileData(nextProfile);
-      updateProfileCache(nextProfile);
-      setPasswordKey(canonicalKey);
-    },
-    [setPasswordKey, updateProfileCache],
-  );
-
-  const copyDatasetMarkdownForTagEditor = useCallback(async () => {
-    await navigator.clipboard.writeText(combinedChangelogMarkdown);
-  }, [combinedChangelogMarkdown]);
-
-  const downloadDatasetMarkdownForTagEditor = useCallback(() => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `dataset-changelog-${timestamp}.diff`;
-    const blob = new Blob([combinedChangelogMarkdown], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
-  }, [combinedChangelogMarkdown]);
-
-  const handleAboutMarkdownChange = useCallback((value: string) => {
-    replaceAboutMarkdown(value);
-  }, [replaceAboutMarkdown]);
-
-  const handleAboutMarkdownReset = useCallback(() => {
-    resetAboutMarkdown();
-  }, [resetAboutMarkdown]);
-
-  const handleAboutMarkdownCopy = useCallback(() => {
-    navigator.clipboard.writeText(aboutMarkdown).catch((error) => {
-      console.error('Failed to copy About markdown', error);
-    });
-  }, [aboutMarkdown]);
-
-  const handleAboutSubtitleChange = useCallback((value: string) => {
-    replaceAboutSubtitle(value);
-  }, [replaceAboutSubtitle]);
-
-  const handleAboutSubtitleReset = useCallback(() => {
-    resetAboutSubtitle();
-  }, [resetAboutSubtitle]);
-
-  const handleAboutSubtitleCopy = useCallback(() => {
-    navigator.clipboard.writeText(aboutSubtitle).catch((error) => {
-      console.error('Failed to copy About subtitle', error);
-    });
-  }, [aboutSubtitle]);
-
   const handleGeneratorPromptChange = useCallback((value: string) => {
     replaceGeneratorPrompt(value);
   }, [replaceGeneratorPrompt]);
@@ -2029,59 +1714,6 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
       console.error('Failed to copy generator prompt', error);
     });
   }, [generatorPrompt]);
-
-  const canonicalizeFounderKeyList = useCallback((keys: readonly string[]) => {
-    const seen = new Set<string>();
-    const next: string[] = [];
-
-    keys.forEach((entry) => {
-      if (typeof entry !== 'string') {
-        return;
-      }
-
-      const trimmed = entry.trim();
-      if (!trimmed) {
-        return;
-      }
-
-      const normalized = trimmed.toLowerCase();
-      if (seen.has(normalized)) {
-        return;
-      }
-
-      seen.add(normalized);
-      next.push(trimmed);
-    });
-
-    return next;
-  }, []);
-
-  const handleAboutFounderToggle = useCallback((rawKey: string) => {
-    if (typeof rawKey !== 'string') {
-      return;
-    }
-
-    const trimmedKey = rawKey.trim();
-    if (!trimmedKey) {
-      return;
-    }
-
-    const normalizedKey = trimmedKey.toLowerCase();
-    const normalizedExisting = aboutFounderKeys.map((entry) => entry.trim().toLowerCase());
-    const hasKey = normalizedExisting.includes(normalizedKey);
-
-    if (hasKey) {
-      const filtered = aboutFounderKeys.filter((entry, index) => normalizedExisting[index] !== normalizedKey);
-      replaceAboutFounderKeys(canonicalizeFounderKeyList(filtered));
-      return;
-    }
-
-    replaceAboutFounderKeys(canonicalizeFounderKeyList([...aboutFounderKeys, trimmedKey]));
-  }, [aboutFounderKeys, canonicalizeFounderKeyList, replaceAboutFounderKeys]);
-
-  const handleAboutFounderReset = useCallback(() => {
-    resetAboutFounderKeys();
-  }, [resetAboutFounderKeys]);
 
   // Convex save button (requires authentication via handleSaveToConvex)
   const isConvexSaveBlocked =
@@ -2149,6 +1781,34 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
     ),
     [primaryCommitNotice, hasNextEditorSession, passwordKey, hasInvalidJsonDraft, isSaving, isCommitDisabled, handleSaveToGitHub, convexSaveButton]
   );
+
+  const { profileTabProps, aboutTabProps, tagEditorTabProps } = useDevModeSupportTabProps({
+    profileData,
+    profileHistory,
+    verifyDevCredentials,
+    setProfileData,
+    setPasswordKey,
+    hasStoredCredentials,
+    commitPanel,
+    combinedChangelogMarkdown,
+    hasPendingChanges,
+    aboutMarkdown,
+    originalAboutMarkdown,
+    replaceAboutMarkdown,
+    resetAboutMarkdown,
+    aboutSubtitle,
+    originalAboutSubtitle,
+    replaceAboutSubtitle,
+    resetAboutSubtitle,
+    aboutFounderKeys,
+    originalAboutFounderKeys,
+    replaceAboutFounderKeys,
+    resetAboutFounderKeys,
+    markdownDiff: aboutMarkdownChangelog.markdown,
+    subtitleDiff: aboutSubtitleChangelog.markdown,
+    subtitleHasChanges: aboutSubtitleChangelog.hasChanges,
+    placeholderValues: aboutPlaceholderValues,
+  });
 
   const _createCommitPanel = (
     <DevModeCreateCommitPanel
@@ -2320,292 +1980,17 @@ export function DevModePage({ activeTab, initialArticleSlug: _initialArticleSlug
 
       <div className={contentWrapperClass}>
         {activeTab === "change-log" ? (
-        <div className="mt-10 grid w-full gap-6 md:grid-cols-[19rem,1fr]">
-          <div className="space-y-6 min-w-0">
-            <SectionCard className={changeLogFiltersCardClassName}>
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-fuchsia-200">Refine history</h2>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-article">
-                  Article
-                </label>
-                <Select
-                  value={changeLogFilters.articleSlug ?? "__all__"}
-                  onValueChange={handleChangeLogArticleSelect}
-                >
-                  <SelectTrigger id="change-log-article">
-                    <SelectValue placeholder="All articles" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">All articles</SelectItem>
-                    {changeLogArticleOptions.map((option) => (
-                      <SelectItem key={option.slug} value={option.slug}>
-                        {option.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-start">
-                    Start date
-                  </label>
-                  <Input
-                    id="change-log-start"
-                    type="date"
-                    value={changeLogFilters.startDate ?? ""}
-                    onChange={handleChangeLogDateChange("startDate")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-end">
-                    End date
-                  </label>
-                  <Input
-                    id="change-log-end"
-                    type="date"
-                    value={changeLogFilters.endDate ?? ""}
-                    onChange={handleChangeLogDateChange("endDate")}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Button
-                  variant="glass"
-                  size="xs"
-                  className="rounded-full"
-                  onClick={() => applyQuickDateRange(7)}
-                >
-                  Past 7 days
-                </Button>
-                <Button
-                  variant="glass"
-                  size="xs"
-                  className="rounded-full"
-                  onClick={() => applyQuickDateRange(30)}
-                >
-                  Past 30 days
-                </Button>
-                <Button
-                  variant="glass"
-                  size="xs"
-                  className="rounded-full"
-                  onClick={() => applyQuickDateRange(null)}
-                >
-                  All time
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.3em] text-white/45" htmlFor="change-log-search">
-                  Search
-                </label>
-                <Input
-                  id="change-log-search"
-                  type="search"
-                  placeholder="Find commits by keyword or diff copy…"
-                  value={changeLogFilters.searchQuery}
-                  onChange={handleChangeLogSearchChange}
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-                <span className="rounded-full bg-white/10 px-3 py-1">{`${changeLogEntries.length} entr${changeLogEntries.length === 1 ? "y" : "ies"}`}</span>
-                {latestChangeLogEntry && (
-                  <span className="rounded-full bg-white/10 px-3 py-1">
-                    Latest: {new Date(latestChangeLogEntry.createdAt).toLocaleString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                )}
-                {articleFrequency[0] && (
-                  <span className="rounded-full bg-white/10 px-3 py-1">
-                    Most active: {articleFrequency[0].title}
-                  </span>
-                )}
-              </div>
-
-              {activeChangeLogFilterCount > 0 && (
-                <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70">
-                  <span>{activeChangeLogFilterCount} filters active</span>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={clearChangeLogFilters}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              )}
-            </SectionCard>
-          </div>
-
-          <div className="space-y-6 min-w-0">
-            {changeLogNotice && (
-              <div
-                className={`rounded-xl border px-4 py-3 text-sm ${
-                  changeLogNotice.type === "error"
-                    ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
-                    : "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-                }`}
-              >
-                {changeLogNotice.message}
-              </div>
-            )}
-
-            <SectionCard className="min-w-0 space-y-4 bg-white/[0.04]">
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-fuchsia-200">GitHub commits</h2>
-              </div>
-
-              {filteredChangeLogEntries.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/80 to-slate-950 px-6 py-16 text-center">
-                  <Icon icon="lucide:wrench" size={40} className="mb-4 text-white/40" />
-                  <p className="text-base font-semibold text-white/80">No commits logged yet</p>
-                  <p className="mt-2 text-sm text-white/60">Ship your first draft to populate the timeline.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredChangeLogEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-inner shadow-black/20"
-                    >
-                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-white/90">
-                          {new Date(entry.createdAt).toLocaleString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "numeric",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                        <p className="text-xs text-white/60">
-                          {entry.commit?.url ? (
-                            <a
-                              href={entry.commit.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-fuchsia-200 transition hover:text-fuchsia-100"
-                            >
-                              {entry.commit.message}
-                            </a>
-                          ) : (
-                            entry.commit.message
-                          )}
-                        </p>
-                        {entry.submittedBy && (
-                          <p className="text-xs text-white/45">Submitted by {entry.submittedBy}</p>
-                        )}
-                      </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="glass"
-                            size="xs"
-                            className="rounded-full"
-                            onClick={() => handleCopyChangeLogEntry(entry)}
-                          >
-                            <Icon icon="lucide:copy" size={16} />
-                            Copy diff
-                          </Button>
-                          <Button
-                            variant="glass"
-                            size="xs"
-                            className="rounded-full"
-                            onClick={() => handleDownloadChangeLogEntry(entry)}
-                          >
-                            <Icon icon="lucide:download" size={16} />
-                            Download .diff
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {entry.articles.map((article) => {
-                          const href = viewToPath({ type: "substance", slug: article.slug });
-                          return (
-                            <Button
-                              key={`${entry.id}-${article.slug}`}
-                              variant="glass"
-                              size="xs"
-                              className="rounded-full"
-                              asChild
-                            >
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => focusArticleFilter(article.slug)}
-                              >
-                                {article.title}
-                              </a>
-                            </Button>
-                          );
-                        })}
-                      </div>
-
-                      <DiffPreview diffText={entry.markdown} className="max-h-56" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
-          </div>
-        </div>
+          <DevModeChangeLogTab controller={changeLog} />
       ) : activeTab === "profile" ? (
-        <ProfileEditorTab
-          profile={profileData}
-          profileHistory={profileHistory}
-          verifyCredentials={verifyDevCredentials}
-          onProfileUpdated={handleProfileUpdated}
-          hasStoredCredentials={hasStoredCredentials}
-        />
+        <ProfileEditorTab {...profileTabProps} />
       ) : activeTab === "index-layout" ? (
         <IndexLayoutTab
           commitPanel={commitPanel}
         />
       ) : activeTab === "about" ? (
-        <AboutEditorTab
-          aboutMarkdown={aboutMarkdown}
-          originalAboutMarkdown={originalAboutMarkdown}
-          onMarkdownChange={handleAboutMarkdownChange}
-          onResetMarkdown={handleAboutMarkdownReset}
-          aboutSubtitle={aboutSubtitle}
-          originalAboutSubtitle={originalAboutSubtitle}
-          onSubtitleChange={handleAboutSubtitleChange}
-          onResetSubtitle={handleAboutSubtitleReset}
-          aboutFounderKeys={aboutFounderKeys}
-          originalFounderKeys={originalAboutFounderKeys}
-          onToggleFounderKey={handleAboutFounderToggle}
-          onResetFounderKeys={handleAboutFounderReset}
-          availableProfiles={userProfiles}
-          markdownDiff={aboutMarkdownChangelog.markdown}
-          subtitleDiff={aboutSubtitleChangelog.markdown}
-          subtitleHasChanges={aboutSubtitleChangelog.hasChanges}
-          onCopyMarkdown={handleAboutMarkdownCopy}
-          onCopySubtitle={handleAboutSubtitleCopy}
-          commitPanel={commitPanel}
-          placeholderValues={aboutPlaceholderValues}
-        />
+        <AboutEditorTab {...aboutTabProps} />
       ) : activeTab === "tag-editor" ? (
-        <TagEditorTab
-          commitPanel={commitPanel}
-          datasetMarkdown={combinedChangelogMarkdown}
-          hasDatasetChanges={hasPendingChanges}
-          onCopyDatasetMarkdown={copyDatasetMarkdownForTagEditor}
-          onDownloadDatasetMarkdown={downloadDatasetMarkdownForTagEditor}
-        />
+        <TagEditorTab {...tagEditorTabProps} />
       ) : activeTab === "articles" ? (
         <SubstanceEditorTab
           generatorPrompt={generatorPrompt}
