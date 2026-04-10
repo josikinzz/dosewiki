@@ -1,36 +1,42 @@
-import { memo, useCallback, useId, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Icon } from "@/components/common/Icon";
-import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 import { IconBadge } from "@/components/common/IconBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
-import { slugify } from "@/utils/slug";
 import type { ManualCategoryDefinition, ManualCategorySection, SubstanceOption, SlugStatus } from "./types";
 import { AddSubstanceControl } from "./AddSubstanceControl";
+import { CategoryEditorDetailsPanel } from "./CategoryEditorDetailsPanel";
 import { SectionEditor } from "./SectionEditor";
 import { SubstanceListItem } from "./SubstanceListItem";
-
-const computeSlugCounts = (category: ManualCategoryDefinition): Map<string, number> => {
-  const counts = new Map<string, number>();
-  const register = (value: string) => {
-    const normalized = slugify(value);
-    if (!normalized) {
-      return;
-    }
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
-  };
-
-  category.drugs.forEach(register);
-  category.sections.forEach((section) => section.drugs.forEach(register));
-
-  return counts;
-};
+import {
+  addTopLevelCategoryDrug,
+  buildCategorySlugStatuses,
+  collectExistingCategorySlugs,
+  collectNormalizedCategorySlugs,
+  collectNormalizedSlugs,
+  getCategorySectionId,
+  moveCategorySection,
+  removeCategorySection,
+  removeTopLevelCategoryDrug,
+  reorderCategorySections,
+  replaceCategorySection,
+  resolveCategoryColumn,
+  updateCategoryField,
+} from "./categoryEditorUtils";
 
 interface CategoryEditorProps {
   category: ManualCategoryDefinition;
@@ -52,6 +58,8 @@ interface CategoryEditorProps {
   sortSlugsWithCommonPriority: (slugs: readonly string[]) => string[];
   resolveSlugStatus: (slug: string, counts: Map<string, number>) => SlugStatus;
 }
+
+type EditableCategoryField = "label" | "key" | "iconKey" | "notes";
 
 export const CategoryEditor = memo(
   ({
@@ -83,133 +91,79 @@ export const CategoryEditor = memo(
       transform: CSS.Transform.toString(transform),
       transition,
     };
-    const slugCounts = useMemo(() => computeSlugCounts(category), [category]);
-    const slugStatuses = useMemo(() => {
-      const map = new Map<string, SlugStatus>();
-      category.drugs.forEach((slug) => {
-        map.set(slug, resolveSlugStatus(slug, slugCounts));
-      });
-      category.sections.forEach((section) => {
-        section.drugs.forEach((slug) => {
-          map.set(slug, resolveSlugStatus(slug, slugCounts));
-        });
-      });
-      return map;
-    }, [category.drugs, category.sections, resolveSlugStatus, slugCounts]);
 
+    const slugStatuses = useMemo(
+      () => buildCategorySlugStatuses(category, resolveSlugStatus),
+      [category, resolveSlugStatus],
+    );
     const categoryIcon = useMemo(() => getCategoryIcon(category.iconKey), [category.iconKey]);
     const sortedPrimaryDrugs = useMemo(
       () => sortSlugsWithCommonPriority(category.drugs),
       [category.drugs, sortSlugsWithCommonPriority],
     );
-
-    // Column assignment - check columns object first, fall back to legacy column, then round-robin
-    const currentColumn = useMemo(() => {
-      if (category.columns && category.columns[String(columnCount)] !== undefined) {
-        return category.columns[String(columnCount)];
-      }
-      if (category.column !== undefined) {
-        return category.column % columnCount;
-      }
-      return index % columnCount;
-    }, [category.columns, category.column, columnCount, index]);
-
-    const handleLabelChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, label: value }));
-      },
-      [index, onUpdateCategory],
+    const currentColumn = useMemo(
+      () => resolveCategoryColumn(category, columnCount, index),
+      [category, columnCount, index],
+    );
+    const topLevelSlugSet = useMemo(
+      () => collectNormalizedSlugs(category.drugs),
+      [category.drugs],
+    );
+    const categorySlugSet = useMemo(
+      () => collectNormalizedCategorySlugs(category),
+      [category],
+    );
+    const existingSlugs = useMemo(
+      () => collectExistingCategorySlugs(category),
+      [category],
+    );
+    const sectionIds = useMemo(
+      () => category.sections.map((section) => getCategorySectionId(category.key, section.key)),
+      [category.key, category.sections],
     );
 
-    const handleKeyChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, key: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleIconChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, iconKey: value }));
-      },
-      [index, onUpdateCategory],
-    );
-
-    const handleNotesChange = useCallback(
-      (value: string) => {
-        onUpdateCategory(index, (current) => ({ ...current, notes: value }));
+    const handleFieldChange = useCallback(
+      (field: EditableCategoryField, value: string) => {
+        onUpdateCategory(index, (current) => updateCategoryField(current, field, value));
       },
       [index, onUpdateCategory],
     );
 
     const handleTopLevelAdd = useCallback(
       (slug: string) => {
-        onUpdateCategory(index, (current) => ({
-          ...current,
-          drugs: sortSlugsWithCommonPriority([...current.drugs, slug]),
-        }));
+        onUpdateCategory(index, (current) =>
+          addTopLevelCategoryDrug(current, slug, sortSlugsWithCommonPriority));
       },
       [index, onUpdateCategory, sortSlugsWithCommonPriority],
     );
 
     const handleTopLevelRemove = useCallback(
       (slug: string) => {
-        onUpdateCategory(index, (current) => ({
-          ...current,
-          drugs: sortSlugsWithCommonPriority(
-            current.drugs.filter((entry) => entry !== slug),
-          ),
-        }));
+        onUpdateCategory(index, (current) =>
+          removeTopLevelCategoryDrug(current, slug, sortSlugsWithCommonPriority));
       },
       [index, onUpdateCategory, sortSlugsWithCommonPriority],
     );
 
     const handleSectionUpdate = useCallback(
       (sectionIndex: number, nextSection: ManualCategorySection) => {
-        onUpdateCategory(index, (current) => {
-          if (sectionIndex < 0 || sectionIndex >= current.sections.length) {
-            return current;
-          }
-          const currentSection = current.sections[sectionIndex];
-          if (currentSection === nextSection) {
-            return current;
-          }
-          const nextSections = current.sections.slice();
-          nextSections[sectionIndex] = nextSection;
-          return { ...current, sections: nextSections };
-        });
+        onUpdateCategory(index, (current) =>
+          replaceCategorySection(current, sectionIndex, nextSection));
       },
       [index, onUpdateCategory],
     );
 
     const handleSectionMove = useCallback(
       (sectionIndex: number, direction: "up" | "down") => {
-        onUpdateCategory(index, (current) => {
-          const targetIndex = direction === "up" ? sectionIndex - 1 : sectionIndex + 1;
-          if (targetIndex < 0 || targetIndex >= current.sections.length) {
-            return current;
-          }
-          const nextSections = current.sections.slice();
-          const [moved] = nextSections.splice(sectionIndex, 1);
-          nextSections.splice(targetIndex, 0, moved);
-          return { ...current, sections: nextSections };
-        });
+        onUpdateCategory(index, (current) =>
+          moveCategorySection(current, sectionIndex, direction));
       },
       [index, onUpdateCategory],
     );
 
     const handleSectionRemove = useCallback(
       (sectionIndex: number) => {
-        onUpdateCategory(index, (current) => {
-          if (sectionIndex < 0 || sectionIndex >= current.sections.length) {
-            return current;
-          }
-          const nextSections = current.sections.filter((_, currentIndex) => currentIndex !== sectionIndex);
-          if (nextSections.length === current.sections.length) {
-            return current;
-          }
-          return { ...current, sections: nextSections };
-        });
+        onUpdateCategory(index, (current) => removeCategorySection(current, sectionIndex));
       },
       [index, onUpdateCategory],
     );
@@ -246,96 +200,32 @@ export const CategoryEditor = memo(
       onAddSection(index);
     }, [index, onAddSection]);
 
-    const [detailsOpen, setDetailsOpen] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(true);
-    const totalPrimary = category.drugs.length;
-    const sectionCount = category.sections.length;
-    const categoryKeyId = useId();
-    const categoryIconId = useId();
-    const categoryNotesId = useId();
-
-    const topLevelSlugSet = useMemo(() => new Set(category.drugs.map((slug) => slugify(slug))), [category.drugs]);
-    const categorySlugSet = useMemo(() => {
-      const set = new Set<string>();
-      category.drugs.forEach((slug) => set.add(slugify(slug)));
-      category.sections.forEach((section) => {
-        section.drugs.forEach((slug) => set.add(slugify(slug)));
-      });
-      return set;
-    }, [category]);
-
-    const sectionSensors = useSensors(
-      useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-      useSensor(KeyboardSensor),
-    );
-
-    const getSectionId = useCallback(
-      (section: ManualCategorySection) => `${category.key}::${section.key}`,
-      [category.key],
-    );
-
     const handleSectionDragEnd = useCallback(
       ({ active, over }: DragEndEvent) => {
         if (!over) {
           return;
         }
+
         const activeId = String(active.id);
         const overId = String(over.id);
         if (activeId === overId) {
           return;
         }
 
-        onUpdateCategory(index, (current) => {
-          const fromIndex = current.sections.findIndex((section) => getSectionId(section) === activeId);
-          const toIndex = current.sections.findIndex((section) => getSectionId(section) === overId);
-          if (fromIndex < 0 || toIndex < 0) {
-            return current;
-          }
-          return {
-            ...current,
-            sections: arrayMove(current.sections, fromIndex, toIndex),
-          };
-        });
+        onUpdateCategory(index, (current) => reorderCategorySections(current, activeId, overId));
       },
-      [getSectionId, index, onUpdateCategory],
+      [index, onUpdateCategory],
     );
 
-    const detailsPanel = detailsOpen && isExpanded ? (
-      <div className="mt-2 w-full max-w-[380px] rounded-2xl border border-white/10 bg-slate-950/50 p-3 text-sm text-white/75 shadow-inner shadow-black/20">
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-1">
-            <label htmlFor={categoryKeyId} className="text-xs uppercase tracking-wide text-white/60">Category key</label>
-            <Input
-              id={categoryKeyId}
-              className="w-full"
-              value={category.key}
-              onChange={(event) => handleKeyChange(event.target.value)}
-              placeholder="Unique key"
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor={categoryIconId} className="text-xs uppercase tracking-wide text-white/60">Icon key</label>
-            <Input
-              id={categoryIconId}
-              className="w-full"
-              value={category.iconKey}
-              onChange={(event) => handleIconChange(event.target.value)}
-              placeholder="Icon identifier"
-            />
-          </div>
-        </div>
-        <div className="mt-3 space-y-1">
-          <label htmlFor={categoryNotesId} className="text-xs uppercase tracking-wide text-white/60">Editor notes</label>
-          <Textarea
-            id={categoryNotesId}
-            className="min-h-[90px] w-full"
-            value={category.notes ?? ""}
-            onChange={(event) => handleNotesChange(event.target.value)}
-            placeholder="Optional editor notes for this category"
-          />
-        </div>
-      </div>
-    ) : null;
+    const sectionSensors = useSensors(
+      useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+      useSensor(KeyboardSensor),
+    );
+
+    const [detailsOpen, setDetailsOpen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
+    const totalPrimary = category.drugs.length;
+    const sectionCount = category.sections.length;
 
     return (
       <article ref={setNodeRef} style={dragStyle} className="w-full">
@@ -363,7 +253,7 @@ export const CategoryEditor = memo(
                 <Input
                   className="w-full text-[15px] font-semibold tracking-wide"
                   value={category.label}
-                  onChange={(event) => handleLabelChange(event.target.value)}
+                  onChange={(event) => handleFieldChange("label", event.target.value)}
                   placeholder="Category label"
                 />
               </div>
@@ -396,7 +286,11 @@ export const CategoryEditor = memo(
                   aria-label={isExpanded ? "Collapse category" : "Expand category"}
                   className="h-7 w-7"
                 >
-                  {isExpanded ? <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} /> : <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5" size={14} />}
+                  {isExpanded ? (
+                    <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5" size={14} />
+                  ) : (
+                    <Icon icon="lucide:chevron-right" className="h-3.5 w-3.5" size={14} />
+                  )}
                 </Button>
                 <Button
                   variant="glass"
@@ -454,16 +348,18 @@ export const CategoryEditor = memo(
               </div>
             </div>
 
-            {detailsPanel}
+            {detailsOpen && isExpanded ? (
+              <CategoryEditorDetailsPanel
+                category={category}
+                onFieldChange={handleFieldChange}
+              />
+            ) : null}
 
             {isExpanded ? (
               <div className="space-y-5 text-sm text-white/80">
                 <AddSubstanceControl
                   label="Add top level categoryless substance..."
-                  existingSlugs={[
-                    ...category.drugs,
-                    ...category.sections.flatMap((section) => section.drugs),
-                  ]}
+                  existingSlugs={existingSlugs}
                   onAdd={handleTopLevelAdd}
                   options={substanceOptions}
                   filterContext={{
@@ -491,14 +387,11 @@ export const CategoryEditor = memo(
                     collisionDetection={closestCenter}
                     onDragEnd={handleSectionDragEnd}
                   >
-                    <SortableContext
-                      items={category.sections.map((section) => getSectionId(section))}
-                      strategy={verticalListSortingStrategy}
-                    >
+                    <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
                       {category.sections.map((section, sectionIndex) => (
                         <SectionEditor
                           key={`${section.key}-${sectionIndex}`}
-                          sortableId={getSectionId(section)}
+                          sortableId={sectionIds[sectionIndex] ?? getCategorySectionId(category.key, section.key)}
                           section={section}
                           onUpdate={(next) => handleSectionUpdate(sectionIndex, next)}
                           onRemove={() => handleSectionRemove(sectionIndex)}

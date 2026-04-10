@@ -8,6 +8,7 @@ import type {
   ManualIndexConfig,
   SubstanceOption,
 } from "./types";
+import { resolveCategoryColumn } from "./categoryEditorUtils";
 import { generateUniqueKey } from "./utils";
 
 export type ColumnGroupItem = {
@@ -59,13 +60,7 @@ export function useIndexLayoutCategoryController({
 
   const getColumnForCategory = useCallback(
     (category: ManualCategoryDefinition, index: number): number => {
-      if (category.columns && category.columns[String(columnCount)] !== undefined) {
-        return category.columns[String(columnCount)] % columnCount;
-      }
-      if (category.column !== undefined) {
-        return category.column % columnCount;
-      }
-      return index % columnCount;
+      return resolveCategoryColumn(category, columnCount, index) % columnCount;
     },
     [columnCount],
   );

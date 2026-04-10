@@ -1,6 +1,6 @@
 # Refactoring Task Tracker
-> **Last updated**: 2026-04-09 19:05 MDT | **Updated by**: AI Agent
-> **Status**: Phase 5 | ✅ 10/10 tasks complete (100%)
+> **Last updated**: 2026-04-10 16:22 MDT | **Updated by**: AI Agent
+> **Status**: Phase 5 | ✅ 12/12 tasks complete (100%)
 
 ## Legend
 - Priority: 🔴 P0 | 🟠 P1 | 🟡 P2 | 🔵 P3
@@ -15,9 +15,9 @@
 |-------|-------|----|----|----|-----|----------|
 | Phase 0: Safety Net | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
 | Phase 1: Quick Wins | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
-| Phase 2: Decomposition | 3 | 3 | 0 | 0 | 0 | ████████ 100% |
+| Phase 2: Decomposition | 5 | 5 | 0 | 0 | 0 | ████████ 100% |
 | Phase 3: Architecture | 2 | 2 | 0 | 0 | 0 | ████████ 100% |
-| **Total** | **10** | **10** | **0** | **0** | **0** | **██████████ 100%** |
+| **Total** | **12** | **12** | **0** | **0** | **0** | **██████████ 100%** |
 
 ---
 
@@ -140,6 +140,37 @@
   - [x] **Update this tracker**
 - **Rollback**: revert to commit before split
 
+### TASK-011 | 🟠 P1 | ✅ DONE | Effort: M
+**Decompose `yamlParser.ts` into focused parser and normalization modules**
+- **Source file**: `src/features/dev/tools/substance-editor/yamlParser.ts`
+- **Target files**: focused modules under `src/features/dev/tools/substance-editor/`
+- **Depends on**: —
+- **Risk**: Medium — legacy YAML repair logic touches multiple article sections
+- **Subtasks**:
+  - [x] Add characterization tests for legacy normalization paths
+  - [x] Extract shared coercion/effect helpers
+  - [x] Extract harm-potential normalization
+  - [x] Keep `parseGeneratedYaml` and `normalizeArticleInput` API stable
+  - [x] Run targeted tests and `npm run typecheck`
+  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] **Update this tracker**
+- **Rollback**: revert to commit before decomposition
+
+### TASK-012 | 🟠 P1 | ✅ DONE | Effort: M
+**Decompose `CategoryEditor.tsx` into focused category-editor helpers**
+- **Source file**: `src/features/dev/tools/index-layout/CategoryEditor.tsx`
+- **Target files**: focused modules under `src/features/dev/tools/index-layout/`
+- **Depends on**: TASK-006
+- **Risk**: Medium — category and section mutations are tightly coupled to the editor surface
+- **Subtasks**:
+  - [x] Extract pure category-editor derivation/update helpers
+  - [x] Extract the category details panel from the main component
+  - [x] Add targeted tests for the new helper layer
+  - [x] Run targeted tests, lint, and typecheck
+  - [x] Update `CLEANUP-AUDIT.md` metrics
+  - [x] **Update this tracker**
+- **Rollback**: revert to commit before the category-editor split
+
 ---
 
 ## Phase 3: Architecture Improvements
@@ -186,3 +217,5 @@
 | TASK-008 | 2026-04-09 18:42 MDT | `TagMultiSelect.tsx` at 531 LOC with filtering, creation, keyboard interaction, menu rendering, and selected-tag rendering all inline and untested | Added `TagMultiSelect.test.tsx` with 3 passing tests, extracted `useTagMultiSelectState.ts`, `TagMultiSelectMenu.tsx`, `TagMultiSelectSelectedTags.tsx`, and `tagMultiSelectUtils.ts`; `TagMultiSelect.tsx` reduced to 162 LOC and `npm run typecheck` passed |
 | TASK-009 | 2026-04-09 18:54 MDT | `DevModePage.tsx` at 2624 LOC with changelog filters/rendering and about/profile/tag prop wiring kept inline with the `/dev` shell | Extracted `useDevModeChangeLog.ts`, `DevModeChangeLogTab.tsx`, and `useDevModeSupportTabProps.ts`; `DevModePage.tsx` reduced to 2009 LOC while preserving child tab APIs; full `npm run test` and `npm run typecheck -- --pretty false` passed |
 | TASK-010 | 2026-04-09 19:04 MDT | `SubstanceEditorTab.tsx` at 874 LOC with source aggregation, draft/save orchestration, and section-editor wiring inline; `useSectionGeneration.ts` at 671 LOC mixing pure reasoning policy with async execution | Extracted `useSubstanceEditorSourceData.ts`, `useSubstanceEditorDraftController.ts`, `substanceEditorDraftUtils.ts`, and `sectionGenerationUtils.ts`; `SubstanceEditorTab.tsx` reduced to 499 LOC and `useSectionGeneration.ts` reduced to 486 LOC; targeted substance-editor tests and `npm run typecheck -- --pretty false` passed |
+| TASK-011 | 2026-04-10 10:36 MDT | `yamlParser.ts` at 706 LOC with parsing, shared coercion helpers, section normalization, and harm-potential legacy repair all concentrated in one file | Added characterization coverage for subjective-effects and harm-potential legacy shapes, extracted `yamlParserShared.ts`, `yamlParserSectionNormalizers.ts`, and `yamlParserHarmPotential.ts`, and reduced `yamlParser.ts` to a 135 LOC parse facade; targeted parser tests and `npm run typecheck` passed |
+| TASK-012 | 2026-04-10 16:22 MDT | `CategoryEditor.tsx` at 548 LOC with category field handlers, immutable section mutations, slug-derivation helpers, and details-panel rendering all concentrated in one file | Extracted `categoryEditorUtils.ts`, `CategoryEditorDetailsPanel.tsx`, and `categoryEditorUtils.test.ts`; reduced `CategoryEditor.tsx` to 441 LOC, reused the new column helper in `useIndexLayoutCategoryController.ts`, and passed targeted tests, ESLint, and `npm run typecheck` |
